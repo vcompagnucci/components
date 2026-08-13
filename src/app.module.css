@@ -2,10 +2,31 @@
    CSS: padding 5rem; su escalón mobile está en 768, acá 640 por el
    DESIGN.md — divergencia consciente) ═══════════ */
 .page {
-  padding-top: var(--space-64); /* + 16 del barInner = 80 */
+  padding-top: var(--space-64); /* + 16 del mast/barInner = 80 */
 }
 .page > .content:first-child {
   padding-top: var(--space-16);
+}
+
+/* ═══════════ MASTHEAD ═══════════
+   Arreglo stack: título arriba, una línea debajo, tabs después.
+   El subtítulo NO cambia de tamaño — sólo baja de peso y de color, que
+   es la regla compartida por benji (h1 500 ink / time 460 al 40%) y por
+   josh (nombre y descripción al mismo tamaño, sólo cambia el color). */
+.mast {
+  max-width: var(--grid-max);
+  margin: 0 auto var(--space-8);
+  padding: var(--space-16) var(--margin) 0;
+}
+.mastTitle {
+  font-size: var(--fs);
+  font-weight: var(--fw-title);
+  letter-spacing: var(--tracking-title);
+  line-height: 1.3;
+  margin: 0;
+}
+.mastSub {
+  color: var(--text-secondary);
 }
 
 /* ═══════════ NAV ═══════════ */

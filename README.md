@@ -23,6 +23,8 @@ pnpm typecheck
 | Demos nativos | Expo demuestra VIVO vía react-native-web cuando la pieza lo banca (como gluestack/RNR/tamagui); SwiftUI siempre video | verificado en esos sitios |
 | Tipografía | Familia Benji: un solo tamaño (14px), jerarquía por peso 460/500/600, tracking en rem −0.004 (−0.006 en títulos), lh 1.43 | CSS servido de benji.org — cita en `.context/recon/TYPE-SYSTEMS.md` |
 | Aire superior | 80px (32 bajo 640px) | CSS de benji.org (`padding: 5rem`; su escalón está en 768 — 640 acá es herencia del DESIGN.md, divergencia consciente) |
+| Masthead | "Library" (600) + una línea gris debajo. El subtítulo no cambia de tamaño: sólo peso y color | benji (`h1` 500 ink / `time` 460 al 40%) y josh (nombre y descripción al mismo tamaño, sólo cambia color) |
+| Copy del subtítulo | *Crafted components for web and iOS.* Sin artículo (paralelo con "iOS"), y "and" en vez de "&" porque es prosa — josh reserva el "&" para títulos | copy medido de interfacecraft.dev y benji.org |
 | Riel | 52rem compartido por nav y contenido | DESIGN.md de Carousels |
 | Colores/espaciado | Tokens heredados del DESIGN.md de Carousels (solo tipografía, colores y tamaños) | `src/tokens.css` |
 | Stack | Vite + React 19, versiones exactas, CSS plano + CSS Modules | — |
@@ -31,5 +33,4 @@ pnpm typecheck
 
 - Radios, elevación, z-index — se definen desde la primera pieza construida
 - Primera pieza a construir dentro del stage
-- Identidad de la página (¿wordmark en la barra?) · nombre del proyecto
-- Idioma del copy
+- Footer / firma: el nombre "Vito Compagnucci" todavía no está en ninguna parte
