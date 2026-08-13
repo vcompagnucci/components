@@ -7,7 +7,7 @@ exposición, no una librería instalable.
 
 ```bash
 pnpm install
-pnpm dev        # Vite en http://localhost:5173
+pnpm dev        # http://localhost:3002
 pnpm build
 pnpm typecheck
 ```
