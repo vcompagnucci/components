@@ -18,7 +18,7 @@ pnpm typecheck
 | --- | --- | --- |
 | Formato | Exposición de página única; detalle por pieza como estado, sin rutas | prototipos en `.context/prototypes/` |
 | Display | Segmented: una pieza por fila, título arriba, preview grande | ídem |
-| Nav | Texto con línea abajo que se estira al viajar (patrón `.dind` del nav de monrovia) | `nav.module.css` de monrovia |
+| Nav | Texto con línea abajo que se estira al viajar (patrón `.dind` del nav de monrovia); gap 20, línea 2px a 6 | `nav.module.css` de monrovia + picker de opciones |
 | Categorías | All · Web · iOS — la plataforma es propiedad de la pieza; en All la lista se parte con encabezados grises | convención Apple/Material (se nombra la plataforma, nunca "Native") |
 | Demos nativos | Expo demuestra VIVO vía react-native-web cuando la pieza lo banca (como gluestack/RNR/tamagui); SwiftUI siempre video | verificado en esos sitios |
 | Tipografía | Familia Benji: un solo tamaño (14px), jerarquía por peso 460/500/600, tracking en rem −0.004 (−0.006 en títulos), lh 1.43 | CSS servido de benji.org — cita en `.context/recon/TYPE-SYSTEMS.md` |
@@ -29,7 +29,7 @@ pnpm typecheck
 
 ## Pendiente (marcado como tal en `src/tokens.css`)
 
-- Línea de la nav: grosor y distancia (opciones vivas en `.context/prototypes/navigation.html`)
 - Radios, elevación, z-index — se definen desde la primera pieza construida
 - Primera pieza a construir dentro del stage
-- Idioma del copy · nombre del paquete
+- Identidad de la página (¿wordmark en la barra?) · nombre del proyecto
+- Idioma del copy

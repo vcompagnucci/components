@@ -58,7 +58,9 @@
   --dur-trail: 440ms; /* borde que va atrás — el desfasaje es el estirón */
   --dur-enter: 220ms;
 
-  /* nav — sin decidir (opciones vivas en .context/prototypes) */
+  /* nav — decidida: gap 20, línea 2px a 6 (elegida contra 1px/6 y 2px/3;
+     es el único trazo de 2px en una página de hairlines, a propósito —
+     presencia de estado activo) */
   --tab-gap: 20px;
   --line-gap: 6px;
   --line-h: 2px;
