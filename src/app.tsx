@@ -96,7 +96,7 @@ function List({
        una entrada por contenedor, no 18 items escalonados. */
     <div className={css.content} data-dir={dir} key={filterIdx}>
       {filterIdx === 0
-        ? (['Web', 'iOS'] as const).map((pl) => (
+        ? (['Web', 'App'] as const).map((pl) => (
             <section className={css.listGroup} key={pl}>
               <div className={css.groupLabel}>{pl}</div>
               {byPlatform(pl).map((p) => (

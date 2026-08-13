@@ -1,10 +1,14 @@
-/* La plataforma es propiedad de la PIEZA; los tabs filtran sobre eso.
-   Modelo Fluent/Material: se nombra la plataforma, y Web es una
-   plataforma par — nunca un adjetivo como "Native". Dentro de iOS
-   conviven los runtimes (Expo demuestra vivo vía react-native-web
-   cuando la pieza lo banca; SwiftUI siempre en video). */
+/* El runtime es propiedad de la PIEZA; los tabs filtran sobre eso.
+   El corte es navegador vs app instalada, que es la línea que de verdad
+   cuesta cruzar. Bajo App conviven SwiftUI y Expo/React Native: los dos
+   renderizan vistas nativas de verdad, sólo cambia con qué se escriben.
+   Cada pieza declara su runtime aparte (ver `runtime`), porque decide
+   cómo se demuestra: Expo puede ir vivo vía react-native-web salvo que
+   dependa de hardware —la háptica no existe en Safari—, SwiftUI va
+   siempre en video. */
 
-export type Platform = 'Web' | 'iOS'
+export type Platform = 'Web' | 'App'
+export type Runtime = 'DOM' | 'Expo' | 'SwiftUI'
 
 export type Piece = {
   name: string
@@ -12,7 +16,7 @@ export type Piece = {
   desc: string
 }
 
-export const TABS = ['All', 'Web', 'iOS'] as const
+export const TABS = ['All', 'Web', 'App'] as const
 
 export const PIECES: Piece[] = [
   { name: 'Button', platform: 'Web', desc: 'Press to scale(0.96), focus ring, loading state.' },
@@ -29,8 +33,8 @@ export const PIECES: Piece[] = [
   { name: 'Pull to Refresh', platform: 'Web', desc: 'Resistance on pull, soft settle on release.' },
   { name: 'Swipe Actions', platform: 'Web', desc: 'Actions behind the row; destructive last.' },
   { name: 'Action Sheet', platform: 'Web', desc: 'Options from below; destructive in red.' },
-  { name: 'Toggle', platform: 'iOS', desc: 'The native switch, haptics on commit.' },
-  { name: 'Picker', platform: 'iOS', desc: 'The native wheel, detents per option.' },
-  { name: 'Haptic Button', platform: 'iOS', desc: 'Haptics tied to the gesture, not the result.' },
-  { name: 'Context Menu', platform: 'iOS', desc: 'Long press, blur behind, piece preview.' },
+  { name: 'Toggle', platform: 'App', desc: 'The native switch, haptics on commit.' },
+  { name: 'Picker', platform: 'App', desc: 'The native wheel, detents per option.' },
+  { name: 'Haptic Button', platform: 'App', desc: 'Haptics tied to the gesture, not the result.' },
+  { name: 'Context Menu', platform: 'App', desc: 'Long press, blur behind, piece preview.' },
 ]

@@ -19,8 +19,8 @@ pnpm typecheck
 | Formato | Exposición de página única; detalle por pieza como estado, sin rutas | prototipos en `.context/prototypes/` |
 | Display | Segmented: una pieza por fila, título arriba, preview grande | ídem |
 | Nav | Texto con línea abajo que se estira al viajar (patrón `.dind` del nav de monrovia); gap 20, línea 2px a 6 | `nav.module.css` de monrovia + picker de opciones |
-| Categorías | All · Web · iOS — la plataforma es propiedad de la pieza; en All la lista se parte con encabezados grises | convención Apple/Material (se nombra la plataforma, nunca "Native") |
-| Demos nativos | Expo demuestra VIVO vía react-native-web cuando la pieza lo banca (como gluestack/RNR/tamagui); SwiftUI siempre video | verificado en esos sitios |
+| Categorías | All · Web · **App** — el corte es navegador vs app instalada, que es la línea que de verdad cuesta cruzar. Bajo App conviven SwiftUI y Expo/React Native (los dos renderizan vistas nativas reales). En All la lista se parte con encabezados grises | el runtime es la propiedad honesta: "iOS" subdeclaraba las piezas de Expo, que también corren en Android |
+| Demos nativos | **Se decide por pieza, no por categoría.** Expo puede ir vivo vía react-native-web, salvo que dependa de hardware: `expo-haptics` mapea a la Web Vibration API, que **Safari no soporta** (MDN browser-compat-data), así que un Haptic Button en web no haría nada. SwiftUI siempre video | docs.expo.dev + MDN |
 | Tipografía | Familia Benji: un solo tamaño (14px), jerarquía por peso 460/500/600, tracking en rem −0.004 (−0.006 en títulos), lh 1.43 | CSS servido de benji.org — cita en `.context/recon/TYPE-SYSTEMS.md` |
 | Aire superior | 80px (32 bajo 640px) | CSS de benji.org (`padding: 5rem`; su escalón está en 768 — 640 acá es herencia del DESIGN.md, divergencia consciente) |
 | Masthead | "Library" (600) + una línea gris debajo. El subtítulo no cambia de tamaño: sólo peso y color | benji (`h1` 500 ink / `time` 460 al 40%) y josh (nombre y descripción al mismo tamaño, sólo cambia color) |
