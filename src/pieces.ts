@@ -18,6 +18,12 @@ export type Piece = {
 
 export const TABS = ['All', 'Web', 'App'] as const
 
+/* ⚠ INVENTARIO PLACEHOLDER — estos nombres NO son decisiones.
+   Los puse para que el esqueleto tuviera algo que renderizar mientras
+   se decidía la estructura. No son un plan, no representan lo que se
+   va a construir, y NO se usan como evidencia para decidir nada
+   (categorías, nombres, proporciones). Se reemplazan enteros cuando
+   exista la primera pieza real. */
 export const PIECES: Piece[] = [
   { name: 'Button', platform: 'Web', desc: 'Press to scale(0.96), focus ring, loading state.' },
   { name: 'Input', platform: 'Web', desc: 'Resting ring that turns ink on focus, no halo.' },

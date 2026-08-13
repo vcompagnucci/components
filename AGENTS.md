@@ -66,6 +66,10 @@ cosa o para quién es, nunca lo bien hecha que está.
   canónico: cuando algo se decide, se hornea acá y el harness se saca.
 - **Nada se afirma sin medir.** Ni valores propios ni ajenos. Los reportes
   citan números tomados del navegador, no estimaciones.
+- **No se razona sobre datos inventados.** El inventario de `src/pieces.ts`
+  es placeholder para que el esqueleto renderice: no es un plan y no sirve
+  como evidencia para decidir categorías, nombres ni proporciones. Contar
+  sobre él y presentar el resultado como dato es un error.
 
 ## Estado
 
