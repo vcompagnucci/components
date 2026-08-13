@@ -20,6 +20,7 @@ pnpm typecheck
 | Display | Segmented: una pieza por fila, título arriba, preview grande | ídem |
 | Nav | Texto con línea abajo que se estira al viajar (patrón `.dind` del nav de monrovia); gap 20, línea 2px a 6 | `nav.module.css` de monrovia + picker de opciones |
 | Categorías | All · Web · **App** — el corte es navegador vs app instalada, que es la línea que de verdad cuesta cruzar. Bajo App conviven SwiftUI y Expo/React Native (los dos renderizan vistas nativas reales). En All la lista se parte con encabezados grises | el runtime es la propiedad honesta: "iOS" subdeclaraba las piezas de Expo, que también corren en Android |
+| ↳ App, no Mobile | **App** corta en el mismo eje que Web (¿dónde corre?); **Mobile** contesta otra pregunta (¿en qué pantalla?), y mezclar dos ejes es lo que ya rompió `Web / Web Mobile / Native`. Decisivo: un sheet web pensado para teléfono es *web y mobile* a la vez — con Mobile el corte se rompe y hay que inventar una regla; con App esa pieza es Web y listo. Mobile se entiende medio segundo más rápido, pero al lado de "Web" el contraste desambigua sola | la colisión no es hipotética: Vaul (Emil Kowalski, referencia del proyecto) es exactamente un drawer mobile-first que corre en el navegador |
 | Demos nativos | **Se decide por pieza, no por categoría.** Expo puede ir vivo vía react-native-web, salvo que dependa de hardware: `expo-haptics` mapea a la Web Vibration API, que **Safari no soporta** (MDN browser-compat-data), así que un Haptic Button en web no haría nada. SwiftUI siempre video | docs.expo.dev + MDN |
 | Tipografía | Familia Benji: un solo tamaño (14px), jerarquía por peso 460/500/600, tracking en rem −0.004 (−0.006 en títulos), lh 1.43 | CSS servido de benji.org — cita en `.context/recon/TYPE-SYSTEMS.md` |
 | Aire superior | 80px (32 bajo 640px) | CSS de benji.org (`padding: 5rem`; su escalón está en 768 — 640 acá es herencia del DESIGN.md, divergencia consciente) |
@@ -34,3 +35,5 @@ pnpm typecheck
 - Radios, elevación, z-index — se definen desde la primera pieza construida
 - Primera pieza a construir dentro del stage
 - Footer / firma: el nombre "Vito Compagnucci" todavía no está en ninguna parte
+- El masthead dice "for web and iOS" pero el tab ahora dice **App**: las dos
+  palabras tienen que coincidir. Decisión abierta
