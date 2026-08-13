@@ -24,7 +24,7 @@ pnpm typecheck
 | Tipografía | Familia Benji: un solo tamaño (14px), jerarquía por peso 460/500/600, tracking en rem −0.004 (−0.006 en títulos), lh 1.43 | CSS servido de benji.org — cita en `.context/recon/TYPE-SYSTEMS.md` |
 | Aire superior | 80px (32 bajo 640px) | CSS de benji.org (`padding: 5rem`; su escalón está en 768 — 640 acá es herencia del DESIGN.md, divergencia consciente) |
 | Masthead | "Library" (600) + una línea gris debajo. El subtítulo no cambia de tamaño: sólo peso y color | benji (`h1` 500 ink / `time` 460 al 40%) y josh (nombre y descripción al mismo tamaño, sólo cambia color) |
-| Copy del subtítulo | *Well-crafted components for web and iOS.* Guión obligatorio en el compuesto antes del sustantivo; sin artículo (paralelo con "iOS"); "and" en vez de "&" porque es prosa y termina en punto — josh reserva el "&" para títulos | copy medido de interfacecraft.dev y benji.org |
+| Copy del subtítulo | *Components for web and iOS that feel right.* "Feel right" es el estándar de calidad que usan Emil (h1 de animations.dev: *"How do you craft animations that feel right?"*) y Josh (*"Software that feels right"*). Ninguno de los dos usa "crafted" como adjetivo: *craft* les es verbo o sustantivo, y la calidad la nombran con *feel right*, *care* o *taste*. Afirma el resultado, no el esfuerzo | copy medido de animations.dev e interfacecraft.dev |
 | Riel | 52rem compartido por nav y contenido | DESIGN.md de Carousels |
 | Colores/espaciado | Tokens heredados del DESIGN.md de Carousels (solo tipografía, colores y tamaños) | `src/tokens.css` |
 | Stack | Vite + React 19, versiones exactas, CSS plano + CSS Modules | — |
