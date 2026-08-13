@@ -53,7 +53,7 @@ function Tabs({
   }, [filterIdx])
 
   return (
-    <div className={css.tabs} role="tablist" aria-label="Plataforma" ref={tabsRef}>
+    <div className={css.tabs} role="tablist" aria-label="Platform" ref={tabsRef}>
       {TABS.map((label, i) => (
         <button
           key={label}
@@ -115,7 +115,7 @@ function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) {
   return (
     <div className={css.content}>
       <div className={css.detail}>
-        <button className={css.back} aria-label="Volver" onClick={onBack}>
+        <button className={css.back} aria-label="Back" onClick={onBack}>
           ←
         </button>
         <div className={css.detailHead}>
