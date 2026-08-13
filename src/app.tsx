@@ -156,7 +156,7 @@ export function App() {
         <>
           <header className={css.mast}>
             <h1 className={css.mastTitle}>Library</h1>
-            <div className={css.mastSub}>Crafted components for web and iOS.</div>
+            <div className={css.mastSub}>Well-crafted components for web and iOS.</div>
           </header>
           <div className={css.barInner}>
             <Tabs filterIdx={filterIdx} onChange={changeFilter} />
