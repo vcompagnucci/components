@@ -1,0 +1,118 @@
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS — lo decidido. Tipografía, colores y tamaños heredados del
+   DESIGN.md de Carousels; familia tipográfica Benji (un solo tamaño,
+   jerarquía por peso, tracking en rem — fuentes citadas en
+   .context/recon/TYPE-SYSTEMS.md).
+
+   Pendiente y marcado como tal: línea de la nav (grosor/distancia),
+   radios, elevación, z-index — se definen desde la primera pieza.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* superficies y texto */
+  --canvas: #fdfdfc;
+  --surface: #ffffff;
+  --ink: #111111;
+  --text-secondary: #8a8a8a;
+
+  /* rampa alfa */
+  --a1: rgba(0, 0, 0, 0.04);
+  --a4: rgba(0, 0, 0, 0.16);
+  --card-ring: rgba(0, 0, 0, 0.11);
+
+  /* tipografía — familia Benji, decidida */
+  --fs: 14px;
+  --fw-body: 460;
+  --fw-medium: 500;
+  --fw-title: 600;
+  --tracking: -0.004rem;
+  --tracking-title: -0.006rem;
+  --lh: 1.43;
+
+  /* espaciado */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  --control-h-sm: 34px;
+  --margin: 24px;
+  --grid-max: 52rem;
+
+  --radius-pill: 9999px;
+  --focus-ring: 0 0 0 2px var(--canvas),
+    0 0 0 3.5px color-mix(in srgb, var(--ink) 50%, transparent);
+
+  /* motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-fill: 150ms;
+  --dur-lead: 260ms; /* borde de la línea que va adelante */
+  --dur-trail: 440ms; /* borde que va atrás — el desfasaje es el estirón */
+  --dur-enter: 220ms;
+
+  /* nav — sin decidir (opciones vivas en .context/prototypes) */
+  --tab-gap: 20px;
+  --line-gap: 6px;
+  --line-h: 2px;
+
+  /* PROVISIONAL — pendiente de decisión */
+  --radius-tbd: 12px;
+}
+
+/* Registradas como <number>: una custom property sin registrar no tiene
+   tipo interpolable y una transición sobre ella sólo salta. */
+@property --ind-l {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --ind-r {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--canvas);
+}
+
+body {
+  margin: 0;
+  font-family: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  font-size: var(--fs);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--tracking);
+  line-height: var(--lh);
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* font:inherit NO arrastra letter-spacing en controles de formulario */
+button {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
