@@ -79,8 +79,11 @@
 .indexLink:hover {
   color: var(--ink);
 }
-/* Bajo 1200px no queda margen donde vivir. PENDIENTE: la navegación
-   de esos anchos todavía no está resuelta. */
+/* Bajo 1200px no queda margen donde vivir y se esconde, sin reemplazo:
+   es una decisión, no una deuda. Medido a 390px, ninguna de las dos
+   referencias da navegación dentro de la página en mobile — benji
+   esconde sus links de sección y deja sólo el "← Index"; josh esconde
+   el índice entero. Los dos aceptan que ahí se scrollea. */
 @media (max-width: 1200px) {
   .index {
     display: none;
