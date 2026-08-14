@@ -1,16 +1,40 @@
 import { useEffect, useState } from 'react'
 import css from './app.module.css'
-import { Detail } from './parts'
-import type { Piece } from './pieces'
-import { Picker } from './proto/picker'
-import { LAYOUTS } from './proto/layouts'
-import sep from './proto/separators.module.css'
+import { Detail, Item, Masthead, slug } from './parts'
+import { PIECES, type Piece, type Platform } from './pieces'
 
-/* ⚠ EN ESTUDIO — navegación y agrupación.
-   Las cuatro direcciones viven en src/proto/layouts.tsx, detrás del
-   picker, sobre la página real. Cuando se elija una se hornea acá y se
-   borra src/proto/ entero. Todo medido de benji.org y joshpuckett.me;
-   las mediciones están en .context/recon/NAVIGATION.md. */
+const PLATFORMS = ['Web', 'App'] as const
+const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
+
+/* 80px de descuento: el mismo aire superior de la página, así el título
+   de la pieza no queda pegado al borde al llegar. */
+const goTo = (name: string) => {
+  const el = document.getElementById(slug(name))
+  if (!el) return
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({
+    top: el.getBoundingClientRect().top + window.scrollY - 80,
+    behavior: reduce ? 'auto' : 'smooth',
+  })
+}
+
+function Index() {
+  return (
+    <nav className={css.index} aria-label="Pieces">
+      {PLATFORMS.map((pl) => (
+        <div className={css.indexGroup} key={pl}>
+          <div className={css.indexLabel}>{pl}</div>
+          {by(pl).map((p) => (
+            <button className={css.indexLink} key={p.name} onClick={() => goTo(p.name)}>
+              {p.name}
+            </button>
+          ))}
+        </div>
+      ))}
+    </nav>
+  )
+}
+
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(null)
 
@@ -22,20 +46,31 @@ export function App() {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
+  if (selected) {
+    return (
+      <div className={css.page}>
+        <Detail piece={selected} onBack={() => setSelected(null)} />
+      </div>
+    )
+  }
+
   return (
-    <Picker names={LAYOUTS.map((l) => l.name)} replay>
-      {(i, mountKey) => {
-        const { Comp } = LAYOUTS[i]
-        return (
-          <div className={`${css.page} ${sep.stage}`} key={`${i}-${mountKey}`}>
-            {selected ? (
-              <Detail piece={selected} onBack={() => setSelected(null)} />
-            ) : (
-              <Comp onOpen={setSelected} />
-            )}
-          </div>
-        )
-      }}
-    </Picker>
+    <div className={css.page}>
+      <Index />
+      <Masthead />
+      <div className={css.content} data-dir="fwd">
+        {PLATFORMS.map((pl) => (
+          <section className={css.group} key={pl}>
+            <div className={css.groupHead}>
+              <div className={css.groupLabel}>{pl}</div>
+              <span className={css.groupLine} aria-hidden />
+            </div>
+            {by(pl).map((p) => (
+              <Item piece={p} onOpen={setSelected} key={p.name} />
+            ))}
+          </section>
+        ))}
+      </div>
+    </div>
   )
 }

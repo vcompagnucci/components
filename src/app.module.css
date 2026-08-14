@@ -2,7 +2,7 @@
    CSS: padding 5rem; su escalón mobile está en 768, acá 640 por el
    DESIGN.md — divergencia consciente) ═══════════ */
 .page {
-  padding-top: var(--space-64); /* + 16 del mast/barInner = 80 */
+  padding-top: var(--space-64); /* + 16 del padding del mast = 80 */
 }
 .page > .content:first-child {
   padding-top: var(--space-16);
@@ -29,56 +29,62 @@
   color: var(--text-secondary);
 }
 
-/* ═══════════ NAV ═══════════ */
-.barInner {
-  max-width: var(--grid-max);
-  margin: 0 auto;
-  padding: var(--space-16) var(--margin);
+/* ═══════════ ÍNDICE LATERAL ═══════════
+   La navegación de la página. Es lo que hacen las dos referencias en 9
+   de las 13 páginas medidas: ninguna de las dos usa tabs en ninguna.
+   Valores de benji (.context/recon/NAVIGATION.md): fixed a 80/80, links
+   13px/460 al 40%, 8px de separación, ancho ajustado al label más largo.
+   Sin scrollspy: él lo tiene, acá se decidió no ponerlo. */
+.index {
+  position: fixed;
+  left: var(--index-left);
+  top: var(--index-top);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--index-gap);
+  max-height: calc(100vh - var(--index-top) * 2);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
-.tabs {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--tab-gap);
-  padding-bottom: var(--line-gap);
+.index::-webkit-scrollbar {
+  display: none;
 }
-.tab {
+.indexGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--index-gap);
+}
+.indexGroup + .indexGroup {
+  margin-top: var(--space-24);
+}
+.indexLabel {
+  font-size: var(--index-fs);
+  font-weight: var(--fw-medium);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.indexLink {
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: pointer;
-  font-size: var(--fs);
-  font-weight: var(--fw-medium);
-  line-height: 1.25;
+  text-align: left;
+  font-size: var(--index-fs);
+  font-weight: var(--fw-body);
+  line-height: 1.2;
+  color: rgba(18, 18, 18, 0.4);
   white-space: nowrap;
-  color: var(--text-secondary);
+  cursor: pointer;
   transition: color var(--dur-fill) ease;
 }
-@media (hover: hover) and (pointer: fine) {
-  .tab:not([data-on]):hover {
-    color: var(--ink);
-    opacity: 0.72;
-  }
-}
-.tab[data-on] {
+.indexLink:hover {
   color: var(--ink);
 }
-
-/* Los dos bordes de la línea viajan en relojes distintos, así se estira
-   mientras se mueve. 100 es la referencia fija del scaleX, no un tope. */
-.ind {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100px;
-  height: var(--line-h);
-  background: var(--ink);
-  border-radius: var(--radius-pill);
-  transform-origin: left;
-  transform: translateX(calc(var(--ind-l) * 1px))
-    scaleX(calc((var(--ind-r) - var(--ind-l)) / 100));
+/* Bajo 1200px no queda margen donde vivir. PENDIENTE: la navegación
+   de esos anchos todavía no está resuelta. */
+@media (max-width: 1200px) {
+  .index {
+    display: none;
+  }
 }
 
 /* ═══════════ CONTENIDO ═══════════ */
@@ -106,9 +112,39 @@
   }
 }
 
-/* Separadores de sección (sólo en All) — EN ESTUDIO.
-   Viven por ahora en src/proto/separators.module.css, detrás del picker.
-   Cuando se elija una variante se hornea acá y se borra src/proto/. */
+/* ═══════════ SEPARADOR DE SECCIÓN ═══════════
+   El de benji en /liveline y /drawesome, medido en vivo (el <hr> de su
+   markup está vacío: lo que pinta es el div que React le envuelve).
+
+   Él tira la línea a lo ancho del riel entero y le monta encima un span
+   pintado del color del fondo, que le hace un agujero; su padding-right
+   de 8px es el hueco. Acá se llega al mismo píxel con flex, sin depender
+   de que ese fondo coincida con el de la página.
+
+   Medido: rótulo 14px/600/#111 · hueco 8px · 64px arriba · 56px abajo
+   (24 de su bloque + 32 del margin-top del siguiente). */
+.group {
+  padding-top: var(--space-64);
+}
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: 56px;
+}
+.groupLabel {
+  font-size: var(--fs);
+  font-weight: var(--fw-title);
+  letter-spacing: var(--tracking-title);
+  line-height: var(--lh);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.groupLine {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
 
 /* La pieza entera es el botón: el título también es clickeable y entra
    por teclado, no sólo el rectángulo. */

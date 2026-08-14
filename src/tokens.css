@@ -4,8 +4,9 @@
    jerarquía por peso, tracking en rem — fuentes citadas en
    .context/recon/TYPE-SYSTEMS.md).
 
-   Pendiente y marcado como tal: línea de la nav (grosor/distancia),
-   radios, elevación, z-index — se definen desde la primera pieza.
+   Pendiente y marcado como tal: radios, elevación, z-index — se
+   definen desde la primera pieza. Y la navegación bajo 1200px, donde
+   el índice lateral no entra.
    ═══════════════════════════════════════════════════════════════ */
 :root {
   /* superficies y texto */
@@ -18,6 +19,9 @@
   --a1: rgba(0, 0, 0, 0.04);
   --a4: rgba(0, 0, 0, 0.16);
   --card-ring: rgba(0, 0, 0, 0.11);
+  /* la hairline de benji: #f2f2f2 → (255-242)/255 = .051. En alpha y no
+     en sólido para que componga sobre --canvas y no asuma blanco puro */
+  --hairline: rgba(0, 0, 0, 0.051);
 
   /* tipografía — familia Benji, decidida */
   --fs: 14px;
@@ -58,28 +62,15 @@
   --dur-trail: 440ms; /* borde que va atrás — el desfasaje es el estirón */
   --dur-enter: 220ms;
 
-  /* nav — decidida: gap 20, línea 2px a 6 (elegida contra 1px/6 y 2px/3;
-     es el único trazo de 2px en una página de hairlines, a propósito —
-     presencia de estado activo) */
-  --tab-gap: 20px;
-  --line-gap: 6px;
-  --line-h: 2px;
+  /* índice lateral — medido de benji: fixed a 80/80, links 13px/460 al
+     40%, 8px entre uno y otro */
+  --index-left: 80px;
+  --index-top: 80px;
+  --index-fs: 13px;
+  --index-gap: 8px;
 
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
-}
-
-/* Registradas como <number>: una custom property sin registrar no tiene
-   tipo interpolable y una transición sobre ella sólo salta. */
-@property --ind-l {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-@property --ind-r {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
 }
 
 *,
