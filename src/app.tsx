@@ -8,16 +8,19 @@ import { Rulers } from './proto/rulers'
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 
-/* ⚠ EN ESTUDIO — el aire entre el masthead y la primera rule.
-   Arranca en 112, que es lo que hay hoy y que nadie decidió: son 8 del
-   margin del masthead + 40 del padding de .content + 64 del de .group,
-   apilados por tres reglas que nunca se miraron juntas. El slider va de
-   4 en 4 porque esa es la escala. Referencias medidas: benji usa 48 al
-   arrancar una sección en su home y 64 entre secciones en sus
-   subpáginas. El segundo grupo no se toca. Se hornea al elegir. */
-const GAP_DEFAULT = 112
+/* masthead → sección: 60, elegido con el scrubber. Venía de 112, que
+   nadie había decidido —eran 8 del margin del masthead + 40 del padding
+   de .content + 64 del de .group, apilados por tres reglas que nunca se
+   miraron juntas—. Referencias medidas: benji usa 48 al arrancar una
+   sección en su home y 64 entre secciones en sus subpáginas; 60 cae
+   entre las dos. Falta hornearlo. */
+const GAP_DEFAULT = 60
 const GAP_STEP = 4
 
+/* ⚠ EN ESTUDIO — rótulo → pieza. Los 56 son los de benji en /liveline
+   (24 del bloque del separador + 32 del margin del bloque siguiente),
+   que es el análogo real: nuestras piezas son bloques de 280px, no
+   filas de texto. Ver la tabla en .context/recon/NAVIGATION.md. */
 const BELOW_DEFAULT = 56
 const BELOW_MIN = 8
 
