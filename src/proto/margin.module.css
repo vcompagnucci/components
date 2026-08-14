@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════════════════════════════════════
+   EN ESTUDIO — el margen lateral: cuánto queda entre el contenido y el
+   borde cuando la pantalla es más angosta que el riel.
+
+   Sólo cambia --margin. Riel, aire superior y todo lo demás quedan
+   congelados, para que lo que se compare sea una sola cosa.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.m24 {
+  --margin: 24px;
+}
+.m32 {
+  --margin: 32px;
+}
+.m48 {
+  --margin: 48px;
+}
+
+/* ─── El toggle ─── */
+.bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out, background-color 150ms ease-out;
+}
+.item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.item[data-on] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.note {
+  font-size: 9px;
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
+/* El aviso de si el margen está haciendo algo. Arriba del riel el
+   contenido está centrado y sobra espacio: toggleás y no pasa nada.
+   Decirlo evita el minuto de creer que el toggle está roto. */
+.state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 0 12px 0 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.45);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+.state[data-active] {
+  color: rgba(255, 255, 255, 0.9);
+}
+.state[data-active] .dot {
+  background: #4ade80;
+}

@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { FrameToggle, useFrame } from './proto/frames'
+import { MarginToggle, useMargin } from './proto/margin'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -48,7 +48,7 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const frame = useFrame()
+  const margin = useMargin()
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -102,15 +102,15 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={`${css.page} ${frame.cls}`}>
+      <div className={`${css.page} ${margin.cls}`}>
         <Detail piece={selected} onBack={back} />
-        <FrameToggle id={frame.id} setId={frame.setId} />
+        <MarginToggle id={margin.id} setId={margin.setId} />
       </div>
     )
   }
 
   return (
-    <div className={`${css.page} ${frame.cls}`}>
+    <div className={`${css.page} ${margin.cls}`}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd">
@@ -126,7 +126,7 @@ export function App() {
           </section>
         ))}
       </div>
-      <FrameToggle id={frame.id} setId={frame.setId} />
+      <MarginToggle id={margin.id} setId={margin.setId} />
     </div>
   )
 }
