@@ -59,3 +59,32 @@
     display: none;
   }
 }
+
+/* ─── Estado activo del índice ─────────────────────────────────────
+   Medido en /liveline scrolleando: el link de la sección en vista pasa
+   de rgba(18,18,18,.4) a .8. Mismo peso, mismo tamaño, sólo opacidad:
+   no engorda ni subraya. */
+.indexLink[data-on] {
+  color: rgba(18, 18, 18, 0.8);
+}
+
+/* ─── Tratamientos del rótulo de grupo ─────────────────────────────
+   Tres respuestas a "cómo se marca el corte Web/App dentro del índice",
+   más la de no marcarlo. --hair-benji viene de separators.module.css,
+   aplicado en .stage sobre la página. */
+.idxRuleHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.idxRuleLine {
+  flex: 1;
+  height: 1px;
+  background: var(--hair-benji);
+}
+.idxUnderline {
+  color: var(--text-secondary);
+  font-weight: var(--fw-body);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--hair-benji);
+}
