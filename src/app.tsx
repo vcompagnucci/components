@@ -2,13 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import frames from './proto/frames.module.css'
-
-/* ⚠ EN ESTUDIO — el marco. La variante llega por ?frame= desde el
-   marco de viewports, que es quien tiene el toggle. Sin parámetro
-   queda la página como está hoy. Se saca junto con src/proto/. */
-const FRAME = new URLSearchParams(location.search).get('frame')
-const frameClass = FRAME === 'benji' ? frames.benji : FRAME === 'josh' ? frames.josh : ''
+import { FrameToggle, useFrame } from './proto/frames'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -54,6 +48,7 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const frame = useFrame()
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -107,14 +102,15 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={`${css.page} ${frameClass}`}>
+      <div className={`${css.page} ${frame.cls}`}>
         <Detail piece={selected} onBack={back} />
+        <FrameToggle id={frame.id} setId={frame.setId} />
       </div>
     )
   }
 
   return (
-    <div className={`${css.page} ${frameClass}`}>
+    <div className={`${css.page} ${frame.cls}`}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd">
@@ -130,6 +126,7 @@ export function App() {
           </section>
         ))}
       </div>
+      <FrameToggle id={frame.id} setId={frame.setId} />
     </div>
   )
 }

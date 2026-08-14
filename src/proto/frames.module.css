@@ -9,6 +9,66 @@
    padding-top de .page sin depender del orden de importación.
    ═══════════════════════════════════════════════════════════════════ */
 
+/* ─── El toggle ────────────────────────────────────────────────────
+   Chrome de taller: píldora oscura, nunca tokens del proyecto. El
+   viewport se cambia con las DevTools, no acá. */
+.bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out, background-color 150ms ease-out;
+}
+.item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.item[data-on] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.note {
+  font-size: 9px;
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
 /* ─── BENJI — desktop-first ────────────────────────────────────────
    .styles_container__YJPlC: max-width 582, padding 80/16/40, y a
    max-width:768 pasa a 32/24/40. Su columna real de texto: 550. */
