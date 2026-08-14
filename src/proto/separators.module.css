@@ -1,0 +1,89 @@
+/* ═══════════════════════════════════════════════════════════════════
+   VARIANTES DE SEPARADOR DE SECCIÓN — sólo la vista All.
+   Todo lo demás (aire superior, masthead, nav, filas, preview) se toma
+   tal cual de app.module.css y NO se toca: la comparación tiene que ser
+   limpia, y lo único que cambia entre variantes es el separador.
+
+   Los colores de línea salen medidos del CSS servido de cada sitio,
+   convertidos a alpha para que compongan sobre nuestro canvas #fdfdfc
+   en vez de asumir blanco puro:
+
+     benji  #f2f2f2  →  (255-242)/255 = 0.051  →  rgba(0,0,0,.051)
+     josh   #d4d4d4  →  (255-212)/255 = 0.169  →  rgba(0,0,0,.169)
+
+   Que la de josh sea 3.3× más oscura no es un descuido suyo: su línea
+   mide 48px y no separa nada: es una marca. La de benji cruza todo el
+   ancho, y a ese largo ese mismo valor sería un tajo.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.stage {
+  --hair-benji: rgba(0, 0, 0, 0.051);
+  --hair-josh: rgba(0, 0, 0, 0.169);
+}
+
+/* El rótulo es común a las tres: 14px, tracking heredado. Lo único que
+   cambia por variante es peso y color, que es la regla de la casa. */
+.label {
+  font-size: var(--fs);
+  line-height: var(--lh);
+}
+
+/* ─── 1 · BENJI — la línea subraya el rótulo ───────────────────────
+   Medido de .styles_title__8zZSZ: peso 460 (el del cuerpo, NO bold),
+   color al 40%, padding-bottom 8px, border-bottom 1px full-bleed.
+   El aire entre secciones es su padding-top de 3rem. */
+.benji + .benji {
+  margin-top: var(--space-48);
+}
+.benjiLabel {
+  color: var(--text-secondary);
+  font-weight: var(--fw-body);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--hair-benji);
+  margin-bottom: var(--space-24);
+}
+
+/* ─── 2 · JOSH — la línea es una marca corta ───────────────────────
+   Medido: w-12 (48px) · h-px · bg-neutral-300 · rounded-[1px] · my-6.
+   Su h2 va en ink y a 24px serif; acá no podemos mover el tamaño, así
+   que la jerarquía la hace el peso (regla de benji aplicada al gesto
+   de josh): el rótulo sube a ink y a 500. Sección a 72px (su mt). */
+.josh + .josh {
+  margin-top: 72px;
+}
+.joshLabel {
+  color: var(--ink);
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--space-24);
+}
+.joshRule {
+  width: 48px;
+  height: 1px;
+  background: var(--hair-josh);
+  border-radius: 1px;
+  margin-bottom: var(--space-24);
+}
+
+/* ─── 3 · RULE — el rótulo interrumpe la línea ─────────────────────
+   Ninguno de los dos hace esto; es la tercera respuesta al mismo
+   problema. La línea arranca donde termina el rótulo y corre hasta el
+   borde, centrada con la equis del texto. Rótulo gris como en benji. */
+.rule + .rule {
+  margin-top: var(--space-64);
+}
+.ruleHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-bottom: var(--space-24);
+}
+.ruleLabel {
+  color: var(--text-secondary);
+  font-weight: var(--fw-body);
+  white-space: nowrap;
+}
+.ruleLine {
+  flex: 1;
+  height: 1px;
+  background: var(--hair-benji);
+}
