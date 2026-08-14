@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════════════
+   VARIANTES DE NAVEGACIÓN Y AGRUPACIÓN — en estudio.
+   Valores medidos en vivo sobre benji.org y joshpuckett.me; el detalle
+   de cada medición está en .context/recon/NAVIGATION.md.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── 1 · INDEX — índice fijo a la izquierda ───────────────────────
+   Lo que hacen los DOS. Benji: fixed, left 80, top 80, ancho ajustado
+   al label más largo, links 13px/460 al 40%, 8px entre uno y otro.
+   Josh: fixed, left 32, top 64, 14px/400, 16px.
+   Se toman los valores de benji porque su escala tipográfica es la
+   nuestra. Bajo 1200px no hay margen donde ponerlo: se esconde. */
+.index {
+  position: fixed;
+  left: 80px;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.index::-webkit-scrollbar {
+  display: none;
+}
+.indexGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.indexGroup + .indexGroup {
+  margin-top: var(--space-24);
+}
+.indexLabel {
+  font-size: 13px;
+  font-weight: var(--fw-medium);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.indexLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  font-weight: var(--fw-body);
+  line-height: 1.2;
+  color: rgba(18, 18, 18, 0.4);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-fill) ease;
+}
+.indexLink:hover {
+  color: var(--ink);
+}
+@media (max-width: 1200px) {
+  .index {
+    display: none;
+  }
+}
+
+/* ─── 2 · COLUMN — el rótulo es columna, no encabezado ─────────────
+   El patrón de la home de benji: el año vive en la sangría izquierda
+   (position:absolute, left:0) y sólo se muestra en la primera fila de
+   cada grupo. Sin encabezado y sin línea. Su sangría es 6.75rem. */
+.colRow {
+  position: relative;
+  padding-left: 6.75rem;
+}
+.colRow + .colRow {
+  margin-top: var(--space-48);
+}
+.colLabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: var(--fs);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  line-height: var(--lh);
+}
+.colGroup + .colGroup {
+  margin-top: var(--space-48);
+}
+
+/* ─── 4 · STACKED — sin ningún control ─────────────────────────────
+   La home de josh: las secciones apiladas a 72px y nada más. Acá se
+   usa el separador Rule ya medido, para que la variante pruebe la
+   ausencia del control y no otra cosa a la vez. */
+.stackGroup + .stackGroup {
+  margin-top: 72px;
+}
