@@ -7,9 +7,13 @@
    están pintados debajo, no al lado, así el recorrido del thumb es el
    ancho completo y el mapeo posición→valor es lineal y exacto. */
 
+/* Arriba y no abajo: desde que uno de los controles mide el aire de
+   abajo, una barra fija al pie se para justo encima de lo que hay que
+   juzgar — con el aire en 40 la herramienta lo tapa entero. Arriba
+   quedan 24 libres antes del título, que no está en estudio. */
 .bar {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2147483647;
@@ -67,6 +71,16 @@
   height: 8px;
   margin-top: -4px;
   background: rgba(255, 255, 255, 0.22);
+}
+/* Marca de referencia: dónde cae uno de los dos referentes. Va de
+   borde a borde para distinguirse de las marcas de escala, que son
+   cortas y centradas. */
+.mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* La línea del valor. El pulso del detente es sobre scaleY: es

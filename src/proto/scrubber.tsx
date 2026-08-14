@@ -39,6 +39,7 @@ export function Scrubber({
   hardMax,
   step = 4,
   tickEvery = 32,
+  marks,
   width = 420,
 }: {
   label: string
@@ -51,6 +52,10 @@ export function Scrubber({
   hardMax?: number
   step?: number
   tickEvery?: number
+  /* Valores de referencia: se dibujan como marcas altas y claras, para
+     ver dónde caen los dos referentes sin tener que acordarse. Sólo
+     valen la pena si están adentro del recorrido y no en las puntas. */
+  marks?: number[]
   width?: number
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
@@ -138,6 +143,9 @@ export function Scrubber({
       <span className={css.ticks} aria-hidden>
         {ticks.map((t) => (
           <i className={css.tick} style={{ left: `${t}%` }} key={t} />
+        ))}
+        {marks?.map((v) => (
+          <i className={css.mark} style={{ left: `${((v - min) / span) * 100}%` }} key={`m${v}`} />
         ))}
       </span>
       {capPct > 0 && <span className={css.cap} style={{ width: `${capPct}%` }} aria-hidden />}

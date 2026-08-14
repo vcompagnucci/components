@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { RailScrubber, useRail } from './proto/rail'
+import { FrameScrubbers, useFrame } from './proto/frame'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -48,10 +48,13 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const rail = useRail()
-  /* El riel en estudio se inyecta como custom property, que es lo mismo
-     que hace el token: así lo lee todo lo que ya usa var(--grid-max). */
-  const frame = { '--grid-max': `${rail.riel}px` } as React.CSSProperties
+  const f = useFrame()
+  /* Lo que está en estudio se inyecta como custom property, que es lo
+     mismo que hace el token: así lo lee todo lo que ya usa var(). */
+  const frame = {
+    '--grid-max': `${f.riel}px`,
+    '--air-bottom': `${f.aire}px`,
+  } as React.CSSProperties
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -107,7 +110,12 @@ export function App() {
     return (
       <div className={css.page} style={frame}>
         <Detail piece={selected} onBack={back} />
-        <RailScrubber riel={rail.riel} setRiel={rail.setRiel} />
+        <FrameScrubbers
+          riel={f.riel}
+          setRiel={f.setRiel}
+          aire={f.aire}
+          setAire={f.setAire}
+        />
       </div>
     )
   }
@@ -129,7 +137,7 @@ export function App() {
           </section>
         ))}
       </div>
-      <RailScrubber riel={rail.riel} setRiel={rail.setRiel} />
+      <FrameScrubbers riel={f.riel} setRiel={f.setRiel} aire={f.aire} setAire={f.setAire} />
     </div>
   )
 }

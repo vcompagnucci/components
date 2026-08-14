@@ -1,34 +1,46 @@
 import { useEffect, useState } from 'react'
-import css from './rail.module.css'
+import css from './frame.module.css'
 import { Scrubber, ScrubberBar, useUrlNumber } from './scrubber'
 
-/* ⚠ EN ESTUDIO — el ancho del riel, y nada más. Se borra con src/proto/.
+/* ⚠ EN ESTUDIO — las dos medidas del marco que quedan abiertas. Se
+   borra con src/proto/.
 
    Los escalones ya se decidieron (los de benji) y están horneados en
-   tokens.css y app.module.css. Lo único abierto es cuánto mide el riel,
-   entre las dos referencias.
+   tokens.css y app.module.css: 768 mueve aire arriba y margen juntos,
+   1080 se lleva el índice. Acá no hay nada de eso.
 
-   El margen NO se mueve acá: es 16 arriba de 768 y 24 abajo, que es lo
-   que se horneó. Por eso la columna es riel − 32 en escritorio, y
-   arrastrar de punta a punta la lleva de 552 a 640. */
+   RIEL — cuánto mide, entre las dos referencias. El margen no se toca:
+   es 16 arriba de 768 y 24 abajo, ya horneado, así que la columna es
+   riel − 32 en escritorio y va de 552 a 640.
+
+   AIRE ↓ — cuánto queda después de la última pieza. Es el único número
+   del marco que NO sale de las referencias: los dos cierran corto
+   (benji 40, josh 64) porque abajo tienen footer, y nosotros no vamos a
+   tener. Las marcas del control muestran dónde caen ellos igual, para
+   tener con qué comparar, pero acá su número no es un argumento. */
 
 /* 582 es el número exacto de benji (36.375rem) y no es múltiplo de 4.
    La escala del taller manda, así que se usa 584 — 2px de diferencia,
    invisible, y la escala queda entera. El de josh (42rem) ya cae justo. */
-const BENJI = 584
-const JOSH = 672
+const RIEL = { benji: 584, josh: 672 }
+/* El recorrido del aire de abajo llega más allá de los dos referentes en
+   las dos direcciones: sin footer que lo cierre, el rango honesto no es
+   el de ellos. Arranca en lo que tenemos hoy. */
+const AIRE = { min: 40, max: 160, inicio: 128 }
 const STEP = 4
 
-export function useRail() {
-  const [riel, setRiel] = useUrlNumber('riel', BENJI, STEP)
+export function useFrame() {
+  const [riel, setRiel] = useUrlNumber('riel', RIEL.benji, STEP)
+  const [aire, setAire] = useUrlNumber('aire', AIRE.inicio, STEP)
 
   useEffect(() => {
     const url = new URL(location.href)
     url.searchParams.set('riel', String(riel))
+    url.searchParams.set('aire', String(aire))
     history.replaceState(history.state, '', url)
-  }, [riel])
+  }, [riel, aire])
 
-  return { riel, setRiel }
+  return { riel, setRiel, aire, setAire }
 }
 
 /* Los números se leen del DOM y no de una tabla: lo que muestra el
@@ -47,7 +59,17 @@ function medir() {
   }
 }
 
-export function RailScrubber({ riel, setRiel }: { riel: number; setRiel: (v: number) => void }) {
+export function FrameScrubbers({
+  riel,
+  setRiel,
+  aire,
+  setAire,
+}: {
+  riel: number
+  setRiel: (v: number) => void
+  aire: number
+  setAire: (v: number) => void
+}) {
   const [m, setM] = useState(medir)
 
   useEffect(() => {
@@ -63,7 +85,7 @@ export function RailScrubber({ riel, setRiel }: { riel: number; setRiel: (v: num
     }
   }, [riel])
 
-  const ref = riel === BENJI ? 'benji' : riel === JOSH ? 'josh' : '—'
+  const ref = riel === RIEL.benji ? 'benji' : riel === RIEL.josh ? 'josh' : '—'
 
   return (
     <ScrubberBar>
@@ -71,11 +93,22 @@ export function RailScrubber({ riel, setRiel }: { riel: number; setRiel: (v: num
         label="Riel"
         value={riel}
         onChange={setRiel}
-        min={BENJI}
-        max={JOSH}
+        min={RIEL.benji}
+        max={RIEL.josh}
         step={STEP}
         tickEvery={16}
-        width={300}
+        width={228}
+      />
+      <Scrubber
+        label="Aire ↓"
+        value={aire}
+        onChange={setAire}
+        min={AIRE.min}
+        max={AIRE.max}
+        step={STEP}
+        tickEvery={32}
+        marks={[40, 64]} /* benji y josh */
+        width={228}
       />
       <span className={css.read}>
         <span className={css.cell}>
@@ -91,7 +124,7 @@ export function RailScrubber({ riel, setRiel }: { riel: number; setRiel: (v: num
           {m.alBorde}
         </span>
         <span className={`${css.cell} ${ref === '—' ? css.refNone : css.ref}`}>
-          <span className={css.cellLabel}>ref</span>
+          <span className={css.cellLabel}>ref riel</span>
           {ref}
         </span>
       </span>
