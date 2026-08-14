@@ -15,20 +15,10 @@
   --margin: 24px;
 }
 
-.josh {
-  --grid-max: 740px;
-  --margin: 96px;
-}
-/* Su breakpoint es min-width:768, así que a 768 exactos todavía está en
-   el valor grande: acá va en 767 para que coincida al píxel. */
-@media (max-width: 767px) {
-  .josh {
-    --margin: 48px;
-  }
-}
-
-/* Benji: el opuesto de josh. Riel chico con marco mínimo — el aire lo
-   pone el centrado, no el padding. Su breakpoint es max-width:768. */
+/* La construcción de benji: riel chico con marco mínimo — el aire lo
+   pone el centrado, no el padding. Su breakpoint es max-width:768.
+   La de josh (740 · 96→48) daba la misma columna a un píxel, así que se
+   cortó: dos opciones indistinguibles no dejan decidir nada. */
 .benji {
   --grid-max: 582px;
   --margin: 16px;

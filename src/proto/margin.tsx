@@ -4,10 +4,13 @@ import css from './margin.module.css'
 /* ⚠ EN ESTUDIO — el marco: riel y margen, que son la misma decisión
    porque la columna es riel − 2×margen. Se borra con src/proto/. */
 
+/* Benji y josh daban la misma columna —550 y 548— y el mismo aire al
+   borde: un píxel de diferencia, indistinguibles. Se corta josh y queda
+   la construcción de benji, que además en teléfono da lo mismo que ya
+   tenemos: adoptarla cambia sólo el escritorio. */
 const OPCIONES = [
-  { id: 'actual', label: 'Actual', note: '832 · 24', cls: css.actual },
-  { id: 'benji', label: 'Benji', note: '582 · 16→24', cls: css.benji },
-  { id: 'josh', label: 'Josh', note: '740 · 96→48', cls: css.josh },
+  { id: 'actual', label: 'Actual', note: '832 · columna 784', cls: css.actual },
+  { id: 'benji', label: 'Ellos', note: '582 · columna 550', cls: css.benji },
 ]
 
 export function useMargin() {
