@@ -16,7 +16,8 @@ pnpm typecheck
 
 | Decisión | Valor | Fuente |
 | --- | --- | --- |
-| Formato | Exposición de página única; detalle por pieza como estado, sin rutas | prototipos en `.context/prototypes/` |
+| Formato | Exposición de una página; cada pieza tiene **URL propia** (`/button`). **Sin router**: son dos vistas, `history.pushState` alcanza. El atrás del navegador vuelve a la lista **y al scroll donde estabas**; entrar directo por link también funciona | la decisión original era "estado, sin rutas", tomada cuando el detalle era un rectángulo vacío. Al confirmarse que lleva notas, no poder linkearlas pasó a ser una pérdida real |
+| ↳ condición de deploy | El host tiene que servir `index.html` para rutas desconocidas (fallback SPA). Vite ya lo hace en dev y en preview | es lo único que impone tener rutas de verdad en vez de hash |
 | Display | Segmented: una pieza por fila, título arriba, preview grande | ídem |
 | Nav | **Índice fijo a la izquierda** con todas las piezas agrupadas. Sin tabs. Fixed a 80/80, links 13px/460 al 40%, 8px de separación, ancho ajustado al label más largo. **Sin scrollspy** (benji lo tiene; acá se eligió no ponerlo) | recorridas 13 páginas de las dos referencias: **ninguna usa tabs**, las dos navegan con índice fijo. Medido en `.context/recon/NAVIGATION.md` |
 | Separador de sección | Rótulo 14px/600/#111 + hairline hasta el borde del riel; hueco de 8px, 64px arriba, 56px abajo | el separador de benji en /liveline y /drawesome, medido en vivo — su `<hr>` está vacío, lo que pinta es el div que React le envuelve |

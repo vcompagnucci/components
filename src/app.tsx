@@ -1,10 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
+
+/* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
+   Vite sirve index.html para rutas desconocidas (appType spa por
+   defecto), así que entrar directo a /button funciona en dev y en
+   preview; al desplegar, el host necesita el mismo fallback a
+   index.html — es la única condición que impone esto. */
+const fromUrl = () => {
+  const s = decodeURIComponent(location.pathname.slice(1))
+  return PIECES.find((p) => slug(p.name) === s) ?? null
+}
 
 /* 80px de descuento: el mismo aire superior de la página, así el título
    de la pieza no queda pegado al borde al llegar. */
@@ -36,20 +46,62 @@ function Index() {
 }
 
 export function App() {
-  const [selected, setSelected] = useState<Piece | null>(null)
+  const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const listScroll = useRef(0)
+  const first = useRef(true)
+
+  useEffect(() => {
+    const onPop = () => setSelected(fromUrl())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  useEffect(() => {
+    document.title = selected ? `${selected.name} — Library` : 'Library'
+  }, [selected])
+
+  /* Volver a la lista devuelve el scroll donde estabas. Sin esto la
+     lista reaparece arriba de todo y perdés el lugar, que con 18 piezas
+     es media pantalla de scroll. El primer render se saltea para no
+     pisar la restauración del navegador al recargar. */
+  useLayoutEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    window.scrollTo(0, selected ? 0 : listScroll.current)
+  }, [selected])
+
+  const open = (p: Piece) => {
+    listScroll.current = window.scrollY
+    history.pushState({ fromList: true }, '', `/${slug(p.name)}`)
+    setSelected(p)
+  }
+
+  /* Si llegaste desde la lista, volvés por el historial y la pila no
+     crece. Si entraste directo por link no hay a dónde volver, así que
+     se empuja la lista. */
+  const back = () => {
+    if (history.state?.fromList) {
+      history.back()
+      return
+    }
+    history.pushState({}, '', '/')
+    setSelected(null)
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelected(null)
+      if (e.key === 'Escape' && selected) back()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [])
+  })
 
   if (selected) {
     return (
       <div className={css.page}>
-        <Detail piece={selected} onBack={() => setSelected(null)} />
+        <Detail piece={selected} onBack={back} />
       </div>
     )
   }
@@ -66,7 +118,7 @@ export function App() {
               <span className={css.groupLine} aria-hidden />
             </div>
             {by(pl).map((p) => (
-              <Item piece={p} onOpen={setSelected} key={p.name} />
+              <Item piece={p} onOpen={open} key={p.name} />
             ))}
           </section>
         ))}
