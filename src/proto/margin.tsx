@@ -1,25 +1,16 @@
 import { useEffect, useState } from 'react'
 import css from './margin.module.css'
 
-/* ⚠ EN ESTUDIO — el margen lateral. Sólo cambia --margin; el riel, el
-   aire y todo lo demás quedan congelados. Se borra con src/proto/. */
+/* ⚠ EN ESTUDIO — el marco: riel y margen, que son la misma decisión
+   porque la columna es riel − 2×margen. Se borra con src/proto/. */
 
 const OPCIONES = [
-  { id: '24', label: '24', note: 'actual · benji', cls: css.m24 },
-  { id: '32', label: '32', note: 'intermedio', cls: css.m32 },
-  { id: '48', label: '48', note: 'josh', cls: css.m48 },
+  { id: 'actual', label: 'Actual', note: '832 · 24', cls: css.actual },
+  { id: 'josh', label: 'Josh', note: '740 · 96→48', cls: css.josh },
 ]
 
-/* El riel: arriba de este ancho el contenido está centrado y el margen
-   no hace nada. Sale del token para no quedar desactualizado. */
-const rielPx = () => {
-  const v = getComputedStyle(document.documentElement).getPropertyValue('--grid-max').trim()
-  if (v.endsWith('rem')) return parseFloat(v) * 16
-  return parseFloat(v) || 832
-}
-
 export function useMargin() {
-  const [id, setId] = useState(() => new URLSearchParams(location.search).get('m') ?? '24')
+  const [id, setId] = useState(() => new URLSearchParams(location.search).get('m') ?? 'actual')
 
   useEffect(() => {
     const url = new URL(location.href)
@@ -43,21 +34,41 @@ export function useMargin() {
   return { id: actual.id, cls: actual.cls, setId }
 }
 
+/* Los números se leen del DOM y no de una tabla: así lo que muestra el
+   lector es lo que la página mide de verdad, incluso si el CSS cambia. */
+function medir() {
+  const el = document.querySelector<HTMLElement>('[data-rail]')
+  const w = window.innerWidth
+  if (!el) return { w, riel: 0, margen: 0, columna: 0, alBorde: 0 }
+  const r = el.getBoundingClientRect()
+  const margen = parseFloat(getComputedStyle(el).paddingLeft) || 0
+  return {
+    w,
+    riel: Math.round(r.width),
+    margen: Math.round(margen),
+    columna: Math.round(r.width - margen * 2),
+    alBorde: Math.round(r.left + margen),
+  }
+}
+
 export function MarginToggle({ id, setId }: { id: string; setId: (v: string) => void }) {
-  const [w, setW] = useState(() => window.innerWidth)
-  const [riel, setRiel] = useState(832)
+  const [m, setM] = useState(medir)
 
   useEffect(() => {
-    setRiel(rielPx())
-    const onResize = () => setW(window.innerWidth)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  const activo = w <= riel
+    const leer = () => setM(medir())
+    leer()
+    window.addEventListener('resize', leer)
+    /* El cambio de opción no dispara resize, así que se re-mide cuando
+       el layout ya está pintado. */
+    const raf = requestAnimationFrame(leer)
+    return () => {
+      window.removeEventListener('resize', leer)
+      cancelAnimationFrame(raf)
+    }
+  }, [id])
 
   return (
-    <nav className={css.bar} aria-label="Margen lateral">
+    <nav className={css.bar} aria-label="Marco">
       {OPCIONES.map((o) => (
         <button
           key={o.id}
@@ -70,13 +81,27 @@ export function MarginToggle({ id, setId }: { id: string; setId: (v: string) => 
           <span className={css.note}>{o.note}</span>
         </button>
       ))}
-      {/* El margen va DENTRO del riel y el max-width lo incluye
-          (border-box), así que siempre le come ancho a la columna. Lo
-          que cambia bajo el riel es que además pasa a ser el aire hasta
-          el borde de la pantalla. */}
-      <span className={css.state} data-active={activo ? '' : undefined}>
-        <span className={css.dot} aria-hidden />
-        {w}px · {activo ? 'columna + aire al borde' : 'sólo achica la columna'}
+      <span className={css.read}>
+        <span className={css.cell}>
+          <span className={css.cellLabel}>ancho</span>
+          {m.w}
+        </span>
+        <span className={css.cell}>
+          <span className={css.cellLabel}>riel</span>
+          {m.riel}
+        </span>
+        <span className={css.cell}>
+          <span className={css.cellLabel}>margen</span>
+          {m.margen}
+        </span>
+        <span className={`${css.cell} ${css.col}`}>
+          <span className={css.cellLabel}>columna</span>
+          {m.columna}
+        </span>
+        <span className={css.cell}>
+          <span className={css.cellLabel}>al borde</span>
+          {m.alBorde}
+        </span>
       </span>
     </nav>
   )

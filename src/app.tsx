@@ -113,7 +113,7 @@ export function App() {
     <div className={`${css.page} ${margin.cls}`}>
       <Index />
       <Masthead />
-      <div className={css.content} data-dir="fwd">
+      <div className={css.content} data-dir="fwd" data-rail>
         {PLATFORMS.map((pl) => (
           <section className={css.group} key={pl}>
             <div className={css.groupHead}>

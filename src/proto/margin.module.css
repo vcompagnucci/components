@@ -1,19 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════════
-   EN ESTUDIO — el margen lateral: cuánto queda entre el contenido y el
-   borde cuando la pantalla es más angosta que el riel.
+   EN ESTUDIO — el marco: riel y margen juntos, porque son la misma
+   decisión. El max-width incluye el padding (border-box), así que la
+   columna es riel − 2×margen y no se puede elegir uno sin el otro.
 
-   Sólo cambia --margin. Riel, aire superior y todo lo demás quedan
-   congelados, para que lo que se compare sea una sola cosa.
+     Actual   riel 832 · margen 24 fijo        → columna 784
+     Josh     riel 740 · margen 96, 48 bajo 768 → columna 548
+
+   Él no usa un riel angosto: usa un riel parecido con un marco cuatro
+   veces más grueso. Ese es el comportamiento a comparar.
    ═══════════════════════════════════════════════════════════════════ */
 
-.m24 {
+.actual {
+  --grid-max: 52rem; /* 832 */
   --margin: 24px;
 }
-.m32 {
-  --margin: 32px;
+
+.josh {
+  --grid-max: 740px;
+  --margin: 96px;
 }
-.m48 {
-  --margin: 48px;
+/* Su breakpoint es min-width:768, así que a 768 exactos todavía está en
+   el valor grande: acá va en 767 para que coincida al píxel. */
+@media (max-width: 767px) {
+  .josh {
+    --margin: 48px;
+  }
 }
 
 /* ─── El toggle ─── */
@@ -74,31 +85,31 @@
   white-space: nowrap;
 }
 
-/* El aviso de si el margen está haciendo algo. Arriba del riel el
-   contenido está centrado y sobra espacio: toggleás y no pasa nada.
-   Decirlo evita el minuto de creer que el toggle está roto. */
-.state {
+/* Lector en vivo: los cuatro números que se mueven al redimensionar.
+   Sin esto hay que abrir el inspector para ver qué está pasando. */
+.read {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   margin-left: 4px;
-  padding: 0 12px 0 10px;
+  padding: 0 12px 0 12px;
   border-left: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.45);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-}
-.state[data-active] {
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   color: rgba(255, 255, 255, 0.9);
 }
-.state[data-active] .dot {
-  background: #4ade80;
+.cellLabel {
+  font-size: 9px;
+  opacity: 0.45;
+  letter-spacing: 0.02em;
+}
+.col {
+  color: #4ade80;
 }
