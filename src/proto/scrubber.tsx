@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import css from './scrubber.module.css'
 
 /* El control estándar del taller para tantear un tamaño.
@@ -26,28 +26,38 @@ const buzz = () => {
   }
 }
 
+export function ScrubberBar({ children }: { children: ReactNode }) {
+  return <div className={css.bar}>{children}</div>
+}
+
 export function Scrubber({
   label,
   value,
   onChange,
   min,
   max,
+  hardMax,
   step = 4,
   tickEvery = 32,
-  derived,
+  width = 420,
 }: {
   label: string
   value: number
   onChange: (v: number) => void
   min: number
   max: number
+  /* El tope real de la escala dibujada. Si max es menor, la diferencia
+     se raya: el control no se quedó corto, es la invariante frenando. */
+  hardMax?: number
   step?: number
   tickEvery?: number
-  derived?: { label: string; value: number }
+  width?: number
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [ticking, setTicking] = useState(0)
   const last = useRef(value)
+
+  const scaleMax = hardMax ?? max
 
   /* Un cambio de paso es el detente, venga de arrastre o de teclado. */
   useEffect(() => {
@@ -63,9 +73,9 @@ export function Scrubber({
       if (!el) return
       const r = el.getBoundingClientRect()
       const t = (clientX - r.left) / r.width
-      onChange(snap(min + t * (max - min), step, min, max))
+      onChange(snap(min + t * (scaleMax - min), step, min, max))
     },
-    [min, max, step, onChange],
+    [min, max, scaleMax, step, onChange],
   )
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -99,49 +109,44 @@ export function Scrubber({
     }
   }
 
-  const pct = ((value - min) / (max - min)) * 100
+  const span = scaleMax - min
+  const pct = ((value - min) / span) * 100
+  const capPct = 100 - ((max - min) / span) * 100
 
   const ticks: number[] = []
-  for (let v = Math.ceil(min / tickEvery) * tickEvery; v <= max; v += tickEvery) {
-    ticks.push(((v - min) / (max - min)) * 100)
+  for (let v = Math.ceil(min / tickEvery) * tickEvery; v <= scaleMax; v += tickEvery) {
+    ticks.push(((v - min) / span) * 100)
   }
 
   return (
-    <div className={css.wrap}>
-      <div
-        ref={trackRef}
-        className={css.track}
-        role="slider"
-        tabIndex={0}
-        aria-label={label}
-        aria-valuemin={min}
-        aria-valuemax={max}
-        aria-valuenow={value}
-        aria-valuetext={`${value} píxeles`}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onKeyDown={onKeyDown}
-      >
-        <span className={css.fill} style={{ width: `${pct}%` }} aria-hidden />
-        <span className={css.ticks} aria-hidden>
-          {ticks.map((t) => (
-            <i className={css.tick} style={{ left: `${t}%` }} key={t} />
-          ))}
-        </span>
-        <span className={css.thumb} style={{ left: `${pct}%` }} data-tick={ticking} aria-hidden />
-        <span className={css.label}>{label}</span>
-        <span className={css.value}>
-          {value}
-          <span className={css.unit}>px</span>
-        </span>
-      </div>
-
-      {derived && (
-        <div className={css.derived} title="Derivado — siempre menor que el de arriba">
-          {derived.label}
-          <span className={css.derivedValue}>{derived.value}px</span>
-        </div>
-      )}
+    <div
+      ref={trackRef}
+      className={css.track}
+      style={{ width }}
+      role="slider"
+      tabIndex={0}
+      aria-label={label}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={value}
+      aria-valuetext={`${value} píxeles`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onKeyDown={onKeyDown}
+    >
+      <span className={css.fill} style={{ width: `${pct}%` }} aria-hidden />
+      <span className={css.ticks} aria-hidden>
+        {ticks.map((t) => (
+          <i className={css.tick} style={{ left: `${t}%` }} key={t} />
+        ))}
+      </span>
+      {capPct > 0 && <span className={css.cap} style={{ width: `${capPct}%` }} aria-hidden />}
+      <span className={css.thumb} style={{ left: `${pct}%` }} data-tick={ticking} aria-hidden />
+      <span className={css.label}>{label}</span>
+      <span className={css.value}>
+        {value}
+        <span className={css.unit}>px</span>
+      </span>
     </div>
   )
 }

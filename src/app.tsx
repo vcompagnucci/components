@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { Scrubber, useUrlNumber } from './proto/scrubber'
+import { Scrubber, ScrubberBar, useUrlNumber } from './proto/scrubber'
 import { Rulers } from './proto/rulers'
 
 const PLATFORMS = ['Web', 'App'] as const
@@ -18,16 +18,19 @@ const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 const GAP_DEFAULT = 112
 const GAP_STEP = 4
 
-/* INVARIANTE — el hueco bajo el rótulo siempre es menor que el que hay
-   encima. Si no, el rótulo se despega de sus piezas y se pega al
-   masthead: quedaría rotulando lo de arriba en vez de lo de abajo.
+const BELOW_DEFAULT = 56
+const BELOW_MIN = 8
 
-   No se garantiza pidiendo cuidado sino derivando: es la mitad del de
-   arriba, pegada a la escala de 4 y con un tope de un paso menos. Así
-   no hay valor del slider que pueda romperlo. En 112 da 56, que es
-   exactamente lo que la página ya tenía. */
-const belowFor = (above: number) =>
-  Math.min(Math.max(Math.round(above / (GAP_STEP * 2)) * GAP_STEP, GAP_STEP * 2), above - GAP_STEP)
+/* INVARIANTE — el hueco bajo el rótulo siempre menor que el de encima.
+   Si no, el rótulo se despega de sus piezas y se pega al masthead:
+   quedaría rotulando lo de arriba en vez de lo de abajo.
+
+   Los dos valores se mueven por separado, pero la invariante no vive en
+   la buena voluntad de quien arrastra: vive en el tope del segundo
+   control, que es siempre el primero menos un paso. Y si bajás el de
+   arriba por debajo del de abajo, el de abajo lo sigue. No hay orden de
+   movimientos que la rompa. */
+const belowCap = (above: number) => Math.max(BELOW_MIN, above - GAP_STEP)
 
 /* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
    Vite sirve index.html para rutas desconocidas (appType spa por
@@ -71,18 +74,27 @@ function Index() {
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
   const [gap, setGap] = useUrlNumber('gap', GAP_DEFAULT, GAP_STEP)
-  const below = belowFor(gap)
+  const [below, setBelow] = useUrlNumber('below', BELOW_DEFAULT, GAP_STEP)
   const listScroll = useRef(0)
   const first = useRef(true)
 
-  /* El valor vive en la URL: recargás o lo compartís y estás mirando
-     lo mismo. replaceState y no push, para no ensuciar el historial
-     con un paso por cada píxel del arrastre. */
+  /* Bajar el de arriba arrastra al de abajo con él. Es el otro lado de
+     la invariante: el tope del segundo control la cuida cuando movés
+     abajo, y esto la cuida cuando movés arriba. */
+  const changeGap = (v: number) => {
+    setGap(v)
+    setBelow((b) => Math.min(b, belowCap(v)))
+  }
+
+  /* Los valores viven en la URL: recargás o los compartís y estás
+     mirando lo mismo. replaceState y no push, para no ensuciar el
+     historial con un paso por cada tirón del arrastre. */
   useEffect(() => {
     const url = new URL(location.href)
     url.searchParams.set('gap', String(gap))
+    url.searchParams.set('below', String(below))
     history.replaceState(history.state, '', url)
-  }, [gap])
+  }, [gap, below])
 
   useEffect(() => {
     const onPop = () => setSelected(fromUrl())
@@ -167,15 +179,28 @@ export function App() {
           </section>
         ))}
       </div>
-      <Scrubber
-        label="masthead → sección"
-        value={gap}
-        onChange={setGap}
-        min={16}
-        max={160}
-        step={GAP_STEP}
-        derived={{ label: 'rótulo → pieza', value: below }}
-      />
+      <ScrubberBar>
+        <Scrubber
+          label="masthead → sección"
+          value={gap}
+          onChange={changeGap}
+          min={16}
+          max={160}
+          step={GAP_STEP}
+        />
+        {/* Más corto, y su tope se mueve con el de arriba: lo rayado es
+            la invariante, no un slider que se quedó chico. */}
+        <Scrubber
+          label="rótulo → pieza"
+          value={below}
+          onChange={setBelow}
+          min={BELOW_MIN}
+          max={belowCap(gap)}
+          hardMax={160}
+          step={GAP_STEP}
+          width={260}
+        />
+      </ScrubberBar>
     </div>
   )
 }

@@ -7,7 +7,7 @@
    están pintados debajo, no al lado, así el recorrido del thumb es el
    ancho completo y el mapeo posición→valor es lineal y exacto. */
 
-.wrap {
+.bar {
   position: fixed;
   bottom: 24px;
   left: 50%;
@@ -21,17 +21,15 @@
   position: relative;
   display: flex;
   align-items: center;
-  width: 420px;
   height: 36px;
   padding: 0 14px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background-color: rgba(28, 28, 30, 0.92);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   backdrop-filter: blur(20px) saturate(1.4);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06) inset,
     0 8px 24px rgba(0, 0, 0, 0.3);
-  background-color: rgba(28, 28, 30, 0.92);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 13px;
   line-height: 1;
@@ -102,6 +100,7 @@
 .value {
   position: relative;
   margin-left: auto;
+  padding-left: 12px;
   color: #fff;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 600;
@@ -113,30 +112,20 @@
   font-weight: 400;
 }
 
-/* El valor derivado, sólo lectura: no se toca, se mira. */
-.derived {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 10px;
-  background: rgba(28, 28, 30, 0.92);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  backdrop-filter: blur(20px) saturate(1.4);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 13px;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.45);
-  white-space: nowrap;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.derivedValue {
-  color: rgba(255, 255, 255, 0.92);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-variant-numeric: tabular-nums;
+/* El tope del segundo control se mueve con el primero. Se marca para
+   que se vea que no es que el slider "se quedó corto": es la
+   invariante, que no deja pasar de ahí. */
+.cap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.05) 0 3px,
+    transparent 3px 6px
+  );
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
