@@ -1,8 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════
-   TOKENS — lo decidido. Tipografía, colores y tamaños heredados del
-   DESIGN.md de Carousels; familia tipográfica Benji (un solo tamaño,
-   jerarquía por peso, tracking en rem — fuentes citadas en
-   .context/recon/TYPE-SYSTEMS.md).
+   TOKENS — lo decidido, y de dónde sale cada cosa.
+
+   Medido del código servido de benji.org: la tipografía entera, el
+   secundario, la hairline, el marco y su escalón, el índice. Las citas
+   están en .context/recon/ (TYPE-SYSTEMS, RESPONSIVE, NAVIGATION).
+
+   Heredado del DESIGN.md de Carousels y NO verificado —ese archivo no
+   está en este repo ni en el disco, así que la cita no se puede
+   comprobar—: la escala --space-*, las superficies, la rampa alfa, el
+   anillo de foco y los tiempos de motion.
 
    Pendiente y marcado como tal: radios, elevación, z-index — se
    definen desde la primera pieza.
@@ -12,13 +18,18 @@
   --canvas: #fdfdfc;
   --surface: #ffffff;
   --ink: #111111;
-  /* PENDIENTE — el único color de la página que no sale de ninguna
-     referencia. Benji usa rgba(0,0,0,.4), emil rgb(99,99,94), josh
-     rgb(163,163,163); este es rgb(138,138,138) y no es de nadie. Los
-     roles de texto ya usan el alpha de benji, así que lo único que
-     queda colgado de acá es la flecha de volver del detalle — y el
-     detalle es otra etapa. Se resuelve ahí. */
-  --text-secondary: #8a8a8a;
+  /* El secundario de benji. Antes acá había un #8a8a8a que no era de
+     nadie —él usa alpha .4, emil rgb(99,99,94), josh rgb(163,163,163)—
+     y que además obligaba a repetir el valor en cada rol.
+
+     Él tiene dos: rgba(0,0,0,.4) en su artículo y hsla(0,0%,7%,.4) en
+     su nav. Son colores distintos (152 vs 159 sobre nuestro canvas), y
+     tener los dos sólo tendría sentido si tuviéramos dos roles de
+     secundario. Se toma el dominante: 30 reglas contra 6.
+
+     En alpha y no sólido, por lo mismo que la hairline: compone sobre
+     --canvas en vez de asumir blanco puro. */
+  --text-secondary: rgba(0, 0, 0, 0.4);
 
   /* rampa alfa */
   --a1: rgba(0, 0, 0, 0.04);
@@ -62,13 +73,13 @@
   --t-mast-lh: 20px;
   --t-mast-fw: 600;
   --t-mast-ls: -0.00563rem;
-  --t-mast-c: #111111;
+  --t-mast-c: var(--ink);
 
   --t-body-fs: 14px; /* subtítulo del masthead, descripción del detalle */
   --t-body-lh: 20px;
   --t-body-fw: 460;
   --t-body-ls: -0.00563rem;
-  --t-body-c: rgba(0, 0, 0, 0.4); /* su secundario, alpha y no sólido */
+  --t-body-c: var(--text-secondary);
 
   /* 560 es el peso de su h2 de sección, y es el que no teníamos: el
      rótulo estaba en 600, más pesado que el suyo. */
@@ -76,19 +87,19 @@
   --t-section-lh: 20px;
   --t-section-fw: 560;
   --t-section-ls: -0.00563rem;
-  --t-section-c: #111111;
+  --t-section-c: var(--ink);
 
   --t-piece-fs: 14px; /* título de pieza — su peso de énfasis */
   --t-piece-lh: 20px;
   --t-piece-fw: 500;
   --t-piece-ls: -0.00563rem;
-  --t-piece-c: #111111;
+  --t-piece-c: var(--ink);
 
   --t-meta-fs: 14px; /* la plataforma, en el detalle */
   --t-meta-lh: 20px;
   --t-meta-fw: 460;
   --t-meta-ls: -0.00563rem;
-  --t-meta-c: rgba(0, 0, 0, 0.4);
+  --t-meta-c: var(--text-secondary);
 
   /* Su índice: 13px/460, tracking -.0025rem, lh 1.2 y color al 40%.
      El 1.2 da 15.6; 16 lo pega a la escala de 4. */
@@ -96,9 +107,9 @@
   --t-idx-lh: 16px;
   --t-idx-ls: -0.0025rem;
   --t-idx-label-fw: 500;
-  --t-idx-label-c: #111111;
+  --t-idx-label-c: var(--ink);
   --t-idx-link-fw: 460;
-  --t-idx-link-c: hsla(0, 0%, 7%, 0.4);
+  --t-idx-link-c: var(--text-secondary);
 
   /* espaciado */
   --space-2: 2px;
