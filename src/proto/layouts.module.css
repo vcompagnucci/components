@@ -59,35 +59,3 @@
     display: none;
   }
 }
-
-/* ─── 2 · COLUMN — el rótulo es columna, no encabezado ─────────────
-   El patrón de la home de benji: el año vive en la sangría izquierda
-   (position:absolute, left:0) y sólo se muestra en la primera fila de
-   cada grupo. Sin encabezado y sin línea. Su sangría es 6.75rem. */
-.colRow {
-  position: relative;
-  padding-left: 6.75rem;
-}
-.colRow + .colRow {
-  margin-top: var(--space-48);
-}
-.colLabel {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: var(--fs);
-  font-weight: var(--fw-medium);
-  color: var(--text-secondary);
-  line-height: var(--lh);
-}
-.colGroup + .colGroup {
-  margin-top: var(--space-48);
-}
-
-/* ─── 4 · STACKED — sin ningún control ─────────────────────────────
-   La home de josh: las secciones apiladas a 72px y nada más. Acá se
-   usa el separador Rule ya medido, para que la variante pruebe la
-   ausencia del control y no otra cosa a la vez. */
-.stackGroup + .stackGroup {
-  margin-top: 72px;
-}

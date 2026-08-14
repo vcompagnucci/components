@@ -20,17 +20,6 @@ const goTo = (name: string) => {
   })
 }
 
-/* El separador Rule ya medido, reutilizado donde una variante lo pide.
-   Así lo que se juzga acá es la navegación, no otra vez la línea. */
-function RuleHead({ label }: { label: string }) {
-  return (
-    <div className={sep.ruleHead}>
-      <div className={`${sep.label} ${sep.ruleLabel}`}>{label}</div>
-      <span className={sep.ruleLine} aria-hidden />
-    </div>
-  )
-}
-
 /* ─── 1 · INDEX ─────────────────────────────────────────────────────
    El sistema completo de benji: índice fijo a la izquierda para
    navegar, y la línea de sección adentro del contenido. Sin tabs. */
@@ -53,7 +42,10 @@ function IndexLayout({ onOpen }: Props) {
       <div className={app.content} data-dir="fwd">
         {PLATFORMS.map((pl) => (
           <section className={sep.rule} key={pl}>
-            <RuleHead label={pl} />
+            <div className={sep.ruleHead}>
+              <div className={`${sep.label} ${sep.ruleLabel}`}>{pl}</div>
+              <span className={sep.ruleLine} aria-hidden />
+            </div>
             {by(pl).map((p) => (
               <Item piece={p} onOpen={onOpen} key={p.name} />
             ))}
@@ -64,45 +56,9 @@ function IndexLayout({ onOpen }: Props) {
   )
 }
 
-/* ─── 2 · COLUMN ────────────────────────────────────────────────────
-   Los tabs quedan, pero desaparece el encabezado de sección: en All
-   el rótulo baja a la sangría izquierda y sólo aparece en la primera
-   pieza de cada grupo. Es el patrón del año en la home de benji. */
-function ColumnLayout({ onOpen }: Props) {
-  const [f, setF] = useState(0)
-  const labels = ['All', 'Web', 'App'] as const
-
-  return (
-    <>
-      <Masthead />
-      <div className={app.barInner}>
-        <Tabs labels={labels} filterIdx={f} onChange={setF} />
-      </div>
-      <div className={app.content} data-dir="fwd" key={f}>
-        {f === 0
-          ? PLATFORMS.map((pl) => (
-              <section className={css.colGroup} key={pl}>
-                {by(pl).map((p, i) => (
-                  <div className={css.colRow} key={p.name}>
-                    {i === 0 && <div className={css.colLabel}>{pl}</div>}
-                    <Item piece={p} onOpen={onOpen} />
-                  </div>
-                ))}
-              </section>
-            ))
-          : by(labels[f] as Platform).map((p) => (
-              <div className={css.colRow} key={p.name}>
-                <Item piece={p} onOpen={onOpen} />
-              </div>
-            ))}
-      </div>
-    </>
-  )
-}
-
-/* ─── 3 · TWO TABS ──────────────────────────────────────────────────
-   Tu idea: se va All, se va el rótulo y se va la línea. Los tabs son
-   la única navegación y la única marca de grupo. */
+/* ─── 2 · TWO TABS ──────────────────────────────────────────────────
+   Se va All, se va el rótulo y se va la línea. Los tabs son la única
+   navegación y la única marca de grupo. */
 function TwoTabsLayout({ onOpen }: Props) {
   const [f, setF] = useState(0)
 
@@ -121,29 +77,7 @@ function TwoTabsLayout({ onOpen }: Props) {
   )
 }
 
-/* ─── 4 · STACKED ───────────────────────────────────────────────────
-   La home de josh: sin ningún control. Todo apilado, siempre. */
-function StackedLayout({ onOpen }: Props) {
-  return (
-    <>
-      <Masthead />
-      <div className={app.content} data-dir="fwd">
-        {PLATFORMS.map((pl) => (
-          <section className={css.stackGroup} key={pl}>
-            <RuleHead label={pl} />
-            {by(pl).map((p) => (
-              <Item piece={p} onOpen={onOpen} key={p.name} />
-            ))}
-          </section>
-        ))}
-      </div>
-    </>
-  )
-}
-
 export const LAYOUTS = [
   { name: 'Index', Comp: IndexLayout },
-  { name: 'Column', Comp: ColumnLayout },
   { name: 'Two tabs', Comp: TwoTabsLayout },
-  { name: 'Stacked', Comp: StackedLayout },
 ]
