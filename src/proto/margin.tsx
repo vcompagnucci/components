@@ -7,9 +7,9 @@ import css from './margin.module.css'
 /* Los tres son distintos en escritorio (784 · 550 · 624) e idénticos en
    teléfono (342 · 24 los tres). Se toca el 1, 2 o 3 para comparar. */
 const OPCIONES = [
-  { id: 'actual', label: 'Actual', note: '832 · columna 784', cls: css.actual },
-  { id: 'benji', label: 'Benji', note: '582 · columna 550', cls: css.benji },
-  { id: 'josh', label: 'Josh', note: '672 · columna 624', cls: css.josh },
+  { id: 'actual', label: 'Actual', note: '784 · escalón 768', cls: css.actual },
+  { id: 'benji', label: 'Benji', note: '550 · escalón 768', cls: css.benji },
+  { id: 'josh', label: 'Josh', note: '624 · sin escalón', cls: css.josh },
 ]
 
 export function useMargin() {
@@ -42,7 +42,14 @@ export function useMargin() {
 function medir() {
   const el = document.querySelector<HTMLElement>('[data-rail]')
   const w = window.innerWidth
-  if (!el) return { w, riel: 0, margen: 0, columna: 0, alBorde: 0 }
+  /* El aire sale del custom property ya resuelto, así incluye el
+     escalón del @media sin tener que replicar la condición en JS. El
+     índice se lee del layout real: si no ocupa cajas, no está. */
+  const page = document.querySelector<HTMLElement>('[data-frame]')
+  const aire = page ? getComputedStyle(page).getPropertyValue('--air-top').trim() : '—'
+  const nav = document.querySelector<HTMLElement>('nav[aria-label="Pieces"]')
+  const indice = nav ? (nav.getClientRects().length > 0 ? 'sí' : 'no') : '—'
+  if (!el) return { w, riel: 0, margen: 0, columna: 0, alBorde: 0, aire, indice }
   const r = el.getBoundingClientRect()
   const margen = parseFloat(getComputedStyle(el).paddingLeft) || 0
   return {
@@ -51,6 +58,8 @@ function medir() {
     margen: Math.round(margen),
     columna: Math.round(r.width - margen * 2),
     alBorde: Math.round(r.left + margen),
+    aire,
+    indice,
   }
 }
 
@@ -104,6 +113,14 @@ export function MarginToggle({ id, setId }: { id: string; setId: (v: string) => 
         <span className={css.cell}>
           <span className={css.cellLabel}>al borde</span>
           {m.alBorde}
+        </span>
+        <span className={css.cell}>
+          <span className={css.cellLabel}>aire ↑</span>
+          {m.aire}
+        </span>
+        <span className={css.cell}>
+          <span className={css.cellLabel}>índice</span>
+          {m.indice}
         </span>
       </span>
     </nav>

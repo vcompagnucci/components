@@ -2,7 +2,10 @@
    CSS: padding 5rem). El escalón a 32 va en 768, el mismo que usan los
    dos referentes ═══════════ */
 .page {
-  padding-top: var(--space-64); /* + 16 del padding del mast = 80 */
+  /* --air-top es el aire total que se ve; el mast pone 16 de su propio
+     padding, así que acá va el resto. El token es el número que se
+     elige, la resta es implementación. */
+  padding-top: calc(var(--air-top) - var(--space-16));
 }
 .page > .content:first-child {
   padding-top: var(--space-16);
@@ -79,13 +82,33 @@
 .indexLink:hover {
   color: var(--ink);
 }
-/* Bajo 1200px no queda margen donde vivir y se esconde, sin reemplazo:
-   es una decisión, no una deuda. Medido a 390px, ninguna de las dos
-   referencias da navegación dentro de la página en mobile — benji
-   esconde sus links de sección y deja sólo el "← Index"; josh esconde
-   el índice entero. Los dos aceptan que ahí se scrollea. */
+/* El índice se esconde y no se reemplaza: es una decisión, no una
+   deuda. Medido a 390px, ninguna de las dos referencias da navegación
+   dentro de la página en mobile — benji esconde sus links de sección y
+   deja sólo el "← Index"; josh esconde el índice entero. Los dos
+   aceptan que ahí se scrollea.
+
+   EN QUÉ ANCHO se esconde está en estudio junto con el marco, porque es
+   la misma pregunta: cuánto lugar hace falta al costado del riel. Cada
+   opción usa el de su referente, leído de su código servido:
+
+     actual  1200  — nuestro, no sale de ninguno de los dos
+     benji   1080  — @media(max-width:1080px){.styles_container__MZ8RH{display:none}}
+     josh    1280  — class="fixed left-8 top-16 hidden xl:block" (xl = 1280)
+
+   Al hornear, esto vuelve a ser un solo @media. */
 @media (max-width: 1200px) {
-  .index {
+  [data-frame='actual'] .index {
+    display: none;
+  }
+}
+@media (max-width: 1080px) {
+  [data-frame='benji'] .index {
+    display: none;
+  }
+}
+@media (max-width: 1279.98px) {
+  [data-frame='josh'] .index {
     display: none;
   }
 }
@@ -98,7 +121,7 @@
 .content {
   max-width: var(--grid-max);
   margin: 0 auto;
-  padding: 0 var(--margin) 128px;
+  padding: 0 var(--margin) var(--air-bottom);
 }
 .content[data-dir='fwd'] {
   animation: enterFwd var(--dur-enter) var(--ease-out) both;
@@ -255,15 +278,10 @@
   border-radius: var(--radius-tbd);
 }
 
-/* 768 es el escalón de los dos referentes. En benji está medido al
-   píxel: a 769 el aire son 80, a 768 son 32. Antes acá estaba en 640,
-   heredado del DESIGN.md de Carousels — un número de otro proyecto que
-   nunca se había mirado contra esta página. */
-@media (max-width: 768px) {
-  .page {
-    padding-top: var(--space-16); /* 16 + 16 = 32 */
-  }
-}
+/* El escalón de 768 (aire 80 → 32) está EN ESTUDIO y hoy lo pone cada
+   opción del marco en src/proto/margin.module.css, moviendo --air-top.
+   Sale de benji, medido al píxel: a 769 el aire son 80, a 768 son 32.
+   Josh no escalona nada. Al hornear, el escalón que gane vuelve acá. */
 
 /* Reduced motion: se saca el movimiento, se conservan color y opacidad. */
 @media (prefers-reduced-motion: reduce) {

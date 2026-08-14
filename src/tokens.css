@@ -49,6 +49,12 @@
   --control-h-sm: 34px;
   --margin: 24px;
   --grid-max: 52rem;
+  /* aire arriba y abajo. Son variables porque el marco en estudio los
+     mueve: benji escalona el de arriba en 768, josh no escalona nada.
+     El escalón vive hoy en src/proto/margin.module.css y vuelve acá
+     cuando se hornee la opción que gane. */
+  --air-top: 80px;
+  --air-bottom: 128px;
 
   --radius-pill: 9999px;
   --focus-ring: 0 0 0 2px var(--canvas),

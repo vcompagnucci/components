@@ -102,7 +102,7 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={`${css.page} ${margin.cls}`}>
+      <div className={`${css.page} ${margin.cls}`} data-frame={margin.id}>
         <Detail piece={selected} onBack={back} />
         <MarginToggle id={margin.id} setId={margin.setId} />
       </div>
@@ -110,7 +110,7 @@ export function App() {
   }
 
   return (
-    <div className={`${css.page} ${margin.cls}`}>
+    <div className={`${css.page} ${margin.cls}`} data-frame={margin.id}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd" data-rail>
