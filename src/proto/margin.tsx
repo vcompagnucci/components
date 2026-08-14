@@ -6,6 +6,7 @@ import css from './margin.module.css'
 
 const OPCIONES = [
   { id: 'actual', label: 'Actual', note: '832 · 24', cls: css.actual },
+  { id: 'benji', label: 'Benji', note: '582 · 16→24', cls: css.benji },
   { id: 'josh', label: 'Josh', note: '740 · 96→48', cls: css.josh },
 ]
 

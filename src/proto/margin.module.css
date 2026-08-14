@@ -27,6 +27,18 @@
   }
 }
 
+/* Benji: el opuesto de josh. Riel chico con marco mínimo — el aire lo
+   pone el centrado, no el padding. Su breakpoint es max-width:768. */
+.benji {
+  --grid-max: 582px;
+  --margin: 16px;
+}
+@media (max-width: 768px) {
+  .benji {
+    --margin: 24px;
+  }
+}
+
 /* ─── El toggle ─── */
 .bar {
   position: fixed;
