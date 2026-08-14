@@ -3,11 +3,13 @@
    decisión. El max-width incluye el padding (border-box), así que la
    columna es riel − 2×margen y no se puede elegir uno sin el otro.
 
-     Actual   riel 832 · margen 24 fijo        → columna 784
-     Josh     riel 740 · margen 96, 48 bajo 768 → columna 548
+     Actual   riel 832 · margen 24        → columna 784
+     Benji    riel 582 · margen 16→24     → columna 550
+     Josh     riel 672 · margen 24        → columna 624
 
-   Él no usa un riel angosto: usa un riel parecido con un marco cuatro
-   veces más grueso. Ese es el comportamiento a comparar.
+   Los tres dan lo MISMO en teléfono: a 390 el riel colapsa al viewport
+   y los tres márgenes valen 24, así que los tres miden 342 de columna
+   con 24 al borde. Esta decisión sólo cambia el escritorio.
    ═══════════════════════════════════════════════════════════════════ */
 
 .actual {
@@ -15,18 +17,33 @@
   --margin: 24px;
 }
 
-/* La construcción de benji: riel chico con marco mínimo — el aire lo
-   pone el centrado, no el padding. Su breakpoint es max-width:768.
-   La de josh (740 · 96→48) daba la misma columna a un píxel, así que se
-   cortó: dos opciones indistinguibles no dejan decidir nada. */
+/* Benji, de su CSS servido — .styles_container__YJPlC:
+     padding: 5rem 1rem 2.5rem; max-width: 36.375rem; margin: 0 auto
+     @media (max-width:768px) { padding: 2rem 1.5rem 2.5rem }
+   Riel chico con marco mínimo: el aire lo pone el centrado, no el
+   padding. Es el único de los tres que mueve el margen en el
+   breakpoint (16 arriba de 768, 24 abajo). */
 .benji {
-  --grid-max: 582px;
+  --grid-max: 582px; /* 36.375rem */
   --margin: 16px;
 }
 @media (max-width: 768px) {
   .benji {
     --margin: 24px;
   }
+}
+
+/* Josh, de su markup servido — "mx-auto max-w-2xl px-6 py-16", idéntico
+   en /bloom, /dialkit, /melt-effect, /on-being-an-elder y /pasito.
+   Sin variante responsive: el marco es 24 en todos los anchos.
+   Su HOME es otra cosa (740 con px-12/md:px-24 → columna 548) y no
+   cuenta acá: nuestra página se parece a sus subpáginas, no a su
+   portada. Confundir las dos fue lo que hizo parecer que josh y benji
+   daban lo mismo — separados por 2px en la comparación equivocada,
+   por 74 en la correcta. */
+.josh {
+  --grid-max: 42rem; /* 672 — max-w-2xl */
+  --margin: 24px; /* px-6 */
 }
 
 /* ─── El toggle ─── */
