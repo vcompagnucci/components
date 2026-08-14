@@ -59,49 +59,49 @@
      (1.25rem absoluto, que no escala si cambia el tamaño) y además deja
      que el cálculo del hueco del rótulo la consuma directo. Las dos
      caen en múltiplos de 4. */
-  --t-mast-fs: 14px; /* título de página y del detalle — su h1, 600 */
-  --t-mast-lh: 20px;
-  --t-mast-fw: 600;
-  --t-mast-ls: -0.00563rem;
-  --t-mast-c: var(--ink);
+  --type-h1-fs: 14px; /* título de página y del detalle — su h1, 600 */
+  --type-h1-lh: 20px;
+  --type-h1-fw: 600;
+  --type-h1-ls: -0.00563rem;
+  --type-h1-c: var(--ink);
 
-  --t-body-fs: 14px; /* subtítulo del masthead, descripción del detalle */
-  --t-body-lh: 20px;
-  --t-body-fw: 460;
-  --t-body-ls: -0.00563rem;
-  --t-body-c: var(--text-secondary);
+  --type-body-fs: 14px; /* subtítulo del masthead, descripción del detalle */
+  --type-body-lh: 20px;
+  --type-body-fw: 460;
+  --type-body-ls: -0.00563rem;
+  --type-body-c: var(--text-secondary);
 
   /* 560 es el peso de su h2 de sección, y es el que no teníamos: el
      rótulo estaba en 600, más pesado que el suyo. */
-  --t-section-fs: 14px; /* rótulo de sección — "Web" / "App" */
-  --t-section-lh: 20px;
-  --t-section-fw: 560;
-  --t-section-ls: -0.00563rem;
-  --t-section-c: var(--ink);
+  --type-h2-fs: 14px; /* rótulo de sección — "Web" / "App" */
+  --type-h2-lh: 20px;
+  --type-h2-fw: 560;
+  --type-h2-ls: -0.00563rem;
+  --type-h2-c: var(--ink);
 
-  --t-piece-fs: 14px; /* título de pieza — su peso de énfasis */
-  --t-piece-lh: 20px;
-  --t-piece-fw: 500;
-  --t-piece-ls: -0.00563rem;
-  --t-piece-c: var(--ink);
+  --type-h3-fs: 14px; /* título de pieza — su peso de énfasis */
+  --type-h3-lh: 20px;
+  --type-h3-fw: 500;
+  --type-h3-ls: -0.00563rem;
+  --type-h3-c: var(--ink);
 
-  --t-meta-fs: 14px; /* la plataforma, en el detalle */
-  --t-meta-lh: 20px;
-  --t-meta-fw: 460;
-  --t-meta-ls: -0.00563rem;
-  --t-meta-c: var(--text-secondary);
+  --type-meta-fs: 14px; /* la plataforma, en el detalle */
+  --type-meta-lh: 20px;
+  --type-meta-fw: 460;
+  --type-meta-ls: -0.00563rem;
+  --type-meta-c: var(--text-secondary);
 
   /* Su índice: 13px/460, tracking -.0025rem, lh 1.2 y color al 40%.
      El 1.2 da 15.6; 16 lo pega a la escala de 4. */
-  --t-idx-fs: 13px;
-  --t-idx-lh: 16px;
-  --t-idx-ls: -0.0025rem;
-  --t-idx-label-fw: 500;
-  --t-idx-label-c: var(--ink);
-  --t-idx-link-fw: 460;
+  --type-nav-fs: 13px;
+  --type-nav-lh: 16px;
+  --type-nav-ls: -0.0025rem;
+  --type-nav-label-fw: 500;
+  --type-nav-label-c: var(--ink);
+  --type-nav-link-fw: 460;
   /* el mismo valor que estaba escrito a mano en .indexLink; lo único
      que cambió es que ahora vive acá y no adentro de la clase */
-  --t-idx-link-c: rgba(18, 18, 18, 0.4);
+  --type-nav-link-c: rgba(18, 18, 18, 0.4);
 
   /* espaciado */
   --space-2: 2px;
@@ -167,7 +167,7 @@
      40%, 8px entre uno y otro */
   --index-left: 80px;
   --index-top: 80px;
-  /* el tamaño del índice pasó a --t-idx-fs, que es donde vive ahora la
+  /* el tamaño del índice pasó a --type-nav-fs, que es donde vive ahora la
      tipografía por rol. El gap sigue acá: es espaciado, no texto, y
      los dos referentes coinciden en 8. */
   --index-gap: 8px;

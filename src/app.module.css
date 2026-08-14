@@ -22,19 +22,19 @@
   padding: var(--space-16) var(--margin) 0;
 }
 .mastTitle {
-  font-size: var(--t-mast-fs);
-  font-weight: var(--t-mast-fw);
-  letter-spacing: var(--t-mast-ls);
-  line-height: var(--t-mast-lh);
-  color: var(--t-mast-c);
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  color: var(--type-h1-c);
   margin: 0;
 }
 .mastSub {
-  font-size: var(--t-body-fs);
-  font-weight: var(--t-body-fw);
-  letter-spacing: var(--t-body-ls);
-  line-height: var(--t-body-lh);
-  color: var(--t-body-c);
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
 }
 
 /* ═══════════ ÍNDICE LATERAL ═══════════
@@ -66,11 +66,11 @@
   margin-top: var(--space-24);
 }
 .indexLabel {
-  font-size: var(--t-idx-fs);
-  font-weight: var(--t-idx-label-fw);
-  letter-spacing: var(--t-idx-ls);
-  line-height: var(--t-idx-lh);
-  color: var(--t-idx-label-c);
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-label-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-label-c);
   white-space: nowrap;
 }
 .indexLink {
@@ -78,11 +78,11 @@
   border: 0;
   background: transparent;
   text-align: left;
-  font-size: var(--t-idx-fs);
-  font-weight: var(--t-idx-link-fw);
-  letter-spacing: var(--t-idx-ls);
-  line-height: var(--t-idx-lh);
-  color: var(--t-idx-link-c);
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-link-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-link-c);
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-fill) ease;
@@ -166,14 +166,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  margin-bottom: calc(var(--gap-label) - (var(--t-section-lh) - 1px) / 2);
+  margin-bottom: calc(var(--gap-label) - (var(--type-h2-lh) - 1px) / 2);
 }
 .groupLabel {
-  font-size: var(--t-section-fs);
-  font-weight: var(--t-section-fw);
-  letter-spacing: var(--t-section-ls);
-  line-height: var(--t-section-lh);
-  color: var(--t-section-c);
+  font-size: var(--type-h2-fs);
+  font-weight: var(--type-h2-fw);
+  letter-spacing: var(--type-h2-ls);
+  line-height: var(--type-h2-lh);
+  color: var(--type-h2-c);
   white-space: nowrap;
 }
 .groupLine {
@@ -198,11 +198,11 @@
   margin-top: var(--space-48);
 }
 .streamTitle {
-  font-size: var(--t-piece-fs);
-  font-weight: var(--t-piece-fw);
-  letter-spacing: var(--t-piece-ls);
-  line-height: var(--t-piece-lh);
-  color: var(--t-piece-c);
+  font-size: var(--type-h3-fs);
+  font-weight: var(--type-h3-fw);
+  letter-spacing: var(--type-h3-ls);
+  line-height: var(--type-h3-lh);
+  color: var(--type-h3-c);
   margin-bottom: var(--space-12);
 }
 .streamPreview {
@@ -253,19 +253,19 @@
   margin-bottom: var(--space-24);
 }
 .detailTitle {
-  font-size: var(--t-mast-fs);
-  font-weight: var(--t-mast-fw);
-  letter-spacing: var(--t-mast-ls);
-  line-height: var(--t-mast-lh);
-  color: var(--t-mast-c);
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  color: var(--type-h1-c);
   margin: 0;
 }
 .detailMeta {
-  font-size: var(--t-meta-fs);
-  font-weight: var(--t-meta-fw);
-  letter-spacing: var(--t-meta-ls);
-  line-height: var(--t-meta-lh);
-  color: var(--t-meta-c);
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--type-meta-c);
 }
 /* Sin max-width propio: la columna ya son 560 y la medida de lectura la
    pone ella. Acá había un 36.375rem —el riel de benji, usado como medida
@@ -275,11 +275,11 @@
    columna, es una decisión aparte y se toma con la primera pieza. */
 .detailDesc {
   margin: var(--space-8) 0 0;
-  font-size: var(--t-body-fs);
-  font-weight: var(--t-body-fw);
-  letter-spacing: var(--t-body-ls);
-  line-height: var(--t-body-lh);
-  color: var(--t-body-c);
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
 }
 .detailPreview {
   aspect-ratio: 16 / 9;
