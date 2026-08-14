@@ -1,6 +1,6 @@
 /* ═══════════ AIRE SUPERIOR — 80px, como benji (medido y leído de su
-   CSS: padding 5rem; su escalón mobile está en 768, acá 640 por el
-   DESIGN.md — divergencia consciente) ═══════════ */
+   CSS: padding 5rem). El escalón a 32 va en 768, el mismo que usan los
+   dos referentes ═══════════ */
 .page {
   padding-top: var(--space-64); /* + 16 del padding del mast = 80 */
 }
@@ -255,7 +255,11 @@
   border-radius: var(--radius-tbd);
 }
 
-@media (max-width: 640px) {
+/* 768 es el escalón de los dos referentes. En benji está medido al
+   píxel: a 769 el aire son 80, a 768 son 32. Antes acá estaba en 640,
+   heredado del DESIGN.md de Carousels — un número de otro proyecto que
+   nunca se había mirado contra esta página. */
+@media (max-width: 768px) {
   .page {
     padding-top: var(--space-16); /* 16 + 16 = 32 */
   }
