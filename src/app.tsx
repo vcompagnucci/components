@@ -3,6 +3,7 @@ import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { Picker } from './proto/picker'
+import { Rulers } from './proto/rulers'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -125,6 +126,9 @@ export function App() {
     <Picker names={GAPS.map((g) => g.name)}>
       {(gi) => (
         <div className={css.page}>
+          {/* deps: re-mide al cambiar de opción, que es cuando el
+              espaciado bajo estudio cambia de valor. */}
+          <Rulers deps={gi} />
           <Index />
           <Masthead />
           {/* El padding de .content se anula y el primer grupo toma el

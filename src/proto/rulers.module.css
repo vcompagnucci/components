@@ -1,0 +1,97 @@
+/* Reglas de medición del taller. Chrome de herramienta, no diseño: rojo
+   fijo, nunca tokens del proyecto, para que jamás se confunda con la
+   página que está midiendo. Se borra junto con src/proto/. */
+
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  pointer-events: none;
+  z-index: 2147483000;
+}
+
+/* Cada regla es un tramo vertical con una marca en cada punta: lo que
+   se mide es el hueco, así que el dibujo tiene que ser el hueco. */
+.ruler {
+  position: absolute;
+  width: 1px;
+  background: #ff2d2d;
+}
+.ruler::before,
+.ruler::after {
+  content: '';
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 1px;
+  background: #ff2d2d;
+}
+.ruler::before {
+  top: 0;
+}
+.ruler::after {
+  bottom: 0;
+}
+
+.label {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff2d2d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.name {
+  opacity: 0.55;
+  margin-left: 6px;
+}
+
+/* El toggle. Mismo idioma que el picker —píldora oscura, chrome— pero
+   abajo a la izquierda para no pisarlo. */
+.toggle {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24);
+  color: rgba(255, 255, 255, 0.55);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 150ms ease-out;
+}
+.toggle:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.toggle[data-on] {
+  color: #fff;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.toggle[data-on] .dot {
+  background: #ff2d2d;
+}
