@@ -2,9 +2,24 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
+import { Picker } from './proto/picker'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
+
+/* ⚠ EN ESTUDIO — el aire entre el masthead y la primera rule.
+   Hoy son 121.5px medidos, que salen de apilar tres cosas sin que nadie
+   lo decidiera: 8 del margin del masthead + 40 del padding de .content
+   + 64 del de .group. Cada opción es el total desde el subtítulo, y
+   cada una tiene un motivo. El segundo grupo no se toca: sigue en los
+   64 medidos de benji. Se hornea al elegir y esto se borra. */
+const GAPS = [
+  { name: '112', total: 112, why: 'actual — nadie lo decidió, es la suma de tres cosas' },
+  { name: '80', total: 80, why: 'el aire superior de la página, repetido' },
+  { name: '64', total: 64, why: 'lo que usa benji entre secciones — el mismo de abajo' },
+  { name: '48', total: 48, why: 'lo que usa benji cuando arranca una sección en su home' },
+  { name: '32', total: 32, why: 'el mínimo, para ver dónde se rompe' },
+]
 
 /* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
    Vite sirve index.html para rutas desconocidas (appType spa por
@@ -107,22 +122,33 @@ export function App() {
   }
 
   return (
-    <div className={css.page}>
-      <Index />
-      <Masthead />
-      <div className={css.content} data-dir="fwd">
-        {PLATFORMS.map((pl) => (
-          <section className={css.group} key={pl}>
-            <div className={css.groupHead}>
-              <div className={css.groupLabel}>{pl}</div>
-              <span className={css.groupLine} aria-hidden />
-            </div>
-            {by(pl).map((p) => (
-              <Item piece={p} onOpen={open} key={p.name} />
+    <Picker names={GAPS.map((g) => g.name)}>
+      {(gi) => (
+        <div className={css.page}>
+          <Index />
+          <Masthead />
+          {/* El padding de .content se anula y el primer grupo toma el
+              total menos los 8 del margin del masthead, para que el
+              número elegido sea exactamente el que se mide en pantalla. */}
+          <div className={css.content} data-dir="fwd" style={{ paddingTop: 0 }}>
+            {PLATFORMS.map((pl, i) => (
+              <section
+                className={css.group}
+                key={pl}
+                style={i === 0 ? { paddingTop: GAPS[gi].total - 8 } : undefined}
+              >
+                <div className={css.groupHead}>
+                  <div className={css.groupLabel}>{pl}</div>
+                  <span className={css.groupLine} aria-hidden />
+                </div>
+                {by(pl).map((p) => (
+                  <Item piece={p} onOpen={open} key={p.name} />
+                ))}
+              </section>
             ))}
-          </section>
-        ))}
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+    </Picker>
   )
 }
