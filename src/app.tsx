@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { FrameScrubbers, useFrame } from './proto/frame'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -48,13 +47,6 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const f = useFrame()
-  /* Lo que está en estudio se inyecta como custom property, que es lo
-     mismo que hace el token: así lo lee todo lo que ya usa var(). */
-  const frame = {
-    '--grid-max': `${f.riel}px`,
-    '--air-bottom': `${f.aire}px`,
-  } as React.CSSProperties
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -108,23 +100,17 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={css.page} style={frame}>
+      <div className={css.page}>
         <Detail piece={selected} onBack={back} />
-        <FrameScrubbers
-          riel={f.riel}
-          setRiel={f.setRiel}
-          aire={f.aire}
-          setAire={f.setAire}
-        />
       </div>
     )
   }
 
   return (
-    <div className={css.page} style={frame}>
+    <div className={css.page}>
       <Index />
       <Masthead />
-      <div className={css.content} data-dir="fwd" data-rail>
+      <div className={css.content} data-dir="fwd">
         {PLATFORMS.map((pl) => (
           <section className={css.group} key={pl}>
             <div className={css.groupHead}>
@@ -137,7 +123,6 @@ export function App() {
           </section>
         ))}
       </div>
-      <FrameScrubbers riel={f.riel} setRiel={f.setRiel} aire={f.aire} setAire={f.setAire} />
     </div>
   )
 }

@@ -61,15 +61,24 @@
   --margin: 16px;
   --air-top: 80px; /* 5rem */
 
-  /* EN ESTUDIO — el ancho del riel, entre 584 (benji) y 672 (josh).
-     Lo mueve el scrubber de src/proto/rail.tsx; este valor es el que
-     queda si el taller se borra. */
-  --grid-max: 584px;
+  /* El riel: 592 = 37rem justos. Elegido con el scrubber sobre la página
+     real, entre el de benji (582, su 36.375rem) y el de josh (672,
+     42rem). Con el margen de 16 la columna queda en 560, que son 35rem
+     — los dos números caen en rem enteros, cosa que no pasaba con
+     ninguno de los dos extremos. */
+  --grid-max: 592px;
 
-  /* PENDIENTE — no sale de ninguna de las dos referencias: las dos
-     cierran corto (benji 40, josh 64) porque abajo tienen footer y
-     nosotros no vamos a tener. Sin decidir. */
-  --air-bottom: 128px;
+  /* 80 abajo, el mismo número que arriba. No sale de las referencias:
+     las dos cierran corto (benji 40, josh 64) porque abajo tienen
+     footer y nosotros no vamos a tener, así que ese aire es el final de
+     la página y no una separación.
+
+     No escalona en 768 como el de arriba, y a propósito: los 80 de
+     arriba se recortan porque en un teléfono son pantalla muerta antes
+     de leer nada. Los de abajo sólo se ven si scrolleaste hasta el
+     fondo, así que no cuestan nada. Benji hace lo mismo — escalona el
+     de arriba y deja el de abajo quieto. */
+  --air-bottom: 80px;
 
   --radius-pill: 9999px;
   --focus-ring: 0 0 0 2px var(--canvas),

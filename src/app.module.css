@@ -252,9 +252,14 @@
 .detailMeta {
   color: var(--text-secondary);
 }
+/* Sin max-width propio: la columna ya son 560 y la medida de lectura la
+   pone ella. Acá había un 36.375rem —el riel de benji, usado como medida
+   de texto— que con el riel en 592 quedó por encima de la columna y no
+   podía aplicar nunca: un número que se leía como decisión y no hacía
+   nada. Si el detalle llega a querer una medida más angosta que su
+   columna, es una decisión aparte y se toma con la primera pieza. */
 .detailDesc {
   margin: var(--space-8) 0 0;
-  max-width: 36.375rem;
   color: var(--text-secondary);
 }
 .detailPreview {

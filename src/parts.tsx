@@ -29,9 +29,7 @@ export function Item({ piece, onOpen }: { piece: Piece; onOpen: (p: Piece) => vo
 
 export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) {
   return (
-    /* data-rail: la marca que lee el scrubber en estudio para medir la
-       columna real. Se va con src/proto/. */
-    <div className={css.content} data-rail>
+    <div className={css.content}>
       <div className={css.detail}>
         <button className={css.back} aria-label="Back" onClick={onBack}>
           ←
