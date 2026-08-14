@@ -17,11 +17,14 @@ const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 const GAP_DEFAULT = 60
 const GAP_STEP = 4
 
-/* ⚠ EN ESTUDIO — rótulo → pieza. Los 56 son los de benji en /liveline
-   (24 del bloque del separador + 32 del margin del bloque siguiente),
-   que es el análogo real: nuestras piezas son bloques de 280px, no
-   filas de texto. Ver la tabla en .context/recon/NAVIGATION.md. */
-const BELOW_DEFAULT = 56
+/* rótulo → pieza: 32. Venía de 56 —el valor de benji en /liveline— pero
+   ahí había una agrupación invertida: entre piezas hay 48, así que el
+   rótulo quedaba MÁS lejos de su primera pieza que las piezas entre sí,
+   y leía como flotando entre grupos en vez de encabezando el de abajo.
+
+   32 y no 36 porque 32 ya está en la escala: 36 caería entre 32 y 40,
+   subdividiendo un intervalo ya resuelto. Falta hornearlo. */
+const BELOW_DEFAULT = 32
 const BELOW_MIN = 8
 
 /* INVARIANTE — el hueco bajo el rótulo siempre menor que el de encima.
