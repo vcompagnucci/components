@@ -26,8 +26,38 @@ const buzz = () => {
   }
 }
 
+/* La barra se puede plegar. Hace falta porque la herramienta vive
+   encima de la página que está midiendo: para juzgar de verdad hay que
+   poder sacarla del medio y volver a traerla sin perder los valores.
+   Plegada deja sólo un punto, y la tecla H hace lo mismo sin apuntar. */
 export function ScrubberBar({ children }: { children: ReactNode }) {
-  return <div className={css.bar}>{children}</div>
+  const [plegada, setPlegada] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key === 'h' || e.key === 'H') setPlegada((v) => !v)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
+  return (
+    <div className={css.bar}>
+      {!plegada && children}
+      <button
+        className={plegada ? css.dot : css.fold}
+        onClick={() => setPlegada((v) => !v)}
+        aria-label={plegada ? 'Mostrar controles (H)' : 'Ocultar controles (H)'}
+        aria-expanded={!plegada}
+        title={plegada ? 'Mostrar (H)' : 'Ocultar (H)'}
+      >
+        {plegada ? <i className={css.dotMark} aria-hidden /> : '×'}
+      </button>
+    </div>
+  )
 }
 
 export function Scrubber({
@@ -145,7 +175,13 @@ export function Scrubber({
           <i className={css.tick} style={{ left: `${t}%` }} key={t} />
         ))}
         {marks?.map((v) => (
-          <i className={css.mark} style={{ left: `${((v - min) / span) * 100}%` }} key={`m${v}`} />
+          <i
+            className={css.mark}
+            style={{
+              left: `clamp(0px, calc(${((v - min) / span) * 100}% - 0.5px), calc(100% - 1px))`,
+            }}
+            key={`m${v}`}
+          />
         ))}
       </span>
       {capPct > 0 && <span className={css.cap} style={{ width: `${capPct}%` }} aria-hidden />}
@@ -160,11 +196,21 @@ export function Scrubber({
 }
 
 /* Lee el valor inicial de la URL y lo pega a la escala, por si alguien
-   escribe ?gap=113 a mano. */
-export function useUrlNumber(param: string, fallback: number, step: number) {
+   escribe ?gap=113 a mano. Además lo mete adentro del recorrido: sin
+   eso, un ?aire=1000 heredado de una escala vieja dibuja el thumb
+   afuera de la pista y el relleno desbordado, y parece roto el control
+   cuando lo que está mal es el valor. */
+export function useUrlNumber(
+  param: string,
+  fallback: number,
+  step: number,
+  min?: number,
+  max?: number,
+) {
   return useState(() => {
     const raw = Number(new URLSearchParams(location.search).get(param))
     if (!Number.isFinite(raw) || raw <= 0) return fallback
-    return Math.round(raw / step) * step
+    const v = Math.round(raw / step) * step
+    return snap(v, step, min ?? v, max ?? v)
   })
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './frame.module.css'
 import { Scrubber, ScrubberBar, useUrlNumber } from './scrubber'
 
@@ -30,8 +30,8 @@ const AIRE = { min: 40, max: 160, inicio: 128 }
 const STEP = 4
 
 export function useFrame() {
-  const [riel, setRiel] = useUrlNumber('riel', RIEL.benji, STEP)
-  const [aire, setAire] = useUrlNumber('aire', AIRE.inicio, STEP)
+  const [riel, setRiel] = useUrlNumber('riel', RIEL.benji, STEP, RIEL.benji, RIEL.josh)
+  const [aire, setAire] = useUrlNumber('aire', AIRE.inicio, STEP, AIRE.min, AIRE.max)
 
   useEffect(() => {
     const url = new URL(location.href)
@@ -59,6 +59,37 @@ function medir() {
   }
 }
 
+/* El aire de abajo es padding, así que moverlo mueve el alto del
+   documento — y ahí el navegador es asimétrico: al achicarlo te sube el
+   scroll (el fondo se acerca) y ves el cambio; al agrandarlo te deja
+   donde estabas y el aire nuevo nace abajo, fuera de pantalla. Bajaba y
+   no subía por eso, no por el control.
+
+   Si estabas mirando el fondo, te dejamos mirando el fondo. */
+function useFondoPegado(dep: number) {
+  const alFondo = useRef(false)
+
+  useEffect(() => {
+    const mirar = () => {
+      const d = document.documentElement
+      alFondo.current = window.innerHeight + window.scrollY >= d.scrollHeight - 2
+    }
+    mirar()
+    window.addEventListener('scroll', mirar, { passive: true })
+    window.addEventListener('resize', mirar)
+    return () => {
+      window.removeEventListener('scroll', mirar)
+      window.removeEventListener('resize', mirar)
+    }
+  }, [])
+
+  /* Layout y no efecto normal: se corrige antes de pintar, así no se ve
+     el salto intermedio. */
+  useLayoutEffect(() => {
+    if (alFondo.current) window.scrollTo(0, document.documentElement.scrollHeight)
+  }, [dep])
+}
+
 export function FrameScrubbers({
   riel,
   setRiel,
@@ -71,6 +102,7 @@ export function FrameScrubbers({
   setAire: (v: number) => void
 }) {
   const [m, setM] = useState(medir)
+  useFondoPegado(aire)
 
   useEffect(() => {
     const leer = () => setM(medir())
