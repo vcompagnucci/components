@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { Slider, useUrlNumber } from './proto/slider'
+import { Scrubber, useUrlNumber } from './proto/scrubber'
 import { Rulers } from './proto/rulers'
 
 const PLATFORMS = ['Web', 'App'] as const
@@ -17,6 +17,17 @@ const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
    subpáginas. El segundo grupo no se toca. Se hornea al elegir. */
 const GAP_DEFAULT = 112
 const GAP_STEP = 4
+
+/* INVARIANTE — el hueco bajo el rótulo siempre es menor que el que hay
+   encima. Si no, el rótulo se despega de sus piezas y se pega al
+   masthead: quedaría rotulando lo de arriba en vez de lo de abajo.
+
+   No se garantiza pidiendo cuidado sino derivando: es la mitad del de
+   arriba, pegada a la escala de 4 y con un tope de un paso menos. Así
+   no hay valor del slider que pueda romperlo. En 112 da 56, que es
+   exactamente lo que la página ya tenía. */
+const belowFor = (above: number) =>
+  Math.min(Math.max(Math.round(above / (GAP_STEP * 2)) * GAP_STEP, GAP_STEP * 2), above - GAP_STEP)
 
 /* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
    Vite sirve index.html para rutas desconocidas (appType spa por
@@ -60,8 +71,18 @@ function Index() {
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
   const [gap, setGap] = useUrlNumber('gap', GAP_DEFAULT, GAP_STEP)
+  const below = belowFor(gap)
   const listScroll = useRef(0)
   const first = useRef(true)
+
+  /* El valor vive en la URL: recargás o lo compartís y estás mirando
+     lo mismo. replaceState y no push, para no ensuciar el historial
+     con un paso por cada píxel del arrastre. */
+  useEffect(() => {
+    const url = new URL(location.href)
+    url.searchParams.set('gap', String(gap))
+    history.replaceState(history.state, '', url)
+  }, [gap])
 
   useEffect(() => {
     const onPop = () => setSelected(fromUrl())
@@ -120,7 +141,7 @@ export function App() {
   }
 
   return (
-    <div className={css.page}>
+    <div className={css.page} style={{ '--group-below': `${below}px` } as React.CSSProperties}>
       {/* deps: re-mide cada vez que el valor cambia, que es en cada
           paso del arrastre. */}
       <Rulers deps={gap} />
@@ -146,13 +167,14 @@ export function App() {
           </section>
         ))}
       </div>
-      <Slider
+      <Scrubber
         label="masthead → sección"
         value={gap}
         onChange={setGap}
         min={16}
         max={160}
         step={GAP_STEP}
+        derived={{ label: 'rótulo → pieza', value: below }}
       />
     </div>
   )

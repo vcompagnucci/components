@@ -133,7 +133,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  margin-bottom: 56px;
+  margin-bottom: var(--group-below, 56px);
 }
 .groupLabel {
   font-size: var(--fs);
@@ -247,9 +247,6 @@
 
 /* Reduced motion: se saca el movimiento, se conservan color y opacidad. */
 @media (prefers-reduced-motion: reduce) {
-  .ind {
-    transition: none !important;
-  }
   .content[data-dir],
   .detail {
     animation: fadeOnly 200ms ease both !important;
