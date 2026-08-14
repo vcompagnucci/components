@@ -13,6 +13,7 @@ import css from './viewports.module.css'
    distinto de NUESTRA página, medido. Si cambian los breakpoints, esta
    lista hay que rehacerla. */
 const VIEWPORTS = [
+  { w: 1920, note: 'monitor grande' },
   { w: 1440, note: 'con índice' },
   { w: 1024, note: 'sin índice' },
   { w: 900, note: 'margen 34' },
@@ -23,9 +24,12 @@ const VIEWPORTS = [
 const KEY = 'viewport'
 
 export function Viewports() {
+  /* Se guarda el ancho y no el índice: agregar un viewport al principio
+     correría todos los índices y te dejaría mirando otro sin avisar. */
   const [i, setI] = useState(() => {
     const saved = Number(localStorage.getItem(KEY))
-    return saved >= 0 && saved < VIEWPORTS.length ? saved : 0
+    const n = VIEWPORTS.findIndex((v) => v.w === saved)
+    return n >= 0 ? n : 0
   })
   const [scale, setScale] = useState(1)
   const shellRef = useRef<HTMLDivElement>(null)
@@ -34,8 +38,8 @@ export function Viewports() {
   const vw = VIEWPORTS[i].w
 
   useEffect(() => {
-    localStorage.setItem(KEY, String(i))
-  }, [i])
+    localStorage.setItem(KEY, String(vw))
+  }, [vw])
 
   /* Si no entra en la ventana se escala; nunca se achica el iframe,
      porque eso cambiaría el ancho que ven las media queries. */
