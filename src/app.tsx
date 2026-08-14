@@ -2,25 +2,21 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { Picker } from './proto/picker'
+import { Slider, useUrlNumber } from './proto/slider'
 import { Rulers } from './proto/rulers'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 
 /* ⚠ EN ESTUDIO — el aire entre el masthead y la primera rule.
-   Hoy son 121.5px medidos, que salen de apilar tres cosas sin que nadie
-   lo decidiera: 8 del margin del masthead + 40 del padding de .content
-   + 64 del de .group. Cada opción es el total desde el subtítulo, y
-   cada una tiene un motivo. El segundo grupo no se toca: sigue en los
-   64 medidos de benji. Se hornea al elegir y esto se borra. */
-const GAPS = [
-  { name: '112', total: 112, why: 'actual — nadie lo decidió, es la suma de tres cosas' },
-  { name: '80', total: 80, why: 'el aire superior de la página, repetido' },
-  { name: '64', total: 64, why: 'lo que usa benji entre secciones — el mismo de abajo' },
-  { name: '48', total: 48, why: 'lo que usa benji cuando arranca una sección en su home' },
-  { name: '32', total: 32, why: 'el mínimo, para ver dónde se rompe' },
-]
+   Arranca en 112, que es lo que hay hoy y que nadie decidió: son 8 del
+   margin del masthead + 40 del padding de .content + 64 del de .group,
+   apilados por tres reglas que nunca se miraron juntas. El slider va de
+   4 en 4 porque esa es la escala. Referencias medidas: benji usa 48 al
+   arrancar una sección en su home y 64 entre secciones en sus
+   subpáginas. El segundo grupo no se toca. Se hornea al elegir. */
+const GAP_DEFAULT = 112
+const GAP_STEP = 4
 
 /* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
    Vite sirve index.html para rutas desconocidas (appType spa por
@@ -63,6 +59,7 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const [gap, setGap] = useUrlNumber('gap', GAP_DEFAULT, GAP_STEP)
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -123,36 +120,40 @@ export function App() {
   }
 
   return (
-    <Picker names={GAPS.map((g) => g.name)}>
-      {(gi) => (
-        <div className={css.page}>
-          {/* deps: re-mide al cambiar de opción, que es cuando el
-              espaciado bajo estudio cambia de valor. */}
-          <Rulers deps={gi} />
-          <Index />
-          <Masthead />
-          {/* El padding de .content se anula y el primer grupo toma el
-              total menos los 8 del margin del masthead, para que el
-              número elegido sea exactamente el que se mide en pantalla. */}
-          <div className={css.content} data-dir="fwd" style={{ paddingTop: 0 }}>
-            {PLATFORMS.map((pl, i) => (
-              <section
-                className={css.group}
-                key={pl}
-                style={i === 0 ? { paddingTop: GAPS[gi].total - 8 } : undefined}
-              >
-                <div className={css.groupHead}>
-                  <div className={css.groupLabel}>{pl}</div>
-                  <span className={css.groupLine} aria-hidden />
-                </div>
-                {by(pl).map((p) => (
-                  <Item piece={p} onOpen={open} key={p.name} />
-                ))}
-              </section>
+    <div className={css.page}>
+      {/* deps: re-mide cada vez que el valor cambia, que es en cada
+          paso del arrastre. */}
+      <Rulers deps={gap} />
+      <Index />
+      <Masthead />
+      {/* El padding de .content se anula y el primer grupo toma el valor
+          menos los 8 del margin del masthead, para que el número del
+          slider sea exactamente el que mide la regla en pantalla. */}
+      <div className={css.content} data-dir="fwd" style={{ paddingTop: 0 }}>
+        {PLATFORMS.map((pl, i) => (
+          <section
+            className={css.group}
+            key={pl}
+            style={i === 0 ? { paddingTop: gap - 8 } : undefined}
+          >
+            <div className={css.groupHead}>
+              <div className={css.groupLabel}>{pl}</div>
+              <span className={css.groupLine} aria-hidden />
+            </div>
+            {by(pl).map((p) => (
+              <Item piece={p} onOpen={open} key={p.name} />
             ))}
-          </div>
-        </div>
-      )}
-    </Picker>
+          </section>
+        ))}
+      </div>
+      <Slider
+        label="masthead → sección"
+        value={gap}
+        onChange={setGap}
+        min={16}
+        max={160}
+        step={GAP_STEP}
+      />
+    </div>
   )
 }

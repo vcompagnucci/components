@@ -1,0 +1,93 @@
+/* Control del taller. Mismo idioma que el picker —píldora oscura, chrome
+   que nunca se confunde con la página— pero es otro control, así que no
+   sigue PICKER.md al pie: ahí no hay slider. Se borra con src/proto/. */
+
+.bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.label {
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+
+/* Un input range de verdad: arrastre, teclado y accesibilidad ya vienen
+   resueltos por el navegador, y el step hace que nunca caiga fuera de
+   la escala. Sólo se le cambia la piel. */
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 220px;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  cursor: grab;
+}
+.range:active {
+  cursor: grabbing;
+}
+.range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
+  border-radius: 999px;
+  background: #fff;
+}
+.range::-moz-range-track {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+}
+.range:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+.value {
+  min-width: 42px;
+  text-align: right;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  opacity: 0.4;
+}
