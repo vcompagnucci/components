@@ -1,14 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
    TOKENS — lo decidido, y de dónde sale cada cosa.
 
-   Medido del código servido de benji.org: la tipografía entera, el
-   secundario, la hairline, el marco y su escalón, el índice. Las citas
-   están en .context/recon/ (TYPE-SYSTEMS, RESPONSIVE, NAVIGATION).
+   Medido del código servido de benji.org: la TIPOGRAFÍA entera (tamaño,
+   pesos, tracking, interlínea), la hairline, el marco y su escalón, el
+   índice. Las citas están en .context/recon/ (TYPE-SYSTEMS, RESPONSIVE,
+   NAVIGATION).
 
-   Heredado del DESIGN.md de Carousels y NO verificado —ese archivo no
-   está en este repo ni en el disco, así que la cita no se puede
-   comprobar—: la escala --space-*, las superficies, la rampa alfa, el
-   anillo de foco y los tiempos de motion.
+   Heredado del DESIGN.md de Carousels: los COLORES enteros, la escala
+   --space-*, el anillo de foco y los tiempos de motion. No se pueden
+   verificar contra la fuente —ese archivo no está en este repo ni en el
+   disco— pero son decisiones ya tomadas y se respetan como están.
 
    Pendiente y marcado como tal: radios, elevación, z-index — se
    definen desde la primera pieza.
@@ -18,18 +19,7 @@
   --canvas: #fdfdfc;
   --surface: #ffffff;
   --ink: #111111;
-  /* El secundario de benji. Antes acá había un #8a8a8a que no era de
-     nadie —él usa alpha .4, emil rgb(99,99,94), josh rgb(163,163,163)—
-     y que además obligaba a repetir el valor en cada rol.
-
-     Él tiene dos: rgba(0,0,0,.4) en su artículo y hsla(0,0%,7%,.4) en
-     su nav. Son colores distintos (152 vs 159 sobre nuestro canvas), y
-     tener los dos sólo tendría sentido si tuviéramos dos roles de
-     secundario. Se toma el dominante: 30 reglas contra 6.
-
-     En alpha y no sólido, por lo mismo que la hairline: compone sobre
-     --canvas en vez de asumir blanco puro. */
-  --text-secondary: rgba(0, 0, 0, 0.4);
+  --text-secondary: #8a8a8a;
 
   /* rampa alfa */
   --a1: rgba(0, 0, 0, 0.04);
@@ -109,7 +99,9 @@
   --t-idx-label-fw: 500;
   --t-idx-label-c: var(--ink);
   --t-idx-link-fw: 460;
-  --t-idx-link-c: var(--text-secondary);
+  /* el mismo valor que estaba escrito a mano en .indexLink; lo único
+     que cambió es que ahora vive acá y no adentro de la clase */
+  --t-idx-link-c: rgba(18, 18, 18, 0.4);
 
   /* espaciado */
   --space-2: 2px;
