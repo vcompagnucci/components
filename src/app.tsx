@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { MarginToggle, useMargin } from './proto/margin'
+import { RailScrubber, useRail } from './proto/rail'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -48,7 +48,10 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const margin = useMargin()
+  const rail = useRail()
+  /* El riel en estudio se inyecta como custom property, que es lo mismo
+     que hace el token: así lo lee todo lo que ya usa var(--grid-max). */
+  const frame = { '--grid-max': `${rail.riel}px` } as React.CSSProperties
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -102,15 +105,15 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={`${css.page} ${margin.cls}`} data-frame={margin.id}>
+      <div className={css.page} style={frame}>
         <Detail piece={selected} onBack={back} />
-        <MarginToggle id={margin.id} setId={margin.setId} />
+        <RailScrubber riel={rail.riel} setRiel={rail.setRiel} />
       </div>
     )
   }
 
   return (
-    <div className={`${css.page} ${margin.cls}`} data-frame={margin.id}>
+    <div className={css.page} style={frame}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd" data-rail>
@@ -126,7 +129,7 @@ export function App() {
           </section>
         ))}
       </div>
-      <MarginToggle id={margin.id} setId={margin.setId} />
+      <RailScrubber riel={rail.riel} setRiel={rail.setRiel} />
     </div>
   )
 }

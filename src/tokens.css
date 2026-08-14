@@ -47,13 +47,28 @@
   --space-64: 64px;
 
   --control-h-sm: 34px;
-  --margin: 24px;
-  --grid-max: 52rem;
-  /* aire arriba y abajo. Son variables porque el marco en estudio los
-     mueve: benji escalona el de arriba en 768, josh no escalona nada.
-     El escalón vive hoy en src/proto/margin.module.css y vuelve acá
-     cuando se hornee la opción que gane. */
-  --air-top: 80px;
+
+  /* EL MARCO — comportamiento de benji, medido de su CSS servido
+     (.context/recon/RESPONSIVE.md). Escalona en 768 y no interpola:
+     no hay clamp() ni vw en ninguna parte, igual que él.
+
+     El margen es 16 arriba de 768 y 24 abajo. No es una inconsistencia:
+     arriba de 768 el riel está centrado con aire de sobra a los costados
+     y el padding es vestigial — lo único que hace es angostar la
+     columna. Abajo de 582 el riel ES el viewport y ese padding pasa a
+     ser la única distancia al borde de la pantalla, que ahí sí tiene que
+     ser 24. Un número que hace dos trabajos según el ancho. */
+  --margin: 16px;
+  --air-top: 80px; /* 5rem */
+
+  /* EN ESTUDIO — el ancho del riel, entre 584 (benji) y 672 (josh).
+     Lo mueve el scrubber de src/proto/rail.tsx; este valor es el que
+     queda si el taller se borra. */
+  --grid-max: 584px;
+
+  /* PENDIENTE — no sale de ninguna de las dos referencias: las dos
+     cierran corto (benji 40, josh 64) porque abajo tienen footer y
+     nosotros no vamos a tener. Sin decidir. */
   --air-bottom: 128px;
 
   --radius-pill: 9999px;

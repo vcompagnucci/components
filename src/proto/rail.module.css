@@ -1,0 +1,50 @@
+/* ⚠ EN ESTUDIO — sólo el ancho del riel. Los escalones ya se hornearon
+   (768 para marco y aire, 1080 para el índice: los de benji), así que
+   acá no hay nada de eso. Se borra con src/proto/. */
+
+/* Lector en vivo: lo que la página mide de verdad mientras se arrastra.
+   Comparte el alto y el chrome del scrubber para que lean como una
+   sola herramienta. */
+.read {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background-color: rgba(28, 28, 30, 0.92);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 8px 24px rgba(0, 0, 0, 0.3);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: rgba(255, 255, 255, 0.9);
+}
+.cellLabel {
+  font-size: 9px;
+  opacity: 0.45;
+  letter-spacing: 0.02em;
+}
+/* La columna es el número que importa: es lo que de verdad mide el
+   contenido, y no es el que dice el scrubber. */
+.col {
+  color: #4ade80;
+}
+/* Cuando el riel cae justo sobre una de las dos referencias. */
+.ref {
+  color: rgba(255, 255, 255, 0.9);
+}
+.refNone {
+  opacity: 0.35;
+}

@@ -88,27 +88,13 @@
    deja sólo el "← Index"; josh esconde el índice entero. Los dos
    aceptan que ahí se scrollea.
 
-   EN QUÉ ANCHO se esconde está en estudio junto con el marco, porque es
-   la misma pregunta: cuánto lugar hace falta al costado del riel. Cada
-   opción usa el de su referente, leído de su código servido:
-
-     actual  1200  — nuestro, no sale de ninguno de los dos
-     benji   1080  — @media(max-width:1080px){.styles_container__MZ8RH{display:none}}
-     josh    1280  — class="fixed left-8 top-16 hidden xl:block" (xl = 1280)
-
-   Al hornear, esto vuelve a ser un solo @media. */
-@media (max-width: 1200px) {
-  [data-frame='actual'] .index {
-    display: none;
-  }
-}
+   Se va en 1080, que es el de benji, de su CSS servido:
+     @media(max-width:1080px){.styles_container__MZ8RH{display:none}}
+   Antes acá había un 1200 que no salía de ninguno de los dos: era
+   nuestro y nadie lo había decidido. (Josh usa 1280 y al revés — lo
+   tiene hidden y lo muestra con xl:block.) */
 @media (max-width: 1080px) {
-  [data-frame='benji'] .index {
-    display: none;
-  }
-}
-@media (max-width: 1279.98px) {
-  [data-frame='josh'] .index {
+  .index {
     display: none;
   }
 }
@@ -278,10 +264,25 @@
   border-radius: var(--radius-tbd);
 }
 
-/* El escalón de 768 (aire 80 → 32) está EN ESTUDIO y hoy lo pone cada
-   opción del marco en src/proto/margin.module.css, moviendo --air-top.
-   Sale de benji, medido al píxel: a 769 el aire son 80, a 768 son 32.
-   Josh no escalona nada. Al hornear, el escalón que gane vuelve acá. */
+/* ═══════════ EL ESCALÓN ═══════════
+   Uno solo, en 768, y mueve dos cosas a la vez. Es el de benji, leído
+   de su CSS servido:
+
+     .styles_container__YJPlC{padding:5rem 1rem 2.5rem; …}
+     @media screen and (max-width:768px){
+       .styles_container__YJPlC{padding:2rem 1.5rem 2.5rem}}
+
+   → aire arriba 80 → 32, márgenes 16 → 24. Verificado al píxel en su
+   página: a 769 el aire son 80, a 768 son 32.
+
+   Se eligió su manera y no la de josh, que no escalona nada (672 · 24 ·
+   64 desde 320 hasta 2560, cero clases responsive en el marco). */
+@media (max-width: 768px) {
+  .page {
+    --air-top: 32px; /* 2rem */
+    --margin: 24px; /* 1.5rem */
+  }
+}
 
 /* Reduced motion: se saca el movimiento, se conservan color y opacidad. */
 @media (prefers-reduced-motion: reduce) {
