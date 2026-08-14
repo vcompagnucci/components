@@ -1,0 +1,50 @@
+/* ═══════════════════════════════════════════════════════════════════
+   EN ESTUDIO — el marco: riel, márgenes y cómo cambian con el viewport.
+
+   Dos variantes, cada una fiel a lo medido del CSS servido. Se aplican
+   como clase sobre .page y sólo pisan variables, así el masthead y el
+   contenido las heredan sin tocar nada más.
+
+   La clase va duplicada (.benji.benji) para ganarle en especificidad al
+   padding-top de .page sin depender del orden de importación.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── BENJI — desktop-first ────────────────────────────────────────
+   .styles_container__YJPlC: max-width 582, padding 80/16/40, y a
+   max-width:768 pasa a 32/24/40. Su columna real de texto: 550. */
+.benji {
+  --grid-max: 582px;
+  --margin: 16px;
+}
+.benji.benji {
+  padding-top: var(--space-64); /* 64 + 16 del mast = 80 */
+}
+@media (max-width: 768px) {
+  .benji {
+    --margin: 24px;
+  }
+  .benji.benji {
+    padding-top: var(--space-16); /* 16 + 16 = 32 */
+  }
+}
+
+/* ─── JOSH — mobile-first ──────────────────────────────────────────
+   main: max-width 740 con box-sizing border-box y padding 96 (py-24
+   px-24), que bajo 768 pasa a 48 (py-12 px-12). Su columna real: 548.
+   El breakpoint va en 767 y no en 768 porque el suyo es min-width:768
+   — a 768 exactos todavía está en el valor grande. */
+.josh {
+  --grid-max: 740px;
+  --margin: 96px;
+}
+.josh.josh {
+  padding-top: 80px; /* 80 + 16 del mast = 96 */
+}
+@media (max-width: 767px) {
+  .josh {
+    --margin: 48px;
+  }
+  .josh.josh {
+    padding-top: var(--space-32); /* 32 + 16 = 48 */
+  }
+}

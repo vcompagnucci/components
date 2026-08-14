@@ -45,12 +45,21 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
-.bar {
+/* Las dos barras apiladas: viewport arriba, marco abajo. Se cruzan
+   entre sí, así que conviene verlas juntas. */
+.bars {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
   display: flex;
   align-items: center;
   gap: 2px;
