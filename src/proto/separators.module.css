@@ -65,21 +65,40 @@
 }
 
 /* ─── 3 · RULE — el rótulo interrumpe la línea ─────────────────────
-   Ninguno de los dos hace esto; es la tercera respuesta al mismo
-   problema. La línea arranca donde termina el rótulo y corre hasta el
-   borde, centrada con la equis del texto. Rótulo gris como en benji. */
+   Esto SÍ lo hace benji: es su separador de sección en /liveline y
+   /drawesome. Medido en vivo sobre la página, no deducido del HTML
+   (el <hr> del markup está vacío —0 de alto, sin borde—; lo que pinta
+   es el div que React le envuelve alrededor).
+
+   Su mecanismo:
+     .styles_solid    padding 64px arriba · 24px abajo
+     .styles_hr       1px · #f2f2f2 · ancho completo del riel
+     .styles_heading  position:absolute · translateY(-10px)
+       > span         inline-block · background #fdfdfc · padding-right 8px
+         > h1         14px · 600 · #111
+
+   La línea cruza entera y el span, pintado del color del fondo, le
+   hace un agujero. Acá se llega al mismo píxel con flex: el hueco de
+   8px es el gap en vez del padding-right del span, y la línea empieza
+   donde termina el rótulo en vez de pasar por debajo. Mismo resultado,
+   sin depender de que el fondo del span coincida con el de la página
+   (que en su caso es #fdfdfc, justo nuestro --canvas).
+
+   El aire de abajo son sus dos valores sumados: 24 del bloque + 32 de
+   margin-top del bloque siguiente = 56. */
 .rule + .rule {
-  margin-top: var(--space-64);
+  padding-top: var(--space-64);
 }
 .ruleHead {
   display: flex;
   align-items: center;
-  gap: var(--space-12);
-  margin-bottom: var(--space-24);
+  gap: var(--space-8);
+  margin-bottom: 56px;
 }
 .ruleLabel {
-  color: var(--text-secondary);
-  font-weight: var(--fw-body);
+  color: var(--ink);
+  font-weight: var(--fw-title);
+  letter-spacing: var(--tracking-title);
   white-space: nowrap;
 }
 .ruleLine {
