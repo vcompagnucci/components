@@ -22,14 +22,19 @@
   padding: var(--space-16) var(--margin) 0;
 }
 .mastTitle {
-  font-size: var(--fs);
-  font-weight: var(--fw-title);
-  letter-spacing: var(--tracking-title);
-  line-height: 1.3;
+  font-size: var(--t-mast-fs);
+  font-weight: var(--t-mast-fw);
+  letter-spacing: var(--t-mast-ls);
+  line-height: var(--t-mast-lh);
+  color: var(--t-mast-c);
   margin: 0;
 }
 .mastSub {
-  color: var(--text-secondary);
+  font-size: var(--t-body-fs);
+  font-weight: var(--t-body-fw);
+  letter-spacing: var(--t-body-ls);
+  line-height: var(--t-body-lh);
+  color: var(--t-body-c);
 }
 
 /* ═══════════ ÍNDICE LATERAL ═══════════
@@ -61,9 +66,11 @@
   margin-top: var(--space-24);
 }
 .indexLabel {
-  font-size: var(--index-fs);
-  font-weight: var(--fw-medium);
-  color: var(--ink);
+  font-size: var(--t-idx-fs);
+  font-weight: var(--t-idx-label-fw);
+  letter-spacing: var(--t-idx-ls);
+  line-height: var(--t-idx-lh);
+  color: var(--t-idx-label-c);
   white-space: nowrap;
 }
 .indexLink {
@@ -71,10 +78,11 @@
   border: 0;
   background: transparent;
   text-align: left;
-  font-size: var(--index-fs);
-  font-weight: var(--fw-body);
-  line-height: 1.2;
-  color: rgba(18, 18, 18, 0.4);
+  font-size: var(--t-idx-fs);
+  font-weight: var(--t-idx-link-fw);
+  letter-spacing: var(--t-idx-ls);
+  line-height: var(--t-idx-lh);
+  color: var(--t-idx-link-c);
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-fill) ease;
@@ -158,14 +166,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  margin-bottom: calc(var(--gap-label) - (var(--fs) * var(--lh) - 1px) / 2);
+  margin-bottom: calc(var(--gap-label) - (var(--t-section-lh) - 1px) / 2);
 }
 .groupLabel {
-  font-size: var(--fs);
-  font-weight: var(--fw-title);
-  letter-spacing: var(--tracking-title);
-  line-height: var(--lh);
-  color: var(--ink);
+  font-size: var(--t-section-fs);
+  font-weight: var(--t-section-fw);
+  letter-spacing: var(--t-section-ls);
+  line-height: var(--t-section-lh);
+  color: var(--t-section-c);
   white-space: nowrap;
 }
 .groupLine {
@@ -190,9 +198,11 @@
   margin-top: var(--space-48);
 }
 .streamTitle {
-  font-size: var(--fs);
-  font-weight: var(--fw-medium);
-  color: var(--ink);
+  font-size: var(--t-piece-fs);
+  font-weight: var(--t-piece-fw);
+  letter-spacing: var(--t-piece-ls);
+  line-height: var(--t-piece-lh);
+  color: var(--t-piece-c);
   margin-bottom: var(--space-12);
 }
 .streamPreview {
@@ -243,14 +253,19 @@
   margin-bottom: var(--space-24);
 }
 .detailTitle {
-  font-size: var(--fs);
-  font-weight: var(--fw-title);
-  letter-spacing: var(--tracking-title);
-  line-height: 1.3;
+  font-size: var(--t-mast-fs);
+  font-weight: var(--t-mast-fw);
+  letter-spacing: var(--t-mast-ls);
+  line-height: var(--t-mast-lh);
+  color: var(--t-mast-c);
   margin: 0;
 }
 .detailMeta {
-  color: var(--text-secondary);
+  font-size: var(--t-meta-fs);
+  font-weight: var(--t-meta-fw);
+  letter-spacing: var(--t-meta-ls);
+  line-height: var(--t-meta-lh);
+  color: var(--t-meta-c);
 }
 /* Sin max-width propio: la columna ya son 560 y la medida de lectura la
    pone ella. Acá había un 36.375rem —el riel de benji, usado como medida
@@ -260,7 +275,11 @@
    columna, es una decisión aparte y se toma con la primera pieza. */
 .detailDesc {
   margin: var(--space-8) 0 0;
-  color: var(--text-secondary);
+  font-size: var(--t-body-fs);
+  font-weight: var(--t-body-fw);
+  letter-spacing: var(--t-body-ls);
+  line-height: var(--t-body-lh);
+  color: var(--t-body-c);
 }
 .detailPreview {
   aspect-ratio: 16 / 9;

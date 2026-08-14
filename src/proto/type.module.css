@@ -1,0 +1,208 @@
+/* ⚠ EN ESTUDIO — el sistema tipográfico entero. Se borra con src/proto/.
+
+   Dos sistemas completos, no dos variantes del mismo. Los dos salen del
+   código servido (.context/recon/TYPE-SYSTEMS.md) y los dos se montan
+   sobre las decisiones ya horneadas: riel 592, margen 16/24, escalón en
+   768, espaciados de la lista. Sólo cambia el texto.
+
+   Lo que HOY tiene la página no es ninguno de los dos: es un híbrido
+   con un tracking inventado, tres interlíneas y un 13px suelto. Por eso
+   no está en el picker — no es una dirección, es una deuda. */
+
+/* ═══════════ 1 · BENJI ═══════════
+   Un tamaño, cuatro pesos, un gris.
+
+   Valores del CSS servido de benji.org. Su texto de 14px lleva
+   line-height:1.25rem y letter-spacing:-.00563rem en TODAS sus reglas
+   —diez y pico, sin excepción— y los pesos que usa de verdad son
+   460 (cuerpo) · 500 (énfasis) · 560 (h2 de sección) · 600 (h1).
+
+   El 560 es el que hoy no tenemos: nuestro rótulo de sección usa 600,
+   más pesado que el suyo.
+
+   Su índice: 13px/460, tracking -.0025rem, lh 1.2, color al 40%. */
+.benji {
+  --fs: 14px;
+  --lh: 1.428571; /* = 20px sobre 14, su 1.25rem */
+  --tracking: -0.00563rem;
+
+  --t-mast-fs: 14px;
+  --t-mast-lh: 20px;
+  --t-mast-fw: 600;
+  --t-mast-ls: -0.00563rem;
+  --t-mast-c: #111111;
+
+  --t-body-fs: 14px;
+  --t-body-lh: 20px;
+  --t-body-fw: 460;
+  --t-body-ls: -0.00563rem;
+  --t-body-c: rgba(0, 0, 0, 0.4);
+
+  --t-section-fs: 14px;
+  --t-section-lh: 20px;
+  --t-section-fw: 560;
+  --t-section-ls: -0.00563rem;
+  --t-section-c: #111111;
+
+  --t-piece-fs: 14px;
+  --t-piece-lh: 20px;
+  --t-piece-fw: 500;
+  --t-piece-ls: -0.00563rem;
+  --t-piece-c: #111111;
+
+  --t-meta-fs: 14px;
+  --t-meta-lh: 20px;
+  --t-meta-fw: 460;
+  --t-meta-ls: -0.00563rem;
+  --t-meta-c: rgba(0, 0, 0, 0.4);
+
+  --t-idx-fs: 13px;
+  --t-idx-lh: 16px; /* su 1.2 da 15.6; 16 lo pega a la escala de 4 */
+  --t-idx-ls: -0.0025rem;
+  --t-idx-label-fw: 500;
+  --t-idx-label-c: #111111;
+  --t-idx-link-fw: 460;
+  --t-idx-link-c: hsla(0, 0%, 7%, 0.4);
+}
+
+/* ═══════════ 2 · JOSH ═══════════
+   Cinco tamaños, dos pesos, cinco grises.
+
+   Valores del markup servido de sus cinco subpáginas —/bloom, /dialkit,
+   /melt-effect, /on-being-an-elder, /pasito— resueltos contra su CSS.
+   Su h1 es el mismo string en las cinco: text-3xl font-medium
+   tracking-tight. Su h2 también: text-xl font-medium.
+
+   Sólo dos pesos, 400 y 500, y el salto entre ellos es chico a
+   propósito: la jerarquía la hace el TAMAÑO (30·20·16·14·12) y una
+   escalera de cinco grises (23·64·82·115·163).
+
+   Las interlíneas son las que Tailwind aparea a cada tamaño, y las
+   cinco caen en múltiplos de 4. Tracking cero salvo el h1. */
+.josh {
+  --fs: 16px;
+  --lh: 1.5; /* = 24px, su text-base */
+  --tracking: 0rem;
+
+  --t-mast-fs: 30px; /* text-3xl */
+  --t-mast-lh: 36px;
+  --t-mast-fw: 500;
+  --t-mast-ls: -0.025em; /* tracking-tight, el único que usa */
+  --t-mast-c: rgb(23, 23, 23);
+
+  --t-body-fs: 16px;
+  --t-body-lh: 24px;
+  --t-body-fw: 400;
+  --t-body-ls: 0rem;
+  --t-body-c: rgb(82, 82, 82); /* neutral-600 */
+
+  --t-section-fs: 20px; /* text-xl */
+  --t-section-lh: 28px;
+  --t-section-fw: 500;
+  --t-section-ls: 0rem;
+  --t-section-c: rgb(23, 23, 23);
+
+  --t-piece-fs: 16px; /* su h3 */
+  --t-piece-lh: 24px;
+  --t-piece-fw: 500;
+  --t-piece-ls: 0rem;
+  --t-piece-c: rgb(23, 23, 23);
+
+  --t-meta-fs: 12px; /* text-xs */
+  --t-meta-lh: 16px;
+  --t-meta-fw: 400;
+  --t-meta-ls: 0rem;
+  --t-meta-c: rgb(163, 163, 163); /* neutral-400 */
+
+  --t-idx-fs: 14px; /* su índice: text-sm text-neutral-400 */
+  --t-idx-lh: 20px;
+  --t-idx-ls: 0rem;
+  --t-idx-label-fw: 500;
+  --t-idx-label-c: rgb(23, 23, 23);
+  --t-idx-link-fw: 400;
+  --t-idx-link-c: rgb(163, 163, 163);
+}
+
+/* ═══════════ EL PICKER ═══════════
+   Chrome de herramienta, no una decisión de diseño: los valores son los
+   de PICKER.md del skill, copiados tal cual. No lleva tokens del
+   proyecto ni se adapta al tema, para que nunca se lea como parte de lo
+   que está mostrando. Sin botón de replay: la comparación es estática y
+   no hay animación que re-disparar. */
+.picker {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.highlight {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  will-change: transform;
+}
+
+/* El deslizamiento se habilita después del primer pintado, así la carga
+   no anima. */
+.picker[data-ready] .highlight {
+  transition:
+    transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+    width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker[data-ready] .highlight {
+    transition: none;
+  }
+}
+
+.item {
+  position: relative; /* va por encima del highlight */
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out;
+}
+.item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.item:active {
+  transform: scale(0.97);
+}
+.item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.item[data-active] {
+  color: #fff;
+}

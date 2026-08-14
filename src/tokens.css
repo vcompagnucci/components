@@ -22,7 +22,9 @@
      en sólido para que componga sobre --canvas y no asuma blanco puro */
   --hairline: rgba(0, 0, 0, 0.051);
 
-  /* tipografía — familia Benji, decidida */
+  /* tipografía — heredada, EN ESTUDIO. El tracking de acá no es el de
+     benji (él usa −0.00563rem en todas sus reglas de 14px) y el 1.43 sí
+     coincide con el suyo (1.25rem sobre 14 = 1.4286). */
   --fs: 14px;
   --fw-body: 460;
   --fw-medium: 500;
@@ -30,6 +32,57 @@
   --tracking: -0.004rem;
   --tracking-title: -0.006rem;
   --lh: 1.43;
+
+  /* ─── ROLES DE TEXTO ───
+     Cada rol de la página como un juego de tokens en vez de valores
+     sueltos por clase. Hace falta porque los dos sistemas candidatos no
+     son variantes del mismo: en el de benji todos los roles comparten
+     tamaño y se separan por peso; en el de josh cada rol tiene su
+     tamaño. Sin roles no hay dónde enchufar el segundo.
+
+     La interlínea va en px y no como razón: es la forma de benji
+     (1.25rem absoluto) y además deja que el cálculo del hueco del
+     rótulo la use directo. Todas caen en múltiplos de 4.
+
+     Estos valores son los de HOY. Los dos candidatos viven en
+     src/proto/type.module.css y pisan todo el juego. */
+  --t-mast-fs: 14px;    /* título de página y del detalle */
+  --t-mast-lh: 20px;
+  --t-mast-fw: 600;
+  --t-mast-ls: -0.006rem;
+  --t-mast-c: var(--ink);
+
+  --t-body-fs: 14px;    /* subtítulo del masthead, descripción del detalle */
+  --t-body-lh: 20px;
+  --t-body-fw: 460;
+  --t-body-ls: -0.004rem;
+  --t-body-c: var(--text-secondary);
+
+  --t-section-fs: 14px; /* rótulo de sección — "Web" / "App" */
+  --t-section-lh: 20px;
+  --t-section-fw: 600;
+  --t-section-ls: -0.006rem;
+  --t-section-c: var(--ink);
+
+  --t-piece-fs: 14px;   /* título de pieza */
+  --t-piece-lh: 20px;
+  --t-piece-fw: 500;
+  --t-piece-ls: -0.004rem;
+  --t-piece-c: var(--ink);
+
+  --t-meta-fs: 14px;    /* la plataforma, en el detalle */
+  --t-meta-lh: 20px;
+  --t-meta-fw: 460;
+  --t-meta-ls: -0.004rem;
+  --t-meta-c: var(--text-secondary);
+
+  --t-idx-fs: 13px;     /* índice lateral */
+  --t-idx-lh: 16px;
+  --t-idx-ls: -0.004rem;
+  --t-idx-label-fw: 500;
+  --t-idx-label-c: var(--ink);
+  --t-idx-link-fw: 460;
+  --t-idx-link-c: rgba(18, 18, 18, 0.4);
 
   /* espaciado */
   --space-2: 2px;
@@ -95,7 +148,9 @@
      40%, 8px entre uno y otro */
   --index-left: 80px;
   --index-top: 80px;
-  --index-fs: 13px;
+  /* el tamaño del índice pasó a --t-idx-fs, que es donde vive ahora la
+     tipografía por rol. El gap sigue acá: es espaciado, no texto, y
+     los dos referentes coinciden en 8. */
   --index-gap: 8px;
 
   /* espaciados de la lista. Elegidos con el scrubber y medidos contra
