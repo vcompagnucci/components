@@ -12,6 +12,12 @@
   --canvas: #fdfdfc;
   --surface: #ffffff;
   --ink: #111111;
+  /* PENDIENTE — el único color de la página que no sale de ninguna
+     referencia. Benji usa rgba(0,0,0,.4), emil rgb(99,99,94), josh
+     rgb(163,163,163); este es rgb(138,138,138) y no es de nadie. Los
+     roles de texto ya usan el alpha de benji, así que lo único que
+     queda colgado de acá es la flecha de volver del detalle — y el
+     detalle es otra etapa. Se resuelve ahí. */
   --text-secondary: #8a8a8a;
 
   /* rampa alfa */
@@ -22,67 +28,77 @@
      en sólido para que componga sobre --canvas y no asuma blanco puro */
   --hairline: rgba(0, 0, 0, 0.051);
 
-  /* tipografía — heredada, EN ESTUDIO. El tracking de acá no es el de
-     benji (él usa −0.00563rem en todas sus reglas de 14px) y el 1.43 sí
-     coincide con el suyo (1.25rem sobre 14 = 1.4286). */
+  /* ═══════════ TIPOGRAFÍA — el sistema de benji ═══════════
+     Decidido contra el de josh sobre la página real. Un tamaño, cuatro
+     pesos, un gris: el chrome desaparece y la pieza es lo único que se
+     ve. Josh hace lo contrario (cinco tamaños, dos pesos, cinco grises)
+     y su costo era competir con las piezas — lo medido de los dos está
+     en .context/recon/TYPE-SYSTEMS.md.
+
+     Todos los valores salen de su CSS servido. Su texto de 14px lleva
+     line-height:1.25rem y letter-spacing:-.00563rem en TODAS sus reglas,
+     sin excepción, y los pesos que usa de verdad son 460 · 500 · 560 ·
+     600.
+
+     Antes acá había un tracking de −0.004rem que no era de nadie, un
+     1.3 de interlínea que tampoco, y tres interlíneas distintas. */
   --fs: 14px;
+  --lh: 1.428571; /* su 1.25rem sobre 14px = 20px */
   --fw-body: 460;
-  --fw-medium: 500;
-  --fw-title: 600;
-  --tracking: -0.004rem;
-  --tracking-title: -0.006rem;
-  --lh: 1.43;
+  --tracking: -0.00563rem;
 
   /* ─── ROLES DE TEXTO ───
-     Cada rol de la página como un juego de tokens en vez de valores
-     sueltos por clase. Hace falta porque los dos sistemas candidatos no
-     son variantes del mismo: en el de benji todos los roles comparten
-     tamaño y se separan por peso; en el de josh cada rol tiene su
-     tamaño. Sin roles no hay dónde enchufar el segundo.
+     Cada rol como un juego de tokens en vez de valores sueltos por
+     clase. En este sistema todos comparten tamaño y se separan por
+     peso, así que los roles parecen redundantes — pero son el lugar
+     donde vive esa decisión, y sin ellos el peso de cada rol vuelve a
+     quedar escondido en su clase.
 
      La interlínea va en px y no como razón: es la forma de benji
-     (1.25rem absoluto) y además deja que el cálculo del hueco del
-     rótulo la use directo. Todas caen en múltiplos de 4.
-
-     Estos valores son los de HOY. Los dos candidatos viven en
-     src/proto/type.module.css y pisan todo el juego. */
-  --t-mast-fs: 14px;    /* título de página y del detalle */
+     (1.25rem absoluto, que no escala si cambia el tamaño) y además deja
+     que el cálculo del hueco del rótulo la consuma directo. Las dos
+     caen en múltiplos de 4. */
+  --t-mast-fs: 14px; /* título de página y del detalle — su h1, 600 */
   --t-mast-lh: 20px;
   --t-mast-fw: 600;
-  --t-mast-ls: -0.006rem;
-  --t-mast-c: var(--ink);
+  --t-mast-ls: -0.00563rem;
+  --t-mast-c: #111111;
 
-  --t-body-fs: 14px;    /* subtítulo del masthead, descripción del detalle */
+  --t-body-fs: 14px; /* subtítulo del masthead, descripción del detalle */
   --t-body-lh: 20px;
   --t-body-fw: 460;
-  --t-body-ls: -0.004rem;
-  --t-body-c: var(--text-secondary);
+  --t-body-ls: -0.00563rem;
+  --t-body-c: rgba(0, 0, 0, 0.4); /* su secundario, alpha y no sólido */
 
+  /* 560 es el peso de su h2 de sección, y es el que no teníamos: el
+     rótulo estaba en 600, más pesado que el suyo. */
   --t-section-fs: 14px; /* rótulo de sección — "Web" / "App" */
   --t-section-lh: 20px;
-  --t-section-fw: 600;
-  --t-section-ls: -0.006rem;
-  --t-section-c: var(--ink);
+  --t-section-fw: 560;
+  --t-section-ls: -0.00563rem;
+  --t-section-c: #111111;
 
-  --t-piece-fs: 14px;   /* título de pieza */
+  --t-piece-fs: 14px; /* título de pieza — su peso de énfasis */
   --t-piece-lh: 20px;
   --t-piece-fw: 500;
-  --t-piece-ls: -0.004rem;
-  --t-piece-c: var(--ink);
+  --t-piece-ls: -0.00563rem;
+  --t-piece-c: #111111;
 
-  --t-meta-fs: 14px;    /* la plataforma, en el detalle */
+  --t-meta-fs: 14px; /* la plataforma, en el detalle */
   --t-meta-lh: 20px;
   --t-meta-fw: 460;
-  --t-meta-ls: -0.004rem;
-  --t-meta-c: var(--text-secondary);
+  --t-meta-ls: -0.00563rem;
+  --t-meta-c: rgba(0, 0, 0, 0.4);
 
-  --t-idx-fs: 13px;     /* índice lateral */
+  /* Su índice: 13px/460, tracking -.0025rem, lh 1.2 y color al 40%.
+     El 1.2 da 15.6; 16 lo pega a la escala de 4. */
+  --t-idx-fs: 13px;
   --t-idx-lh: 16px;
-  --t-idx-ls: -0.004rem;
+  --t-idx-ls: -0.0025rem;
   --t-idx-label-fw: 500;
-  --t-idx-label-c: var(--ink);
+  --t-idx-label-c: #111111;
   --t-idx-link-fw: 460;
-  --t-idx-link-c: rgba(18, 18, 18, 0.4);
+  --t-idx-link-c: hsla(0, 0%, 7%, 0.4);
 
   /* espaciado */
   --space-2: 2px;

@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { TypePicker, useType } from './proto/type'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -48,7 +47,6 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const tipo = useType()
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -102,15 +100,14 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={`${css.page} ${tipo.cls}`}>
+      <div className={css.page}>
         <Detail piece={selected} onBack={back} />
-        <TypePicker i={tipo.i} setI={tipo.setI} />
       </div>
     )
   }
 
   return (
-    <div className={`${css.page} ${tipo.cls}`}>
+    <div className={css.page}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd">
@@ -126,7 +123,6 @@ export function App() {
           </section>
         ))}
       </div>
-      <TypePicker i={tipo.i} setI={tipo.setI} />
     </div>
   )
 }
