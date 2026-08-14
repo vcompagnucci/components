@@ -68,6 +68,17 @@
   --index-fs: 13px;
   --index-gap: 8px;
 
+  /* espaciados de la lista. Elegidos con el scrubber y medidos contra
+     las referencias — el detalle en .context/recon/NAVIGATION.md.
+
+     --gap-label es el hueco que se VE (de la línea al primer texto), no
+     el margin: la línea va centrada en la caja del rótulo y el CSS
+     descuenta esa media caja. 40 es el número de benji en /liveline,
+     medido en 13 de sus 15 secciones. Tiene que quedar por debajo de
+     los 48 de entre piezas, o el rótulo se despega de su grupo. */
+  --gap-masthead: 60px;
+  --gap-label: 40px;
+
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
 }

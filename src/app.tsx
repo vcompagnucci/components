@@ -2,43 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { Scrubber, ScrubberBar, useUrlNumber } from './proto/scrubber'
-import { Rulers } from './proto/rulers'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
-
-/* masthead → sección: 60, elegido con el scrubber. Venía de 112, que
-   nadie había decidido —eran 8 del margin del masthead + 40 del padding
-   de .content + 64 del de .group, apilados por tres reglas que nunca se
-   miraron juntas—. Referencias medidas: benji usa 48 al arrancar una
-   sección en su home y 64 entre secciones en sus subpáginas; 60 cae
-   entre las dos. Falta hornearlo. */
-const GAP_DEFAULT = 60
-const GAP_STEP = 4
-
-/* rótulo → pieza. El número es el hueco que se VE —de la línea al
-   primer texto—, no el margin: el CSS descuenta solo la media caja del
-   rótulo que queda debajo de la línea. Antes el control decía 32 y la
-   regla 41.5, que era la misma distancia contada de dos formas.
-
-   40 es lo que la página ya venía mostrando (41.5, pegado a la escala)
-   y es exactamente lo que usa benji en /liveline. Josh usa 36.
-   Referencia: entre piezas hay 48, así que esto tiene que quedar por
-   debajo o el rótulo se despega de su primera pieza. Falta hornearlo. */
-const BELOW_DEFAULT = 40
-const BELOW_MIN = 8
-
-/* INVARIANTE — el hueco bajo el rótulo siempre menor que el de encima.
-   Si no, el rótulo se despega de sus piezas y se pega al masthead:
-   quedaría rotulando lo de arriba en vez de lo de abajo.
-
-   Los dos valores se mueven por separado, pero la invariante no vive en
-   la buena voluntad de quien arrastra: vive en el tope del segundo
-   control, que es siempre el primero menos un paso. Y si bajás el de
-   arriba por debajo del de abajo, el de abajo lo sigue. No hay orden de
-   movimientos que la rompa. */
-const belowCap = (above: number) => Math.max(BELOW_MIN, above - GAP_STEP)
 
 /* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
    Vite sirve index.html para rutas desconocidas (appType spa por
@@ -81,28 +47,8 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const [gap, setGap] = useUrlNumber('gap', GAP_DEFAULT, GAP_STEP)
-  const [below, setBelow] = useUrlNumber('below', BELOW_DEFAULT, GAP_STEP)
   const listScroll = useRef(0)
   const first = useRef(true)
-
-  /* Bajar el de arriba arrastra al de abajo con él. Es el otro lado de
-     la invariante: el tope del segundo control la cuida cuando movés
-     abajo, y esto la cuida cuando movés arriba. */
-  const changeGap = (v: number) => {
-    setGap(v)
-    setBelow((b) => Math.min(b, belowCap(v)))
-  }
-
-  /* Los valores viven en la URL: recargás o los compartís y estás
-     mirando lo mismo. replaceState y no push, para no ensuciar el
-     historial con un paso por cada tirón del arrastre. */
-  useEffect(() => {
-    const url = new URL(location.href)
-    url.searchParams.set('gap', String(gap))
-    url.searchParams.set('below', String(below))
-    history.replaceState(history.state, '', url)
-  }, [gap, below])
 
   useEffect(() => {
     const onPop = () => setSelected(fromUrl())
@@ -161,22 +107,12 @@ export function App() {
   }
 
   return (
-    <div className={css.page} style={{ '--group-below': `${below}px` } as React.CSSProperties}>
-      {/* deps: re-mide cada vez que el valor cambia, que es en cada
-          paso del arrastre. */}
-      <Rulers deps={gap} />
+    <div className={css.page}>
       <Index />
       <Masthead />
-      {/* El padding de .content se anula y el primer grupo toma el valor
-          menos los 8 del margin del masthead, para que el número del
-          slider sea exactamente el que mide la regla en pantalla. */}
-      <div className={css.content} data-dir="fwd" style={{ paddingTop: 0 }}>
-        {PLATFORMS.map((pl, i) => (
-          <section
-            className={css.group}
-            key={pl}
-            style={i === 0 ? { paddingTop: gap - 8 } : undefined}
-          >
+      <div className={css.content} data-dir="fwd">
+        {PLATFORMS.map((pl) => (
+          <section className={css.group} key={pl}>
             <div className={css.groupHead}>
               <div className={css.groupLabel}>{pl}</div>
               <span className={css.groupLine} aria-hidden />
@@ -187,28 +123,6 @@ export function App() {
           </section>
         ))}
       </div>
-      <ScrubberBar>
-        <Scrubber
-          label="masthead → sección"
-          value={gap}
-          onChange={changeGap}
-          min={16}
-          max={160}
-          step={GAP_STEP}
-        />
-        {/* Más corto, y su tope se mueve con el de arriba: lo rayado es
-            la invariante, no un slider que se quedó chico. */}
-        <Scrubber
-          label="rótulo → pieza"
-          value={below}
-          onChange={setBelow}
-          min={BELOW_MIN}
-          max={belowCap(gap)}
-          hardMax={160}
-          step={GAP_STEP}
-          width={260}
-        />
-      </ScrubberBar>
     </div>
   )
 }

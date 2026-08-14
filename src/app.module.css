@@ -91,10 +91,14 @@
 }
 
 /* ═══════════ CONTENIDO ═══════════ */
+/* Sin padding arriba: el aire hasta la primera sección lo pone el
+   propio grupo, así hay un solo lugar donde vive ese número. Antes se
+   apilaba acá con el margin del masthead y el padding del grupo, y el
+   total no lo había decidido nadie. */
 .content {
   max-width: var(--grid-max);
   margin: 0 auto;
-  padding: var(--space-40) var(--margin) 128px;
+  padding: 0 var(--margin) 128px;
 }
 .content[data-dir='fwd'] {
   animation: enterFwd var(--dur-enter) var(--ease-out) both;
@@ -126,20 +130,26 @@
 
    Medido: rótulo 14px/600/#111 · hueco 8px · 64px arriba · 56px abajo
    (24 de su bloque + 32 del margin-top del siguiente). */
+/* 64 entre secciones — el de benji, medido. La primera lleva el aire
+   del masthead menos el margin del propio masthead, para que el token
+   sea el hueco total y no un sumando. */
 .group {
   padding-top: var(--space-64);
 }
-/* --group-below es el hueco que se VE: de la línea al primer texto. No
-   es el margin, porque la línea va centrada en la caja del rótulo y
-   quedan (alto de la caja − 1px de línea) / 2 de caja por debajo. Esa
-   diferencia se descuenta acá y no en el número, así lo que elegís es
-   lo que medís. Sale de los tokens, así que sigue siendo correcto si
-   cambia el tamaño de fuente o la interlínea. */
+.group:first-child {
+  padding-top: calc(var(--gap-masthead) - var(--space-8));
+}
+/* --gap-label es el hueco que se VE: de la línea al primer texto. No es
+   el margin, porque la línea va centrada en la caja del rótulo y quedan
+   (alto de la caja − 1px de línea) / 2 de caja por debajo. Esa
+   diferencia se descuenta acá y no en el token, así el número que se
+   elige es el que se mide. Sale de --fs y --lh, así que sigue siendo
+   correcto si cambia el tamaño de fuente o la interlínea. */
 .groupHead {
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  margin-bottom: calc(var(--group-below, 40px) - (var(--fs) * var(--lh) - 1px) / 2);
+  margin-bottom: calc(var(--gap-label) - (var(--fs) * var(--lh) - 1px) / 2);
 }
 .groupLabel {
   font-size: var(--fs);
