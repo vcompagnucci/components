@@ -17,14 +17,16 @@ const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 const GAP_DEFAULT = 60
 const GAP_STEP = 4
 
-/* rótulo → pieza: 32. Venía de 56 —el valor de benji en /liveline— pero
-   ahí había una agrupación invertida: entre piezas hay 48, así que el
-   rótulo quedaba MÁS lejos de su primera pieza que las piezas entre sí,
-   y leía como flotando entre grupos en vez de encabezando el de abajo.
+/* rótulo → pieza. El número es el hueco que se VE —de la línea al
+   primer texto—, no el margin: el CSS descuenta solo la media caja del
+   rótulo que queda debajo de la línea. Antes el control decía 32 y la
+   regla 41.5, que era la misma distancia contada de dos formas.
 
-   32 y no 36 porque 32 ya está en la escala: 36 caería entre 32 y 40,
-   subdividiendo un intervalo ya resuelto. Falta hornearlo. */
-const BELOW_DEFAULT = 32
+   40 es lo que la página ya venía mostrando (41.5, pegado a la escala)
+   y es exactamente lo que usa benji en /liveline. Josh usa 36.
+   Referencia: entre piezas hay 48, así que esto tiene que quedar por
+   debajo o el rótulo se despega de su primera pieza. Falta hornearlo. */
+const BELOW_DEFAULT = 40
 const BELOW_MIN = 8
 
 /* INVARIANTE — el hueco bajo el rótulo siempre menor que el de encima.

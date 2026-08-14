@@ -129,11 +129,17 @@
 .group {
   padding-top: var(--space-64);
 }
+/* --group-below es el hueco que se VE: de la línea al primer texto. No
+   es el margin, porque la línea va centrada en la caja del rótulo y
+   quedan (alto de la caja − 1px de línea) / 2 de caja por debajo. Esa
+   diferencia se descuenta acá y no en el número, así lo que elegís es
+   lo que medís. Sale de los tokens, así que sigue siendo correcto si
+   cambia el tamaño de fuente o la interlínea. */
 .groupHead {
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  margin-bottom: var(--group-below, 56px);
+  margin-bottom: calc(var(--group-below, 40px) - (var(--fs) * var(--lh) - 1px) / 2);
 }
 .groupLabel {
   font-size: var(--fs);
