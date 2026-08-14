@@ -32,8 +32,8 @@
    Medido de .styles_title__8zZSZ: peso 460 (el del cuerpo, NO bold),
    color al 40%, padding-bottom 8px, border-bottom 1px full-bleed.
    El aire entre secciones es su padding-top de 3rem. */
-.benji + .benji {
-  margin-top: var(--space-48);
+.benji {
+  padding-top: var(--space-48);
 }
 .benjiLabel {
   color: var(--text-secondary);
@@ -48,8 +48,8 @@
    Su h2 va en ink y a 24px serif; acá no podemos mover el tamaño, así
    que la jerarquía la hace el peso (regla de benji aplicada al gesto
    de josh): el rótulo sube a ink y a 500. Sección a 72px (su mt). */
-.josh + .josh {
-  margin-top: 72px;
+.josh {
+  padding-top: 72px;
 }
 .joshLabel {
   color: var(--ink);
@@ -86,7 +86,7 @@
 
    El aire de abajo son sus dos valores sumados: 24 del bloque + 32 de
    margin-top del bloque siguiente = 56. */
-.rule + .rule {
+.rule {
   padding-top: var(--space-64);
 }
 .ruleHead {
