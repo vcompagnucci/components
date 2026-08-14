@@ -106,15 +106,9 @@
   }
 }
 
-/* Separadores de sección — sólo en All. 460 secundario, el mismo trato
-   que benji le da a "Writing" en su home. */
-.listGroup + .listGroup {
-  margin-top: var(--space-64);
-}
-.groupLabel {
-  color: var(--text-secondary);
-  margin-bottom: var(--space-24);
-}
+/* Separadores de sección (sólo en All) — EN ESTUDIO.
+   Viven por ahora en src/proto/separators.module.css, detrás del picker.
+   Cuando se elija una variante se hornea acá y se borra src/proto/. */
 
 /* La pieza entera es el botón: el título también es clickeable y entra
    por teclado, no sólo el rectángulo. */

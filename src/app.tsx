@@ -1,8 +1,43 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import css from './app.module.css'
 import { PIECES, TABS, type Piece, type Platform } from './pieces'
+import { Picker } from './proto/picker'
+import sep from './proto/separators.module.css'
 
 type Dir = 'fwd' | 'back'
+
+/* ⚠ EN ESTUDIO — separadores de sección de la vista All.
+   Las tres direcciones viven acá detrás del picker, sobre la página
+   real. Cuando se elija una, se hornea en app.module.css y esto se
+   borra entero junto con src/proto/. Valores medidos del CSS servido
+   de benji.org y joshpuckett.me (ver README). */
+const SEPARATORS: { name: string; section: string; head: (label: string) => ReactNode }[] = [
+  {
+    name: 'Benji',
+    section: sep.benji,
+    head: (label) => <div className={`${sep.label} ${sep.benjiLabel}`}>{label}</div>,
+  },
+  {
+    name: 'Josh',
+    section: sep.josh,
+    head: (label) => (
+      <>
+        <div className={`${sep.label} ${sep.joshLabel}`}>{label}</div>
+        <div className={sep.joshRule} aria-hidden />
+      </>
+    ),
+  },
+  {
+    name: 'Rule',
+    section: sep.rule,
+    head: (label) => (
+      <div className={sep.ruleHead}>
+        <div className={`${sep.label} ${sep.ruleLabel}`}>{label}</div>
+        <span className={sep.ruleLine} aria-hidden />
+      </div>
+    ),
+  },
+]
 
 function Tabs({
   filterIdx,
@@ -83,22 +118,23 @@ function Item({ piece, onOpen }: { piece: Piece; onOpen: (p: Piece) => void }) {
 function List({
   filterIdx,
   dir,
+  sepIdx,
   onOpen,
 }: {
   filterIdx: number
   dir: Dir
+  sepIdx: number
   onOpen: (p: Piece) => void
 }) {
   const byPlatform = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
+  const s = SEPARATORS[sepIdx]
 
   return (
-    /* key={filterIdx} re-monta el contenedor para re-disparar su entrada:
-       una entrada por contenedor, no 18 items escalonados. */
-    <div className={css.content} data-dir={dir} key={filterIdx}>
+    <div className={css.content} data-dir={dir}>
       {filterIdx === 0
         ? (['Web', 'App'] as const).map((pl) => (
-            <section className={css.listGroup} key={pl}>
-              <div className={css.groupLabel}>{pl}</div>
+            <section className={s.section} key={pl}>
+              {s.head(pl)}
               {byPlatform(pl).map((p) => (
                 <Item piece={p} onOpen={onOpen} key={p.name} />
               ))}
@@ -149,21 +185,36 @@ export function App() {
   }, [])
 
   return (
-    <div className={css.page}>
-      {selected ? (
-        <Detail piece={selected} onBack={() => setSelected(null)} />
-      ) : (
-        <>
-          <header className={css.mast}>
-            <h1 className={css.mastTitle}>Library</h1>
-            <div className={css.mastSub}>Components for web and native apps that feel right.</div>
-          </header>
-          <div className={css.barInner}>
-            <Tabs filterIdx={filterIdx} onChange={changeFilter} />
-          </div>
-          <List filterIdx={filterIdx} dir={dir} onOpen={setSelected} />
-        </>
+    <Picker names={SEPARATORS.map((s) => s.name)} replay>
+      {(sepIdx, mountKey) => (
+        <div className={`${css.page} ${sep.stage}`}>
+          {selected ? (
+            <Detail piece={selected} onBack={() => setSelected(null)} />
+          ) : (
+            <>
+              <header className={css.mast}>
+                <h1 className={css.mastTitle}>Library</h1>
+                <div className={css.mastSub}>
+                  Components for web and native apps that feel right.
+                </div>
+              </header>
+              <div className={css.barInner}>
+                <Tabs filterIdx={filterIdx} onChange={changeFilter} />
+              </div>
+              {/* La key re-monta el contenedor para re-disparar su entrada:
+                  una entrada por contenedor, no una por item. Cambiar de
+                  variante o apretar R también la vuelve a correr. */}
+              <List
+                key={`${filterIdx}-${sepIdx}-${mountKey}`}
+                filterIdx={filterIdx}
+                dir={dir}
+                sepIdx={sepIdx}
+                onOpen={setSelected}
+              />
+            </>
+          )}
+        </div>
       )}
-    </div>
+    </Picker>
   )
 }
