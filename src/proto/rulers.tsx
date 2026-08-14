@@ -39,7 +39,14 @@ function measure(): { gaps: Gap[]; x: number } {
 
   if (title) add('aire superior', 0, box(title).top)
   if (sub && heads[0]) add('masthead → sección', box(sub).bottom, box(heads[0]).top)
-  if (heads[0] && items[0]) add('rótulo → pieza', box(heads[0]).bottom, box(items[0]).top)
+
+  /* Desde la LÍNEA, no desde el fondo de la caja del rótulo. La línea
+     va centrada en esa caja, así que quedan ~9.5px de caja por debajo
+     y el margen CSS no es el hueco que se ve. Medir el margen daba un
+     número que no se podía comparar con nadie: benji tiene 40 de línea
+     a texto, y con la caja parecía que teníamos 32. */
+  const line0 = heads[0]?.querySelector<HTMLElement>('.' + app.groupLine)
+  if (line0 && items[0]) add('rótulo → pieza', box(line0).bottom, box(items[0]).top)
 
   const t = q(app.streamTitle)
   const p = q(app.streamPreview)
