@@ -1,0 +1,105 @@
+/* Marco de viewports del taller. Chrome de herramienta: gris oscuro
+   fijo, nunca tokens del proyecto. Se borra con src/proto/. */
+
+.shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #171717;
+  overflow: auto;
+}
+
+.head {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 0 10px;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.headW {
+  color: #fff;
+  font-size: 12px;
+}
+.headNote {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* El iframe se dibuja al ancho real del viewport y se escala si no
+   entra en la ventana. Escalar y no achicar: si lo achicáramos, las
+   media queries verían otro ancho y estaríamos mirando una mentira. */
+.stage {
+  flex: none;
+  transform-origin: top center;
+}
+.frame {
+  display: block;
+  border: 0;
+  background: #fdfdfc;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.32);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out, background-color 150ms ease-out;
+}
+.item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.item[data-on] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.itemW {
+  font-variant-numeric: tabular-nums;
+}
+.itemNote {
+  font-size: 9px;
+  opacity: 0.5;
+  white-space: nowrap;
+}
