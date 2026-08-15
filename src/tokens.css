@@ -140,16 +140,14 @@
      ninguno de los dos extremos. */
   --grid-max: 592px;
 
-  /* 80 abajo, el mismo número que arriba. No sale de las referencias:
-     las dos cierran corto (benji 40, josh 64) porque abajo tienen
-     footer y nosotros no vamos a tener, así que ese aire es el final de
-     la página y no una separación.
+  /* 80 abajo, el mismo número que arriba, y escalona igual que él en
+     768. Los dos aires son el mismo valor y se mueven juntos.
 
-     No escalona en 768 como el de arriba, y a propósito: los 80 de
-     arriba se recortan porque en un teléfono son pantalla muerta antes
-     de leer nada. Los de abajo sólo se ven si scrolleaste hasta el
-     fondo, así que no cuestan nada. Benji hace lo mismo — escalona el
-     de arriba y deja el de abajo quieto. */
+     No sale de las referencias: las dos cierran corto (benji 40, josh
+     64) porque abajo tienen footer y nosotros no vamos a tener, así que
+     ese aire es el final de la página y no una separación. Y benji NO
+     escalona el suyo de abajo — acá se decidió que sí, para que arriba
+     y abajo sean el mismo número en todo ancho. */
   --air-bottom: 80px;
 
   --radius-pill: 9999px;

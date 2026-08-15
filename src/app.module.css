@@ -304,6 +304,7 @@
 @media (max-width: 768px) {
   .page {
     --air-top: 32px; /* 2rem */
+    --air-bottom: 32px; /* el de abajo acompaña al de arriba */
     --margin: 24px; /* 1.5rem */
   }
 }
