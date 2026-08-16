@@ -101,6 +101,34 @@
   --type-h3-fw: 600;
 }
 
+/* ═══ 5 · BENJI+ ═══  500 · 600 · 560
+   Su par verificado, y la pieza sube a 560 para deshacer el empate.
+
+   Lo de él está confirmado end-to-end, no inferido:
+     .article > header h1  { font-weight:500 }   su título de página
+     .article h1           { font-weight:600 }   sus encabezados de sección
+   y el separador está DENTRO de <article class="article"> — verificado
+   por posición en el HTML servido, no supuesto. El color oscuro también
+   cierra: el span del separador le pasaría 40% gris por herencia, pero
+   h1..h6 { color: var(--heading-color) } lo pisa con regla directa.
+
+   Lo que NO es suyo es el peso del nombre de pieza. No tiene una lista
+   de pares [nombre + card], así que ese rol no existe en su sitio: el
+   500 de la variante 1 es lo que ya teníamos, no algo copiado.
+
+   Esta variante toma sus dos números verificados y le da al tercero un
+   peso propio. Queda sin empates igual que la 4, pero por el otro
+   camino: la 4 baja la sección para que la pieza mande, ésta sube la
+   pieza dejando que la sección siga siendo lo más pesado.
+
+   La pregunta que separa la 4 de la 5: ¿el rótulo de sección tiene que
+   pesar MÁS o MENOS que el nombre de pieza? */
+.benjiMas {
+  --type-h1-fw: 500;
+  --type-h2-fw: 600;
+  --type-h3-fw: 560;
+}
+
 /* ═══════════ EL PICKER ═══════════
    Chrome de herramienta: valores de PICKER.md del skill, copiados tal
    cual. No lleva tokens del proyecto ni se adapta al tema. Sin replay:
