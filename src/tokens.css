@@ -181,24 +181,29 @@
   --gap-masthead: 60px;
   --gap-label: 40px;
 
-  /* Del nombre de la pieza a su card. 12 es el de benji, y no es un
-     número parecido en un contexto parecido: su timeline tiene un h2 de
-     14px/500/lh20 —idéntico a nuestro --type-h3— con el bloque debajo a
-     .75rem, y las entradas a 3rem, que son los mismos 48 que usamos
-     entre piezas. Coincide en las tres variables a la vez. Josh usa 16
-     para lo mismo, pero su encabezado es de 16px y sus bloques no
-     forman una lista de cards iguales.
+  /* Del nombre de la pieza a su card. ELEGIDO A OJO sobre nuestra
+     propia página, con scrubber, y no copiado — porque no hay de dónde
+     copiarlo: ninguna de las dos referencias tiene nuestra estructura,
+     una lista de pares [nombre corto + card grande] repetida 19 veces.
+     Benji /liveline hace de cada sección UN bloque; su home es una
+     lista de filas de texto sin bloque ninguno.
 
-     Constante en todo ancho, como los dos: ni benji ni josh lo meten en
-     un media query. En 768 la card se hace más angosta, no más baja
-     —sigue midiendo 280— así que la relación no cambia.
+     Lo más cercano que existe es josh en /pasito: h2 de 20px/500 seguido
+     directo de una card de código, a 16 (mt-4), en "Usage" y "Autoplay
+     Usage". Los dos casos donde va del título al bloque sin nada en el
+     medio — donde muestra el componente visualmente mete una descripción
+     entre los dos, que no es nuestro caso. Se probaron 12 y 16 en la
+     página real con las 19 piezas apiladas y ganó 12. Su h2 además es de
+     20px y el nuestro de 14: sus 16 cuelgan de un título más grande.
+
+     Constante en todo ancho. En 768 la card se hace más angosta, no más
+     baja —sigue midiendo 280— así que la relación no cambia.
 
      Tiene que quedar bastante por debajo de --gap-label (40) o el
      título se despega de su card y se lee como parte de la sección. Eso
      va como comentario y no como calc: se encodea lo que no se puede
      ver —la media caja de línea que descuenta --gap-label— y se comenta
-     lo que sí, y esto se ve en el acto si se rompe. Benji hace lo mismo:
-     escribe este hueco literal y reserva los calc para geometría. */
+     lo que sí, y esto se ve en el acto si se rompe. */
   --gap-title: 12px;
 
   /* PROVISIONAL — pendiente de decisión */
