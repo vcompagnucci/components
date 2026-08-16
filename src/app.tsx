@@ -2,8 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-/* ⚠ EN ESTUDIO — la escalera de pesos. Se va con src/proto/. */
-import { WeightPicker, useWeight } from './proto/weight'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -49,7 +47,6 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const peso = useWeight() /* ⚠ EN ESTUDIO */
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -110,7 +107,7 @@ export function App() {
   }
 
   return (
-    <div className={`${css.page} ${peso.cls}`}>
+    <div className={css.page}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd">
@@ -126,8 +123,6 @@ export function App() {
           </section>
         ))}
       </div>
-      {/* ⚠ EN ESTUDIO */}
-      <WeightPicker i={peso.i} setI={peso.setI} />
     </div>
   )
 }
