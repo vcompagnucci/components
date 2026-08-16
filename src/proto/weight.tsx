@@ -13,9 +13,7 @@ const VARIANTES = [
   { id: 'escalera', label: 'Escalera', pesos: '600·560·500', cls: css.escalera },
   { id: 'escaneo', label: 'Escaneo', pesos: '500·500·600', cls: css.escaneo },
   { id: 'invertida', label: 'Invertida', pesos: '500·560·600', cls: css.invertida },
-  { id: 'p520', label: 'Pieza 520', pesos: '500·600·520', cls: css.p520 },
-  { id: 'p540', label: 'Pieza 540', pesos: '500·600·540', cls: css.p540 },
-  { id: 'p560', label: 'Pieza 560', pesos: '500·600·560', cls: css.p560 },
+  { id: 'benjiMas', label: 'Benji+', pesos: '500·600·560', cls: css.benjiMas },
 ]
 
 export function useWeight() {
