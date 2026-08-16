@@ -12,7 +12,7 @@ const VARIANTES = [
   { id: 'benji', label: 'Benji', pesos: '500·600·500', cls: css.benji },
   { id: 'escalera', label: 'Escalera', pesos: '600·560·500', cls: css.escalera },
   { id: 'escaneo', label: 'Escaneo', pesos: '500·500·600', cls: css.escaneo },
-  { id: 'plano', label: 'Plano', pesos: '500·500·500', cls: css.plano },
+  { id: 'invertida', label: 'Invertida', pesos: '500·560·600', cls: css.invertida },
 ]
 
 export function useWeight() {

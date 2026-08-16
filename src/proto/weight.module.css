@@ -71,20 +71,34 @@
   --type-h3-fw: 600;
 }
 
-/* ═══ 4 · PLANO ═══  500 · 500 · 500
-   Un solo peso para todo lo que no es cuerpo. La jerarquía la hacen el
-   color y la hairline, no el peso.
+/* ═══ 4 · INVERTIDA ═══  500 · 560 · 600
+   La escalera de la 2 dada vuelta: en vez de descender desde el título,
+   asciende hacia la pieza.
 
-   Es lo más cerca de josh, que en sus subpáginas usa DOS pesos y nada
-   más —400 el cuerpo, 500 todo encabezado— y deja que el tamaño y una
-   escalera de grises hagan el resto. Nosotros no tenemos tamaños, así
-   que la carga la llevan el color y la línea.
+   Es la ÚNICA de las cuatro sin empates. Las otras tres los tienen y
+   todas por lo mismo, que es repetir un peso:
+     benji    500·600·500  título y pieza empatan
+     escalera 600·560·500  sin empate, pero el título manda
+     escaneo  500·500·600  título y sección empatan
 
-   Costo: si el color no alcanza, la página queda plana de verdad. */
-.plano {
+   Combina las dos ideas que aparecieron: la DIRECCIÓN de benji —el
+   título de página es lo más liviano, porque su rango ya se lo da la
+   posición— con el criterio de escaneo —el peso va a lo que el ojo
+   recorre, que acá son los 19 nombres de pieza.
+
+   Y es plausible que sea lo que él mismo haría si sus dos escalas se
+   vieran en la misma página: tiene 500, 560 y 600 en la paleta y
+   ninguna razón para gastar dos roles en el mismo peso. Que en su sitio
+   haya empate es un efecto de tener dos escalas separadas, no una
+   decisión.
+
+   Contra la 3, la única diferencia es el rótulo de sección: 560 en vez
+   de 500. Lo que se está preguntando ahí es si el rótulo necesita peso
+   propio o si le alcanza con la hairline que ya tiene al lado. */
+.invertida {
   --type-h1-fw: 500;
-  --type-h2-fw: 500;
-  --type-h3-fw: 500;
+  --type-h2-fw: 560;
+  --type-h3-fw: 600;
 }
 
 /* ═══════════ EL PICKER ═══════════
