@@ -1,14 +1,13 @@
 /* ═══════════ AIRE SUPERIOR — 80px, como benji (medido y leído de su
-   CSS: padding 5rem). El escalón a 32 va en 768, el mismo que usan los
-   dos referentes ═══════════ */
+   CSS: padding 5rem). El escalón a 32 va en 768, el suyo ═══════════ */
 .page {
-  /* --air-top es el aire total que se ve; el mast pone 16 de su propio
-     padding, así que acá va el resto. El token es el número que se
-     elige, la resta es implementación. */
-  padding-top: calc(var(--air-top) - var(--space-16));
+  /* --page-padding-top es el aire total que se VE; el mast pone 16 de
+     su propio padding, así que acá va el resto. El token es el número
+     que se elige, la resta es plomería. */
+  padding-top: calc(var(--page-padding-top) - 16px); /* 16 = el padding propio del mast */
 }
 .page > .content:first-child {
-  padding-top: var(--space-16);
+  padding-top: 16px; /* el mismo que pone el mast, para que el total sea --page-padding-top */
 }
 
 /* ═══════════ MASTHEAD ═══════════
@@ -17,15 +16,15 @@
    es la regla compartida por benji (h1 500 ink / time 460 al 40%) y por
    josh (nombre y descripción al mismo tamaño, sólo cambia el color). */
 .mast {
-  max-width: var(--grid-max);
-  margin: 0 auto var(--space-8);
-  padding: var(--space-16) var(--margin) 0;
+  max-width: var(--page-content-max-width);
+  margin: 0 auto 8px; /* lo descuenta --section-first-gap */
+  padding: 16px var(--page-padding-inline) 0;
   /* Columna con gap, como el header de benji: display:flex;
      flex-direction:column; gap:.25rem. El 8 de abajo ya lo teníamos y
      es también el suyo (padding:0 0 .5rem). */
   display: flex;
   flex-direction: column;
-  gap: var(--gap-mast);
+  gap: var(--masthead-subtitle-gap);
 }
 .mastTitle {
   font-size: var(--type-h1-fs);
@@ -51,12 +50,12 @@
    Sin scrollspy: él lo tiene, acá se decidió no ponerlo. */
 .index {
   position: fixed;
-  left: var(--index-left);
-  top: var(--index-top);
+  left: var(--index-offset-left);
+  top: var(--index-offset-top);
   display: flex;
   flex-direction: column;
-  gap: var(--index-gap);
-  max-height: calc(100vh - var(--index-top) * 2);
+  gap: var(--index-item-gap);
+  max-height: calc(100vh - var(--index-offset-top) * 2);
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -66,10 +65,10 @@
 .indexGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--index-gap);
+  gap: var(--index-item-gap);
 }
 .indexGroup + .indexGroup {
-  margin-top: var(--space-24);
+  margin-top: var(--index-group-gap);
 }
 .indexLabel {
   font-size: var(--type-nav-fs);
@@ -119,9 +118,9 @@
    apilaba acá con el margin del masthead y el padding del grupo, y el
    total no lo había decidido nadie. */
 .content {
-  max-width: var(--grid-max);
+  max-width: var(--page-content-max-width);
   margin: 0 auto;
-  padding: 0 var(--margin) var(--air-bottom);
+  padding: 0 var(--page-padding-inline) var(--page-padding-bottom);
 }
 .content[data-dir='fwd'] {
   animation: enterFwd var(--dur-enter) var(--ease-out) both;
@@ -157,22 +156,22 @@
    del masthead menos el margin del propio masthead, para que el token
    sea el hueco total y no un sumando. */
 .group {
-  padding-top: var(--space-64);
+  padding-top: var(--section-gap);
 }
 .group:first-child {
-  padding-top: calc(var(--gap-masthead) - var(--space-8));
+  padding-top: calc(var(--section-first-gap) - 8px); /* 8 = el margin del mast */
 }
-/* --gap-label es el hueco que se VE: de la línea al primer texto. No es
-   el margin, porque la línea va centrada en la caja del rótulo y quedan
-   (alto de la caja − 1px de línea) / 2 de caja por debajo. Esa
+/* --section-content-gap es el hueco que se VE: de la línea al primer
+   texto. No es el margin, porque la línea va centrada en la caja del
+   rótulo y quedan (alto de la caja − 1px de línea) / 2 por debajo. Esa
    diferencia se descuenta acá y no en el token, así el número que se
-   elige es el que se mide. Sale de --fs y --lh, así que sigue siendo
+   elige es el que se mide. Sale de --type-h2-lh, así que sigue siendo
    correcto si cambia el tamaño de fuente o la interlínea. */
 .groupHead {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
-  margin-bottom: calc(var(--gap-label) - (var(--type-h2-lh) - 1px) / 2);
+  gap: var(--section-rule-gap);
+  margin-bottom: calc(var(--section-content-gap) - (var(--type-h2-lh) - 1px) / 2);
 }
 .groupLabel {
   font-size: var(--type-h2-fs);
@@ -201,7 +200,7 @@
   cursor: pointer;
 }
 .streamItem + .streamItem {
-  margin-top: var(--space-48);
+  margin-top: var(--piece-gap);
 }
 /* El aire lo reclama el bloque de abajo, no lo empuja el título — es
    como lo hace benji: su h2 lleva margin-top:0 y son el p, el pre y el
@@ -210,7 +209,7 @@
    sume a la pieza —una nota, una etiqueta— hereda el hueco sin tener
    que tocar nada. */
 .streamItem > * + * {
-  margin-top: var(--gap-title);
+  margin-top: var(--piece-card-gap);
 }
 .streamTitle {
   font-size: var(--type-h3-fs);
@@ -244,13 +243,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--control-h-sm);
-  height: var(--control-h-sm);
-  margin: 0 0 var(--space-24) calc(var(--space-10) * -1);
+  width: 34px;
+  height: 34px;
+  margin: 0 0 24px -10px;
   padding: 0;
   border: 0;
   background: transparent;
-  border-radius: var(--space-8);
+  border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
   transition: background-color var(--dur-fill) ease, color var(--dur-fill) ease;
@@ -263,8 +262,8 @@
 .detailHead {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  margin-bottom: var(--space-24);
+  gap: 4px;
+  margin-bottom: 24px;
 }
 .detailTitle {
   font-size: var(--type-h1-fs);
@@ -288,7 +287,7 @@
    nada. Si el detalle llega a querer una medida más angosta que su
    columna, es una decisión aparte y se toma con la primera pieza. */
 .detailDesc {
-  margin: var(--space-8) 0 0;
+  margin: 8px 0 0;
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
@@ -317,9 +316,9 @@
    64 desde 320 hasta 2560, cero clases responsive en el marco). */
 @media (max-width: 768px) {
   .page {
-    --air-top: 32px; /* 2rem */
-    --air-bottom: 32px; /* el de abajo acompaña al de arriba */
-    --margin: 24px; /* 1.5rem */
+    --page-padding-top: 32px; /* 2rem */
+    --page-padding-bottom: 32px; /* el de abajo acompaña al de arriba */
+    --page-padding-inline: 24px; /* 1.5rem */
   }
 }
 

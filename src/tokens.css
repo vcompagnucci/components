@@ -131,52 +131,54 @@
      que cambió es que ahora vive acá y no adentro de la clase */
   --type-nav-link-c: rgba(18, 18, 18, 0.4);
 
-  /* espaciado */
-  --space-2: 2px;
-  --space-4: 4px;
-  --space-6: 6px;
-  --space-8: 8px;
-  --space-10: 10px;
-  --space-12: 12px;
-  --space-16: 16px;
-  --space-20: 20px;
-  --space-24: 24px;
-  --space-32: 32px;
-  --space-40: 40px;
-  --space-48: 48px;
-  --space-64: 64px;
+  /* ═══════════ ESPACIADO ═══════════
+     Nombres al modo de apple: DUEÑO → PARTE → PROPIEDAD → LADO, siempre
+     el sustantivo primero y la propiedad al final. Medido de su CSS
+     servido: --buystrip-content-padding, --buystrip-items-padding-bottom,
+     --media-gallery-bottom-content-padding-left. Linear y OpenAI hacen
+     lo mismo más corto (--button-gap, --page-top-gap).
 
-  --control-h-sm: 34px;
+     Ninguno de los tres tiene un token nombrado por su valor. En 1.3 MB
+     de su CSS no hay un solo --space-4. Por eso acá tampoco: la escala
+     cruda se borró y cada número decidido tiene un nombre que dice qué
+     separa.
 
-  /* EL MARCO — comportamiento de benji, medido de su CSS servido
-     (.context/recon/RESPONSIVE.md). Escalona en 768 y no interpola:
-     no hay clamp() ni vw en ninguna parte, igual que él.
+     Y los tres comparten otra cosa que nosotros ya hacíamos sin
+     nombrarla: EL NOMBRE ES EL ROL, EL VALOR ES CONTEXTUAL. El
+     --button-gap de linear vale 4, 6 u 8 según el tamaño del botón; los
+     paddings de apple cambian con el breakpoint. Acá pasa lo mismo con
+     los tres de abajo, que se mueven en 768.
 
-     El margen es 16 arriba de 768 y 24 abajo. No es una inconsistencia:
-     arriba de 768 el riel está centrado con aire de sobra a los costados
-     y el padding es vestigial — lo único que hace es angostar la
-     columna. Abajo de 582 el riel ES el viewport y ese padding pasa a
-     ser la única distancia al borde de la pantalla, que ahí sí tiene que
-     ser 24. Un número que hace dos trabajos según el ancho. */
-  --margin: 16px;
-  --air-top: 80px; /* 5rem */
+     REGLA: todo espaciado de LAYOUT es múltiplo de 4. Adentro de un
+     componente no rige — es lo que hace benji, que usa 2, 3, 5, 6 y 10
+     pero sólo en .Toolbar_*, .BarSlider_field y variantes de botón,
+     nunca en el layout de la página. Hoy no tenemos nada interno: la
+     card está vacía y el único componente es la flecha del detalle. */
 
-  /* El riel: 592 = 37rem justos. Elegido con el scrubber sobre la página
-     real, entre el de benji (582, su 36.375rem) y el de josh (672,
-     42rem). Con el margen de 16 la columna queda en 560, que son 35rem
-     — los dos números caen en rem enteros, cosa que no pasaba con
-     ninguno de los dos extremos. */
-  --grid-max: 592px;
+  /* el marco. Comportamiento de benji: escalona en 768 y no interpola
+     —no hay clamp() ni vw en ninguna parte, igual que él.
 
-  /* 80 abajo, el mismo número que arriba, y escalona igual que él en
-     768. Los dos aires son el mismo valor y se mueven juntos.
+     El padding lateral es 16 arriba de 768 y 24 abajo. No es una
+     inconsistencia: arriba de 768 el riel está centrado con aire de
+     sobra a los costados y el padding es vestigial, sólo angosta la
+     columna. Abajo de 592 el riel ES el viewport y ese mismo padding
+     pasa a ser la única distancia al borde de la pantalla. */
+  --page-padding-inline: 16px;
+  --page-padding-top: 80px; /* 5rem */
 
-     No sale de las referencias: las dos cierran corto (benji 40, josh
-     64) porque abajo tienen footer y nosotros no vamos a tener, así que
-     ese aire es el final de la página y no una separación. Y benji NO
-     escalona el suyo de abajo — acá se decidió que sí, para que arriba
-     y abajo sean el mismo número en todo ancho. */
-  --air-bottom: 80px;
+  /* 80 abajo, el mismo número que arriba, y escalona con él. No sale de
+     las referencias: las dos cierran corto (benji 40, josh 64) porque
+     abajo tienen footer y nosotros no vamos a tener, así que ese aire es
+     el final de la página y no una separación. Benji NO escalona el suyo
+     de abajo — acá se decidió que sí, para que arriba y abajo sean el
+     mismo número en todo ancho. */
+  --page-padding-bottom: 80px;
+
+  /* 592 = 37rem justos. Elegido con scrubber sobre la página real, entre
+     el de benji (582, su 36.375rem) y el de josh (672, 42rem). Con el
+     padding de 16 la columna queda en 560 = 35rem: los dos caen en rem
+     enteros, cosa que no pasaba con ninguno de los dos extremos. */
+  --page-content-max-width: 592px;
 
   --radius-pill: 9999px;
   --focus-ring: 0 0 0 2px var(--canvas),
@@ -189,68 +191,58 @@
   --dur-trail: 440ms; /* borde que va atrás — el desfasaje es el estirón */
   --dur-enter: 220ms;
 
-  /* índice lateral — medido de benji: fixed a 80/80, links 13px/460 al
-     40%, 8px entre uno y otro */
-  --index-left: 80px;
-  --index-top: 80px;
-  /* el tamaño del índice pasó a --type-nav-fs, que es donde vive ahora la
-     tipografía por rol. El gap sigue acá: es espaciado, no texto, y
-     los dos referentes coinciden en 8. */
-  --index-gap: 8px;
+  /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
+     al 40%, 8px entre uno y otro. */
+  --index-offset-left: 80px;
+  --index-offset-top: 80px;
+  --index-item-gap: 8px;
+  --index-group-gap: 24px;
 
-  /* espaciados de la lista. Elegidos con el scrubber y medidos contra
-     las referencias — el detalle en .context/recon/NAVIGATION.md.
+  /* ─── LOS HUECOS VERTICALES DE LA PÁGINA ───
+     Cada uno nombrado por el bloque que lo reclama, porque el aire lo
+     reclama el de abajo y no lo empuja el de arriba — la forma de benji,
+     verificada en su página real donde el contenedor de su gráfico lleva
+     style="margin-top:2rem".
 
-     --gap-label es el hueco que se VE (de la línea al primer texto), no
-     el margin: la línea va centrada en la caja del rótulo y el CSS
-     descuenta esa media caja. 40 es el número de benji en /liveline,
-     medido en 13 de sus 15 secciones. Tiene que quedar por debajo de
-     los 48 de entre piezas, o el rótulo se despega de su grupo. */
-  --gap-masthead: 60px;
-  --gap-label: 40px;
+     Ordenados por tamaño se lee la escala sola, todos múltiplos de 4:
+     4 · 8 · 12 · 40 · 48 · 60 · 64
 
-  /* Del título del masthead a su subtítulo: 4. Es el de benji, y acá el
-     análogo es exacto — su header es el mismo par que el nuestro, un h1
-     y una línea secundaria, los dos de 14px con interlínea 20, y está
-     en el HTML servido de su home y no sólo en la hoja:
+     El detalle de cada uno y de dónde salió está en el README y en
+     .context/recon/NAVIGATION.md. */
 
-       <header><h1>Benji Taylor</h1><time>Updated Jul 29, 2026</time></header>
-       .article > header { display:flex; flex-direction:column;
-                           gap:.25rem; padding:0 0 .5rem }
+  /* el subtítulo, de su título. Análogo exacto de benji: su <header> es
+     el mismo par —un h1 y una línea secundaria, los dos 14px/lh20— con
+     display:flex; flex-direction:column; gap:.25rem. Como los dos textos
+     son del mismo tamaño la interlínea ya los separa: estos 4 son un
+     empujón, no una separación. */
+  --masthead-subtitle-gap: 4px;
 
-     Como los dos textos son del mismo tamaño, la interlínea ya los
-     separa: estos 4 son un empujón, no una separación. Los 8 de abajo
-     del header también son suyos y ya los teníamos — el margin-bottom
-     de .mast.
+  /* el rótulo de sección, de su hairline. Medido de su separador. */
+  --section-rule-gap: 8px;
 
-     Josh usa 16 acá, pero su h1 es de 30px contra un párrafo de 16:
-     con esa diferencia de tamaño el hueco tiene que trabajar más. */
-  --gap-mast: 4px;
+  /* la primera pieza, del rótulo. Es el hueco que se VE, de la línea al
+     primer texto, no el margin: la línea va centrada en la caja del
+     rótulo y el CSS descuenta esa media caja. 40 es el número de benji
+     en /liveline, medido en 13 de sus 15 secciones. Tiene que quedar por
+     debajo de --piece-gap o el rótulo se despega de su grupo. */
+  --section-content-gap: 40px;
 
-  /* Del nombre de la pieza a su card. ELEGIDO A OJO sobre nuestra
-     propia página, con scrubber, y no copiado — porque no hay de dónde
-     copiarlo: ninguna de las dos referencias tiene nuestra estructura,
-     una lista de pares [nombre corto + card grande] repetida 19 veces.
-     Benji /liveline hace de cada sección UN bloque; su home es una
-     lista de filas de texto sin bloque ninguno.
+  /* la primera sección, del masthead. */
+  --section-first-gap: 60px;
 
-     Lo más cercano que existe es josh en /pasito: h2 de 20px/500 seguido
-     directo de una card de código, a 16 (mt-4), en "Usage" y "Autoplay
-     Usage". Los dos casos donde va del título al bloque sin nada en el
-     medio — donde muestra el componente visualmente mete una descripción
-     entre los dos, que no es nuestro caso. Se probaron 12 y 16 en la
-     página real con las 19 piezas apiladas y ganó 12. Su h2 además es de
-     20px y el nuestro de 14: sus 16 cuelgan de un título más grande.
+  /* una sección, de la anterior. El de benji, medido. */
+  --section-gap: 64px;
 
-     Constante en todo ancho. En 768 la card se hace más angosta, no más
-     baja —sigue midiendo 280— así que la relación no cambia.
+  /* la card, de su nombre. ELEGIDO A OJO con scrubber sobre la página
+     real, no copiado: ninguna referencia tiene nuestra estructura, una
+     lista de pares [nombre corto + card grande] repetida 19 veces. Lo
+     más cercano es josh en /pasito, h2 20px/500 seguido directo de una
+     card de código a 16 (mt-4). Se probaron 12 y 16 con las 19 piezas
+     apiladas y ganó 12. */
+  --piece-card-gap: 12px;
 
-     Tiene que quedar bastante por debajo de --gap-label (40) o el
-     título se despega de su card y se lee como parte de la sección. Eso
-     va como comentario y no como calc: se encodea lo que no se puede
-     ver —la media caja de línea que descuenta --gap-label— y se comenta
-     lo que sí, y esto se ve en el acto si se rompe. */
-  --gap-title: 12px;
+  /* una pieza, de la anterior. El de benji, medido. */
+  --piece-gap: 48px;
 
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
