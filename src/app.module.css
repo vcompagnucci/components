@@ -197,13 +197,21 @@
 .streamItem + .streamItem {
   margin-top: var(--space-48);
 }
+/* El aire lo reclama el bloque de abajo, no lo empuja el título — es
+   como lo hace benji: su h2 lleva margin-top:0 y son el p, el pre y el
+   figure los que traen su propio .75rem. Dos consecuencias reales:
+   un bloque sin título arriba respira igual, y cualquier cosa que se
+   sume a la pieza —una nota, una etiqueta— hereda el hueco sin tener
+   que tocar nada. */
+.streamItem > * + * {
+  margin-top: var(--gap-title);
+}
 .streamTitle {
   font-size: var(--type-h3-fs);
   font-weight: var(--type-h3-fw);
   letter-spacing: var(--type-h3-ls);
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
-  margin-bottom: var(--gap-title);
 }
 .streamPreview {
   height: 280px;
