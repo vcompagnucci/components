@@ -71,6 +71,8 @@
   margin-top: var(--index-group-gap);
 }
 .indexLabel {
+  /* ⚠ EN ESTUDIO: --nav-label-gap. Al hornear queda o se va. */
+  margin-bottom: var(--nav-label-gap, 0px);
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-label-fw);
   letter-spacing: var(--type-nav-ls);

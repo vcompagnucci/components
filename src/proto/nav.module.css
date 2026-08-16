@@ -1,0 +1,146 @@
+/* ⚠ EN ESTUDIO — el rótulo del índice lateral. Se borra con src/proto/.
+
+   La pregunta salió de un costo aceptado al hornear la escalera de
+   pesos: la palabra "Web" está DOS VECES en la página, en el separador
+   de sección (--type-h2-fw: 600) y en el índice (--type-nav-label-fw:
+   500), y quedaron con pesos distintos.
+
+   Benji no tiene ese problema porque su índice no distingue el rótulo
+   de sus links con tipografía EN ABSOLUTO:
+
+     nav h2        13px · 460 · hsla(0,0%,7%,.4) · lh 1.2 · ls -.0025rem
+     nav ul li a   13px · 460 · hsla(0,0%,7%,.4) · lh 1.2 · ls -.0025rem
+
+   Idénticos, propiedad por propiedad. Lo único que separa al rótulo es
+   padding:0 0 1rem —16px debajo— y que se pone #111 cuando estás en esa
+   sección. En su caso el h2 además es clickeable; el nuestro no. */
+
+/* ═══ 1 · ACTUAL ═══  13 · 500 · ink
+   El rótulo se distingue por peso Y por color. Es lo que la página
+   tiene hoy, y es de donde sale el choque: "Web" pesa 500 acá y 600 en
+   el separador. */
+.actual {
+  --type-nav-label-fw: 500;
+  --type-nav-label-c: var(--ink);
+  --nav-label-gap: 0px;
+}
+
+/* ═══ 2 · BENJI ═══  13 · 460 · 40% · 16 debajo
+   El índice entero pasa a un solo registro, callado. El rótulo se
+   distingue SÓLO por el aire de abajo, como él.
+
+   Esto no elimina que "Web" tenga dos pesos —pasa a 460 contra 600—
+   pero deja de LEERSE como inconsistencia: el índice se vuelve un
+   bloque uniforme y silencioso, y el separador es el que habla. Son
+   dos registros distintos, no el mismo elemento mal puesto.
+
+   El costo: su h2 es clickeable y se ilumina cuando estás en esa
+   sección, así que ahí el rótulo tiene otra señal. El nuestro no es
+   clickeable, así que lo único que lo marca son 16px. Puede quedar
+   demasiado sutil. */
+.benji {
+  --type-nav-label-fw: 460;
+  --type-nav-label-c: var(--type-nav-link-c);
+  --nav-label-gap: 16px;
+}
+
+/* ═══ 3 · IGUALADO ═══  13 · 600 · ink
+   El rótulo del índice toma el mismo peso que el separador, así la
+   palabra "Web" pesa igual en los dos lugares donde aparece.
+
+   Resuelve el choque de frente, pero un 600 en una barra lateral de
+   13px es pesado, y agranda mucho la distancia entre el rótulo y sus
+   links (600 contra 460). */
+.igualado {
+  --type-nav-label-fw: 600;
+  --type-nav-label-c: var(--ink);
+  --nav-label-gap: 0px;
+}
+
+/* ═══════════ EL PICKER ═══════════
+   Chrome de herramienta: valores de PICKER.md del skill, copiados tal
+   cual. No lleva tokens del proyecto ni se adapta al tema. Sin replay:
+   la comparación es estática. */
+.picker {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.highlight {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  will-change: transform;
+}
+.picker[data-ready] .highlight {
+  transition:
+    transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+    width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .picker[data-ready] .highlight {
+    transition: none;
+  }
+}
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out;
+}
+.item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.item:active {
+  transform: scale(0.97);
+}
+.item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.item[data-active] {
+  color: #fff;
+}
+/* Los tres pesos, en el orden en que aparecen bajando por la página:
+   título · sección · pieza. */
+.pesos {
+  font-size: 9px;
+  opacity: 0.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
