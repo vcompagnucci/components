@@ -181,6 +181,9 @@
   --gap-masthead: 60px;
   --gap-label: 40px;
 
+  /* EN ESTUDIO — del título del masthead a su subtítulo. */
+  --gap-mast: 0px;
+
   /* Del nombre de la pieza a su card. ELEGIDO A OJO sobre nuestra
      propia página, con scrubber, y no copiado — porque no hay de dónde
      copiarlo: ninguna de las dos referencias tiene nuestra estructura,

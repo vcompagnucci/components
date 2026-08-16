@@ -12,7 +12,7 @@
 }
 
 /* ═══════════ MASTHEAD ═══════════
-   Arreglo stack: título arriba, una línea debajo, tabs después.
+   Arreglo stack: título arriba, una línea debajo.
    El subtítulo NO cambia de tamaño — sólo baja de peso y de color, que
    es la regla compartida por benji (h1 500 ink / time 460 al 40%) y por
    josh (nombre y descripción al mismo tamaño, sólo cambia el color). */
@@ -20,6 +20,12 @@
   max-width: var(--grid-max);
   margin: 0 auto var(--space-8);
   padding: var(--space-16) var(--margin) 0;
+  /* Columna con gap, como el header de benji: display:flex;
+     flex-direction:column; gap:.25rem. El 8 de abajo ya lo teníamos y
+     es también el suyo (padding:0 0 .5rem). */
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-mast);
 }
 .mastTitle {
   font-size: var(--type-h1-fs);
