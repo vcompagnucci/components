@@ -101,29 +101,43 @@
   --type-h3-fw: 600;
 }
 
-/* ═══ 5 · BENJI+ ═══  500 · 600 · 560
-   Su par verificado, y la pieza sube a 560 para deshacer el empate.
+/* ═══ 5·6·7 · EL PAR DE BENJI + LA PIEZA ═══  500 · 600 · 520|540|560
+   Las tres comparten los dos números que SÍ están verificados de él:
 
-   Lo de él está confirmado end-to-end, no inferido:
      .article > header h1  { font-weight:500 }   su título de página
      .article h1           { font-weight:600 }   sus encabezados de sección
-   y el separador está DENTRO de <article class="article"> — verificado
+
+   y confirmado que el separador está DENTRO de <article class="article">
    por posición en el HTML servido, no supuesto. El color oscuro también
    cierra: el span del separador le pasaría 40% gris por herencia, pero
    h1..h6 { color: var(--heading-color) } lo pisa con regla directa.
 
-   Lo que NO es suyo es el peso del nombre de pieza. No tiene una lista
-   de pares [nombre + card], así que ese rol no existe en su sitio: el
-   500 de la variante 1 es lo que ya teníamos, no algo copiado.
+   Lo que NO es suyo es el tercer número. Él no tiene una lista de pares
+   [nombre + card], así que ese rol no existe en su sitio y no hay nada
+   que copiar. Estas tres lo buscan entre 520 y 560.
 
-   Esta variante toma sus dos números verificados y le da al tercero un
-   peso propio. Queda sin empates igual que la 4, pero por el otro
-   camino: la 4 baja la sección para que la pieza mande, ésta sube la
-   pieza dejando que la sección siga siendo lo más pesado.
+   520 y 540 son múltiplos de 4 (130 y 135), igual que los cuatro de la
+   paleta —460·500·560·600 son 115·125·140·150— y el eje wght de
+   InterVariable es continuo de 100 a 900, así que existen de verdad y
+   no son una interpolación falsa.
 
-   La pregunta que separa la 4 de la 5: ¿el rótulo de sección tiene que
-   pesar MÁS o MENOS que el nombre de pieza? */
-.benjiMas {
+   OJO CON LOS PASOS CHICOS: el salto más chico que usa benji en toda su
+   escala es de 40 (460→500, 560→600); entre 500 y 560 se va a 60. Nunca
+   baja de 40. Veinte unidades de peso a 14px están en el límite de lo
+   que se distingue — si al toggglear entre la 5 y la 6 no ves nada, esa
+   es la razón, y la conclusión sería que el paso tiene que ser más
+   grande, no que da igual cuál elegir. */
+.p520 {
+  --type-h1-fw: 500;
+  --type-h2-fw: 600;
+  --type-h3-fw: 520;
+}
+.p540 {
+  --type-h1-fw: 500;
+  --type-h2-fw: 600;
+  --type-h3-fw: 540;
+}
+.p560 {
   --type-h1-fw: 500;
   --type-h2-fw: 600;
   --type-h3-fw: 560;
