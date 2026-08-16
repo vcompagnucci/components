@@ -181,8 +181,23 @@
   --gap-masthead: 60px;
   --gap-label: 40px;
 
-  /* EN ESTUDIO — del título del masthead a su subtítulo. */
-  --gap-mast: 0px;
+  /* Del título del masthead a su subtítulo: 4. Es el de benji, y acá el
+     análogo es exacto — su header es el mismo par que el nuestro, un h1
+     y una línea secundaria, los dos de 14px con interlínea 20, y está
+     en el HTML servido de su home y no sólo en la hoja:
+
+       <header><h1>Benji Taylor</h1><time>Updated Jul 29, 2026</time></header>
+       .article > header { display:flex; flex-direction:column;
+                           gap:.25rem; padding:0 0 .5rem }
+
+     Como los dos textos son del mismo tamaño, la interlínea ya los
+     separa: estos 4 son un empujón, no una separación. Los 8 de abajo
+     del header también son suyos y ya los teníamos — el margin-bottom
+     de .mast.
+
+     Josh usa 16 acá, pero su h1 es de 30px contra un párrafo de 16:
+     con esa diferencia de tamaño el hueco tiene que trabajar más. */
+  --gap-mast: 4px;
 
   /* Del nombre de la pieza a su card. ELEGIDO A OJO sobre nuestra
      propia página, con scrubber, y no copiado — porque no hay de dónde
