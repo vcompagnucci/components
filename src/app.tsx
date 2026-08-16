@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
+/* ⚠ EN ESTUDIO — el hueco nombre→card. Se va con src/proto/. */
+import { GapScrubber, useGap } from './proto/gap'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -47,6 +49,7 @@ function Index() {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const gap = useGap() /* ⚠ EN ESTUDIO */
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -100,14 +103,14 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={css.page}>
+      <div className={css.page} style={{ '--gap-title': `${gap.gap}px` } as React.CSSProperties}>
         <Detail piece={selected} onBack={back} />
       </div>
     )
   }
 
   return (
-    <div className={css.page}>
+    <div className={css.page} style={{ '--gap-title': `${gap.gap}px` } as React.CSSProperties}>
       <Index />
       <Masthead />
       <div className={css.content} data-dir="fwd">
@@ -123,6 +126,8 @@ export function App() {
           </section>
         ))}
       </div>
+      {/* ⚠ EN ESTUDIO */}
+      <GapScrubber gap={gap.gap} setGap={gap.setGap} />
     </div>
   )
 }
