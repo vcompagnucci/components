@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════
+   LA FUENTE — InterVariable, self-hosteada.
+
+   Es el archivo oficial de rsms.me (Rasmus Andersson, el autor de
+   Inter), bajado y subseteado, NO la versión de Google Fonts. La
+   diferencia es concreta y verificada: **Google Fonts no sirve el eje
+   opsz de Inter**. Pidiéndole explícitamente
+   `family=Inter:opsz,wght@14..32,100..900` devuelve CSS con cero
+   menciones de opsz — ignora el eje y manda sólo pesos. Nuestro body
+   usa font-optical-sizing:auto, que sin ese eje no hace nada.
+
+   (Benji usa la de Google vía next/font: sus 8 subsets coinciden
+   exactamente con los unicode-range de Google Fonts. O sea que él NO
+   tiene opsz y nosotros sí.)
+
+   POR QUÉ SELF-HOSTEADA y no el <link> a rsms.me:
+   - El modo de falla es feo y está documentado: si InterVariable no
+     carga, el matching de CSS convierte 460→500 y 560→600, el cuerpo
+     pasa a pesar igual que el nombre de pieza y la jerarquía se cae.
+     Servida desde nuestro origen, si falla la fuente ya falló todo.
+   - rsms.me es el sitio personal del autor, no un CDN de producción.
+   - Era un <link> bloqueante a otro origen: DNS + TLS a un tercero
+     antes de que se pinte una letra.
+   - Y los dos referentes self-hostean. Ninguno carga de un CDN.
+
+   EL SUBSET: cuatro archivos, partidos por unicode-range como hacen
+   benji y Google, así el navegador baja sólo el alfabeto que necesita.
+   Con la página en inglés eso es un solo archivo de 102 KB contra los
+   343 KB del original.
+
+   Los dos ejes sobreviven al subset —verificado leyendo fvar de cada
+   archivo: opsz 14–32, wght 100–900— que es lo que hace que 460 y 560
+   sean pesos reales y no interpolaciones falsas. Mantener opsz cuesta
+   36 KB (102 contra 66 si se pinnea en 14); se paga a propósito.
+
+   La cursiva va aunque hoy no se use: el body lleva font-synthesis:none,
+   así que sin una itálica de verdad un <em> renderizaría derecho y
+   nadie se enteraría. Por unicode-range el navegador no la baja hasta
+   que aparezca texto en cursiva, así que no cuesta nada.
+
+   Regenerar: bajar de rsms.me/inter/font-files/ y correr fontTools
+   subset con --flavor=woff2 --layout-features='*' --no-hinting.
+   ═══════════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'InterVariable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/InterVariable-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'InterVariable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/InterVariable-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'InterVariable';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/InterVariable-Italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'InterVariable';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/InterVariable-Italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}

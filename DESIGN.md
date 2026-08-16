@@ -153,18 +153,47 @@ Tres es donde está el consenso de sistemas de diseño
 2. La palabra **"Web" queda en 600 en el separador y 500 en el índice**.
    Abierto como decisión aparte.
 
-### La fuente
+### La fuente — self-hosteada
 
-`InterVariable`, oficial, desde `rsms.me`. Eje `wght` **100–900
-continuo** y `opsz` 14–32 — verificado abriendo el `.woff2`, así que
-**460 y 560 son pesos reales**, no interpolaciones falsas.
+`InterVariable`, **el archivo oficial de rsms.me**, subseteado y servido
+desde nuestro origen. Cuatro archivos partidos por `unicode-range` como
+hacen benji y Google, así el navegador baja sólo el alfabeto que
+necesita. Con la página en inglés eso es **un archivo de 102 KB** contra
+los 343 KB del original.
 
-> ⚠ **Riesgo abierto.** El `font-family` es
-> `'InterVariable', 'Inter', -apple-system…`. Si InterVariable no carga,
-> cae a `Inter` estático, que sólo tiene pesos de 100 en 100. Por el
-> algoritmo de matching de CSS **460 → 500** y **560 → 600**: el cuerpo
-> pasaría a pesar igual que el nombre de pieza. Hoy eso depende de que
-> un CDN ajeno responda. Self-hostear está pendiente.
+| | | |
+|---|---|---|
+| `InterVariable-latin` | 102 KB | siempre — va con `preload` |
+| `InterVariable-latin-ext` | 137 KB | sólo si aparece un carácter que lo pida |
+| `InterVariable-Italic-latin` | 112 KB | sólo si aparece texto en cursiva |
+| `InterVariable-Italic-latin-ext` | 151 KB | ídem |
+
+Los dos ejes sobreviven al subset —verificado leyendo `fvar` de cada
+archivo: **`opsz` 14–32, `wght` 100–900**— que es lo que hace que 460 y
+560 sean pesos reales y no interpolaciones falsas. Mantener `opsz`
+cuesta **36 KB** (102 contra 66 si se pinnea en 14); se paga a propósito
+porque el `body` usa `font-optical-sizing: auto`.
+
+**No es la de Google Fonts, y la diferencia es concreta.** Pidiéndole
+explícitamente `family=Inter:opsz,wght@14..32,100..900` devuelve CSS con
+**cero** menciones de `opsz`: ignora el eje y manda sólo pesos. Benji usa
+la de Google vía `next/font` —sus 8 subsets coinciden exactamente con
+los `unicode-range` de Google Fonts— así que **él no tiene `opsz` y
+nosotros sí**.
+
+La cursiva va aunque hoy no se use: el `body` lleva
+`font-synthesis: none`, así que sin una itálica de verdad un `<em>`
+renderizaría derecho y nadie se enteraría. Por `unicode-range` no se
+baja hasta que aparezca.
+
+> **El riesgo que esto cerró.** Antes era un `<link>` bloqueante a
+> `rsms.me` — el sitio personal del autor, no un CDN de producción. Si
+> no cargaba, el matching de CSS convertía 460→500 y 560→600 y la
+> jerarquía se derrumbaba. Servida desde nuestro origen, si falla la
+> fuente es porque ya falló todo lo demás.
+
+**Regenerar:** bajar de `rsms.me/inter/font-files/` y correr `fontTools
+subset` con `--flavor=woff2 --layout-features='*' --no-hinting`.
 
 ---
 

@@ -26,7 +26,18 @@
       content="Components for web and native apps that feel right."
     />
 
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <!-- La fuente va self-hosteada (ver src/fonts.css). Se precarga
+         sólo el subset latin en redonda, que es el único que la página
+         necesita siempre; los otros tres los pide el navegador recién
+         si aparece un carácter que los use. crossorigin es obligatorio
+         en preload de fuentes aunque sean del mismo origen. -->
+    <link
+      rel="preload"
+      href="/fonts/InterVariable-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
   </head>
   <body>
     <div id="root"></div>
