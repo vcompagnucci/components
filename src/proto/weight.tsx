@@ -1,20 +1,26 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './weight.module.css'
 
-/* ⚠ EN ESTUDIO — el peso del título del masthead. Se borra con
-   src/proto/. Los valores y su procedencia están en el CSS de al lado;
-   acá va sólo el picker. */
+/* ⚠ EN ESTUDIO — la escalera de pesos: título, rótulo de sección y
+   nombre de pieza, los tres a la vez. Se borra con src/proto/. Los
+   valores y su procedencia están en el CSS de al lado; acá va sólo el
+   picker. */
 
+/* Los pesos se muestran en el orden en que bajan por la página:
+   título · rótulo de sección · nombre de pieza. */
 const VARIANTES = [
-  { id: 'actual', label: 'Actual', peso: '600', cls: css.actual },
-  { id: 'benji', label: 'Benji', peso: '500', cls: css.benji },
-  { id: 'intermedio', label: 'Intermedio', peso: '560', cls: css.intermedio },
+  { id: 'benji', label: 'Benji', pesos: '500·600·500', cls: css.benji },
+  { id: 'escalera', label: 'Escalera', pesos: '600·560·500', cls: css.escalera },
+  { id: 'escaneo', label: 'Escaneo', pesos: '500·500·600', cls: css.escaneo },
+  { id: 'plano', label: 'Plano', pesos: '500·500·500', cls: css.plano },
 ]
 
 export function useWeight() {
   const [i, setI] = useState(() => {
     const n = Number.parseInt(new URLSearchParams(location.search).get('w') ?? '', 10)
-    return n >= 1 && n <= VARIANTES.length ? n - 1 : 0
+    /* Arranca en Escalera, que es lo que la página tiene hoy: así el
+       primer render no cambia nada y el cambio es lo que se compara. */
+    return n >= 1 && n <= VARIANTES.length ? n - 1 : 1
   })
 
   useEffect(() => {
@@ -67,7 +73,7 @@ export function WeightPicker({ i, setI }: { i: number; setI: (v: number) => void
     <nav
       className={css.picker}
       data-ready={listo ? '' : undefined}
-      aria-label="Peso del título del masthead"
+      aria-label="Escalera de pesos"
     >
       <span
         className={css.highlight}
@@ -86,7 +92,7 @@ export function WeightPicker({ i, setI }: { i: number; setI: (v: number) => void
           onClick={() => setI(j)}
         >
           <span>{v.label}</span>
-          <span className={css.peso}>{v.peso}</span>
+          <span className={css.pesos}>{v.pesos}</span>
         </button>
       ))}
     </nav>

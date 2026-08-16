@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-/* ⚠ EN ESTUDIO — el peso del título del masthead. Se va con src/proto/. */
+/* ⚠ EN ESTUDIO — la escalera de pesos. Se va con src/proto/. */
 import { WeightPicker, useWeight } from './proto/weight'
 
 const PLATFORMS = ['Web', 'App'] as const

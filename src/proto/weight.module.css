@@ -1,53 +1,96 @@
-/* ⚠ EN ESTUDIO — el peso del título del masthead. Se borra con
-   src/proto/.
+/* ⚠ EN ESTUDIO — la escalera de pesos. Se borra con src/proto/.
 
-   La escala de pesos horneada es 460 · 500 · 560 · 600, la de benji.
-   Lo que está en juego es cuál le toca a "Library", y la pregunta de
-   fondo es si el título de la página es lo más pesado que hay o si es
-   apenas una etiqueta.
+   No se toca un peso suelto: se mueven los tres juntos, porque una
+   escalera sólo se puede juzgar entera. Los cuatro pesos de la paleta
+   son los de benji —460 · 500 · 560 · 600— y lo que cambia es a qué rol
+   le toca cada uno.
 
-   El dato que la abrió: benji usa DOS pesos para dos h1 distintos.
+   El eje: DÓNDE VIVE EL PESO.
 
-     .article h1            600   títulos DENTRO del contenido
-     .article > header h1   500   el encabezado de la página
+     Library     el título de la página, arriba de todo
+     Web / App   el rótulo de sección, con su hairline al lado
+     Nombre      el título de cada pieza, ×19
+     cuerpo      460 en todas, no se mueve
 
-   Al hornear la tipografía tomé el 600 sin distinguir esos dos casos, y
-   nuestro "Library" es exactamente el segundo. */
+   Los tres roles arriba son --type-h1-fw, --type-h2-fw y --type-h3-fw. */
 
-/* ═══ 1 · ACTUAL ═══ 600
-   El título de la página es lo más pesado que hay. Escalera limpia:
-   600 Library · 560 sección · 500 pieza · 460 cuerpo. Cada rol su peso,
-   sin empates. */
-.actual {
-  --type-h1-fw: 600;
-}
+/* ═══ 1 · BENJI ═══  500 · 600 · 500
+   Lo que él hace de verdad, verificado en su código servido:
 
-/* ═══ 2 · BENJI ═══ 500
-   El masthead NO manda: es un identificador, no un titular. Su header
-   h1 pesa 500 y sus h2 de sección pesan 560, así que en su página las
-   secciones son más pesadas que su propio nombre.
+     .article > header h1   500   el título de SU página
+     .article h1            600   los encabezados de sección
 
-   Cuesta un empate: Library queda en 500, igual que el nombre de cada
-   pieza. En su página eso no pasa porque él tiene dos escalas separadas
-   —contenido y header— y nunca se cruzan. Acá se ven juntas. */
+   O sea que su nombre arriba pesa MENOS que los rótulos de abajo. La
+   razón es funcional: el título se lee una vez y su rango ya se lo da
+   la posición —está solo arriba, rodeado de aire—, mientras que los
+   encabezados de sección se buscan muchas veces y en malas condiciones,
+   en medio de párrafos, mientras el ojo salta. El peso va donde está el
+   trabajo, que es escanear.
+
+   Costo acá: Library y el nombre de pieza empatan en 500. En su página
+   eso no se ve porque sus dos escalas —header y contenido— nunca
+   aparecen juntas. Las nuestras sí. */
 .benji {
   --type-h1-fw: 500;
+  --type-h2-fw: 600;
+  --type-h3-fw: 500;
 }
 
-/* ═══ 3 · INTERMEDIO ═══ 560
-   Ni lo más pesado ni empatado con la pieza. Library toma el mismo peso
-   que el rótulo de sección: queda por encima del nombre de pieza (500),
-   no choca con nada, y deja el 600 libre — que serviría para el título
-   del detalle, donde sí es un título dentro del contenido y no un
-   encabezado de página, o sea el caso que benji resuelve con 600. */
-.intermedio {
-  --type-h1-fw: 560;
+/* ═══ 2 · ESCALERA ═══  600 · 560 · 500
+   Lo convencional, y lo que la página tiene hoy. Cada rol un peso
+   propio, descendiendo prolijo, sin empates: el título manda, la
+   sección le sigue, la pieza después, el cuerpo al final.
+
+   Es lo correcto cuando el título tiene que ESTABLECER la página — una
+   landing, un post suelto, cualquier cosa donde compite por atención.
+
+   Costo: usa los cuatro pesos y el 600 existe para un solo elemento. */
+.escalera {
+  --type-h1-fw: 600;
+  --type-h2-fw: 560;
+  --type-h3-fw: 500;
+}
+
+/* ═══ 3 · ESCANEO ═══  500 · 500 · 600
+   El criterio de benji aplicado a NUESTRA página en vez de copiado.
+
+   Él le da el peso a lo que se escanea. Pero acá lo que se escanea no
+   son las secciones: hay dos, "Web" y "App", son muebles fijos y nadie
+   las busca. Lo que el ojo recorre son los nombres de las piezas, 19 de
+   ellos. Si su criterio vale, el peso les toca a ellos.
+
+   Y los otros dos pueden bajar sin perder nada: Library ya tiene rango
+   por posición, y el rótulo de sección ya tiene una hairline al lado
+   que marca dónde empieza la sección.
+
+   Costo: 19 nombres en 600 son mucho negro repetido. Hay que mirarlo
+   con la lista entera, no con una pieza. */
+.escaneo {
+  --type-h1-fw: 500;
+  --type-h2-fw: 500;
+  --type-h3-fw: 600;
+}
+
+/* ═══ 4 · PLANO ═══  500 · 500 · 500
+   Un solo peso para todo lo que no es cuerpo. La jerarquía la hacen el
+   color y la hairline, no el peso.
+
+   Es lo más cerca de josh, que en sus subpáginas usa DOS pesos y nada
+   más —400 el cuerpo, 500 todo encabezado— y deja que el tamaño y una
+   escalera de grises hagan el resto. Nosotros no tenemos tamaños, así
+   que la carga la llevan el color y la línea.
+
+   Costo: si el color no alcanza, la página queda plana de verdad. */
+.plano {
+  --type-h1-fw: 500;
+  --type-h2-fw: 500;
+  --type-h3-fw: 500;
 }
 
 /* ═══════════ EL PICKER ═══════════
    Chrome de herramienta: valores de PICKER.md del skill, copiados tal
-   cual. No lleva tokens del proyecto ni se adapta al tema. Sin botón de
-   replay: la comparación es estática. */
+   cual. No lleva tokens del proyecto ni se adapta al tema. Sin replay:
+   la comparación es estática. */
 .picker {
   position: fixed;
   bottom: 24px;
@@ -77,7 +120,7 @@
   position: absolute;
   top: 4px;
   left: 0;
-  height: 28px;
+  height: 36px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   will-change: transform;
@@ -97,9 +140,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
   justify-content: center;
-  height: 34px;
+  gap: 4px;
+  height: 36px;
   padding: 0 12px;
   border: 0;
   border-radius: 999px;
@@ -122,8 +165,12 @@
 .item[data-active] {
   color: #fff;
 }
-.peso {
+/* Los tres pesos, en el orden en que aparecen bajando por la página:
+   título · sección · pieza. */
+.pesos {
   font-size: 9px;
   opacity: 0.5;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
