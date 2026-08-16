@@ -203,7 +203,7 @@
   letter-spacing: var(--type-h3-ls);
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--gap-title);
 }
 .streamPreview {
   height: 280px;

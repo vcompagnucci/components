@@ -181,6 +181,26 @@
   --gap-masthead: 60px;
   --gap-label: 40px;
 
+  /* Del nombre de la pieza a su card. 12 es el de benji, y no es un
+     número parecido en un contexto parecido: su timeline tiene un h2 de
+     14px/500/lh20 —idéntico a nuestro --type-h3— con el bloque debajo a
+     .75rem, y las entradas a 3rem, que son los mismos 48 que usamos
+     entre piezas. Coincide en las tres variables a la vez. Josh usa 16
+     para lo mismo, pero su encabezado es de 16px y sus bloques no
+     forman una lista de cards iguales.
+
+     Constante en todo ancho, como los dos: ni benji ni josh lo meten en
+     un media query. En 768 la card se hace más angosta, no más baja
+     —sigue midiendo 280— así que la relación no cambia.
+
+     Tiene que quedar bastante por debajo de --gap-label (40) o el
+     título se despega de su card y se lee como parte de la sección. Eso
+     va como comentario y no como calc: se encodea lo que no se puede
+     ver —la media caja de línea que descuenta --gap-label— y se comenta
+     lo que sí, y esto se ve en el acto si se rompe. Benji hace lo mismo:
+     escribe este hueco literal y reserva los calc para geometría. */
+  --gap-title: 12px;
+
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
 }
