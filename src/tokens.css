@@ -6,13 +6,17 @@
    índice. Las citas están en .context/recon/ (TYPE-SYSTEMS, RESPONSIVE,
    NAVIGATION).
 
-   Heredado del DESIGN.md de Carousels: los COLORES enteros, la escala
-   --space-*, el anillo de foco y los tiempos de motion. No se pueden
-   verificar contra la fuente —ese archivo no está en este repo ni en el
-   disco— pero son decisiones ya tomadas y se respetan como están.
+   Heredado del DESIGN.md de Carousels: los COLORES enteros, el anillo
+   de foco y los tiempos de motion. No se pueden verificar contra la
+   fuente —ese archivo no está en este repo ni en el disco— pero son
+   decisiones ya tomadas y se respetan como están.
 
    Pendiente y marcado como tal: radios, elevación, z-index — se
    definen desde la primera pieza.
+
+   EL DOCUMENTO COMPLETO ES ../DESIGN.md: cada token con su valor, su
+   grado de evidencia, la tabla de los cinco viewports y las cuatro
+   reglas que gobiernan cómo se agregan los que falten.
    ═══════════════════════════════════════════════════════════════ */
 :root {
   /* superficies y texto */
@@ -264,7 +268,13 @@ body {
     'Segoe UI', sans-serif;
   font-optical-sizing: auto;
   font-synthesis: none;
+  /* Las dos, no una. El antialiasing de macOS afina el trazo, y en este
+     sistema la jerarquía ES el trazo: 460 · 500 · 600, todo a 14px. Con
+     sólo la de -webkit, Firefox dibujaba los tres escalones más pesados
+     y más juntos que el resto de los navegadores. Es lo que hace benji
+     en su body, las dos seguidas (SOURCE: bd-d660f1d84c4a4312.css). */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-size: var(--fs);
   font-weight: var(--fw-body);
   letter-spacing: var(--tracking);

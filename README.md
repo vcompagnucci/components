@@ -12,6 +12,11 @@ pnpm build
 pnpm typecheck
 ```
 
+El sistema completo —cada token, su valor en los cinco viewports, su
+grado de evidencia y las reglas que gobiernan lo que falta— está en
+**[DESIGN.md](DESIGN.md)**. Acá va el registro de cada decisión y por
+qué se tomó así.
+
 ## Decisiones tomadas (y de dónde salen)
 
 | Decisión | Valor | Fuente |
