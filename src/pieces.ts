@@ -1,14 +1,14 @@
-/* El runtime es propiedad de la PIEZA; los tabs filtran sobre eso.
-   El corte es navegador vs app instalada, que es la línea que de verdad
+/* El corte es navegador vs app instalada, que es la línea que de verdad
    cuesta cruzar. Bajo App conviven SwiftUI y Expo/React Native: los dos
    renderizan vistas nativas de verdad, sólo cambia con qué se escriben.
-   Cada pieza declara su runtime aparte (ver `runtime`), porque decide
-   cómo se demuestra: Expo puede ir vivo vía react-native-web salvo que
-   dependa de hardware —la háptica no existe en Safari—, SwiftUI va
-   siempre en video. */
+
+   CÓMO SE DEMUESTRA CADA PIEZA LO DECIDE `platform`, y nada más:
+   Web va viva en el navegador, App va en video. Antes esto se decidía
+   por pieza porque Expo PODÍA ir vivo vía react-native-web; al pasar
+   Expo también a video, la regla colapsó en la categoría y el campo
+   `runtime` que la sostenía dejó de tener sentido. */
 
 export type Platform = 'Web' | 'App'
-export type Runtime = 'DOM' | 'Expo' | 'SwiftUI'
 
 export type Piece = {
   name: string
@@ -16,7 +16,6 @@ export type Piece = {
   desc: string
 }
 
-export const TABS = ['All', 'Web', 'App'] as const
 
 /* ⚠ INVENTARIO PLACEHOLDER — estos nombres NO son decisiones.
    Los puse para que el esqueleto tuviera algo que renderizar mientras

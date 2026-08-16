@@ -184,16 +184,17 @@
      enteros, cosa que no pasaba con ninguno de los dos extremos. */
   --page-content-max-width: 592px;
 
-  --radius-pill: 9999px;
   --focus-ring: 0 0 0 2px var(--canvas),
     0 0 0 3.5px color-mix(in srgb, var(--ink) 50%, transparent);
 
-  /* motion */
+  /* motion. La página NO tiene animación de entrada: al abrir una pieza
+     y al volver no se anima nada. Lo único que se mueve es el hover, y
+     son cambios de color y de anillo, no de posición. Por eso tampoco
+     hace falta un bloque de prefers-reduced-motion acá: no queda
+     movimiento que reducir. El scroll suave del índice sí lo consulta,
+     en app.tsx. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --dur-fill: 150ms;
-  --dur-lead: 260ms; /* borde de la línea que va adelante */
-  --dur-trail: 440ms; /* borde que va atrás — el desfasaje es el estirón */
-  --dur-enter: 220ms;
 
   /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
      al 40%, 8px entre uno y otro. */

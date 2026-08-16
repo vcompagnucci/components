@@ -1,0 +1,17 @@
+<!-- La página en miniatura: el canvas, y encima la card con su anillo,
+     en la misma proporción 2:1 que el preview de la lista. Sin letra ni
+     marca — todavía no hay identidad decidida, y un rectángulo es lo
+     que la exposición realmente muestra. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#fdfdfc" />
+  <rect
+    x="5.5"
+    y="10.5"
+    width="21"
+    height="11"
+    rx="3"
+    fill="#ffffff"
+    stroke="#111111"
+    stroke-opacity="0.11"
+  />
+</svg>

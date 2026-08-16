@@ -90,7 +90,7 @@
   color: var(--type-nav-link-c);
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dur-fill) ease;
+  transition: color var(--dur-fill) var(--ease-out);
 }
 .indexLink:hover {
   color: var(--ink);
@@ -122,25 +122,6 @@
   margin: 0 auto;
   padding: 0 var(--page-padding-inline) var(--page-padding-bottom);
 }
-.content[data-dir='fwd'] {
-  animation: enterFwd var(--dur-enter) var(--ease-out) both;
-}
-.content[data-dir='back'] {
-  animation: enterBack var(--dur-enter) var(--ease-out) both;
-}
-@keyframes enterFwd {
-  from {
-    opacity: 0;
-    transform: translateX(8px);
-  }
-}
-@keyframes enterBack {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-}
-
 /* ═══════════ SEPARADOR DE SECCIÓN ═══════════
    El de benji en /liveline y /drawesome, medido en vivo (el <hr> de su
    markup está vacío: lo que pinta es el div que React le envuelve).
@@ -223,22 +204,13 @@
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--card-ring);
   border-radius: var(--radius-tbd);
-  transition: box-shadow var(--dur-fill) ease;
+  transition: box-shadow var(--dur-fill) var(--ease-out);
 }
 .streamItem:hover .streamPreview {
   box-shadow: inset 0 0 0 1px var(--a4);
 }
 
 /* ═══════════ DETALLE ═══════════ */
-.detail {
-  animation: enter 200ms var(--ease-out) both;
-}
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
 .back {
   display: flex;
   align-items: center;
@@ -252,7 +224,8 @@
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color var(--dur-fill) ease, color var(--dur-fill) ease;
+  transition: background-color var(--dur-fill) var(--ease-out),
+    color var(--dur-fill) var(--ease-out);
 }
 .back:hover {
   background: var(--a1);
@@ -322,15 +295,3 @@
   }
 }
 
-/* Reduced motion: se saca el movimiento, se conservan color y opacidad. */
-@media (prefers-reduced-motion: reduce) {
-  .content[data-dir],
-  .detail {
-    animation: fadeOnly 200ms ease both !important;
-  }
-}
-@keyframes fadeOnly {
-  from {
-    opacity: 0;
-  }
-}

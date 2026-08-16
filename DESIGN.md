@@ -293,17 +293,47 @@ su marco).
 
 ---
 
-## Motion — HEREDADO
+## Motion
+
+**La página no tiene animación de entrada.** Abrir una pieza y volver no
+anima nada. Lo único que se mueve es el hover, y son cambios de color y
+de anillo, no de posición.
 
 | token | valor | uso |
 |---|---|---|
-| `--ease-out` | `cubic-bezier(.23,1,.32,1)` | entradas |
-| `--dur-fill` | `150ms` | hover de color y de anillo |
-| `--dur-enter` | `220ms` | entrada de vista |
-| `--dur-lead` / `--dur-trail` | `260ms` / `440ms` | **sin uso** |
+| `--ease-out` | `cubic-bezier(.23,1,.32,1)` | las tres transiciones |
+| `--dur-fill` | `150ms` | las tres transiciones |
 
-Reduced-motion contemplado: se saca el movimiento, se conservan color y
-opacidad.
+Las tres: color del link del índice, anillo de la card en hover, y fondo
+y color de la flecha del detalle.
+
+**No hay bloque de `prefers-reduced-motion`** y no hace falta: no queda
+movimiento que reducir. El scroll suave del índice sí lo consulta, en
+`app.tsx`.
+
+> Antes había `enterFwd` / `enterBack` en la lista y una entrada del
+> detalle. `enterBack` **nunca se disparaba**: `data-dir` estaba escrito
+> a mano en `"fwd"`, así que entrar a una pieza y volver se veían
+> idénticos. Se sacaron las tres en vez de arreglar la que faltaba.
+
+---
+
+## Render — MEDIDO
+
+```css
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+```
+
+**Las dos, no una.** Acá la jerarquía *es* el trazo —460 · 500 · 600,
+todo a 14px— así que si Firefox en macOS dibuja los tres escalones más
+pesados y más juntos, no se ve "un poco distinto": se ve **menos
+jerarquía**. Benji tiene las dos seguidas en su `body`.
+
+Su `body` además lleva tres cosas que nosotros no tenemos:
+`-webkit-tap-highlight-color: rgba(0,0,0,0)` (el flash azul al tocar en
+iOS), `text-size-adjust: none` y `text-rendering: optimizeLegibility`.
+Sin decidir.
 
 ---
 
