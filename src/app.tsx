@@ -2,8 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-/* ⚠ EN ESTUDIO — dónde arranca el índice. Se va con src/proto/. */
-import { IndexTopScrubber, useIndexTop } from './proto/index-top'
+/* ⚠ EN ESTUDIO — rótulos, peso y pintado del índice. Se va con src/proto/. */
+import { LabPanel, useLab } from './proto/lab'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -76,10 +76,11 @@ function Index({ activa, rotulos }: { activa: string | null; rotulos: boolean })
       {PLATFORMS.map((pl) => (
         <div className={css.indexGroup} key={pl}>
           <div className={css.indexLabel}>{pl}</div>
-          {by(pl).map((p) => (
+          {by(pl).map((p, i) => (
             <button
               className={css.indexLink}
               key={p.name}
+              data-primer-link={pl === PLATFORMS[0] && i === 0 ? '' : undefined}
               data-active={activa === slug(p.name) ? '' : undefined}
               onClick={() => goTo(p.name)}
             >
@@ -94,11 +95,45 @@ function Index({ activa, rotulos }: { activa: string | null; rotulos: boolean })
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const itop = useIndexTop() /* ⚠ EN ESTUDIO */
+  const lab = useLab() /* ⚠ EN ESTUDIO */
   const [activa, setActiva] = useState<string | null>(null)
   const [rotulos, setRotulos] = useState(false)
   const listScroll = useRef(0)
   const first = useRef(true)
+
+  /* ALINEACIÓN DEL ÍNDICE — el primer link cae exactamente sobre el
+     título de la primera pieza.
+
+     Se mide en vez de calcularse. El número "correcto" sería la suma de
+     todo el apilado vertical de la página menos la media caja del
+     rótulo, y escribir esa suma como calc duplicaría la estructura
+     entera en una fórmula que nadie actualizaría si mañana se agrega un
+     elemento en el medio: quedaría mal y nada lo diría. Midiendo, se
+     corrige sola.
+
+     Alinea los CENTROS ÓPTICOS y no los bordes de caja: el título es
+     14px con interlínea 20 y el link es 13 con 16, así que sus cajas
+     nunca empiezan a la misma altura aunque el texto sí lo haga.
+
+     En useLayoutEffect, antes de pintar, para que no se vea el salto. */
+  useLayoutEffect(() => {
+    if (selected) return
+    const alinear = () => {
+      const link = document.querySelector<HTMLElement>('[data-primer-link]')
+      const titulo = document.querySelector<HTMLElement>('[data-primera-pieza]')
+      const nav = document.querySelector<HTMLElement>('[aria-label="Pieces"]')
+      if (!link || !titulo || !nav) return
+      const c = (el: HTMLElement) => {
+        const r = el.getBoundingClientRect()
+        return r.top + r.height / 2
+      }
+      const actual = parseFloat(getComputedStyle(nav).top) || 0
+      nav.style.setProperty('--index-offset-top', `${Math.round(actual + c(titulo) - c(link))}px`)
+    }
+    alinear()
+    window.addEventListener('resize', alinear)
+    return () => window.removeEventListener('resize', alinear)
+  }, [selected])
 
   /* Los rótulos del índice aparecen cuando el separador de la primera
      sección deja de verse. Con IntersectionObserver y no con un listener
@@ -196,10 +231,7 @@ export function App() {
   }
 
   return (
-    <div
-      className={css.page}
-      style={{ '--index-offset-top': `${itop.top}px` } as React.CSSProperties}
-    >
+    <div className={`${css.page} ${lab.cls}`}>
       <Index activa={activa} rotulos={rotulos} />
       <Masthead />
       <div className={css.content}>
@@ -216,7 +248,7 @@ export function App() {
         ))}
       </div>
       {/* ⚠ EN ESTUDIO */}
-      <IndexTopScrubber top={itop.top} setTop={itop.setTop} />
+      <LabPanel e={lab.e} setE={lab.setE} />
     </div>
   )
 }

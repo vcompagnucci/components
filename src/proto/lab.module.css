@@ -1,0 +1,99 @@
+/* ⚠ EN ESTUDIO — el laboratorio del índice. Se borra con src/proto/.
+
+   Tres interruptores INDEPENDIENTES y no un picker de variantes: lo que
+   se está buscando es la combinación, no elegir entre tres opciones
+   armadas de antemano. Son 2 × 2 × 2 = ocho combinaciones y se llega a
+   cualquiera con tres clicks.
+
+   Lo que NO está acá porque ya está decidido: la alineación. El primer
+   link del índice cae exactamente sobre el título de la primera pieza,
+   medido y auto-corregido en app.tsx. */
+
+/* ─── 1 · los rótulos aparecen o están siempre ─── */
+.rotulosSiempre {
+  --index-label-opacity: 1;
+}
+
+/* ─── 2 · el peso de "Web" / "App" ───
+   Como encabezado (500 + ink, lo de hoy) o igual que sus links (460 al
+   40%, que es lo que hace benji: su nav h2 y sus links son idénticos
+   propiedad por propiedad, y al rótulo lo separa sólo el aire). */
+.pesoIgual {
+  --type-nav-label-fw: var(--type-nav-link-fw);
+  --type-nav-label-c: var(--type-nav-link-c);
+}
+
+/* ─── 3 · el pintado al scrollear ───
+   Apagarlo no saca el cálculo, sólo el color: así se puede comparar sin
+   que cambie nada más. */
+.sinPintado {
+  --index-active-color: var(--type-nav-link-c);
+}
+
+/* ─── el panel ─── */
+.panel {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out, background-color 150ms ease-out;
+}
+.sw:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+.sw[data-on] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.sw:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.estado {
+  font-size: 9px;
+  opacity: 0.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: nowrap;
+}
+.combo {
+  margin-left: 4px;
+  padding: 0 12px 0 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+}

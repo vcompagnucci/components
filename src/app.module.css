@@ -98,7 +98,7 @@
    Se anima la opacidad y no el display: el rótulo sigue ocupando su
    lugar, así los links no saltan al aparecer. */
 .indexLabel {
-  opacity: 0;
+  opacity: var(--index-label-opacity, 0);
   transition: opacity 400ms var(--ease-out);
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-label-fw);
@@ -126,7 +126,7 @@
    del viewport. Él la marca subiendo el color y nada más — sin barra ni
    punto. */
 .indexLink[data-active] {
-  color: var(--ink);
+  color: var(--index-active-color, var(--ink));
 }
 .indexLink:hover {
   color: var(--ink);
