@@ -77,9 +77,6 @@
 .index::-webkit-scrollbar {
   display: none;
 }
-.index[data-rotulos] .indexLabel {
-  opacity: 1;
-}
 /* El grupo es un bloque plano y no una columna con gap, a propósito: si
    el gap viviera acá se sumaría al aire del rótulo y el número escrito
    dejaría de ser el número que se ve. Cada hueco lo pide un solo dueño —
@@ -93,24 +90,21 @@
   flex-direction: column;
   gap: var(--index-item-gap);
 }
-/* Los rótulos arrancan invisibles y aparecen cuando el separador de la
-   primera sección salió de pantalla — así "Web" nunca está dos veces al
-   mismo tiempo. Es lo que hace benji con el título de su página
-   (nav h2{opacity:0} · nav[data-scrolled=true] h2{opacity:1}), con su
-   misma transición de 400ms.
+/* El rótulo está siempre — no aparece con el scroll. Se probó contra la
+   alternativa (invisible arriba de todo, revelado cuando el separador
+   "Web" sale de pantalla, para que la palabra no esté dos veces) y se
+   eligió que esté siempre: el índice queda legible desde el primer
+   cuadro y no hay nada que sincronizar.
 
-   Se anima la opacidad y no el display: el rótulo sigue ocupando su
-   lugar, así los links no saltan al aparecer — y con el padding acá
-   adentro, tampoco salta el hueco que abre debajo suyo. */
+   Y pesa lo mismo que sus links, 460 al 40%: no es un encabezado, es la
+   primera línea de su grupo. Lo único que lo separa es el aire. */
 .indexLabel {
-  opacity: var(--index-label-opacity, 0);
-  transition: opacity 400ms var(--ease-out);
   padding-bottom: var(--index-label-gap);
   font-size: var(--type-nav-fs);
-  font-weight: var(--type-nav-label-fw);
+  font-weight: var(--type-nav-fw);
   letter-spacing: var(--type-nav-ls);
   line-height: var(--type-nav-lh);
-  color: var(--type-nav-label-c);
+  color: var(--type-nav-c);
   white-space: nowrap;
 }
 .indexLink {
@@ -119,10 +113,10 @@
   background: transparent;
   text-align: left;
   font-size: var(--type-nav-fs);
-  font-weight: var(--type-nav-link-fw);
+  font-weight: var(--type-nav-fw);
   letter-spacing: var(--type-nav-ls);
   line-height: var(--type-nav-lh);
-  color: var(--type-nav-link-c);
+  color: var(--type-nav-c);
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-fill) var(--ease-out);
@@ -132,7 +126,7 @@
    del viewport. Él la marca subiendo el color y nada más — sin barra ni
    punto. */
 .indexLink[data-active] {
-  color: var(--index-active-color, var(--ink));
+  color: var(--ink);
 }
 .indexLink:hover {
   color: var(--ink);

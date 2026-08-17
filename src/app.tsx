@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
-import { Detail, Item, Masthead, slug } from './parts'
+import { Detail, Item, Masthead, centroOptico, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 /* ⚠ EN ESTUDIO — rótulos, peso y pintado del índice. Se va con src/proto/. */
 import { LabPanel, useLab } from './proto/lab'
@@ -63,19 +63,14 @@ function piezaActiva(): string | null {
   return activa
 }
 
-function Index({ activa, rotulos }: { activa: string | null; rotulos: boolean }) {
+function Index({ activa }: { activa: string | null }) {
   return (
-    /* data-rotulos gobierna la opacidad de "Web" y "App" acá adentro:
-       arrancan invisibles y aparecen recién cuando el separador de la
-       primera sección salió de pantalla, así la misma palabra nunca está
-       dos veces al mismo tiempo. Es lo que hace benji con el título de
-       su página; el disparador es nuestro, porque el suyo es un umbral
-       de 100px de scroll y a nosotros eso nos mostraría "Web" con el
-       separador "Web" todavía a la vista. */
-    <nav className={css.index} aria-label="Pieces" data-rotulos={rotulos ? '' : undefined}>
+    <nav className={css.index} aria-label="Pieces">
       {PLATFORMS.map((pl) => (
         <div className={css.indexGroup} key={pl}>
-          <div className={css.indexLabel}>{pl}</div>
+          <div className={css.indexLabel} data-primer-rotulo={pl === PLATFORMS[0] ? '' : undefined}>
+            {pl}
+          </div>
           <div className={css.indexList}>
             {by(pl).map((p, i) => (
               <button
@@ -99,61 +94,48 @@ export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
   const lab = useLab() /* ⚠ EN ESTUDIO */
   const [activa, setActiva] = useState<string | null>(null)
-  const [rotulos, setRotulos] = useState(false)
   const listScroll = useRef(0)
   const first = useRef(true)
 
-  /* ALINEACIÓN DEL ÍNDICE — el primer link cae exactamente sobre el
-     título de la primera pieza.
+  /* ALINEACIÓN DEL ÍNDICE — qué renglón del índice cae sobre qué renglón
+     de la página.
 
-     Se mide en vez de calcularse. El número "correcto" sería la suma de
-     todo el apilado vertical de la página menos la media caja del
-     rótulo, y escribir esa suma como calc duplicaría la estructura
-     entera en una fórmula que nadie actualizaría si mañana se agrega un
-     elemento en el medio: quedaría mal y nada lo diría. Midiendo, se
-     corrige sola.
+     Se mide en vez de calcularse. El número correcto sería la suma de
+     todo el apilado vertical de la página menos media caja de línea, y
+     escribir esa suma como calc duplicaría la estructura entera en una
+     fórmula que nadie actualizaría si mañana se agrega un elemento en el
+     medio: quedaría mal y nada lo diría. Midiendo, se corrige sola —
+     como ya pasó al meterle 16px de aire al rótulo.
 
-     Alinea los CENTROS ÓPTICOS y no los bordes de caja: el título es
-     14px con interlínea 20 y el link es 13 con 16, así que sus cajas
+     Alinea los CENTROS ÓPTICOS y no los bordes de caja: los renglones
+     del índice son 13/16 y los de la página 14/20, así que sus cajas
      nunca empiezan a la misma altura aunque el texto sí lo haga.
 
      En useLayoutEffect, antes de pintar, para que no se vea el salto. */
   useLayoutEffect(() => {
     if (selected) return
     const alinear = () => {
-      const link = document.querySelector<HTMLElement>('[data-primer-link]')
-      const titulo = document.querySelector<HTMLElement>('[data-primera-pieza]')
       const nav = document.querySelector<HTMLElement>('[aria-label="Pieces"]')
-      if (!link || !titulo || !nav) return
-      const c = (el: HTMLElement) => {
-        const r = el.getBoundingClientRect()
-        return r.top + r.height / 2
+      if (!nav) return
+      /* ⚠ EN ESTUDIO: el par lo elige el laboratorio. Al decidir queda
+         uno solo escrito acá. */
+      if (!lab.par) {
+        nav.style.removeProperty('--index-offset-top')
+        return
       }
+      const desde = document.querySelector<HTMLElement>(lab.par.desde)
+      const hasta = document.querySelector<HTMLElement>(lab.par.hasta)
+      if (!desde || !hasta) return
       const actual = parseFloat(getComputedStyle(nav).top) || 0
-      nav.style.setProperty('--index-offset-top', `${Math.round(actual + c(titulo) - c(link))}px`)
+      const delta = centroOptico(hasta) - centroOptico(desde)
+      nav.style.setProperty('--index-offset-top', `${Math.round(actual + delta)}px`)
     }
     alinear()
     window.addEventListener('resize', alinear)
     return () => window.removeEventListener('resize', alinear)
-  }, [selected])
+  }, [selected, lab.par])
 
-  /* Los rótulos del índice aparecen cuando el separador de la primera
-     sección deja de verse. Con IntersectionObserver y no con un listener
-     de scroll: el navegador ya sabe cuándo un elemento entra y sale, y
-     no hace falta preguntárselo en cada cuadro. */
-  useEffect(() => {
-    if (selected) return
-    const el = document.getElementById(secId(PLATFORMS[0]))
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => setRotulos(!e.isIntersecting && e.boundingClientRect.top < 0),
-      { threshold: 0 },
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [selected])
-
-  /* La pieza activa sí necesita el scroll, porque la respuesta cambia de
+  /* La pieza activa necesita el scroll, porque la respuesta cambia de
      forma continua y no en un borde. Se calcula en rAF para no hacer
      layout más de una vez por cuadro. */
   useEffect(() => {
@@ -233,14 +215,20 @@ export function App() {
   }
 
   return (
-    <div className={`${css.page} ${lab.cls}`}>
-      <Index activa={activa} rotulos={rotulos} />
+    <div className={css.page}>
+      <Index activa={activa} />
       <Masthead />
       <div className={css.content}>
         {PLATFORMS.map((pl) => (
           <section className={css.group} key={pl}>
             <div className={css.groupHead} id={secId(pl)}>
-              <div className={css.groupLabel}>{pl}</div>
+              <div
+                className={css.groupLabel}
+                /* ⚠ EN ESTUDIO: anclaje del laboratorio. Se va con proto/. */
+                data-primer-separador={pl === PLATFORMS[0] ? '' : undefined}
+              >
+                {pl}
+              </div>
               <span className={css.groupLine} aria-hidden />
             </div>
             {by(pl).map((p, i) => (
@@ -250,7 +238,13 @@ export function App() {
         ))}
       </div>
       {/* ⚠ EN ESTUDIO */}
-      <LabPanel e={lab.e} setE={lab.setE} />
+      <LabPanel
+        id={lab.id}
+        setId={lab.setId}
+        reglas={lab.reglas}
+        setReglas={lab.setReglas}
+        par={lab.par}
+      />
     </div>
   )
 }

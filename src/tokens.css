@@ -124,16 +124,22 @@
   --type-meta-c: var(--text-secondary);
 
   /* Su índice: 13px/460, tracking -.0025rem, lh 1.2 y color al 40%.
-     El 1.2 da 15.6; 16 lo pega a la escala de 4. */
+     El 1.2 da 15.6; 16 lo pega a la escala de 4.
+
+     Un solo juego para todo el índice: el rótulo "Web" y sus links son
+     idénticos propiedad por propiedad, y al rótulo lo separa sólo el
+     aire. Es exactamente lo de benji — su `nav h2` y su `nav ul li a`
+     comparten tamaño, peso, tracking, interlínea y color, y el único
+     que se mueve es el activo, que sube a --ink. Probado contra la
+     alternativa (rótulo como encabezado, 500 en ink) y elegido a ojo.
+
+     Que sean un solo juego y no dos con el mismo valor es a propósito:
+     dos nombres para un mismo número se separan solos con el tiempo. */
   --type-nav-fs: 13px;
   --type-nav-lh: 16px;
   --type-nav-ls: -0.0025rem;
-  --type-nav-label-fw: 500;
-  --type-nav-label-c: var(--ink);
-  --type-nav-link-fw: 460;
-  /* el mismo valor que estaba escrito a mano en .indexLink; lo único
-     que cambió es que ahora vive acá y no adentro de la clase */
-  --type-nav-link-c: rgba(18, 18, 18, 0.4);
+  --type-nav-fw: 460;
+  --type-nav-c: rgba(18, 18, 18, 0.4);
 
   /* ═══════════ ESPACIADO ═══════════
      Nombres al modo de apple: DUEÑO → PARTE → PROPIEDAD → LADO, siempre

@@ -1,33 +1,29 @@
-/* ⚠ EN ESTUDIO — el laboratorio del índice. Se borra con src/proto/.
+/* ⚠ EN ESTUDIO — el laboratorio de la alineación del índice. Se borra
+   entero con src/proto/. Nada de acá entra al sistema: son las reglas
+   rojas para mirar y el panel para elegir. */
 
-   Tres interruptores INDEPENDIENTES y no un picker de variantes: lo que
-   se está buscando es la combinación, no elegir entre tres opciones
-   armadas de antemano. Son 2 × 2 × 2 = ocho combinaciones y se llega a
-   cualquiera con tres clicks.
-
-   Lo que NO está acá porque ya está decidido: la alineación. El primer
-   link del índice cae exactamente sobre el título de la primera pieza,
-   medido y auto-corregido en app.tsx. */
-
-/* ─── 1 · los rótulos aparecen o están siempre ─── */
-.rotulosSiempre {
-  --index-label-opacity: 1;
+/* ─── las reglas ───
+   Rojo puro y 1px, a propósito: es un instrumento de medición, no parte
+   del diseño. Tiene que cantar contra el canvas y no parecerse a nada
+   de la página. */
+.reglas {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
 }
-
-/* ─── 2 · el peso de "Web" / "App" ───
-   Como encabezado (500 + ink, lo de hoy) o igual que sus links (460 al
-   40%, que es lo que hace benji: su nav h2 y sus links son idénticos
-   propiedad por propiedad, y al rótulo lo separa sólo el aire). */
-.pesoIgual {
-  --type-nav-label-fw: var(--type-nav-link-fw);
-  --type-nav-label-c: var(--type-nav-link-c);
+.linea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #ff0040;
+  opacity: 0.55;
 }
-
-/* ─── 3 · el pintado al scrollear ───
-   Apagarlo no saca el cálculo, sólo el color: así se puede comparar sin
-   que cambie nada más. */
-.sinPintado {
-  --index-active-color: var(--type-nav-link-c);
+.marco {
+  position: absolute;
+  box-shadow: 0 0 0 1px #ff0040;
+  background: rgba(255, 0, 64, 0.07);
 }
 
 /* ─── el panel ─── */
@@ -69,7 +65,9 @@
   color: rgba(255, 255, 255, 0.5);
   font: inherit;
   cursor: pointer;
-  transition: color 150ms ease-out, background-color 150ms ease-out;
+  transition:
+    color 150ms ease-out,
+    background-color 150ms ease-out;
 }
 .sw:hover {
   color: rgba(255, 255, 255, 0.8);
@@ -82,18 +80,17 @@
   outline: 2px solid rgba(255, 255, 255, 0.4);
   outline-offset: 2px;
 }
+.tecla {
+  display: inline-block;
+  min-width: 12px;
+  margin-right: 2px;
+  opacity: 0.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+}
 .estado {
   font-size: 9px;
   opacity: 0.55;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  white-space: nowrap;
-}
-.combo {
-  margin-left: 4px;
-  padding: 0 12px 0 12px;
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
   white-space: nowrap;
 }
