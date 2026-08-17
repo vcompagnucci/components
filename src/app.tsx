@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
-import { Detail, Item, Masthead, centroOptico, slug } from './parts'
+import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 /* ⚠ EN ESTUDIO — rótulos, peso y pintado del índice. Se va con src/proto/. */
 import { LabPanel, useLab } from './proto/lab'
@@ -119,15 +119,11 @@ export function App() {
       if (!nav) return
       /* ⚠ EN ESTUDIO: el par lo elige el laboratorio. Al decidir queda
          uno solo escrito acá. */
-      if (!lab.par) {
-        nav.style.removeProperty('--index-offset-top')
-        return
-      }
       const desde = document.querySelector<HTMLElement>(lab.par.desde)
       const hasta = document.querySelector<HTMLElement>(lab.par.hasta)
       if (!desde || !hasta) return
       const actual = parseFloat(getComputedStyle(nav).top) || 0
-      const delta = centroOptico(hasta) - centroOptico(desde)
+      const delta = baseDeTexto(hasta) - baseDeTexto(desde)
       nav.style.setProperty('--index-offset-top', `${Math.round(actual + delta)}px`)
     }
     alinear()

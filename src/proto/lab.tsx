@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { centroOptico } from '../parts'
+import { baseDeTexto } from '../parts'
 import css from './lab.module.css'
 
 /* ⚠ EN ESTUDIO — el laboratorio de la ALINEACIÓN del índice. Se borra
@@ -16,8 +16,7 @@ export type Opcion = {
   id: string
   titulo: string
   detalle: string
-  /* null = no se mide nada: el índice queda en el 80 crudo del token */
-  par: Par | null
+  par: Par
 }
 
 export const OPCIONES: Opcion[] = [
@@ -38,18 +37,6 @@ export const OPCIONES: Opcion[] = [
     titulo: 'rótulo ↔ pieza',
     detalle: '"Web" con "Button"',
     par: { desde: '[data-primer-rotulo]', hasta: '[data-primera-pieza]' },
-  },
-  {
-    id: 'D',
-    titulo: 'rótulo ↔ masthead',
-    detalle: '"Web" con "Library"',
-    par: { desde: '[data-primer-rotulo]', hasta: '[data-masthead]' },
-  },
-  {
-    id: 'E',
-    titulo: 'crudo · 80',
-    detalle: 'sin medir — la de benji',
-    par: null,
   },
 ]
 
@@ -73,25 +60,28 @@ export function useLab() {
   return { id, setId, reglas, setReglas, opcion, par: opcion.par }
 }
 
-/* Las reglas: una línea roja de lado a lado a la altura del centro
-   óptico de cada uno de los dos participantes, más un recuadro sobre
-   cada uno para que se vea CUÁLES dos son. Si la alineación está bien,
-   las dos líneas son una sola.
+/* Las reglas: una línea roja de lado a lado apoyada en la BASE de cada
+   uno de los dos participantes, más un recuadro sobre cada uno para que
+   se vea CUÁLES dos son. Si la alineación está bien, las dos líneas son
+   una sola.
 
-   El recuadro encierra el TEXTO y no la caja de borde — si encerrara la
-   caja, el rótulo del índice aparecería con 16px de aire adentro y la
-   regla parecería mal puesta cuando en realidad está bien.
+   La base y no el medio: es por donde se alinean dos textos de tamaños
+   distintos, y es lo mismo que mide la alineación — si la regla midiera
+   otra cosa que el cálculo, estaría mintiendo.
+
+   El recuadro encierra el renglón y no la caja de borde: si encerrara
+   la caja, el rótulo del índice aparecería con sus 16px de aire adentro
+   y la regla parecería mal puesta estando bien.
 
    Se recalcula en scroll y resize porque uno de los dos elementos se
    mueve con la página y el otro está fijo. */
-function Reglas({ par }: { par: Par | null }) {
-  const [cajas, setCajas] = useState<{ y: number; x: number; w: number; h: number }[]>([])
+function Reglas({ par }: { par: Par }) {
+  /* y = la base, donde va la línea. top/h = el renglón, donde va el marco. */
+  const [cajas, setCajas] = useState<
+    { y: number; top: number; x: number; w: number; h: number }[]
+  >([])
 
   useEffect(() => {
-    if (!par) {
-      setCajas([])
-      return
-    }
     let pedido = 0
     const leer = () => {
       pedido = 0
@@ -103,7 +93,9 @@ function Reglas({ par }: { par: Par | null }) {
           const r = el.getBoundingClientRect()
           const s = getComputedStyle(el)
           const h = Number.parseFloat(s.lineHeight) || r.height
-          return { y: centroOptico(el), x: r.left, w: r.width, h }
+          const base = baseDeTexto(el)
+          const arriba = Number.parseFloat(s.paddingTop) || 0
+          return { y: base, x: r.left, w: r.width, h, top: r.top + arriba }
         }),
       )
     }
@@ -127,7 +119,7 @@ function Reglas({ par }: { par: Par | null }) {
           <div className={css.linea} style={{ top: c.y }} />
           <div
             className={css.marco}
-            style={{ top: c.y - c.h / 2, left: c.x, width: c.w, height: c.h }}
+            style={{ top: c.top, left: c.x, width: c.w, height: c.h }}
           />
         </div>
       ))}
@@ -146,7 +138,7 @@ export function LabPanel({
   setId: (v: string) => void
   reglas: boolean
   setReglas: (v: boolean) => void
-  par: Par | null
+  par: Par
 }) {
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {

@@ -6,27 +6,28 @@ import type { Piece } from './pieces'
 
 export const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-')
 
-/* El centro óptico de un renglón: el medio de su caja de CONTENIDO, no
-   de su caja de borde. La diferencia no es teórica — el rótulo del
-   índice lleva 16px de padding abajo, así que el medio de su caja cae
-   8px por debajo del medio de su texto, y alinear por ahí deja las dos
-   palabras visiblemente corridas aunque los números den iguales. */
-export function centroOptico(el: HTMLElement) {
-  const r = el.getBoundingClientRect()
-  const s = getComputedStyle(el)
-  const arriba = Number.parseFloat(s.paddingTop) || 0
-  const abajo = Number.parseFloat(s.paddingBottom) || 0
-  return r.top + arriba + (r.height - arriba - abajo) / 2
+/* La BASE de un renglón: la línea sobre la que se apoyan las letras.
+   Es por donde se alinean dos textos, y no por el medio de sus cajas:
+   los renglones del índice son 13/16 y los de la página 14/20, así que
+   centrarlos deja las letras apoyadas en dos alturas distintas.
+
+   No hay API que la dé, así que se mide con una sonda: un inline-block
+   de alto cero con vertical-align:baseline se apoya exactamente ahí, y
+   como no tiene alto, su borde superior ES la base. Entra y sale en el
+   mismo tick, así que React nunca la ve. */
+export function baseDeTexto(el: HTMLElement) {
+  const sonda = document.createElement('span')
+  sonda.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'
+  el.appendChild(sonda)
+  const y = sonda.getBoundingClientRect().top
+  sonda.remove()
+  return y
 }
 
 export function Masthead() {
   return (
     <header className={css.mast}>
-      {/* ⚠ EN ESTUDIO: uno de los anclajes que prueba el laboratorio de
-          alineación del índice. Se va con src/proto/. */}
-      <h1 className={css.mastTitle} data-masthead>
-        Library
-      </h1>
+      <h1 className={css.mastTitle}>Library</h1>
       <div className={css.mastSub}>Components for web and native apps that feel right.</div>
     </header>
   )
