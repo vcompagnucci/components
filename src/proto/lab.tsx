@@ -287,7 +287,16 @@ export function LabPanel({
 
       <Scrubber alto={alto} setAlto={setAlto} />
 
-      <p className={css.leyenda}>{leyenda}</p>
+      <p className={css.leyenda}>
+        <b>Web</b> {leyenda}
+      </p>
+      {/* App ya está decidida y no la toca el scrubber: la sección la fija
+          en app.module.css. Se muestra igual, para que no parezca que el
+          control no responde. */}
+      <p className={css.leyenda} data-cerrado>
+        <b>App</b> 528 = 40 + 448 + 40 · benji · family-values, la variante que más usa (17 de 45): caja
+        550×532.42, padding 40/60, teléfono 228×448. Su 532.42 lleva 4.42 de hueco de inline-block
+      </p>
     </div>
   )
 }

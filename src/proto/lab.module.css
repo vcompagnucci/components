@@ -187,3 +187,15 @@
   line-height: 1.5;
   max-width: 860px;
 }
+.leyenda b {
+  display: inline-block;
+  min-width: 30px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+/* Lo ya decidido se ve pero no compite con lo que está en juego. */
+.leyenda[data-cerrado] {
+  padding-top: 2px;
+  border-top: 0;
+  color: rgba(255, 255, 255, 0.34);
+}

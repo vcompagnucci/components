@@ -270,11 +270,31 @@
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
 
-  /* ⚠ EN ESTUDIO — la caja de la pieza. Las dos variables son
+  /* ⚠ EN ESTUDIO — la caja de la pieza en Web. Las dos variables son
      excluyentes: una lleva valor y la otra `auto`. Se prueban en el
      laboratorio y queda una sola. */
   --card-alto: 280px;
   --card-ratio: auto;
+
+  /* La caja de la pieza en App. Es más alta porque adentro va un
+     teléfono, y un teléfono es alto: la forma del contenido manda, que
+     es lo que hacen los dos referentes.
+
+     Medido de benji · family-values, la variante que más usa (17 de 45):
+
+       caja       550 × 532.42   radio 8 · #fcfcfc · 0 0 0 1px #f2f2f2
+       padding    40px 60px
+       teléfono   228 × 448      (natural 762×1502, ratio 0.5089)
+
+     Su 532.42 no es un número elegido: es 40 + 448 + 4.42 + 40, y ese
+     4.42 es el hueco de línea que deja el display:inline-block del
+     teléfono. Sin esa basura queda 528, que además es múltiplo de 4.
+
+     Se mantiene en 532.42 a 1440, 768 y 680. Recién cede en 390, y no
+     porque él lo cambie: ahí el ancho de contenido (342 − 120) queda
+     abajo de los 228 del teléfono y el teléfono se achica solo. Nuestra
+     columna a 390 da los mismos 342. */
+  --card-alto-app: 528px;
 }
 
 *,

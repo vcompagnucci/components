@@ -223,7 +223,7 @@ export function App() {
       <Masthead />
       <div className={css.content}>
         {PLATFORMS.map((pl) => (
-          <section className={css.group} key={pl}>
+          <section className={css.group} key={pl} data-plataforma={pl}>
             <div className={css.groupHead}>
               <div className={css.groupLabel}>{pl}</div>
               <span className={css.groupLine} aria-hidden />

@@ -175,6 +175,16 @@
 .group {
   padding-top: var(--section-gap);
 }
+/* La sección fija la caja de sus piezas. El dueño es la sección y no la
+   pieza porque la regla no depende de qué componente es, sino de qué
+   plataforma: en Web adentro corre algo, en App adentro va un teléfono.
+   Como esto vive en un elemento y no en :root, gana sobre lo que el
+   laboratorio escribe inline en .page — o sea que el scrubber mueve Web
+   y App se queda quieta, que es lo que se quiere. */
+.group[data-plataforma='App'] {
+  --card-alto: var(--card-alto-app);
+  --card-ratio: auto;
+}
 .group:first-child {
   padding-top: calc(var(--section-first-gap) - 8px); /* 8 = el margin del mast */
 }
