@@ -212,7 +212,7 @@ export function App() {
          lista obedezcan a la misma regla mientras se decide. */
       <div className={css.page} style={lab.vars}>
         <Detail piece={selected} onBack={back} />
-        <LabPanel {...lab} />
+        <LabPanel alto={lab.alto} setAlto={lab.setAlto} />
       </div>
     )
   }
@@ -235,7 +235,7 @@ export function App() {
         ))}
       </div>
       {/* ⚠ EN ESTUDIO */}
-      <LabPanel {...lab} />
+      <LabPanel alto={lab.alto} setAlto={lab.setAlto} />
     </div>
   )
 }

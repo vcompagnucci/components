@@ -1,17 +1,15 @@
-/* ⚠ EN ESTUDIO — el laboratorio de la caja de la pieza. Se borra entero
-   con src/proto/. Nada de acá entra al sistema. */
+/* ⚠ EN ESTUDIO — el scrubber de la altura de la card en Web. Se borra
+   entero con src/proto/. Nada de acá entra al sistema. */
 
 .panel {
   position: fixed;
-  bottom: 20px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2147483647;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 8px;
-  border-radius: 18px;
+  width: 560px;
+  padding: 6px 6px 4px;
+  border-radius: 22px;
   background: rgba(10, 10, 10, 0.86);
   -webkit-backdrop-filter: blur(12px) saturate(1.4);
   backdrop-filter: blur(12px) saturate(1.4);
@@ -25,96 +23,15 @@
   user-select: none;
   -webkit-user-select: none;
 }
-.fila {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.rubro {
-  padding: 0 8px 0 4px;
-  color: rgba(255, 255, 255, 0.34);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-.sw {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: 36px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  font: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    color 150ms ease-out,
-    background-color 150ms ease-out;
-}
-.sw:hover {
-  color: rgba(255, 255, 255, 0.8);
-}
-.sw[data-on] {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
-/* Lo que no salió de ninguna de las dos referencias queda marcado: es
-   una opción para mirar, no evidencia. */
-.sw[data-inventado] .estado {
-  color: #ffb4b4;
-  opacity: 0.8;
-}
-.sw:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.4);
-  outline-offset: 2px;
-}
-.tecla {
-  display: inline-block;
-  min-width: 12px;
-  margin-right: 2px;
-  opacity: 0.45;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10px;
-}
-.estado {
-  font-size: 9px;
-  opacity: 0.55;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-.medido {
-  margin-left: auto;
-  padding-left: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  white-space: nowrap;
-}
-.medido b {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-}
 
-/* ─── el scrubber ───
-   Las marcas no son decorativas: cada una es un valor real de una de las
+/* Las marcas no son decorativas: cada una es un valor real de una de las
    dos referencias, así que la barra es el mapa de lo que ellos hacen. */
-.pista {
-  position: relative;
-  width: 100%;
-}
 .scrubber {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
   height: 36px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.9);
@@ -150,10 +67,11 @@
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
+
 .regla {
   position: relative;
-  height: 14px;
-  margin-top: 3px;
+  height: 13px;
+  margin: 4px 0 0;
 }
 .numero {
   position: absolute;
@@ -162,12 +80,20 @@
   padding: 0 2px;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.34);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 9px;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: color 120ms ease-out;
+}
+/* Las dos puntas se apoyan en el borde en vez de centrarse, si no
+   quedan cortadas por el ancho del panel. */
+.numero:first-child {
+  transform: none;
+}
+.numero:last-child {
+  transform: translateX(-100%);
 }
 .numero:hover {
   color: rgba(255, 255, 255, 0.8);
@@ -176,26 +102,12 @@
   color: #fff;
 }
 
-/* La procedencia del valor elegido, siempre a la vista. */
+/* De dónde salió el valor que estás mirando. */
 .leyenda {
   margin: 0;
-  padding: 6px 6px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.6);
+  padding: 4px 8px 4px;
+  color: rgba(255, 255, 255, 0.5);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 10px;
-  line-height: 1.5;
-  max-width: 860px;
-}
-.leyenda b {
-  display: inline-block;
-  min-width: 30px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
-/* Lo ya decidido se ve pero no compite con lo que está en juego. */
-.leyenda[data-cerrado] {
-  padding-top: 2px;
-  border-top: 0;
-  color: rgba(255, 255, 255, 0.34);
+  line-height: 1.4;
 }
