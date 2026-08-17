@@ -270,9 +270,43 @@ al borde de la pantalla. Un número que hace dos trabajos según el ancho.
 
 | token | valor | |
 |---|---|---|
-| `--index-offset-left` / `-top` | **80** / **80** | MEDIDO |
+| `--index-offset-left` | **80** | MEDIDO |
+| `--index-offset-top` | **80** de base, después medido | ver abajo |
 | `--index-item-gap` | **8** | MEDIDO — los dos referentes coinciden |
-| `--index-group-gap` | **24** | ELEGIDO |
+| `--index-label-gap` | **16** | MEDIDO |
+| `--index-group-gap` | **32** | ELEGIDO |
+
+**El rótulo pide el doble que un link.** De benji, SOURCE y RUNTIME:
+
+```css
+.styles_container__MZ8RH nav h2 { padding: 0 0 1rem }   /* 16 */
+.styles_container__MZ8RH nav ul { gap: .5rem }          /* 8  */
+```
+
+Su índice llega vacío en el HTML (`<h2></h2><ul></ul>`) y lo llena JS, así
+que el CSS solo no prueba nada: medido en su página, la caja del `h2` da
+31.59 con un texto de 15.60 → **16.00** de hueco, y **8.00** clavado entre
+link y link, cinco veces seguidas.
+
+**El aire lo carga el rótulo, no la lista.** El grupo es un bloque plano;
+si tuviera `gap` se sumaría al `padding` del rótulo y el número escrito
+dejaría de ser el número que se ve (8 + 16 = 24, y ningún token diría 24).
+Cada hueco tiene un solo dueño. Es su estructura, `nav > h2 + ul`.
+
+**El salto entre grupos no sale de él.** Su índice es plano — un título y
+una lista — así que para "grupo → grupo" no hay evidencia. Es el mismo
+doble una vez más: **8 · 16 · 32**.
+
+**El `top` se mide, no se calcula.** El primer link cae exactamente sobre
+el título de la primera pieza. El número correcto sería la suma de todo el
+apilado vertical de la página, y escribirlo como `calc` duplicaría la
+estructura entera en una fórmula que nadie actualizaría. Se mide en
+`useLayoutEffect`, antes de pintar, alineando **centros ópticos**: el
+título es 14/20 y el link 13/16, así que las cajas nunca empiezan a la
+misma altura aunque el texto sí. Se redondea a entero — medio píxel de
+desalineación es menos visible que un texto en posición fraccionaria.
+Da 205 a 1440×900; agregar los 16 del rótulo lo corrigió solo, que era
+justamente para lo que se midió.
 
 ---
 

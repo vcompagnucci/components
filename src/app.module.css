@@ -67,7 +67,6 @@
   top: var(--index-offset-top);
   display: flex;
   flex-direction: column;
-  gap: var(--index-item-gap);
   /* El aire de abajo es fijo y no un espejo del de arriba: desde que el
      índice puede arrancar más abajo, duplicar el top dejaría la lista
      sin altura. */
@@ -81,13 +80,18 @@
 .index[data-rotulos] .indexLabel {
   opacity: 1;
 }
-.indexGroup {
+/* El grupo es un bloque plano y no una columna con gap, a propósito: si
+   el gap viviera acá se sumaría al aire del rótulo y el número escrito
+   dejaría de ser el número que se ve. Cada hueco lo pide un solo dueño —
+   el rótulo el suyo, la lista el de entre links. Es la estructura de
+   benji, nav > h2 + ul, con los mismos dos dueños. */
+.indexGroup + .indexGroup {
+  margin-top: var(--index-group-gap);
+}
+.indexList {
   display: flex;
   flex-direction: column;
   gap: var(--index-item-gap);
-}
-.indexGroup + .indexGroup {
-  margin-top: var(--index-group-gap);
 }
 /* Los rótulos arrancan invisibles y aparecen cuando el separador de la
    primera sección salió de pantalla — así "Web" nunca está dos veces al
@@ -96,10 +100,12 @@
    misma transición de 400ms.
 
    Se anima la opacidad y no el display: el rótulo sigue ocupando su
-   lugar, así los links no saltan al aparecer. */
+   lugar, así los links no saltan al aparecer — y con el padding acá
+   adentro, tampoco salta el hueco que abre debajo suyo. */
 .indexLabel {
   opacity: var(--index-label-opacity, 0);
   transition: opacity 400ms var(--ease-out);
+  padding-bottom: var(--index-label-gap);
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-label-fw);
   letter-spacing: var(--type-nav-ls);

@@ -197,11 +197,23 @@
   --dur-fill: 150ms;
 
   /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
-     al 40%, 8px entre uno y otro. */
+     al 40%, 8px entre uno y otro.
+
+     El rótulo pide el doble de aire que un link, y el aire lo carga él
+     mismo — es su estructura exacta (nav > h2 + ul): el h2 lleva
+     padding:0 0 1rem y la ul su gap:.5rem. Medido en su página:
+     caja del h2 31.59 − texto 15.60 = 16.00 de hueco; y 8.00 clavado
+     entre link y link, cinco veces seguidas.
+
+     El salto entre grupos no sale de él: su índice es plano, un solo
+     título y una sola lista, así que para "grupo → grupo" no hay
+     evidencia. Es el mismo doble una vez más — 8 · 16 · 32 — que es
+     como ya escala todo lo demás del sistema. */
   --index-offset-left: 80px;
   --index-offset-top: 80px;
   --index-item-gap: 8px;
-  --index-group-gap: 24px;
+  --index-label-gap: 16px;
+  --index-group-gap: 32px;
 
   /* ─── LOS HUECOS VERTICALES DE LA PÁGINA ───
      Cada uno nombrado por el bloque que lo reclama, porque el aire lo

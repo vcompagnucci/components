@@ -76,17 +76,19 @@ function Index({ activa, rotulos }: { activa: string | null; rotulos: boolean })
       {PLATFORMS.map((pl) => (
         <div className={css.indexGroup} key={pl}>
           <div className={css.indexLabel}>{pl}</div>
-          {by(pl).map((p, i) => (
-            <button
-              className={css.indexLink}
-              key={p.name}
-              data-primer-link={pl === PLATFORMS[0] && i === 0 ? '' : undefined}
-              data-active={activa === slug(p.name) ? '' : undefined}
-              onClick={() => goTo(p.name)}
-            >
-              {p.name}
-            </button>
-          ))}
+          <div className={css.indexList}>
+            {by(pl).map((p, i) => (
+              <button
+                className={css.indexLink}
+                key={p.name}
+                data-primer-link={pl === PLATFORMS[0] && i === 0 ? '' : undefined}
+                data-active={activa === slug(p.name) ? '' : undefined}
+                onClick={() => goTo(p.name)}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
         </div>
       ))}
     </nav>
