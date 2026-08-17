@@ -270,11 +270,28 @@
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
 
-  /* ⚠ EN ESTUDIO — la caja de la pieza en Web. Las dos variables son
-     excluyentes: una lleva valor y la otra `auto`. Se prueban en el
-     laboratorio y queda una sola. */
-  --card-alto: 280px;
-  --card-ratio: auto;
+  /* ─── LA CAJA DE LA PIEZA ───
+     Altura fija y no proporción. Sale de seis casos medidos entre las
+     dos referencias (.context/recon/CARDS.md): lo que corre lleva altura
+     elegida a mano, y lo quieto deja mandar al contenido. Ninguno de los
+     dos usa aspect-ratio para algo vivo.
+
+     WEB · 260 en la lista, 400 al abrir.
+
+     Los dos son de benji y la relación entre ellos también: adentro de
+     una página larga sus demos de /liveline miden 260 —su segundo valor
+     más usado, ×4 de 21— y cuando el demo ES la página, el frame de
+     /drawesome mide 400. Nosotros tenemos esas mismas dos situaciones.
+
+     No cambian con el viewport, y eso también es suyo: sus 20 demos
+     miden 180–300 idénticos a 1440, 768, 500, 390 y 320. Lo único que
+     se mueve es el ancho, así que la card pasa de 2.12:1 a 1.05:1 sola.
+
+     Van como min-height: son un PISO. Si una pieza necesita más, empuja
+     y la card la sigue. Con la card vacía da igual; la diferencia es
+     toda a futuro. */
+  --card-alto: 260px;
+  --card-alto-detalle: 400px;
 
   /* La caja de la pieza en App. NO lleva altura: la altura es el hueco
      del teléfono más el padding, igual que la de benji. La forma del
@@ -300,9 +317,14 @@
      El umbral sale de la misma cuenta en las dos páginas: la caja mide
      viewport − 48, así que el teléfono empieza a ceder cuando
      viewport − 48 − 120 < 228, o sea abajo de 396. Nos da idéntico sin
-     copiar ningún breakpoint. */
+     copiar ningún breakpoint.
+
+     Y el teléfono también crece al abrir la pieza, con otro número suyo:
+     228 es el que usa dentro de una caja (17 de 45) y 319 el que usa
+     cuando el teléfono va solo. La caja lo sigue en los dos. */
   --card-app-padding: 40px 60px;
   --card-app-slot-ancho: 228px;
+  --card-app-slot-detalle: 319px;
   --card-app-slot-ratio: 228 / 448;
 }
 

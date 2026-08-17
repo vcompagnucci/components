@@ -412,10 +412,48 @@ El umbral sale de la misma cuenta en las dos páginas — la caja mide
 diferencia constante de 4.4–5.4 en todo el rango es su hueco de
 inline-block, que nosotros no arrastramos.
 
-### Web — ⚠ EN ESTUDIO
+### Web — MEDIDO
 
-Sin decidir. La evidencia dice altura fija; falta cuál. Las medidas
-disponibles están en el laboratorio, sobre el scrubber.
+```css
+--card-alto: 260px;           /* en la lista */
+--card-alto-detalle: 400px;   /* al abrir la pieza */
+```
+
+Los dos son de benji, y la relación entre ellos también: adentro de una
+página larga sus demos de `/liveline` miden **260** —su segundo valor más
+usado, ×4 de 21— y cuando el demo **es** la página, el frame de
+`/drawesome` mide **400**. Tenemos esas mismas dos situaciones.
+
+**No cambian con el viewport, y eso también es suyo.** Sus 20 demos miden
+180–300 idénticos a 1440, 768, 500, 390 y 320. Lo único que se mueve es
+el ancho, así que la card pasa sola de 2.12:1 a 1.05:1.
+
+### Los dos van como `min-height`, no como `height`
+
+Son un **piso**. Si una pieza necesita más, empuja y la card la sigue.
+Con la card vacía las dos formas dan lo mismo; la diferencia es toda a
+futuro, y es la que evita volver a discutir el número la primera vez que
+un componente no entre.
+
+### Lo que da, medido en seis anchos
+
+| | 1920 · 1440 | 768 | 500 | 390 | 320 |
+|---|---|---|---|---|---|
+| lista · Web | 260 | 260 | 260 | 260 | 260 |
+| lista · App | 528 | 528 | 528 | 516.2 | 378.7 |
+| detalle · Web | 400 | 400 | 400 | 400 | 400 |
+| detalle · App | 706.8 | 706.8 | 706.8 | 516.2 | 378.7 |
+
+**Abajo de 396 el detalle de App deja de ser más grande que la lista.**
+Ahí el ancho disponible ya está debajo de los 228 del teléfono chico, así
+que los dos huecos topean contra el mismo ancho y dan el mismo alto. No
+es un bug: es la misma razón por la que su card cede en 395.
+
+Y una parte de esto es composición nuestra, no suya: el **319** es su
+teléfono grande, pero él lo muestra desnudo (`phoneContainer`, sin fondo
+ni radio) o recortado dentro de una caja más baja, gracias a su
+`overflow: hidden`. Meterlo en una card que lo contiene entero —707 de
+alto— es decisión de acá.
 
 ---
 

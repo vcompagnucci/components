@@ -71,7 +71,7 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
           <div className={css.detailMeta}>{piece.platform}</div>
           <p className={css.detailDesc}>{piece.desc}</p>
         </div>
-        <div className={css.detailPreview} />
+        <div className={css.detailPreview} data-plataforma={piece.platform} />
       </div>
     </div>
   )

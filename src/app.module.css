@@ -178,9 +178,6 @@
 /* La sección fija la caja de sus piezas. El dueño es la sección y no la
    pieza porque la regla no depende de qué componente es, sino de qué
    plataforma: en Web adentro corre algo, en App adentro va un teléfono.
-   Como esto vive en un elemento y no en :root, gana sobre lo que el
-   laboratorio escribe inline en .page — o sea que el scrubber mueve Web
-   y App se queda quieta, que es lo que se quiere.
 
    En App la caja NO declara altura. Reserva el hueco del teléfono —
    228 de ancho, tope el ancho disponible, y la proporción lo alarga — y
@@ -188,8 +185,7 @@
    de benji sin una sola media query: mientras el hueco entra, la caja
    mide siempre lo mismo; cuando deja de entrar, se achica sola. */
 .group[data-plataforma='App'] .streamPreview {
-  height: auto;
-  aspect-ratio: auto;
+  min-height: 0;
   padding: var(--card-app-padding);
   display: flex;
   align-items: center;
@@ -261,12 +257,14 @@
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
 }
-/* ⚠ EN ESTUDIO: qué gobierna la caja, una altura o una proporción. Hoy
-   la lista dice una cosa y el detalle otra; con las dos variables las
-   dos obedecen a la misma regla y se puede comparar. */
+/* min-height y no height: 260 es un PISO, no un techo. La card mide 260
+   mientras lo que tenga adentro entre; si una pieza necesita más, empuja
+   y la card la sigue. Con la card vacía las dos formas dan lo mismo, así
+   que la diferencia es toda a futuro — y es la que evita tener que
+   volver acá a discutir el número la primera vez que un componente no
+   entre. */
 .streamPreview {
-  height: var(--card-alto);
-  aspect-ratio: var(--card-ratio);
+  min-height: var(--card-alto);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--card-ring);
   border-radius: var(--radius-tbd);
@@ -333,12 +331,31 @@
   line-height: var(--type-body-lh);
   color: var(--type-body-c);
 }
+/* Al abrir una pieza la caja crece. La relación es la de benji y no un
+   número inventado: adentro de una página larga sus demos miden 260, y
+   cuando el demo ES la página —drawesome— el frame mide 400. Nosotros
+   tenemos exactamente esas dos situaciones. */
 .detailPreview {
-  height: var(--card-alto);
-  aspect-ratio: var(--card-ratio);
+  min-height: var(--card-alto-detalle);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--card-ring);
   border-radius: var(--radius-tbd);
+}
+/* En App lo que crece no es la caja sino el teléfono, y también con un
+   número suyo: 319×628 es su otro tamaño de teléfono en family-values,
+   el que usa cuando el teléfono va solo. La caja lo sigue. */
+.detailPreview[data-plataforma='App'] {
+  min-height: 0;
+  padding: var(--card-app-padding);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detailPreview[data-plataforma='App']::before {
+  content: '';
+  width: var(--card-app-slot-detalle);
+  max-width: 100%;
+  aspect-ratio: var(--card-app-slot-ratio);
 }
 
 /* ═══════════ EL ESCALÓN ═══════════
