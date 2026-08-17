@@ -351,6 +351,74 @@ barra, que es para lo que está el `overflow`.
 
 ---
 
+## La caja de la pieza
+
+### La regla, de seis casos medidos
+
+Las dos referencias contestan lo mismo, y no depende del gusto sino de
+**qué hay adentro**. Detalle en `.context/recon/CARDS.md`.
+
+| | página | contenido | qué manda el alto |
+|---|---|---|---|
+| benji | /liveline | canvas vivo | altura fija elegida, 180–300 |
+| benji | /drawesome | SVG vivo | altura fija elegida, 400 |
+| benji | /family-values | captura quieta | **el contenido** |
+| josh | /bloom | demo vivo | altura fija elegida, 480 |
+| josh | /pasito · media | `<img>` | **el contenido**, vía `4/3` |
+| josh | /pasito · código | texto | **el contenido** |
+
+**Vivo → altura fija, a mano. Quieto → manda el contenido.** Nunca al
+revés. Ninguno de los dos usa `aspect-ratio` para algo que corre.
+
+Nuestras dos plataformas caen una de cada lado: **Web corre vivo, App es
+un video que ya trae su proporción.**
+
+### App — MEDIDO
+
+```css
+--card-app-padding: 40px 60px;
+--card-app-slot-ancho: 228px;
+--card-app-slot-ratio: 228 / 448;
+```
+
+De benji · family-values, la variante que más usa (17 de 45): caja
+550×532.42, radio 8, `#fcfcfc`, `box-shadow: 0 0 0 1px #f2f2f2`,
+padding 40/60, teléfono 228×448 (natural 762×1502).
+
+**No lleva altura.** Reserva el hueco del teléfono y la altura sale de
+ahí más el padding: da **528** mientras el hueco entre. Su 532.42 es
+`40 + 448 + 4.42 + 40`, donde el 4.42 es el hueco de línea que deja el
+`display:inline-block` del teléfono — basura de layout, no un número
+elegido.
+
+Fijarlo en 528 estuvo mal y se corrigió. Barrido de 13 anchos sobre su
+página: **532.42 clavado de 1920 hasta 430**, y ahí empieza a bajar —
+521.6 en 390, 462.5 en 360, 383.6 en 320. Con altura fija nuestra card
+se quedaba plantada y a 320 le sobraban **144px de vacío**.
+
+**Y lo hace sin una sola media query**: sus clases no tienen ninguna. Lo
+que pasa es que el ancho útil (caja − 120 de padding) cae abajo de los
+228 del teléfono, el teléfono se achica solo y arrastra la caja.
+
+El umbral sale de la misma cuenta en las dos páginas — la caja mide
+`viewport − 48`, así que cede cuando `viewport − 48 − 120 < 228`:
+
+| viewport | 396 | **395** | 394 | 392 |
+|---|---|---|---|---|
+| benji | 532.4 | 531.4 | 529.5 | 525.5 |
+| nuestra | 528 | 526 | 524.1 | 520.1 |
+
+**Los dos ceden en 395 exacto**, sin haber copiado ningún breakpoint. La
+diferencia constante de 4.4–5.4 en todo el rango es su hueco de
+inline-block, que nosotros no arrastramos.
+
+### Web — ⚠ EN ESTUDIO
+
+Sin decidir. La evidencia dice altura fija; falta cuál. Las medidas
+disponibles están en el laboratorio, sobre el scrubber.
+
+---
+
 ## Los cinco viewports
 
 Todo lo que la página mide, resuelto. Sólo cambian las cinco filas

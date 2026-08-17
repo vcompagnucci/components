@@ -276,25 +276,34 @@
   --card-alto: 280px;
   --card-ratio: auto;
 
-  /* La caja de la pieza en App. Es más alta porque adentro va un
-     teléfono, y un teléfono es alto: la forma del contenido manda, que
-     es lo que hacen los dos referentes.
+  /* La caja de la pieza en App. NO lleva altura: la altura es el hueco
+     del teléfono más el padding, igual que la de benji. La forma del
+     contenido manda, que es lo que hacen los dos referentes.
 
      Medido de benji · family-values, la variante que más usa (17 de 45):
 
        caja       550 × 532.42   radio 8 · #fcfcfc · 0 0 0 1px #f2f2f2
        padding    40px 60px
-       teléfono   228 × 448      (natural 762×1502, ratio 0.5089)
+       teléfono   228 × 448      (natural 762×1502)
 
      Su 532.42 no es un número elegido: es 40 + 448 + 4.42 + 40, y ese
      4.42 es el hueco de línea que deja el display:inline-block del
-     teléfono. Sin esa basura queda 528, que además es múltiplo de 4.
+     teléfono. Nuestro equivalente da 528 limpio, múltiplo de 4.
 
-     Se mantiene en 532.42 a 1440, 768 y 680. Recién cede en 390, y no
-     porque él lo cambie: ahí el ancho de contenido (342 − 120) queda
-     abajo de los 228 del teléfono y el teléfono se achica solo. Nuestra
-     columna a 390 da los mismos 342. */
-  --card-alto-app: 528px;
+     Y NO se fija en 528, porque su card tampoco lo hace. Barrido de 13
+     anchos sobre su página: 532.42 clavado de 1920 hasta 430, y ahí
+     empieza a bajar — 521.6 en 390, 462.5 en 360, 383.6 en 320. Sin una
+     sola media query: sus clases no tienen ninguna. Lo que pasa es que
+     el ancho útil (caja − 120 de padding) cae abajo de los 228 del
+     teléfono y el teléfono se achica solo, arrastrando la caja.
+
+     El umbral sale de la misma cuenta en las dos páginas: la caja mide
+     viewport − 48, así que el teléfono empieza a ceder cuando
+     viewport − 48 − 120 < 228, o sea abajo de 396. Nos da idéntico sin
+     copiar ningún breakpoint. */
+  --card-app-padding: 40px 60px;
+  --card-app-slot-ancho: 228px;
+  --card-app-slot-ratio: 228 / 448;
 }
 
 *,

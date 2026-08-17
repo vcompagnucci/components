@@ -294,8 +294,9 @@ export function LabPanel({
           en app.module.css. Se muestra igual, para que no parezca que el
           control no responde. */}
       <p className={css.leyenda} data-cerrado>
-        <b>App</b> 528 = 40 + 448 + 40 · benji · family-values, la variante que más usa (17 de 45): caja
-        550×532.42, padding 40/60, teléfono 228×448. Su 532.42 lleva 4.42 de hueco de inline-block
+        <b>App</b> sin altura — reserva el hueco del teléfono (228 × 448, padding 40/60) y la altura
+        sale de ahí: 528 mientras entre, y se achica sola abajo de 395. Igual que benji ·
+        family-values, que tampoco declara altura ni tiene una sola media query
       </p>
     </div>
   )
