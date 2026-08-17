@@ -52,7 +52,9 @@ export function Item({
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
         {piece.name}
       </div>
-      <div className={css.streamPreview} />
+      {/* ⚠ EN ESTUDIO: data-card lo lee el laboratorio para informar el
+          alto que la proporción está dando de verdad. Se va con proto/. */}
+      <div className={css.streamPreview} data-card={primera ? '' : undefined} />
     </button>
   )
 }

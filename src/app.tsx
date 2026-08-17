@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
+/* ⚠ EN ESTUDIO — la proporción de la card. Se va con src/proto/. */
+import { LabPanel, useLab } from './proto/lab'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -91,6 +93,7 @@ function Index({ activa }: { activa: string | null }) {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const lab = useLab() /* ⚠ EN ESTUDIO */
   const [activa, setActiva] = useState<string | null>(null)
   const listScroll = useRef(0)
   const first = useRef(true)
@@ -205,14 +208,17 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={css.page}>
+      /* ⚠ EN ESTUDIO: las mismas variables acá, para que el detalle y la
+         lista obedezcan a la misma regla mientras se decide. */
+      <div className={css.page} style={lab.vars}>
         <Detail piece={selected} onBack={back} />
+        <LabPanel regla={lab.regla} setId={lab.setId} alto={lab.alto} setAlto={lab.setAlto} />
       </div>
     )
   }
 
   return (
-    <div className={css.page}>
+    <div className={css.page} style={lab.vars}>
       <Index activa={activa} />
       <Masthead />
       <div className={css.content}>
@@ -228,6 +234,8 @@ export function App() {
           </section>
         ))}
       </div>
+      {/* ⚠ EN ESTUDIO */}
+      <LabPanel regla={lab.regla} setId={lab.setId} alto={lab.alto} setAlto={lab.setAlto} />
     </div>
   )
 }

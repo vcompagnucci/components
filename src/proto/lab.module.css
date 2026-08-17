@@ -1,0 +1,128 @@
+/* ⚠ EN ESTUDIO — el laboratorio de la proporción de la card. Se borra
+   entero con src/proto/. Nada de acá entra al sistema. */
+
+.panel {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    color 150ms ease-out,
+    background-color 150ms ease-out;
+}
+.sw:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+.sw[data-on] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.sw:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.tecla {
+  display: inline-block;
+  min-width: 12px;
+  margin-right: 2px;
+  opacity: 0.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+}
+.estado {
+  font-size: 9px;
+  opacity: 0.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: nowrap;
+}
+
+/* ─── el scrubber ───
+   Etiqueta a la izquierda, relleno hasta el valor, marcas de referencia
+   y el número en mono a la derecha. */
+.scrubber {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 176px;
+  height: 36px;
+  margin-left: 4px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.scrubber[data-bloqueado] {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.4);
+}
+.scrubber:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.relleno {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+.scrubber[data-bloqueado] .relleno {
+  background: rgba(255, 255, 255, 0.06);
+}
+.marcas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.16) 0 1px,
+    transparent 1px 22px
+  );
+}
+.etiqueta {
+  position: relative;
+  flex: 1;
+  white-space: nowrap;
+}
+.valor {
+  position: relative;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}

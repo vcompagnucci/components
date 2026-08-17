@@ -235,8 +235,12 @@
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
 }
+/* ⚠ EN ESTUDIO: qué gobierna la caja, una altura o una proporción. Hoy
+   la lista dice una cosa y el detalle otra; con las dos variables las
+   dos obedecen a la misma regla y se puede comparar. */
 .streamPreview {
-  height: 280px;
+  height: var(--card-alto);
+  aspect-ratio: var(--card-ratio);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--card-ring);
   border-radius: var(--radius-tbd);
@@ -304,7 +308,8 @@
   color: var(--type-body-c);
 }
 .detailPreview {
-  aspect-ratio: 16 / 9;
+  height: var(--card-alto);
+  aspect-ratio: var(--card-ratio);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--card-ring);
   border-radius: var(--radius-tbd);

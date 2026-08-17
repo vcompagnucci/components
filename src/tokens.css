@@ -269,6 +269,12 @@
 
   /* PROVISIONAL — pendiente de decisión */
   --radius-tbd: 12px;
+
+  /* ⚠ EN ESTUDIO — la caja de la pieza. Las dos variables son
+     excluyentes: una lleva valor y la otra `auto`. Se prueban en el
+     laboratorio y queda una sola. */
+  --card-alto: 280px;
+  --card-ratio: auto;
 }
 
 *,
