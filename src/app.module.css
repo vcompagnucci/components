@@ -266,12 +266,12 @@
 .streamPreview {
   min-height: var(--card-alto);
   background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--card-ring);
+  box-shadow: var(--card-sombra);
   border-radius: var(--radius-tbd);
   transition: box-shadow var(--dur-fill) var(--ease-out);
 }
 .streamItem:hover .streamPreview {
-  box-shadow: inset 0 0 0 1px var(--a4);
+  box-shadow: var(--card-sombra-hover);
 }
 
 /* ═══════════ DETALLE ═══════════ */
@@ -338,7 +338,7 @@
 .detailPreview {
   min-height: var(--card-alto-detalle);
   background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--card-ring);
+  box-shadow: var(--card-sombra);
   border-radius: var(--radius-tbd);
 }
 /* En App lo que crece no es la caja sino el teléfono, y también con un

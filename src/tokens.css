@@ -29,6 +29,12 @@
   --a1: rgba(0, 0, 0, 0.04);
   --a4: rgba(0, 0, 0, 0.16);
   --card-ring: rgba(0, 0, 0, 0.11);
+  /* ⚠ EN ESTUDIO: la sombra entera de la card, no sólo su color. Las
+     opciones que se están probando no comparten forma —josh no lleva
+     ninguna, benji lleva un anillo hacia afuera, su frame lleva cinco
+     capas— así que la variable tiene que ser el box-shadow completo. */
+  --card-sombra: inset 0 0 0 1px var(--card-ring);
+  --card-sombra-hover: inset 0 0 0 1px var(--a4);
   /* la hairline de benji: #f2f2f2 → (255-242)/255 = .051. En alpha y no
      en sólido para que componga sobre --canvas y no asuma blanco puro */
   --hairline: rgba(0, 0, 0, 0.051);
