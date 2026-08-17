@@ -45,9 +45,22 @@
 /* ═══════════ ÍNDICE LATERAL ═══════════
    La navegación de la página. Es lo que hacen las dos referencias en 9
    de las 13 páginas medidas: ninguna de las dos usa tabs en ninguna.
-   Valores de benji (.context/recon/NAVIGATION.md): fixed a 80/80, links
-   13px/460 al 40%, 8px de separación, ancho ajustado al label más largo.
-   Sin scrollspy: él lo tiene, acá se decidió no ponerlo. */
+   Valores de benji (.context/recon/NAVIGATION.md): links 13px/460 al
+   40%, 8px de separación, ancho ajustado al label más largo.
+
+   AHORA SÍ TIENE SCROLLSPY. Antes acá decía que se había decidido no
+   ponerlo; se revirtió, y de paso resolvió de raíz otro problema: los
+   rótulos "Web" y "App" arrancan invisibles y aparecen recién cuando el
+   separador de la primera sección sale de pantalla, así la misma palabra
+   nunca está dos veces al mismo tiempo.
+
+   Los tres mecanismos son de benji, decodificados de su bundle:
+     - el rótulo aparece por opacidad, con su transición de 400ms
+     - activo = el último cuyo top pasó una línea a 128px del viewport
+     - más un guarda: al final del documento gana el último sí o sí
+   Lo único nuestro es el DISPARADOR del rótulo: el suyo es un umbral de
+   100px de scroll, que acá mostraría "Web" con el separador "Web"
+   todavía a la vista. */
 .index {
   position: fixed;
   left: var(--index-offset-left);
@@ -55,12 +68,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--index-item-gap);
-  max-height: calc(100vh - var(--index-offset-top) * 2);
+  /* El aire de abajo es fijo y no un espejo del de arriba: desde que el
+     índice puede arrancar más abajo, duplicar el top dejaría la lista
+     sin altura. */
+  max-height: calc(100vh - var(--index-offset-top) - 32px);
   overflow-y: auto;
   scrollbar-width: none;
 }
 .index::-webkit-scrollbar {
   display: none;
+}
+.index[data-rotulos] .indexLabel {
+  opacity: 1;
 }
 .indexGroup {
   display: flex;
@@ -70,9 +89,17 @@
 .indexGroup + .indexGroup {
   margin-top: var(--index-group-gap);
 }
+/* Los rótulos arrancan invisibles y aparecen cuando el separador de la
+   primera sección salió de pantalla — así "Web" nunca está dos veces al
+   mismo tiempo. Es lo que hace benji con el título de su página
+   (nav h2{opacity:0} · nav[data-scrolled=true] h2{opacity:1}), con su
+   misma transición de 400ms.
+
+   Se anima la opacidad y no el display: el rótulo sigue ocupando su
+   lugar, así los links no saltan al aparecer. */
 .indexLabel {
-  /* ⚠ EN ESTUDIO: --nav-label-gap. Al hornear queda o se va. */
-  margin-bottom: var(--nav-label-gap, 0px);
+  opacity: 0;
+  transition: opacity 400ms var(--ease-out);
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-label-fw);
   letter-spacing: var(--type-nav-ls);
@@ -93,6 +120,13 @@
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-fill) var(--ease-out);
+}
+/* La pieza que estás mirando se pinta. La regla es la de benji: activa
+   es la última cuyo borde superior ya pasó una línea a 128px del tope
+   del viewport. Él la marca subiendo el color y nada más — sin barra ni
+   punto. */
+.indexLink[data-active] {
+  color: var(--ink);
 }
 .indexLink:hover {
   color: var(--ink);

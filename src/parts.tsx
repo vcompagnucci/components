@@ -18,10 +18,22 @@ export function Masthead() {
 /* La pieza entera es el botón: el título también es clickeable y entra
    por teclado, no sólo el rectángulo. El id lo usa el índice para
    saltar hasta acá. */
-export function Item({ piece, onOpen }: { piece: Piece; onOpen: (p: Piece) => void }) {
+export function Item({
+  piece,
+  onOpen,
+  primera,
+}: {
+  piece: Piece
+  onOpen: (p: Piece) => void
+  /* ⚠ EN ESTUDIO: la marca que lee el scrubber del índice. Se va con
+     src/proto/. */
+  primera?: boolean
+}) {
   return (
     <button className={css.streamItem} id={slug(piece.name)} onClick={() => onOpen(piece)}>
-      <div className={css.streamTitle}>{piece.name}</div>
+      <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
+        {piece.name}
+      </div>
       <div className={css.streamPreview} />
     </button>
   )
