@@ -2,8 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-/* ⚠ EN ESTUDIO — rótulos, peso y pintado del índice. Se va con src/proto/. */
-import { LabPanel, useLab } from './proto/lab'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -30,9 +28,10 @@ const goTo = (name: string) => {
   })
 }
 
-/* El id del separador de una sección. Lo usa el observador que decide
-   cuándo el índice puede mostrar sus rótulos. */
-const secId = (pl: Platform) => `sec-${pl.toLowerCase()}`
+/* "Web", el primer rótulo del índice, se apoya en la misma línea que
+   "Button", el título de la primera pieza. Los dos extremos del par que
+   se eligió mirando; el cómo está en el efecto que lo mide. */
+const ALINEAR = { desde: '[data-primer-rotulo]', hasta: '[data-primera-pieza]' }
 
 /* Cuál pieza está activa: la ÚLTIMA cuyo borde superior ya pasó una
    línea a --index-spy-line del tope del viewport.
@@ -68,15 +67,15 @@ function Index({ activa }: { activa: string | null }) {
     <nav className={css.index} aria-label="Pieces">
       {PLATFORMS.map((pl) => (
         <div className={css.indexGroup} key={pl}>
+          {/* El primer rótulo es el que se alinea con la primera pieza. */}
           <div className={css.indexLabel} data-primer-rotulo={pl === PLATFORMS[0] ? '' : undefined}>
             {pl}
           </div>
           <div className={css.indexList}>
-            {by(pl).map((p, i) => (
+            {by(pl).map((p) => (
               <button
                 className={css.indexLink}
                 key={p.name}
-                data-primer-link={pl === PLATFORMS[0] && i === 0 ? '' : undefined}
                 data-active={activa === slug(p.name) ? '' : undefined}
                 onClick={() => goTo(p.name)}
               >
@@ -92,36 +91,38 @@ function Index({ activa }: { activa: string | null }) {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
-  const lab = useLab() /* ⚠ EN ESTUDIO */
   const [activa, setActiva] = useState<string | null>(null)
   const listScroll = useRef(0)
   const first = useRef(true)
 
-  /* ALINEACIÓN DEL ÍNDICE — qué renglón del índice cae sobre qué renglón
-     de la página.
+  /* ALINEACIÓN DEL ÍNDICE — "Web", el primer rótulo, se apoya en la misma
+     línea que "Button", el título de la primera pieza.
 
-     Se mide en vez de calcularse. El número correcto sería la suma de
-     todo el apilado vertical de la página menos media caja de línea, y
-     escribir esa suma como calc duplicaría la estructura entera en una
-     fórmula que nadie actualizaría si mañana se agrega un elemento en el
-     medio: quedaría mal y nada lo diría. Midiendo, se corrige sola —
-     como ya pasó al meterle 16px de aire al rótulo.
+     El par se eligió mirando, contra otros dos: primer link ↔ primera
+     pieza, y rótulo ↔ separador de sección. Ganó éste.
 
-     Alinea los CENTROS ÓPTICOS y no los bordes de caja: los renglones
-     del índice son 13/16 y los de la página 14/20, así que sus cajas
-     nunca empiezan a la misma altura aunque el texto sí lo haga.
+     Se alinea por la BASE del texto y no por el medio de las cajas: los
+     renglones del índice son 13/16 y los de la página 14/20, así que
+     centrarlos deja las letras apoyadas en dos alturas distintas. (Acá
+     la diferencia entre las dos formas es 0.60px y el redondeo a píxel
+     entero se la come — pero el que la fórmula sea la correcta deja de
+     ser un detalle apenas los dos tamaños se separen más.)
+
+     Y se MIDE en vez de calcularse. El número correcto sería la suma de
+     todo el apilado vertical de la página, y escribir esa suma como calc
+     duplicaría la estructura entera en una fórmula que nadie
+     actualizaría si mañana se agrega un elemento en el medio: quedaría
+     mal y nada lo diría. Midiendo, se corrige sola — como ya pasó al
+     meterle 16px de aire al rótulo.
 
      En useLayoutEffect, antes de pintar, para que no se vea el salto. */
   useLayoutEffect(() => {
     if (selected) return
     const alinear = () => {
       const nav = document.querySelector<HTMLElement>('[aria-label="Pieces"]')
-      if (!nav) return
-      /* ⚠ EN ESTUDIO: el par lo elige el laboratorio. Al decidir queda
-         uno solo escrito acá. */
-      const desde = document.querySelector<HTMLElement>(lab.par.desde)
-      const hasta = document.querySelector<HTMLElement>(lab.par.hasta)
-      if (!desde || !hasta) return
+      const desde = document.querySelector<HTMLElement>(ALINEAR.desde)
+      const hasta = document.querySelector<HTMLElement>(ALINEAR.hasta)
+      if (!nav || !desde || !hasta) return
       const actual = parseFloat(getComputedStyle(nav).top) || 0
       const delta = baseDeTexto(hasta) - baseDeTexto(desde)
       nav.style.setProperty('--index-offset-top', `${Math.round(actual + delta)}px`)
@@ -129,7 +130,7 @@ export function App() {
     alinear()
     window.addEventListener('resize', alinear)
     return () => window.removeEventListener('resize', alinear)
-  }, [selected, lab.par])
+  }, [selected])
 
   /* La pieza activa necesita el scroll, porque la respuesta cambia de
      forma continua y no en un borde. Se calcula en rAF para no hacer
@@ -217,14 +218,8 @@ export function App() {
       <div className={css.content}>
         {PLATFORMS.map((pl) => (
           <section className={css.group} key={pl}>
-            <div className={css.groupHead} id={secId(pl)}>
-              <div
-                className={css.groupLabel}
-                /* ⚠ EN ESTUDIO: anclaje del laboratorio. Se va con proto/. */
-                data-primer-separador={pl === PLATFORMS[0] ? '' : undefined}
-              >
-                {pl}
-              </div>
+            <div className={css.groupHead}>
+              <div className={css.groupLabel}>{pl}</div>
               <span className={css.groupLine} aria-hidden />
             </div>
             {by(pl).map((p, i) => (
@@ -233,14 +228,6 @@ export function App() {
           </section>
         ))}
       </div>
-      {/* ⚠ EN ESTUDIO */}
-      <LabPanel
-        id={lab.id}
-        setId={lab.setId}
-        reglas={lab.reglas}
-        setReglas={lab.setReglas}
-        par={lab.par}
-      />
     </div>
   )
 }

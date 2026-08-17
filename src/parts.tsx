@@ -43,8 +43,8 @@ export function Item({
 }: {
   piece: Piece
   onOpen: (p: Piece) => void
-  /* ⚠ EN ESTUDIO: la marca que lee el scrubber del índice. Se va con
-     src/proto/. */
+  /* La primera pieza lleva la marca contra la que se alinea el índice:
+     "Web" se apoya en la misma línea que este título. */
   primera?: boolean
 }) {
   return (

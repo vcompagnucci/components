@@ -121,7 +121,7 @@ cálculo del hueco del rótulo la consuma directo.
 | `--type-h3-*` — nombre de pieza | 14 | 20 | **500** | `--ink` |
 | `--type-body-*` — subtítulo, descripción | 14 | 20 | 460 | `--text-secondary` |
 | `--type-meta-*` — la plataforma, en el detalle | 14 | 20 | 460 | `--text-secondary` |
-| `--type-nav-*` — índice lateral | 13 | 16 | 500 label / 460 link | `--ink` / `rgba(18,18,18,.4)` |
+| `--type-nav-*` — índice lateral, rótulo y links | 13 | 16 | 460 | `rgba(18,18,18,.4)` |
 
 Todos llevan `ls: -0.00563rem`, salvo el índice que usa `-0.0025rem`.
 
@@ -150,8 +150,13 @@ Tres es donde está el consenso de sistemas de diseño
 
 1. `--type-h1-fw` y `--type-h3-fw` **empatan en 500**. A "Library" y al
    nombre de pieza los distingue la posición y el contexto, no el peso.
-2. La palabra **"Web" queda en 600 en el separador y 500 en el índice**.
-   Abierto como decisión aparte.
+2. La palabra **"Web" aparece dos veces**: 600 en el separador y 460 al
+   40% en el índice. Estuvo abierto y se cerró aceptándolo. No son dos
+   pesos que casi empatan: son un encabezado y un renglón de lista, y se
+   ven distintos porque son cosas distintas. El índice entero usa un
+   solo juego de tokens, rótulo y links idénticos, que es lo de benji —
+   su `nav h2` y su `nav ul li a` comparten cada propiedad y sólo los
+   separa el aire.
 
 ### La fuente — self-hosteada
 
@@ -271,7 +276,7 @@ al borde de la pantalla. Un número que hace dos trabajos según el ancho.
 | token | valor | |
 |---|---|---|
 | `--index-offset-left` | **80** | MEDIDO |
-| `--index-offset-top` | **80** de base, después medido | ver abajo |
+| `--index-offset-top` | **80** de base, después medido → 237 | ver abajo |
 | `--index-item-gap` | **8** | MEDIDO — los dos referentes coinciden |
 | `--index-label-gap` | **16** | MEDIDO |
 | `--index-group-gap` | **32** | ELEGIDO |
@@ -297,16 +302,52 @@ Cada hueco tiene un solo dueño. Es su estructura, `nav > h2 + ul`.
 una lista — así que para "grupo → grupo" no hay evidencia. Es el mismo
 doble una vez más: **8 · 16 · 32**.
 
-**El `top` se mide, no se calcula.** El primer link cae exactamente sobre
-el título de la primera pieza. El número correcto sería la suma de todo el
-apilado vertical de la página, y escribirlo como `calc` duplicaría la
-estructura entera en una fórmula que nadie actualizaría. Se mide en
-`useLayoutEffect`, antes de pintar, alineando **centros ópticos**: el
-título es 14/20 y el link 13/16, así que las cajas nunca empiezan a la
-misma altura aunque el texto sí. Se redondea a entero — medio píxel de
-desalineación es menos visible que un texto en posición fraccionaria.
-Da 205 a 1440×900; agregar los 16 del rótulo lo corrigió solo, que era
-justamente para lo que se midió.
+### Dónde arranca el índice
+
+**"Web" se apoya en la misma línea que "Button".** El primer rótulo del
+índice contra el título de la primera pieza. Da un `top` de **237** a
+1440 de ancho.
+
+Se eligió mirando, con reglas rojas encima, contra otros dos pares:
+
+| | qué con qué | arranca en | |
+|---|---|---|---|
+| | primer link ↔ primera pieza | 205 | descartada |
+| | rótulo ↔ separador de sección | 186 | descartada |
+| **✓** | **rótulo ↔ primera pieza** | **237** | **elegida** |
+
+Se probaron y se descartaron dos más: rótulo ↔ masthead (82) y el 80
+crudo sin medir, que es lo que hace benji — su `aside` está en
+`top:5rem` y su `<article>` también, o sea que **alinea contenedores y
+no textos**: su "Liveline" del índice cae en 138 y el del artículo en
+80, y no le molesta. Las dos quedaban a 2px una de otra.
+
+**Se alinea por la BASE del texto**, la línea donde se apoyan las
+letras, no por el medio de las cajas: los renglones del índice son 13/16
+y los de la página 14/20. Se mide con una sonda —un `inline-block` de
+alto cero con `vertical-align:baseline`— porque no hay API que la dé.
+
+> Base y centro difieren en `(ascendente − descendente) / 2` por em, que
+> entre 13px y 14px da **0.60px**: acá el redondeo a entero se la come y
+> el resultado es idéntico. Está así igual porque deja de dar idéntico
+> apenas los dos tamaños se separen más.
+
+**Y el `top` se mide, no se calcula.** El número correcto sería la suma
+de todo el apilado vertical de la página, y escribirlo como `calc`
+duplicaría la estructura entera en una fórmula que nadie actualizaría si
+mañana entra un elemento en el medio: quedaría mal y nada lo diría.
+Midiendo se corrige sola, y ya pasó — al darle al rótulo sus 16px de
+aire, el índice se recolocó solo.
+
+En `useLayoutEffect`, antes de pintar, para que no se vea el salto. Y
+redondeado a entero: medio píxel de desalineación es menos visible que
+un texto en posición fraccionaria.
+
+**El costo, anotado:** es el arranque más bajo de los tres, así que es el
+primero que se queda sin lugar. El índice mide 512 con las 19 piezas de
+hoy y su techo es `100vh − top − 32`; en una ventana de 800 de alto eso
+son 531, o sea **19px de sobra**. Pasado eso scrollea por dentro, sin
+barra, que es para lo que está el `overflow`.
 
 ---
 
