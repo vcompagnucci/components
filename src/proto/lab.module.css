@@ -1,0 +1,53 @@
+/* La barra es andamio, no diseño. No usa ningún token de la página a
+   propósito: tiene que verse que no es parte de la página, y tiene que
+   seguir siendo legible con el fondo oscuro puesto. Se borra cuando la
+   decisión se hornea. */
+.barra {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #2c2c2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
+  user-select: none;
+}
+.opcion {
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font: inherit;
+  cursor: pointer;
+}
+.opcion[data-on] {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.opcion sub {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  opacity: 0.55;
+  vertical-align: baseline;
+}
+.sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.pista {
+  padding: 7px 10px 7px 6px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+}
