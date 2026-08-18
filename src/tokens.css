@@ -35,26 +35,30 @@
 
      Se eligió −5 de una rampa de cinco (−3 · −5 · −8 · −12 · −16). */
   --surface: #f8f8f6;
-  /* ⚠ EN ESTUDIO: el valor está bien, la razón que había escrita acá NO.
-     Decía que su hover cae −10 respecto de su página, y eso salía de
-     medir el delta contra el blanco de /pasito — pero el hover ocurre en
-     su HOME, cuyo fondo real es #fafafa. Su card va de #fafafa a
-     #f5f5f5: un paso de −5, no de −10.
+  /* El hover oscurece el relleno y NADA MÁS: ni sombra, ni escala, ni
+     movimiento, ni opacidad. Eso es de josh, y la transición de 150ms
+     también — es el --dur-fill que ya teníamos.
 
-     La regla verdadera es UN ESCALÓN de su rampa, y se verifica en los
-     dos únicos hovers que tiene en las 7 páginas medidas:
+     Sus cajas de demo no sirven de referencia acá porque no reaccionan
+     al hover: no son clickeables. Los únicos dos hovers que tiene en las
+     7 páginas medidas son
        cards de la home   #fafafa → #f5f5f5   (neutral-50 → neutral-100)
        botón de /bloom    #44403c → #57534e   (stone-700 → stone-600)
-     Los dos, un escalón — y el del botón ACLARA, así que la regla no es
-     una dirección sino un paso.
+     Los dos, UN ESCALÓN de su rampa — y el del botón aclara, así que su
+     regla es un paso y no una dirección.
 
-     Nuestro reposo ya está a −5, así que un escalón más da −10 del
-     canvas. El número no cambia; cambia por qué.
+     El paso de acá es de 4, ELEGIDO a ojo entre tres:
+       −3   lo que da copiar su hex literal (#f5f5f5) sobre nuestro
+            fondo, porque su página arranca en 250 y la nuestra en 253
+       −4   éste
+       −5   su escalón de verdad
+     O sea medio escalón, y no sale de ninguna referencia. Con el radio
+     en 8 la card se lee más contenida que con 12 y pide menos hover.
 
-     El hover oscurece el relleno y nada más: ni sombra, ni escala, ni
-     movimiento, ni opacidad. Transición de 150ms, el --dur-fill que ya
-     teníamos, que es también la suya. */
-  --surface-hover: #f3f3f0;
+     (Antes acá decía que su hover cae −10 respecto de su página. Ese
+     delta salía de medir contra el blanco de /pasito, y el hover ocurre
+     en su home, que es #fafafa.) */
+  --surface-hover: #f4f4f1;
   --ink: #111111;
   --text-secondary: #8a8a8a;
 

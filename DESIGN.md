@@ -254,19 +254,60 @@ Se eligió −5 de una rampa de cinco: **−3 · −5 · −8 · −12 · −16*
 la rampa el azul baja 6/5 de lo que bajan rojo y verde, que es su propia
 relación de canal — sin eso el gris se enfría al profundizar.
 
-### El hover — MEDIDO
+### El radio — MEDIDO
+
+```css
+--card-radio: 8px;
+```
+
+Censo de las 7 páginas. Para cajas grandes hay **dos números y no hay un
+tercero**:
+
+| | radio | usos |
+|---|---|---|
+| benji | **8** | 50 en family-values, 4 en liveline |
+| benji | 14 | 3 — sólo el frame hero de `/drawesome`, y no es ×4 |
+| josh | **12** | 11 en su home, 5 en pasito, 2 en bloom |
+| josh | 16 | 6 — sus cajas de `<img>` |
+| josh | 32 | **1** — el demo portada de `/bloom` |
+
+Elegido el **8**: el más repetido de las dos juntas, el único que **las
+dos** usan en cajas grandes, y múltiplo de 4. Lo demás son one-offs de
+una sola página.
+
+En controles chicos las dos referencias coinciden en **4 y 6**, así que
+cuando haya una pieza real ahí no va a haber nada que decidir.
+
+### El hover — ELEGIDO sobre una regla MEDIDA
+
+```css
+--surface-hover: #f4f4f1;   /* paso de −4 desde el reposo */
+```
 
 Oscurece el relleno **y nada más**: ni sombra, ni escala, ni movimiento,
-ni opacidad.
+ni opacidad. Eso es de josh, y la transición de 150ms también — el mismo
+`--dur-fill` que ya teníamos.
 
-Sus cajas de demo no sirven de referencia acá: no reaccionan al hover
-porque **no son clickeables**. Las que sí lo son están en su home —6
-cards de 580×76, radio 12— y ahí el único cambio es el fondo, de
-transparente sobre su página blanca a `#f5f5f5`, o sea **−10**. Nuestro
-mismo −10 da `#f3f3f0`. Su transición es de 150ms, el mismo `--dur-fill`
-que ya teníamos.
+**Sus cajas de demo no sirven de referencia acá: no reaccionan al hover
+porque no son clickeables.** Los únicos dos hovers que tiene en las 7
+páginas medidas son:
 
-Verificado en la página: reposo `(−5,−5,−6)`, hover `(−10,−10,−12)`.
+```
+cards de la home    #fafafa → #f5f5f5    neutral-50 → neutral-100
+botón de /bloom     #44403c → #57534e    stone-700  → stone-600
+```
+
+Los dos, **un escalón** de su rampa — y el del botón **aclara**, así que
+su regla es un paso, no una dirección.
+
+El paso de acá es de **4**, elegido a ojo entre tres: −3 (lo que da
+copiar su hex literal, porque su página arranca en 250 y la nuestra en
+253), −4, y −5 (su escalón de verdad). O sea medio escalón. Con el radio
+en 8 la card se lee más contenida que con 12 y pide menos hover.
+
+> Antes acá decía que su hover cae −10 respecto de su página. Ese delta
+> salía de medir contra el blanco de `/pasito`, y el hover ocurre en su
+> home, que es `#fafafa`.
 
 ### Lo que se fue
 
