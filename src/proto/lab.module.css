@@ -65,18 +65,93 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 10px;
 }
-/* Las dos muestras van sobre un chip del color del canvas, porque los
-   alfa sólo dicen la verdad compuestos sobre el fondo real. */
-.muestras {
-  display: flex;
+/* La muestra va sobre un chip del color del canvas: un gris de texto
+   sólo dice la verdad sobre el fondo donde va a vivir. */
+.muestraCaja {
+  position: relative;
   padding: 2px;
   border-radius: 4px;
   background: #fdfdfc;
+  line-height: 0;
 }
 .muestra {
-  width: 9px;
+  display: inline-block;
+  width: 14px;
   height: 12px;
   border-radius: 2px;
+}
+
+/* ─── el scrubber ─── */
+.pista {
+  position: relative;
+  width: 100%;
+}
+.scrubber {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.scrubber:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.relleno {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+}
+.marca {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+.etiqueta {
+  position: relative;
+  flex: 1;
+}
+.valor {
+  position: relative;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.regla {
+  position: relative;
+  height: 13px;
+  margin-top: 4px;
+}
+.numero {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 0 3px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.38);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms ease-out;
+}
+.numero:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+.numero[data-on] {
+  color: #fff;
 }
 .leyenda {
   margin: 4px 0 0;
