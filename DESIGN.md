@@ -309,6 +309,41 @@ en 8 la card se lee más contenida que con 12 y pide menos hover.
 > salía de medir contra el blanco de `/pasito`, y el hover ocurre en su
 > home, que es `#fafafa`.
 
+### Y benji, para contrastar — MEDIDO
+
+Su CSS tiene **65 reglas de `:hover`**. Lo que tocan, por frecuencia:
+`color` 26 · `background` 16 · **`transform` 15** · `opacity` 8.
+
+**Sí usa `transform`, pero nunca en una caja.** Los 15 son controles:
+`Toolbar_tool` sube `translateY(-1px)`, `Toolbar_chip` escala 1.1,
+`Toolbar_custom` 1.14, el knob del slider 1.14, un link 1.05.
+
+**Y su caja clickeable canjea, no suma:**
+
+```css
+.styles_container__joqXD             { --border:#ebebeb; --color:#111 }
+.styles_container__joqXD[href]:hover { --background:#f6f6f6; --border:transparent }
+```
+
+Sólo reacciona cuando tiene `href` — el mismo caso que el nuestro, que la
+card es un botón. En reposo la define una **línea**; en hover la línea se
+apaga y aparece el **relleno**.
+
+Sus tres profundidades de relleno, contra nuestro canvas:
+
+| | | dónde |
+|---|---|---|
+| `#f6f6f6` | −7 | superficies: su callout clickeable, su nav trigger |
+| `#f2f2f2` | −11 | controles: botón secundario, `.styles_controls` |
+| `#e5e5e5` | −24 | botón terciario |
+
+Se probaron las cinco mecánicas sobre nuestra página —su superficie
+(paso −2), su control (−6), su canje (que cambia también el reposo), y
+relleno más lift— y se quedó lo que ya había. Dos razones: su `#f6f6f6`
+da un paso de sólo −2 porque él parte de cero y nosotros ya partimos de
+−5 (otra vez su valor ≠ su contraste), y el lift él nunca lo mezcla con
+relleno: uno es de controles y el otro de cajas.
+
 ### Lo que se fue
 
 `--card-ring` y `--a4` existían sólo para el anillo de la card. Elegida
