@@ -22,8 +22,18 @@ import css from './lab.module.css'
    2 · EL CANVAS OSCURO NO ES NEGRO. josh 10 · jakub 16 · emil 17
        · benji 19. Ninguno usa #000.
 
-   3 · EL INK OSCURO NO ES BLANCO. josh 250 · jakub 238 · emil 238
-       · benji 244. Ninguno usa #fff.
+   3 · EL INK OSCURO CASI NUNCA ES BLANCO — pero hay una
+       excepción, y es la que importa. josh 250 · jakub 238 ·
+       emil 238 · benji 244 en sus páginas personales. En cambio
+       animations.dev, que es de emil y que SÍ enciende el oscuro
+       con el sistema (html class="dark"), pinta sus títulos en
+       255 clavado, medido en runtime ×119.
+
+       Ahí él afina la misma escala Geist por sitio: gray-1200
+       oscuro es #eeeeec en emilkowal.ski y #fff en animations.dev,
+       y gray-1100 claro es #63635e en uno y #43423d en el otro.
+       No es una escala que se traga entera, es una base que se
+       ajusta.
 
    4 · LAS SUPERFICIES INVIERTEN LA DIRECCIÓN, no el orden. La
        escala de emil baja en claro (253·249·241·233·226) y sube
@@ -50,6 +60,21 @@ import css from './lab.module.css'
    descartaron —benji era el único que invertía la temperatura
    (canvas frío, ink cálido) y jakub caía a un paso de emil en
    todo salvo el tinte.
+
+   Y ESO DECIDE MÁS DE LO QUE PARECE. Nuestra regla es
+   `anotación = EL EXTREMO @ α` y `nav = EL INK @ α`, así que lo
+   único que separa a las dos es CUÁNTO ENTRA EL INK DESDE EL
+   EXTREMO:
+
+     claro (horneado)        negro 0    → ink 17    entra 17
+     emilkowal.ski oscuro    blanco 255 → ink 238   entra 17
+     josh oscuro             blanco 255 → ink 250   entra  5
+     animations.dev oscuro   blanco 255 → ink 255   entra  0
+
+   Con 17 el par se comporta igual que en claro. Con 5 se aplasta
+   a Δ 1.6 Lc. Con 0 las dos bases SON el mismo color y la regla
+   deja de existir. O sea que el ink no es libre: nuestra propia
+   regla le pone un piso.
 
    Todos los pasos (surface, hover, selección, subrayado) se
    derivan preservando el ΔL PERCEPTUAL del modo claro, no el
