@@ -126,10 +126,10 @@
    del viewport. Él la marca subiendo el color y nada más — sin barra ni
    punto. */
 .indexLink[data-active] {
-  color: var(--ink);
+  color: var(--index-activo-c);
 }
 .indexLink:hover {
-  color: var(--ink);
+  color: var(--index-activo-c);
 }
 /* El índice se esconde y no se reemplaza: es una decisión, no una
    deuda. Medido a 390px, ninguna de las dos referencias da navegación
@@ -332,7 +332,7 @@
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
   line-height: var(--type-body-lh);
-  color: var(--type-body-c);
+  color: var(--detalle-desc-c);
 }
 /* Al abrir una pieza la caja crece. La relación es la de benji y no un
    número inventado: adentro de una página larga sus demos miden 260, y

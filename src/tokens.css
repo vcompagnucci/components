@@ -229,6 +229,13 @@
 
   --focus-ring: 0 0 0 2px var(--canvas),
     0 0 0 3.5px color-mix(in srgb, var(--ink) 50%, transparent);
+  /* ⚠ EN ESTUDIO: el toggle "como él" reemplaza el anillo por su receta
+     —outline de 2px, instantáneo, despegado del texto— y baja la
+     descripción del detalle a ink, que es prosa. */
+  --focus-outline: none;
+  --focus-transition: initial;
+  --detalle-desc-c: var(--type-body-c);
+  --index-activo-c: var(--ink);
 
   /* motion. La página NO tiene animación de entrada: al abrir una pieza
      y al volver no se anima nada. Lo único que se mueve es el hover, y
@@ -419,6 +426,7 @@ button {
 }
 
 :focus-visible {
-  outline: none;
+  outline: var(--focus-outline);
   box-shadow: var(--focus-ring);
+  transition: var(--focus-transition);
 }

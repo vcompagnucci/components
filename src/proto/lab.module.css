@@ -171,3 +171,20 @@
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
 }
+
+/* la línea que dice qué está cambiando el toggle de uso */
+.detalle {
+  flex: 1;
+  padding: 0 6px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.fila {
+  align-items: center;
+  margin-bottom: 6px;
+}
+.sw {
+  flex: 0 0 auto;
+}
