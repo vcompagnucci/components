@@ -60,27 +60,61 @@
      en su home, que es #fafafa.) */
   --surface-hover: #f4f4f1;
   --ink: #111111;
-  /* El gris de lo que ANOTA: el subtítulo del masthead y la plataforma
-     del detalle. Ya no lleva prosa — la descripción del detalle pasó a
-     ink al tomar el uso de benji, y ésa era la única.
 
-     Elegido con un slider sobre la página real, contra cuatro marcas
-     medidas y compuestas sobre este fondo:
-        99   emil · su secundario de prosa            5.91:1
-       130   emil · sus epígrafes de 12px             3.78:1
-       138   lo que había, heredado de Carousels      3.39:1
-       152   benji · fecha, epígrafes, notas al pie   2.84:1
-       163   éste                                     2.48:1
+  /* ═══════════ EL NIVEL SECUNDARIO — UN ALFA, DOS BASES ═══════════
+     Es la estructura de benji, verificada en su CSS servido. Él
+     declara UN SOLO token de color de texto —--body-color:#111— y
+     ningún token de gris. Todo lo que se ve gris es su negro o su ink
+     a un alfa, y el alfa manda: .4 aparece en 40 declaraciones, el
+     siguiente (.5) en 8.
 
-     Queda más claro que los cuatro, y a 4 unidades de --type-nav-c
-     (159): en la práctica el sistema tiene DOS colores de texto, ink y
-     un gris. Es la misma situación de benji, cuyos dos grises están a 7.
+     Sus "dos grises" salen de ESE MISMO 40% escrito desde dos bases:
+       anotación   rgba(0,0,0,.4)      → 152   fecha, "Index", epígrafes
+       nav         hsla(0,0%,7%,.4)    → 159   su índice de página
+     Los 7 de diferencia no los decidió: son la fuga de haber escrito la
+     misma regla desde negro puro en un archivo y desde su ink en otro.
+     Su sistema es de UN nivel secundario, no de dos.
 
-     Va sólido y no en alfa porque es el valor exacto que se eligió
-     mirando. Si algún día hay texto secundario sobre la card, el alfa
-     equivalente que compone igual sobre cualquier fondo es
-     rgba(0,0,0,.356). */
-  --text-secondary: #a3a3a3;
+     Acá se toma la regla y se le cambia el número. El alfa lo fija la
+     anotación, que es el único de los dos que se eligió mirando: 163,
+     con slider sobre la página real, contra cuatro marcas medidas y
+     compuestas sobre este fondo —
+        99   emil · su secundario de prosa
+       130   emil · sus epígrafes de 12px
+       138   lo que había, heredado de Carousels
+       152   benji · fecha, epígrafes, notas al pie
+       163   éste, más claro que los cuatro
+     y 163 sobre #fdfdfc sale de negro puro a 35.5%.
+
+     De ahí caen las dos, medidas por píxel (α=.4 reproduce sus 152 y
+     159 clavados, que es lo que valida el modelo):
+       anotación   negro  @ 35.5%  → 163   el valor elegido
+       nav         --ink  @ 35.5%  → 169
+
+     DOS CONSECUENCIAS, las dos buscadas:
+
+     1. LA NAV SE MUEVE. Venía en 159 porque se copió de su
+        hsla(0,0%,7%,.4) al hornear la tipografía del índice, y nunca se
+        eligió. Bajo esta regla no se elige: se deriva. Elegir la
+        anotación más clara que él la arrastra 10 unidades.
+
+     2. EL ORDEN SE ARREGLA SOLO. Antes la anotación quedaba MÁS CLARA
+        que la nav (163 contra 159), al revés que él. Ahora la nav es la
+        más clara de las dos, como en su página, y no porque se haya
+        decidido: cae de que ink es más claro que negro puro. El gap
+        queda en 6; el suyo es 7.
+
+     El alfa va en un token propio para que la regla sea UNA sola cosa y
+     no dos que hay que mantener sincronizadas — que es exactamente cómo
+     se desincronizaron las anteriores. Y va en alfa y no en sólido
+     porque así compone sobre cualquier fondo: el día que haya texto
+     secundario sobre la card, sale bien sin tocar nada.
+
+     Lo de acá es el ÚNICO nivel secundario del sistema. El otro alfa
+     que existe es --index-activo-c (80%), que es un estado, no un
+     nivel. */
+  --secundario-alfa: 35.5%;
+  --text-secondary: color-mix(in srgb, #000 var(--secundario-alfa), transparent);
 
   /* LOS LINKS. El link NO tiene color propio: hereda el del bloque donde
      cae. Lo que lo marca es un subrayado en un tono aparte, mucho más
@@ -216,7 +250,12 @@
   --type-nav-lh: 16px;
   --type-nav-ls: -0.0025rem;
   --type-nav-fw: 460;
-  --type-nav-c: rgba(18, 18, 18, 0.4);
+  /* La otra base del nivel secundario: el mismo alfa que la anotación,
+     desde --ink en vez de negro puro. Compone en 169. Es la posición de
+     benji —su nav sale de su ink y su anotación de negro, y por eso la
+     nav le queda la más clara de las dos. La explicación entera está
+     arriba, en --secundario-alfa. */
+  --type-nav-c: color-mix(in srgb, var(--ink) var(--secundario-alfa), transparent);
 
   /* ═══════════ ESPACIADO ═══════════
      Nombres al modo de apple: DUEÑO → PARTE → PROPIEDAD → LADO, siempre

@@ -216,21 +216,33 @@ Vinieron heredados del `DESIGN.md` de Carousels sin poder verificarse.
 sus variables declaradas —`--body-bg: #fdfdfc` y `--body-color: #111`—
 y confirmados en el píxel pintado.
 
-### Los grises de texto — ELEGIDO sobre reglas MEDIDAS
+### Los grises de texto — UN ALFA, DOS BASES
 
 ```css
---ink:             #111111;              /* 18.55:1 */
---text-secondary:  #a3a3a3;              /*  2.48:1 */
---type-nav-c:      rgba(18,18,18,.4);    /*  2.60:1 → 159 */
+--ink:              #111111;                                          /* 18.55:1 */
+--secundario-alfa:  35.5%;
+--text-secondary:   color-mix(in srgb, #000        var(--secundario-alfa), transparent);  /* → 163 */
+--type-nav-c:       color-mix(in srgb, var(--ink)  var(--secundario-alfa), transparent);  /* → 169 */
 ```
 
-**Tres tokens, pero dos colores.** El secundario (163) y el del índice
-(159) quedan a 4 unidades: a ojo son el mismo gris. Es la misma
-situación de benji, cuyos dos grises están a 7 — el suyo también es un
-color escrito dos veces.
+**El sistema tiene UN nivel secundario, no dos grises.** Es la
+estructura de benji, verificada en su CSS servido: declara un solo token
+de color de texto (`--body-color:#111`) y **ningún** token de gris. Todo
+lo gris es su negro o su ink a un alfa, y el alfa manda —`.4` aparece en
+40 declaraciones, el siguiente (`.5`) en 8. Sus dos valores salen de ese
+mismo 40% escrito desde dos bases:
 
-El `#a3a3a3` se eligió con un slider sobre la página real, contra cuatro
-marcas medidas y compuestas sobre nuestro fondo:
+| | base | alfa | compone | dónde |
+|---|---|---|---|---|
+| benji · anotación | negro puro | .4 | 152 | fecha, "Index", epígrafes, notas |
+| benji · nav | su ink (7%) | .4 | 159 | su índice de página |
+| **nuestra · anotación** | **negro puro** | **.355** | **163** | subtítulo del masthead, plataforma del detalle |
+| **nuestra · nav** | **`--ink`** | **.355** | **169** | rótulos y links del índice |
+
+Acá se toma su regla y se le cambia el número. **El alfa lo fija la
+anotación**, que es el único de los dos que se eligió mirando: 163, con
+slider sobre la página real, contra cuatro marcas medidas y compuestas
+sobre nuestro fondo.
 
 | | | contraste |
 |---|---|---|
@@ -240,9 +252,33 @@ marcas medidas y compuestas sobre nuestro fondo:
 | benji · fecha, epígrafes, notas | 152 | 2.84:1 |
 | **elegido** | **163** | **2.48:1** |
 
+163 sobre `#fdfdfc` sale de negro puro a **35.5%**, y de ahí cae la nav
+sola: `--ink` al mismo 35.5% da **169**. Verificado por píxel — con
+`α=.4` las dos bases reproducen sus 152 y 159 clavados, que es lo que
+valida el modelo.
+
+**Dos consecuencias, las dos buscadas.** La nav **se mueve** de 159 a
+169: venía copiada de su `hsla(0,0%,7%,.4)` desde que se horneó la
+tipografía del índice y nunca se eligió — bajo esta regla no se elige,
+se deriva. Y el orden **se arregla solo**: antes la anotación quedaba
+más clara que la nav (163 contra 159), al revés que él; ahora la nav es
+la más clara de las dos, y no por decisión sino porque `--ink` es más
+claro que negro puro. El gap queda en 6; el suyo es 7.
+
+El alfa vive en su propio token para que la regla sea **una sola cosa** y
+no dos números que hay que mantener sincronizados — que es exactamente
+cómo se desincronizaron los anteriores. Y va en alfa y no en sólido
+porque así compone sobre cualquier fondo: el día que haya texto
+secundario sobre la card sale bien sin tocar nada.
+
 > Todo contraste acá está calculado **componiendo el alfa sobre el
 > fondo**. Sin eso `rgba(0,0,0,.4)` puntúa como negro puro y da 20:1 en
 > vez de 2.84:1.
+>
+> Bajo APCA los dos quedan **debajo del piso** (Lc 48 y 44 contra los 60
+> que pide para texto que no es cuerpo). Benji también: 54 y 50. Es una
+> decisión tomada a conciencia, no un descuido — lo que va en gris acá
+> anota, no se lee.
 
 **Emil parte el gris en dos donde benji tiene uno solo**: 99 para prosa
 secundaria y 130 para epígrafes. Su canvas es `(253,253,252)` al píxel,
@@ -767,13 +803,10 @@ primera pieza real adentro del rectángulo:**
 **Decidible ya:**
 
 - si el sistema suma un tamaño más grande y uno más chico
-- los grises de texto: `--text-secondary` es `#8a8a8a` sólido, y benji
-  usa el mismo ink con alfa (`.4` y `.6`) donde josh usa un gris aparte
-  (`#525252`). Sin verificar cuál seguimos
-- selección y foco: él declara `--selection-bg: #ededed` y
-  `--focus-color: rgba(0,122,255,.5)`; lo nuestro viene del design.md de
-  Carousels sin contrastar
-- modo oscuro — no existe ni como pregunta
+- selección de texto: él declara `--selection-bg: #ededed` y
+  `--selection-color: #111`; nosotros no tenemos nada
+- modo oscuro — no existe ni como pregunta, y debería declinarse
+  explícitamente en vez de quedar olvidado
 
 **Recién cerrado:** la proporción de la card, su superficie, su hover y
 su radio. `--radius-tbd` ya no existe: es `--card-radio: 8px`.
