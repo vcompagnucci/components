@@ -35,12 +35,25 @@
 
      Se eligió −5 de una rampa de cinco (−3 · −5 · −8 · −12 · −16). */
   --surface: #f8f8f6;
-  /* El hover oscurece el relleno y nada más — ni sombra, ni movimiento,
-     ni opacidad. Medido de sus 6 cards clickeables de la home
-     (580×76, radio 12): en reposo son transparentes sobre su página
-     blanca y en hover pasan a #f5f5f5, o sea −10 respecto del fondo.
-     Acá el mismo −10 da #f3f3f0. Su transición es de 150ms, el mismo
-     --dur-fill que ya teníamos. */
+  /* ⚠ EN ESTUDIO: el valor está bien, la razón que había escrita acá NO.
+     Decía que su hover cae −10 respecto de su página, y eso salía de
+     medir el delta contra el blanco de /pasito — pero el hover ocurre en
+     su HOME, cuyo fondo real es #fafafa. Su card va de #fafafa a
+     #f5f5f5: un paso de −5, no de −10.
+
+     La regla verdadera es UN ESCALÓN de su rampa, y se verifica en los
+     dos únicos hovers que tiene en las 7 páginas medidas:
+       cards de la home   #fafafa → #f5f5f5   (neutral-50 → neutral-100)
+       botón de /bloom    #44403c → #57534e   (stone-700 → stone-600)
+     Los dos, un escalón — y el del botón ACLARA, así que la regla no es
+     una dirección sino un paso.
+
+     Nuestro reposo ya está a −5, así que un escalón más da −10 del
+     canvas. El número no cambia; cambia por qué.
+
+     El hover oscurece el relleno y nada más: ni sombra, ni escala, ni
+     movimiento, ni opacidad. Transición de 150ms, el --dur-fill que ya
+     teníamos, que es también la suya. */
   --surface-hover: #f3f3f0;
   --ink: #111111;
   --text-secondary: #8a8a8a;
@@ -287,7 +300,17 @@
   /* una pieza, de la anterior. El de benji, medido. */
   --piece-gap: 48px;
 
-  /* PROVISIONAL — pendiente de decisión */
+  /* ⚠ EN ESTUDIO — censo de radios en las 7 páginas de las dos
+     referencias. Para cajas grandes son dos números y no hay un tercero:
+
+       benji   8    50 usos en family-values, 4 en liveline
+               14   3 usos, sólo el frame hero de /drawesome
+       josh    12   11 en su home, 5 en pasito, 2 en bloom
+               16   6 usos, sus cajas de <img> en pasito
+               32   1 uso, el demo portada de /bloom
+
+     En controles chicos los dos coinciden: 4 y 6. El 12 de acá es el de
+     josh, que es coherente con haber tomado su regla de superficie. */
   --radius-tbd: 12px;
 
   /* ─── LA CAJA DE LA PIEZA ───
