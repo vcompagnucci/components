@@ -45,8 +45,11 @@ import css from './lab.module.css'
    59.2% da Lc 49.3 — sostiene el contraste en vez de perderlo,
    que es lo que este sistema necesita.
 
-   LO QUE QUEDA A ELECCIÓN es de dónde sale el par canvas/ink, y
-   ahí las cuatro no coinciden. Ése es el eje de las variantes.
+   LO QUE QUEDA A ELECCIÓN es de dónde sale el par canvas/ink.
+   Quedan DOS en carrera: emil y josh. Benji y jakub se
+   descartaron —benji era el único que invertía la temperatura
+   (canvas frío, ink cálido) y jakub caía a un paso de emil en
+   todo salvo el tinte.
 
    Todos los pasos (surface, hover, selección, subrayado) se
    derivan preservando el ΔL PERCEPTUAL del modo claro, no el
@@ -76,22 +79,6 @@ type Paleta = {
 
 const PALETAS: Paleta[] = [
   {
-    nombre: 'benji',
-    fuente: '.sd[data-theme=auto] de /drawesome',
-    canvas: '#131315',
-    ink: '#f4f3f1',
-    surface: '#161618',
-    hover: '#19191b',
-    surfaceAncho: '#1a1a1c',
-    hoverAncho: '#202022',
-    selection: '#1e1e20',
-    underline: '#2d2d2f',
-    underlineHover: '#89898b',
-    activo: '#c7c6c5',
-    focus: 'rgba(61, 155, 255, 0.5)', // su #3d9bff oscuro
-    nota: 'canvas FRÍO, ink cálido.\nInvierte la temperatura.',
-  },
-  {
     nombre: 'emil',
     fuente: 'su escala .dark, 12 pasos',
     canvas: '#111110',
@@ -106,22 +93,6 @@ const PALETAS: Paleta[] = [
     activo: '#c2c2c0',
     focus: 'rgba(61, 155, 255, 0.5)',
     nota: 'su gray-100 CLARO es\nnuestro canvas exacto.\nCálido en los dos modos.',
-  },
-  {
-    nombre: 'jakub',
-    fuente: 'jakub.kr, autorado en CIE Lab',
-    canvas: '#101010',
-    ink: '#eeeeee',
-    surface: '#131313',
-    hover: '#161616',
-    surfaceAncho: '#171717',
-    hoverAncho: '#1c1c1c',
-    selection: '#1b1b1b',
-    underline: '#292929',
-    underlineHover: '#858585',
-    activo: '#c2c2c2',
-    focus: 'rgba(61, 155, 255, 0.5)',
-    nota: 'neutro puro en los dos.\nEl único que ya declara\ncolor-scheme, como nosotros.',
   },
   {
     nombre: 'josh',
