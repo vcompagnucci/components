@@ -60,7 +60,43 @@
      en su home, que es #fafafa.) */
   --surface-hover: #f4f4f1;
   --ink: #111111;
-  --text-secondary: #8a8a8a;
+  /* El gris de lo que ANOTA: el subtítulo del masthead y la plataforma
+     del detalle. Ya no lleva prosa — la descripción del detalle pasó a
+     ink al tomar el uso de benji, y ésa era la única.
+
+     Elegido con un slider sobre la página real, contra cuatro marcas
+     medidas y compuestas sobre este fondo:
+        99   emil · su secundario de prosa            5.91:1
+       130   emil · sus epígrafes de 12px             3.78:1
+       138   lo que había, heredado de Carousels      3.39:1
+       152   benji · fecha, epígrafes, notas al pie   2.84:1
+       163   éste                                     2.48:1
+
+     Queda más claro que los cuatro, y a 4 unidades de --type-nav-c
+     (159): en la práctica el sistema tiene DOS colores de texto, ink y
+     un gris. Es la misma situación de benji, cuyos dos grises están a 7.
+
+     Va sólido y no en alfa porque es el valor exacto que se eligió
+     mirando. Si algún día hay texto secundario sobre la card, el alfa
+     equivalente que compone igual sobre cualquier fondo es
+     rgba(0,0,0,.356). */
+  --text-secondary: #a3a3a3;
+
+  /* LOS LINKS. El link NO tiene color propio: hereda el del bloque donde
+     cae. Lo que lo marca es un subrayado en un tono aparte, mucho más
+     claro que el texto. Es lo que hacen DOS de las tres referencias:
+
+       benji  pseudo-elemento de 1px  #d9d9d9  → hover #666
+       emil   text-decoration real    #bcbbb5 a 1.5px
+
+     Acá se usa el mecanismo de emil —text-decoration-color, que no
+     necesita position:relative ni un ::before— con los valores de benji,
+     porque nuestro texto es de 14px y no de 16: una línea de 1px le
+     queda más proporcionada que una de 1.5.
+
+     El hover mueve el SUBRAYADO, no el texto. */
+  --link-underline: #d9d9d9;
+  --link-underline-hover: #666666;
 
   /* rampa alfa */
   /* --a1 lo usa el foco. --a4 y --card-ring se fueron con el anillo de
@@ -436,6 +472,28 @@ button {
   font: inherit;
   color: inherit;
   letter-spacing: inherit;
+}
+
+/* El link hereda el color de su bloque y lo marca un subrayado aparte,
+   mucho más claro. Es la regla de benji y de emil, las dos referencias
+   que tienen prosa con links. Ninguno de los dos usa el color del texto
+   para decir que algo es clickeable.
+
+   Hoy la página no tiene ningún <a>: esto es la regla lista para cuando
+   el detalle tenga texto. Los links del índice y el botón de volver son
+   <button>, así que no los toca.
+
+   El hover mueve el SUBRAYADO, no el texto — por eso la transición va
+   sobre text-decoration-color y nada más. */
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur-fill) var(--ease-out);
+}
+a:hover {
+  text-decoration-color: var(--link-underline-hover);
 }
 
 :focus-visible {

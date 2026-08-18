@@ -216,6 +216,90 @@ Vinieron heredados del `DESIGN.md` de Carousels sin poder verificarse.
 sus variables declaradas —`--body-bg: #fdfdfc` y `--body-color: #111`—
 y confirmados en el píxel pintado.
 
+### Los grises de texto — ELEGIDO sobre reglas MEDIDAS
+
+```css
+--ink:             #111111;              /* 18.55:1 */
+--text-secondary:  #a3a3a3;              /*  2.48:1 */
+--type-nav-c:      rgba(18,18,18,.4);    /*  2.60:1 → 159 */
+```
+
+**Tres tokens, pero dos colores.** El secundario (163) y el del índice
+(159) quedan a 4 unidades: a ojo son el mismo gris. Es la misma
+situación de benji, cuyos dos grises están a 7 — el suyo también es un
+color escrito dos veces.
+
+El `#a3a3a3` se eligió con un slider sobre la página real, contra cuatro
+marcas medidas y compuestas sobre nuestro fondo:
+
+| | | contraste |
+|---|---|---|
+| emil · secundario de prosa | 99 | 5.91:1 |
+| emil · epígrafes de 12px | 130 | 3.78:1 |
+| lo que había, de Carousels | 138 | 3.39:1 |
+| benji · fecha, epígrafes, notas | 152 | 2.84:1 |
+| **elegido** | **163** | **2.48:1** |
+
+> Todo contraste acá está calculado **componiendo el alfa sobre el
+> fondo**. Sin eso `rgba(0,0,0,.4)` puntúa como negro puro y da 20:1 en
+> vez de 2.84:1.
+
+**Emil parte el gris en dos donde benji tiene uno solo**: 99 para prosa
+secundaria y 130 para epígrafes. Su canvas es `(253,253,252)` al píxel,
+el mismo que el de benji y el nuestro.
+
+> `raphaelsalaja.com` no se pudo medir: la red devuelve una página de
+> bloqueo de FortiGate en lugar del sitio.
+
+### Cómo se USA el color — MEDIDO, la forma de benji
+
+El mapa completo está en `.context/recon/COLOR.md`. Lo que rige acá:
+
+**1 · Todo lo que se LEE va en ink.** Párrafos, encabezados de los tres
+niveles, `strong`, ítems de lista. Nunca se agrisa contenido de lectura;
+la jerarquía la hace el peso y el color no participa.
+
+**2 · El gris es para lo que ANOTA.** Le quedan el subtítulo del masthead
+y la plataforma del detalle. **La descripción del detalle pasó a ink** al
+tomar esta regla: es prosa.
+
+**3 · El activo del índice no llega al ink.** Se queda en 65
+(`rgba(18,18,18,.8)`), igual que su hover. Es una sola declaración suya
+para los dos estados. La pieza que estás mirando se destaca sin ser lo
+más oscuro de la pantalla: eso queda para los títulos.
+
+**4 · Los links no tienen color propio.**
+
+```css
+a { color: inherit; text-decoration: underline;
+    text-decoration-color: #d9d9d9; text-decoration-thickness: 1px }
+a:hover { text-decoration-color: #666 }
+```
+
+Heredan el color de su bloque; lo que los marca es un subrayado en un
+tono aparte. **Dos de las tres referencias hacen exactamente esto** —
+benji con un pseudo-elemento de 1px `#d9d9d9`, emil con
+`text-decoration-color: #bcbbb5` a 1.5px. Acá se usa el mecanismo de
+emil, que no necesita `position:relative` ni `::before`, con los valores
+de benji, porque nuestro texto es de 14px y no de 16.
+
+**El hover mueve el subrayado, no el texto.** La transición corre sobre
+`text-decoration-color` y nada más.
+
+> Hoy la página no tiene ningún `<a>`. Es la regla lista para cuando el
+> detalle lleve texto; los links del índice y el botón de volver son
+> `<button>` y no la tocan.
+
+**5 · El foco no anima.**
+
+```css
+:focus-visible { outline: 2px solid rgba(0,122,255,.5); transition: none }
+```
+
+`transition:none` contra los 200ms que tiene todo lo demás en su página.
+Reemplaza un anillo de dos capas con `color-mix` que venía del
+`DESIGN.md` de Carousels y nunca se pudo contrastar.
+
 ### La superficie — la regla de josh
 
 ```css
