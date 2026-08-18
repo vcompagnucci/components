@@ -53,7 +53,7 @@ export const PIELES: Piel[] = [
     id: 'elevada',
     nombre: 'elevada',
     fuente:
-      'canvas #fdfdfc · card #ffffff · sin anillo propio: la levanta una RAMPA de 7 capas — 1px al .04 y seis sombras cada vez más chicas y más tenues. Es la que benji declara como --overlay-shadow; está en su CSS pero con 0 usos en las páginas medidas, la tiene reservada para overlays',
+      'canvas #fdfdfc · card #ffffff · RAMPA de 7 capas, la que benji declara como --overlay-shadow (en su CSS con 0 usos: la reserva para overlays). NO es la del tweet — ajustada contra ese perfil da el PEOR error de todos los candidatos, 10 a 15 contra 0.74: es mucho más difusa, se extiende 26px donde la del tweet llega a 10',
     medido: true,
     vars: {
       '--canvas': '#fdfdfc',
@@ -62,6 +62,21 @@ export const PIELES: Piel[] = [
         '0 0 0 1px rgba(0,0,0,.04), 0 1.625rem 3.375rem rgba(0,0,0,.04), 0 1rem 2rem rgba(0,0,0,.03), 0 0.625rem 1rem rgba(0,0,0,.024), 0 0.3125rem 0.5rem rgba(0,0,0,.02), 0 0.125rem 0.25rem rgba(0,0,0,.016), 0 0 0.125rem rgba(0,0,0,.01)',
       '--card-sombra-hover':
         '0 0 0 1px rgba(0,0,0,.06), 0 2.25rem 4.5rem rgba(0,0,0,.055), 0 1.375rem 2.75rem rgba(0,0,0,.04), 0 0.875rem 1.375rem rgba(0,0,0,.032), 0 0.4375rem 0.6875rem rgba(0,0,0,.026), 0 0.1875rem 0.375rem rgba(0,0,0,.02), 0 0 0.125rem rgba(0,0,0,.012)',
+    },
+  },
+  {
+    id: 'tweet',
+    nombre: 'tweet',
+    fuente:
+      'canvas rgb(244,243,236) CREMA · card #ffffff · sin anillo, sólo sombra. Medido del PNG: el fondo crema es lo que hace que la sombra se lea. Perfil de oscurecimiento debajo del borde 43·21·14·9·5·4·4·3·2·1·0, alcance 10px, pico 17%. La sombra está ajustada contra ese perfil (error 0.74 sobre 43) y verificada renderizando y volviendo a medir',
+    medido: true,
+    vars: {
+      '--canvas': 'rgb(244,243,236)',
+      '--surface': '#ffffff',
+      '--card-sombra':
+        '0 1px 2px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.06), 0 4px 8px rgba(0,0,0,.04)',
+      '--card-sombra-hover':
+        '0 2px 4px rgba(0,0,0,.16), 0 4px 8px rgba(0,0,0,.07), 0 8px 16px rgba(0,0,0,.05)',
     },
   },
   {
@@ -107,7 +122,20 @@ export function useLab() {
   }, [id])
 
   const piel = PIELES.find((p) => p.id === id) ?? PIELES[0]
-  return { piel, setId, vars: piel.vars as React.CSSProperties }
+
+  /* Las variables van en el ROOT y no en .page. Quien pinta el canvas es
+     `html`, o sea un ancestro: escribiendo --canvas más abajo el fondo no
+     cambiaba nunca y las dos opciones que lo mueven —josh y tweet— se
+     estaban viendo con el fondo viejo. */
+  useEffect(() => {
+    const raiz = document.documentElement
+    for (const [k, v] of Object.entries(piel.vars)) raiz.style.setProperty(k, v)
+    return () => {
+      for (const k of Object.keys(piel.vars)) raiz.style.removeProperty(k)
+    }
+  }, [piel])
+
+  return { piel, setId }
 }
 
 export function LabPanel({ piel, setId }: { piel: Piel; setId: (v: string) => void }) {

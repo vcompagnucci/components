@@ -208,7 +208,7 @@ export function App() {
 
   if (selected) {
     return (
-      <div className={css.page} style={lab.vars}>
+      <div className={css.page}>
         <Detail piece={selected} onBack={back} />
         <LabPanel piel={lab.piel} setId={lab.setId} />
       </div>
@@ -216,7 +216,7 @@ export function App() {
   }
 
   return (
-    <div className={css.page} style={lab.vars}>
+    <div className={css.page}>
       <Index activa={activa} />
       <Masthead />
       <div className={css.content}>
