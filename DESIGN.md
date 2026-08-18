@@ -356,6 +356,65 @@ de benji, porque nuestro texto es de 14px y no de 16.
 Reemplaza un anillo de dos capas con `color-mix` que venía del
 `DESIGN.md` de Carousels y nunca se pudo contrastar.
 
+**6 · La selección promueve a ink.**
+
+```css
+--selection-bg:    #ededed;
+--selection-color: var(--ink);
+::selection { background: var(--selection-bg); color: var(--selection-color) }
+```
+
+Las tres referencias tienen regla global y no dicen lo mismo:
+
+| | regla | fondo | color del texto | secundario seleccionado |
+|---|---|---|---|---|
+| **benji** | `color` + `background`, por tokens | `#ededed` | **forzado a `#111`** | 16.13:1 |
+| josh | `color:#fff; background:#000` | negro | forzado a blanco | 21.00:1 |
+| emil | **sólo** `background` | `#e2e1de` | **no lo toca** | **2.00:1** |
+
+Se toma la de benji, y **lo que la decide es forzar el color**. Emil
+puede no hacerlo porque su secundario de prosa está en 99; el nuestro
+está en 160, y 160 sobre su `#e2e1de` da **2.00:1** — el subtítulo del
+masthead se volvería ilegible justo mientras lo seleccionás.
+
+Y no es una regla nueva: es la **regla 1** aplicada a un estado. Todo lo
+que se lee va en ink, y seleccionar un texto es el acto de leerlo.
+
+> Su `#ededed` se copia **literal**, cosa que no pasó nunca en este
+> sistema. Su canvas es `#fdfdfc` y el nuestro también — el de emil
+> igual, su `--color-gray-100` es `#fdfdfc`. En la card, en el hover y
+> en los grises hubo que trasladar el *delta* porque los fondos no
+> coincidían. Acá sí coinciden, así que copiar el hex copia el
+> contraste.
+>
+> Sin `::-moz-selection`: benji y emil lo mandan los dos, pero es su
+> autoprefixer — Firefox soporta `::selection` sin prefijo desde la 62.
+
+### Modo oscuro — NO HAY, y es una decisión
+
+```css
+html { color-scheme: light }
+```
+
+Censo de `prefers-color-scheme` en el CSS servido de las tres:
+
+| | ocurrencias | de qué son |
+|---|---|---|
+| benji | 1 en 130 KB | **no es de su página**: es de un componente embebido, `.sd[data-theme=auto]`, el toolbar de `/drawesome` |
+| emil | 1 | **tampoco**: decide cuál de dos bloques de código pre-renderizados se muestra. Tiene escala `.dark` en el bundle, gateada por clase y nunca activada por media query |
+| josh | 1 | **sí es de su página**: `@media (prefers-color-scheme:dark){:root{--background:#0a0a0a;--foreground:#fafafa;…}}` |
+
+**Dos de tres son sólo claras, y las dos comparten la misma forma: la
+página no responde al sistema, los componentes embebidos sí.** Que es
+literalmente nuestra situación — esto es una exposición de componentes.
+
+`color-scheme: light` lo declaramos y **ninguna de las tres lo hace**.
+Es la parte mecánica de la decisión: sin eso el navegador auto-oscurece
+controles nativos y barras de scroll cuando el sistema está en oscuro, y
+la página queda mitad y mitad. Y no cierra ninguna puerta —`color-scheme`
+se hereda, así que una pieza con tema propio lo pisa en su subárbol,
+igual que benji con `.sd[data-theme=dark]{color-scheme:dark}`.
+
 ### La superficie — la regla de josh
 
 ```css
@@ -823,10 +882,6 @@ primera pieza real adentro del rectángulo:**
 **Decidible ya:**
 
 - si el sistema suma un tamaño más grande y uno más chico
-- selección de texto: él declara `--selection-bg: #ededed` y
-  `--selection-color: #111`; nosotros no tenemos nada
-- modo oscuro — no existe ni como pregunta, y debería declinarse
-  explícitamente en vez de quedar olvidado
 
 **Recién cerrado:** la proporción de la card, su superficie, su hover y
 su radio. `--radius-tbd` ya no existe: es `--card-radio: 8px`.

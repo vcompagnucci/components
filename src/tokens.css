@@ -143,6 +143,41 @@
   --link-underline: #d9d9d9;
   --link-underline-hover: #666666;
 
+  /* LA SELECCIÓN. Las tres referencias tienen regla global y no dicen
+     lo mismo:
+
+       benji  ::selection{color:var(--selection-color);
+                          background:var(--selection-bg)}
+              #ededed de fondo y el texto FORZADO a #111
+       josh   ::selection{color:#fff;background:#000}
+              inversión total, también fuerza
+       emil   ::selection{background:var(--color-gray-500)}
+              #e2e1de, y NO toca el color del texto
+
+     Se toma la de benji, y lo que la decide es FORZAR EL COLOR. Emil
+     puede no hacerlo porque su secundario de prosa está en 99; el
+     nuestro está en 160, y 160 sobre su #e2e1de da 2.00:1 — el
+     subtítulo del masthead se volvería ilegible justo mientras lo
+     seleccionás. Forzado a ink da 16.13:1.
+
+     Además es lo mismo que ya dice la regla de color del sistema: todo
+     lo que se LEE va en ink. Seleccionar un texto es el acto de leerlo,
+     así que la selección lo promueve a ink. No es una regla nueva, es
+     la misma aplicada a un estado.
+
+     Y su #ededed se copia LITERAL, cosa que no pasó nunca en este
+     sistema. Su canvas es #fdfdfc y el nuestro también —el de emil
+     igual, su --color-gray-100 es #fdfdfc— así que acá copiar el hex
+     copia el contraste. En la card, en el hover y en los grises hubo
+     que trasladar el delta porque los fondos no coincidían; acá sí
+     coinciden.
+
+     Sobre la card (−5) la selección queda 5 unidades más cerca del
+     fondo. Se aceptó: es el mismo sólido que usa él, y hoy la card no
+     tiene texto. */
+  --selection-bg: #ededed;
+  --selection-color: var(--ink);
+
   /* rampa alfa */
   /* --a1 lo usa el foco. --a4 y --card-ring se fueron con el anillo de
      la card: elegida la regla de josh, no hay ninguna línea que pintar. */
@@ -492,7 +527,37 @@
   box-sizing: border-box;
 }
 
+/* MODO OSCURO: NO HAY, y está decidido, no olvidado.
+
+   Censo de `prefers-color-scheme` en el CSS servido de las tres:
+
+     benji   1 ocurrencia en 130 KB, y NO es de su página: es de un
+             componente embebido —.sd[data-theme=auto], el toolbar de
+             /drawesome— que se pinta solo cuando el sistema está en
+             oscuro. Su página es sólo clara.
+     emil    1 ocurrencia, y tampoco es de su página: decide cuál de
+             dos bloques de código pre-renderizados se muestra
+             (code[data-theme=light] contra [data-theme=dark]). Tiene
+             una escala .dark en el bundle, pero gateada por clase y
+             nunca activada por media query. Su página es sólo clara.
+     josh    sí lo tiene, de página:
+             @media (prefers-color-scheme:dark){:root{
+               --background:#0a0a0a; --foreground:#fafafa; ...}}
+
+   Dos de tres son sólo claras, y las dos comparten exactamente la
+   misma forma: LA PÁGINA NO RESPONDE AL SISTEMA, LOS COMPONENTES
+   EMBEBIDOS SÍ. Que es literalmente nuestra situación — esto es una
+   exposición de componentes.
+
+   El color-scheme:light lo declaramos y ellos no. Es la parte
+   mecánica de la decisión: sin esto el navegador auto-oscurece los
+   controles nativos y las barras de scroll cuando el sistema está en
+   oscuro, y la página queda mitad y mitad. Y no cierra ninguna puerta:
+   color-scheme se hereda, así que una pieza que quiera su propio tema
+   lo pisa en su subárbol. Es lo mismo que hace benji con
+   .sd[data-theme=dark]{color-scheme:dark}. */
 html {
+  color-scheme: light;
   background: var(--canvas);
 }
 
@@ -549,4 +614,12 @@ a:hover {
 :focus-visible {
   outline: var(--focus-outline);
   transition: var(--focus-transition);
+}
+
+/* Sin ::-moz-selection. Benji y emil lo mandan los dos, pero es su
+   autoprefixer, no una necesidad: firefox soporta ::selection sin
+   prefijo desde la 62 (2018). */
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
 }

@@ -1,11 +1,6 @@
-/* La BARRA es andamio, no diseño. No usa ningún token de la página a
-   propósito: tiene que verse que no es parte de la página.
-
-   La HOJA sí usa los tokens, porque ahí lo que se juzga es el color:
-   tiene que estar sobre el canvas real y a los tamaños reales.
-
-   Todo esto se borra cuando la decisión se cierra. */
-
+/* La barra es andamio, no diseño. No usa ningún token de la página a
+   propósito: tiene que verse que no es parte de la página. Se borra
+   cuando la decisión se hornea. */
 .barra {
   position: fixed;
   bottom: 16px;
@@ -21,6 +16,8 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0;
+  /* la barra no se selecciona: arruinaría la prueba */
+  user-select: none;
 }
 .opcion {
   padding: 7px 9px;
@@ -45,167 +42,11 @@
 .sep {
   width: 1px;
   align-self: stretch;
-  margin: 4px 4px;
+  margin: 4px;
   background: rgba(255, 255, 255, 0.14);
 }
-
-/* ═══════════ LA HOJA ═══════════ */
-.hoja {
-  position: fixed;
-  inset: 0;
-  z-index: 998;
-  overflow: auto;
-  background: var(--canvas);
-  padding: 40px 40px 96px;
-}
-.pliego {
-  max-width: 900px;
-  margin: 0 auto;
-}
-.titulo {
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.00563rem;
-}
-.bajada {
-  max-width: 620px;
-  margin-top: 4px;
-  color: var(--ink);
-  opacity: 0.45;
-  font-size: 13px;
-  line-height: 18px;
-  letter-spacing: -0.0025rem;
-}
-.seccion {
-  margin-top: 44px;
-}
-
-/* ─── LA RAMPA DE CORRIDO ───
-   Los seis valores tocándose, sin nada en el medio. Es la única forma
-   de ver el ancho completo del barrido de una sola mirada: separados
-   por aire, dos grises a 6 unidades leen igual; pegados, o hay una
-   costura o no la hay. */
-.rampa {
-  display: flex;
-  margin-top: 16px;
-}
-.rampaCelda {
-  flex: 1;
-  height: 72px;
-}
-.rampaPie {
-  display: flex;
-  margin-top: 8px;
-}
-.rampaRotulo {
-  flex: 1;
-  color: var(--ink);
-  opacity: 0.45;
-  font: 400 10px/14px ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0;
-  white-space: pre-line;
-}
-
-/* ─── LAS FILAS ───
-   alfa · contacto · índice real · masthead real · cifras */
-.encabezado,
-.fila {
-  display: grid;
-  grid-template-columns: 96px 132px 132px 1fr 104px;
-  gap: 20px;
-  align-items: start;
-}
-.encabezado {
-  margin-top: 20px;
-  padding-bottom: 8px;
-  color: var(--ink);
-  opacity: 0.35;
-  font: 400 10px/14px ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0;
-}
-.fila {
-  width: 100%;
-  padding: 16px 0;
-  border: 0;
-  border-top: 1px solid var(--hairline);
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-.fila:hover {
-  background: var(--surface);
-}
-.fila[data-on] {
-  background: var(--surface);
-}
-
-.alfa {
-  color: var(--ink);
-  font: 500 13px/16px ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0;
-}
-.marca {
-  margin-top: 4px;
-  color: var(--ink);
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 0;
-  white-space: pre-line;
-}
-.cifras {
-  color: var(--ink);
-  opacity: 0.4;
-  font: 400 10px/15px ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0;
-  white-space: pre-line;
-}
-
-/* ─── EL CONTACTO ───
-   Los dos derivados pegados. Si el alfa produce un escalón visible,
-   acá se ve la costura; si no, es un bloque liso. */
-.contacto {
-  display: flex;
-  height: 56px;
-}
-.contactoMitad {
-  flex: 1;
-}
-
-/* ─── EL TEXTO REAL, a sus tamaños reales ─── */
-.nav {
-  color: var(--type-nav-c);
-  display: flex;
-  flex-direction: column;
-  gap: var(--index-item-gap);
-  font-size: var(--type-nav-fs);
-  font-weight: var(--type-nav-fw);
-  letter-spacing: var(--type-nav-ls);
-  line-height: var(--type-nav-lh);
-}
-.navRotulo {
-  padding-bottom: var(--index-label-gap);
-}
-.navActivo {
-  /* el estado que resuelve la nav — no lo mueve ninguna variante */
-  color: var(--index-activo-c);
-}
-.mast {
-  display: flex;
-  flex-direction: column;
-  gap: var(--masthead-subtitle-gap);
-}
-.mastTitulo {
-  color: var(--ink);
-  font-size: var(--type-h1-fs);
-  font-weight: var(--type-h1-fw);
-  letter-spacing: var(--type-h1-ls);
-  line-height: var(--type-h1-lh);
-}
-.mastSub {
-  color: var(--text-secondary);
-  font-size: var(--type-body-fs);
-  font-weight: var(--type-body-fw);
-  letter-spacing: var(--type-body-ls);
-  line-height: var(--type-body-lh);
+.pista {
+  padding: 7px 10px 7px 6px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
 }
