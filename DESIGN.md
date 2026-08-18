@@ -220,9 +220,9 @@ y confirmados en el píxel pintado.
 
 ```css
 --ink:              #111111;                                          /* 18.55:1 */
---secundario-alfa:  35.5%;
---text-secondary:   color-mix(in srgb, #000        var(--secundario-alfa), transparent);  /* → 163 */
---type-nav-c:       color-mix(in srgb, var(--ink)  var(--secundario-alfa), transparent);  /* → 169 */
+--secundario-alfa:  37%;
+--text-secondary:   color-mix(in srgb, #000        var(--secundario-alfa), transparent);  /* → 160 */
+--type-nav-c:       color-mix(in srgb, var(--ink)  var(--secundario-alfa), transparent);  /* → 166 */
 ```
 
 **El sistema tiene UN nivel secundario, no dos grises.** Es la
@@ -236,13 +236,14 @@ mismo 40% escrito desde dos bases:
 |---|---|---|---|---|
 | benji · anotación | negro puro | .4 | 152 | fecha, "Index", epígrafes, notas |
 | benji · nav | su ink (7%) | .4 | 159 | su índice de página |
-| **nuestra · anotación** | **negro puro** | **.355** | **163** | subtítulo del masthead, plataforma del detalle |
-| **nuestra · nav** | **`--ink`** | **.355** | **169** | rótulos y links del índice |
+| **nuestra · anotación** | **negro puro** | **.37** | **160** | subtítulo del masthead, plataforma del detalle |
+| **nuestra · nav** | **`--ink`** | **.37** | **166** | rótulos y links del índice |
 
-Acá se toma su regla y se le cambia el número. **El alfa lo fija la
-anotación**, que es el único de los dos que se eligió mirando: 163, con
-slider sobre la página real, contra cuatro marcas medidas y compuestas
-sobre nuestro fondo.
+Acá se toma su regla y se le cambia el número. El 37% se eligió en **dos
+pasos**, y los dos importan porque miran cosas distintas.
+
+**Primero el barrio**, con un slider sobre la anotación sola, contra
+cuatro marcas medidas y compuestas sobre nuestro fondo:
 
 | | | contraste |
 |---|---|---|
@@ -250,15 +251,33 @@ sobre nuestro fondo.
 | emil · epígrafes de 12px | 130 | 3.78:1 |
 | lo que había, de Carousels | 138 | 3.39:1 |
 | benji · fecha, epígrafes, notas | 152 | 2.84:1 |
-| **elegido** | **163** | **2.48:1** |
+| **el del slider** | **163** | **2.48:1** |
 
-163 sobre `#fdfdfc` sale de negro puro a **35.5%**, y de ahí cae la nav
-sola: `--ink` al mismo 35.5% da **169**. Verificado por píxel — con
-`α=.4` las dos bases reproducen sus 152 y 159 clavados, que es lo que
-valida el modelo.
+Ese slider movía **un renglón** de la página —el subtítulo del masthead—
+porque en ese momento la nav todavía era un número aparte. Sirvió para
+ubicar la zona, no para fijar el número.
+
+**Después el número**, sobre un barrido de seis alfas donde las dos se
+mueven juntas, mirado de tres formas: la rampa de corrido, los dos
+derivados **en contacto** —donde el escalón se ve como costura o no se
+ve— y el texto real a 13/16 contra 14/20.
+
+| α | anotación | nav | gap | Lc |
+|---|---|---|---|---|
+| 30% | 176 | 181 | 5 | 41 / 39 |
+| 32.5% | 170 | 176 | 6 | 45 / 41 |
+| 35.5% | 163 | 169 | 6 | 48 / 45 |
+| **37%** | **160** | **166** | **6** | **50 / 47** |
+| 40% · benji clavado | 152 | 159 | 7 | 54 / 50 |
+| 45% | 139 | 147 | 8 | 60 / 56 |
+
+Todo medido por píxel, no calculado — y el barrido valida el modelo
+solo: con `α=.4` las dos bases reproducen sus 152 y 159 clavados. La
+anotación termina 3 más oscura que el 163 del slider (ΔL .006, adentro
+del ruido): el barrio se respetó, el número lo puso el barrido.
 
 **Dos consecuencias, las dos buscadas.** La nav **se mueve** de 159 a
-169: venía copiada de su `hsla(0,0%,7%,.4)` desde que se horneó la
+166: venía copiada de su `hsla(0,0%,7%,.4)` desde que se horneó la
 tipografía del índice y nunca se eligió — bajo esta regla no se elige,
 se deriva. Y el orden **se arregla solo**: antes la anotación quedaba
 más clara que la nav (163 contra 159), al revés que él; ahora la nav es
@@ -275,10 +294,11 @@ secundario sobre la card sale bien sin tocar nada.
 > fondo**. Sin eso `rgba(0,0,0,.4)` puntúa como negro puro y da 20:1 en
 > vez de 2.84:1.
 >
-> Bajo APCA los dos quedan **debajo del piso** (Lc 48 y 44 contra los 60
+> Bajo APCA los dos quedan **debajo del piso** (Lc 50 y 47 contra los 60
 > que pide para texto que no es cuerpo). Benji también: 54 y 50. Es una
 > decisión tomada a conciencia, no un descuido — lo que va en gris acá
-> anota, no se lee.
+> anota, no se lee. Cruzar el piso pedía `α=45%`, que en el barrido se
+> vio demasiado oscuro para el rol.
 
 **Emil parte el gris en dos donde benji tiene uno solo**: 99 para prosa
 secundaria y 130 para epígrafes. Su canvas es `(253,253,252)` al píxel,

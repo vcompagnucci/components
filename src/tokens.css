@@ -75,28 +75,39 @@
      misma regla desde negro puro en un archivo y desde su ink en otro.
      Su sistema es de UN nivel secundario, no de dos.
 
-     Acá se toma la regla y se le cambia el número. El alfa lo fija la
-     anotación, que es el único de los dos que se eligió mirando: 163,
-     con slider sobre la página real, contra cuatro marcas medidas y
-     compuestas sobre este fondo —
+     Acá se toma la regla y se le cambia el número. El 37% se eligió en
+     DOS PASOS, y los dos importan porque miran cosas distintas:
+
+     PRIMERO EL BARRIO, con un slider sobre la anotación sola: 163,
+     contra cuatro marcas medidas y compuestas sobre este fondo —
         99   emil · su secundario de prosa
        130   emil · sus epígrafes de 12px
        138   lo que había, heredado de Carousels
        152   benji · fecha, epígrafes, notas al pie
-       163   éste, más claro que los cuatro
-     y 163 sobre #fdfdfc sale de negro puro a 35.5%.
+       163   el del slider, más claro que los cuatro
+     Ese slider movía UN renglón de la página —el subtítulo del
+     masthead— porque en ese momento la nav todavía era un número
+     aparte. Sirvió para ubicar la zona, no para fijar el número.
+
+     DESPUÉS EL NÚMERO, sobre un barrido de seis alfas donde las dos se
+     mueven juntas, mirado de tres formas: la rampa de corrido, los dos
+     derivados EN CONTACTO —donde el escalón se ve como costura o no se
+     ve— y el texto real a 13/16 contra 14/20. Ganó 37%.
 
      De ahí caen las dos, medidas por píxel (α=.4 reproduce sus 152 y
      159 clavados, que es lo que valida el modelo):
-       anotación   negro  @ 35.5%  → 163   el valor elegido
-       nav         --ink  @ 35.5%  → 169
+       anotación   negro  @ 37%  → 160
+       nav         --ink  @ 37%  → 166
+     La anotación queda 3 más oscura que el 163 del slider: ΔL .006,
+     adentro del ruido. El barrio se respetó; el número lo puso el
+     barrido.
 
      DOS CONSECUENCIAS, las dos buscadas:
 
      1. LA NAV SE MUEVE. Venía en 159 porque se copió de su
         hsla(0,0%,7%,.4) al hornear la tipografía del índice, y nunca se
-        eligió. Bajo esta regla no se elige: se deriva. Elegir la
-        anotación más clara que él la arrastra 10 unidades.
+        eligió. Bajo esta regla no se elige: se deriva. Elegir más claro
+        que él la arrastra 7 unidades.
 
      2. EL ORDEN SE ARREGLA SOLO. Antes la anotación quedaba MÁS CLARA
         que la nav (163 contra 159), al revés que él. Ahora la nav es la
@@ -113,7 +124,7 @@
      Lo de acá es el ÚNICO nivel secundario del sistema. El otro alfa
      que existe es --index-activo-c (80%), que es un estado, no un
      nivel. */
-  --secundario-alfa: 35.5%;
+  --secundario-alfa: 37%;
   --text-secondary: color-mix(in srgb, #000 var(--secundario-alfa), transparent);
 
   /* LOS LINKS. El link NO tiene color propio: hereda el del bloque donde
@@ -251,7 +262,7 @@
   --type-nav-ls: -0.0025rem;
   --type-nav-fw: 460;
   /* La otra base del nivel secundario: el mismo alfa que la anotación,
-     desde --ink en vez de negro puro. Compone en 169. Es la posición de
+     desde --ink en vez de negro puro. Compone en 166. Es la posición de
      benji —su nav sale de su ink y su anotación de negro, y por eso la
      nav le queda la más clara de las dos. La explicación entera está
      arriba, en --secundario-alfa. */

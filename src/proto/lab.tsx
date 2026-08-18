@@ -48,8 +48,8 @@ type Alfa = {
 const ALFAS: Alfa[] = [
   { a: '30%', anot: 176, nav: 181, lc: '41 / 39' },
   { a: '32.5%', anot: 170, nav: 176, lc: '45 / 41' },
-  { a: '35.5%', anot: 163, nav: 169, lc: '48 / 45', marca: 'lo horneado' },
-  { a: '37%', anot: 160, nav: 166, lc: '50 / 47' },
+  { a: '35.5%', anot: 163, nav: 169, lc: '48 / 45', marca: 'el del slider' },
+  { a: '37%', anot: 160, nav: 166, lc: '50 / 47', marca: 'lo horneado' },
   { a: '40%', anot: 152, nav: 159, lc: '54 / 50', marca: 'benji clavado' },
   { a: '45%', anot: 139, nav: 147, lc: '60 / 56', marca: 'cruza APCA' },
 ]
