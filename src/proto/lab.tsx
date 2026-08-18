@@ -11,12 +11,14 @@ import css from './lab.module.css'
    pierde justamente lo que la hacía funcionar, porque su fondo crema le
    deja a la card 11 unidades de contraste y el nuestro sólo 2.
 
-   Es un picker y no interruptores sueltos, porque superficie y anillo
-   están ACOPLADOS. Josh no lleva anillo porque su contraste alcanza;
-   benji sí lo lleva porque el suyo es de 1 unidad y lo que define la
-   card es la línea. Mezclarlos sólo produce más versiones de lo de hoy,
-   que es card más clara que el fondo MÁS un anillo fuerte: las dos
-   señales tirando para lados opuestos.
+   Elegida la estrategia de josh: la card es más OSCURA que el fondo y
+   no lleva ni anillo ni sombra — el contraste hace todo el trabajo. Lo
+   único que queda por decidir es CUÁNTO, así que las cinco variantes
+   son una rampa de profundidad, y el azul baja 6/5 de lo que bajan rojo
+   y verde para conservar su tinte cálido.
+
+   Queda benji al final, sin tocar, como la otra estrategia entera por
+   si hay que volver.
 
    Todo medido, SOURCE + RUNTIME, a 1440. Detalle en
    .context/recon/COLOR.md */
@@ -31,71 +33,59 @@ export type Piel = {
 
 export const PIELES: Piel[] = [
   {
-    id: 'josh',
-    nombre: 'josh',
+    id: 'd3',
+    nombre: '−3',
     fuente:
-      'card más oscura que el fondo, sin anillo y sin sombra: el contraste solo hace todo el trabajo. ADAPTADO — su #fafaf9 se apoya en blanco puro, así que lo que se traslada es su delta (−5,−5,−6) y no el valor. Sobre nuestro #fdfdfc da #f8f8f6',
+      '#fafaf8 · su estrategia con el contraste MÁS FLOJO de la rampa. Ojo con el número: copiar su hex literal (#fafaf9) sobre nuestro canvas da justo −3, porque su fondo es blanco puro y el nuestro ya arranca 2 unidades abajo. O sea que copiarle el color, en vez del contraste, aterriza acá',
     medido: false,
-    vars: {
-      '--surface': '#f8f8f6',
-      '--card-sombra': 'none',
-      '--card-sombra-hover': '0 0 0 1px rgba(0,0,0,.06)',
-    },
+    vars: { '--surface': '#fafaf8', '--card-sombra': 'none', '--card-sombra-hover': '0 0 0 1px rgba(0,0,0,.05)' },
+  },
+  {
+    id: 'd5',
+    nombre: '−5 · original',
+    fuente:
+      '#f8f8f6 · LA ORIGINAL. Conserva su delta medido (−5,−5,−6): su card es #fafaf9 sobre blanco puro, y lo que se traslada es cuánto contraste tiene, no qué color es. Sin anillo y sin sombra — el contraste hace todo el trabajo, que es su regla',
+    medido: false,
+    vars: { '--surface': '#f8f8f6', '--card-sombra': 'none', '--card-sombra-hover': '0 0 0 1px rgba(0,0,0,.05)' },
+  },
+  {
+    id: 'd8',
+    nombre: '−8',
+    fuente:
+      '#f5f5f2 · un paso más. A partir de acá el contraste ya no es el suyo: es su estrategia empujada más lejos, que es lo que hay que mirar si sobre nuestro fondo −5 se queda corto',
+    medido: false,
+    vars: { '--surface': '#f5f5f2', '--card-sombra': 'none', '--card-sombra-hover': '0 0 0 1px rgba(0,0,0,.05)' },
+  },
+  {
+    id: 'd12',
+    nombre: '−12',
+    fuente:
+      '#f1f1ee · más del doble de su contraste. La card empieza a leerse como un bloque propio y no como una zona apenas distinta del fondo',
+    medido: false,
+    vars: { '--surface': '#f1f1ee', '--card-sombra': 'none', '--card-sombra-hover': '0 0 0 1px rgba(0,0,0,.05)' },
+  },
+  {
+    id: 'd16',
+    nombre: '−16',
+    fuente:
+      '#edede9 · el tope de la rampa, más de tres veces su contraste. Acá la card ya no es una superficie clara sobre un fondo claro: es un hueco gris',
+    medido: false,
+    vars: { '--surface': '#edede9', '--card-sombra': 'none', '--card-sombra-hover': '0 0 0 1px rgba(0,0,0,.05)' },
   },
   {
     id: 'benji',
     nombre: 'benji',
     fuente:
-      'card #fcfcfc · anillo 0 0 0 1px #f2f2f2, hacia afuera. Cae tal cual: su canvas ES nuestro #fdfdfc. La card queda 1 unidad más oscura, o sea nada — lo que la define es la línea. De family-values, 45 cajas iguales',
+      'POR LAS DUDAS, la otra estrategia entera: card #fcfcfc y anillo 0 0 0 1px #f2f2f2. Cae tal cual porque su canvas ES nuestro #fdfdfc. Acá la card es 1 unidad más oscura, o sea nada — lo que la define es la línea, no el contraste. De family-values, 45 cajas iguales',
     medido: true,
-    vars: {
-      '--surface': '#fcfcfc',
-      '--card-sombra': '0 0 0 1px #f2f2f2',
-      '--card-sombra-hover': '0 0 0 1px #e6e6e6',
-    },
-  },
-  {
-    id: 'tweet',
-    nombre: 'tweet',
-    fuente:
-      'card #ffffff · sin anillo, sólo sombra. SUAVIZADA respecto del original: medida sobre nuestro fondo, el pico baja de 44 a 29 y el alcance sube de 10 a 14px. Se descartaron dos aún más suaves porque perdían el contacto y la caída quedaba plana — dejaba de leerse como que la card está levantada',
-    medido: false,
-    vars: {
-      '--surface': '#ffffff',
-      '--card-sombra': '0 1px 3px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.05), 0 6px 14px rgba(0,0,0,.035)',
-      '--card-sombra-hover': '0 2px 4px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.045)',
-    },
-  },
-  {
-    id: 'jbt',
-    nombre: 'j + b + t',
-    fuente:
-      'las tres señales juntas: card #f8f8f6 más oscura (josh) · anillo 0 0 0 1px #f2f2f2 (benji) · sombra suavizada (tweet). Es la más marcada de las cinco, y la única donde el contraste, la línea y la elevación empujan para el mismo lado',
-    medido: false,
-    vars: {
-      '--surface': '#f8f8f6',
-      '--card-sombra': '0 0 0 1px #f2f2f2, 0 1px 3px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.05), 0 6px 14px rgba(0,0,0,.035)',
-      '--card-sombra-hover': '0 0 0 1px #e6e6e6, 0 2px 4px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.045)',
-    },
-  },
-  {
-    id: 'bt',
-    nombre: 'b + t',
-    fuente:
-      'card #fcfcfc y anillo 0 0 0 1px #f2f2f2, los dos de benji, más la sombra suavizada del tweet. La línea sigue definiendo el borde y la sombra sólo la despega del fondo',
-    medido: false,
-    vars: {
-      '--surface': '#fcfcfc',
-      '--card-sombra': '0 0 0 1px #f2f2f2, 0 1px 3px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.05), 0 6px 14px rgba(0,0,0,.035)',
-      '--card-sombra-hover': '0 0 0 1px #e6e6e6, 0 2px 4px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.045)',
-    },
+    vars: { '--surface': '#fcfcfc', '--card-sombra': '0 0 0 1px #f2f2f2', '--card-sombra-hover': '0 0 0 1px #e6e6e6' },
   },
 ]
 
 export function useLab() {
   const [id, setId] = useState(() => {
     const q = new URLSearchParams(location.search).get('piel')
-    return PIELES.some((p) => p.id === q) ? (q as string) : 'benji'
+    return PIELES.some((p) => p.id === q) ? (q as string) : 'd5'
   })
 
   useEffect(() => {
