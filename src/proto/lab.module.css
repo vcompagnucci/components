@@ -1,9 +1,10 @@
-/* El toggle es andamio, no diseño. No usa ningún token de la página a
-   propósito: tiene que verse que no es parte de la página. Se borra
-   cuando la decisión se hornea.
+/* La BARRA es andamio, no diseño. No usa ningún token de la página a
+   propósito: tiene que verse que no es parte de la página.
 
-   LA HOJA sí usa los tokens, porque ahí lo que se juzga es el color:
-   tiene que estar sobre el canvas real y a los tamaños reales. */
+   La HOJA sí usa los tokens, porque ahí lo que se juzga es el color:
+   tiene que estar sobre el canvas real y a los tamaños reales.
+
+   Todo esto se borra cuando la decisión se cierra. */
 
 .barra {
   position: fixed;
@@ -12,6 +13,7 @@
   transform: translateX(-50%);
   z-index: 999;
   display: flex;
+  align-items: center;
   gap: 2px;
   padding: 3px;
   border-radius: 8px;
@@ -20,9 +22,8 @@
   font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0;
 }
-
 .opcion {
-  padding: 7px 10px;
+  padding: 7px 9px;
   border: 0;
   border-radius: 6px;
   background: transparent;
@@ -34,71 +35,144 @@
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
+.opcion sub {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  opacity: 0.55;
+  vertical-align: baseline;
+}
 .sep {
   width: 1px;
+  align-self: stretch;
   margin: 4px 4px;
   background: rgba(255, 255, 255, 0.14);
 }
-.dato {
-  padding: 7px 10px 7px 12px;
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-  margin-left: 4px;
-  color: rgba(255, 255, 255, 0.45);
-  white-space: nowrap;
-}
 
-/* ─── LA HOJA ───
-   Las cinco estructuras una debajo de la otra, cada una mostrando el
-   par real: la columna del índice a 13px contra el masthead a 14px.
-   Flipear entre opciones compara de a dos; esto compara las cinco de
-   una y sin memoria. */
+/* ═══════════ LA HOJA ═══════════ */
 .hoja {
   position: fixed;
   inset: 0;
   z-index: 998;
   overflow: auto;
   background: var(--canvas);
-  padding: 32px 40px 80px;
+  padding: 40px 40px 96px;
 }
-.filas {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 860px;
+.pliego {
+  max-width: 900px;
   margin: 0 auto;
 }
-.fila {
-  display: grid;
-  grid-template-columns: 150px 170px 1fr;
-  gap: 24px;
-  align-items: start;
-  padding-top: 16px;
-  border-top: 1px solid var(--hairline);
-}
-.fila[data-ref] {
-  border-top: 0;
-  padding-top: 0;
-}
-
-/* El rótulo de la fila NO usa los tokens en discusión: si el nombre de
-   la variante se pintara con el gris de la variante, no habría cómo
-   leerlo igual en las cinco. Va en ink. */
-.rotulo {
+.titulo {
   color: var(--ink);
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.00563rem;
 }
-.cifras {
+.bajada {
+  max-width: 620px;
   margin-top: 4px;
   color: var(--ink);
-  opacity: 0.35;
-  font: 400 11px/16px ui-monospace, SFMono-Regular, Menlo, monospace;
+  opacity: 0.45;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: -0.0025rem;
+}
+.seccion {
+  margin-top: 44px;
+}
+
+/* ─── LA RAMPA DE CORRIDO ───
+   Los seis valores tocándose, sin nada en el medio. Es la única forma
+   de ver el ancho completo del barrido de una sola mirada: separados
+   por aire, dos grises a 6 unidades leen igual; pegados, o hay una
+   costura o no la hay. */
+.rampa {
+  display: flex;
+  margin-top: 16px;
+}
+.rampaCelda {
+  flex: 1;
+  height: 72px;
+}
+.rampaPie {
+  display: flex;
+  margin-top: 8px;
+}
+.rampaRotulo {
+  flex: 1;
+  color: var(--ink);
+  opacity: 0.45;
+  font: 400 10px/14px ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0;
   white-space: pre-line;
 }
 
-/* El índice, a su tamaño real */
+/* ─── LAS FILAS ───
+   alfa · contacto · índice real · masthead real · cifras */
+.encabezado,
+.fila {
+  display: grid;
+  grid-template-columns: 96px 132px 132px 1fr 104px;
+  gap: 20px;
+  align-items: start;
+}
+.encabezado {
+  margin-top: 20px;
+  padding-bottom: 8px;
+  color: var(--ink);
+  opacity: 0.35;
+  font: 400 10px/14px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
+}
+.fila {
+  width: 100%;
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.fila:hover {
+  background: var(--surface);
+}
+.fila[data-on] {
+  background: var(--surface);
+}
+
+.alfa {
+  color: var(--ink);
+  font: 500 13px/16px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
+}
+.marca {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0;
+  white-space: pre-line;
+}
+.cifras {
+  color: var(--ink);
+  opacity: 0.4;
+  font: 400 10px/15px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
+  white-space: pre-line;
+}
+
+/* ─── EL CONTACTO ───
+   Los dos derivados pegados. Si el alfa produce un escalón visible,
+   acá se ve la costura; si no, es un bloque liso. */
+.contacto {
+  display: flex;
+  height: 56px;
+}
+.contactoMitad {
+  flex: 1;
+}
+
+/* ─── EL TEXTO REAL, a sus tamaños reales ─── */
 .nav {
   color: var(--type-nav-c);
   display: flex;
@@ -113,11 +187,9 @@
   padding-bottom: var(--index-label-gap);
 }
 .navActivo {
-  /* el estado que resuelve la nav — no se toca en ninguna variante */
+  /* el estado que resuelve la nav — no lo mueve ninguna variante */
   color: var(--index-activo-c);
 }
-
-/* El masthead, a su tamaño real */
 .mast {
   display: flex;
   flex-direction: column;

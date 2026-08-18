@@ -2,114 +2,93 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import css from './lab.module.css'
 
 /* ─────────────────────────────────────────────────────────────
-   LAB · LA ESTRUCTURA DE LOS GRISES DE TEXTO
+   LAB · EL NIVEL SECUNDARIO DE TEXTO
 
-   No se decide un valor acá, se decide una ESTRUCTURA: cuántos
-   grises tiene el sistema y, si son dos, cuál va más claro.
+   Ya no se elige un color: se elige UN NÚMERO. La estructura está
+   decidida y horneada —la de benji, verificada en su CSS servido:
+   declara un solo token de color de texto (--body-color:#111) y
+   ningún token de gris. Todo lo gris es su negro o su ink a un
+   alfa, y el alfa manda (.4 aparece en 40 declaraciones; el
+   siguiente, .5, en 8).
 
-   Los dos roles en juego, los dos visibles en la lista al mismo
-   tiempo:
-     ANOTACIÓN  --text-secondary   el subtítulo del masthead
-     NAV        --type-nav-c       los 21 renglones del índice
+   De ahí salen sus dos valores, que NO son dos grises:
+     anotación  rgba(0,0,0,.4)     → 152
+     nav        hsla(0,0%,7%,.4)   → 159
+   El mismo 40% desde dos bases. Los 7 del medio son la fuga de
+   escribir la regla en dos archivos, no un escalón.
 
-   El tercero, --index-activo-c (65), no se toca: es el estado
-   que resuelve la nav.
+   Acá queda una sola variable, el ALFA, y las dos se derivan:
+     anotación  negro puro @ α
+     nav        --ink      @ α
 
-   LO QUE HACE BENJI, medido de su CSS servido:
-   declara UN solo token de color de texto, --body-color:#111. No
-   tiene ningún token de gris. Todo lo gris es su negro o su ink a
-   un alfa, y el alfa dominante es .4 — 40 declaraciones contra 8
-   del siguiente. Sus "dos grises" (152 y 159) son ESE MISMO 40%
-   escrito desde dos bases distintas, rgba(0,0,0,.4) y
-   hsla(0,0%,7%,.4). No es un escalón, es una fuga. Su respuesta a
-   "cuántos grises" es UNO.
+   POR QUÉ ESTA HOJA TIENE TRES FORMAS DE MIRAR LO MISMO:
+   un salto de 6 unidades en texto de 13px es invisible, y ése era
+   el problema para decidir. Separados por aire dos grises a 6
+   leen igual; pegados, o hay costura o no la hay. Entonces:
+     1 · la rampa de corrido — el ancho del barrido de una mirada
+     2 · el contacto — si el escalón existe, se ve como costura
+     3 · el texto real — cómo se lee de verdad, que es lo que importa
 
-   Medido sobre el canvas real #fdfdfc. Lc es APCA; su piso para
-   texto que no es cuerpo es 60, y para cuerpo 75.
+   Todos los números están MEDIDOS por píxel sobre #fdfdfc, no
+   calculados. Y el barrido valida el modelo solo: en α=.4 las dos
+   bases dan 152 y 159, que son exactamente los dos valores que se
+   midieron en su página.
    ───────────────────────────────────────────────────────────── */
 
-type Opcion = {
-  nombre: string
-  /* los dos compuestos sobre #fdfdfc, para rotular y para pintar */
-  nav: number
+type Alfa = {
+  a: string
+  /* compuestos sobre #fdfdfc, medidos por píxel */
   anot: number
-  /* ΔL perceptual (oklch) entre los dos, y el Lc de la anotación */
-  cifras: string
-  /* fila de referencia: se muestra en la hoja, no se aplica a la página */
-  ref?: boolean
-  /* Las que salen de una REGLA se pintan con la regla y no con su
-     resultado: si el alfa se escribe mal, tiene que verse acá. */
-  alfa?: string
+  nav: number
+  /* APCA. Su piso para texto que no es cuerpo es 60 */
+  lc: string
+  marca?: string
 }
 
-const OPCIONES: Opcion[] = [
-  /* Lo que se ve en SU página. No es una opción nuestra: está para
-     mirar los 7 de su "escalón" y comprobar que no se ven. */
-  {
-    nombre: 'benji',
-    nav: 159,
-    anot: 152,
-    cifras: 'negro/ink @ 40%\nΔL .022',
-    alfa: '40%',
-    ref: true,
-  },
-
-  /* SU REGLA CON NUESTRO NÚMERO — lo horneado. El alfa lo fija la
-     anotación (163, el valor elegido con slider), y la nav cae sola. */
-  {
-    nombre: 'Nuestra',
-    nav: 169,
-    anot: 163,
-    cifras: 'negro/ink @ 35.5%\nΔL .020\nLc 48 / 44',
-    alfa: '35.5%',
-  },
-
-  /* Dos números que el ojo lee como uno: 0.013 L es un orden de
-     magnitud menos que un escalón visible. */
-  { nombre: 'Hoy', nav: 159, anot: 163, cifras: 'ΔL .013\nLc 48' },
-
-  /* Un solo gris. Y no es una opción neutra: 159 ES el ink a 40%
-     sobre nuestro canvas, o sea benji literal. */
-  { nombre: 'Uno', nav: 159, anot: 159, cifras: 'ink @ 40%\nΔL .000\nLc 50' },
-
-  /* Apartarse de él: dos niveles, la anotación más oscura porque
-     es lo único de los dos que se lee en reposo. Escalón mínimo
-     que se ve. */
-  { nombre: 'Escalón', nav: 159, anot: 145, cifras: 'ΔL .046\nLc 57' },
-
-  /* El mismo orden, más separado. 138 es el gris heredado de
-     Carousels — y el único candidato que cruza el piso de APCA. */
-  { nombre: 'Escalón +', nav: 159, anot: 138, cifras: 'ΔL .069\nLc 61' },
-
-  /* El orden de hoy pero con un escalón de verdad, para ver si la
-     dirección se sostiene sola o sólo funcionaba porque no se
-     notaba. Mismo salto que 'Escalón', al revés. */
-  { nombre: 'Invertido', nav: 145, anot: 159, cifras: 'ΔL .046\nLc 50' },
+const ALFAS: Alfa[] = [
+  { a: '30%', anot: 176, nav: 181, lc: '41 / 39' },
+  { a: '32.5%', anot: 170, nav: 176, lc: '45 / 41' },
+  { a: '35.5%', anot: 163, nav: 169, lc: '48 / 45', marca: 'lo horneado' },
+  { a: '37%', anot: 160, nav: 166, lc: '50 / 47' },
+  { a: '40%', anot: 152, nav: 159, lc: '54 / 50', marca: 'benji clavado' },
+  { a: '45%', anot: 139, nav: 147, lc: '60 / 56', marca: 'cruza APCA' },
 ]
 
-const APLICABLES = OPCIONES.filter((o) => !o.ref)
+/* Las estructuras que quedaron atrás. Se dejan a la vista porque el
+   contraste con el barrido ES el argumento: todas usan DOS números
+   sueltos que hay que mantener sincronizados a mano, y así fue como
+   los dos anteriores se separaron 4 unidades sin que nadie lo
+   notara. Ninguna se deriva de nada. */
+type Suelto = { nombre: string; nav: number; anot: number; nota: string }
+
+const SUELTOS: Suelto[] = [
+  { nombre: 'Hoy', nav: 159, anot: 163, nota: 'nav copiada\nanot elegida' },
+  { nombre: 'Uno', nav: 159, anot: 159, nota: 'un valor\npara los dos' },
+  { nombre: 'Escalón', nav: 159, anot: 145, nota: 'anot más\noscura' },
+  { nombre: 'Escalón +', nav: 159, anot: 138, nota: 'cruza APCA\ncon 2 números' },
+  { nombre: 'Invertido', nav: 145, anot: 159, nota: 'el orden\nal revés' },
+]
 
 const gris = (n: number) => `rgb(${n}, ${n}, ${n})`
 const mix = (base: string, a: string) => `color-mix(in srgb, ${base} ${a}, transparent)`
 
-/* Las opciones con regla se pintan con la regla —negro para lo que
-   anota, --ink para la nav, el mismo alfa— y las sueltas con su valor
-   sólido. Es la diferencia que se está juzgando, así que tiene que
-   estar en el código y no sólo en el rótulo. */
-const valores = (o: Opcion) =>
-  o.alfa
-    ? { nav: mix('var(--ink)', o.alfa), anot: mix('#000', o.alfa) }
+/* Lo que sale de la REGLA se pinta con la regla y no con su resultado:
+   si el alfa se escribiera mal, tiene que verse acá. Lo suelto se
+   pinta con su valor, que es justamente lo que lo hace suelto. */
+const valores = (o: Alfa | Suelto) =>
+  'a' in o
+    ? { nav: mix('var(--ink)', o.a), anot: mix('#000', o.a) }
     : { nav: gris(o.nav), anot: gris(o.anot) }
 
-const vars = (o: Opcion) => {
+const vars = (o: Alfa | Suelto) => {
   const v = valores(o)
   return { '--type-nav-c': v.nav, '--text-secondary': v.anot } as CSSProperties
 }
 
-/* La muestra: el par real, a los tamaños reales. La columna del
-   índice a 13/16 contra el masthead a 14/20 — que es exactamente la
-   distancia a la que los dos grises se ven en la página. */
-function Muestra() {
+/* El par real, a los tamaños reales: la columna del índice a 13/16
+   contra el masthead a 14/20. Es exactamente la distancia a la que los
+   dos derivados se encuentran en la página. */
+function Textos() {
   return (
     <>
       <div className={css.nav}>
@@ -128,10 +107,54 @@ function Muestra() {
   )
 }
 
+/* Los dos derivados pegados, sin nada en el medio. */
+function Contacto({ o }: { o: Alfa | Suelto }) {
+  const v = valores(o)
+  return (
+    <div className={css.contacto}>
+      <div className={css.contactoMitad} style={{ background: v.nav }} />
+      <div className={css.contactoMitad} style={{ background: v.anot }} />
+    </div>
+  )
+}
+
+function Fila({
+  o,
+  activa,
+  onPick,
+  etiqueta,
+  cifras,
+}: {
+  o: Alfa | Suelto
+  activa: boolean
+  onPick: () => void
+  etiqueta: string
+  cifras: string
+}) {
+  const marca = 'a' in o ? o.marca : o.nota
+  return (
+    <button
+      className={css.fila}
+      style={vars(o)}
+      data-on={activa ? '' : undefined}
+      onClick={onPick}
+    >
+      <div>
+        <div className={css.alfa}>{etiqueta}</div>
+        {marca && <div className={css.marca}>{marca}</div>}
+      </div>
+      <Contacto o={o} />
+      <Textos />
+      <div className={css.cifras}>{cifras}</div>
+    </button>
+  )
+}
+
 export function Lab() {
-  const [i, setI] = useState(0)
+  const [i, setI] = useState(ALFAS.findIndex((x) => x.marca === 'lo horneado'))
+  const [suelto, setSuelto] = useState<number | null>(null)
   const [hoja, setHoja] = useState(false)
-  const o = APLICABLES[i]
+  const actual: Alfa | Suelto = suelto === null ? ALFAS[i] : SUELTOS[suelto]
 
   /* En documentElement y no en un contenedor: los dos tokens se
      declaran en :root y se leen desde ahí. Escribirlos en un
@@ -139,65 +162,141 @@ export function Lab() {
      inline, porque ahí la fila SÍ es ancestro de quien los lee.) */
   useEffect(() => {
     const d = document.documentElement
-    const v = valores(o)
+    const v = valores(actual)
     d.style.setProperty('--text-secondary', v.anot)
     d.style.setProperty('--type-nav-c', v.nav)
     return () => {
       d.style.removeProperty('--text-secondary')
       d.style.removeProperty('--type-nav-c')
     }
-  }, [o])
+  }, [actual])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'h' || e.key === 'H') setHoja((v) => !v)
       const n = Number(e.key)
-      if (n >= 1 && n <= APLICABLES.length) {
+      if (n >= 1 && n <= ALFAS.length) {
         setI(n - 1)
-        setHoja(false)
+        setSuelto(null)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const elegirAlfa = (k: number) => {
+    setI(k)
+    setSuelto(null)
+  }
+
   return (
     <>
       {hoja && (
         <div className={css.hoja}>
-          <div className={css.filas}>
-            {OPCIONES.map((op) => (
-              <div
-                className={css.fila}
-                key={op.nombre}
-                data-ref={op.ref ? '' : undefined}
-                style={vars(op)}
-              >
-                <div>
-                  <div className={css.rotulo}>{op.nombre}</div>
-                  <div className={css.cifras}>
-                    {`nav ${op.nav} · anot ${op.anot}\n${op.cifras}`}
-                  </div>
-                </div>
-                <Muestra />
+          <div className={css.pliego}>
+            <div className={css.titulo}>El nivel secundario · un alfa, dos bases</div>
+            <div className={css.bajada}>
+              La anotación sale de negro puro al alfa; la nav, de <code>--ink</code>{' '}
+              al mismo alfa. Un solo número mueve las dos. Cliqueá cualquier fila
+              para aplicarla a la página.
+            </div>
+
+            {/* 1 · LA RAMPA — el ancho del barrido de una sola mirada */}
+            <div className={css.seccion}>
+              <div className={css.titulo}>1 · La rampa, de corrido</div>
+              <div className={css.bajada}>
+                Los seis valores de la anotación tocándose. Separados por aire,
+                dos grises a 6 unidades leen igual; pegados se ve dónde hay
+                escalón y dónde no.
               </div>
-            ))}
+              <div className={css.rampa}>
+                {ALFAS.map((o) => (
+                  <div
+                    className={css.rampaCelda}
+                    key={o.a}
+                    style={{ background: mix('#000', o.a) }}
+                  />
+                ))}
+              </div>
+              <div className={css.rampaPie}>
+                {ALFAS.map((o) => (
+                  <div className={css.rampaRotulo} key={o.a}>
+                    {`${o.a}\n${o.anot}${o.marca ? `\n${o.marca}` : ''}`}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2 y 3 · CONTACTO Y TEXTO REAL, fila por alfa */}
+            <div className={css.seccion}>
+              <div className={css.titulo}>2 · El barrido del alfa</div>
+              <div className={css.bajada}>
+                Cada fila: los dos derivados en contacto —si el alfa produce un
+                escalón, acá se ve la costura— y después los mismos dos colores
+                en el texto real, a 13/16 y 14/20. El activo del índice
+                (&ldquo;Input&rdquo;, en 65) no lo mueve ninguna fila: es la
+                constante.
+              </div>
+              <div className={css.encabezado}>
+                <div>alfa</div>
+                <div>nav | anot</div>
+                <div>índice 13/16</div>
+                <div>masthead 14/20</div>
+                <div>anot · nav · Lc</div>
+              </div>
+              {ALFAS.map((o, k) => (
+                <Fila
+                  key={o.a}
+                  o={o}
+                  activa={suelto === null && k === i}
+                  onPick={() => elegirAlfa(k)}
+                  etiqueta={o.a}
+                  cifras={`${o.anot} · ${o.nav}\ngap ${o.nav - o.anot}\nLc ${o.lc}`}
+                />
+              ))}
+            </div>
+
+            {/* Las descartadas, para contrastar contra el barrido */}
+            <div className={css.seccion}>
+              <div className={css.titulo}>3 · Las estructuras que quedaron atrás</div>
+              <div className={css.bajada}>
+                Ninguna se deriva de nada: todas son DOS números sueltos que hay
+                que mantener sincronizados a mano. Así fue como los dos
+                anteriores terminaron a 4 unidades sin que nadie lo notara, y con
+                la anotación más clara que la nav — al revés que en su página.
+              </div>
+              <div className={css.encabezado}>
+                <div>estructura</div>
+                <div>nav | anot</div>
+                <div>índice 13/16</div>
+                <div>masthead 14/20</div>
+                <div>anot · nav</div>
+              </div>
+              {SUELTOS.map((o, k) => (
+                <Fila
+                  key={o.nombre}
+                  o={o}
+                  activa={suelto === k}
+                  onPick={() => setSuelto(k)}
+                  etiqueta={o.nombre}
+                  cifras={`${o.anot} · ${o.nav}\ngap ${o.nav - o.anot}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       <div className={css.barra}>
-        {APLICABLES.map((op, k) => (
+        {ALFAS.map((o, k) => (
           <button
             className={css.opcion}
-            key={op.nombre}
-            data-on={!hoja && k === i ? '' : undefined}
-            onClick={() => {
-              setI(k)
-              setHoja(false)
-            }}
+            key={o.a}
+            data-on={suelto === null && k === i ? '' : undefined}
+            onClick={() => elegirAlfa(k)}
           >
-            {op.nombre}
+            {o.a}
+            <sub>{o.anot}</sub>
           </button>
         ))}
         <div className={css.sep} />
@@ -207,10 +306,8 @@ export function Lab() {
           onClick={() => setHoja((v) => !v)}
         >
           Hoja
+          <sub>H</sub>
         </button>
-        <span className={css.dato}>
-          nav {o.nav} · anot {o.anot}
-        </span>
       </div>
     </>
   )
