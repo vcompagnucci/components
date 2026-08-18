@@ -34,7 +34,7 @@ export const PIELES: Piel[] = [
     id: 'josh',
     nombre: 'josh',
     fuente:
-      'card 5 unidades más oscura que el fondo, sin anillo y sin sombra: el contraste solo alcanza. ADAPTADO — su card es #fafaf9 sobre un canvas blanco puro, así que lo que se conserva es su delta (−5,−5,−6), no el valor. Sobre nuestro #fdfdfc da #f8f8f6',
+      'card más oscura que el fondo, sin anillo y sin sombra: el contraste solo hace todo el trabajo. ADAPTADO — su #fafaf9 se apoya en blanco puro, así que lo que se traslada es su delta (−5,−5,−6) y no el valor. Sobre nuestro #fdfdfc da #f8f8f6',
     medido: false,
     vars: {
       '--surface': '#f8f8f6',
@@ -46,7 +46,7 @@ export const PIELES: Piel[] = [
     id: 'benji',
     nombre: 'benji',
     fuente:
-      'card #fcfcfc · anillo 0 0 0 1px #f2f2f2, hacia afuera. Cae tal cual: su canvas ES nuestro #fdfdfc. La card queda 1 unidad más oscura, o sea casi nada — lo que la define es la línea. De family-values, 45 cajas iguales',
+      'card #fcfcfc · anillo 0 0 0 1px #f2f2f2, hacia afuera. Cae tal cual: su canvas ES nuestro #fdfdfc. La card queda 1 unidad más oscura, o sea nada — lo que la define es la línea. De family-values, 45 cajas iguales',
     medido: true,
     vars: {
       '--surface': '#fcfcfc',
@@ -55,57 +55,39 @@ export const PIELES: Piel[] = [
     },
   },
   {
-    id: 'elevada',
-    nombre: 'elevada',
-    fuente:
-      'card #ffffff · sin anillo: la levanta la RAMPA de 7 capas que benji declara como --overlay-shadow (en su CSS con 0 usos, la reserva para overlays). Es la sombra difusa: 26px de alcance',
-    medido: true,
-    vars: {
-      '--surface': '#ffffff',
-      '--card-sombra':
-        '0 0 0 1px rgba(0,0,0,.04), 0 1.625rem 3.375rem rgba(0,0,0,.04), 0 1rem 2rem rgba(0,0,0,.03), 0 0.625rem 1rem rgba(0,0,0,.024), 0 0.3125rem 0.5rem rgba(0,0,0,.02), 0 0.125rem 0.25rem rgba(0,0,0,.016), 0 0 0.125rem rgba(0,0,0,.01)',
-      '--card-sombra-hover':
-        '0 0 0 1px rgba(0,0,0,.06), 0 2.25rem 4.5rem rgba(0,0,0,.055), 0 1.375rem 2.75rem rgba(0,0,0,.04), 0 0.875rem 1.375rem rgba(0,0,0,.032), 0 0.4375rem 0.6875rem rgba(0,0,0,.026), 0 0.1875rem 0.375rem rgba(0,0,0,.02), 0 0 0.125rem rgba(0,0,0,.012)',
-    },
-  },
-  {
     id: 'tweet',
     nombre: 'tweet',
     fuente:
-      'card #ffffff · sin anillo, sólo sombra CERRADA: 10px de alcance contra los 26 de la anterior. Ajustada contra el perfil del PNG (43·21·14·9·5·4·4·3·2·1·0) con error 0.74 sobre un pico de 43, y verificada renderizando y volviendo a medir. ⚠ En el tweet el fondo es crema y la card le saca 11 unidades; nuestro canvas sólo deja +2, así que acá la misma sombra tiene mucho menos donde apoyarse',
-    medido: true,
-    vars: {
-      '--surface': '#ffffff',
-      '--card-sombra':
-        '0 1px 2px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.06), 0 4px 8px rgba(0,0,0,.04)',
-      '--card-sombra-hover':
-        '0 2px 4px rgba(0,0,0,.16), 0 4px 8px rgba(0,0,0,.07), 0 8px 16px rgba(0,0,0,.05)',
-    },
-  },
-  {
-    id: 'hero',
-    nombre: 'benji hero',
-    fuente:
-      'card #fdfcf8 cálida · borde 1px rgba(0,0,0,.08) y CUATRO sombras: luz arriba, viñeta cálida, contacto y elevación. Su frame de /drawesome, el trato que le da a un demo que es toda la página. También cae tal cual: su canvas es el nuestro',
-    medido: true,
-    vars: {
-      '--surface': '#fdfcf8',
-      '--card-sombra':
-        'inset 0 0 0 1px rgba(0,0,0,.08), inset 0 1px 0 hsla(0,0%,100%,.9), inset 0 0 60px rgba(120,104,72,.04), 0 1px 2px rgba(0,0,0,.035), 0 14px 36px rgba(0,0,0,.05)',
-      '--card-sombra-hover':
-        'inset 0 0 0 1px rgba(0,0,0,.12), inset 0 1px 0 hsla(0,0%,100%,.9), inset 0 0 60px rgba(120,104,72,.04), 0 2px 4px rgba(0,0,0,.04), 0 18px 44px rgba(0,0,0,.07)',
-    },
-  },
-  {
-    id: 'hoy',
-    nombre: 'hoy',
-    fuente:
-      'card #ffffff · anillo inset 1px rgba(0,0,0,.11). La card es más CLARA que el fondo, al revés que los dos, y el anillo es casi el doble de fuerte que el de benji. No salió de ninguno: viene heredado sin verificar',
+      'card #ffffff · sin anillo, sólo sombra. SUAVIZADA respecto del original: medida sobre nuestro fondo, el pico baja de 44 a 29 y el alcance sube de 10 a 14px. Se descartaron dos aún más suaves porque perdían el contacto y la caída quedaba plana — dejaba de leerse como que la card está levantada',
     medido: false,
     vars: {
       '--surface': '#ffffff',
-      '--card-sombra': 'inset 0 0 0 1px rgba(0,0,0,.11)',
-      '--card-sombra-hover': 'inset 0 0 0 1px rgba(0,0,0,.16)',
+      '--card-sombra': '0 1px 3px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.05), 0 6px 14px rgba(0,0,0,.035)',
+      '--card-sombra-hover': '0 2px 4px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.045)',
+    },
+  },
+  {
+    id: 'jbt',
+    nombre: 'j + b + t',
+    fuente:
+      'las tres señales juntas: card #f8f8f6 más oscura (josh) · anillo 0 0 0 1px #f2f2f2 (benji) · sombra suavizada (tweet). Es la más marcada de las cinco, y la única donde el contraste, la línea y la elevación empujan para el mismo lado',
+    medido: false,
+    vars: {
+      '--surface': '#f8f8f6',
+      '--card-sombra': '0 0 0 1px #f2f2f2, 0 1px 3px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.05), 0 6px 14px rgba(0,0,0,.035)',
+      '--card-sombra-hover': '0 0 0 1px #e6e6e6, 0 2px 4px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.045)',
+    },
+  },
+  {
+    id: 'bt',
+    nombre: 'b + t',
+    fuente:
+      'card #fcfcfc y anillo 0 0 0 1px #f2f2f2, los dos de benji, más la sombra suavizada del tweet. La línea sigue definiendo el borde y la sombra sólo la despega del fondo',
+    medido: false,
+    vars: {
+      '--surface': '#fcfcfc',
+      '--card-sombra': '0 0 0 1px #f2f2f2, 0 1px 3px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.05), 0 6px 14px rgba(0,0,0,.035)',
+      '--card-sombra-hover': '0 0 0 1px #e6e6e6, 0 2px 4px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.045)',
     },
   },
 ]
@@ -113,7 +95,7 @@ export const PIELES: Piel[] = [
 export function useLab() {
   const [id, setId] = useState(() => {
     const q = new URLSearchParams(location.search).get('piel')
-    return PIELES.some((p) => p.id === q) ? (q as string) : 'hoy'
+    return PIELES.some((p) => p.id === q) ? (q as string) : 'benji'
   })
 
   useEffect(() => {
