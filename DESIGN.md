@@ -202,29 +202,77 @@ subset` con `--flavor=woff2 --layout-features='*' --no-hinting`.
 
 ---
 
-## Color — HEREDADO
+## Color
 
-Los ocho vienen del `DESIGN.md` de Carousels. Se respetan como están.
+### Canvas y texto — VERIFICADO
 
-| token | valor |
-|---|---|
-| `--canvas` | `#fdfdfc` |
-| `--surface` | `#ffffff` |
-| `--ink` | `#111111` |
-| `--text-secondary` | `#8a8a8a` |
-| `--hairline` | `rgba(0,0,0,.051)` — **MEDIDO**: su `#f2f2f2` → `(255−242)/255` |
-| `--card-ring` | `rgba(0,0,0,.11)` |
-| `--a1` / `--a4` | `rgba(0,0,0,.04)` / `.16` |
+```css
+--canvas: #fdfdfc;
+--ink:    #111111;
+```
 
-La hairline va en alpha y no en sólido para que **componga sobre
-`--canvas`** en vez de asumir blanco puro.
+Vinieron heredados del `DESIGN.md` de Carousels sin poder verificarse.
+**Ahora sí están verificados**: son literalmente los de benji, leídos de
+sus variables declaradas —`--body-bg: #fdfdfc` y `--body-color: #111`—
+y confirmados en el píxel pintado.
 
-> `--text-secondary` no coincide con ninguna referencia: benji usa
-> `rgba(0,0,0,.4)`, emil `rgb(99,99,94)`, josh `rgb(163,163,163)`. El
-> nuestro es `rgb(138,138,138)` y no es de nadie. Se dejó porque los
-> colores eran una decisión ya tomada, no una abierta.
+### La superficie — la regla de josh
 
----
+```css
+--surface:       #f8f8f6;   /* −5 respecto del canvas */
+--surface-hover: #f3f3f0;   /* −10 */
+```
+
+**La card es más OSCURA que la página, y no lleva ni anillo ni sombra:
+el contraste hace todo el trabajo.**
+
+Las dos referencias resuelven esto de dos maneras enteras y acopladas, y
+medirlas fue lo que dejó ver que lo nuestro no era ninguna de las dos:
+
+| | canvas | card | diferencia | anillo |
+|---|---|---|---|---|
+| josh | `#ffffff` | `#fafaf9` | **−5** | **ninguno** |
+| benji | `#fdfdfc` | `#fcfcfc` | −1 | `0 0 0 1px #f2f2f2` |
+| lo que había | `#fdfdfc` | `#ffffff` | **+2** | `inset 1px rgba(0,0,0,.11)` |
+
+Josh no lleva anillo porque sus 5 unidades alcanzan. Benji sí lo lleva
+porque su diferencia es de 1 unidad —o sea nada— y a su card la define
+la línea, no el relleno. Lo que había era card más **clara** que el fondo
+**más** un anillo casi al doble del suyo: las dos señales tirando para
+lados opuestos.
+
+> ⚠ El `--background: #fafafa` que josh declara es letra muerta: su
+> `<main class="bg-white">` lo tapa. El píxel real de su fondo es
+> `(255,255,255)`.
+
+**Se traslada su DELTA, no su valor.** Su card es `#fafaf9` sobre blanco
+puro; nuestro canvas ya arranca 2 unidades abajo, así que copiarle el hex
+daría sólo −3. Copiarle el color y copiarle el contraste son dos
+decisiones distintas.
+
+Se eligió −5 de una rampa de cinco: **−3 · −5 · −8 · −12 · −16**. En toda
+la rampa el azul baja 6/5 de lo que bajan rojo y verde, que es su propia
+relación de canal — sin eso el gris se enfría al profundizar.
+
+### El hover — MEDIDO
+
+Oscurece el relleno **y nada más**: ni sombra, ni escala, ni movimiento,
+ni opacidad.
+
+Sus cajas de demo no sirven de referencia acá: no reaccionan al hover
+porque **no son clickeables**. Las que sí lo son están en su home —6
+cards de 580×76, radio 12— y ahí el único cambio es el fondo, de
+transparente sobre su página blanca a `#f5f5f5`, o sea **−10**. Nuestro
+mismo −10 da `#f3f3f0`. Su transición es de 150ms, el mismo `--dur-fill`
+que ya teníamos.
+
+Verificado en la página: reposo `(−5,−5,−6)`, hover `(−10,−10,−12)`.
+
+### Lo que se fue
+
+`--card-ring` y `--a4` existían sólo para el anillo de la card. Elegida
+esta regla no hay ninguna línea que pintar, así que se borraron en vez de
+quedar como tokens sin dueño.
 
 ## Espaciado
 

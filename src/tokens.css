@@ -21,20 +21,34 @@
 :root {
   /* superficies y texto */
   --canvas: #fdfdfc;
-  --surface: #ffffff;
+  /* La card es más OSCURA que la página, no más clara, y no lleva ni
+     anillo ni sombra: el contraste hace todo el trabajo. Es la regla de
+     josh, elegida contra la de benji (card al ras del fondo, definida
+     por una línea de 1px).
+
+     Se traslada su DELTA, no su valor. Su card es #fafaf9 sobre blanco
+     puro, o sea −5; nuestro canvas ya arranca 2 unidades abajo, así que
+     copiarle el hex daría sólo −3. Sobre #fdfdfc, −5 da #f8f8f6.
+
+     El azul baja 6/5 de lo que bajan rojo y verde: es su relación de
+     canal, y sin eso el gris se enfría al profundizar.
+
+     Se eligió −5 de una rampa de cinco (−3 · −5 · −8 · −12 · −16). */
+  --surface: #f8f8f6;
+  /* El hover oscurece el relleno y nada más — ni sombra, ni movimiento,
+     ni opacidad. Medido de sus 6 cards clickeables de la home
+     (580×76, radio 12): en reposo son transparentes sobre su página
+     blanca y en hover pasan a #f5f5f5, o sea −10 respecto del fondo.
+     Acá el mismo −10 da #f3f3f0. Su transición es de 150ms, el mismo
+     --dur-fill que ya teníamos. */
+  --surface-hover: #f3f3f0;
   --ink: #111111;
   --text-secondary: #8a8a8a;
 
   /* rampa alfa */
+  /* --a1 lo usa el foco. --a4 y --card-ring se fueron con el anillo de
+     la card: elegida la regla de josh, no hay ninguna línea que pintar. */
   --a1: rgba(0, 0, 0, 0.04);
-  --a4: rgba(0, 0, 0, 0.16);
-  --card-ring: rgba(0, 0, 0, 0.11);
-  /* ⚠ EN ESTUDIO: la sombra entera de la card, no sólo su color. Las
-     opciones que se están probando no comparten forma —josh no lleva
-     ninguna, benji lleva un anillo hacia afuera, su frame lleva cinco
-     capas— así que la variable tiene que ser el box-shadow completo. */
-  --card-sombra: inset 0 0 0 1px var(--card-ring);
-  --card-sombra-hover: inset 0 0 0 1px var(--a4);
   /* la hairline de benji: #f2f2f2 → (255-242)/255 = .051. En alpha y no
      en sólido para que componga sobre --canvas y no asuma blanco puro */
   --hairline: rgba(0, 0, 0, 0.051);

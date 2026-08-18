@@ -266,12 +266,15 @@
 .streamPreview {
   min-height: var(--card-alto);
   background: var(--surface);
-  box-shadow: var(--card-sombra);
   border-radius: var(--radius-tbd);
-  transition: box-shadow var(--dur-fill) var(--ease-out);
+  transition: background-color var(--dur-fill) var(--ease-out);
 }
+/* Lo único que hace el hover es oscurecer el relleno. Nada de sombra,
+   de escala ni de movimiento — es lo que hace josh en sus cards
+   clickeables, y es coherente con que acá la card la defina el
+   contraste y no una línea. */
 .streamItem:hover .streamPreview {
-  box-shadow: var(--card-sombra-hover);
+  background: var(--surface-hover);
 }
 
 /* ═══════════ DETALLE ═══════════ */
@@ -338,7 +341,6 @@
 .detailPreview {
   min-height: var(--card-alto-detalle);
   background: var(--surface);
-  box-shadow: var(--card-sombra);
   border-radius: var(--radius-tbd);
 }
 /* En App lo que crece no es la caja sino el teléfono, y también con un
