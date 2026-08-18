@@ -300,8 +300,8 @@
   /* una pieza, de la anterior. El de benji, medido. */
   --piece-gap: 48px;
 
-  /* ⚠ EN ESTUDIO — censo de radios en las 7 páginas de las dos
-     referencias. Para cajas grandes son dos números y no hay un tercero:
+  /* El radio de la card. Censo de las 7 páginas de las dos referencias:
+     para cajas grandes hay exactamente dos números y no hay un tercero.
 
        benji   8    50 usos en family-values, 4 en liveline
                14   3 usos, sólo el frame hero de /drawesome
@@ -309,9 +309,14 @@
                16   6 usos, sus cajas de <img> en pasito
                32   1 uso, el demo portada de /bloom
 
-     En controles chicos los dos coinciden: 4 y 6. El 12 de acá es el de
-     josh, que es coherente con haber tomado su regla de superficie. */
-  --radius-tbd: 12px;
+     Elegido el 8: es el radio más repetido de las dos referencias
+     juntas, y el único que las dos usan en cajas grandes. Los otros tres
+     son one-offs de una sola página. Además es múltiplo de 4, que el 14
+     no es.
+
+     En controles chicos los dos coinciden en 4 y 6, así que cuando haya
+     una pieza real ahí no va a haber nada que decidir. */
+  --card-radio: 8px;
 
   /* ─── LA CAJA DE LA PIEZA ───
      Altura fija y no proporción. Sale de seis casos medidos entre las

@@ -235,7 +235,7 @@
   border: 0;
   background: transparent;
   text-align: left;
-  border-radius: var(--radius-tbd);
+  border-radius: var(--card-radio);
   cursor: pointer;
 }
 .streamItem + .streamItem {
@@ -266,7 +266,7 @@
 .streamPreview {
   min-height: var(--card-alto);
   background: var(--surface);
-  border-radius: var(--radius-tbd);
+  border-radius: var(--card-radio);
   transition: background-color var(--dur-fill) var(--ease-out);
 }
 /* Lo único que hace el hover es oscurecer el relleno. Nada de sombra,
@@ -341,7 +341,7 @@
 .detailPreview {
   min-height: var(--card-alto-detalle);
   background: var(--surface);
-  border-radius: var(--radius-tbd);
+  border-radius: var(--card-radio);
 }
 /* En App lo que crece no es la caja sino el teléfono, y también con un
    número suyo: 319×628 es su otro tamaño de teléfono en family-values,

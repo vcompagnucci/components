@@ -600,18 +600,23 @@ Sin decidir.
 **Sin decidir, y no se puede decidir mirando referencias — necesita la
 primera pieza real adentro del rectángulo:**
 
-- la proporción de la card, y unificar `height` vs `aspect-ratio`
-- `--radius-tbd: 12px` — provisional
-- el anillo en hover (`--card-ring` → `--a4`), sin decidir
 - focus visible en la card, active, estado vacío, loading
-- la escala fina de espaciado interno de componentes
+- la escala fina de espaciado interno de componentes — aunque ahí las dos
+  referencias ya coinciden: radios de 4 y 6 para controles chicos
 
 **Decidible ya:**
 
-- self-hostear InterVariable (ver el riesgo arriba)
-- `"Web"` con dos pesos distintos
 - si el sistema suma un tamaño más grande y uno más chico
+- los grises de texto: `--text-secondary` es `#8a8a8a` sólido, y benji
+  usa el mismo ink con alfa (`.4` y `.6`) donde josh usa un gris aparte
+  (`#525252`). Sin verificar cuál seguimos
+- selección y foco: él declara `--selection-bg: #ededed` y
+  `--focus-color: rgba(0,122,255,.5)`; lo nuestro viene del design.md de
+  Carousels sin contrastar
 - modo oscuro — no existe ni como pregunta
+
+**Recién cerrado:** la proporción de la card, su superficie, su hover y
+su radio. `--radius-tbd` ya no existe: es `--card-radio: 8px`.
 
 **Otra etapa:** el detalle entero — layout, la flecha `←` que hoy es un
 carácter crudo, copy-URL. Sus valores (34, 24, 10, 8, 4) están marcados
