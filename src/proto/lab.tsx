@@ -71,7 +71,6 @@ type Paleta = {
   selection: string
   underline: string
   underlineHover: string
-  activo: string
   /* el acento del foco, aclarado */
   focus: string
   nota: string
@@ -90,7 +89,6 @@ const PALETAS: Paleta[] = [
     selection: '#1c1c1b',
     underline: '#2a2a29',
     underlineHover: '#858584',
-    activo: '#c2c2c0',
     focus: 'rgba(61, 155, 255, 0.5)',
     nota: 'su gray-100 CLARO es\nnuestro canvas exacto.\nCálido en los dos modos.',
   },
@@ -106,7 +104,6 @@ const PALETAS: Paleta[] = [
     selection: '#141414',
     underline: '#222222',
     underlineHover: '#868686',
-    activo: '#cacaca',
     focus: 'rgba(129, 140, 248, 0.5)', // su #818cf8 oscuro
     nota: 'el más profundo y el más\ncontrastado. Su par ink es\nel único arriba de Lc 100.',
   },
@@ -121,6 +118,27 @@ const ALFA_OSCURO = '59.2%'
    vuelta: --hairline .051 → 8.2%, --a1 .04 → 6.4%. */
 const HAIRLINE_OSCURO = 'rgba(255, 255, 255, 0.082)'
 const A1_OSCURO = 'rgba(255, 255, 255, 0.064)'
+
+/* EL ACTIVO DEL ÍNDICE en oscuro. No se puede dejar en 80%: el
+   ×1.6 no aplica acá porque no es un nivel, es un estado, y su
+   trabajo es DESTACARSE SOBRE LA NAV. En oscuro el recorrido que
+   le queda arriba de la nav está comprimido —el ink ya está en
+   238 o 250 y el techo es 255— así que el mismo 80% salta la
+   mitad que en claro (25 puntos de Lc contra 46).
+
+   Lo que se conserva no es el alfa: es DÓNDE CAE EL ACTIVO ENTRE
+   LA NAV Y EL INK. En claro el 80% lo deja al 80.4% de ese
+   recorrido —nav Lc 46.7, activo 92.9, ink 104.1—. Para caer en
+   la misma posición relativa en oscuro hace falta 93%:
+
+     emil   nav 44.0 → activo 86.1 → ink 96.2    salto 42.0
+     josh   nav 46.5 → activo 92.8 → ink 104.4   salto 46.3
+     claro  nav 46.7 → activo 92.9 → ink 104.1   salto 46.1
+
+   Y sigue sin llegar al ink, que es la regla de benji: la pieza
+   que estás mirando se destaca sin ser lo más presente de la
+   pantalla — eso queda para los títulos. */
+const ACTIVO_ALFA_OSCURO = '93%'
 
 /* SEGUNDO EJE · el tamaño del paso de la card.
 
@@ -171,7 +189,9 @@ export function Lab() {
     set('--type-nav-c', `color-mix(in srgb, var(--ink) ${ALFA_OSCURO}, transparent)`)
     set('--hairline', HAIRLINE_OSCURO)
     set('--a1', A1_OSCURO)
-    set('--index-activo-c', p.activo)
+    /* Derivado del ink, igual que la nav — el activo es el mismo
+       mecanismo con otro alfa, no un color aparte. */
+    set('--index-activo-c', `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`)
     set('--selection-bg', p.selection)
     set('--selection-color', 'var(--ink)')
     set('--link-underline', p.underline)
