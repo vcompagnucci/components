@@ -210,7 +210,7 @@ export function App() {
     return (
       <div className={css.page}>
         <Detail piece={selected} onBack={back} />
-        <LabPanel {...lab} />
+        <LabPanel v={lab.v} setV={lab.setV} />
       </div>
     )
   }
@@ -233,7 +233,7 @@ export function App() {
         ))}
       </div>
       {/* ⚠ EN ESTUDIO */}
-      <LabPanel {...lab} />
+      <LabPanel v={lab.v} setV={lab.setV} />
     </div>
   )
 }

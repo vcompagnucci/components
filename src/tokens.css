@@ -122,7 +122,11 @@
   --type-h1-ls: -0.00563rem;
   --type-h1-c: var(--ink);
 
-  --type-body-fs: 14px; /* subtítulo del masthead, descripción del detalle */
+  /* Sólo el subtítulo del masthead. La descripción del detalle SALIÓ de
+     este rol al tomar el uso de benji: es prosa, y su regla 1 es que
+     todo lo que se lee va en ink. El gris queda para lo que ANOTA — su
+     <time> bajo el h1 es exactamente el rol del subtítulo. */
+  --type-body-fs: 14px; /* subtítulo del masthead */
   --type-body-lh: 20px;
   --type-body-fw: 460;
   --type-body-ls: -0.00563rem;
@@ -227,15 +231,24 @@
      enteros, cosa que no pasaba con ninguno de los dos extremos. */
   --page-content-max-width: 592px;
 
-  --focus-ring: 0 0 0 2px var(--canvas),
-    0 0 0 3.5px color-mix(in srgb, var(--ink) 50%, transparent);
-  /* ⚠ EN ESTUDIO: el toggle "como él" reemplaza el anillo por su receta
-     —outline de 2px, instantáneo, despegado del texto— y baja la
-     descripción del detalle a ink, que es prosa. */
-  --focus-outline: none;
-  --focus-transition: initial;
-  --detalle-desc-c: var(--type-body-c);
-  --index-activo-c: var(--ink);
+  /* EL FOCO, de benji. Un outline de 2px sólido, y SIN transición: es lo
+     único de su página que aparece instantáneo, contra los 200ms que
+     tiene todo lo demás. Él además lo despega del texto con
+     padding:0 2px / margin:0 -2px, que acá no hace falta porque lo que
+     recibe foco son cajas y no palabras sueltas dentro de un párrafo.
+
+     Reemplaza un anillo de dos capas con color-mix que venía del
+     design.md de Carousels y nunca se pudo contrastar. */
+  --focus-outline: 2px solid rgba(0, 122, 255, 0.5);
+  --focus-transition: none;
+
+  /* El activo y el hover del índice NO llegan al ink: se quedan en 65.
+     Es su regla, explícita en una sola declaración para los dos estados:
+       nav ul li a:hover, nav ul li[data-active=true] a
+         { color: hsla(0,0%,7%,.8) }
+     O sea que la pieza que estás mirando se destaca sin ser lo más
+     oscuro de la pantalla — eso queda para los títulos. */
+  --index-activo-c: rgba(18, 18, 18, 0.8);
 
   /* motion. La página NO tiene animación de entrada: al abrir una pieza
      y al volver no se anima nada. Lo único que se mueve es el hover, y
@@ -427,6 +440,5 @@ button {
 
 :focus-visible {
   outline: var(--focus-outline);
-  box-shadow: var(--focus-ring);
   transition: var(--focus-transition);
 }
