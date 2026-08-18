@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
+/* ⚠ EN ESTUDIO — los grises de texto. Se va con src/proto/. */
+import { LabPanel, useLab } from './proto/lab'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -91,6 +93,7 @@ function Index({ activa }: { activa: string | null }) {
 
 export function App() {
   const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const lab = useLab() /* ⚠ EN ESTUDIO */
   const [activa, setActiva] = useState<string | null>(null)
   const listScroll = useRef(0)
   const first = useRef(true)
@@ -207,6 +210,7 @@ export function App() {
     return (
       <div className={css.page}>
         <Detail piece={selected} onBack={back} />
+        <LabPanel {...lab} />
       </div>
     )
   }
@@ -228,6 +232,8 @@ export function App() {
           </section>
         ))}
       </div>
+      {/* ⚠ EN ESTUDIO */}
+      <LabPanel {...lab} />
     </div>
   )
 }
