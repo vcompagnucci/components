@@ -5,26 +5,31 @@ import './lab.module.css'
    LAB · LA PALETA OSCURA
 
    Queda UNA pregunta: de dónde sale el par canvas/ink. Todo lo
-   demás está cerrado y va constante en las cuatro.
+   demás está cerrado y va constante en las tres.
 
-   Las cuatro, por profundidad:
+   Las tres, por profundidad de canvas:
 
-     benji     19 · frío     su .sd[data-theme=auto] de /drawesome
-     emil      17 · cálido   Geist gray-100, verificado pintando en
-                             animations.dev
-     profundo  10 · neutro   el canvas de josh con un ink que no
-                             colapsa el par anotación/nav
-     josh      10 · neutro   su :root oscuro, tal cual
+     emil       17 · cálido   Geist gray-100, verificado pintando en
+                              animations.dev
+     profundo   10 · neutro   el canvas de josh, que es el
+                              --ds-background-100 de vercel
+     linear      9 · cálido   su bg-level-0, el más hondo, con nuestro
+                              tono y su paso de superficie de +20
 
-   Los dos primeros son EL MISMO NEGRO: ΔL .0104, abajo del umbral
-   de la vista. Sólo cambia el tinte. Los dos últimos están nueve
-   unidades más abajo — y ese 10 es el --ds-background-100 de
-   vercel.com, que además pinta su body en negro puro.
+   LAS TRES COMPARTEN EL INK EN 238, y no por gusto. La regla deriva
+   la anotación del blanco y la nav del --ink, así que el ink tiene
+   que entrar lo suficiente desde el blanco o las dos bases se
+   aplastan:
 
-   El ink NO es libre: la regla deriva la anotación del blanco y la
-   nav del --ink, así que si el ink se acerca al blanco las dos
-   bases se aplastan. Con 238 o 244 el par queda en ~5.2 Lc; con
-   el 250 de josh cae a 1.6.
+     238 (emil)               entra 17   par en 5.2 Lc
+     247 (linear text-primary) entra  8   par en 2.6 Lc
+     250 (josh)                entra  5   par en 1.6 Lc
+     255 (animations.dev)      entra  0   la regla no puede correr
+
+   Por eso 'profundo' y 'linear' llevan sus canvas pero no sus inks:
+   las dos son la corrección de una referencia que en esto no nos
+   sirve. Las variantes descartadas —benji, josh crudo y
+   animations.dev literal— están en el historial de git.
 
    LA SELECCIÓN YA ESTÁ DECIDIDA (regla visible): toma la respuesta
    de Geist para el mismo rol —gray-500 oscuro sobre gray-100— y el
@@ -58,18 +63,33 @@ type Paleta = {
 }
 
 const PALETAS = {
-  /* El oscuro de benji, medido de .sd[data-theme=auto] en /drawesome.
-     Es el mismo negro que el de emil —19 contra 17, ΔL .0104, abajo
-     del umbral de la vista— y lo único que los separa es el tinte:
-     él lo ENFRÍA (19,19,21) donde emil lo entibia (17,17,16). Su ink
-     también es cálido, como el de emil, seis unidades más arriba. */
-  benji: {
-    canvas: '#131315',
-    ink: '#f4f3f1',
-    surface: '#161618',
-    hover: '#19191b',
-    underline: '#2d2d2f',
-    underlineHover: '#89898b',
+  /* LINEAR ADAPTADO · su método, nuestro tono. Todo SOURCE, de sus
+     hojas servidas (--color-bg-level-0, --color-text-primary,
+     --color-bg-secondary/tertiary/quaternary, --color-border-primary).
+
+     Lo que define su modo oscuro, y que acá se copia:
+
+       1 · EL CANVAS MÁS HONDO DE TODOS. Su bg-level-0 es #08090a = 8,
+           dos unidades abajo del 10 de josh y de vercel.
+       2 · UN SOLO TONO EN LOS DOS MODOS. Sus grises son azules tanto
+           en claro como en oscuro; el tinte vive en la rampa de texto,
+           no en el fondo. Acá se conserva NUESTRO tono cálido (H 106)
+           con la misma lógica.
+       3 · UN PASO DE SUPERFICIE ENORME. De 8 a 28: +20, contra los +3
+           que da preservar el ΔL. Es el que más separa la card de la
+           página de las cuatro referencias.
+
+     Lo que NO se copia: su ink. Su text-primary oscuro es 247 y deja
+     sólo 8 unidades hasta el blanco, así que la regla de las dos bases
+     colapsa a 2.6 Lc — el mismo bug de josh. Va corregido a 238, igual
+     que en 'profundo', y el par vuelve a 5.2. */
+  linear: {
+    canvas: '#090908',
+    ink: '#eeeeec',
+    surface: '#1d1d1a',
+    hover: '#242421',
+    underline: '#252522',
+    underlineHover: '#82827d',
   },
   emil: {
     canvas: '#111110',
@@ -92,16 +112,7 @@ const PALETAS = {
     hover: '#101010',
     underline: '#222222',
     underlineHover: '#868686',
-  },
-  josh: {
-    canvas: '#0a0a0a',
-    ink: '#fafafa',
-    surface: '#0d0d0d',
-    hover: '#101010',
-    underline: '#222222',
-    underlineHover: '#868686',
-  },
-} satisfies Record<string, Paleta>
+  },} satisfies Record<string, Paleta>
 
 type Variante = {
   nombre: string
@@ -111,10 +122,9 @@ type Variante = {
 }
 
 const VARIANTES: Variante[] = [
-  { nombre: 'benji', paleta: 'benji', selection: '#333335', regla: 'visible' },
   { nombre: 'emil', paleta: 'emil', selection: '#31312e', regla: 'visible' },
   { nombre: 'profundo', paleta: 'profundo', selection: '#292929', regla: 'visible' },
-  { nombre: 'josh', paleta: 'josh', selection: '#292929', regla: 'visible' },
+  { nombre: 'linear', paleta: 'linear', selection: '#292926', regla: 'visible' },
 ]
 
 const ALFA_OSCURO = '59.2%'
