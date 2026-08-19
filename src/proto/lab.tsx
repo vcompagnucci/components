@@ -151,20 +151,12 @@ export function Lab() {
     set('--link-underline-hover', paleta.underlineHover)
     set('--focus-outline', `2px solid ${FOCUS_OSCURO}`)
 
-    /* La selección real del masthead queda visible después de cada
-       cambio. Así se compara el estado, no sólo un chip inventado. */
-    const frame = requestAnimationFrame(() => {
-      const masthead = document.querySelector('h1')?.parentElement
-      if (!masthead) return
-      const range = document.createRange()
-      range.selectNodeContents(masthead)
-      const selection = window.getSelection()
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-    })
-
+    /* Acá había una selección automática del masthead en cada cambio,
+       para poder comparar ese estado sin arrastrar. Se fue con la
+       decisión: la selección oscura ya está cerrada en la regla
+       visible, y ahora la única pregunta abierta es la paleta —
+       dejar el subtítulo resaltado sólo tapaba lo que hay que mirar. */
     return () => {
-      cancelAnimationFrame(frame)
       TOKENS.forEach((token) => d.style.removeProperty(token))
     }
   }, [paleta, variante.selection])
