@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
+import { Lab } from './proto/lab'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
@@ -207,6 +208,7 @@ export function App() {
     return (
       <div className={css.page}>
         <Detail piece={selected} onBack={back} />
+        <Lab />
       </div>
     )
   }
@@ -228,6 +230,7 @@ export function App() {
           </section>
         ))}
       </div>
+      <Lab />
     </div>
   )
 }
