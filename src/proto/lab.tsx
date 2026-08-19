@@ -4,149 +4,128 @@ import './lab.module.css'
 /* ─────────────────────────────────────────────────────────────
    LAB · LA PALETA OSCURA
 
-   Queda UNA pregunta: de dónde sale el par canvas/ink. Todo lo
-   demás está cerrado y va constante en las tres.
+   Ya no hay paletas cerradas: hay DOS NÚMEROS y todo lo demás se
+   deriva de ellos en vivo.
 
-     emil       17 · cálido   Geist gray-100, verificado pintando en
-                              animations.dev
-     profundo   10 · neutro   el canvas de josh, que es el
-                              --ds-background-100 de vercel
-     linear      9 · cálido   su bg-level-0, el más hondo, con nuestro
-                              tono
+     PROFUNDIDAD  el gris del canvas, en 8 bits.
+                  linear 9 · vercel 10 · emil 17 · benji 19
+     CALIDEZ      el croma en OKLCH, sobre nuestro tono H 106.4 —
+                  el mismo de --canvas claro (#fdfdfc). Sube el
+                  croma y toda la rampa se entibia junta.
 
-   DOS REGLAS, Y SÓLO DOS. Antes había cuatro ratios distintos
-   conviviendo —1.54 la card, 2.83 la selección, 1.60 los alfas,
-   0.99 el subrayado— y cada uno tenía su excusa, pero juntos no
-   eran un sistema.
+   Los dos presets del picker son puntos de ese espacio, no cosas
+   aparte: emil es (17, .002) y linear es (9, .003).
 
-   1 · EL TEXTO CONSERVA EL CONTRASTE.
-       Tiene un piso de legibilidad que las superficies no tienen,
-       así que lo que se sostiene es el Lc, no el número.
+   DE ESOS DOS NÚMEROS SALEN LOS DEMÁS, con las dos reglas que ya
+   están decididas:
+
+   1 · EL TEXTO CONSERVA EL CONTRASTE, porque tiene un piso de
+       legibilidad que las superficies no tienen.
          secundario  37% → 59.2%   Lc 49.8 → 49.3
          activo      80% → 93%     misma posición relativa entre
                                    la nav y el ink
-       El 59.2% sale del ×1.6 que benji aplica en sus dos tokens
-       con alfa, y cae justo donde hay que caer.
+       El ink queda anclado en el gris 238: la regla deriva la
+       anotación del BLANCO y la nav del --ink, así que el ink
+       tiene que entrar 17 unidades desde el blanco —lo mismo que
+       entra el #111 desde el negro en claro— o el par se aplasta.
+       Por eso el ink NO se mueve con la profundidad: sube de
+       calidez y nada más.
 
-   2 · TODO LO DEMÁS CONSERVA LA DISTANCIA E INVIERTE LA DIRECCIÓN.
-       En claro la card está a −5 del canvas, el hover a −9, la
-       selección a −16, el subrayado a −36 y su hover a −151. En
-       oscuro están a +5, +9, +16, +36 y +151.
-       Los alfas hacen lo mismo: mismo número, base dada vuelta.
-         --hairline  .051 negro → .051 blanco
-         --a1        .04  negro → .04  blanco
-       Que es exactamente lo que hace linear —#0000000d → #ffffff0d,
-       ×1.00— y su valor claro es nuestro mismo 5.1% a tres
-       decimales.
+   2 · TODO LO DEMÁS CONSERVA LA DISTANCIA E INVIERTE LA
+       DIRECCIÓN. En claro la card está a −5 del canvas, el hover
+       a −9, la selección a −16, el subrayado a −36 y su hover a
+       −151. Acá están a +5, +9, +16, +36 y +151, sea cual sea la
+       profundidad. Los alfas hacen lo mismo: mismo número, base
+       dada vuelta (.051 y .04), que es lo que hace linear
+       —#0000000d → #ffffff0d— y su valor claro es nuestro mismo
+       5.1% a tres decimales.
 
-   LO QUE SE RESIGNA AL UNIFICAR: la selección baja de 49 a 33. El
-   49 era el gray-500 de Geist, 2.83× el paso claro, y se veía más;
-   pero era el único token del sistema con su propia regla. A +16
-   sigue siendo más marcada que el 28 que quedaba antes.
+   La rampa se genera en OKLCH con croma CONSTANTE y tono
+   constante, que es el método de linear: un solo tono en los dos
+   modos, y el tinte viviendo en toda la escala en vez de sólo en
+   el fondo.
 
-   Y ES UN COMPROMISO, NO UNA LEY. OKLab dice que ΔL igual se ve
-   igual, y conservar la distancia de 8 bits da ~1.5× de ΔL: la
-   card ES algo más notoria en oscuro. Preservar el ΔL exacto la
-   dejaría en +3, invisible. Las dos referencias con escala propia
-   agrandan mucho más (emil ×3.00, linear ×4.48) por robustez
-   —cerca del negro las pantallas divergen: OLED contra IPS, luz
-   ambiente, bandeo de 8 bits— no para igualar apariencia. Esto
-   queda en el medio y se enuncia en una frase.
-
-   APCA no puede arbitrar esto: devuelve 0.0 para todas las
-   opciones de superficie. Está hecho para texto. El instrumento
-   es ΔL.
+   Es un compromiso y no una ley: conservar la distancia de 8 bits
+   da ~1.5× de ΔL, así que la card es algo más notoria en oscuro.
+   Conservar el ΔL exacto la dejaría en +3, invisible; las dos
+   referencias con escala propia agrandan mucho más (emil ×3.00,
+   linear ×4.48) por robustez entre pantallas, no por apariencia.
+   APCA no puede arbitrarlo: devuelve 0.0 para todas las opciones
+   de superficie. El instrumento es ΔL.
 
    EL FOCO usa el par de benji: rgba(0,122,255,.5) claro,
    rgba(61,155,255,.5) oscuro. Geist no ofrece un par —gris en
    emilkowal.ski, ámbar en animations.dev.
    ───────────────────────────────────────────────────────────── */
 
-type Paleta = {
-  canvas: string
-  ink: string
-  surface: string
-  hover: string
-  underline: string
-  underlineHover: string
-}
+/* Nuestro tono, el de --canvas claro medido en OKLCH. */
+const TONO = 106.4
 
-const PALETAS = {
-  /* LINEAR ADAPTADO · su método, nuestro tono. Todo SOURCE, de sus
-     hojas servidas (--color-bg-level-0, --color-text-primary,
-     --color-bg-secondary/tertiary/quaternary, --color-border-primary).
+/* Las distancias del modo claro desde el canvas, en 8 bits. */
+const PASOS = { surface: 5, hover: 9, selection: 16, underline: 36, underlineHover: 151 }
 
-     Lo que define su modo oscuro, y que acá se copia:
-
-       1 · EL CANVAS MÁS HONDO DE TODOS. Su bg-level-0 es #08090a = 8,
-           dos unidades abajo del 10 de josh y de vercel.
-       2 · UN SOLO TONO EN LOS DOS MODOS. Sus grises son azules tanto
-           en claro como en oscuro; el tinte vive en la rampa de texto,
-           no en el fondo. Acá se conserva NUESTRO tono cálido (H 106)
-           con la misma lógica.
-       3 · (NO se copia su paso de superficie.) El suyo va de 8 a 28,
-           +20, que sobre nuestro claro sería 5.94× — y nuestra card
-           clara es deliberadamente callada. Su paso claro ya arranca
-           más grande que el nuestro (ΔL .0198 contra .0152) y encima
-           multiplica más. Su profundidad no obliga a su separación:
-           son dos diales distintos.
-
-     Lo que NO se copia: su ink. Su text-primary oscuro es 247 y deja
-     sólo 8 unidades hasta el blanco, así que la regla de las dos bases
-     colapsa a 2.6 Lc — el mismo bug de josh. Va corregido a 238, igual
-     que en 'profundo', y el par vuelve a 5.2. */
-  linear: {
-    canvas: '#090908',
-    ink: '#eeeeec',
-    surface: '#0e0e0d',
-    hover: '#121211',
-    underline: '#2d2d2c',
-    underlineHover: '#a0a09f',
-  },
-  emil: {
-    canvas: '#111110',
-    ink: '#eeeeec',
-    surface: '#161615',
-    hover: '#1a1a19',
-    underline: '#353534',
-    underlineHover: '#a8a8a7',
-  },
-  /* La profundidad de josh con un ink que no colapsa el par. Su
-     #fafafa deja sólo 5 unidades entre las dos bases de la regla
-     —blanco para lo que anota, --ink para la nav— y las aplasta a
-     Δ 1.6 Lc. Con 238 la separación vuelve a 5.1, como con emil,
-     y el canvas sigue siendo el suyo. El resto de la paleta es la
-     de josh sin tocar. */
-  profundo: {
-    canvas: '#0a0a0a',
-    ink: '#eeeeee',
-    surface: '#0f0f0f',
-    hover: '#131313',
-    underline: '#2e2e2e',
-    underlineHover: '#a1a1a1',
-  },
-} satisfies Record<string, Paleta>
-
-type Variante = {
-  nombre: string
-  /* null = el modo claro tal como está horneado en tokens.css. No
-     escribe nada: saca todos los overrides y deja ver el original.
-     Está primero a propósito — es contra esto que se comparan las
-     tres, y es lo único acá que no es una propuesta. */
-  paleta: keyof typeof PALETAS | null
-  selection?: string
-}
-
-const VARIANTES: Variante[] = [
-  { nombre: 'claro · horneado', paleta: null },
-  { nombre: 'emil', paleta: 'emil', selection: '#212120' },
-  { nombre: 'profundo', paleta: 'profundo', selection: '#1a1a1a' },
-  { nombre: 'linear', paleta: 'linear', selection: '#191918' },
-]
+/* El ink no se mueve con la profundidad: 255 − 238 = 17, la misma
+   distancia que hay del negro al #111 en claro. */
+const INK_GRIS = 238
 
 const ALFA_OSCURO = '59.2%'
 const ACTIVO_ALFA_OSCURO = '93%'
 const FOCUS_OSCURO = 'rgba(61, 155, 255, 0.5)'
+const HAIRLINE_OSCURO = 'rgba(255, 255, 255, 0.051)'
+const A1_OSCURO = 'rgba(255, 255, 255, 0.04)'
+
+function oklchARgb(L: number, C: number, H: number) {
+  const a = C * Math.cos((H * Math.PI) / 180)
+  const b = C * Math.sin((H * Math.PI) / 180)
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3
+  const canal = (v: number) => {
+    const c = Math.max(0, Math.min(1, v))
+    return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055))
+  }
+  const hex = (n: number) => n.toString(16).padStart(2, '0')
+  const r = canal(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s)
+  const g = canal(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s)
+  const bl = canal(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s)
+  return `#${hex(r)}${hex(g)}${hex(bl)}`
+}
+
+/* La L de OKLab de un gris neutro de 8 bits. En un gris los tres
+   canales lineales son iguales, así que las tres sumas de la matriz
+   colapsan a la misma raíz cúbica y los pesos suman 1. */
+function lDeGris(v: number) {
+  const x = Math.max(0, Math.min(255, v)) / 255
+  const lineal = x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4
+  return Math.cbrt(lineal)
+}
+
+/* Toda la paleta desde los dos números. Croma y tono constantes en
+   toda la rampa; lo único que cambia por token es la L, y sale de
+   la distancia de 8 bits del modo claro. */
+function paletaDe(profundidad: number, calidez: number) {
+  const paso = (offset: number) => oklchARgb(lDeGris(profundidad + offset), calidez, TONO)
+  return {
+    canvas: paso(0),
+    surface: paso(PASOS.surface),
+    hover: paso(PASOS.hover),
+    selection: paso(PASOS.selection),
+    underline: paso(PASOS.underline),
+    underlineHover: paso(PASOS.underlineHover),
+    /* el ink lleva menos croma: cerca del blanco el mismo croma se
+       ve mucho más, y el tinte tiene que vivir en la rampa media */
+    ink: oklchARgb(lDeGris(INK_GRIS), calidez * 0.4, TONO),
+  }
+}
+
+const PRESETS = [
+  { nombre: 'claro', profundidad: null as number | null, calidez: 0 },
+  { nombre: 'emil', profundidad: 17, calidez: 0.002 },
+  { nombre: 'linear', profundidad: 9, calidez: 0.003 },
+]
+
+const LIMITES = { profundidad: [5, 26], calidez: [0, 0.02] } as const
+const PASO_CALIDEZ = 0.001
 
 const TOKENS = [
   'color-scheme',
@@ -167,63 +146,60 @@ const TOKENS = [
   '--focus-outline',
 ] as const
 
-const inicial = () => {
-  const v = Number(new URLSearchParams(location.search).get('v'))
-  return Number.isInteger(v) && v >= 1 && v <= VARIANTES.length ? v - 1 : 0
-}
-
 export function Lab() {
-  const [actual, setActual] = useState(inicial)
+  const [claro, setClaro] = useState(true)
+  const [profundidad, setProfundidad] = useState(12)
+  const [calidez, setCalidez] = useState(0.006)
   const picker = useRef<HTMLElement>(null)
   const highlight = useRef<HTMLSpanElement>(null)
   const items = useRef<Array<HTMLButtonElement | null>>([])
-  const variante = VARIANTES[actual]
-  const paleta = variante.paleta ? PALETAS[variante.paleta] : null
+
+  /* Cuál preset está exactamente donde están los diales. Si ninguno,
+     el highlight se esconde: estás en un punto propio del espacio. */
+  const activo = claro
+    ? 0
+    : PRESETS.findIndex(
+        (p) => p.profundidad === profundidad && Math.abs(p.calidez - calidez) < 1e-9,
+      )
 
   useEffect(() => {
     const d = document.documentElement
+    /* Sin nada escrito, el claro es el que ya está en tokens.css. La
+       comparación honesta es contra él sin tocarlo. */
+    if (claro) return
     const set = (token: string, value: string) => d.style.setProperty(token, value)
-
-    /* Sin paleta no se escribe nada: el modo claro es el que ya está
-       en tokens.css, y la comparación honesta es contra él sin tocar. */
-    if (!paleta) return () => {}
-
+    const p = paletaDe(profundidad, calidez)
     set('color-scheme', 'dark')
-    set('--canvas', paleta.canvas)
-    set('--ink', paleta.ink)
-    set('--surface', paleta.surface)
-    set('--surface-hover', paleta.hover)
+    set('--canvas', p.canvas)
+    set('--ink', p.ink)
+    set('--surface', p.surface)
+    set('--surface-hover', p.hover)
     set('--secundario-alfa', ALFA_OSCURO)
     set('--text-secondary', `color-mix(in srgb, #fff ${ALFA_OSCURO}, transparent)`)
     set('--type-nav-c', `color-mix(in srgb, var(--ink) ${ALFA_OSCURO}, transparent)`)
-    set('--hairline', 'rgba(255, 255, 255, 0.051)')
-    set('--a1', 'rgba(255, 255, 255, 0.04)')
-    set(
-      '--index-activo-c',
-      `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`,
-    )
-    if (variante.selection) set('--selection-bg', variante.selection)
+    set('--hairline', HAIRLINE_OSCURO)
+    set('--a1', A1_OSCURO)
+    set('--index-activo-c', `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`)
+    set('--selection-bg', p.selection)
     set('--selection-color', 'var(--ink)')
-    set('--link-underline', paleta.underline)
-    set('--link-underline-hover', paleta.underlineHover)
+    set('--link-underline', p.underline)
+    set('--link-underline-hover', p.underlineHover)
     set('--focus-outline', `2px solid ${FOCUS_OSCURO}`)
-
-    /* Acá había una selección automática del masthead en cada cambio,
-       para poder comparar ese estado sin arrastrar. Se fue con la
-       decisión: la selección oscura ya está cerrada en la regla
-       visible, y ahora la única pregunta abierta es la paleta —
-       dejar el subtítulo resaltado sólo tapaba lo que hay que mirar. */
     return () => {
       TOKENS.forEach((token) => d.style.removeProperty(token))
     }
-  }, [paleta, variante.selection])
+  }, [claro, profundidad, calidez])
 
   const moverHighlight = useCallback(() => {
-    const item = items.current[actual]
-    if (!item || !highlight.current) return
+    if (!highlight.current) return
+    const item = activo >= 0 ? items.current[activo] : null
+    if (!item) {
+      highlight.current.style.width = '0px'
+      return
+    }
     highlight.current.style.width = `${item.offsetWidth}px`
     highlight.current.style.transform = `translateX(${item.offsetLeft}px)`
-  }, [actual])
+  }, [activo])
 
   useLayoutEffect(moverHighlight, [moverHighlight])
 
@@ -243,17 +219,31 @@ export function Lab() {
   useEffect(() => {
     const onResize = () => moverHighlight()
     window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('resize', onResize)
-    }
+    return () => window.removeEventListener('resize', onResize)
   }, [moverHighlight])
 
-  const elegir = (indice: number) => {
-    if (indice < 0 || indice >= VARIANTES.length) return
-    setActual(indice)
-    const url = new URL(location.href)
-    url.searchParams.set('v', String(indice + 1))
-    history.replaceState(null, '', url)
+  const elegirPreset = (indice: number) => {
+    const p = PRESETS[indice]
+    if (p.profundidad === null) {
+      setClaro(true)
+      return
+    }
+    setClaro(false)
+    setProfundidad(p.profundidad)
+    setCalidez(p.calidez)
+  }
+
+  const mover = (dial: 'profundidad' | 'calidez', signo: number) => {
+    setClaro(false)
+    if (dial === 'profundidad') {
+      const [min, max] = LIMITES.profundidad
+      setProfundidad((v) => Math.max(min, Math.min(max, v + signo)))
+    } else {
+      const [min, max] = LIMITES.calidez
+      setCalidez(
+        (v) => Math.round(Math.max(min, Math.min(max, v + signo * PASO_CALIDEZ)) * 1000) / 1000,
+      )
+    }
   }
 
   useEffect(() => {
@@ -262,26 +252,33 @@ export function Lab() {
       if (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
       const numero = Number.parseInt(event.key, 10)
-      if (numero >= 1 && numero <= VARIANTES.length) elegir(numero - 1)
-      else if (event.key === 'ArrowRight') elegir((actual + 1) % VARIANTES.length)
-      else if (event.key === 'ArrowLeft') {
-        elegir((actual - 1 + VARIANTES.length) % VARIANTES.length)
-      }
+      if (numero >= 1 && numero <= PRESETS.length) elegirPreset(numero - 1)
+      else if (event.key === 'ArrowRight') mover('profundidad', 1)
+      else if (event.key === 'ArrowLeft') mover('profundidad', -1)
+      else if (event.key === 'ArrowUp') mover('calidez', 1)
+      else if (event.key === 'ArrowDown') mover('calidez', -1)
+      else return
+      event.preventDefault()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [actual])
+  })
+
+  const p = paletaDe(profundidad, calidez)
+  const chips = claro
+    ? ['#fdfdfc', '#f8f8f6', '#111111']
+    : [p.canvas, p.surface, p.ink]
 
   return (
     <nav className="proto-picker" aria-label="Prototype variants" ref={picker}>
       <span className="proto-picker-highlight" aria-hidden="true" ref={highlight} />
-      {VARIANTES.map((opcion, indice) => (
+      {PRESETS.map((opcion, indice) => (
         <button
           className="proto-picker-item"
-          data-active={indice === actual ? '' : undefined}
-          aria-current={indice === actual ? 'true' : undefined}
+          data-active={indice === activo ? '' : undefined}
+          aria-current={indice === activo ? 'true' : undefined}
           key={opcion.nombre}
-          onClick={() => elegir(indice)}
+          onClick={() => elegirPreset(indice)}
           ref={(elemento) => {
             items.current[indice] = elemento
           }}
@@ -289,6 +286,52 @@ export function Lab() {
           {opcion.nombre}
         </button>
       ))}
+
+      <span className="proto-picker-divider" aria-hidden="true" />
+      <button
+        className="proto-picker-item proto-picker-step"
+        aria-label="Menos profundidad"
+        onClick={() => mover('profundidad', -1)}
+      >
+        −
+      </button>
+      <span className="proto-picker-readout">
+        profundidad <b>{claro ? '—' : profundidad}</b>
+      </span>
+      <button
+        className="proto-picker-item proto-picker-step"
+        aria-label="Más profundidad"
+        onClick={() => mover('profundidad', 1)}
+      >
+        +
+      </button>
+
+      <span className="proto-picker-divider" aria-hidden="true" />
+      <button
+        className="proto-picker-item proto-picker-step"
+        aria-label="Menos calidez"
+        onClick={() => mover('calidez', -1)}
+      >
+        −
+      </button>
+      <span className="proto-picker-readout">
+        calidez <b>{claro ? '—' : calidez.toFixed(3)}</b>
+      </span>
+      <button
+        className="proto-picker-item proto-picker-step"
+        aria-label="Más calidez"
+        onClick={() => mover('calidez', 1)}
+      >
+        +
+      </button>
+
+      <span className="proto-picker-divider" aria-hidden="true" />
+      <span className="proto-picker-readout">
+        {chips.map((c) => (
+          <span className="proto-picker-chip" key={c} style={{ background: c }} />
+        ))}
+        <b>{chips[0]}</b>
+      </span>
     </nav>
   )
 }
