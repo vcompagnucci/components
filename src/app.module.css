@@ -89,6 +89,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--index-item-gap);
+  /* Cada link mide lo que su palabra y no lo que la columna. Sin esto
+     el flex los estira a los 89px del más largo, y el anillo de foco
+     dibujaba hasta 58px de vacío al lado de "Input".
+
+     Es además la forma de benji: sus links son <a> inline dentro de un
+     <li>, así que miden el texto por naturaleza. El costo es un área de
+     click más chica, y se acepta por lo mismo — es la que él tiene. */
+  align-items: flex-start;
 }
 /* El rótulo está siempre — no aparece con el scroll. Se probó contra la
    alternativa (invisible arriba de todo, revelado cuando el separador

@@ -64,13 +64,29 @@ const TONO = 106.4
 /* Las distancias del modo claro desde el canvas, en 8 bits. */
 const PASOS = { surface: 5, hover: 9, selection: 16, underline: 36, underlineHover: 151 }
 
-/* El ink no se mueve con la profundidad: 255 − 238 = 17, la misma
-   distancia que hay del negro al #111 en claro. */
-const INK_GRIS = 238
+/* El ink es libre. Antes estaba clavado en 238 porque la nav se
+   derivaba de él y necesitaba entrar 17 unidades desde el blanco para
+   no aplastarse contra la anotación. Esa restricción era de cómo
+   estaba ESCRITA la regla, no del color: expresándola como UNA BASE Y
+   DOS ALFAS en vez de un alfa y dos bases, la nav sale del blanco al
+   55% y el ink deja de cargar con eso.
+
+   No es una invención: es lo que hace benji con su nav en reposo y
+   activa, hsla(0,0%,7%,.4) y .8 — una base, dos alfas.
+
+   Y no mueve ningún valor. En oscuro la nav pasa de 145 a 144; en
+   claro, negro@34.4% da los mismos 166 que ya tiene. */
+const NAV_ALFA_OSCURO = '55%'
 
 const ALFA_OSCURO = '59.2%'
 const ACTIVO_ALFA_OSCURO = '93%'
-const FOCUS_OSCURO = 'rgba(61, 155, 255, 0.5)'
+/* La contraparte oscura del anillo. Sale de aclarar el #005fcc con el
+   ΔL que aplican las dos referencias que tienen par (benji +0.050,
+   josh +0.095; promedio +0.093) y bajarle un poco el croma, que es lo
+   que hacen los dos. Validación cruzada: el mismo cálculo sobre el
+   #007aff de Firefox da #3f9aff, y el acento oscuro medido de benji es
+   #3d9bff — una unidad. Su par claro/oscuro ES esta derivación. */
+const FOCUS_OSCURO = '#347ee5'
 const HAIRLINE_OSCURO = 'rgba(255, 255, 255, 0.051)'
 const A1_OSCURO = 'rgba(255, 255, 255, 0.04)'
 
@@ -114,17 +130,17 @@ function paletaDe(profundidad: number, calidez: number) {
     underlineHover: paso(PASOS.underlineHover),
     /* el ink lleva menos croma: cerca del blanco el mismo croma se
        ve mucho más, y el tinte tiene que vivir en la rampa media */
-    ink: oklchARgb(lDeGris(INK_GRIS), calidez * 0.4, TONO),
+    ink: (gris: number) => oklchARgb(lDeGris(gris), calidez * 0.4, TONO),
   }
 }
 
 const PRESETS = [
-  { nombre: 'claro', profundidad: null as number | null, calidez: 0 },
-  { nombre: 'emil', profundidad: 17, calidez: 0.002 },
-  { nombre: 'linear', profundidad: 9, calidez: 0.003 },
+  { nombre: 'claro', profundidad: null as number | null, calidez: 0, ink: 250 },
+  { nombre: 'emil', profundidad: 17, calidez: 0.002, ink: 250 },
+  { nombre: 'linear', profundidad: 9, calidez: 0.003, ink: 250 },
 ]
 
-const LIMITES = { profundidad: [5, 26], calidez: [0, 0.02] } as const
+const LIMITES = { profundidad: [5, 26], calidez: [0, 0.02], ink: [232, 255] } as const
 const PASO_CALIDEZ = 0.001
 
 const TOKENS = [
@@ -150,8 +166,8 @@ const TOKENS = [
    componente y monta otro, así que sin esto el detalle volvía siempre
    al modo claro y no se podía evaluar. */
 const GUARDADO = 'lab-oscuro'
-type Estado = { claro: boolean; profundidad: number; calidez: number }
-const POR_DEFECTO: Estado = { claro: true, profundidad: 12, calidez: 0.006 }
+type Estado = { claro: boolean; profundidad: number; calidez: number; ink: number }
+const POR_DEFECTO: Estado = { claro: true, profundidad: 12, calidez: 0.006, ink: 250 }
 
 function leerEstado(): Estado {
   try {
@@ -167,6 +183,7 @@ export function Lab() {
   const [claro, setClaro] = useState(inicial.claro)
   const [profundidad, setProfundidad] = useState(inicial.profundidad)
   const [calidez, setCalidez] = useState(inicial.calidez)
+  const [ink, setInk] = useState(inicial.ink)
   const picker = useRef<HTMLElement>(null)
   const highlight = useRef<HTMLSpanElement>(null)
   const items = useRef<Array<HTMLButtonElement | null>>([])
@@ -176,16 +193,19 @@ export function Lab() {
   const activo = claro
     ? 0
     : PRESETS.findIndex(
-        (p) => p.profundidad === profundidad && Math.abs(p.calidez - calidez) < 1e-9,
+        (p) =>
+          p.profundidad === profundidad &&
+          Math.abs(p.calidez - calidez) < 1e-9 &&
+          p.ink === ink,
       )
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(GUARDADO, JSON.stringify({ claro, profundidad, calidez }))
+      sessionStorage.setItem(GUARDADO, JSON.stringify({ claro, profundidad, calidez, ink }))
     } catch {
       /* modo incógnito con storage bloqueado: no es motivo para romper */
     }
-  }, [claro, profundidad, calidez])
+  }, [claro, profundidad, calidez, ink])
 
   useEffect(() => {
     const d = document.documentElement
@@ -196,12 +216,13 @@ export function Lab() {
     const p = paletaDe(profundidad, calidez)
     set('color-scheme', 'dark')
     set('--canvas', p.canvas)
-    set('--ink', p.ink)
+    set('--ink', p.ink(ink))
     set('--surface', p.surface)
     set('--surface-hover', p.hover)
     set('--secundario-alfa', ALFA_OSCURO)
     set('--text-secondary', `color-mix(in srgb, #fff ${ALFA_OSCURO}, transparent)`)
-    set('--type-nav-c', `color-mix(in srgb, var(--ink) ${ALFA_OSCURO}, transparent)`)
+    /* Una base, dos alfas: la nav ya no depende del ink. */
+    set('--type-nav-c', `color-mix(in srgb, #fff ${NAV_ALFA_OSCURO}, transparent)`)
     set('--hairline', HAIRLINE_OSCURO)
     set('--a1', A1_OSCURO)
     set('--index-activo-c', `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`)
@@ -213,7 +234,7 @@ export function Lab() {
     return () => {
       TOKENS.forEach((token) => d.style.removeProperty(token))
     }
-  }, [claro, profundidad, calidez])
+  }, [claro, profundidad, calidez, ink])
 
   const moverHighlight = useCallback(() => {
     if (!highlight.current) return
@@ -256,13 +277,17 @@ export function Lab() {
     setClaro(false)
     setProfundidad(p.profundidad)
     setCalidez(p.calidez)
+    setInk(p.ink)
   }
 
-  const mover = (dial: 'profundidad' | 'calidez', signo: number) => {
+  const mover = (dial: 'profundidad' | 'calidez' | 'ink', signo: number) => {
     setClaro(false)
     if (dial === 'profundidad') {
       const [min, max] = LIMITES.profundidad
       setProfundidad((v) => Math.max(min, Math.min(max, v + signo)))
+    } else if (dial === 'ink') {
+      const [min, max] = LIMITES.ink
+      setInk((v) => Math.max(min, Math.min(max, v + signo)))
     } else {
       const [min, max] = LIMITES.calidez
       setCalidez(
@@ -282,6 +307,8 @@ export function Lab() {
       else if (event.key === 'ArrowLeft') mover('profundidad', -1)
       else if (event.key === 'ArrowUp') mover('calidez', 1)
       else if (event.key === 'ArrowDown') mover('calidez', -1)
+      else if (event.key === 'i') mover('ink', 1)
+      else if (event.key === 'I') mover('ink', -1)
       else return
       event.preventDefault()
     }
@@ -292,7 +319,7 @@ export function Lab() {
   const p = paletaDe(profundidad, calidez)
   const chips = claro
     ? ['#fdfdfc', '#f8f8f6', '#111111']
-    : [p.canvas, p.surface, p.ink]
+    : [p.canvas, p.surface, p.ink(ink)]
 
   return (
     <nav className="proto-picker" aria-label="Prototype variants" ref={picker}>
@@ -346,6 +373,25 @@ export function Lab() {
         className="proto-picker-item proto-picker-step"
         aria-label="Más calidez"
         onClick={() => mover('calidez', 1)}
+      >
+        +
+      </button>
+
+      <span className="proto-picker-divider" aria-hidden="true" />
+      <button
+        className="proto-picker-item proto-picker-step"
+        aria-label="Menos ink"
+        onClick={() => mover('ink', -1)}
+      >
+        −
+      </button>
+      <span className="proto-picker-readout">
+        ink <b>{claro ? '—' : ink}</b>
+      </span>
+      <button
+        className="proto-picker-item proto-picker-step"
+        aria-label="Más ink"
+        onClick={() => mover('ink', 1)}
       >
         +
       </button>

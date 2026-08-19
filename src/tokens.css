@@ -352,15 +352,42 @@
      enteros, cosa que no pasaba con ninguno de los dos extremos. */
   --page-content-max-width: 592px;
 
-  /* EL FOCO, de benji. Un outline de 2px sólido, y SIN transición: es lo
+  /* ─── EL FOCO ───
+     2px sólido y SIN transición. Lo de la transición es de benji: es lo
      único de su página que aparece instantáneo, contra los 200ms que
-     tiene todo lo demás. Él además lo despega del texto con
-     padding:0 2px / margin:0 -2px, que acá no hace falta porque lo que
-     recibe foco son cajas y no palabras sueltas dentro de un párrafo.
+     tiene todo lo demás.
 
-     Reemplaza un anillo de dos capas con color-mix que venía del
-     design.md de Carousels y nunca se pudo contrastar. */
-  --focus-outline: 2px solid rgba(0, 122, 255, 0.5);
+     EL COLOR es el anillo de foco por defecto de Chromium, medido del
+     motor y no citado de memoria. Los tres motores dan tres azules
+     distintos, y los tres se midieron enfocando un botón sin estilos y
+     leyendo el píxel pintado:
+
+       Chromium  -webkit-focus-ring-color  #005fcc   sólido
+       WebKit    -webkit-focus-ring-color  #0067f4   pintado al 50%
+       Firefox   (no soporta la keyword)   #007aff   sólido
+
+     Se eligió el de Chromium por ser el más grave de los tres —el que
+     de verdad suena a navegador viejo— y el de más contraste: |Lc| 77.8
+     en claro y 34.8 en oscuro, cómodo sobre el piso de 30 que APCA pide
+     para componentes de interfaz.
+
+     DOS COSAS QUE SALIERON DE MEDIRLOS Y VALE ANOTAR: el azul que había
+     acá antes, rgba(0,122,255,.5) heredado de benji, es exactamente el
+     de Firefox; y WebKit pinta el suyo a 50% de alfa clavado, o sea que
+     el mecanismo del anillo viejo de Safari era el mismo que teníamos.
+
+     EL OFFSET es de josh —:focus-visible{outline:2px solid var(--accent);
+     outline-offset:2px}— y no es adorno. Sin él el anillo CORTA las
+     letras de los links del índice, que son texto sin padding. Con 2px
+     las encuadra, y en la card el outline sigue el radio 8 solo.
+     Reemplaza el padding:0 2px / margin:0 -2px con el que benji despega
+     el suyo: hace lo mismo sin tocar el layout.
+
+     Es lo único del sistema que no sale de nuestro tono. A propósito:
+     un anillo de foco tiene que leerse como "esto no es contenido", así
+     que no puede ser un gris de la página. */
+  --focus-outline: 2px solid #005fcc;
+  --focus-outline-offset: 2px;
   --focus-transition: none;
 
   /* El activo y el hover del índice NO llegan al ink: se quedan en 65.
@@ -613,6 +640,7 @@ a:hover {
 
 :focus-visible {
   outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
   transition: var(--focus-transition);
 }
 
