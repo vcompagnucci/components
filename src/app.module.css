@@ -275,21 +275,26 @@
   min-height: var(--card-alto);
   background: var(--surface);
   border-radius: var(--card-radio);
-  transition: background-color var(--dur-fill) var(--ease-out);
+  transition: background-color var(--dur-fill) var(--ease-fill);
 }
-/* Lo único que hace el hover es oscurecer el relleno. Nada de sombra,
-   de escala ni de movimiento — es lo que hace josh en sus cards
-   clickeables, y es coherente con que acá la card la defina el
-   contraste y no una línea. */
+/* EL SISTEMA DE JOSH, COMPLETO: el hover oscurece el relleno y no pasa
+   nada más. Ni sombra, ni escala, ni movimiento, ni opacidad, ni press.
+
+   Su fila de lista —580×76, el mismo objeto que esta card— se midió en
+   vivo: transparent → rgb(245,245,245) en 0.15s cubic-bezier(.4,0,.2,1),
+   nadie más se mueve, y el :active pinta IDÉNTICO al :hover.
+
+   Sólo cambia la card, no el ítem entero: se descartó el mecanismo de
+   benji —atenuar las hermanas a .3— porque depende de ver la lista
+   completa de una. La suya son 7 filas de 41px que se tocan, 286px en
+   total; la nuestra son 8 pantallas y se ven 2 cards a la vez, así que
+   "se apaga el resto" serían literalmente la otra.
+
+   NO HAY :active a propósito. Ver el bloque de --surface-press en
+   tokens.css: en 23 páginas de las dos referencias hay un solo :active
+   vivo y es un botón de 40×40. */
 .streamItem:hover .streamPreview {
   background: var(--surface-hover);
-}
-/* El press profundiza un escalón más y entra en 20ms — la asimetría de
-   benji. La salida vuelve a --dur-fill sola, porque el :active deja de
-   matchear y con él se va el override de la duración. */
-.streamItem:active .streamPreview {
-  background: var(--surface-press);
-  transition-duration: var(--dur-press);
 }
 
 /* ═══════════ DETALLE ═══════════ */

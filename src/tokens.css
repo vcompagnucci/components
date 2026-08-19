@@ -59,31 +59,24 @@
      delta salía de medir contra el blanco de /pasito, y el hover ocurre
      en su home, que es #fafafa.) */
   --surface-hover: #f4f4f1;
-  /* EL PRESS profundiza el relleno un escalón más, y no escala. La
-     escala es lo que hacen las cuatro referencias, pero sólo en
-     BOTONES: el único elemento con active:scale en el DOM real de las
-     dos páginas que lo tienen es uno de 91×40. Nuestra card es 560×260,
-     cuarenta veces el área, y a ese tamaño una escala se lee como que
-     la página tiembla.
+  /* NO HAY --surface-press: LA CARD NO TIENE PRESS. No es una omisión,
+     es el resultado de contar. En las 23 páginas de las dos referencias
+     más altas —9 de benji, 14 de josh— hay UN solo :active vivo, y es
+     un botón de 40×40 en benji.org/honkish que ni baja ni escala: le
+     quita el anillo de 1px que le puso el hover (box-shadow spread
+     1px → 0px, transition-duration 0.02s medida en runtime). Su press
+     no agrega un estado, RETIRA el hover.
 
-     Para cajas la respuesta la da linear, que sí presiona superficies:
-     su :active de botón secundario, terciario y ghost cambia el FONDO a
-     un nivel más de su escala. Y su escala coincide con la nuestra en
-     los dos niveles del medio —255·248·244·240 contra 253·248·244— así
-     que su level-3, 240, es literalmente nuestro paso siguiente.
+     Las listas de los dos —lo mismo que es nuestra card— no tienen
+     press: el :active pinta idéntico al :hover, medido en vivo en las
+     dos. Y las utilidades active:scale-[0.94/0.96/0.98] existen en el
+     bundle de josh y las usa CERO elementos.
 
-     El salto queda igual que el del hover: ΔL .0123 los dos. */
-  --surface-press: #f0f0ec;
-
-  /* Y EL PRESS ENTRA MÁS RÁPIDO DE LO QUE SALE. Es de benji, y es el
-     único caso en los cinco bundles medidos: su botón declara
-     `transition: box-shadow .2s ease` y su :active pisa
-     `transition-duration: 20ms`. Diez veces más rápido para entrar, la
-     duración normal para volver.
-
-     El motivo es que el press responde a tu dedo y tiene que sentirse
-     simultáneo; la salida es la que puede relajarse. */
-  --dur-press: 20ms;
+     Hubo un --surface-press #f0f0ec —el --color-bg-level-3 de linear,
+     que cae justo en nuestro paso siguiente— y se retiró al elegir el
+     sistema de josh. La derivación queda en README por si vuelve;
+     cuando la pieza Button necesite un press se va a medir para un
+     botón, que es donde toda esa evidencia sí aplica. */
   --ink: #111111;
 
   /* ═══════════ EL NIVEL SECUNDARIO — UN ALFA, DOS BASES ═══════════
@@ -440,12 +433,28 @@
   --index-activo-c: rgba(18, 18, 18, 0.8);
 
   /* motion. La página NO tiene animación de entrada: al abrir una pieza
-     y al volver no se anima nada. Lo único que se mueve es el hover, y
-     son cambios de color y de anillo, no de posición. Por eso tampoco
-     hace falta un bloque de prefers-reduced-motion acá: no queda
-     movimiento que reducir. El scroll suave del índice sí lo consulta,
-     en app.tsx. */
+     y al volver no se anima nada. Nada se desplaza, nada escala, nada
+     rota: los cuatro lugares donde hay transición cambian un color.
+     Por eso tampoco hace falta un bloque de prefers-reduced-motion
+     acá: no queda movimiento que reducir. El scroll suave del índice sí
+     lo consulta, en app.tsx.
+
+     DOS CURVAS, y la segunda tiene dueño. --ease-out es un quint-out
+     heredado de Carousels y lo leen el índice, el botón de volver y el
+     subrayado de los links. --ease-fill es de josh —el transition-colors
+     de Tailwind, cubic-bezier(.4,0,.2,1)— y lo lee sólo el relleno de la
+     card, porque es el sistema suyo el que se eligió ahí y su curva
+     venía con él.
+
+     La duración no hubo que importarla: su transition-colors es 0.15s y
+     nuestro --dur-fill ya era 150ms.
+
+     Queda una decisión chica abierta: los cuatro lectores hacen lo
+     mismo —cruzar un color, sin mover nada— así que tener dos curvas
+     para un solo trabajo es una incoherencia que se cierra con una
+     línea el día que se decida cuál gana. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-fill: cubic-bezier(0.4, 0, 0.2, 1);
   --dur-fill: 150ms;
 
   /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
@@ -687,8 +696,6 @@ html {
 
     --index-activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
 
-    --surface-press: #161615; /* +13 */
-
     --selection-bg: #191918; /* +16 */
     --selection-color: var(--ink);
 
@@ -762,7 +769,6 @@ html {
 
     --surface: #f3f3f0; /* −10 */
     --surface-hover: #ebebe6; /* −18 */
-    --surface-press: #e3e3de; /* −26 */
     --selection-bg: #dddddd; /* −32 */
     --link-underline: #b5b5b5; /* −72 */
     --link-underline-hover: var(--ink);
@@ -781,7 +787,6 @@ html {
 
     --surface: #131312; /* +10 */
     --surface-hover: #1b1b1a; /* +18 */
-    --surface-press: #232322; /* +26 */
     --selection-bg: #292927; /* +32 */
     --link-underline: #51514f; /* +72 */
     --link-underline-hover: var(--ink);

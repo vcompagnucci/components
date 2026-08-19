@@ -677,6 +677,87 @@ en 8 la card se lee más contenida que con 12 y pide menos hover.
 > salía de medir contra el blanco de `/pasito`, y el hover ocurre en su
 > home, que es `#fafafa`.
 
+### El press — NO HAY, y es un resultado de contar
+
+```css
+.streamItem:hover .streamPreview { background: var(--surface-hover); }
+/* y nada más: no existe una regla :active */
+```
+
+Se recorrieron **23 páginas** de las dos referencias más altas —9 de
+benji, 14 de josh— buscando `:active`. Hay **uno solo vivo**, y no es lo
+que uno esperaría:
+
+```
+benji.org/honkish · botón 40×40
+  reposo   box-shadow spread 0px
+  hover    box-shadow spread 1px      ← gana un anillo de su propio color
+  press    box-shadow spread 0px  ·  transition-duration 0.02s
+```
+
+Su press **no agrega un estado: retira el hover**, rápido. Y sus dos
+listas —que es el mismo objeto que esta card— no tienen press: medido en
+vivo, el `:active` pinta **idéntico** al `:hover` en las dos.
+
+Las utilidades `active:scale-[0.94]`, `[0.96]` y `[0.98]` están en el
+bundle de josh y **las usa cero elementos**. Lo que sí usa es
+`hover:scale`, y ahí está la curva que decide:
+
+```
+ 44×44   ( 1.936 px²)  →  1.03
+ 48×48   ( 2.304 px²)  →  1.03
+ 60×60   ( 3.600 px²)  →  1.03
+420×124  (52.080 px²)  →  1.01      ← la bajó él
+```
+
+Nuestra card mide 560×292 = **163.520 px²**, 3× su elemento más grande.
+`/better-ui` pide `scale(0.96)` siempre —"nunca menos de 0.95"— pero su
+regla habla de **botones**; se miró en el prototipo y se descartó.
+
+Se retiraron `--surface-press: #f0f0ec` (con sus ramas de oscuro y de
+alto contraste) y `--dur-press: 20ms`. Eran el `--color-bg-level-3` de
+linear, que cae justo en nuestro paso siguiente, y la asimetría de
+benji. Los 20ms estaban bien medidos y **aplicados al revés**: en su
+botón sirven para *quitar* el hover, no para profundizarlo.
+
+### Por qué no el mecanismo de benji — CUESTIÓN DE ESCALA
+
+Su lista hace lo contrario que la de josh: no rellena nada nunca —el
+fondo del `<a>` es `rgba(0,0,0,0)` en todos los estados— y lo que pasa
+en hover es que **las hermanas se atenúan**.
+
+```css
+@media screen and (min-width: 520px) {
+  .styles_postList__HT8dk > ul:hover > li > ul > li > a h2,
+  .styles_postList__HT8dk > ul:hover > li > ul > li > a time span { opacity: .3 }
+  .styles_postList__HT8dk > ul:hover > li > ul > li > a time span:last-child { opacity: 1 }
+}
+```
+
+Dos cosas de esa regla. Atenúa **texto** —el `h2` y los `span` del
+`time`— nunca una superficie, porque no tiene ninguna. Y el
+`span:last-child` exento es **el año**: la lista pierde el contenido y
+conserva el esqueleto.
+
+No se adopta, y el motivo es geométrico:
+
+```
+              ítems  tamaño     hueco   lista entera   visibles a 1440×900
+benji            7   550×41       0px   286px = 0.3 pantallas          7
+nuestro         18   560×292     48px   7.211px = 8.0 pantallas        2
+```
+
+Sus filas **se tocan** y la lista **te entra en un tercio de pantalla**:
+el atenuado es un gesto sobre un objeto que ves completo, se apagan 7 y
+queda 1. La nuestra no se puede ver entera nunca, así que "se apaga el
+resto" sería literalmente *la otra*. El gesto no sobrevive al cambio de
+escala.
+
+> El hueco de 0px también explica por qué él pudo escribir `ul:hover` sin
+> `:has()`: en su geometría no hay zona muerta posible. En la nuestra sí
+> — el prototipo con su regla literal daba `0.3 / 0.3 / 0.3` con el
+> puntero entre dos cards.
+
 ### Y benji, para contrastar — MEDIDO
 
 Su CSS tiene **65 reglas de `:hover`**. Lo que tocan, por frecuencia:
@@ -998,20 +1079,41 @@ su marco).
 ## Motion
 
 **La página no tiene animación de entrada.** Abrir una pieza y volver no
-anima nada. Lo único que se mueve es el hover, y son cambios de color y
-de anillo, no de posición.
+anima nada. Y no hay una sola transición de posición: los cuatro lugares
+donde hay `transition` **cruzan un color**.
 
-| token | valor | uso |
+| token | valor | quién lo lee |
 |---|---|---|
-| `--ease-out` | `cubic-bezier(.23,1,.32,1)` | las tres transiciones |
-| `--dur-fill` | `150ms` | las tres transiciones |
+| `--dur-fill` | `150ms` | los cuatro |
+| `--ease-out` | `cubic-bezier(.23,1,.32,1)` | índice · flecha del detalle · subrayado de los links |
+| `--ease-fill` | `cubic-bezier(.4,0,.2,1)` | el relleno de la card, y nada más |
 
-Las tres: color del link del índice, anillo de la card en hover, y fondo
-y color de la flecha del detalle.
+```
+.indexLink      color                        --ease-out
+.streamPreview  background-color             --ease-fill
+.back           background-color, color      --ease-out
+a               text-decoration-color        --ease-out
+```
+
+`--ease-fill` es de josh —su `transition-colors` de Tailwind— y entró con
+su sistema de estados. La duración no hubo que importarla: su `0.15s` ya
+era nuestro `--dur-fill`.
+
+> **Decisión chica abierta.** Los cuatro lectores hacen exactamente el
+> mismo trabajo —cruzar un color sin mover nada— así que tener dos curvas
+> para un solo trabajo es una incoherencia. Se cierra con una línea el
+> día que se decida cuál gana; no se cerró antes porque lo que se miró en
+> el prototipo fue la curva **sobre la card**, y cambiar de paso el
+> índice, la flecha y los subrayados hubiera sido decidir tres cosas que
+> nadie miró.
 
 **No hay bloque de `prefers-reduced-motion`** y no hace falta: no queda
-movimiento que reducir. El scroll suave del índice sí lo consulta, en
-`app.tsx`.
+movimiento que reducir. Verificado con `reduced-motion: reduce` — la card
+declara `transition-property: background-color` y nada más. El scroll
+suave del índice sí lo consulta, en `app.tsx`.
+
+Deja de ser cierto el día que entre una escala o un desplazamiento, y ahí
+hay que escribirlo.
 
 > Antes había `enterFwd` / `enterBack` en la lista y una entrada del
 > detalle. `enterBack` **nunca se disparaba**: `data-dir` estaba escrito
