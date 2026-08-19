@@ -2,22 +2,34 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import './lab.module.css'
 
 /* ─────────────────────────────────────────────────────────────
-   LAB · SELECCIÓN OSCURA
+   LAB · LA PALETA OSCURA
 
-   Este laboratorio congela todo salvo UNA pregunta: cuánto se
-   despega la selección del canvas oscuro. Las dos reglas se prueban
-   en las dos paletas que siguen en carrera:
+   Queda UNA pregunta: de dónde sale el par canvas/ink. Todo lo
+   demás está cerrado y va constante en las cuatro.
 
-   DERIVADA
-     Conserva el ΔL de la selección clara de benji (#ededed sobre
-     #fdfdfc). Es lo que había: #1c1c1b sobre emil, #141414 sobre
-     josh. En oscuro queda demasiado cerca del canvas.
+   Las cuatro, por profundidad:
 
-   VISIBLE
-     Usa la respuesta que Geist da para el mismo rol: gray-500 oscuro
-     (#31312e) sobre gray-100 (#111110). El salto de OKLab L pasa de
-     .049 a .135. En josh no se copia el hex: se conserva ese mismo
-     salto perceptual desde #0a0a0a, que da #292929.
+     benji     19 · frío     su .sd[data-theme=auto] de /drawesome
+     emil      17 · cálido   Geist gray-100, verificado pintando en
+                             animations.dev
+     profundo  10 · neutro   el canvas de josh con un ink que no
+                             colapsa el par anotación/nav
+     josh      10 · neutro   su :root oscuro, tal cual
+
+   Los dos primeros son EL MISMO NEGRO: ΔL .0104, abajo del umbral
+   de la vista. Sólo cambia el tinte. Los dos últimos están nueve
+   unidades más abajo — y ese 10 es el --ds-background-100 de
+   vercel.com, que además pinta su body en negro puro.
+
+   El ink NO es libre: la regla deriva la anotación del blanco y la
+   nav del --ink, así que si el ink se acerca al blanco las dos
+   bases se aplastan. Con 238 o 244 el par queda en ~5.2 Lc; con
+   el 250 de josh cae a 1.6.
+
+   LA SELECCIÓN YA ESTÁ DECIDIDA (regla visible): toma la respuesta
+   de Geist para el mismo rol —gray-500 oscuro sobre gray-100— y el
+   salto pasa de .049 a .135, 2.8× el del claro. Donde el canvas no
+   es el de emil no se copia el hex sino ese salto perceptual.
 
    DOS PENDIENTES YA CERRADOS, constantes en las cuatro variantes:
 
@@ -46,6 +58,19 @@ type Paleta = {
 }
 
 const PALETAS = {
+  /* El oscuro de benji, medido de .sd[data-theme=auto] en /drawesome.
+     Es el mismo negro que el de emil —19 contra 17, ΔL .0104, abajo
+     del umbral de la vista— y lo único que los separa es el tinte:
+     él lo ENFRÍA (19,19,21) donde emil lo entibia (17,17,16). Su ink
+     también es cálido, como el de emil, seis unidades más arriba. */
+  benji: {
+    canvas: '#131315',
+    ink: '#f4f3f1',
+    surface: '#161618',
+    hover: '#19191b',
+    underline: '#2d2d2f',
+    underlineHover: '#89898b',
+  },
   emil: {
     canvas: '#111110',
     ink: '#eeeeec',
@@ -86,6 +111,7 @@ type Variante = {
 }
 
 const VARIANTES: Variante[] = [
+  { nombre: 'benji', paleta: 'benji', selection: '#333335', regla: 'visible' },
   { nombre: 'emil', paleta: 'emil', selection: '#31312e', regla: 'visible' },
   { nombre: 'profundo', paleta: 'profundo', selection: '#292929', regla: 'visible' },
   { nombre: 'josh', paleta: 'josh', selection: '#292929', regla: 'visible' },
