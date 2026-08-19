@@ -300,8 +300,24 @@
      desde --ink en vez de negro puro. Compone en 166. Es la posición de
      benji —su nav sale de su ink y su anotación de negro, y por eso la
      nav le queda la más clara de las dos. La explicación entera está
-     arriba, en --secundario-alfa. */
-  --type-nav-c: color-mix(in srgb, var(--ink) var(--secundario-alfa), transparent);
+     arriba, en --secundario-alfa.
+
+     REESCRITO: la nav ya NO sale del --ink. Sale de la misma base que
+     la anotación —negro— con un alfa más bajo. Es UNA BASE Y DOS ALFAS
+     en vez de un alfa y dos bases, y no mueve ningún valor: negro@34.4%
+     da los mismos 166 que daba ink@37%.
+
+     El motivo es el modo oscuro. Derivando la nav del ink, el ink queda
+     atrapado: tiene que entrar ~17 unidades desde el extremo o las dos
+     bases se aplastan una contra otra. Eso obligaba a un ink de 238 en
+     oscuro y dejaba el texto 7.5 Lc por debajo del claro. Con dos alfas
+     el ink queda libre y puede ir a 250 —el de josh, y el que empata el
+     contraste del claro al decimal— sin tocar el par.
+
+     Es la estructura que benji usa para su nav en reposo y activa:
+     hsla(0,0%,7%,.4) y .8, una base y dos alfas. */
+  --nav-alfa: 34.4%;
+  --type-nav-c: color-mix(in srgb, #000 var(--nav-alfa), transparent);
 
   /* ═══════════ ESPACIADO ═══════════
      Nombres al modo de apple: DUEÑO → PARTE → PROPIEDAD → LADO, siempre
@@ -554,38 +570,110 @@
   box-sizing: border-box;
 }
 
-/* MODO OSCURO: NO HAY, y está decidido, no olvidado.
-
-   Censo de `prefers-color-scheme` en el CSS servido de las tres:
-
-     benji   1 ocurrencia en 130 KB, y NO es de su página: es de un
-             componente embebido —.sd[data-theme=auto], el toolbar de
-             /drawesome— que se pinta solo cuando el sistema está en
-             oscuro. Su página es sólo clara.
-     emil    1 ocurrencia, y tampoco es de su página: decide cuál de
-             dos bloques de código pre-renderizados se muestra
-             (code[data-theme=light] contra [data-theme=dark]). Tiene
-             una escala .dark en el bundle, pero gateada por clase y
-             nunca activada por media query. Su página es sólo clara.
-     josh    sí lo tiene, de página:
-             @media (prefers-color-scheme:dark){:root{
-               --background:#0a0a0a; --foreground:#fafafa; ...}}
-
-   Dos de tres son sólo claras, y las dos comparten exactamente la
-   misma forma: LA PÁGINA NO RESPONDE AL SISTEMA, LOS COMPONENTES
-   EMBEBIDOS SÍ. Que es literalmente nuestra situación — esto es una
-   exposición de componentes.
-
-   El color-scheme:light lo declaramos y ellos no. Es la parte
-   mecánica de la decisión: sin esto el navegador auto-oscurece los
-   controles nativos y las barras de scroll cuando el sistema está en
-   oscuro, y la página queda mitad y mitad. Y no cierra ninguna puerta:
-   color-scheme se hereda, así que una pieza que quiera su propio tema
-   lo pisa en su subárbol. Es lo mismo que hace benji con
-   .sd[data-theme=dark]{color-scheme:dark}. */
 html {
-  color-scheme: light;
+  /* Las dos, no sólo light: le dice al navegador que los controles
+     nativos y las barras de scroll pueden ir en cualquiera de los dos.
+     Sin declararlo, con el sistema en oscuro la página queda mitad y
+     mitad. Ninguna de las cinco referencias lo declara. */
+  color-scheme: light dark;
   background: var(--canvas);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODO OSCURO
+
+   Se dispara con el sistema y nada más, como josh — sin toggle. De
+   las cinco referencias medidas sólo él tiene tema oscuro de página:
+   benji y emil tienen paletas oscuras en su CSS pero sólo para
+   componentes embebidos, y linear fuerza data-theme="dark" e ignora
+   el sistema.
+
+   TODO SE DERIVA DE CUATRO NÚMEROS. No hay una paleta escrita a mano:
+   hay un punto elegido en un espacio, y el resto cae de dos reglas.
+
+     profundidad  9      el gris del canvas
+     calidez      .003   croma en OKLCH sobre H 106.4, el tono medido
+                         del --canvas claro
+     ink          250    el de josh (--foreground:#fafafa)
+     tono         106.4  el mismo en los dos modos
+
+   LAS DOS REGLAS, y sólo dos. Antes hubo una versión con cuatro
+   ratios distintos conviviendo —1.54 la card, 2.83 la selección, 1.60
+   los alfas, 0.99 el subrayado— y cada uno tenía su excusa, pero
+   juntos no eran un sistema.
+
+   1 · EL TEXTO CONSERVA EL CONTRASTE. Tiene un piso de legibilidad
+       que las superficies no tienen, así que lo que se sostiene es el
+       Lc y no el número:
+                        claro   oscuro
+         ink            104.1    104.4    ink 250
+         anotación       50.3     48.1    blanco @ 59.2%
+         nav             46.7     42.5    blanco @ 55%
+         activo          92.9     93.4    ink @ 93%
+       El 59.2% sale del ×1.6 que benji aplica en sus dos tokens con
+       alfa (.28→.45 y .10→.16, el mismo factor dos veces). El 93% no
+       conserva el alfa sino la POSICIÓN del activo entre la nav y el
+       ink: en claro el 80% lo deja al 80.4% de ese recorrido, y en
+       oscuro hace falta 93% para caer en el mismo punto, porque
+       arriba de la nav queda menos lugar.
+
+   2 · TODO LO DEMÁS CONSERVA LA DISTANCIA E INVIERTE LA DIRECCIÓN.
+       En claro la card está a −5 del canvas, el hover a −9, la
+       selección a −16, el subrayado a −36 y su hover a −151. Acá
+       están a +5, +9, +16, +36 y +151. Los alfas hacen lo mismo:
+       mismo número, base dada vuelta.
+
+       Eso último es de linear: su --color-border-translucent es
+       #0000000d en claro y #ffffff0d en oscuro, ×1.00 — y ese
+       #0000000d es 5.098%, nuestra --hairline a tres decimales.
+
+   POR QUÉ LA DISTANCIA Y NO EL ΔL. Es un compromiso, no una ley.
+   OKLab dice que ΔL igual se ve igual; conservar la distancia de 8
+   bits da ~1.5× de ΔL, así que la card ES algo más notoria en oscuro.
+   Pero conservar el ΔL exacto la dejaría en +3 y desaparece, y las
+   dos referencias con escala propia agrandan mucho más —emil ×3.00,
+   linear ×4.48— por robustez entre pantallas, no por apariencia:
+   cerca del negro OLED e IPS divergen, hay luz ambiente y hay bandeo
+   de 8 bits. Esto queda en el medio y se enuncia en una frase.
+   APCA no puede arbitrarlo: devuelve 0.0 para todas las opciones de
+   superficie, está hecho para texto.
+
+   LA RAMPA se genera en OKLCH con croma y tono CONSTANTES, que es el
+   método de linear: un solo tono en los dos modos, con el tinte
+   viviendo en toda la escala y no sólo en el fondo.
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #090908;
+    --surface: #0e0e0d; /* +5 */
+    --surface-hover: #121211; /* +9 */
+    --ink: #fafaf9; /* el 250 de josh, con nuestro tono */
+
+    /* Las dos bases se dan vuelta: negro → blanco. Los alfas suben
+       porque lo que se conserva es el contraste, no el número. */
+    --secundario-alfa: 59.2%;
+    --nav-alfa: 55%;
+    --text-secondary: color-mix(in srgb, #fff var(--secundario-alfa), transparent);
+    --type-nav-c: color-mix(in srgb, #fff var(--nav-alfa), transparent);
+
+    /* Mismo número, base dada vuelta. La regla de linear. */
+    --hairline: rgba(255, 255, 255, 0.051);
+    --a1: rgba(255, 255, 255, 0.04);
+
+    --index-activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
+
+    --selection-bg: #191918; /* +16 */
+    --selection-color: var(--ink);
+
+    --link-underline: #2d2d2b; /* +36 */
+    --link-underline-hover: #a0a09e; /* +151 */
+
+    /* El acento se aclara, que es lo que hacen benji (#08f → #3d9bff)
+       y josh (#6366f1 → #818cf8). Sale de subirle la L al #005fcc con
+       el ΔL de ellos; el mismo cálculo sobre el #007aff de firefox da
+       #3f9aff contra el #3d9bff medido de benji, una unidad. */
+    --focus-outline: 2px solid #347ee5;
+  }
 }
 
 body {

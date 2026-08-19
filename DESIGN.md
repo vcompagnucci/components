@@ -349,12 +349,44 @@ de benji, porque nuestro texto es de 14px y no de 16.
 **5 · El foco no anima.**
 
 ```css
-:focus-visible { outline: 2px solid rgba(0,122,255,.5); transition: none }
+:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; transition: none }
 ```
 
-`transition:none` contra los 200ms que tiene todo lo demás en su página.
-Reemplaza un anillo de dos capas con `color-mix` que venía del
-`DESIGN.md` de Carousels y nunca se pudo contrastar.
+`transition:none` es de benji: es lo único de su página que aparece
+instantáneo, contra los 200ms que tiene todo lo demás.
+
+**El color es el anillo de foco por defecto de Chromium, medido del
+motor.** Los tres motores dan tres azules distintos, leídos enfocando un
+botón sin estilos y muestreando el píxel pintado:
+
+| motor | `-webkit-focus-ring-color` | cómo lo pinta |
+|---|---|---|
+| **Chromium** | `#005fcc` | sólido |
+| WebKit | `#0067f4` | a **50% de alfa** — el glow de Aqua |
+| Firefox | no soporta la keyword | `#007aff` sólido |
+
+Se eligió el de Chromium: el más grave de los tres y el de más contraste
+—**|Lc| 77.8 claro, 34.8 oscuro**, sobre el piso de 30 que APCA pide para
+componentes. Su contraparte oscura `#347ee5` sale de subirle la L con el
+ΔL que aplican benji y josh a sus acentos; el mismo cálculo sobre el azul
+de Firefox da `#3f9aff` contra el `#3d9bff` medido de benji — una unidad.
+
+> Dos cosas que salieron de medirlos: el azul que había antes,
+> `rgba(0,122,255,.5)` heredado de benji, **es exactamente el de
+> Firefox**; y WebKit pinta el suyo a 50% clavado, o sea que el mecanismo
+> del anillo viejo de Safari era el que ya teníamos.
+
+**El `outline-offset: 2px` es de josh, y no es adorno.** Sin él el
+anillo *corta* las letras de los links del índice, que son texto sin
+padding. Reemplaza el `padding:0 2px / margin:0 -2px` con el que benji
+despega el suyo: hace lo mismo sin tocar el layout. En la card el outline
+sigue el radio 8 solo.
+
+Y pidió un arreglo de layout que sólo se ve enfocando: el flex estiraba
+cada link del índice a los **89px** del más largo mientras las palabras
+miden 31–62, así que el anillo dibujaba hasta **58px de vacío**. Con
+`align-items: flex-start` cada uno mide su palabra — que es lo que benji
+tiene por naturaleza, porque sus links son `<a>` inline.
 
 **6 · La selección promueve a ink.**
 
@@ -390,30 +422,97 @@ que se lee va en ink, y seleccionar un texto es el acto de leerlo.
 > Sin `::-moz-selection`: benji y emil lo mandan los dos, pero es su
 > autoprefixer — Firefox soporta `::selection` sin prefijo desde la 62.
 
-### Modo oscuro — NO HAY, y es una decisión
+### Modo oscuro — CUATRO NÚMEROS Y DOS REGLAS
 
 ```css
-html { color-scheme: light }
+html { color-scheme: light dark }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #090908;  --surface: #0e0e0d;  --surface-hover: #121211;
+    --ink: #fafaf9;
+    --secundario-alfa: 59.2%;  --nav-alfa: 55%;
+    --hairline: rgba(255,255,255,.051);  --a1: rgba(255,255,255,.04);
+    --selection-bg: #191918;
+    --link-underline: #2d2d2b;  --link-underline-hover: #a0a09e;
+    --focus-outline: 2px solid #347ee5;
+  }
+}
 ```
 
-Censo de `prefers-color-scheme` en el CSS servido de las tres:
+Se dispara con el sistema y nada más, **como josh** — sin toggle. De las
+cinco referencias medidas sólo él tiene tema oscuro de página: benji y
+emil tienen paletas oscuras en su CSS pero sólo para componentes
+embebidos, y linear fuerza `data-theme="dark"` e ignora el sistema.
 
-| | ocurrencias | de qué son |
+**No hay una paleta escrita a mano.** Hay un punto elegido en un espacio
+y el resto cae de dos reglas.
+
+| | | |
 |---|---|---|
-| benji | 1 en 130 KB | **no es de su página**: es de un componente embebido, `.sd[data-theme=auto]`, el toolbar de `/drawesome` |
-| emil | 1 | **tampoco**: decide cuál de dos bloques de código pre-renderizados se muestra. Tiene escala `.dark` en el bundle, gateada por clase y nunca activada por media query |
-| josh | 1 | **sí es de su página**: `@media (prefers-color-scheme:dark){:root{--background:#0a0a0a;--foreground:#fafafa;…}}` |
+| profundidad | **9** | el gris del canvas. linear 9 · vercel 10 · emil 17 · benji 19 |
+| calidez | **.003** | croma OKLCH sobre H 106.4, el tono medido del `--canvas` claro |
+| ink | **250** | el de josh (`--foreground:#fafafa`) |
+| tono | **106.4** | el mismo en los dos modos |
 
-**Dos de tres son sólo claras, y las dos comparten la misma forma: la
-página no responde al sistema, los componentes embebidos sí.** Que es
-literalmente nuestra situación — esto es una exposición de componentes.
+**Regla 1 · el texto conserva el contraste.** Tiene un piso de
+legibilidad que las superficies no tienen, así que lo que se sostiene es
+el Lc y no el número.
 
-`color-scheme: light` lo declaramos y **ninguna de las tres lo hace**.
-Es la parte mecánica de la decisión: sin eso el navegador auto-oscurece
-controles nativos y barras de scroll cuando el sistema está en oscuro, y
-la página queda mitad y mitad. Y no cierra ninguna puerta —`color-scheme`
-se hereda, así que una pieza con tema propio lo pisa en su subárbol,
-igual que benji con `.sd[data-theme=dark]{color-scheme:dark}`.
+| | claro | oscuro | cómo |
+|---|---|---|---|
+| ink | 104.1 | **104.4** | ink 250 |
+| anotación | 50.3 | **48.1** | blanco @ 59.2% |
+| nav | 46.7 | **42.5** | blanco @ 55% |
+| activo | 92.9 | **93.4** | ink @ 93% |
+
+El 59.2% sale del **×1.6** que benji aplica en sus dos tokens con alfa
+(`.28→.45` y `.10→.16`, el mismo factor dos veces). El 93% no conserva el
+alfa sino la **posición** del activo entre la nav y el ink: en claro el
+80% lo deja al 80.4% de ese recorrido, y en oscuro hace falta 93% para
+caer en el mismo punto, porque arriba de la nav queda menos lugar.
+
+**Regla 2 · todo lo demás conserva la distancia e invierte la
+dirección.**
+
+```
+claro    card −5 · hover −9 · selección −16 · subrayado −36 · su hover −151
+oscuro   card +5 · hover +9 · selección +16 · subrayado +36 · su hover +151
+alfas    .051 y .04 → el mismo número, base dada vuelta
+```
+
+Lo de los alfas es de **linear**: su `--color-border-translucent` es
+`#0000000d` en claro y `#ffffff0d` en oscuro, ×1.00 — y ese `#0000000d`
+es 5.098%, nuestra `--hairline` a tres decimales.
+
+> **Por qué la distancia y no el ΔL.** Es un compromiso, no una ley.
+> OKLab dice que ΔL igual se ve igual, y conservar la distancia de 8 bits
+> da ~1.5× de ΔL: la card **es** algo más notoria en oscuro. Pero
+> conservar el ΔL exacto la dejaría en +3 y desaparece, y las dos
+> referencias con escala propia agrandan mucho más —emil ×3.00, linear
+> ×4.48— por robustez entre pantallas y no por apariencia: cerca del
+> negro OLED e IPS divergen, hay luz ambiente y hay bandeo de 8 bits.
+>
+> **APCA no puede arbitrarlo**: devuelve 0.0 para todas las opciones de
+> superficie. Está hecho para texto.
+
+La rampa se genera en **OKLCH con croma y tono constantes**, que es el
+método de linear: un solo tono en los dos modos, con el tinte viviendo
+en toda la escala y no sólo en el fondo.
+
+**Lo que hizo posible el ink de 250** fue reescribir el nivel secundario
+como *una base y dos alfas* en lugar de *un alfa y dos bases*. Derivando
+la nav del `--ink`, el ink quedaba atrapado: tenía que entrar ~17
+unidades desde el extremo o las dos bases se aplastaban. Con dos alfas
+queda libre. El valor en claro no se movió — `negro@34.4%` da los mismos
+166 que daba `ink@37%` — y es la estructura que benji usa para su nav en
+reposo y activa (`hsla(0,0%,7%,.4)` y `.8`).
+
+> Ninguna de las cinco referencias declara `color-scheme`. Sin eso el
+> navegador auto-oscurece controles nativos y barras de scroll y la
+> página queda mitad y mitad.
+>
+> **Sigue sin cubrirse `prefers-contrast: more`**, en los dos modos.
 
 ### La superficie — la regla de josh
 
