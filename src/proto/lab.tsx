@@ -1,282 +1,252 @@
-import { useEffect, useState } from 'react'
-import css from './lab.module.css'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import './lab.module.css'
 
 /* ─────────────────────────────────────────────────────────────
-   LAB · EL MODO OSCURO
+   LAB · SELECCIÓN OSCURA
 
-   Cuatro referencias medidas, y todas dicen lo mismo en lo
-   estructural. Nada de esto es preferencia: sale del CSS servido
-   (SOURCE) y del render con el sistema en oscuro (RUNTIME).
+   Este laboratorio congela todo salvo UNA pregunta: cuánto se
+   despega la selección del canvas oscuro. Las dos reglas se prueban
+   en las dos paletas que siguen en carrera:
 
-   1 · NADIE INVIERTE LA PALETA. El par ink/canvas sí queda casi
-       simétrico —josh 102.9→104.4, jakub 101.5→96.3, emil
-       102.0→96.2, benji 93.6→99.4, los cuatro dentro de 6 Lc—
-       pero el secundario NO:
-         josh    claro Lc 84.2  →  oscuro Lc 52.3   (−32)
-         jakub   claro Lc 73.0  →  oscuro Lc 61.9   (−11)
-       Los dos AFLOJAN. Invertir el 82 de josh daría 173 y él
-       usa 163; las tres sumas L* de jakub dan >100 y no 100.
-       Es lo que dice /better-colors: el modo oscuro no se hace
-       dando vuelta la paleta clara.
+   DERIVADA
+     Conserva el ΔL de la selección clara de benji (#ededed sobre
+     #fdfdfc). Es lo que había: #1c1c1b sobre emil, #141414 sobre
+     josh. En oscuro queda demasiado cerca del canvas.
 
-   2 · EL CANVAS OSCURO NO ES NEGRO. josh 10 · jakub 16 · emil 17
-       · benji 19. Ninguno usa #000.
+   VISIBLE
+     Usa la respuesta que Geist da para el mismo rol: gray-500 oscuro
+     (#31312e) sobre gray-100 (#111110). El salto de OKLab L pasa de
+     .049 a .135. En josh no se copia el hex: se conserva ese mismo
+     salto perceptual desde #0a0a0a, que da #292929.
 
-   3 · EL INK OSCURO CASI NUNCA ES BLANCO — pero hay una
-       excepción, y es la que importa. josh 250 · jakub 238 ·
-       emil 238 · benji 244 en sus páginas personales. En cambio
-       animations.dev, que es de emil y que SÍ enciende el oscuro
-       con el sistema (html class="dark"), pinta sus títulos en
-       255 clavado, medido en runtime ×119.
+   DOS PENDIENTES YA CERRADOS, constantes en las cuatro variantes:
 
-       Ahí él afina la misma escala Geist por sitio: gray-1200
-       oscuro es #eeeeec en emilkowal.ski y #fff en animations.dev,
-       y gray-1100 claro es #63635e en uno y #43423d en el otro.
-       No es una escala que se traga entera, es una base que se
-       ajusta.
+   1 · ALFAS: ×1.6, de benji. Estos tokens pertenecen al sistema de
+       nivel secundario que copiamos de él, no a la escala de Geist.
+       Además, 37% × 1.6 = 59.2% conserva casi exacto el contraste del
+       secundario claro (Lc 49.8 → 49.3). Hairline y a1 siguen el mismo
+       par medido: .051 → .082 y .04 → .064.
 
-   4 · LAS SUPERFICIES INVIERTEN LA DIRECCIÓN, no el orden. La
-       escala de emil baja en claro (253·249·241·233·226) y sube
-       en oscuro (17·25·34·42·49). El nuestro dice "la card se
-       separa un paso del canvas"; el paso sigue, el signo cambia.
+   2 · FOCO: el par de benji. El claro ya horneado es
+       rgba(0,122,255,.5); su contraparte oscura es
+       rgba(61,155,255,.5). Geist no ofrece un par: emilkowal.ski usa
+       gris y animations.dev ámbar, dos acentos de producto distintos.
 
-   5 · LOS ALFAS SUBEN AL DAR VUELTA LA BASE. Benji, con las dos
-       que tiene:
-         --ink-faint  rgba(0,0,0,.28) → hsla(0,0%,100%,.45)  ×1.607
-         --hairline   rgba(0,0,0,.10) → hsla(0,0%,100%,.16)  ×1.600
-       El mismo factor dos veces. Nuestro 37% × 1.6 = 59.2%.
-
-   6 · EL ACENTO SE ACLARA. benji #08f → #3d9bff, josh #6366f1 →
-       #818cf8. Los dos.
-
-   NUESTRO CASO TIENE UNA VUELTA: el secundario claro ya está en
-   Lc 49.8, muy por debajo del 84 de josh y del 73 de jakub. No
-   hay margen para aflojar. Y el ×1.6 de benji cae justo:
-   59.2% da Lc 49.3 — sostiene el contraste en vez de perderlo,
-   que es lo que este sistema necesita.
-
-   LO QUE QUEDA A ELECCIÓN es de dónde sale el par canvas/ink.
-   Quedan DOS en carrera: emil y josh. Benji y jakub se
-   descartaron —benji era el único que invertía la temperatura
-   (canvas frío, ink cálido) y jakub caía a un paso de emil en
-   todo salvo el tinte.
-
-   Y ESO DECIDE MÁS DE LO QUE PARECE. Nuestra regla es
-   `anotación = EL EXTREMO @ α` y `nav = EL INK @ α`, así que lo
-   único que separa a las dos es CUÁNTO ENTRA EL INK DESDE EL
-   EXTREMO:
-
-     claro (horneado)        negro 0    → ink 17    entra 17
-     emilkowal.ski oscuro    blanco 255 → ink 238   entra 17
-     josh oscuro             blanco 255 → ink 250   entra  5
-     animations.dev oscuro   blanco 255 → ink 255   entra  0
-
-   Con 17 el par se comporta igual que en claro. Con 5 se aplasta
-   a Δ 1.6 Lc. Con 0 las dos bases SON el mismo color y la regla
-   deja de existir. O sea que el ink no es libre: nuestra propia
-   regla le pone un piso.
-
-   Todos los pasos (surface, hover, selección, subrayado) se
-   derivan preservando el ΔL PERCEPTUAL del modo claro, no el
-   delta de 8 bits — que es lo que pide /better-colors. Y cada
-   uno se tiñe con la relación de canal del canvas, para que la
-   temperatura no se pierda al alejarse del fondo.
+   También queda constante el activo del índice en 93%, ya decidido:
+   conserva su posición relativa entre nav e ink en ambos modos.
    ───────────────────────────────────────────────────────────── */
 
 type Paleta = {
-  nombre: string
-  fuente: string
   canvas: string
   ink: string
   surface: string
   hover: string
-  /* el mismo par, con el paso agrandado como hace emil */
-  surfaceAncho: string
-  hoverAncho: string
-  selection: string
   underline: string
   underlineHover: string
-  /* el acento del foco, aclarado */
-  focus: string
-  nota: string
 }
 
-const PALETAS: Paleta[] = [
-  {
-    nombre: 'emil',
-    fuente: 'su escala .dark, 12 pasos',
+const PALETAS = {
+  emil: {
     canvas: '#111110',
     ink: '#eeeeec',
     surface: '#141413',
     hover: '#171716',
-    surfaceAncho: '#181817',
-    hoverAncho: '#1d1d1c',
-    selection: '#1c1c1b',
     underline: '#2a2a29',
     underlineHover: '#858584',
-    focus: 'rgba(61, 155, 255, 0.5)',
-    nota: 'su gray-100 CLARO es\nnuestro canvas exacto.\nCálido en los dos modos.',
   },
-  {
-    nombre: 'josh',
-    fuente: 'su :root de modo oscuro',
+  josh: {
     canvas: '#0a0a0a',
     ink: '#fafafa',
     surface: '#0d0d0d',
     hover: '#101010',
-    surfaceAncho: '#101010',
-    hoverAncho: '#161616',
-    selection: '#141414',
     underline: '#222222',
     underlineHover: '#868686',
-    focus: 'rgba(129, 140, 248, 0.5)', // su #818cf8 oscuro
-    nota: 'el más profundo y el más\ncontrastado. Su par ink es\nel único arriba de Lc 100.',
+  },
+} satisfies Record<string, Paleta>
+
+type Variante = {
+  nombre: string
+  paleta: keyof typeof PALETAS
+  selection: string
+  regla: 'visible' | 'derivada'
+}
+
+const VARIANTES: Variante[] = [
+  {
+    nombre: 'emil · visible',
+    paleta: 'emil',
+    selection: '#31312e',
+    regla: 'visible',
+  },
+  {
+    nombre: 'emil · antes',
+    paleta: 'emil',
+    selection: '#1c1c1b',
+    regla: 'derivada',
+  },
+  {
+    nombre: 'josh · visible',
+    paleta: 'josh',
+    selection: '#292929',
+    regla: 'visible',
+  },
+  {
+    nombre: 'josh · antes',
+    paleta: 'josh',
+    selection: '#141414',
+    regla: 'derivada',
   },
 ]
 
-/* El alfa del secundario en oscuro. Sale del ×1.6 de benji sobre
-   nuestro 37%. La base se da vuelta: negro → blanco para lo que
-   anota, --ink para la nav. */
 const ALFA_OSCURO = '59.2%'
-
-/* Los alfas que no son de texto, con el mismo ×1.6 y la base dada
-   vuelta: --hairline .051 → 8.2%, --a1 .04 → 6.4%. */
-const HAIRLINE_OSCURO = 'rgba(255, 255, 255, 0.082)'
-const A1_OSCURO = 'rgba(255, 255, 255, 0.064)'
-
-/* EL ACTIVO DEL ÍNDICE en oscuro. No se puede dejar en 80%: el
-   ×1.6 no aplica acá porque no es un nivel, es un estado, y su
-   trabajo es DESTACARSE SOBRE LA NAV. En oscuro el recorrido que
-   le queda arriba de la nav está comprimido —el ink ya está en
-   238 o 250 y el techo es 255— así que el mismo 80% salta la
-   mitad que en claro (25 puntos de Lc contra 46).
-
-   Lo que se conserva no es el alfa: es DÓNDE CAE EL ACTIVO ENTRE
-   LA NAV Y EL INK. En claro el 80% lo deja al 80.4% de ese
-   recorrido —nav Lc 46.7, activo 92.9, ink 104.1—. Para caer en
-   la misma posición relativa en oscuro hace falta 93%:
-
-     emil   nav 44.0 → activo 86.1 → ink 96.2    salto 42.0
-     josh   nav 46.5 → activo 92.8 → ink 104.4   salto 46.3
-     claro  nav 46.7 → activo 92.9 → ink 104.1   salto 46.1
-
-   Y sigue sin llegar al ink, que es la regla de benji: la pieza
-   que estás mirando se destaca sin ser lo más presente de la
-   pantalla — eso queda para los títulos. */
 const ACTIVO_ALFA_OSCURO = '93%'
+const FOCUS_OSCURO = 'rgba(61, 155, 255, 0.5)'
 
-/* SEGUNDO EJE · el tamaño del paso de la card.
+const TOKENS = [
+  'color-scheme',
+  '--canvas',
+  '--ink',
+  '--surface',
+  '--surface-hover',
+  '--secundario-alfa',
+  '--text-secondary',
+  '--type-nav-c',
+  '--hairline',
+  '--a1',
+  '--index-activo-c',
+  '--selection-bg',
+  '--selection-color',
+  '--link-underline',
+  '--link-underline-hover',
+  '--focus-outline',
+] as const
 
-   Los pasos de arriba preservan el ΔL perceptual del modo claro
-   (ratio 1.00×). Pero emil NO preserva: agranda sus pasos en
-   oscuro, y el factor baja a medida que el paso crece —
+const inicial = () => {
+  const v = Number(new URLSearchParams(location.search).get('v'))
+  return Number.isInteger(v) && v >= 1 && v <= VARIANTES.length ? v - 1 : 0
+}
 
-     100→200   ΔL .0119 → .0358   ×3.00
-     100→300   ΔL .0381 → .0744   ×1.95
-     100→400   ΔL .0603 → .1071   ×1.78
-     100→500   ΔL .0841 → .1349   ×1.60
-
-   O sea: cerca del negro un ΔL chico no sobrevive, y hay que
-   agrandarlo. Nuestra card es un paso del tamaño de su primero,
-   el que él más agranda.
-
-   Sus factores por-paso no se pueden copiar tal cual: nuestros
-   dos pasos (card y hover) están cerca —5 y 9 en claro— y aplicar
-   3.00× a uno y 1.95× al otro los deja a 1 unidad, o sea mata el
-   hover. Así que el "ancho" usa un factor UNIFORME de 2.0×, que
-   cae en su rango medido y conserva la proporción entre los dos.
-   Es una elección adentro de su evidencia, no un número suyo. */
 export function Lab() {
-  const [oscuro, setOscuro] = useState(true)
-  const [ancho, setAncho] = useState(false)
-  const [i, setI] = useState(0)
-  const p = PALETAS[i]
+  const [actual, setActual] = useState(inicial)
+  const picker = useRef<HTMLElement>(null)
+  const highlight = useRef<HTMLSpanElement>(null)
+  const items = useRef<Array<HTMLButtonElement | null>>([])
+  const variante = VARIANTES[actual]
+  const paleta = PALETAS[variante.paleta]
 
   useEffect(() => {
     const d = document.documentElement
-    const set = (k: string, v: string) => d.style.setProperty(k, v)
-    if (!oscuro) {
-      d.style.cssText = ''
-      return
-    }
-    /* color-scheme primero: sin esto los controles nativos y la
-       barra de scroll siguen claros y la página queda partida. */
+    const set = (token: string, value: string) => d.style.setProperty(token, value)
+
     set('color-scheme', 'dark')
-    set('--canvas', p.canvas)
-    set('--ink', p.ink)
-    set('--surface', ancho ? p.surfaceAncho : p.surface)
-    set('--surface-hover', ancho ? p.hoverAncho : p.hover)
+    set('--canvas', paleta.canvas)
+    set('--ink', paleta.ink)
+    set('--surface', paleta.surface)
+    set('--surface-hover', paleta.hover)
     set('--secundario-alfa', ALFA_OSCURO)
-    /* Las dos bases dadas vuelta. La regla es la misma que en
-       claro: un alfa, dos bases — sólo que las bases ahora son
-       blanco y --ink en vez de negro y --ink. */
     set('--text-secondary', `color-mix(in srgb, #fff ${ALFA_OSCURO}, transparent)`)
     set('--type-nav-c', `color-mix(in srgb, var(--ink) ${ALFA_OSCURO}, transparent)`)
-    set('--hairline', HAIRLINE_OSCURO)
-    set('--a1', A1_OSCURO)
-    /* Derivado del ink, igual que la nav — el activo es el mismo
-       mecanismo con otro alfa, no un color aparte. */
-    set('--index-activo-c', `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`)
-    set('--selection-bg', p.selection)
+    set('--hairline', 'rgba(255, 255, 255, 0.082)')
+    set('--a1', 'rgba(255, 255, 255, 0.064)')
+    set(
+      '--index-activo-c',
+      `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`,
+    )
+    set('--selection-bg', variante.selection)
     set('--selection-color', 'var(--ink)')
-    set('--link-underline', p.underline)
-    set('--link-underline-hover', p.underlineHover)
-    set('--focus-outline', `2px solid ${p.focus}`)
+    set('--link-underline', paleta.underline)
+    set('--link-underline-hover', paleta.underlineHover)
+    set('--focus-outline', `2px solid ${FOCUS_OSCURO}`)
+
+    /* La selección real del masthead queda visible después de cada
+       cambio. Así se compara el estado, no sólo un chip inventado. */
+    const frame = requestAnimationFrame(() => {
+      const masthead = document.querySelector('h1')?.parentElement
+      if (!masthead) return
+      const range = document.createRange()
+      range.selectNodeContents(masthead)
+      const selection = window.getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+    })
+
     return () => {
-      d.style.cssText = ''
+      cancelAnimationFrame(frame)
+      TOKENS.forEach((token) => d.style.removeProperty(token))
     }
-  }, [oscuro, ancho, p])
+  }, [paleta, variante.selection])
+
+  const moverHighlight = useCallback(() => {
+    const item = items.current[actual]
+    if (!item || !highlight.current) return
+    highlight.current.style.width = `${item.offsetWidth}px`
+    highlight.current.style.transform = `translateX(${item.offsetLeft}px)`
+  }, [actual])
+
+  useLayoutEffect(moverHighlight, [moverHighlight])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'd' || e.key === 'D') setOscuro((v) => !v)
-      if (e.key === 's' || e.key === 'S') setAncho((v) => !v)
-      const n = Number(e.key)
-      if (n >= 1 && n <= PALETAS.length) {
-        setI(n - 1)
-        setOscuro(true)
-      }
+    let segundoFrame = 0
+    const primerFrame = requestAnimationFrame(() => {
+      segundoFrame = requestAnimationFrame(() => {
+        picker.current?.setAttribute('data-ready', '')
+      })
+    })
+    return () => {
+      cancelAnimationFrame(primerFrame)
+      cancelAnimationFrame(segundoFrame)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  useEffect(() => {
+    const onResize = () => moverHighlight()
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+    }
+  }, [moverHighlight])
+
+  const elegir = (indice: number) => {
+    if (indice < 0 || indice >= VARIANTES.length) return
+    setActual(indice)
+    const url = new URL(location.href)
+    url.searchParams.set('v', String(indice + 1))
+    history.replaceState(null, '', url)
+  }
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable) return
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      const numero = Number.parseInt(event.key, 10)
+      if (numero >= 1 && numero <= VARIANTES.length) elegir(numero - 1)
+      else if (event.key === 'ArrowRight') elegir((actual + 1) % VARIANTES.length)
+      else if (event.key === 'ArrowLeft') {
+        elegir((actual - 1 + VARIANTES.length) % VARIANTES.length)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [actual])
+
   return (
-    <div className={css.barra}>
-      <button
-        className={css.opcion}
-        data-on={!oscuro ? '' : undefined}
-        onClick={() => setOscuro(false)}
-      >
-        claro
-        <sub>horneado</sub>
-      </button>
-      <div className={css.sep} />
-      {PALETAS.map((o, k) => (
+    <nav className="proto-picker" aria-label="Prototype variants" ref={picker}>
+      <span className="proto-picker-highlight" aria-hidden="true" ref={highlight} />
+      {VARIANTES.map((opcion, indice) => (
         <button
-          className={css.opcion}
-          key={o.nombre}
-          data-on={oscuro && k === i ? '' : undefined}
-          onClick={() => {
-            setI(k)
-            setOscuro(true)
+          className="proto-picker-item"
+          data-active={indice === actual ? '' : undefined}
+          aria-current={indice === actual ? 'true' : undefined}
+          key={`${opcion.paleta}-${opcion.regla}`}
+          onClick={() => elegir(indice)}
+          ref={(elemento) => {
+            items.current[indice] = elemento
           }}
         >
-          {o.nombre}
-          <sub>{o.canvas}</sub>
+          {opcion.nombre}
         </button>
       ))}
-      <div className={css.sep} />
-      <button
-        className={css.opcion}
-        data-on={ancho ? '' : undefined}
-        onClick={() => setAncho((v) => !v)}
-      >
-        paso ×2
-        <sub>{ancho ? 'emil' : 'ΔL igual'}</sub>
-      </button>
-      <div className={css.sep} />
-      <span className={css.pista}>D alterna · 1–4 paletas · S paso</span>
-    </div>
+    </nav>
   )
 }
