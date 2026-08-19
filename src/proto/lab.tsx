@@ -124,19 +124,24 @@ const PALETAS = {
     hover: '#131313',
     underline: '#2e2e2e',
     underlineHover: '#a1a1a1',
-  },} satisfies Record<string, Paleta>
+  },
+} satisfies Record<string, Paleta>
 
 type Variante = {
   nombre: string
-  paleta: keyof typeof PALETAS
-  selection: string
-  regla: 'visible' | 'derivada'
+  /* null = el modo claro tal como está horneado en tokens.css. No
+     escribe nada: saca todos los overrides y deja ver el original.
+     Está primero a propósito — es contra esto que se comparan las
+     tres, y es lo único acá que no es una propuesta. */
+  paleta: keyof typeof PALETAS | null
+  selection?: string
 }
 
 const VARIANTES: Variante[] = [
-  { nombre: 'emil', paleta: 'emil', selection: '#212120', regla: 'visible' },
-  { nombre: 'profundo', paleta: 'profundo', selection: '#1a1a1a', regla: 'visible' },
-  { nombre: 'linear', paleta: 'linear', selection: '#191918', regla: 'visible' },
+  { nombre: 'claro · horneado', paleta: null },
+  { nombre: 'emil', paleta: 'emil', selection: '#212120' },
+  { nombre: 'profundo', paleta: 'profundo', selection: '#1a1a1a' },
+  { nombre: 'linear', paleta: 'linear', selection: '#191918' },
 ]
 
 const ALFA_OSCURO = '59.2%'
@@ -173,11 +178,15 @@ export function Lab() {
   const highlight = useRef<HTMLSpanElement>(null)
   const items = useRef<Array<HTMLButtonElement | null>>([])
   const variante = VARIANTES[actual]
-  const paleta = PALETAS[variante.paleta]
+  const paleta = variante.paleta ? PALETAS[variante.paleta] : null
 
   useEffect(() => {
     const d = document.documentElement
     const set = (token: string, value: string) => d.style.setProperty(token, value)
+
+    /* Sin paleta no se escribe nada: el modo claro es el que ya está
+       en tokens.css, y la comparación honesta es contra él sin tocar. */
+    if (!paleta) return () => {}
 
     set('color-scheme', 'dark')
     set('--canvas', paleta.canvas)
@@ -193,7 +202,7 @@ export function Lab() {
       '--index-activo-c',
       `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`,
     )
-    set('--selection-bg', variante.selection)
+    if (variante.selection) set('--selection-bg', variante.selection)
     set('--selection-color', 'var(--ink)')
     set('--link-underline', paleta.underline)
     set('--link-underline-hover', paleta.underlineHover)
@@ -271,7 +280,7 @@ export function Lab() {
           className="proto-picker-item"
           data-active={indice === actual ? '' : undefined}
           aria-current={indice === actual ? 'true' : undefined}
-          key={`${opcion.paleta}-${opcion.regla}`}
+          key={opcion.nombre}
           onClick={() => elegir(indice)}
           ref={(elemento) => {
             items.current[indice] = elemento
