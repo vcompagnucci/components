@@ -59,6 +59,31 @@
      delta salía de medir contra el blanco de /pasito, y el hover ocurre
      en su home, que es #fafafa.) */
   --surface-hover: #f4f4f1;
+  /* EL PRESS profundiza el relleno un escalón más, y no escala. La
+     escala es lo que hacen las cuatro referencias, pero sólo en
+     BOTONES: el único elemento con active:scale en el DOM real de las
+     dos páginas que lo tienen es uno de 91×40. Nuestra card es 560×260,
+     cuarenta veces el área, y a ese tamaño una escala se lee como que
+     la página tiembla.
+
+     Para cajas la respuesta la da linear, que sí presiona superficies:
+     su :active de botón secundario, terciario y ghost cambia el FONDO a
+     un nivel más de su escala. Y su escala coincide con la nuestra en
+     los dos niveles del medio —255·248·244·240 contra 253·248·244— así
+     que su level-3, 240, es literalmente nuestro paso siguiente.
+
+     El salto queda igual que el del hover: ΔL .0123 los dos. */
+  --surface-press: #f0f0ec;
+
+  /* Y EL PRESS ENTRA MÁS RÁPIDO DE LO QUE SALE. Es de benji, y es el
+     único caso en los cinco bundles medidos: su botón declara
+     `transition: box-shadow .2s ease` y su :active pisa
+     `transition-duration: 20ms`. Diez veces más rápido para entrar, la
+     duración normal para volver.
+
+     El motivo es que el press responde a tu dedo y tiene que sentirse
+     simultáneo; la salida es la que puede relajarse. */
+  --dur-press: 20ms;
   --ink: #111111;
 
   /* ═══════════ EL NIVEL SECUNDARIO — UN ALFA, DOS BASES ═══════════
@@ -662,6 +687,8 @@ html {
 
     --index-activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
 
+    --surface-press: #161615; /* +13 */
+
     --selection-bg: #191918; /* +16 */
     --selection-color: var(--ink);
 
@@ -735,6 +762,7 @@ html {
 
     --surface: #f3f3f0; /* −10 */
     --surface-hover: #ebebe6; /* −18 */
+    --surface-press: #e3e3de; /* −26 */
     --selection-bg: #dddddd; /* −32 */
     --link-underline: #b5b5b5; /* −72 */
     --link-underline-hover: var(--ink);
@@ -753,6 +781,7 @@ html {
 
     --surface: #131312; /* +10 */
     --surface-hover: #1b1b1a; /* +18 */
+    --surface-press: #232322; /* +26 */
     --selection-bg: #292927; /* +32 */
     --link-underline: #51514f; /* +72 */
     --link-underline-hover: var(--ink);

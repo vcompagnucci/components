@@ -284,6 +284,13 @@
 .streamItem:hover .streamPreview {
   background: var(--surface-hover);
 }
+/* El press profundiza un escalón más y entra en 20ms — la asimetría de
+   benji. La salida vuelve a --dur-fill sola, porque el :active deja de
+   matchear y con él se va el override de la duración. */
+.streamItem:active .streamPreview {
+  background: var(--surface-press);
+  transition-duration: var(--dur-press);
+}
 
 /* ═══════════ DETALLE ═══════════ */
 .back {
