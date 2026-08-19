@@ -208,6 +208,10 @@ export function App() {
     return (
       <div className={css.page}>
         <Detail piece={selected} onBack={back} />
+        {/* También acá: si el Lab sólo vive en la lista, al abrir una
+            pieza se desmonta, su cleanup borra los tokens y el detalle
+            vuelve al modo claro. */}
+        <Lab />
       </div>
     )
   }

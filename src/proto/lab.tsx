@@ -146,10 +146,27 @@ const TOKENS = [
   '--focus-outline',
 ] as const
 
+/* El estado sobrevive a la navegación. Abrir una pieza desmonta este
+   componente y monta otro, así que sin esto el detalle volvía siempre
+   al modo claro y no se podía evaluar. */
+const GUARDADO = 'lab-oscuro'
+type Estado = { claro: boolean; profundidad: number; calidez: number }
+const POR_DEFECTO: Estado = { claro: true, profundidad: 12, calidez: 0.006 }
+
+function leerEstado(): Estado {
+  try {
+    const crudo = sessionStorage.getItem(GUARDADO)
+    return crudo ? { ...POR_DEFECTO, ...JSON.parse(crudo) } : POR_DEFECTO
+  } catch {
+    return POR_DEFECTO
+  }
+}
+
 export function Lab() {
-  const [claro, setClaro] = useState(true)
-  const [profundidad, setProfundidad] = useState(12)
-  const [calidez, setCalidez] = useState(0.006)
+  const inicial = useRef(leerEstado()).current
+  const [claro, setClaro] = useState(inicial.claro)
+  const [profundidad, setProfundidad] = useState(inicial.profundidad)
+  const [calidez, setCalidez] = useState(inicial.calidez)
   const picker = useRef<HTMLElement>(null)
   const highlight = useRef<HTMLSpanElement>(null)
   const items = useRef<Array<HTMLButtonElement | null>>([])
@@ -161,6 +178,14 @@ export function Lab() {
     : PRESETS.findIndex(
         (p) => p.profundidad === profundidad && Math.abs(p.calidez - calidez) < 1e-9,
       )
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(GUARDADO, JSON.stringify({ claro, profundidad, calidez }))
+    } catch {
+      /* modo incógnito con storage bloqueado: no es motivo para romper */
+    }
+  }, [claro, profundidad, calidez])
 
   useEffect(() => {
     const d = document.documentElement
