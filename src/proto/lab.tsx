@@ -7,76 +7,59 @@ import './lab.module.css'
    Queda UNA pregunta: de dónde sale el par canvas/ink. Todo lo
    demás está cerrado y va constante en las tres.
 
-   Las tres, por profundidad de canvas:
-
      emil       17 · cálido   Geist gray-100, verificado pintando en
                               animations.dev
      profundo   10 · neutro   el canvas de josh, que es el
                               --ds-background-100 de vercel
      linear      9 · cálido   su bg-level-0, el más hondo, con nuestro
-                              tono y su paso de superficie de +20
+                              tono
 
-   LAS TRES COMPARTEN EL INK EN 238, y no por gusto. La regla deriva
-   la anotación del blanco y la nav del --ink, así que el ink tiene
-   que entrar lo suficiente desde el blanco o las dos bases se
-   aplastan:
+   DOS REGLAS, Y SÓLO DOS. Antes había cuatro ratios distintos
+   conviviendo —1.54 la card, 2.83 la selección, 1.60 los alfas,
+   0.99 el subrayado— y cada uno tenía su excusa, pero juntos no
+   eran un sistema.
 
-     238 (emil)               entra 17   par en 5.2 Lc
-     247 (linear text-primary) entra  8   par en 2.6 Lc
-     250 (josh)                entra  5   par en 1.6 Lc
-     255 (animations.dev)      entra  0   la regla no puede correr
+   1 · EL TEXTO CONSERVA EL CONTRASTE.
+       Tiene un piso de legibilidad que las superficies no tienen,
+       así que lo que se sostiene es el Lc, no el número.
+         secundario  37% → 59.2%   Lc 49.8 → 49.3
+         activo      80% → 93%     misma posición relativa entre
+                                   la nav y el ink
+       El 59.2% sale del ×1.6 que benji aplica en sus dos tokens
+       con alfa, y cae justo donde hay que caer.
 
-   Por eso 'profundo' y 'linear' llevan sus canvas pero no sus inks:
-   las dos son la corrección de una referencia que en esto no nos
-   sirve. Las variantes descartadas —benji, josh crudo y
-   animations.dev literal— están en el historial de git.
+   2 · TODO LO DEMÁS CONSERVA LA DISTANCIA E INVIERTE LA DIRECCIÓN.
+       En claro la card está a −5 del canvas, el hover a −9, la
+       selección a −16, el subrayado a −36 y su hover a −151. En
+       oscuro están a +5, +9, +16, +36 y +151.
+       Los alfas hacen lo mismo: mismo número, base dada vuelta.
+         --hairline  .051 negro → .051 blanco
+         --a1        .04  negro → .04  blanco
+       Que es exactamente lo que hace linear —#0000000d → #ffffff0d,
+       ×1.00— y su valor claro es nuestro mismo 5.1% a tres
+       decimales.
 
-   EL PASO DE LA CARD conserva el paso de 8 BITS, no el ΔL. En claro
-   la card está a −5 del canvas y el hover a −9; en oscuro está a +5
-   y +9. El mismo paso, al revés.
+   LO QUE SE RESIGNA AL UNIFICAR: la selección baja de 49 a 33. El
+   49 era el gray-500 de Geist, 2.83× el paso claro, y se veía más;
+   pero era el único token del sistema con su propia regla. A +16
+   sigue siendo más marcada que el 28 que quedaba antes.
 
-     canvas 17 → 22 → 26 · canvas 10 → 15 → 19 · canvas 9 → 14 → 18
+   Y ES UN COMPROMISO, NO UNA LEY. OKLab dice que ΔL igual se ve
+   igual, y conservar la distancia de 8 bits da ~1.5× de ΔL: la
+   card ES algo más notoria en oscuro. Preservar el ΔL exacto la
+   dejaría en +3, invisible. Las dos referencias con escala propia
+   agrandan mucho más (emil ×3.00, linear ×4.48) por robustez
+   —cerca del negro las pantallas divergen: OLED contra IPS, luz
+   ambiente, bandeo de 8 bits— no para igualar apariencia. Esto
+   queda en el medio y se enuncia en una frase.
 
-   Es el punto medio de una tensión que no tiene solución limpia:
+   APCA no puede arbitrar esto: devuelve 0.0 para todas las
+   opciones de superficie. Está hecho para texto. El instrumento
+   es ΔL.
 
-     ×1.00  conservar el ΔL          card +3, invisible
-     ×1.5   conservar el paso 8bit   card +5, esto
-     ×3.00  el ratio de emil         card +10
-     ×5.94  el paso propio de linear card +20
-
-   OKLab dice que ΔL igual se ve igual, y si eso vale, cualquier
-   cosa arriba de ×1 hace la card MÁS notoria en oscuro que en
-   claro — o sea incoherente entre modos. Pero las dos referencias
-   con escala propia agrandan igual (emil ×3.00, linear ×4.48), y
-   la razón es real aunque no sea perceptual: cerca del negro las
-   pantallas divergen mucho —OLED contra IPS, luz ambiente, bandeo
-   de 8 bits— y un paso chico desaparece en la mitad de ellas.
-   Agrandan por ROBUSTEZ, no para igualar la apariencia.
-
-   APCA no sirve para decidir esto: devuelve 0.0 en las cuatro
-   opciones. Está hecho para texto, no para separaciones de
-   superficie de este tamaño. El único instrumento es ΔL.
-
-   LA SELECCIÓN YA ESTÁ DECIDIDA (regla visible): toma la respuesta
-   de Geist para el mismo rol —gray-500 oscuro sobre gray-100— y el
-   salto pasa de .049 a .135, 2.8× el del claro. Donde el canvas no
-   es el de emil no se copia el hex sino ese salto perceptual.
-
-   DOS PENDIENTES YA CERRADOS, constantes en las cuatro variantes:
-
-   1 · ALFAS: ×1.6, de benji. Estos tokens pertenecen al sistema de
-       nivel secundario que copiamos de él, no a la escala de Geist.
-       Además, 37% × 1.6 = 59.2% conserva casi exacto el contraste del
-       secundario claro (Lc 49.8 → 49.3). Hairline y a1 siguen el mismo
-       par medido: .051 → .082 y .04 → .064.
-
-   2 · FOCO: el par de benji. El claro ya horneado es
-       rgba(0,122,255,.5); su contraparte oscura es
-       rgba(61,155,255,.5). Geist no ofrece un par: emilkowal.ski usa
-       gris y animations.dev ámbar, dos acentos de producto distintos.
-
-   También queda constante el activo del índice en 93%, ya decidido:
-   conserva su posición relativa entre nav e ink en ambos modos.
+   EL FOCO usa el par de benji: rgba(0,122,255,.5) claro,
+   rgba(61,155,255,.5) oscuro. Geist no ofrece un par —gris en
+   emilkowal.ski, ámbar en animations.dev.
    ───────────────────────────────────────────────────────────── */
 
 type Paleta = {
@@ -117,16 +100,16 @@ const PALETAS = {
     ink: '#eeeeec',
     surface: '#0e0e0d',
     hover: '#121211',
-    underline: '#252522',
-    underlineHover: '#82827d',
+    underline: '#2d2d2c',
+    underlineHover: '#a0a09f',
   },
   emil: {
     canvas: '#111110',
     ink: '#eeeeec',
     surface: '#161615',
     hover: '#1a1a19',
-    underline: '#2a2a29',
-    underlineHover: '#858584',
+    underline: '#353534',
+    underlineHover: '#a8a8a7',
   },
   /* La profundidad de josh con un ink que no colapsa el par. Su
      #fafafa deja sólo 5 unidades entre las dos bases de la regla
@@ -139,8 +122,8 @@ const PALETAS = {
     ink: '#eeeeee',
     surface: '#0f0f0f',
     hover: '#131313',
-    underline: '#222222',
-    underlineHover: '#868686',
+    underline: '#2e2e2e',
+    underlineHover: '#a1a1a1',
   },} satisfies Record<string, Paleta>
 
 type Variante = {
@@ -151,9 +134,9 @@ type Variante = {
 }
 
 const VARIANTES: Variante[] = [
-  { nombre: 'emil', paleta: 'emil', selection: '#31312e', regla: 'visible' },
-  { nombre: 'profundo', paleta: 'profundo', selection: '#292929', regla: 'visible' },
-  { nombre: 'linear', paleta: 'linear', selection: '#292926', regla: 'visible' },
+  { nombre: 'emil', paleta: 'emil', selection: '#212120', regla: 'visible' },
+  { nombre: 'profundo', paleta: 'profundo', selection: '#1a1a1a', regla: 'visible' },
+  { nombre: 'linear', paleta: 'linear', selection: '#191918', regla: 'visible' },
 ]
 
 const ALFA_OSCURO = '59.2%'
@@ -204,8 +187,8 @@ export function Lab() {
     set('--secundario-alfa', ALFA_OSCURO)
     set('--text-secondary', `color-mix(in srgb, #fff ${ALFA_OSCURO}, transparent)`)
     set('--type-nav-c', `color-mix(in srgb, var(--ink) ${ALFA_OSCURO}, transparent)`)
-    set('--hairline', 'rgba(255, 255, 255, 0.082)')
-    set('--a1', 'rgba(255, 255, 255, 0.064)')
+    set('--hairline', 'rgba(255, 255, 255, 0.051)')
+    set('--a1', 'rgba(255, 255, 255, 0.04)')
     set(
       '--index-activo-c',
       `color-mix(in srgb, var(--ink) ${ACTIVO_ALFA_OSCURO}, transparent)`,
