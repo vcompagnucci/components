@@ -654,7 +654,7 @@ cuando haya una pieza real ahí no va a haber nada que decidir.
 
 Oscurece el relleno **y nada más**: ni sombra, ni escala, ni movimiento,
 ni opacidad. Eso es de josh, y la transición de 150ms también — el mismo
-`--dur-fill` que ya teníamos.
+`--dur-color` que ya teníamos.
 
 **Sus cajas de demo no sirven de referencia acá: no reaccionan al hover
 porque no son clickeables.** Los únicos dos hovers que tiene en las 7
@@ -1084,28 +1084,45 @@ donde hay `transition` **cruzan un color**.
 
 | token | valor | quién lo lee |
 |---|---|---|
-| `--dur-fill` | `150ms` | los cuatro |
-| `--ease-out` | `cubic-bezier(.23,1,.32,1)` | índice · flecha del detalle · subrayado de los links |
-| `--ease-fill` | `cubic-bezier(.4,0,.2,1)` | el relleno de la card, y nada más |
+| `--dur-color` | `150ms` | los cuatro |
+| `--ease-color` | `ease` | los cuatro |
 
 ```
-.indexLink      color                        --ease-out
-.streamPreview  background-color             --ease-fill
-.back           background-color, color      --ease-out
-a               text-decoration-color        --ease-out
+.indexLink      color
+.streamPreview  background-color
+.back           background-color, color
+a               text-decoration-color
 ```
 
-`--ease-fill` es de josh —su `transition-colors` de Tailwind— y entró con
-su sistema de estados. La duración no hubo que importarla: su `0.15s` ya
-era nuestro `--dur-fill`.
+**Una sola curva, y es la palabra `ease`.** Cuatro fuentes coinciden:
 
-> **Decisión chica abierta.** Los cuatro lectores hacen exactamente el
-> mismo trabajo —cruzar un color sin mover nada— así que tener dos curvas
-> para un solo trabajo es una incoherencia. Se cierra con una línea el
-> día que se decida cuál gana; no se cerró antes porque lo que se miró en
-> el prototipo fue la curva **sobre la card**, y cambiar de paso el
-> índice, la flecha y los subrayados hubiera sido decidir tres cosas que
-> nadie miró.
+| fuente | qué usa para un cruce de color | grado |
+|---|---|---|
+| benji | **cada** transición de su bundle, sin una sola curva custom, a .14 · .15 · .2s | SOURCE |
+| josh, donde escribe CSS a mano | `.company-link` `color 0.15s ease` ×18 · `.role-text` ídem ×3 · `.filler` `0.25s ease-out` ×17 | RUNTIME |
+| animations.dev (Emil) | *"¿es un hover o un cambio de color? → ease"*, con el ejemplo literal `transition: background-color 150ms ease` | — |
+| `/animate` | entrar o salir → `ease-out`; moverse en pantalla → `ease-in-out`; hover o color → `ease` | — |
+
+### Antes acá había dos, y las dos estaban mal
+
+`--ease-fill` se horneó como *"la curva de josh"* y no lo era. Las **21**
+apariciones de `cubic-bezier(.4,0,.2,1)` en sus tres páginas salen todas
+de una utilidad de Tailwind —`transition-colors`, `-all`, `-transform`,
+`-opacity`— y **ninguna** de su CSS. Es el default del framework; él
+nunca la escribió.
+
+`--ease-out` era un quint-out heredado de Carousels, que es la curva de
+**entrar y salir**. En esta página nada entra ni sale.
+
+El quint no se guarda por si acaso: un token sin lector es código
+muerto. El día que una pieza entre o salga se agrega con su lector, y su
+valor queda escrito acá — `cubic-bezier(.23,1,.32,1)`.
+
+### Y los dos tokens cambiaron de nombre
+
+Por la **regla 4** del sistema, el nombre es el rol. `fill` era el rol
+cuando el único lector era el relleno de la card; hoy son cuatro y tres
+no rellenan nada. El rol de verdad es cruzar un color.
 
 **No hay bloque de `prefers-reduced-motion`** y no hace falta: no queda
 movimiento que reducir. Verificado con `reduced-motion: reduce` — la card

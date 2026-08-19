@@ -60,14 +60,14 @@ export function Lab() {
 
   useEffect(() => {
     sessionStorage.setItem(GUARDADO, String(t))
-    const d = document.documentElement
+    const el = document.documentElement
     if (t === 0) return
     const tokens = rama(t === 2)
-    for (const [k, v] of Object.entries(tokens)) d.style.setProperty(k, v)
-    d.style.colorScheme = t === 2 ? 'dark' : 'light'
+    for (const [k, v] of Object.entries(tokens)) el.style.setProperty(k, v)
+    el.style.colorScheme = t === 2 ? 'dark' : 'light'
     return () => {
-      for (const k of Object.keys(tokens)) d.style.removeProperty(k)
-      d.style.removeProperty('color-scheme')
+      for (const k of Object.keys(tokens)) el.style.removeProperty(k)
+      el.style.removeProperty('color-scheme')
     }
   }, [t])
 
@@ -102,14 +102,11 @@ export function Lab() {
           aria-current={indice === t ? 'true' : undefined}
           key={nombre}
           onClick={() => setT(indice)}
+          ref={(el) => {
+            items.current[indice] = el
+          }}
         >
-          <span
-            ref={(el) => {
-              items.current[indice] = el?.parentElement as HTMLButtonElement | null
-            }}
-          >
-            {nombre}
-          </span>
+          {nombre}
         </button>
       ))}
     </nav>

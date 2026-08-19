@@ -37,7 +37,7 @@
   --surface: #f8f8f6;
   /* El hover oscurece el relleno y NADA MÁS: ni sombra, ni escala, ni
      movimiento, ni opacidad. Eso es de josh, y la transición de 150ms
-     también — es el --dur-fill que ya teníamos.
+     también — es el --dur-color que ya teníamos.
 
      Sus cajas de demo no sirven de referencia acá porque no reaccionan
      al hover: no son clickeables. Los únicos dos hovers que tiene en las
@@ -439,23 +439,40 @@
      acá: no queda movimiento que reducir. El scroll suave del índice sí
      lo consulta, en app.tsx.
 
-     DOS CURVAS, y la segunda tiene dueño. --ease-out es un quint-out
-     heredado de Carousels y lo leen el índice, el botón de volver y el
-     subrayado de los links. --ease-fill es de josh —el transition-colors
-     de Tailwind, cubic-bezier(.4,0,.2,1)— y lo lee sólo el relleno de la
-     card, porque es el sistema suyo el que se eligió ahí y su curva
-     venía con él.
+     UNA SOLA CURVA, Y ES LA PALABRA `ease`. Los cuatro lectores hacen
+     el mismo trabajo, así que un solo token. Cuatro fuentes coinciden:
 
-     La duración no hubo que importarla: su transition-colors es 0.15s y
-     nuestro --dur-fill ya era 150ms.
+       benji            CADA transición de su bundle usa `ease`. Ni una
+                        curva custom, en ninguna de sus dos hojas.
+                        Duraciones .14s, .15s y .2s.
+       josh, a mano     .company-link  color 0.15s ease   ×18
+                        .role-text     color 0.15s ease   × 3
+                        .filler        color 0.25s ease-out ×17
+       animations.dev   "¿es un hover o un cambio de color? → ease",
+                        con el ejemplo literal
+                        `transition: background-color 150ms ease`.
+       /animate         entrar o salir → ease-out; moverse en pantalla
+                        → ease-in-out; hover o color → ease.
 
-     Queda una decisión chica abierta: los cuatro lectores hacen lo
-     mismo —cruzar un color, sin mover nada— así que tener dos curvas
-     para un solo trabajo es una incoherencia que se cierra con una
-     línea el día que se decida cuál gana. */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-fill: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fill: 150ms;
+     ANTES ACÁ HABÍA DOS, Y LAS DOS ESTABAN MAL. --ease-fill se horneó
+     como "la curva de josh" y no lo era: las 21 apariciones de
+     cubic-bezier(.4,0,.2,1) en sus tres páginas salen TODAS de una
+     utilidad de Tailwind —transition-colors, -all, -transform,
+     -opacity— y ninguna de su CSS. Es el default del framework; él
+     nunca la escribió. Y --ease-out era un quint-out heredado de
+     Carousels, que es la curva de ENTRAR Y SALIR — cosa que en esta
+     página no pasa nunca.
+
+     El quint no se guarda "por si acaso": un token sin lector es
+     código muerto. El día que una pieza entre o salga se agrega con su
+     lector, y el valor está acá escrito: cubic-bezier(.23,1,.32,1).
+
+     Y LOS DOS TOKENS SE RENOMBRARON, por la regla 4 del sistema —el
+     nombre es el rol—. `fill` era el rol cuando el único lector era el
+     relleno de la card; hoy son cuatro y tres no rellenan nada. El rol
+     de verdad es cruzar un color. */
+  --ease-color: ease;
+  --dur-color: 150ms;
 
   /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
      al 40%, 8px entre uno y otro.
@@ -842,7 +859,7 @@ a {
   text-decoration: underline;
   text-decoration-color: var(--link-underline);
   text-decoration-thickness: 1px;
-  transition: text-decoration-color var(--dur-fill) var(--ease-out);
+  transition: text-decoration-color var(--dur-color) var(--ease-color);
 }
 a:hover {
   text-decoration-color: var(--link-underline-hover);
