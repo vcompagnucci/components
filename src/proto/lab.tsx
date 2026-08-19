@@ -31,6 +31,15 @@ import './lab.module.css'
    sirve. Las variantes descartadas —benji, josh crudo y
    animations.dev literal— están en el historial de git.
 
+   EL PASO DE LA CARD va igual en las tres, y no preserva el ΔL
+   claro: lo multiplica por 3.00. NADIE preserva — cerca del negro
+   un ΔL igual no compra la misma separación, y las dos referencias
+   con escala propia agrandan su primer paso, emil ×3.00 y linear
+   ×4.48. Se toma el de emil por ser el más suave de los dos, que es
+   lo que pide un sistema claro tan callado como el nuestro.
+
+     canvas 17 → card 27 · canvas 10 → card 20 · canvas 9 → card 19
+
    LA SELECCIÓN YA ESTÁ DECIDIDA (regla visible): toma la respuesta
    de Geist para el mismo rol —gray-500 oscuro sobre gray-100— y el
    salto pasa de .049 a .135, 2.8× el del claro. Donde el canvas no
@@ -75,9 +84,12 @@ const PALETAS = {
            en claro como en oscuro; el tinte vive en la rampa de texto,
            no en el fondo. Acá se conserva NUESTRO tono cálido (H 106)
            con la misma lógica.
-       3 · UN PASO DE SUPERFICIE ENORME. De 8 a 28: +20, contra los +3
-           que da preservar el ΔL. Es el que más separa la card de la
-           página de las cuatro referencias.
+       3 · (NO se copia su paso de superficie.) El suyo va de 8 a 28,
+           +20, que sobre nuestro claro sería 5.94× — y nuestra card
+           clara es deliberadamente callada. Su paso claro ya arranca
+           más grande que el nuestro (ΔL .0198 contra .0152) y encima
+           multiplica más. Su profundidad no obliga a su separación:
+           son dos diales distintos.
 
      Lo que NO se copia: su ink. Su text-primary oscuro es 247 y deja
      sólo 8 unidades hasta el blanco, así que la regla de las dos bases
@@ -86,16 +98,16 @@ const PALETAS = {
   linear: {
     canvas: '#090908',
     ink: '#eeeeec',
-    surface: '#1d1d1a',
-    hover: '#242421',
+    surface: '#131312',
+    hover: '#1b1b1a',
     underline: '#252522',
     underlineHover: '#82827d',
   },
   emil: {
     canvas: '#111110',
     ink: '#eeeeec',
-    surface: '#141413',
-    hover: '#171716',
+    surface: '#1b1b1a',
+    hover: '#242423',
     underline: '#2a2a29',
     underlineHover: '#858584',
   },
@@ -108,8 +120,8 @@ const PALETAS = {
   profundo: {
     canvas: '#0a0a0a',
     ink: '#eeeeee',
-    surface: '#0d0d0d',
-    hover: '#101010',
+    surface: '#141414',
+    hover: '#1c1c1c',
     underline: '#222222',
     underlineHover: '#868686',
   },} satisfies Record<string, Paleta>
