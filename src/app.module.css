@@ -136,8 +136,34 @@
 .indexLink[data-active] {
   color: var(--index-activo-c);
 }
-.indexLink:hover {
-  color: var(--index-activo-c);
+/* Y el hover va detrás de (hover: hover), que es el ÚNICO lugar del
+   sistema donde se gatea. No es simetría: es dónde aparece el
+   artefacto, y aparece donde el toque DEJA EL ELEMENTO EN PANTALLA.
+
+   Tocar un link del índice no navega, sólo scrollea, así que el :hover
+   se le queda pegado hasta el próximo toque. Y como hover y activo
+   pintan el mismo color, el pegado es indistinguible del verdadero:
+   medido en un iPad Pro horizontal, tocar "Switch" y scrollear lejos
+   deja DOS links pintados a la vez —"Switch" pegado y "Tab Bar"
+   activo— y el índice miente sobre dónde estás.
+
+   La card no lo necesita: tocarla la desmonta. La flecha de volver
+   tampoco, por lo mismo (verificado: :hover vacío después del toque).
+   Y en WebKit un solo toque alcanza en las dos, así que tampoco hay
+   que gatear por el problema del doble tap.
+
+   El corte cae justo: el índice se muestra arriba de 1080px y el único
+   dispositivo medido que llega ahí sin mouse es el iPad Pro horizontal
+   —1194px, (hover: hover) false— o sea exactamente donde el artefacto
+   existe. En escritorio con mouse da true y no cambia nada.
+
+   Ninguna de las dos referencias gatea nada por puntero: cero
+   apariciones de (hover:, (pointer: y (any-hover: en los dos bundles.
+   Tampoco tienen un índice que se quede en pantalla al tocarlo. */
+@media (hover: hover) {
+  .indexLink:hover {
+    color: var(--index-activo-c);
+  }
 }
 /* El índice se esconde y no se reemplaza: es una decisión, no una
    deuda. Medido a 390px, ninguna de las dos referencias da navegación
