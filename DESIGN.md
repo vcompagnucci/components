@@ -512,7 +512,77 @@ reposo y activa (`hsla(0,0%,7%,.4)` y `.8`).
 > navegador auto-oscurece controles nativos y barras de scroll y la
 > página queda mitad y mitad.
 >
-> **Sigue sin cubrirse `prefers-contrast: more`**, en los dos modos.
+### Alto contraste — LA PRIMERA SIN NINGUNA REFERENCIA
+
+```css
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
+  :root { --secundario-alfa: 57.4%;  --nav-alfa: 57.4%;
+          --surface: #f3f3f0;  --surface-hover: #ebebe6;
+          --selection-bg: #dddddd;  --link-underline: #b5b5b5;
+          --link-underline-hover: var(--ink);
+          --hairline: rgba(0,0,0,.102);  --a1: rgba(0,0,0,.08);
+          --focus-outline: 2px solid #0042ad; }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root { --secundario-alfa: 78.8%;  --nav-alfa: 78.8%;
+          --surface: #131312;  --surface-hover: #1b1b1a;
+          --selection-bg: #292927;  --link-underline: #51514f;
+          --link-underline-hover: var(--ink);
+          --hairline: rgba(255,255,255,.102);  --a1: rgba(255,255,255,.08);
+          --focus-outline: 2px solid #589cfe; }
+}
+```
+
+`prefers-contrast: more` es cuando alguien prendió **"Aumentar
+contraste"** en su sistema. No es estético como el modo oscuro: es
+accesibilidad, y quien la prende pide explícitamente que los grises
+tenues dejen de ser tenues.
+
+**Cero ocurrencias de `prefers-contrast` en los cinco bundles medidos.**
+Lo único vecino es un `@media (forced-colors:active)` en animations.dev,
+que es una utilidad de Tailwind y no una decisión de paleta. Así que acá
+la regla la pone `/better-colors`: ensanchar el gap de L **≥0.15** y
+verificar contra los umbrales **preferidos** de APCA — Lc 90 cuerpo, 75
+no-cuerpo.
+
+| | claro | oscuro | pide | |
+|---|---|---|---|---|
+| ink | 104.1 | 104.4 | 90 | **pasa** — no se toca |
+| anotación | 50.3 | 48.1 | 75 | **no** |
+| nav | 46.7 | 42.5 | 75 | **no** |
+
+**Y hay una convergencia que decide sola:** el alfa que hace falta para
+llegar a Lc 75 sale **el mismo** para la anotación y para la nav —57.4%
+claro, 78.8% oscuro—, porque las dos apuntan al mismo número. O sea que
+en alto contraste **los dos grises se colapsan en uno.**
+
+No es una pérdida, es la respuesta correcta: esa distinción era de 3.6 Lc
+en su mejor momento, y es exactamente el tipo de sutileza que alguien
+pidiendo más contraste quiere que desaparezca. La jerarquía que sobrevive
+—ink contra secundario— es la que carga significado.
+
+Llegar a Lc 75 ensancha el gap entre **0.153 y 0.194** en los cuatro
+casos, o sea más que el 0.15 del skill: el umbral manda y no hace falta
+un segundo cálculo.
+
+**Lo demás no lo pide el skill, es criterio nuestro.** Bajo alto
+contraste la estructura también tiene que leerse, así que **todas las
+distancias que no son texto se duplican** — una regla y no cuatro
+números sueltos:
+
+```
+card −5→−10 · hover −9→−18 · selección −16→−32 · subrayado −36→−72
+alfas de línea al doble: .051→.102 y .04→.08
+```
+
+El hover del subrayado va directo a `--ink`: duplicar sus 151 se sale del
+rango. Y el anillo de foco corre un escalón de acento más en cada
+dirección, con el mismo ΔL con el que se derivó su par — claro |Lc| 77.8
+→ **87.9**, oscuro 34.8 → **48.7**.
+
+> Los dos bloques llevan `(prefers-color-scheme)` explícito en vez de
+> depender del orden en la cascada. `light` matchea también cuando no hay
+> preferencia declarada, así que no queda ningún hueco.
 
 ### La superficie — la regla de josh
 

@@ -676,6 +676,94 @@ html {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ALTO CONTRASTE
+
+   `prefers-contrast: more` es cuando alguien prendió "Aumentar
+   contraste" en su sistema. No es una preferencia estética como el modo
+   oscuro: es de accesibilidad, y quien la prende está pidiendo
+   explícitamente que los grises tenues dejen de ser tenues.
+
+   ES LA PRIMERA DECISIÓN DE COLOR SIN NINGUNA REFERENCIA. Cero
+   ocurrencias de prefers-contrast en los cinco bundles medidos —benji,
+   emil, animations.dev, josh, linear—. Lo único vecino es un
+   @media (forced-colors:active) en animations.dev, que es una utilidad
+   de Tailwind y no una decisión de paleta. Así que acá la regla la pone
+   /better-colors: ensanchar el gap de L al menos 0.15 y verificar contra
+   los umbrales PREFERIDOS de APCA, Lc 90 cuerpo y 75 no-cuerpo.
+
+   DÓNDE ESTÁBAMOS:
+     ink          Lc 104.1 claro · 104.4 oscuro    pasa 90, no se toca
+     anotación    Lc  50.3      ·  48.1            pide 75, NO pasa
+     nav          Lc  46.7      ·  42.5            pide 75, NO pasa
+
+   Y ACÁ HAY UNA CONVERGENCIA QUE DECIDE SOLA: el alfa que hace falta
+   para llegar a Lc 75 sale EL MISMO para la anotación y para la nav —
+   57.4% en claro, 78.8% en oscuro—, porque las dos apuntan al mismo
+   número. O sea que en alto contraste LOS DOS GRISES SE COLAPSAN EN UNO.
+
+   No es una pérdida, es la respuesta correcta: la distinción entre esos
+   dos era de 3.6 Lc en su mejor momento, y es exactamente el tipo de
+   sutileza que alguien pidiendo más contraste quiere que desaparezca. La
+   jerarquía que sobrevive —ink contra secundario— es la que carga
+   significado.
+
+   Y llegar a Lc 75 ensancha el gap entre 0.153 y 0.194 en los cuatro
+   casos, o sea más que el 0.15 que pide el skill. El umbral manda y no
+   hace falta un segundo cálculo.
+
+   LO DEMÁS NO LO PIDE EL SKILL, es nuestro criterio: bajo alto
+   contraste la estructura también tiene que leerse, así que TODAS LAS
+   DISTANCIAS QUE NO SON TEXTO SE DUPLICAN. Es una sola regla y no
+   cuatro números sueltos — card −5→−10, hover −9→−18, selección
+   −16→−32, subrayado −36→−72, y los alfas de línea al doble. El hover
+   del subrayado va directo a --ink: duplicar sus 151 se sale del rango.
+
+   El anillo de foco corre un escalón de acento más en cada dirección,
+   con el mismo ΔL con el que se derivó su par: claro |Lc| 77.8 → 87.9,
+   oscuro 34.8 → 48.7.
+
+   Los dos bloques van con (prefers-color-scheme) explícito en vez de
+   depender del orden en la cascada. `light` matchea también cuando no
+   hay preferencia declarada, así que no queda ningún hueco.
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
+  :root {
+    /* un solo gris: los dos alfas al mismo número */
+    --secundario-alfa: 57.4%;
+    --nav-alfa: 57.4%;
+
+    --surface: #f3f3f0; /* −10 */
+    --surface-hover: #ebebe6; /* −18 */
+    --selection-bg: #dddddd; /* −32 */
+    --link-underline: #b5b5b5; /* −72 */
+    --link-underline-hover: var(--ink);
+
+    --hairline: rgba(0, 0, 0, 0.102);
+    --a1: rgba(0, 0, 0, 0.08);
+
+    --focus-outline: 2px solid #0042ad;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root {
+    --secundario-alfa: 78.8%;
+    --nav-alfa: 78.8%;
+
+    --surface: #131312; /* +10 */
+    --surface-hover: #1b1b1a; /* +18 */
+    --selection-bg: #292927; /* +32 */
+    --link-underline: #51514f; /* +72 */
+    --link-underline-hover: var(--ink);
+
+    --hairline: rgba(255, 255, 255, 0.102);
+    --a1: rgba(255, 255, 255, 0.08);
+
+    --focus-outline: 2px solid #589cfe;
+  }
+}
+
 body {
   margin: 0;
   font-family: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont,
