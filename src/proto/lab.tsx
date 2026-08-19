@@ -54,6 +54,20 @@ const PALETAS = {
     underline: '#2a2a29',
     underlineHover: '#858584',
   },
+  /* La profundidad de josh con un ink que no colapsa el par. Su
+     #fafafa deja sólo 5 unidades entre las dos bases de la regla
+     —blanco para lo que anota, --ink para la nav— y las aplasta a
+     Δ 1.6 Lc. Con 238 la separación vuelve a 5.1, como con emil,
+     y el canvas sigue siendo el suyo. El resto de la paleta es la
+     de josh sin tocar. */
+  profundo: {
+    canvas: '#0a0a0a',
+    ink: '#eeeeee',
+    surface: '#0d0d0d',
+    hover: '#101010',
+    underline: '#222222',
+    underlineHover: '#868686',
+  },
   josh: {
     canvas: '#0a0a0a',
     ink: '#fafafa',
@@ -72,30 +86,9 @@ type Variante = {
 }
 
 const VARIANTES: Variante[] = [
-  {
-    nombre: 'emil · visible',
-    paleta: 'emil',
-    selection: '#31312e',
-    regla: 'visible',
-  },
-  {
-    nombre: 'emil · antes',
-    paleta: 'emil',
-    selection: '#1c1c1b',
-    regla: 'derivada',
-  },
-  {
-    nombre: 'josh · visible',
-    paleta: 'josh',
-    selection: '#292929',
-    regla: 'visible',
-  },
-  {
-    nombre: 'josh · antes',
-    paleta: 'josh',
-    selection: '#141414',
-    regla: 'derivada',
-  },
+  { nombre: 'emil', paleta: 'emil', selection: '#31312e', regla: 'visible' },
+  { nombre: 'profundo', paleta: 'profundo', selection: '#292929', regla: 'visible' },
+  { nombre: 'josh', paleta: 'josh', selection: '#292929', regla: 'visible' },
 ]
 
 const ALFA_OSCURO = '59.2%'
