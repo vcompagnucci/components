@@ -31,14 +31,31 @@ import './lab.module.css'
    sirve. Las variantes descartadas —benji, josh crudo y
    animations.dev literal— están en el historial de git.
 
-   EL PASO DE LA CARD va igual en las tres, y no preserva el ΔL
-   claro: lo multiplica por 3.00. NADIE preserva — cerca del negro
-   un ΔL igual no compra la misma separación, y las dos referencias
-   con escala propia agrandan su primer paso, emil ×3.00 y linear
-   ×4.48. Se toma el de emil por ser el más suave de los dos, que es
-   lo que pide un sistema claro tan callado como el nuestro.
+   EL PASO DE LA CARD conserva el paso de 8 BITS, no el ΔL. En claro
+   la card está a −5 del canvas y el hover a −9; en oscuro está a +5
+   y +9. El mismo paso, al revés.
 
-     canvas 17 → card 27 · canvas 10 → card 20 · canvas 9 → card 19
+     canvas 17 → 22 → 26 · canvas 10 → 15 → 19 · canvas 9 → 14 → 18
+
+   Es el punto medio de una tensión que no tiene solución limpia:
+
+     ×1.00  conservar el ΔL          card +3, invisible
+     ×1.5   conservar el paso 8bit   card +5, esto
+     ×3.00  el ratio de emil         card +10
+     ×5.94  el paso propio de linear card +20
+
+   OKLab dice que ΔL igual se ve igual, y si eso vale, cualquier
+   cosa arriba de ×1 hace la card MÁS notoria en oscuro que en
+   claro — o sea incoherente entre modos. Pero las dos referencias
+   con escala propia agrandan igual (emil ×3.00, linear ×4.48), y
+   la razón es real aunque no sea perceptual: cerca del negro las
+   pantallas divergen mucho —OLED contra IPS, luz ambiente, bandeo
+   de 8 bits— y un paso chico desaparece en la mitad de ellas.
+   Agrandan por ROBUSTEZ, no para igualar la apariencia.
+
+   APCA no sirve para decidir esto: devuelve 0.0 en las cuatro
+   opciones. Está hecho para texto, no para separaciones de
+   superficie de este tamaño. El único instrumento es ΔL.
 
    LA SELECCIÓN YA ESTÁ DECIDIDA (regla visible): toma la respuesta
    de Geist para el mismo rol —gray-500 oscuro sobre gray-100— y el
@@ -98,16 +115,16 @@ const PALETAS = {
   linear: {
     canvas: '#090908',
     ink: '#eeeeec',
-    surface: '#131312',
-    hover: '#1b1b1a',
+    surface: '#0e0e0d',
+    hover: '#121211',
     underline: '#252522',
     underlineHover: '#82827d',
   },
   emil: {
     canvas: '#111110',
     ink: '#eeeeec',
-    surface: '#1b1b1a',
-    hover: '#242423',
+    surface: '#161615',
+    hover: '#1a1a19',
     underline: '#2a2a29',
     underlineHover: '#858584',
   },
@@ -120,8 +137,8 @@ const PALETAS = {
   profundo: {
     canvas: '#0a0a0a',
     ink: '#eeeeee',
-    surface: '#141414',
-    hover: '#1c1c1c',
+    surface: '#0f0f0f',
+    hover: '#131313',
     underline: '#222222',
     underlineHover: '#868686',
   },} satisfies Record<string, Paleta>
