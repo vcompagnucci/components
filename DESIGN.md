@@ -1085,44 +1085,76 @@ donde hay `transition` **cruzan un color**.
 | token | valor | quién lo lee |
 |---|---|---|
 | `--dur-color` | `150ms` | los cuatro |
-| `--ease-color` | `ease` | los cuatro |
+| `--ease-surface` | `cubic-bezier(.23,1,.32,1)` | lo que anima `background-color` |
+| `--ease-text` | `ease` | lo que anima `color` y `text-decoration-color` |
 
 ```
-.indexLink      color
-.streamPreview  background-color
-.back           background-color, color
-a               text-decoration-color
+.indexLink      color                     --ease-text
+.streamPreview  background-color          --ease-surface
+.back           background-color          --ease-surface
+.back           color                     --ease-text
+a               text-decoration-color     --ease-text
 ```
 
-**Una sola curva, y es la palabra `ease`.** Cuatro fuentes coinciden:
+**Dos curvas, partidas por PROPIEDAD y no por componente.** El corte es
+el que se lee en el CSS de linear, y tiene una ventaja concreta: la
+flecha de volver anima las dos cosas y se parte sola, sin que haya que
+decidir si "es una card".
 
-| fuente | qué usa para un cruce de color | grado |
+### La superficie va en ease-out
+
+Es lo que hacen las **tres** cards con hover de linear, sin una excepción:
+
+```
+.Dc5tqa_customerCard   filter .16s  --ease-out-quad
+.do0YxW_card           filter .2s   ease-out (palabra clave)
+.rWdRxW_card           all   .15s   --ease-out-cubic
+```
+
+Y el valor es el que prescribe `/review-animations` en su catálogo,
+línea 32: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, comentado
+*"strong ease-out for UI"*.
+
+> **Divergencia consciente.** Linear usa ease-out en sus cards pero
+> **nunca este valor**: sus tres usan quad, la palabra clave y cubic.
+> Declara el quint entre sus 18 curvas de Penner y lo usa **una** vez en
+> todo el sitio. La familia sale de linear medido y el número sale de la
+> skill, y no coinciden. Si mañana se prefiere lo que ellos ship-ean,
+> quad es `cubic-bezier(.25,.46,.45,.94)` y es su caballo de batalla con
+> 60 usos.
+
+### El texto va en `ease`
+
+| fuente | qué usa | grado |
 |---|---|---|
 | benji | **cada** transición de su bundle, sin una sola curva custom, a .14 · .15 · .2s | SOURCE |
-| josh, donde escribe CSS a mano | `.company-link` `color 0.15s ease` ×18 · `.role-text` ídem ×3 · `.filler` `0.25s ease-out` ×17 | RUNTIME |
-| animations.dev (Emil) | *"¿es un hover o un cambio de color? → ease"*, con el ejemplo literal `transition: background-color 150ms ease` | — |
-| `/animate` | entrar o salir → `ease-out`; moverse en pantalla → `ease-in-out`; hover o color → `ease` | — |
+| josh, a mano | `.company-link` `color 0.15s ease` ×18 · `.role-text` ídem ×3 | RUNTIME |
+| linear | 25 de sus 46 transiciones de color, el **54%** — 21 sin declarar curva (que en CSS es `ease`) más 4 explícitas | SOURCE |
+| `/review-animations` línea 23, `/animate`, `/web-animation-design` | *"hover o cambio de color → ease"* | — |
 
-### Antes acá había dos, y las dos estaban mal
+### Antes hubo dos curvas y las dos estaban mal
 
-`--ease-fill` se horneó como *"la curva de josh"* y no lo era. Las **21**
-apariciones de `cubic-bezier(.4,0,.2,1)` en sus tres páginas salen todas
-de una utilidad de Tailwind —`transition-colors`, `-all`, `-transform`,
-`-opacity`— y **ninguna** de su CSS. Es el default del framework; él
-nunca la escribió.
+Por accidente, no por reparto. `--ease-fill` se horneó como *"la curva de
+josh"* y no lo era: las **21** apariciones de `cubic-bezier(.4,0,.2,1)`
+en sus tres páginas salen todas de una utilidad de Tailwind
+—`transition-colors`, `-all`, `-transform`, `-opacity`— y **ninguna** de
+su CSS. Y el viejo `--ease-out` era el quint aplicado a las cuatro,
+incluidas las tres de texto.
 
-`--ease-out` era un quint-out heredado de Carousels, que es la curva de
-**entrar y salir**. En esta página nada entra ni sale.
+### Y una cosa medida que sigue abierta
 
-El quint no se guarda por si acaso: un token sin lector es código
-muerto. El día que una pieza entre o salga se agrega con su lector, y su
-valor queda escrito acá — `cubic-bezier(.23,1,.32,1)`.
+Nuestro hover es **simétrico**: 150 entrando y 150 saliendo. Tres fuentes
+dicen que no debería serlo:
 
-### Y los dos tokens cambiaron de nombre
+```
+linear · su card    --speed-highlightFadeIn: 0s   contra  FadeOut: .15s
+benji  · su botón   press 20ms                    contra  base .2s
+Apple               "respond on pointer-down, not on release"
+```
 
-Por la **regla 4** del sistema, el nombre es el rol. `fill` era el rol
-cuando el único lector era el relleno de la card; hoy son cuatro y tres
-no rellenan nada. El rol de verdad es cruzar un color.
+`/review-animations` lo marca como finding en su estándar 9: *"symmetric
+timing on a press-and-release is a finding"*. Está medido, prototipado y
+sin decidir.
 
 **No hay bloque de `prefers-reduced-motion`** y no hace falta: no queda
 movimiento que reducir. Verificado con `reduced-motion: reduce` — la card

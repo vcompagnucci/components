@@ -127,7 +127,7 @@
   color: var(--type-nav-c);
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dur-color) var(--ease-color);
+  transition: color var(--dur-color) var(--ease-text);
 }
 /* La pieza que estás mirando se pinta. La regla es la de benji: activa
    es la última cuyo borde superior ya pasó una línea a 128px del tope
@@ -301,7 +301,7 @@
   min-height: var(--card-alto);
   background: var(--surface);
   border-radius: var(--card-radio);
-  transition: background-color var(--dur-color) var(--ease-color);
+  transition: background-color var(--dur-color) var(--ease-surface);
 }
 /* EL SISTEMA DE JOSH, COMPLETO: el hover oscurece el relleno y no pasa
    nada más. Ni sombra, ni escala, ni movimiento, ni opacidad, ni press.
@@ -337,8 +337,10 @@
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color var(--dur-color) var(--ease-color),
-    color var(--dur-color) var(--ease-color);
+  /* La flecha anima las dos cosas, así que se parte: su fondo es
+     superficie, su color es texto. */
+  transition: background-color var(--dur-color) var(--ease-surface),
+    color var(--dur-color) var(--ease-text);
 }
 .back:hover {
   background: var(--a1);

@@ -452,39 +452,62 @@
      acá: no queda movimiento que reducir. El scroll suave del índice sí
      lo consulta, en app.tsx.
 
-     UNA SOLA CURVA, Y ES LA PALABRA `ease`. Los cuatro lectores hacen
-     el mismo trabajo, así que un solo token. Cuatro fuentes coinciden:
+     DOS CURVAS, PARTIDAS POR PROPIEDAD. El corte no es por componente
+     —"esto es una card, esto no"— sino por lo que se anima, que es lo
+     que se lee en el CSS de linear:
 
-       benji            CADA transición de su bundle usa `ease`. Ni una
-                        curva custom, en ninguna de sus dos hojas.
-                        Duraciones .14s, .15s y .2s.
+       background-color            →  --ease-surface
+       color, text-decoration-color →  --ease-text
+
+     Así la flecha de volver, que anima las dos cosas, se parte sola sin
+     que haya que decidir a qué familia pertenece.
+
+     LA SUPERFICIE VA EN EASE-OUT. Es lo que hacen las tres cards con
+     hover de linear, sin una excepción:
+       .Dc5tqa_customerCard   filter .16s  --ease-out-quad
+       .do0YxW_card           filter .2s   ease-out (palabra clave)
+       .rWdRxW_card           all   .15s   --ease-out-cubic
+     Y el valor es el que prescribe /review-animations en su catálogo,
+     línea 32: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, con el
+     comentario "strong ease-out for UI".
+
+     ESTO ES UNA DIVERGENCIA CONSCIENTE, y queda escrita. Linear usa
+     ease-out en sus cards pero NUNCA este valor: sus tres usan quad,
+     la palabra clave y cubic. Declara el quint entre sus 18 curvas de
+     Penner y lo usa UNA vez en todo el sitio. O sea que la familia sale
+     de linear medido y el número sale de la skill, y no coinciden. Si
+     mañana se prefiere lo que ellos ship-ean, quad es
+     cubic-bezier(.25,.46,.45,.94) y es su caballo de batalla con 60
+     usos.
+
+     EL TEXTO VA EN `ease`, la palabra clave. Cuatro fuentes coinciden:
+       benji            CADA transición de su bundle, sin una sola curva
+                        custom. Duraciones .14s, .15s y .2s.
        josh, a mano     .company-link  color 0.15s ease   ×18
                         .role-text     color 0.15s ease   × 3
-                        .filler        color 0.25s ease-out ×17
-       animations.dev   "¿es un hover o un cambio de color? → ease",
-                        con el ejemplo literal
-                        `transition: background-color 150ms ease`.
-       /animate         entrar o salir → ease-out; moverse en pantalla
-                        → ease-in-out; hover o color → ease.
+       linear           25 de sus 46 transiciones de color, el 54% — 21
+                        sin declarar curva (que en CSS es `ease`) más 4
+                        explícitas.
+       /review-animations, línea 23, y también /animate y
+                        /web-animation-design: "hover o cambio de color
+                        → ease".
 
-     ANTES ACÁ HABÍA DOS, Y LAS DOS ESTABAN MAL. --ease-fill se horneó
-     como "la curva de josh" y no lo era: las 21 apariciones de
-     cubic-bezier(.4,0,.2,1) en sus tres páginas salen TODAS de una
-     utilidad de Tailwind —transition-colors, -all, -transform,
-     -opacity— y ninguna de su CSS. Es el default del framework; él
-     nunca la escribió. Y --ease-out era un quint-out heredado de
-     Carousels, que es la curva de ENTRAR Y SALIR — cosa que en esta
-     página no pasa nunca.
+     ANTES ACÁ HUBO DOS CURVAS Y LAS DOS ESTABAN MAL, por accidente y no
+     por reparto. --ease-fill se horneó como "la curva de josh" y no lo
+     era: las 21 apariciones de cubic-bezier(.4,0,.2,1) en sus tres
+     páginas salen TODAS de una utilidad de Tailwind y ninguna de su
+     CSS. Y el viejo --ease-out era el quint heredado de Carousels
+     aplicado a las cuatro, incluidas las tres de texto.
 
-     El quint no se guarda "por si acaso": un token sin lector es
-     código muerto. El día que una pieza entre o salga se agrega con su
-     lector, y el valor está acá escrito: cubic-bezier(.23,1,.32,1).
-
-     Y LOS DOS TOKENS SE RENOMBRARON, por la regla 4 del sistema —el
-     nombre es el rol—. `fill` era el rol cuando el único lector era el
-     relleno de la card; hoy son cuatro y tres no rellenan nada. El rol
-     de verdad es cruzar un color. */
-  --ease-color: ease;
+     LO QUE SIGUE ABIERTO: nuestro hover es SIMÉTRICO, 150 y 150. La
+     card de linear entra en 0s y sale en .15s
+     (--speed-highlightFadeIn: 0s contra --speed-highlightFadeOut:
+     .15s); el press de benji entra en 20ms contra .2s de base; Apple
+     pide responder en pointer-down. /review-animations lo marca como
+     finding en su estándar 9: "symmetric timing on a press-and-release
+     is a finding". Está medido y sin decidir. */
+  --ease-surface: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-text: ease;
   --dur-color: 150ms;
 
   /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
@@ -872,7 +895,7 @@ a {
   text-decoration: underline;
   text-decoration-color: var(--link-underline);
   text-decoration-thickness: 1px;
-  transition: text-decoration-color var(--dur-color) var(--ease-color);
+  transition: text-decoration-color var(--dur-color) var(--ease-text);
 }
 a:hover {
   text-decoration-color: var(--link-underline-hover);
