@@ -41,15 +41,29 @@ type Filtro = (typeof FILTROS)[number]['valor']
    dos a 55px— y nosotros no. Sin ese padre, las dos filas quedan de
    hermanas.
 
-   Cuatro salidas, todas con lo que el sistema ya tiene y ninguna
-   agregando un tamaño, un color ni un peso nuevo. El detalle de cada
-   una está en vault.module.css:
+   SE FUE A BUSCAR CÓMO LO RESUELVEN ELLOS Y LA RESPUESTA FUE QUE NO LO
+   TIENEN. Medido en 7 páginas: benji nunca tiene más de UNA nav por
+   página, y josh tampoco. Ninguno de los dos usa tabs ni pills como
+   navegación —los 25 tabs y 21 pills que aparecen en /pasito son de un
+   demo embebido, no de su chrome—. Evitan el problema en vez de
+   resolverlo.
 
-     titulo   pone el padre que faltaba — la más fiel a las referencias
-     peso     el filtro activo sube al peso más alto
-     linea    una hairline convierte la barra en chrome
-     tenue    la barra retrocede en vez de que el filtro avance */
-const JERARQUIAS = ['titulo', 'peso', 'linea', 'tenue'] as const
+   EL ÚNICO QUE LO TIENE ES LINEAR, en /now, y su mecanismo es doble:
+
+     su nav es una BANDA      fixed, 73px de alto, backdrop blur(20px)
+                              y border-bottom de 1px. No es texto
+                              flotando: está separada físicamente
+     su título mide 48px      contra los 16 del filtro. TRES VECES
+     sus filtros son TEXTO    radio 0, sin fondo, sin padding — o sea
+                              que las pills no salen de él tampoco
+
+   Y ahí está la causa de fondo: las dos referencias que resuelven esto
+   lo hacen con un TAMAÑO, y nuestro sistema tiene uno solo. Por eso las
+   dos filas se parecen tanto.
+
+   Cuatro salidas. Las tres primeras no tocan la escala; la cuarta la
+   abre a propósito, porque es lo que ellos hacen de verdad: */
+const JERARQUIAS = ['banda', 'extremos', 'pills', 'titulo'] as const
 type Jerarquia = (typeof JERARQUIAS)[number]
 
 /* El primer cuadro y nada más. Un <video> con preload="metadata" no

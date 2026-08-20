@@ -38,6 +38,9 @@
    vista el contenido queda tapado justo abajo. */
 .marco {
   --privado-inline: 80px;
+  /* contexto de posicionamiento para la variante "extremos", donde el
+     filtro se ancla a la otra punta de la fila de la barra */
+  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -117,27 +120,27 @@
    dibujan componentes distintos. El detalle está en vault.module.css.
    Se van las dos cuando la opción esté elegida. */
 
-/* linea · una hairline debajo convierte la barra en chrome: lo de
-   arriba es la aplicación, lo de abajo es la página. Es el mismo
-   separador que el producto usa entre secciones. */
-:global(html[data-jerarquia='linea']) .barra {
-  padding-bottom: 16px;
+/* banda · el mecanismo de linear. Su nav es una banda fixed de 73px con
+   backdrop blur(20) y border-bottom de 1px — no es texto flotando sobre
+   la página. Acá se toma la ESTRUCTURA (banda de borde a borde con una
+   línea abajo) sin su alto ni su blur: los 73px suyos existen para
+   albergar un logo y siete links, y acá hay dos palabras.
+
+   Lo que separa es la banda entera, así que la línea va de borde a
+   borde y no sólo bajo el texto. */
+:global(html[data-jerarquia='banda']) .barra {
+  margin-bottom: 0;
+  padding-block: 0 20px;
   border-bottom: 1px solid var(--hairline);
-  /* La línea va de borde a borde y no sólo bajo las palabras: lo que
-     separa es la banda entera. */
   margin-inline: calc(var(--privado-inline) * -1);
   padding-inline: var(--privado-inline);
 }
 
-/* tenue · la barra retrocede. Pierde el escalón de contraste del activo
-   y se queda en el gris de nav, así deja de competir con el filtro sin
-   que el filtro tenga que gritar. */
-:global(html[data-jerarquia='tenue']) .solapa[data-activa] {
-  color: var(--type-nav-c);
-  font-weight: var(--type-h1-fw);
-}
-:global(html[data-jerarquia='tenue']) .solapa:not([data-activa]) {
-  color: color-mix(in srgb, #000 calc(var(--nav-alfa) / 2), transparent);
+/* extremos · el filtro se va a la otra punta de ESTA fila, así que la
+   barra tiene que dejar de reservar el aire de abajo: ya no hay una
+   segunda fila que separar. */
+:global(html[data-jerarquia='extremos']) .barra {
+  margin-bottom: 0;
 }
 
 /* EL ESTADO VACÍO. Va en el gris secundario y no en tinta: la regla del

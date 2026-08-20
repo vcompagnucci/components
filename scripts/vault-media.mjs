@@ -82,6 +82,48 @@ const HONDO = 4
 
 const oculto = (nombre) => nombre.startsWith('.')
 
+/* ═══════════ LAS FICHAS ═══════════
+   Lo que escribís vos sobre un clip: qué es, de dónde salió, en qué
+   dispositivo. Va en UN SOLO archivo en la raíz del vault, y no en un
+   sidecar por clip, por dos razones:
+
+     1. si el vault es tu Obsidian, un .json al lado de cada video te
+        duplica la carpeta y te aparece en las búsquedas
+     2. empieza con punto, así que ya está afuera de todo lo que se
+        sirve — la misma guarda que cierra .obsidian y .trash
+
+   La clave es la ruta relativa del clip. Si movés un archivo de
+   carpeta, su ficha queda huérfana: es el costo de no meter metadatos
+   adentro del archivo, y se prefiere a tocar tus originales. */
+const FICHAS = '.lima-vault.json'
+
+const FICHA_CAMPOS = ['notes', 'source', 'device']
+const LARGO_MAX = 4000
+
+function leerFichas(raiz) {
+  try {
+    const t = fs.readFileSync(path.join(raiz, FICHAS), 'utf8')
+    const d = JSON.parse(t)
+    return d && typeof d === 'object' ? d : {}
+  } catch {
+    /* No existe todavía, o alguien lo dejó roto a mano. En los dos
+       casos se arranca de cero en vez de tumbar el índice entero. */
+    return {}
+  }
+}
+
+/* Escritura ATÓMICA: a un temporal y después rename. Un write directo
+   que se corta a la mitad —se cierra el servidor, se queda sin disco—
+   deja el archivo truncado y te comés todas las fichas. rename es
+   atómico en el mismo sistema de archivos, así que o está la versión
+   vieja entera o la nueva entera. */
+function escribirFichas(raiz, datos) {
+  const destino = path.join(raiz, FICHAS)
+  const temp = destino + '.tmp'
+  fs.writeFileSync(temp, JSON.stringify(datos, null, 2) + '\n')
+  fs.renameSync(temp, destino)
+}
+
 /* LA GUARDA, escrita UNA vez. Devuelve la ruta real si cae adentro del
    vault, y null si no.
 
@@ -235,6 +277,61 @@ export function vaultMedia(dirCrudo) {
       else log.warn(`  vault    sin conectar — ${motivo}`, { timestamp: false })
 
       server.middlewares.use('/vault-media', (req, res, next) => {
+        /* ─── ESCRIBIR UNA FICHA ───
+           El único camino de escritura de todo el puente, y está
+           acotado a más no poder: un solo destino posible —el archivo
+           de fichas en la raíz— y una sola forma de clave, la ruta de
+           un clip QUE YA EXISTE en el índice.
+
+           Esa validación es la guarda: no se resuelve ninguna ruta con
+           lo que llega del cliente, así que no hay traversal posible
+           por construcción, no porque haya un filtro que lo atrape. */
+        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__ficha') {
+          if (!raiz) return json(res, 409, { error: motivo })
+          let cuerpo = ''
+          req.setEncoding('utf8')
+          req.on('data', (c) => {
+            cuerpo += c
+            /* Un cuerpo desmedido se corta acá y no cuando ya está en
+               memoria. */
+            if (cuerpo.length > 64 * 1024) req.destroy()
+          })
+          req.on('end', () => {
+            let d
+            try {
+              d = JSON.parse(cuerpo)
+            } catch {
+              return json(res, 400, { error: 'json inválido' })
+            }
+            const ruta = typeof d?.ruta === 'string' ? d.ruta : ''
+            const existe = recorrer(raiz).some((c) => c.ruta === ruta)
+            if (!existe) return json(res, 404, { error: 'ese clip no está en el vault' })
+
+            /* Sólo los campos conocidos, recortados. Lo que venga de más
+               se descarta en vez de guardarse. */
+            const limpia = {}
+            for (const k of FICHA_CAMPOS) {
+              const v = d?.ficha?.[k]
+              if (typeof v === 'string' && v.trim()) limpia[k] = v.slice(0, LARGO_MAX)
+            }
+
+            const todas = leerFichas(raiz)
+            /* Una ficha vacía se BORRA en vez de quedar como un objeto
+               sin nada: si vaciás los campos, el archivo queda como si
+               nunca la hubieras escrito. */
+            if (Object.keys(limpia).length) todas[ruta] = limpia
+            else delete todas[ruta]
+
+            try {
+              escribirFichas(raiz, todas)
+            } catch (e) {
+              return json(res, 500, { error: String(e?.message ?? e) })
+            }
+            return json(res, 200, { ok: true, ficha: todas[ruta] ?? null })
+          })
+          return
+        }
+
         if (req.method !== 'GET' && req.method !== 'HEAD') return next()
 
         let pedido
@@ -247,7 +344,9 @@ export function vaultMedia(dirCrudo) {
         /* El índice: qué hay en el vault, y si el vault existe. */
         if (pedido === '/__indice') {
           if (!raiz) return json(res, 200, { conectado: false, motivo, clips: [] })
-          return json(res, 200, { conectado: true, carpeta: raiz, clips: recorrer(raiz) })
+          const fichas = leerFichas(raiz)
+          const clips = recorrer(raiz).map((c) => ({ ...c, ficha: fichas[c.ruta] ?? null }))
+          return json(res, 200, { conectado: true, carpeta: raiz, clips })
         }
 
         if (!raiz) return json(res, 404, { error: motivo })

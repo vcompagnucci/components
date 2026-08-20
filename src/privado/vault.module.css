@@ -121,51 +121,107 @@
    una pared de referencias el total no es un dato que se consulte, y
    ocupaba la esquina más visible de la página para decirlo. */
 
-/* ─── LAS CUATRO SALIDAS ───
-   Todas usan lo que el sistema ya tiene. Ninguna agrega un tamaño, un
-   color ni un peso nuevo. */
+/* ═══════════ LAS CUATRO SALIDAS ═══════════
+   Lo medido: benji y josh NO tienen este caso —una sola nav por página,
+   cero tabs, cero pills como navegación, en 7 páginas—. El único que lo
+   tiene es linear en /now, y lo resuelve con DOS cosas a la vez: su nav
+   es una banda física (fixed, 73px, blur 20, border-bottom 1px) y su
+   título mide 48 contra los 16 del filtro.
 
-/* 1 · titulo — el título de página que tienen LAS DOS referencias y
-   nosotros no. Es la más fiel: no arregla el síntoma, pone el padre que
-   faltaba. Quedan tres niveles y cada uno se lee por lo que es —chrome,
-   página, control—. */
-:global(html[data-jerarquia='titulo']) .encabezado {
-  margin-top: var(--section-content-gap);
-}
+   Las tres primeras opciones no tocan la escala tipográfica. La cuarta
+   sí, y es la única honesta con lo que ellos hacen de verdad. */
 
-/* 2 · peso — sin título. El filtro activo sube al peso más alto del
-   sistema y la barra se queda en el más liviano. La jerarquía la hace
-   el peso, que es la regla que ya gobierna toda la tipografía acá. */
-:global(html[data-jerarquia='peso']) .encabezado {
+/* 1 · banda — el mecanismo de linear, sin su tamaño.
+   La barra deja de ser texto flotando y pasa a ser una banda de borde a
+   borde con una línea abajo. Lo de arriba es la aplicación, lo de abajo
+   es la página, y la separación es FÍSICA en vez de tipográfica — que
+   es justamente lo que nuestro sistema de un solo tamaño no puede
+   hacer. */
+:global(html[data-jerarquia='banda']) .encabezado {
   display: none;
 }
-:global(html[data-jerarquia='peso']) .filtros {
+:global(html[data-jerarquia='banda']) .filtros {
   margin-top: var(--section-content-gap);
 }
-:global(html[data-jerarquia='peso']) .filtro[data-activo] {
-  font-weight: var(--type-h2-fw);
+
+/* 2 · extremos — los dos en la MISMA fila, uno en cada punta.
+   Deja de haber dos filas parecidas porque deja de haber dos filas. La
+   posición hace todo el trabajo: a la izquierda dónde estás, a la
+   derecha qué estás filtrando. Linear tiene esta gramática —sus filtros
+   a la izquierda y el buscador a la derecha, en una sola fila— aunque
+   no la use para este par. */
+:global(html[data-jerarquia='extremos']) .encabezado {
+  display: none;
+}
+:global(html[data-jerarquia='extremos']) .filtros {
+  position: absolute;
+  top: var(--page-padding-top);
+  right: var(--privado-inline);
+  margin: 0;
+  /* Alineado a la línea base de la barra: la barra son 13/16 y el
+     filtro 14/20, así que centrarlos por caja los dejaría apoyados en
+     dos alturas distintas. */
+  height: var(--type-nav-lh);
+  align-items: baseline;
+}
+
+/* 3 · pills — el filtro deja de ser texto y pasa a ser objetos.
+   Una fila es palabras y la otra son cosas que se aprietan, así que no
+   se confunden ni de lejos.
+
+   SE DICE CLARO: esto NO sale de ninguna referencia. Los filtros de
+   linear tienen radio 0, sin fondo y sin padding, y las únicas pills de
+   josh son botones de icono de 32×32 adentro de un demo. Es nuestro, y
+   es el precio de que no haya nada que copiar acá.
+
+   El radio y la altura son los del control chico que ya está medido en
+   el reproductor —el de benji, 20 de alto y radio 38— así que al menos
+   el objeto no es nuevo. */
+:global(html[data-jerarquia='pills']) .encabezado {
+  display: none;
+}
+:global(html[data-jerarquia='pills']) .filtros {
+  margin-top: var(--section-content-gap);
+  gap: 4px;
+}
+:global(html[data-jerarquia='pills']) .filtro {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 38px;
+  transition:
+    color var(--dur-text) var(--ease-text),
+    background-color var(--dur-surface) var(--ease-surface);
+}
+:global(html[data-jerarquia='pills']) .filtro:hover {
+  background: var(--surface);
+}
+:global(html[data-jerarquia='pills']) .filtro[data-activo] {
+  background: var(--surface-hover);
   color: var(--ink);
 }
-
-/* 3 · linea — sin título. Una hairline debajo de la barra la convierte
-   en chrome: lo de arriba es la aplicación, lo de abajo es la página.
-   Es el mismo separador que usa el producto entre secciones. */
-:global(html[data-jerarquia='linea']) .encabezado {
-  display: none;
-}
-:global(html[data-jerarquia='linea']) .filtros {
-  margin-top: var(--section-content-gap);
+/* Sin margen a la izquierda del primero: el padding de la pill mete el
+   texto 12px adentro y la columna se rompería contra la grilla. */
+:global(html[data-jerarquia='pills']) .filtros {
+  margin-left: -12px;
 }
 
-/* 4 · tenue — sin título. La barra RETROCEDE en vez de que el filtro
-   avance: pierde peso y contraste hasta leerse como lo que es, chrome
-   que casi nunca tocás. El filtro se queda igual y gana por
-   diferencia. */
-:global(html[data-jerarquia='tenue']) .encabezado {
-  display: none;
-}
-:global(html[data-jerarquia='tenue']) .filtros {
+/* 4 · titulo — el mecanismo de verdad, y ABRE LA ESCALA.
+   Las dos referencias resuelven esto con un tamaño grande: linear 48
+   contra 16 de filtro, figma 55. Acá el número sale de su RAZÓN y no de
+   copiar su píxel: 48/16 = 3, y nuestro cuerpo es 14, así que 42.
+
+   Esto es lo único de las cuatro que agrega algo al sistema, y es una
+   decisión aparte —la tarea de tipografía que quedó abierta hace
+   tiempo—. Va acá para poder verla al lado de las otras tres, no para
+   colarla. */
+:global(html[data-jerarquia='titulo']) .encabezado {
   margin-top: var(--section-content-gap);
+  font-size: 42px;
+  line-height: 48px;
+  /* El tracking se cierra cuando el texto crece: es lo que hace linear
+     —−1.056 sobre 48, o sea −0.022em— y acá se toma su proporción. */
+  letter-spacing: -0.022em;
+  font-weight: var(--type-h1-fw);
 }
 
 /* ─── LA GRILLA ───
