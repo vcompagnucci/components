@@ -1,0 +1,50 @@
+.page {
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--canvas);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas {
+  z-index: 1;
+  display: block;
+  pointer-events: none;
+}
+
+.hit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hit[data-dragging] {
+  cursor: grabbing;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

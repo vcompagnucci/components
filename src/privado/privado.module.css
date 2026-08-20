@@ -23,9 +23,36 @@
    Abajo de 768 cae a --page-padding-inline: con la grilla en una
    columna, 80 de margen a cada lado se come la pantalla.
    ═══════════════════════════════════════════════════════════════ */
+/* EL MARCO MIDE LA VENTANA. Es lo que hace posible que el detalle de un
+   clip entre SIEMPRE entero: es el primer eslabón de una cadena de flex
+   —marco → detalle → escenario → reproductor → video— donde cada uno
+   pasa hacia abajo el alto que le queda, y el video se acomoda a lo que
+   sobra en vez de desbordar.
+
+   Sin esto el clip se dibujaba a su tamaño natural y una grabación de
+   teléfono se cortaba abajo: había que scrollear para ver el final de
+   un gesto, que es lo contrario de estudiarlo.
+
+   dvh y no vh: en un navegador con barras que aparecen y desaparecen,
+   vh mide la ventana MÁS GRANDE posible, así que con las barras a la
+   vista el contenido queda tapado justo abajo. */
 .marco {
   --privado-inline: 80px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   padding-block: var(--page-padding-top) var(--page-padding-bottom);
+}
+/* Y con un clip abierto se CLAVA. `min-height` no acota nada —es un
+   piso, no un techo— así que con sólo eso el escenario crecía con el
+   clip y un `max-height: 100%` adentro no tenía contra qué resolver: la
+   foto vertical terminaba en 2158px de una ventana de 1040.
+
+   La grilla NO lleva esto, porque tiene que poder crecer y scrollear. */
+.marco[data-detalle] {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
 }
 @media (max-width: 768px) {
   .marco {
@@ -82,6 +109,35 @@
    razonamiento que deja la card y la flecha de volver sin gatear. */
 .solapa:hover {
   color: var(--activo-c);
+}
+
+/* ─── ANDAMIO · LAS VARIANTES DE JERARQUÍA ───
+   Dos de las cuatro tocan ESTA barra y no el filtro, y por eso el
+   atributo vive en <html>: las dos filas que hay que separar las
+   dibujan componentes distintos. El detalle está en vault.module.css.
+   Se van las dos cuando la opción esté elegida. */
+
+/* linea · una hairline debajo convierte la barra en chrome: lo de
+   arriba es la aplicación, lo de abajo es la página. Es el mismo
+   separador que el producto usa entre secciones. */
+:global(html[data-jerarquia='linea']) .barra {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hairline);
+  /* La línea va de borde a borde y no sólo bajo las palabras: lo que
+     separa es la banda entera. */
+  margin-inline: calc(var(--privado-inline) * -1);
+  padding-inline: var(--privado-inline);
+}
+
+/* tenue · la barra retrocede. Pierde el escalón de contraste del activo
+   y se queda en el gris de nav, así deja de competir con el filtro sin
+   que el filtro tenga que gritar. */
+:global(html[data-jerarquia='tenue']) .solapa[data-activa] {
+  color: var(--type-nav-c);
+  font-weight: var(--type-h1-fw);
+}
+:global(html[data-jerarquia='tenue']) .solapa:not([data-activa]) {
+  color: color-mix(in srgb, #000 calc(var(--nav-alfa) / 2), transparent);
 }
 
 /* EL ESTADO VACÍO. Va en el gris secundario y no en tinta: la regla del

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import css from './privado.module.css'
 import { clicDeLink } from '../parts'
 import type { Privada } from '../app'
@@ -36,17 +37,55 @@ import { Playground } from './playground'
 export default function Privado({
   vistas,
   actual,
+  resto,
   ir,
 }: {
   vistas: Privada[]
   actual: string
+  resto: string
   ir: (ruta: string) => void
 }) {
+  /* ⌘Z DESHACE LA ÚLTIMA NAVEGACIÓN.
+
+     Es lo mismo que el gesto de atrás del trackpad, pero con el teclado
+     — y en un lugar donde vas a estar con las dos manos en él, saltando
+     de cuadro en cuadro con las flechas. Sacar la mano para hacer un
+     gesto de dos dedos rompe eso.
+
+     Hoy lo único que hay para deshacer es haber navegado. Cuando el
+     playground tenga acciones de verdad —mover un frame, cambiar un
+     valor— ⌘Z va a tener que deshacer ESO y no la navegación, y esta
+     regla se vuelve el último eslabón de la pila y no el único.
+     Anotado acá para que ese día no se descubra de casualidad.
+
+     ⇧⌘Z queda libre a propósito: es rehacer, y no hay nada que rehacer
+     todavía. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return
+      if (e.shiftKey) return
+      const t = e.target as HTMLElement | null
+      /* En un campo de texto ⌘Z es deshacer LO QUE ESCRIBISTE, y eso lo
+         hace el navegador mejor que nosotros. */
+      if (t instanceof HTMLElement && (t.closest('input, textarea') || t.isContentEditable)) return
+      e.preventDefault()
+      history.back()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
+  /* Con un clip abierto el marco tiene que CLAVARSE a la ventana, no
+     sólo llenarla como mínimo: es lo que le da un techo del cual colgar
+     a la cadena de flex que hace entrar el clip. La grilla no lo lleva
+     porque tiene que poder crecer y scrollear. */
+  const enDetalle = actual === '/vault' && resto !== ''
+
   return (
-    <div className={css.marco}>
+    <div className={css.marco} data-detalle={enDetalle ? '' : undefined}>
       {/* Las solapas son links de verdad, con el mismo interceptor que la
           pieza de la lista: cmd-click abre pestaña nueva. */}
-      <nav className={css.barra} aria-label="Privado">
+      <nav className={css.barra} aria-label="Private">
         {vistas.map((v) => (
           <a
             className={css.solapa}
@@ -60,7 +99,7 @@ export default function Privado({
           </a>
         ))}
       </nav>
-      {actual === '/vault' ? <Vault /> : <Playground />}
+      {actual === '/vault' ? <Vault abierto={resto} ir={ir} /> : <Playground />}
     </div>
   )
 }

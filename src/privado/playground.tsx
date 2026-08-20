@@ -9,5 +9,5 @@ import css from './privado.module.css'
    ésta de acá es la lista de todas. Por eso el vacío dice "vistas" y no
    "canvas": lo que falta es la primera, no el lugar. */
 export function Playground() {
-  return <p className={css.vacio}>Sin vistas.</p>
+  return <p className={css.vacio}>No views yet.</p>
 }

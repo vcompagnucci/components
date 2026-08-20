@@ -57,16 +57,34 @@
   padding-inline: var(--privado-inline);
 }
 
+/* ═══════════ LA CABECERA ═══════════
+   EL PROBLEMA, dicho: la barra de vistas ("Vault · Playground") y el
+   filtro ("All · Native · Web") se leen como lo mismo dos veces. Los
+   dos son texto suelto, del mismo peso, con el mismo par gris → activo,
+   y a 13 contra 14 la diferencia de tamaño no se ve.
+
+   Y LA CAUSA ES ESTRUCTURAL, no de estilo: en las dos referencias hay
+   un TÍTULO DE PÁGINA entre las dos filas —linear pone "Now" y figma
+   "Articles", los dos a 55px— y acá no había ninguno. Sin ese padre,
+   las dos filas son hermanas y ninguna manda.
+
+   Las cuatro salidas están abajo, en los bloques [data-jerarquia]. Se
+   elige mirando; el andamio se va cuando esté decidido. */
+.encabezado {
+  margin: 0;
+  font-size: var(--type-h2-fs);
+  font-weight: var(--type-h2-fw); /* 600, lo más pesado del sistema */
+  letter-spacing: var(--type-h2-ls);
+  line-height: var(--type-h2-lh);
+  color: var(--type-h2-c);
+}
+
 /* ─── EL FILTRO ───
    Texto pelado, sin píldoras ni cajas: es lo que hacen las dos
    referencias (linear "All · Changelog · Product launches…", figma
    "All · Product · Company…"). El activo se pinta y el resto queda en
    gris, que es exactamente el par --type-nav-c → --activo-c que ya
-   gobierna el índice de la página.
-
-   Va a 14px y no a los 13 de la barra de arriba: la barra es el chrome
-   del área privada y esto es el control de ESTA página. Un escalón de
-   presencia sin agregar un tamaño nuevo al sistema. */
+   gobierna el índice de la página. */
 .filtros {
   display: flex;
   gap: 16px;
@@ -99,15 +117,55 @@
 .filtro:hover {
   color: var(--activo-c);
 }
-/* La cuenta, en la misma línea. No es decoración: con el filtro puesto
-   es la única forma de saber cuántos quedaron afuera. */
-.cuenta {
-  margin-left: auto;
-  font-size: var(--type-meta-fs);
-  font-weight: var(--type-meta-fw);
-  letter-spacing: var(--type-meta-ls);
-  line-height: var(--type-meta-lh);
-  color: var(--type-meta-c);
+/* Hubo acá una cuenta ("16 de 16") alineada a la derecha y se fue: en
+   una pared de referencias el total no es un dato que se consulte, y
+   ocupaba la esquina más visible de la página para decirlo. */
+
+/* ─── LAS CUATRO SALIDAS ───
+   Todas usan lo que el sistema ya tiene. Ninguna agrega un tamaño, un
+   color ni un peso nuevo. */
+
+/* 1 · titulo — el título de página que tienen LAS DOS referencias y
+   nosotros no. Es la más fiel: no arregla el síntoma, pone el padre que
+   faltaba. Quedan tres niveles y cada uno se lee por lo que es —chrome,
+   página, control—. */
+:global(html[data-jerarquia='titulo']) .encabezado {
+  margin-top: var(--section-content-gap);
+}
+
+/* 2 · peso — sin título. El filtro activo sube al peso más alto del
+   sistema y la barra se queda en el más liviano. La jerarquía la hace
+   el peso, que es la regla que ya gobierna toda la tipografía acá. */
+:global(html[data-jerarquia='peso']) .encabezado {
+  display: none;
+}
+:global(html[data-jerarquia='peso']) .filtros {
+  margin-top: var(--section-content-gap);
+}
+:global(html[data-jerarquia='peso']) .filtro[data-activo] {
+  font-weight: var(--type-h2-fw);
+  color: var(--ink);
+}
+
+/* 3 · linea — sin título. Una hairline debajo de la barra la convierte
+   en chrome: lo de arriba es la aplicación, lo de abajo es la página.
+   Es el mismo separador que usa el producto entre secciones. */
+:global(html[data-jerarquia='linea']) .encabezado {
+  display: none;
+}
+:global(html[data-jerarquia='linea']) .filtros {
+  margin-top: var(--section-content-gap);
+}
+
+/* 4 · tenue — sin título. La barra RETROCEDE en vez de que el filtro
+   avance: pierde peso y contraste hasta leerse como lo que es, chrome
+   que casi nunca tocás. El filtro se queda igual y gana por
+   diferencia. */
+:global(html[data-jerarquia='tenue']) .encabezado {
+  display: none;
+}
+:global(html[data-jerarquia='tenue']) .filtros {
+  margin-top: var(--section-content-gap);
 }
 
 /* ─── LA GRILLA ───
@@ -285,11 +343,33 @@
    es el mismo par lista/detalle que la página ya tiene resuelto, y por
    eso reusa el mismo componente de la flecha.
 
-   El clip se topa en 72vh de alto. Sin eso una grabación de teléfono a
-   ancho completo mide más de tres pantallas y para verla entera hay que
-   scrollear, que es lo contrario de estudiar un gesto. */
+   DOS COSAS QUE ANTES ESTABAN MAL:
+
+   1 · SE ABRÍA PEGADO A LA IZQUIERDA. El clip arrancaba en el margen y
+       dejaba media pantalla vacía a la derecha. Ahora el escenario
+       centra en los dos ejes: el clip es lo único que hay para mirar,
+       así que va en el medio.
+
+   2 · SE CORTABA. Había un tope de 72vh, pero SÓLO sobre <video>, así
+       que una foto vertical se dibujaba a su tamaño natural y se iba
+       abajo de la ventana. Y aun con el tope, 72vh es un número
+       inventado que no sabe cuánto ocupan la barra, la flecha y el
+       título de arriba.
+
+       La solución no es otro número: es que el alto BAJE por la
+       estructura. El marco mide la ventana, el detalle toma lo que
+       queda, el escenario toma lo que queda de eso, y el clip se acomoda
+       adentro. Si mañana la cabecera crece, el clip se achica solo. */
 .detalle {
+  /* Toma todo el alto que le deja el marco. */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding-inline: var(--privado-inline);
+}
+.detalleCabeza {
+  flex: none;
 }
 .detalleTitulo {
   margin: 0 0 24px;
@@ -299,14 +379,25 @@
   line-height: var(--type-h1-lh);
   color: var(--type-h1-c);
 }
+/* min-height:0 es LA pieza que hace que esto funcione. Por defecto un
+   ítem de flex no se encoge por debajo de su contenido, así que sin
+   esto el escenario crecería con el clip y el desbordamiento volvería
+   exactamente igual. */
 .escenario {
-  max-width: 900px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.escenario video {
-  max-height: 72vh;
-  /* object-fit sin caja fija: el video mide lo suyo hasta topar. */
-  width: 100%;
-  object-fit: contain;
+/* La foto: entra entera y centrada, sin caja fija. */
+.foto {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: var(--card-radio);
 }
 
 /* ─── ESTADOS ───

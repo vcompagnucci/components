@@ -38,7 +38,7 @@ export type ClipCrudo = {
   cuadroVariable: boolean | null
 }
 
-export type Fuente = 'nativo' | 'web'
+export type Fuente = 'native' | 'web'
 
 /* Lo que usa la interfaz. */
 export type Clip = ClipCrudo & {
@@ -63,14 +63,24 @@ const aFrase = (s: string) => {
   return limpio ? limpio[0].toUpperCase() + limpio.slice(1) : s
 }
 
-/* La carpeta clasifica. El primer nivel y nada más: "nativo/2026/x.mp4"
-   sigue siendo nativo. Lo que no cae en ninguna de las dos queda sin
-   clasificar en vez de inventarle una — así se ve que hay un clip
-   suelto en la raíz y se puede acomodar. */
-const fuenteDe = (carpeta: string): Fuente | null => {
-  const primera = carpeta.split('/')[0].toLowerCase()
-  return primera === 'nativo' || primera === 'web' ? primera : null
+/* La carpeta clasifica. El primer nivel y nada más: "native/2026/x.mp4"
+   sigue siendo native. Lo que no cae en ninguna queda sin clasificar en
+   vez de inventarle una — así se ve que hay un clip suelto en la raíz y
+   se puede acomodar.
+
+   Se aceptan LAS DOS ORTOGRAFÍAS, "native" y "nativo". La interfaz está
+   en inglés, pero la carpeta la nombrás vos en tu disco —y si el vault
+   es tu Obsidian, puede llamarse como ya se llamaba—. Que la app te
+   obligue a renombrar una carpeta tuya para poder leerla sería el
+   sentido equivocado de la dependencia. */
+const CARPETAS: Record<string, Fuente> = {
+  native: 'native',
+  nativo: 'native',
+  web: 'web',
 }
+
+const fuenteDe = (carpeta: string): Fuente | null =>
+  CARPETAS[carpeta.split('/')[0].toLowerCase()] ?? null
 
 export function useClips(): Estado {
   const [estado, setEstado] = useState<Estado>({ cargando: true })

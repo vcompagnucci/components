@@ -20,7 +20,9 @@ import { Picker, Pila } from './picker'
    era garantizar que se separaran.
    ───────────────────────────────────────────────────────────── */
 
-const TEMAS = ['sistema', 'claro', 'oscuro'] as const
+/* En inglés, como todo lo que se lee en pantalla. `system` devuelve el
+   control al sistema operativo. */
+const TEMAS = ['system', 'light', 'dark'] as const
 type Tema = (typeof TEMAS)[number]
 
 const GUARDADO = 'lab-tema'
@@ -54,7 +56,7 @@ function rama(oscura: boolean): Record<string, string> {
 }
 
 export function Lab() {
-  const [tema, setTema] = useState<Tema>('sistema')
+  const [tema, setTema] = useState<Tema>('system')
 
   useEffect(() => {
     const crudo = sessionStorage.getItem(GUARDADO)
@@ -67,10 +69,10 @@ export function Lab() {
 
   useEffect(() => {
     const el = document.documentElement
-    if (tema === 'sistema') return
-    const tokens = rama(tema === 'oscuro')
+    if (tema === 'system') return
+    const tokens = rama(tema === 'dark')
     for (const [k, v] of Object.entries(tokens)) el.style.setProperty(k, v)
-    el.style.colorScheme = tema === 'oscuro' ? 'dark' : 'light'
+    el.style.colorScheme = tema
     return () => {
       for (const k of Object.keys(tokens)) el.style.removeProperty(k)
       el.style.removeProperty('color-scheme')
@@ -79,7 +81,7 @@ export function Lab() {
 
   return (
     <Pila>
-      <Picker etiqueta="tema" opciones={TEMAS} valor={tema} onCambio={setTema} />
+      <Picker etiqueta="theme" opciones={TEMAS} valor={tema} onCambio={setTema} />
     </Pila>
   )
 }

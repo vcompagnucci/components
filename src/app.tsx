@@ -35,6 +35,21 @@ const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
    404, sin ninguna regla especial. */
 export type Privada = { ruta: string; nombre: string }
 
+/* Lo que viene DESPUÉS de la ruta privada: /vault/nativo/sheet.mov deja
+   "nativo/sheet.mov". Existe porque el detalle de un clip tiene que
+   vivir en el HISTORIAL y no en un estado local.
+
+   Vivía en un useState, y eso producía un bug que se sentía como un
+   error del navegador: abrías un clip, hacías el gesto de atrás en el
+   trackpad, y en vez de cerrar el clip te sacaba del vault entero —
+   aterrizabas en /playground, porque era la entrada anterior de
+   verdad. El detalle no estaba en la pila, así que no había nada que
+   deshacer.
+
+   De paso cada clip queda linkeable, que es lo que querés cuando le
+   pasás una referencia a un agente. */
+export type Vista2 = { privada: Privada; resto: string }
+
 const PRIVADAS: Privada[] = import.meta.env.DEV
   ? [
       { ruta: '/vault', nombre: 'Vault' },
@@ -71,7 +86,7 @@ const Privado = import.meta.env.DEV ? lazy(() => import('./privado/privado')) : 
 type Vista =
   | { tipo: 'lista' }
   | { tipo: 'pieza'; piece: Piece }
-  | { tipo: 'privado'; privada: Privada }
+  | { tipo: 'privado'; privada: Privada; resto: string }
   | { tipo: 'nada' }
 
 const desdeUrl = (): Vista => {
@@ -87,9 +102,15 @@ const desdeUrl = (): Vista => {
   }
   if (ruta === '' || ruta === '/') return { tipo: 'lista' }
   /* En producción PRIVADAS está vacío, así que este find nunca acierta y
-     /vault cae en 'nada' como cualquier URL inventada. */
-  const privada = PRIVADAS.find((p) => p.ruta === ruta)
-  if (privada) return { tipo: 'privado', privada }
+     /vault cae en 'nada' como cualquier URL inventada.
+
+     Matchea la ruta exacta Y sus subrutas: /vault y /vault/lo/que/sea.
+     El separador en el startsWith importa — sin él "/vaultimpostor"
+     también entraría. */
+  const privada = PRIVADAS.find((p) => ruta === p.ruta || ruta.startsWith(p.ruta + '/'))
+  if (privada) {
+    return { tipo: 'privado', privada, resto: ruta.slice(privada.ruta.length + 1) }
+  }
   const encontrada = PIECES.find((p) => slug(p.name) === ruta.slice(1))
   return encontrada ? { tipo: 'pieza', piece: encontrada } : { tipo: 'nada' }
 }
@@ -309,7 +330,7 @@ export function App() {
          fetch del servidor local, y cualquier cosa que se dibuje sería un
          parpadeo de un cuadro. */
       <Suspense fallback={null}>
-        <Privado vistas={PRIVADAS} actual={vista.privada.ruta} ir={ir} />
+        <Privado vistas={PRIVADAS} actual={vista.privada.ruta} resto={vista.resto} ir={ir} />
         {/* El toggle de tema también acá: el área privada usa los mismos
             tokens, así que hay que poder mirarla en oscuro. Vive abajo;
             las opciones de cada vista van arriba, para no pisarse. */}

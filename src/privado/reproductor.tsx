@@ -188,7 +188,7 @@ export function Reproductor({ clip }: { clip: Clip }) {
         <button
           className={css.play}
           onClick={alternar}
-          aria-label={corriendo ? 'Pausar' : 'Reproducir'}
+          aria-label={corriendo ? 'Pause' : 'Play'}
         >
           <Glifo pausa={corriendo} />
         </button>
@@ -206,7 +206,7 @@ export function Reproductor({ clip }: { clip: Clip }) {
             e.currentTarget.releasePointerCapture(e.pointerId)
           }}
           role="slider"
-          aria-label="Tiempo"
+          aria-label="Time"
           aria-valuemin={0}
           aria-valuemax={Math.round(dur * 1000)}
           aria-valuenow={Math.round(t * 1000)}
@@ -237,7 +237,7 @@ export function Reproductor({ clip }: { clip: Clip }) {
         <button
           className={css.velocidad}
           onClick={() => setVel((v) => (v === 1 ? 0.5 : 1))}
-          aria-label={`Velocidad ${vel}x`}
+          aria-label={`Speed ${vel}x`}
         >
           {VELOCIDADES.map((v) => (
             <span key={v} data-activo={v === vel ? '' : undefined}>

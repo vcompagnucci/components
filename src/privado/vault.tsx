@@ -1,28 +1,56 @@
 import { useEffect, useState } from 'react'
 import css from './vault.module.css'
 import { Volver, clicDeLink } from '../parts'
+import { Picker, Pila } from '../proto/picker'
 import { Reproductor } from './reproductor'
 import { useClips, type Clip, type Fuente } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
    EL VAULT — la pared de referencias.
 
-   La card es la de benji en family-values, medida y horneada: caja con
-   padding, el clip centrado adentro, el teléfono topado a 228. El
+   La card es la de benji en family-values, medida y horneada. El
    porqué de cada número está en vault.module.css y lo medido en
    .context/recon/vault/GRILLA.md.
 
-   Debajo de la card va SÓLO EL NOMBRE. Ni fecha ni categoría, aunque
-   las dos referencias las llevan: acá la categoría ya la dice el filtro
-   y la fecha no distingue nada, porque todos los clips entran el día
-   que los arrastrás. La fecha sigue ordenando la grilla; lo que se fue
-   es mostrarla.
-
-   Ya no hay toggle: la forma y la altura están decididas.
+   EL CLIP ABIERTO VIVE EN LA URL, no en un useState. Estaba en estado
+   local y eso producía un bug que se sentía como un error del
+   navegador: abrías un clip, hacías el gesto de atrás en el trackpad, y
+   en vez de cerrarlo te sacaba del vault entero. Ahora /vault/<ruta> es
+   una entrada de historial de verdad, así que atrás cierra el clip —
+   y de paso cada referencia queda linkeable.
    ═══════════════════════════════════════════════════════════════ */
 
-const FILTROS = ['todo', 'nativo', 'web'] as const
-type Filtro = (typeof FILTROS)[number]
+/* El valor es DATO —"native" y "web" son las carpetas del vault— y la
+   etiqueta es lo que se lee. Separados porque no tienen por qué
+   coincidir, y de hecho no coinciden: el filtro "all" no es una
+   carpeta. */
+const FILTROS = [
+  { valor: 'all', etiqueta: 'All' },
+  { valor: 'native', etiqueta: 'Native' },
+  { valor: 'web', etiqueta: 'Web' },
+] as const
+type Filtro = (typeof FILTROS)[number]['valor']
+
+/* ─── LA JERARQUÍA DE LA CABECERA ───
+   Hoy la barra de vistas y el filtro se leen como lo mismo dos veces:
+   los dos son texto suelto, del mismo peso, con el mismo par
+   gris → activo, y a 13 contra 14 la diferencia de tamaño no se ve.
+
+   Y la causa es estructural: en las dos referencias hay un TÍTULO DE
+   PÁGINA entre las dos filas —linear pone "Now" y figma "Articles", los
+   dos a 55px— y nosotros no. Sin ese padre, las dos filas quedan de
+   hermanas.
+
+   Cuatro salidas, todas con lo que el sistema ya tiene y ninguna
+   agregando un tamaño, un color ni un peso nuevo. El detalle de cada
+   una está en vault.module.css:
+
+     titulo   pone el padre que faltaba — la más fiel a las referencias
+     peso     el filtro activo sube al peso más alto
+     linea    una hairline convierte la barra en chrome
+     tenue    la barra retrocede en vez de que el filtro avance */
+const JERARQUIAS = ['titulo', 'peso', 'linea', 'tenue'] as const
+type Jerarquia = (typeof JERARQUIAS)[number]
 
 /* El primer cuadro y nada más. Un <video> con preload="metadata" no
    decodifica ninguna imagen y la caja queda negra; el fragmento #t=
@@ -30,15 +58,20 @@ type Filtro = (typeof FILTROS)[number]
    porque en 0 algunos contenedores todavía no tienen un cuadro clave. */
 const primerCuadro = (url: string) => `${url}#t=0.1`
 
+/* La ruta de un clip, codificada segmento por segmento: encodeURI
+   entero dejaría pasar un "#" o un "?" en el nombre del archivo y
+   partiría la URL. */
+export const rutaDeClip = (ruta: string) =>
+  '/vault/' + ruta.split('/').map(encodeURIComponent).join('/')
+
 function Tarjeta({ clip, onAbrir }: { clip: Clip; onAbrir: (c: Clip) => void }) {
   return (
     /* Es un <a href> de verdad, igual que la pieza del producto: el clic
-       pelado abre el detalle acá adentro, pero cmd-click te abre el
-       archivo crudo en una pestaña, que para un clip es exactamente lo
-       que querés a veces. Mismo interceptor. */
+       pelado abre el detalle, y cmd-click abre el clip en una pestaña
+       nueva. Mismo interceptor. */
     <a
       className={css.card}
-      href={clip.url}
+      href={rutaDeClip(clip.ruta)}
       data-fuente={clip.fuente ?? undefined}
       onClick={clicDeLink(() => onAbrir(clip))}
     >
@@ -54,20 +87,21 @@ function Tarjeta({ clip, onAbrir }: { clip: Clip; onAbrir: (c: Clip) => void }) 
   )
 }
 
-export function Vault() {
+export function Vault({ abierto, ir }: { abierto: string; ir: (ruta: string) => void }) {
   const estado = useClips()
-  const [filtro, setFiltro] = useState<Filtro>('todo')
-  const [abierto, setAbierto] = useState<Clip | null>(null)
+  const [filtro, setFiltro] = useState<Filtro>('all')
+  const [jerarquia, setJerarquia] = useState<Jerarquia>('titulo')
 
-  /* Escape cierra el detalle, igual que en el producto. */
+  /* Va en <html> y no en el nodo del vault porque las dos filas que hay
+     que separar viven en componentes distintos: la barra de vistas la
+     dibuja Privado y el filtro lo dibuja esto. Es andamio — cuando la
+     opción esté elegida, el atributo y el picker se van juntos. */
   useEffect(() => {
-    if (!abierto) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAbierto(null)
+    document.documentElement.dataset.jerarquia = jerarquia
+    return () => {
+      delete document.documentElement.dataset.jerarquia
     }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [abierto])
+  }, [jerarquia])
 
   if (estado.cargando) return null
 
@@ -75,60 +109,81 @@ export function Vault() {
     return (
       <div className={css.vault}>
         <p className={css.aviso}>
-          El vault no está conectado: {estado.motivo}. Poné la carpeta en{' '}
-          <code>.env.local</code> como <code>VAULT_DIR=/ruta/a/tu/carpeta</code> y reiniciá el
-          servidor.
+          Vault not connected: {estado.motivo}. Set the folder in <code>.env.local</code> as{' '}
+          <code>VAULT_DIR=/path/to/your/folder</code> and restart the server.
         </p>
       </div>
     )
   }
 
-  const visibles = estado.clips.filter((c) => filtro === 'todo' || c.fuente === (filtro as Fuente))
+  /* El clip abierto sale de la URL. Si la ruta no existe —un link viejo,
+     un archivo que borraste— se vuelve a la grilla en vez de dejar la
+     pantalla en blanco. */
+  const clip = abierto ? estado.clips.find((c) => c.ruta === abierto) : null
 
-  if (abierto) {
+  if (clip) {
     return (
       <div className={css.detalle}>
-        <Volver onClick={() => setAbierto(null)} />
-        <h1 className={css.detalleTitulo}>{abierto.nombre}</h1>
+        <div className={css.detalleCabeza}>
+          {/* Atrás y ⌘Z hacen lo mismo que esta flecha porque los tres
+              son history.back(): una sola forma de cerrar. */}
+          <Volver onClick={() => history.back()} />
+          <h1 className={css.detalleTitulo}>{clip.nombre}</h1>
+        </div>
         <div className={css.escenario}>
-          {abierto.clase === 'video' ? (
-            <Reproductor clip={abierto} />
+          {clip.clase === 'video' ? (
+            <Reproductor clip={clip} />
           ) : (
-            <img src={abierto.url} alt="" />
+            <img className={css.foto} src={clip.url} alt="" />
           )}
         </div>
       </div>
     )
   }
 
-  return (
-    <div className={css.vault}>
-      <div className={css.filtros}>
-        {FILTROS.map((f) => (
-          <button
-            className={css.filtro}
-            key={f}
-            data-activo={filtro === f ? '' : undefined}
-            aria-pressed={filtro === f}
-            onClick={() => setFiltro(f)}
-          >
-            {f}
-          </button>
-        ))}
-        <span className={css.cuenta}>
-          {visibles.length} de {estado.clips.length}
-        </span>
-      </div>
+  const visibles = estado.clips.filter((c) => filtro === 'all' || c.fuente === (filtro as Fuente))
 
+  const filtros = (
+    <div className={css.filtros}>
+      {FILTROS.map((f) => (
+        <button
+          className={css.filtro}
+          key={f.valor}
+          data-activo={filtro === f.valor ? '' : undefined}
+          aria-pressed={filtro === f.valor}
+          onClick={() => setFiltro(f.valor)}
+        >
+          {f.etiqueta}
+        </button>
+      ))}
+    </div>
+  )
+
+  return (
+    <div className={css.vault} data-jerarquia={jerarquia}>
+      {/* El título de página existe en las dos referencias y acá no
+          estaba: es el padre que le faltaba a las dos filas para dejar
+          de leerse como hermanas. En la variante "una-fila" se esconde,
+          porque ahí lo que separa es la posición. */}
+      <h1 className={css.encabezado}>Vault</h1>
+      {filtros}
       {visibles.length === 0 ? (
-        <p className={css.aviso}>Sin clips acá.</p>
+        <p className={css.aviso}>Nothing here.</p>
       ) : (
         <div className={css.grilla}>
           {visibles.map((c) => (
-            <Tarjeta clip={c} onAbrir={setAbierto} key={c.ruta} />
+            <Tarjeta clip={c} onAbrir={(x) => ir(rutaDeClip(x.ruta))} key={c.ruta} />
           ))}
         </div>
       )}
+      <Pila posicion="arriba">
+        <Picker
+          etiqueta="hierarchy"
+          opciones={JERARQUIAS}
+          valor={jerarquia}
+          onCambio={setJerarquia}
+        />
+      </Pila>
     </div>
   )
 }

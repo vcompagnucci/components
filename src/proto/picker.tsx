@@ -58,7 +58,7 @@ export function Picker<T extends string>({
   }, [])
 
   return (
-    <nav className="proto-picker" aria-label={etiqueta ?? 'Opciones'} ref={picker}>
+    <nav className="proto-picker" aria-label={etiqueta ?? 'Options'} ref={picker}>
       {etiqueta && <span className="proto-picker-etiqueta">{etiqueta}</span>}
       <span className="proto-picker-highlight" aria-hidden="true" ref={highlight} />
       {opciones.map((nombre, indice) => (

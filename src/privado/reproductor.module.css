@@ -60,23 +60,46 @@
   --rep-riel: 2px;
   --rep-pista-alto: 12px;
 
+  /* El último eslabón de la cadena que hace que el clip entre siempre:
+     el reproductor toma el alto que le pasa el escenario, la barra se
+     queda con lo suyo —es flex:none— y el video se acomoda a lo que
+     sobra. Ver privado.module.css. */
   position: relative;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-height: 100%;
+  /* min-width:0 — un ítem de flex no se encoge por debajo de su
+     contenido por defecto, y el contenido acá es un video cuyo ancho
+     natural puede ser 1920. Sin esto el reproductor desbordaba el
+     escenario por 80px de cada lado, medido. */
+  min-width: 0;
 }
 
+/* El video LLENA su hueco y object-fit dibuja la imagen adentro
+   respetando su proporción. La franja que sobra queda del color de la
+   superficie, así que no se ve: el clip parece flotar centrado.
+
+   Es la misma técnica que la card de la grilla, y por lo mismo — es la
+   única forma de garantizar que nunca se corte sin depender de cuánto
+   mida el clip. */
 .video {
   display: block;
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: auto;
   border-radius: var(--card-radio);
   background: var(--surface);
+  object-fit: contain;
   cursor: pointer;
 }
 
 /* ─── LA BARRA ───
    Una fila debajo del video, sobre el fondo de la página. */
 .controles {
+  /* flex:none — la barra nunca cede su alto. Lo que se achica cuando
+     falta lugar es el video, no los controles. */
+  flex: none;
   display: flex;
   align-items: center;
   gap: var(--rep-gap);
