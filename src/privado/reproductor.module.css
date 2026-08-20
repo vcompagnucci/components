@@ -1,0 +1,337 @@
+/* ═══════════════════════════════════════════════════════════════
+   EL REPRODUCTOR
+
+   Dos ejes a elegir mirando, y son ejes porque las dos referencias NO
+   coinciden y porque una parte no tiene referencia:
+
+     controles   apple ancla su botón ABAJO A LA DERECHA del video;
+                 benji ancla su control ARRIBA A LA DERECHA. Los dos
+                 medidos, y no se puede tener razón a la vez. La tercera
+                 posibilidad —una barra debajo del video, fuera de él—
+                 es el "reproductor normal" y no sale de ninguno de los
+                 dos.
+     pista       NO HAY REFERENCIA MEDIBLE. Safari tiene el shadow root
+                 cerrado, el reproductor completo de apple-events no
+                 monta sus controles headless, y Podcasts y x.com piden
+                 login. Así que esto es nuestro y se dice así.
+
+   LO QUE SÍ ESTÁ MEDIDO y no se toca:
+     botón de play    38×38, glifo de 20×20            apple
+     velocidad        28×20, 12px/460, radio 38        benji
+     cross-fade       dos textos con inset:0           benji
+   El detalle en .context/recon/vault/REPRODUCTOR.md
+   ═══════════════════════════════════════════════════════════════ */
+.marco {
+  --rep-play: 38px; /* apple, medido */
+  --rep-glifo: 20px; /* apple, medido */
+  --rep-chico-h: 20px; /* benji, medido */
+  --rep-radio-pildora: 38px; /* benji, medido */
+  --rep-margen: 16px; /* apple y benji coinciden: los dos usan 16 */
+  --rep-gap: 8px; /* benji, medido */
+
+  /* La pista. Estos tres SON NUESTROS. */
+  --rep-riel: 4px;
+  --rep-perilla: 12px;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+/* El foco vive en el marco porque es el que escucha las flechas. */
+.marco:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--card-radio);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* ─── EJE 1 · DÓNDE VIVEN LOS CONTROLES ─── */
+
+/* barra · una fila DEBAJO del video, sobre el fondo de la página.
+   Es el "reproductor normal": nada tapa el clip, y como está sobre el
+   canvas puede usar los colores del sistema sin pelear con el
+   contenido. No sale de ninguna referencia — las dos las ponen encima. */
+[data-controles='barra'] .controles {
+  display: flex;
+  align-items: center;
+  gap: var(--rep-gap);
+  margin-top: 12px;
+}
+
+/* esquinas · ENCIMA del video, repartidos como los dos referentes:
+   play abajo a la derecha (apple) y velocidad arriba a la derecha
+   (benji). No tapa nada del centro y el clip ocupa todo.
+   El costo es que hay que sostener el contraste contra un contenido que
+   no controlamos — por eso acá sí hay scrim, y es el de apple. */
+[data-controles='esquinas'] .controles {
+  position: absolute;
+  inset: 0;
+  /* El marco no come clicks: sólo los controles de verdad. Sin esto la
+     capa entera tapa el video y no se puede clickear para pausar. */
+  pointer-events: none;
+  display: grid;
+  grid-template-areas:
+    '. velocidad'
+    'pista pista'
+    'lectura transporte';
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  padding: var(--rep-margen);
+  gap: var(--rep-gap);
+  align-items: end;
+}
+[data-controles='esquinas'] .controles > * {
+  pointer-events: auto;
+}
+[data-controles='esquinas'] .transporte {
+  grid-area: transporte;
+  justify-self: end;
+}
+[data-controles='esquinas'] .velocidad {
+  grid-area: velocidad;
+  justify-self: end;
+  align-self: start;
+}
+[data-controles='esquinas'] .pista {
+  grid-area: pista;
+  align-self: end;
+}
+/* start y no stretch: la lectura mide su texto. Estirada ocupaba todo
+   el ancho y se leía como una barra vacía. */
+[data-controles='esquinas'] .lectura {
+  grid-area: lectura;
+  justify-self: start;
+}
+/* El scrim de apple, con sus valores exactos. Sólo en esta variante:
+   en la barra, el control está sobre el canvas y no necesita ninguno. */
+[data-controles='esquinas'] .play,
+[data-controles='esquinas'] .paso,
+[data-controles='esquinas'] .velocidad,
+[data-controles='esquinas'] .lectura {
+  background: rgba(210, 210, 215, 0.64);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+[data-controles='esquinas'] .play:hover,
+[data-controles='esquinas'] .paso:hover:not(:disabled),
+[data-controles='esquinas'] .velocidad:hover {
+  background: rgba(223, 223, 227, 0.6976);
+}
+[data-controles='esquinas'] .play:active,
+[data-controles='esquinas'] .paso:active:not(:disabled),
+[data-controles='esquinas'] .velocidad:active {
+  background: rgba(193, 193, 198, 0.6544);
+}
+
+/* El transporte: las dos flechas y el play, siempre juntos. */
+.transporte {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--rep-gap);
+}
+
+/* ─── EL BOTÓN DE PLAY · de apple, medido ─── */
+.play {
+  flex: none;
+  width: var(--rep-play);
+  height: var(--rep-play);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* La suya, literal: sólo opacidad y transform. El COLOR del icono no
+     lleva transición en su reproductor — cambia de golpe— y acá
+     tampoco. */
+  transition:
+    opacity 100ms linear,
+    transform 0.2s ease,
+    background-color var(--dur-surface) var(--ease-surface);
+}
+.play:disabled {
+  opacity: 0.32; /* apple, medido */
+  cursor: default;
+}
+.glifo {
+  width: var(--rep-glifo);
+  height: var(--rep-glifo);
+  fill: currentColor;
+  /* currentColor en vez de la máscara de apple: el efecto es el mismo
+     —el color del icono es una propiedad CSS— con una pieza menos. */
+}
+
+/* ─── LOS PASOS DE CUADRO ───
+   No los tiene ninguna de las dos referencias: es una necesidad
+   nuestra. Toman la caja del control chico de benji para no inventar un
+   tamaño más. */
+.paso {
+  flex: none;
+  height: var(--rep-chico-h);
+  min-width: 24px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--rep-radio-pildora);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--dur-text) var(--ease-text),
+    background-color var(--dur-surface) var(--ease-surface);
+}
+.paso:hover:not(:disabled) {
+  color: var(--ink);
+}
+.paso:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+/* ─── LA VELOCIDAD · de benji, medido ───
+   Dos estados y no un menú. Los dos textos van superpuestos con
+   inset:0 y se cruzan por opacidad: sin eso el botón cambia de ancho
+   entre "1x" y "0.5x" y todo lo que tiene al lado salta. */
+.velocidad {
+  flex: none;
+  position: relative;
+  width: 34px;
+  height: var(--rep-chico-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--rep-radio-pildora);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px; /* suyo */
+  font-weight: 460; /* suyo */
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease; /* suyo, literal */
+}
+.velocidad:hover {
+  color: var(--ink);
+}
+.velocidad > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: inherit;
+}
+.velocidad > span[data-activo] {
+  opacity: 1;
+}
+
+/* ─── LA LECTURA ───
+   El número de cuadro es el dato que se viene a buscar acá: con él
+   contás de dónde a dónde dura un gesto. El tiempo va al lado porque es
+   lo que después escribís en el CSS.
+
+   Tabular para que los dígitos no bailen mientras corre: sin eso el
+   número cambia de ancho en cada cuadro y la barra entera tiembla. */
+.lectura {
+  display: flex;
+  align-items: center;
+  gap: var(--rep-gap);
+  height: var(--rep-chico-h);
+  padding: 0 6px;
+  border-radius: var(--rep-radio-pildora);
+  font-size: 12px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tiempo {
+  color: var(--ink);
+}
+.cuadro {
+  color: var(--text-secondary);
+}
+
+/* ─── EJE 2 · LA PISTA ───
+   SIN REFERENCIA. Ninguna de las fuentes se dejó medir, así que los
+   tres tratamientos son nuestros y se eligen mirando.
+
+   El riel usa --hairline y el lleno --ink: son los dos tokens que el
+   sistema ya tiene para "estructura tenue" y "lo que se lee". No hay
+   ningún color nuevo. */
+.pista {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--rep-perilla);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.riel,
+.lleno {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--rep-riel);
+  border-radius: 999px;
+}
+.riel {
+  background: var(--hairline);
+}
+.lleno {
+  background: var(--ink);
+  /* scaleX y no width: se anima en el compositor y no dispara layout en
+     cada cuadro. El origen a la izquierda porque el llenado crece desde
+     ahí. */
+  transform-origin: left center;
+  will-change: transform;
+}
+.perilla {
+  position: absolute;
+  width: var(--rep-perilla);
+  height: var(--rep-perilla);
+  margin-left: calc(var(--rep-perilla) / -2);
+  border-radius: 999px;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+/* fina · el riel al mínimo y sin perilla. Lo más discreto: la pista
+   deja de ser un control y pasa a ser una lectura. */
+[data-pista='fina'] {
+  --rep-riel: 2px;
+  --rep-perilla: 8px;
+}
+[data-pista='fina'] .perilla {
+  display: none;
+}
+
+/* media · riel de 4 con perilla. El punto medio y el default. */
+
+/* oculta · no está hasta que pasás el puntero o entrás con el teclado.
+   Es lo que hace apple en su inline: en reposo su video no muestra nada
+   más que el botón. El costo es que no sabés cuánto dura hasta que lo
+   tocás. */
+[data-pista='oculta'] .pista {
+  opacity: 0;
+  transition: opacity var(--dur-text) var(--ease-text);
+}
+/* El data-pista vive EN el marco, así que el hover se pregunta sobre él
+   mismo y no sobre un descendiente. Había acá un
+   `.marco:hover [data-pista=oculta]` que no podía matchear nunca. */
+[data-pista='oculta']:hover .pista,
+[data-pista='oculta']:focus-within .pista {
+  opacity: 1;
+}

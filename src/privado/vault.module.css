@@ -279,6 +279,36 @@
   }
 }
 
+/* ═══════════ EL DETALLE DE UN CLIP ═══════════
+   Misma forma que el detalle de una pieza en el producto: flecha de
+   volver, título, y el contenido abajo. No se inventa una vista nueva —
+   es el mismo par lista/detalle que la página ya tiene resuelto, y por
+   eso reusa el mismo componente de la flecha.
+
+   El clip se topa en 72vh de alto. Sin eso una grabación de teléfono a
+   ancho completo mide más de tres pantallas y para verla entera hay que
+   scrollear, que es lo contrario de estudiar un gesto. */
+.detalle {
+  padding-inline: var(--privado-inline);
+}
+.detalleTitulo {
+  margin: 0 0 24px;
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  color: var(--type-h1-c);
+}
+.escenario {
+  max-width: 900px;
+}
+.escenario video {
+  max-height: 72vh;
+  /* object-fit sin caja fija: el video mide lo suyo hasta topar. */
+  width: 100%;
+  object-fit: contain;
+}
+
 /* ─── ESTADOS ───
    El vault sin conectar. No es un error de la app: falta un dato de
    configuración, y el mensaje dice exactamente cuál y dónde ponerlo. */

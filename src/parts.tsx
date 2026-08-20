@@ -90,13 +90,24 @@ export function Item({
   )
 }
 
+/* La flecha de volver. Vive acá y no adentro de Detail porque la usan
+   dos: el detalle de una pieza y el de un clip del vault. El hover
+   pinta SÓLO el glifo y no el cuadrado de 34×34 —que es el área de
+   click y queda invisible—; es unánime en las dos referencias y está
+   explicado en app.module.css. */
+export function Volver({ onClick }: { onClick: () => void }) {
+  return (
+    <button className={css.back} aria-label="Back" onClick={onClick}>
+      ←
+    </button>
+  )
+}
+
 export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) {
   return (
     <div className={css.content}>
       <div className={css.detail}>
-        <button className={css.back} aria-label="Back" onClick={onBack}>
-          ←
-        </button>
+        <Volver onClick={onBack} />
         <div className={css.detailHead}>
           <h1 className={css.detailTitle}>{piece.name}</h1>
           <div className={css.detailMeta}>{piece.platform}</div>
