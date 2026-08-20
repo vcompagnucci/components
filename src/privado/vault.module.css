@@ -126,25 +126,27 @@
   /* figma 16 · linear 24. Gana figma: su tarjeta tampoco tiene
      descripción y el bloque de texto es igual de corto. */
   --vault-media-titulo: 16px;
-  --vault-titulo-caption: 8px;
 
   /* ─── LA ALTURA DE LA CAJA ───
-     Tres candidatos, y ninguno inventado. Los tres salen de la misma
-     card de benji medida, leída de tres maneras distintas:
+     574: la altura a la que NUESTRO clip de teléfono entra con los 228
+     de ancho que benji le da al suyo. Abajo de esto el vertical se
+     achica por falta de alto y deja de medir 228 — o sea que 574 es el
+     único punto donde el teléfono mide exactamente lo que mide el de
+     él. Es la definición más fiel de "como lo hace benji" que se puede
+     dar teniendo tres columnas y no una.
 
-       418   su PROPORCIÓN. Su card es 550×532, o sea 0.968; aplicada a
-             nuestra columna de 405 da 418. Es la más compacta y la que
-             más se parece a su cuadrado.
-       532   su ALTURA literal, la de 17 de sus 45 cards. Es el número
-             que él escribe.
-       574   la altura a la que NUESTRO clip de teléfono entra con los
-             228 de ancho que él le da al suyo. Abajo de esto el clip
-             vertical se achica por falta de alto y deja de medir 228.
+     Elegido mirando, contra otros dos que también salían de su card:
+       418   su PROPORCIÓN (550×532 = 0.968) aplicada a nuestros 405
+       532   su ALTURA literal, la de 17 de sus 45 cards
 
-     Se elige mirando, con /prototype. Lo que cambia entre los tres es
-     quién paga: en 418 se achica el vertical, en 574 le sobra aire al
-     apaisado. */
-  --vault-caja-alto: 532px;
+     Lo que cambia entre los tres es quién paga. Medido como cuánto del
+     hueco llena la imagen que se ve:
+                vertical   apaisado
+       418        68%        53%
+       532        91%        39%
+       574       100%        36%      ← éste
+     Se eligió que llene el vertical. */
+  --vault-caja-alto: 574px;
 
   /* figma: de los filtros a la grilla, 64 */
   margin-top: var(--section-gap);
@@ -225,61 +227,37 @@
    referencias usan tamaños distintos (linear 20 el título y 13 la
    meta), y acá eso no se copia: el título va en 500 —el mismo peso que
    el título de una pieza— y el caption en 460. */
-.cuerpo {
-  margin-top: var(--vault-media-titulo);
-}
+/* El aire lo reclama el título, no lo empuja la caja — es la regla del
+   sistema, la misma por la que .streamItem > * + * lleva el hueco del
+   lado de abajo. Vivía en un .cuerpo que envolvía título y epígrafe;
+   sin epígrafe, ese envoltorio era un div que no hacía nada. */
 .titulo {
+  margin-top: var(--vault-media-titulo);
   font-size: var(--type-h3-fs);
   font-weight: var(--type-h3-fw);
   letter-spacing: var(--type-h3-ls);
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
 }
-/* Categoría y fecha en una sola línea, como la referencia de figma. La
-   categoría en tinta y la fecha en gris: no es una decisión de color
-   nueva, es la regla del sistema —lo que se lee va en ink, lo que anota
-   va en gris— aplicada a las dos mitades de la misma línea. */
-.caption {
-  margin-top: var(--vault-titulo-caption);
-  display: flex;
-  gap: 6px;
-  font-size: var(--type-meta-fs);
-  font-weight: var(--type-meta-fw);
-  letter-spacing: var(--type-meta-ls);
-  line-height: var(--type-meta-lh);
-  color: var(--type-meta-c);
-}
-.fuente {
-  color: var(--ink);
-  text-transform: capitalize;
-}
-/* El clip que quedó suelto en la raíz del vault, sin carpeta que lo
-   clasifique. Se marca en vez de esconderse: así se ve que hay que
-   acomodarlo. */
-.suelto {
-  color: var(--type-meta-c);
-}
+/* NO HAY EPÍGRAFE. Ni fecha ni categoría debajo de la card: sólo el
+   nombre. Las dos referencias sí lo llevan —linear pone autor y fecha,
+   figma pone categoría y fecha— y acá se va igual.
 
-/* ─── EL HOVER DEL TÍTULO ───
-   El de linear, medido: en toda su tarjeta lo único que cambia es que
-   aparece una flecha. La imagen NO se mueve, NO escala y NO se
-   oscurece.
+   El motivo es que en un vault ninguna de las dos anota nada útil. La
+   categoría ya está dicha por el filtro de arriba, que es donde la
+   usás; y la fecha no distingue nada, porque todos los clips entran el
+   día que los arrastrás. En sus páginas son artículos con autor y con
+   fecha de publicación, y ahí sí dicen algo.
 
-   Su transición es 100ms con la curva quad; acá van los tokens del
-   sistema, y el par de texto dice exactamente ese número. */
-.flecha {
-  margin-left: 2px;
-  opacity: 0;
-  transform: translateX(-2px);
-  transition:
-    opacity var(--dur-text) var(--ease-text),
-    transform var(--dur-text) var(--ease-text);
-}
-.card:hover .flecha,
-.card:focus-visible .flecha {
-  opacity: 1;
-  transform: translateX(0);
-}
+   La fecha NO se fue del modelo: sigue ordenando la grilla de la más
+   reciente a la menos. Lo que se fue es mostrarla.
+
+   Y TAMPOCO HAY FLECHA EN EL HOVER. Era la de linear —opacity 0→1 y
+   translateX −2→0 en 100ms, medida—, pero su tarjeta la necesita porque
+   NADA MÁS le cambia al pasar el puntero: sin la flecha no habría
+   ninguna señal de que es clickeable. La nuestra oscurece la superficie
+   entera, que es la regla de josh y ya estaba en el sistema, así que la
+   flecha era una segunda señal diciendo lo mismo. */
 
 /* ─── EL ESCALÓN ───
    Abajo de 768 la grilla es de una columna: tres columnas de 100px no

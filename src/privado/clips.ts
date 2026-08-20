@@ -108,6 +108,7 @@ export function useClips(): Estado {
   return estado
 }
 
-/* El formato de las dos referencias: "Aug 18, 2026". */
-export const enFecha = (d: Date) =>
-  d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+/* Hubo acá un formateador de fecha —"Aug 18, 2026", el de las dos
+   referencias— y se fue con el epígrafe: la card muestra sólo el
+   nombre. `fecha` se queda igual porque sigue ORDENANDO la grilla, de
+   la más reciente a la menos; lo que ya no existe es mostrarla. */
