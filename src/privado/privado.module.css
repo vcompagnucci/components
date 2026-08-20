@@ -38,9 +38,6 @@
    vista el contenido queda tapado justo abajo. */
 .marco {
   --privado-inline: 80px;
-  /* contexto de posicionamiento para la variante "extremos", donde el
-     filtro se ancla a la otra punta de la fila de la barra */
-  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -79,13 +76,28 @@
    tenga algo más que dos palabras. */
 .barra {
   --privado-solapa-gap: 16px;
-  /* El aire hasta el contenido es --section-content-gap, el mismo que
-     hay del rótulo de sección a su primera pieza. Es el mismo rol: un
-     encabezado y lo que encabeza. */
   display: flex;
   gap: var(--privado-solapa-gap);
-  margin-bottom: var(--section-content-gap);
   padding-inline: var(--privado-inline);
+  /* baseline y no center: las solapas son 13/16 y el filtro que se monta
+     a la derecha es 14/20, así que centrarlos por caja los dejaría
+     apoyados en dos alturas distintas. Es la misma regla con la que se
+     alinea el índice del producto contra su primera pieza. */
+  align-items: baseline;
+}
+
+/* EL HUECO DE ACCIONES — la otra punta de la fila.
+   Acá se monta, por portal, el control de la vista que esté abierta: el
+   filtro del vault. `margin-left:auto` lo empuja al extremo sin
+   necesidad de justify-content, que afectaría también a las solapas.
+
+   Cuando la ventana no da para las dos cosas en una línea, la barra
+   envuelve y el filtro cae abajo solo — eso no se programa, sale de que
+   el filtro esté ADENTRO de la barra y no posicionado encima. */
+.acciones {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
 }
 
 /* text-decoration:none apaga el subrayado global de <a>. Acá no aplica:
@@ -114,38 +126,9 @@
   color: var(--activo-c);
 }
 
-/* ─── ANDAMIO · LAS VARIANTES DE JERARQUÍA ───
-   Dos de las cuatro tocan ESTA barra y no el filtro, y por eso el
-   atributo vive en <html>: las dos filas que hay que separar las
-   dibujan componentes distintos. El detalle está en vault.module.css.
-   Se van las dos cuando la opción esté elegida. */
-
-/* banda · el mecanismo de linear. Su nav es una banda fixed de 73px con
-   backdrop blur(20) y border-bottom de 1px — no es texto flotando sobre
-   la página. Acá se toma la ESTRUCTURA (banda de borde a borde con una
-   línea abajo) sin su alto ni su blur: los 73px suyos existen para
-   albergar un logo y siete links, y acá hay dos palabras.
-
-   Lo que separa es la banda entera, así que la línea va de borde a
-   borde y no sólo bajo el texto. */
-:global(html[data-jerarquia='banda']) .barra {
-  margin-bottom: 0;
-  padding-block: 0 20px;
-  border-bottom: 1px solid var(--hairline);
-  margin-inline: calc(var(--privado-inline) * -1);
-  padding-inline: var(--privado-inline);
-}
-
-/* extremos · el filtro se va a la otra punta de ESTA fila, así que la
-   barra tiene que dejar de reservar el aire de abajo: ya no hay una
-   segunda fila que separar. */
-:global(html[data-jerarquia='extremos']) .barra {
-  margin-bottom: 0;
-}
-
 /* EL ESTADO VACÍO. Va en el gris secundario y no en tinta: la regla del
-   sistema es que la prosa va en ink y lo que ANOTA va en gris. "Sin
-   clips" no es contenido, es una nota sobre el estado del contenido.
+   sistema es que la prosa va en ink y lo que ANOTA va en gris. "Nothing
+   here" no es contenido: es una nota sobre el estado del contenido.
 
    Alineado a la izquierda, con el resto. Nada en esta página está
    centrado. */

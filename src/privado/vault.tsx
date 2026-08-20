@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import css from './vault.module.css'
 import { Volver, clicDeLink } from '../parts'
-import { Picker, Pila } from '../proto/picker'
 import { Reproductor } from './reproductor'
 import { useClips, type Clip, type Fuente } from './clips'
 
@@ -31,40 +31,34 @@ const FILTROS = [
 ] as const
 type Filtro = (typeof FILTROS)[number]['valor']
 
-/* ─── LA JERARQUÍA DE LA CABECERA ───
-   Hoy la barra de vistas y el filtro se leen como lo mismo dos veces:
-   los dos son texto suelto, del mismo peso, con el mismo par
-   gris → activo, y a 13 contra 14 la diferencia de tamaño no se ve.
+/* ─── POR QUÉ EL FILTRO VIVE EN LA BARRA ───
+   Antes había DOS FILAS —las solapas arriba, el filtro abajo— y se
+   leían como lo mismo dos veces: los dos eran texto suelto, del mismo
+   peso, con el mismo par gris → activo, y a 13 contra 14 la diferencia
+   de tamaño no se ve.
 
-   Y la causa es estructural: en las dos referencias hay un TÍTULO DE
-   PÁGINA entre las dos filas —linear pone "Now" y figma "Articles", los
-   dos a 55px— y nosotros no. Sin ese padre, las dos filas quedan de
-   hermanas.
+   Se fue a buscar cómo lo resuelven las referencias y la respuesta fue
+   que NO LO TIENEN: en 7 páginas, benji nunca tiene más de una nav por
+   página y josh tampoco, y ninguno usa tabs ni pills como navegación
+   (los 25 tabs y 21 pills de /pasito son de un demo embebido, no de su
+   chrome). Lo evitan en vez de resolverlo.
 
-   SE FUE A BUSCAR CÓMO LO RESUELVEN ELLOS Y LA RESPUESTA FUE QUE NO LO
-   TIENEN. Medido en 7 páginas: benji nunca tiene más de UNA nav por
-   página, y josh tampoco. Ninguno de los dos usa tabs ni pills como
-   navegación —los 25 tabs y 21 pills que aparecen en /pasito son de un
-   demo embebido, no de su chrome—. Evitan el problema en vez de
-   resolverlo.
+   El único que lo tiene es linear en /now, y su mecanismo es doble: su
+   nav es una BANDA física —fixed, 73px, backdrop blur(20), border-bottom
+   de 1px— y su título mide 48 contra los 16 del filtro. Tres veces. Sus
+   filtros, para que quede dicho, son TEXTO PELADO: radio 0, sin fondo,
+   sin padding, así que las pills tampoco salen de ahí.
 
-   EL ÚNICO QUE LO TIENE ES LINEAR, en /now, y su mecanismo es doble:
+   Y eso nombra la causa de fondo: las dos referencias que resuelven
+   esto lo resuelven con un TAMAÑO, y nuestro sistema tiene uno solo.
 
-     su nav es una BANDA      fixed, 73px de alto, backdrop blur(20px)
-                              y border-bottom de 1px. No es texto
-                              flotando: está separada físicamente
-     su título mide 48px      contra los 16 del filtro. TRES VECES
-     sus filtros son TEXTO    radio 0, sin fondo, sin padding — o sea
-                              que las pills no salen de él tampoco
+   LA SALIDA ELEGIDA, mirando cuatro: una sola fila con uno en cada
+   punta. Deja de haber dos filas parecidas porque deja de haber dos
+   filas, y la POSICIÓN hace todo el trabajo — a la izquierda dónde
+   estás, a la derecha qué estás filtrando. Sin tocar la escala.
 
-   Y ahí está la causa de fondo: las dos referencias que resuelven esto
-   lo hacen con un TAMAÑO, y nuestro sistema tiene uno solo. Por eso las
-   dos filas se parecen tanto.
-
-   Cuatro salidas. Las tres primeras no tocan la escala; la cuarta la
-   abre a propósito, porque es lo que ellos hacen de verdad: */
-const JERARQUIAS = ['banda', 'extremos', 'pills', 'titulo'] as const
-type Jerarquia = (typeof JERARQUIAS)[number]
+   Se descartaron: la banda de linear, el título grande (que habría
+   abierto la escala tipográfica), y las pills. */
 
 /* El primer cuadro y nada más. Un <video> con preload="metadata" no
    decodifica ninguna imagen y la caja queda negra; el fragmento #t=
@@ -101,21 +95,19 @@ function Tarjeta({ clip, onAbrir }: { clip: Clip; onAbrir: (c: Clip) => void }) 
   )
 }
 
-export function Vault({ abierto, ir }: { abierto: string; ir: (ruta: string) => void }) {
+export function Vault({
+  abierto,
+  ir,
+  acciones,
+}: {
+  abierto: string
+  ir: (ruta: string) => void
+  /* El hueco que la barra deja para el control de la vista. Llega en
+     null en el primer render, antes de que el nodo exista. */
+  acciones: HTMLElement | null
+}) {
   const estado = useClips()
   const [filtro, setFiltro] = useState<Filtro>('all')
-  const [jerarquia, setJerarquia] = useState<Jerarquia>('titulo')
-
-  /* Va en <html> y no en el nodo del vault porque las dos filas que hay
-     que separar viven en componentes distintos: la barra de vistas la
-     dibuja Privado y el filtro lo dibuja esto. Es andamio — cuando la
-     opción esté elegida, el atributo y el picker se van juntos. */
-  useEffect(() => {
-    document.documentElement.dataset.jerarquia = jerarquia
-    return () => {
-      delete document.documentElement.dataset.jerarquia
-    }
-  }, [jerarquia])
 
   if (estado.cargando) return null
 
@@ -174,13 +166,11 @@ export function Vault({ abierto, ir }: { abierto: string; ir: (ruta: string) => 
   )
 
   return (
-    <div className={css.vault} data-jerarquia={jerarquia}>
-      {/* El título de página existe en las dos referencias y acá no
-          estaba: es el padre que le faltaba a las dos filas para dejar
-          de leerse como hermanas. En la variante "una-fila" se esconde,
-          porque ahí lo que separa es la posición. */}
-      <h1 className={css.encabezado}>Vault</h1>
-      {filtros}
+    <div className={css.vault}>
+      {/* El filtro se dibuja DENTRO de la barra, en la otra punta de su
+          fila. Por portal y no por coordenadas: adentro, flexbox lo
+          acomoda y el ancho chico se resuelve solo. */}
+      {acciones && createPortal(filtros, acciones)}
       {visibles.length === 0 ? (
         <p className={css.aviso}>Nothing here.</p>
       ) : (
@@ -190,14 +180,6 @@ export function Vault({ abierto, ir }: { abierto: string; ir: (ruta: string) => 
           ))}
         </div>
       )}
-      <Pila posicion="arriba">
-        <Picker
-          etiqueta="hierarchy"
-          opciones={JERARQUIAS}
-          valor={jerarquia}
-          onCambio={setJerarquia}
-        />
-      </Pila>
     </div>
   )
 }

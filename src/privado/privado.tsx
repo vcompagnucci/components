@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import css from './privado.module.css'
 import { clicDeLink } from '../parts'
 import type { Privada } from '../app'
@@ -81,6 +81,22 @@ export default function Privado({
      porque tiene que poder crecer y scrollear. */
   const enDetalle = actual === '/vault' && resto !== ''
 
+  /* EL HUECO DE ACCIONES de la barra. La vista que esté abierta pone
+     acá su propio control —el vault pone su filtro— y queda en la MISMA
+     FILA que las solapas, contra la otra punta.
+
+     Va por portal y no por coordenadas. La primera versión ponía el
+     filtro en position:absolute contra el marco, y eso funcionaba pero
+     ataba la posición del filtro al padding del marco y a la altura de
+     la barra: cualquiera de los dos que se moviera lo dejaba corrido, y
+     en una ventana angosta no había forma de que bajara solo. Estando
+     ADENTRO de la barra, flexbox lo acomoda y el ancho chico se resuelve
+     con la misma regla que todo lo demás.
+
+     El ref se guarda en estado y no en un useRef porque el hijo tiene
+     que RE-RENDERIZAR cuando el nodo existe; un ref no avisa. */
+  const [acciones, setAcciones] = useState<HTMLElement | null>(null)
+
   return (
     <div className={css.marco} data-detalle={enDetalle ? '' : undefined}>
       {/* Las solapas son links de verdad, con el mismo interceptor que la
@@ -98,8 +114,13 @@ export default function Privado({
             {v.nombre}
           </a>
         ))}
+        <div className={css.acciones} ref={setAcciones} />
       </nav>
-      {actual === '/vault' ? <Vault abierto={resto} ir={ir} /> : <Playground />}
+      {actual === '/vault' ? (
+        <Vault abierto={resto} ir={ir} acciones={acciones} />
+      ) : (
+        <Playground />
+      )}
     </div>
   )
 }
