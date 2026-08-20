@@ -44,6 +44,19 @@
    ═══════════════════════════════════════════════════════════════ */
 import fs from 'node:fs'
 import path from 'node:path'
+import { cuadroDe } from './cuadros.mjs'
+
+/* Los cuadros se leen del contenedor UNA vez por archivo. La clave lleva
+   tamaño y mtime, así que reemplazar un clip lo vuelve a leer solo y no
+   hay forma de quedarse con el dato viejo. */
+const cacheCuadros = new Map()
+function cuadrosDe(abs, s) {
+  const clave = `${abs}:${s.size}:${s.mtimeMs}`
+  if (cacheCuadros.has(clave)) return cacheCuadros.get(clave)
+  const r = cuadroDe(abs)
+  cacheCuadros.set(clave, r)
+  return r
+}
 
 /* La lista blanca. Lo que no está acá no se sirve. */
 const TIPOS = {
@@ -126,8 +139,23 @@ function recorrer(raiz, rel = '', nivel = 0) {
     } catch {
       continue
     }
+    /* Los cuadros salen del contenedor y no de una estimación: es lo que
+       hace posible que las flechas muevan UN cuadro exacto. Se resuelve
+       acá, en el servidor, porque el navegador no expone el dato —
+       requestVideoFrameCallback lo daría sólo reproduciendo, y para eso
+       ya sería tarde. Validado contra 9 archivos: cuadros × duración de
+       cuadro reproduce la duración que reporta el navegador. */
+    const c = VIDEO.has(ext) ? cuadrosDe(abs, s) : null
+
     salida.push({
       ruta: r,
+      /* null cuando es una imagen o cuando el contenedor no se pudo
+         leer. Quien lo use tiene que contemplar que no esté, en vez de
+         recibir un número inventado. */
+      cuadro: c?.cuadro ?? null,
+      fps: c?.fps ?? null,
+      cuadros: c?.cuadros ?? null,
+      cuadroVariable: c?.variable ?? null,
       /* El nombre del archivo sin extensión. Es materia prima para la
          fase 3, no el nombre final que se muestra. */
       archivo: path.basename(e.name, ext),

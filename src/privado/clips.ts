@@ -27,6 +27,15 @@ export type ClipCrudo = {
   bytes: number
   creado: string
   modificado: string
+  /* Leídos del contenedor por el puente. Van en null cuando es una
+     imagen o cuando el archivo no se pudo parsear, y hay que
+     contemplarlo: sin cuadro exacto el paso con las flechas deja de ser
+     un cuadro y pasa a ser una estimación, y entonces contar cuadros
+     para sacar una duración no sirve. Ver scripts/cuadros.mjs. */
+  cuadro: number | null
+  fps: number | null
+  cuadros: number | null
+  cuadroVariable: boolean | null
 }
 
 export type Fuente = 'nativo' | 'web'
