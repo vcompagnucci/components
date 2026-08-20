@@ -1,36 +1,20 @@
-import { useState, type CSSProperties } from 'react'
-import base from './privado.module.css'
+import { useState } from 'react'
 import css from './vault.module.css'
-import { Picker, Pila } from '../proto/picker'
 import { enFecha, useClips, type Clip, type Fuente } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
    EL VAULT — la pared de referencias.
 
-   Lo que está DECIDIDO sale de que las dos referencias coinciden:
-   media en 16:9, 64 entre filas, 8 del título al caption. Lo medido
-   está en .context/recon/vault/GRILLA.md.
+   La forma de la card es la de benji en family-values, medida y
+   horneada; el porqué de cada número está en vault.module.css y lo
+   medido en .context/recon/vault/GRILLA.md. Se probaron con /prototype
+   las tres respuestas obvias —16:9 conteniendo, 16:9 recortando, y la
+   caja siguiendo al clip— y las tres fallaban con nuestro material.
 
-   Lo que está ABIERTO son las tres cosas que ninguna de las dos
-   resuelve para nuestro material, y por eso van a un toggle de
-   /prototype en vez de decidirse solas:
-
-     forma      nuestros clips van de 0.46 a 1.60 y los de ellos son
-                todos apaisados
-     canaleta   figma usa 32 sin línea, linear 64 con línea
-     columnas   "agrandar la grilla" puede ser más ancha o más columnas
-
-   El toggle es andamio: cuando estén elegidas, las tres se hornean y
-   el picker se va.
+   Ya no hay toggle: está decidido.
    ═══════════════════════════════════════════════════════════════ */
 
-const FORMAS = ['contenida', 'recortada', 'libre'] as const
-const CANALETAS = ['limpia', 'linea'] as const
-const COLUMNAS = ['2', '3', '4'] as const
 const FILTROS = ['todo', 'nativo', 'web'] as const
-
-type Forma = (typeof FORMAS)[number]
-type Canaleta = (typeof CANALETAS)[number]
 type Filtro = (typeof FILTROS)[number]
 
 /* El primer cuadro y nada más. Un <video> con preload="metadata" no
@@ -72,19 +56,6 @@ function Tarjeta({ clip }: { clip: Clip }) {
 export function Vault() {
   const estado = useClips()
   const [filtro, setFiltro] = useState<Filtro>('todo')
-  const [forma, setForma] = useState<Forma>('contenida')
-  const [canaleta, setCanaleta] = useState<Canaleta>('limpia')
-  const [columnas, setColumnas] = useState<(typeof COLUMNAS)[number]>('3')
-
-  /* Arriba, para no chocar con el toggle de tema, que vive abajo y vale
-     para toda la página. */
-  const opciones = (
-    <Pila posicion="arriba">
-      <Picker etiqueta="forma" opciones={FORMAS} valor={forma} onCambio={setForma} />
-      <Picker etiqueta="canaleta" opciones={CANALETAS} valor={canaleta} onCambio={setCanaleta} />
-      <Picker etiqueta="columnas" opciones={COLUMNAS} valor={columnas} onCambio={setColumnas} />
-    </Pila>
-  )
 
   if (estado.cargando) return null
 
@@ -122,23 +93,14 @@ export function Vault() {
       </div>
 
       {visibles.length === 0 ? (
-        <p className={base.vacio} style={{ marginTop: 40, paddingInline: 0 }}>
-          Sin clips acá.
-        </p>
+        <p className={css.aviso}>Sin clips acá.</p>
       ) : (
-        <div
-          className={css.grilla}
-          data-forma={forma}
-          data-canaleta={canaleta}
-          data-columnas={columnas}
-          style={{ '--vault-columnas': columnas } as CSSProperties}
-        >
+        <div className={css.grilla}>
           {visibles.map((c) => (
             <Tarjeta clip={c} key={c.ruta} />
           ))}
         </div>
       )}
-      {opciones}
     </div>
   )
 }

@@ -1,29 +1,57 @@
 /* ═══════════════════════════════════════════════════════════════
    LA GRILLA DEL VAULT
 
-   Lo medido está en .context/recon/vault/GRILLA.md. Resumen de dónde
-   coinciden las dos referencias, que es lo que se toma sin discutir:
+   Lo medido está en .context/recon/vault/GRILLA.md.
 
-     proporción del media    16:9   linear y figma
-     hueco entre filas       64     linear y figma
-     título → caption        8      linear y figma
+   ─── LO QUE VIENE DE QUE LAS DOS REFERENCIAS COINCIDEN ───
+   linear.app/now y el archivo de figma dicen lo mismo en tres cosas, y
+   por eso las tres se toman sin discutir:
 
-   Y dónde NO coinciden, que es lo que hay que elegir mirando:
-
-     canaleta          figma 32 sin línea   ·  linear 64 con línea de 1px
-     media → título    figma 16             ·  linear 24
+     hueco entre filas        64
+     título → caption          8
+     media en 16:9            ← ver más abajo: esta NO sobrevivió
 
    ─── LO QUE NINGUNA DE LAS DOS RESUELVE ───
-
    Sus clips son TODOS apaisados. Los nuestros no: una grabación de
    teléfono da 0.46 y una captura de escritorio 1.60, medido sobre el
-   vault de prueba. Una caja 16:9 fija le queda perfecta a la segunda y
-   deja a la primera como una tira flaca en el medio de un rectángulo
-   vacío.
+   vault de prueba. Se probaron las tres respuestas obvias con
+   /prototype y las tres fallan:
 
-   Por eso la forma de la caja es un toggle de /prototype y no una
-   decisión copiada: es la única parte de esta grilla para la que no hay
-   referencia que valga.
+     16:9 con el clip adentro   el vertical queda como una tira flaca
+                                entre dos campos vacíos
+     16:9 recortando            le corta arriba y abajo, que es donde
+                                viven el sheet y la tab bar
+     la caja sigue al clip      881px de alto contra 253, grilla al
+                                doble de larga
+
+   ─── LA RESPUESTA ES LA DE BENJI ───
+   Medido en family-values: 45 cards, todas arrancando en la misma x
+   —o sea UNA columna, display:block— de 550 de ancho fijo, y con CINCO
+   alturas distintas: 532 ×17 · 475 ×12 · 443 ×8 · 346 ×7 · 368 ×1.
+
+     padding 40px 60px · radio 8 · flex centrado
+     el clip: 227.5 × 448.42, natural 762×1502
+     532.42 = 40 + 448.42 + 40 + 4   ← la altura la manda el contenido
+
+   Su respuesta al problema de las formas es NO IMPONER NINGUNA: ancho
+   fijo, el clip centrado adentro con aire, y la caja se acomoda.
+
+   Y esos números ya son tokens nuestros. --card-app-padding y
+   --card-app-slot-ancho salieron de medir ESTA MISMA card para la
+   página de piezas. Acá no se agrega nada al sistema: se reusa.
+
+   EL COSTO, dicho: él tiene una columna y nosotros tres, así que las
+   filas quedan desparejas — la peor mide 209px de diferencia. Se miró y
+   se aceptó: cada epígrafe queda bajo su propia card y el conjunto se
+   lee como un muro, que es lo que es. La alternativa —todas a 532, su
+   altura más usada— le mete 354px de aire vacío a un clip apaisado, y
+   eso él no lo hace nunca: su contenido corto tiene card corta.
+
+   LO ÚNICO QUE NO SE LE COPIA ES EL BORDE. Su card lleva
+   box-shadow:0 0 0 1px #f2f2f2 sobre #fcfcfc. Nuestro sistema ya
+   decidió lo contrario —la regla de josh: la card se define por
+   contraste contra el canvas, sin anillo ni sombra— y está resuelto en
+   tokens.css. Se respeta lo decidido y se copia la geometría.
    ═══════════════════════════════════════════════════════════════ */
 .vault {
   padding-inline: var(--privado-inline);
@@ -75,17 +103,22 @@
   color: var(--type-meta-c);
 }
 
-/* ─── LA GRILLA ─── */
+/* ─── LA GRILLA ───
+   Tres columnas: es lo que usan las dos referencias.
+
+   LA CANALETA VA LIMPIA, la de figma, y contra la de linear. Él tira
+   una línea de 1px en una pista de 64 entre columna y columna, y hace
+   falta PORQUE SUS CARDS NO TIENEN FONDO: su media va a sangre, así que
+   sin la línea no habría nada separando una columna de la otra. La
+   nuestra ahora es una superficie pintada con su propio borde, y una
+   línea encima competiría con él. */
 .grilla {
-  /* De figma, medido: 3 columnas de 437.33 con 32 de canaleta. */
   --vault-columnas: 3;
   --vault-canaleta: 32px;
-  /* Los dos referentes coinciden en 64. */
   --vault-fila: 64px;
-  /* figma 16 · linear 24. Elegido: figma, porque su tarjeta tampoco
-     tiene descripción y el bloque de texto es igual de corto. */
+  /* figma 16 · linear 24. Gana figma: su tarjeta tampoco tiene
+     descripción y el bloque de texto es igual de corto. */
   --vault-media-titulo: 16px;
-  /* Los dos coinciden en 8. */
   --vault-titulo-caption: 8px;
 
   /* figma: de los filtros a la grilla, 64 */
@@ -94,93 +127,64 @@
   grid-template-columns: repeat(var(--vault-columnas), minmax(0, 1fr));
   column-gap: var(--vault-canaleta);
   row-gap: var(--vault-fila);
-  /* start y no stretch: con la caja libre cada tarjeta mide lo suyo y
-     no se estira hasta la más alta de su fila. */
+  /* start y no stretch: la altura la manda el contenido de cada card,
+     que es lo de benji. Con stretch todas se estirarían hasta la más
+     alta de su fila y el clip quedaría flotando en el medio. */
   align-items: start;
 }
 
 .card {
-  position: relative;
   display: block;
   color: inherit;
   text-decoration: none;
   cursor: pointer;
 }
 
-/* ─── EL MEDIO ───
-   La caja lleva el fondo de la card del sistema, no negro: cuando el
-   clip no la llena, lo que se ve es la superficie del producto y no un
-   agujero. */
+/* ─── LA CAJA ───
+   La card de benji. El fondo es --surface, el mismo de la card del
+   producto: cuando el clip no la llena, lo que se ve es la superficie
+   del sistema y no un agujero. */
 .media {
+  padding: var(--card-app-padding);
   border-radius: var(--card-radio);
   overflow: hidden;
   background: var(--surface);
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--dur-surface) var(--ease-surface);
 }
+/* Ni width:100% ni height:100%: el clip entra con su forma y lo que lo
+   limita es la caja. */
 .media > * {
   display: block;
-}
-
-/* 1 · CONTENIDA — la caja es 16:9 y el clip entra entero.
-   Es la copia literal de las dos referencias. Honesto con el material:
-   nunca te esconde nada. El costo lo pagan los verticales, que quedan
-   como una tira en el medio. */
-[data-forma='contenida'] .media {
-  aspect-ratio: 16 / 9;
-}
-[data-forma='contenida'] .media > * {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
   object-fit: contain;
 }
+/* EL ANCHO SIEMPRE ES EXPLÍCITO, nunca el natural del archivo. Su <img>
+   declara width:227.5px y deja que la altura caiga sola; ninguna de sus
+   45 cards deja que el archivo decida su tamaño.
 
-/* 2 · RECORTADA — la caja es 16:9 y el clip la llena, recortándose.
-   La grilla queda perfecta y no hay un solo hueco. El costo es que a un
-   clip de teléfono le corta arriba y abajo, que es justo donde viven un
-   sheet y una tab bar. */
-[data-forma='recortada'] .media {
-  aspect-ratio: 16 / 9;
+   Sin esto, un clip más chico que la caja se dibuja a su tamaño natural
+   y la card se encoge alrededor: una imagen de 1×1 en el vault de
+   prueba daba una caja de 81px de alto. Medido, no supuesto.
+
+   El teléfono va a 228 —el ancho que él eligió, y ya es token nuestro—
+   y no al de la columna: ésa es la pieza que evita que un vertical se
+   coma la pantalla. El min() cubre la columna más angosta que eso. */
+.card[data-fuente='nativo'] .media > * {
+  width: min(var(--card-app-slot-ancho), 100%);
 }
-[data-forma='recortada'] .media > * {
+.card:not([data-fuente='nativo']) .media > * {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
-/* 3 · LIBRE — la caja toma la forma del clip.
-   Sin aspect-ratio y sin object-fit: el ancho manda y la altura sale de
-   la proporción natural del archivo. Es lo que hace un muro de
-   inspiración de verdad, y es lo único que no miente sobre la forma de
-   lo que guardaste. El costo es el borde de abajo desparejo, porque las
-   filas quedan tan altas como su tarjeta más alta. */
-[data-forma='libre'] .media > * {
-  width: 100%;
-  height: auto;
-}
-
-/* ─── LA LÍNEA DE LA CANALETA ───
-   Sólo en la variante de linear. Su grilla no usa column-gap: usa
-   PISTAS de 64px entre las columnas de contenido, y adentro de cada una
-   va la línea. Acá se llega a lo mismo con un pseudo-elemento en el
-   medio de la canaleta, que evita tener que reescribir
-   grid-template-columns cuando cambia la cantidad de columnas. */
-[data-canaleta='linea'] .card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: calc(var(--vault-canaleta) / -2);
-  width: 1px;
-  background: var(--hairline);
-}
-/* La última de cada fila no lleva línea a la derecha. Va escrito una vez
-   por cantidad de columnas y no con la variable, porque nth-child() NO
-   acepta custom properties: su argumento se parsea con la gramática de
-   selectores, que se resuelve antes de que exista un valor calculado. */
-[data-canaleta='linea'][data-columnas='2'] .card:nth-child(2n)::after,
-[data-canaleta='linea'][data-columnas='3'] .card:nth-child(3n)::after,
-[data-canaleta='linea'][data-columnas='4'] .card:nth-child(4n)::after {
-  display: none;
+/* El hover de la superficie, el mismo de la card del producto: oscurece
+   el relleno y nada más. Ni sombra, ni escala, ni movimiento. */
+.card:hover .media {
+  background: var(--surface-hover);
 }
 
 /* ─── EL TEXTO ───
@@ -223,14 +227,13 @@
   color: var(--type-meta-c);
 }
 
-/* ─── EL HOVER ───
-   El de linear, medido: NADA se mueve, NADA escala y la imagen NO se
-   oscurece. Lo único que pasa es que aparece una flecha.
+/* ─── EL HOVER DEL TÍTULO ───
+   El de linear, medido: en toda su tarjeta lo único que cambia es que
+   aparece una flecha. La imagen NO se mueve, NO escala y NO se
+   oscurece.
 
-   Su transición es 100ms con la curva quad, y acá se usan los tokens
-   del sistema que dicen lo mismo por propiedad: la opacidad y el
-   transform son del elemento entero, así que van juntos con el par de
-   texto —100ms— que es el número que él usa. */
+   Su transición es 100ms con la curva quad; acá van los tokens del
+   sistema, y el par de texto dice exactamente ese número. */
 .flecha {
   margin-left: 2px;
   opacity: 0;
@@ -246,19 +249,16 @@
 }
 
 /* ─── EL ESCALÓN ───
-   Abajo de 768 la grilla es de una columna sí o sí, pase lo que pase
-   con el toggle: tres columnas de 100px no son una grilla. */
+   Abajo de 768 la grilla es de una columna: tres columnas de 100px no
+   son una grilla. Y la caja pierde el padding lateral de 60, que a ese
+   ancho se come más de la mitad. */
 @media (max-width: 768px) {
   .grilla {
-    /* Se pisa la propiedad resuelta y NO la variable. El toggle escribe
-       --vault-columnas en el atributo style, y una variable de hoja de
-       estilos no le gana a una inline sin !important. Escribiendo
-       grid-template-columns directo, la cascada normal alcanza. */
     grid-template-columns: minmax(0, 1fr);
     --vault-canaleta: 0px;
   }
-  [data-canaleta='linea'] .card::after {
-    display: none;
+  .media {
+    padding: 40px 24px;
   }
 }
 
