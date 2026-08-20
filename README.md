@@ -156,6 +156,28 @@ Lo medido de las referencias está en `.context/recon/vault/GRILLA.md`.
 | ↳ lo que sí hace en cada card | un toggle de velocidad **1x / 0.5x** arriba a la derecha — 45 en family-values, 34 en honkish | 28×20, 12px/460, radio 38, `#989897`, dos `<span>` que se cruzan por opacidad, `all .2s ease`. Es evidencia directa para el reproductor |
 | ↳ nota de método | una sonda dio *"0 reglas `:hover` en toda la página"* y era **falso**: el número real es 68 | sus hojas son de otro origen, `sheet.cssRules` tira excepción y la sonda las salteaba en silencio. Contra CSS de otro origen hay que capturar el **texto** de la respuesta, no leer el CSSOM |
 
+### El reproductor
+
+Existe para una cosa: llegar al cuadro exacto donde arranca un gesto,
+contar hasta donde termina, y sacar la duración en milisegundos. Lo
+medido está en `.context/recon/vault/REPRODUCTOR.md`.
+
+| Decisión | Valor | Fuente |
+| --- | --- | --- |
+| Botón de play | **38×38**, glifo de **20×20**, `opacity 100ms linear` + `transform .2s ease`, deshabilitado en **.32** | **apple**, de su `inline-media-ui`. Renderiza en **28 videos** de `/apple-vision-pro`, no es una regla muerta. El color del icono **no** lleva transición en su reproductor —cambia de golpe— y acá tampoco |
+| ↳ los iconos son nuestros | dos formas triviales con `currentColor` | de él se copian las **medidas**, no el arte. `currentColor` hace lo mismo que su `mask` + `background-color` —el color del icono es una propiedad CSS— con una pieza menos |
+| Velocidad | **28×20**, 12px/460, radio 38, `all .2s ease`. **Dos estados (1x · 0.5x), no un menú** | **benji**, y renderiza en **45** elementos de family-values y 34 de honkish |
+| ↳ el cross-fade | dos `<span>` superpuestos con `inset:0` que se cruzan por opacidad | suyo, y no es adorno: *"1x"* y *"0.5x"* no miden lo mismo, así que sin esto el botón cambia de ancho y salta todo lo que tiene al lado |
+| **Dónde van los controles** | una **fila debajo del video** | elegido mirando, y **no es de ninguno de los dos**: apple ancla abajo a la derecha *encima* del video, benji arriba a la derecha, y los dos medidos no pueden tener razón a la vez. Debajo nada tapa el clip, y al estar sobre el canvas no necesita scrim ni blur — usa los colores del sistema tal cual. Se probó la variante "esquinas" con el scrim exacto de apple y perdió |
+| **La pista** | riel de **2px**, sin perilla | **sin referencia medible**, y se dice así: Safari tiene el shadow root **cerrado** en los dos motores, `apple-events` no monta sus controles headless, y Podcasts y x.com piden login. Es nuestra. Se probaron fina/media/oculta y ganó fina: a ese grosor deja de ser un control que compite y pasa a ser una lectura. Usa `--hairline` y `--ink`, sin ningún color nuevo |
+| **Sin botones de cuadro** | el paso vive **sólo en las flechas del teclado** | estuvieron —dos flechas de 24px al lado del play— y se sacaron. El teclado es más preciso, se puede mantener apretado, y con **shift salta de a diez**. Apuntarle a un botón chico mientras mirás otra cosa es el trabajo que este reproductor tiene que ahorrar |
+| ↳ y eso destapó un bug real | el listener escucha en el **documento**, no en el foco del reproductor | estaba atado al foco y fallaba en el caso más común: clickeás el video para pausarlo, el clic cae en el `<video>` y el marco nunca toma el foco, así que desde ahí las flechas no hacen nada. **Verificado: tras clickear para pausar, `activeElement` es `BODY`.** Ahora sólo existe mientras hay un clip abierto, donde nada más usa las flechas, y se saltea si el foco está en un control |
+| El paso de cuadro | del **contenedor**, no estimado | `scripts/cuadros.mjs` lee `mdhd` (timescale) y `stts` (deltas) del mp4/mov. Sin `ffprobe` y sin dependencias. **Validado 9/9**: cuadros × duración-de-cuadro reproduce la duración que reporta el navegador |
+| ↳ busca el **medio** del cuadro | `(destino + 0.5) · cuadro` | pedir exactamente `N·cuadro` cae en la frontera entre dos cuadros y el navegador puede resolver para cualquiera de los dos |
+| ↳ tasa variable | se devuelve el delta más frecuente **con `variable: true`** | para que quien lo use sepa que el paso es aproximado, en vez de creer que es exacto |
+| El tiempo se lee por cuadro de pantalla | `requestAnimationFrame`, no `timeupdate` | `timeupdate` dispara unas **4 veces por segundo**: con eso la pista avanza a saltos y el número de cuadro miente casi siempre |
+| Lo que no se pudo medir | controles nativos de Safari · reproductor completo de apple-events · Apple Podcasts · x.com | shadow root cerrado en los dos motores · `.controls-container` renderiza 0×0 headless · las dos últimas piden login |
+
 ## Error 404
 
 | Decisión | Valor | Fuente |
