@@ -337,17 +337,28 @@
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  /* La flecha anima fondo Y color, y va con el par de SUPERFICIE en los
-     dos: si cada propiedad tomara el suyo terminarían en momentos
-     distintos —150 el fondo, 100 el color— y se leería como dos cosas.
-     Es la regla de elementos apareados de animations.dev: lo que se
-     mueve junto tiene que sentirse como una unidad. Manda la propiedad,
-     salvo cuando un elemento anima las dos familias. */
-  transition: background-color var(--dur-surface) var(--ease-surface),
-    color var(--dur-surface) var(--ease-surface);
+  /* SE PINTA LA FLECHA, NO EL CUADRADO. Antes el hover rellenaba los
+     34×34 con --a1; ahora sólo cambia el color del glifo. Es unánime en
+     las dos referencias, medido en vivo:
+
+       benji .styles_backButton   "Index" 122×28, radio 0, pad 4px 0
+                                  transition: color 0.1s
+                                  rgba(0,0,0,.4) → rgba(0,0,0,.8)
+       josh  /melt-effect         "Home" 62×20, radio 0, pad 0
+                                  rgb(163,163,163) → rgb(23,23,23)
+
+     Los dos: no pintan fondo, cambian el color, no se mueven. Y los
+     0.1s de benji son exactamente el --dur-text que ya teníamos.
+
+     Como ahora anima UNA sola familia, la excepción del par se fue: ya
+     no hay un elemento que anime superficie y texto a la vez, así que
+     la regla queda limpia — manda la propiedad, y nada más. */
+  transition: color var(--dur-text) var(--ease-text);
 }
+/* El cuadrado de 34×34 se queda, pero invisible: es el área de click. Y
+   el radio también, porque es lo que le da forma al anillo de foco —
+   el outline sigue el border-radius. */
 .back:hover {
-  background: var(--a1);
   color: var(--ink);
 }
 

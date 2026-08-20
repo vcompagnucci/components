@@ -210,9 +210,14 @@
   --selection-color: var(--ink);
 
   /* rampa alfa */
-  /* --a1 lo usa el foco. --a4 y --card-ring se fueron con el anillo de
+  /* --a1 SE FUE: su único lector era el fondo del hover de la flecha de
+     volver, y ese hover ahora pinta sólo el glifo —como hacen las dos
+     referencias, medido—. Un token sin lector es código muerto. Su
+     valor era rgba(0,0,0,.04) en claro, invertido en oscuro y al doble
+     en alto contraste. (Antes acá decía que lo usaba el foco: no era
+     cierto, el foco usa --focus-outline.)
+     --a4 y --card-ring se fueron con el anillo de
      la card: elegida la regla de josh, no hay ninguna línea que pintar. */
-  --a1: rgba(0, 0, 0, 0.04);
   /* la hairline de benji: #f2f2f2 → (255-242)/255 = .051. En alpha y no
      en sólido para que componga sobre --canvas y no asuma blanco puro */
   --hairline: rgba(0, 0, 0, 0.051);
@@ -794,7 +799,6 @@ html {
 
     /* Mismo número, base dada vuelta. La regla de linear. */
     --hairline: rgba(255, 255, 255, 0.051);
-    --a1: rgba(255, 255, 255, 0.04);
 
     --index-activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
 
@@ -876,7 +880,6 @@ html {
     --link-underline-hover: var(--ink);
 
     --hairline: rgba(0, 0, 0, 0.102);
-    --a1: rgba(0, 0, 0, 0.08);
 
     --focus-outline: 2px solid #0042ad;
   }
@@ -894,7 +897,6 @@ html {
     --link-underline-hover: var(--ink);
 
     --hairline: rgba(255, 255, 255, 0.102);
-    --a1: rgba(255, 255, 255, 0.08);
 
     --focus-outline: 2px solid #589cfe;
   }
