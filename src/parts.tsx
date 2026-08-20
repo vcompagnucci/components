@@ -7,6 +7,29 @@ import type { Piece } from './pieces'
 
 export const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-')
 
+/* EL INTERCEPTOR DE UN LINK DE CLIENTE. Medido en benji: su ítem de
+   lista es un <a href="/drawesome"> y el clic normal navega del lado del
+   cliente —cero pedidos de documento— pero cmd-click abre pestaña nueva.
+
+   Deja pasar todo lo que el navegador hace mejor: cualquier tecla
+   modificadora, y cualquier botón que no sea el principal. Sólo el clic
+   pelado se convierte en navegación de cliente. Sin esto no hay
+   cmd-click, ni clic del medio, ni "abrir en pestaña nueva" o "copiar
+   dirección" en el menú contextual.
+
+   Vive acá y no adentro de un componente porque lo usan dos: la pieza de
+   la lista y las solapas del área privada. Es la regla, no un detalle de
+   ninguno de los dos. */
+export function clicDeLink(accion: () => void) {
+  return (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented) return
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (e.button !== 0) return
+    e.preventDefault()
+    accion()
+  }
+}
+
 /* La BASE de un renglón: la línea sobre la que se apoyan las letras.
    Es por donde se alinean dos textos, y no por el medio de sus cajas:
    los renglones del índice son 13/16 y los de la página 14/20, así que
@@ -48,27 +71,17 @@ export function Item({
      "Web" se apoya en la misma línea que este título. */
   primera?: boolean
 }) {
-  /* ES UN <a href> DE VERDAD, no un botón. Medido en benji: su ítem de
-     lista es un <a href="/drawesome"> y el clic normal navega del lado
-     del cliente —cero pedidos de documento— pero cmd-click abre pestaña
-     nueva. Era un <button> con pushState y por eso no había cmd-click,
-     ni clic del medio, ni "abrir en pestaña nueva" o "copiar dirección"
-     en el menú contextual; y un lector de pantalla anunciaba "botón".
-
-     El interceptor deja pasar todo lo que el navegador hace mejor:
-     cualquier tecla modificadora, y cualquier botón que no sea el
-     principal. Sólo el clic pelado se convierte en navegación de
-     cliente. */
-  const abrir = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.defaultPrevented) return
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    if (e.button !== 0) return
-    e.preventDefault()
-    onOpen(piece)
-  }
-
+  /* ES UN <a href> DE VERDAD, no un botón. Era un <button> con pushState
+     y por eso un lector de pantalla anunciaba "botón" y no había ninguna
+     de las affordances de un link. El porqué del interceptor está arriba,
+     en clicDeLink. */
   return (
-    <a className={css.streamItem} id={slug(piece.name)} href={`/${slug(piece.name)}`} onClick={abrir}>
+    <a
+      className={css.streamItem}
+      id={slug(piece.name)}
+      href={`/${slug(piece.name)}`}
+      onClick={clicDeLink(() => onOpen(piece))}
+    >
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
         {piece.name}
       </div>

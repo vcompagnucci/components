@@ -398,6 +398,23 @@
      mismo número en todo ancho. */
   --page-padding-bottom: 80px;
 
+  /* EL ESCALÓN DEL MARCO — uno solo, en 768, y mueve dos cosas a la vez.
+     Es el de benji, leído de su CSS servido:
+
+       .styles_container__YJPlC{padding:5rem 1rem 2.5rem; …}
+       @media screen and (max-width:768px){
+         .styles_container__YJPlC{padding:2rem 1.5rem 2.5rem}}
+
+     → aire arriba 80 → 32, márgenes 16 → 24. Verificado al píxel en su
+     página: a 769 el aire son 80, a 768 son 32.
+
+     Se eligió su manera y no la de josh, que no escalona nada (672 · 24
+     · 64 desde 320 hasta 2560, cero clases responsive en el marco).
+
+     El bloque que lo aplica está abajo de este :root. Va en :root y no
+     sobre una clase porque es una propiedad DEL MARCO y hay más de un
+     marco: la página y el área privada. */
+
   /* 592 = 37rem justos. Elegido con scrubber sobre la página real, entre
      el de benji (582, su 36.375rem) y el de josh (672, 42rem). Con el
      padding de 16 la columna queda en 560 = 35rem: los dos caen en rem
@@ -710,6 +727,15 @@
   --card-app-slot-ancho: 228px;
   --card-app-slot-detalle: 319px;
   --card-app-slot-ratio: 228 / 448;
+}
+
+/* El escalón. El porqué de cada número está arriba, en :root. */
+@media (max-width: 768px) {
+  :root {
+    --page-padding-top: 32px; /* 2rem */
+    --page-padding-bottom: 32px; /* el de abajo acompaña al de arriba */
+    --page-padding-inline: 24px; /* 1.5rem */
+  }
 }
 
 *,

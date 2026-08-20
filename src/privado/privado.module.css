@@ -1,0 +1,82 @@
+/* ═══════════════════════════════════════════════════════════════
+   EL MARCO DEL ÁREA PRIVADA
+
+   Usa LOS MISMOS TOKENS que el producto y ni un número suelto de
+   color, tipografía o motion. Lo que no comparte son las CLASES: el
+   riel de la página son 592px y la grilla del vault tiene que ser más
+   ancha, así que reusar .content sería heredar justo lo que no sirve.
+
+   Tokens compartidos, composición propia.
+
+   EL ANCHO NO SE DECIDE ACÁ. El marco pone el aire al borde y nada
+   más; cada vista elige su propio riel. Así la fase 1 no inventa un
+   número que la fase 3 tendría que discutir de nuevo.
+   ═══════════════════════════════════════════════════════════════ */
+.marco {
+  padding: var(--page-padding-top) var(--page-padding-inline) var(--page-padding-bottom);
+}
+
+/* LA BARRA — vault y playground.
+
+   Pesa lo mismo que el índice lateral y usa su mismo juego de tokens:
+   13px/460 al gris de nav, y el activo sube a --activo-c. Es
+   exactamente el rol para el que se nombró ese token —"ésta", porque
+   la estás señalando o porque es donde estás— y por eso acá no hay
+   ninguna decisión de color nueva.
+
+   La distancia entre solapas es lo ÚNICO elegido a ojo de este
+   archivo, y se declara con nombre en vez de quedar suelta en la
+   regla. 16 es múltiplo de 4 y es lo que separa dos palabras cortas
+   sin que se lean como una; con 8 —el de entre links del índice, que
+   es vertical— quedan pegadas. Es andamio: se revisa cuando la barra
+   tenga algo más que dos palabras. */
+.barra {
+  --privado-solapa-gap: 16px;
+  /* El aire hasta el contenido es --section-content-gap, el mismo que
+     hay del rótulo de sección a su primera pieza. Es el mismo rol: un
+     encabezado y lo que encabeza. */
+  display: flex;
+  gap: var(--privado-solapa-gap);
+  margin-bottom: var(--section-content-gap);
+}
+
+/* text-decoration:none apaga el subrayado global de <a>. Acá no aplica:
+   la regla del subrayado es para un link DENTRO DE PROSA, que necesita
+   distinguirse del texto que lo rodea. Una solapa de navegación no está
+   adentro de nada. Es lo que ya hace .streamItem por lo mismo. */
+.solapa {
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.solapa[data-activa] {
+  color: var(--activo-c);
+}
+/* Sin gatear por (hover: hover), al revés que el índice. El artefacto
+   del toque pegado aparece donde tocar NO desmonta el elemento; acá la
+   solapa cambia de vista y se vuelve a pintar sola. Es el mismo
+   razonamiento que deja la card y la flecha de volver sin gatear. */
+.solapa:hover {
+  color: var(--activo-c);
+}
+
+/* EL ESTADO VACÍO. Va en el gris secundario y no en tinta: la regla del
+   sistema es que la prosa va en ink y lo que ANOTA va en gris. "Sin
+   clips" no es contenido, es una nota sobre el estado del contenido.
+
+   Alineado a la izquierda, con el resto. Nada en esta página está
+   centrado. */
+.vacio {
+  margin: 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}

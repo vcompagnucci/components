@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
@@ -7,6 +7,42 @@ import { NotFound } from './not-found'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
+
+/* ═══════════ LAS RUTAS PRIVADAS ═══════════
+   El vault y el playground. NO SE PUBLICAN: existen sólo mientras corre
+   el servidor de desarrollo, y no porque el host las bloquee sino
+   porque el código no llega al build.
+
+   Son DOS PLIEGUES, y hacen falta los dos:
+
+     1. la lista        import.meta.env.DEV ? [...] : []
+     2. el componente   import.meta.env.DEV ? lazy(() => import(…)) : null
+
+   Vite reemplaza import.meta.env.DEV por `false` al construir, los dos
+   ternarios se pliegan a su rama vacía, y con eso desaparecen tanto las
+   cadenas "/vault" y "/playground" como el import dinámico entero —
+   Rollup no genera el chunk de algo que nadie alcanza. Sin el pliegue 1
+   las rutas quedarían escritas en el bundle; sin el 2 quedaría el
+   código. Verificado contando ocurrencias en dist/.
+
+   La lista vive acá y no adentro de src/privado/ por la misma razón:
+   importarla del otro lado la ataría al bundle. Acá es el router el que
+   sabe qué rutas hay —que ya es su trabajo, igual que con las piezas— y
+   src/privado/ sólo sabe dibujarlas.
+
+   Y como en producción la lista queda vacía, desdeUrl nunca devuelve
+   'privado' y /vault cae en la misma rama que cualquier URL inventada:
+   404, sin ninguna regla especial. */
+export type Privada = { ruta: string; nombre: string }
+
+const PRIVADAS: Privada[] = import.meta.env.DEV
+  ? [
+      { ruta: '/vault', nombre: 'Vault' },
+      { ruta: '/playground', nombre: 'Playground' },
+    ]
+  : []
+
+const Privado = import.meta.env.DEV ? lazy(() => import('./privado/privado')) : null
 
 /* Rutas sin router: son TRES vistas. `/` es la lista, `/button` la
    pieza, y cualquier otra cosa es una ruta que no existe.
@@ -32,7 +68,11 @@ const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
    host puede servir index.html sólo para ésas y devolver un 404 de
    verdad para todo lo demás — que es exactamente lo que hacen los dos.
    Está en vercel.json. */
-type Vista = { tipo: 'lista' } | { tipo: 'pieza'; piece: Piece } | { tipo: 'nada' }
+type Vista =
+  | { tipo: 'lista' }
+  | { tipo: 'pieza'; piece: Piece }
+  | { tipo: 'privado'; privada: Privada }
+  | { tipo: 'nada' }
 
 const desdeUrl = (): Vista => {
   let ruta: string
@@ -46,6 +86,10 @@ const desdeUrl = (): Vista => {
     history.replaceState(history.state, '', ruta + location.search + location.hash)
   }
   if (ruta === '' || ruta === '/') return { tipo: 'lista' }
+  /* En producción PRIVADAS está vacío, así que este find nunca acierta y
+     /vault cae en 'nada' como cualquier URL inventada. */
+  const privada = PRIVADAS.find((p) => p.ruta === ruta)
+  if (privada) return { tipo: 'privado', privada }
   const encontrada = PIECES.find((p) => slug(p.name) === ruta.slice(1))
   return encontrada ? { tipo: 'pieza', piece: encontrada } : { tipo: 'nada' }
 }
@@ -199,9 +243,15 @@ export function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  /* Las rutas privadas llevan su propio nombre y no el del producto: no
+     son el producto, y con dos pestañas abiertas el nombre es lo único
+     que las distingue. El resto —la lista y la ruta que no existe— sigue
+     diciendo "Library", igual que antes. */
   useEffect(() => {
-    document.title = selected ? `${selected.name} — Library` : 'Library'
-  }, [selected])
+    if (vista.tipo === 'pieza') document.title = `${vista.piece.name} — Library`
+    else if (vista.tipo === 'privado') document.title = vista.privada.nombre
+    else document.title = 'Library'
+  }, [vista])
 
   /* Volver a la lista devuelve el scroll donde estabas. Sin esto la
      lista reaparece arriba de todo y perdés el lugar, que con 18 piezas
@@ -214,6 +264,15 @@ export function App() {
     }
     window.scrollTo(0, esLista ? listScroll.current : 0)
   }, [vista])
+
+  /* Navegación de cliente genérica: empuja la URL y relee la vista de
+     ella. Que la vista salga de desdeUrl() y no de un argumento es a
+     propósito — así llegar a /vault por link, por barra de direcciones o
+     por el botón de atrás pasa siempre por el mismo camino. */
+  const ir = (ruta: string) => {
+    history.pushState({}, '', ruta)
+    setVista(desdeUrl())
+  }
 
   const open = (p: Piece) => {
     listScroll.current = window.scrollY
@@ -240,6 +299,20 @@ export function App() {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   })
+
+  /* El `&& Privado` no es defensivo, es lo que le dice a TypeScript que
+     en producción esto no existe. Y no puede darse el caso de una vista
+     privada sin componente: las dos salen del mismo import.meta.env.DEV. */
+  if (vista.tipo === 'privado' && Privado) {
+    return (
+      /* fallback en null y no en un cartel: el chunk está en disco, a un
+         fetch del servidor local, y cualquier cosa que se dibuje sería un
+         parpadeo de un cuadro. */
+      <Suspense fallback={null}>
+        <Privado vistas={PRIVADAS} actual={vista.privada.ruta} ir={ir} />
+      </Suspense>
+    )
+  }
 
   if (vista.tipo === 'nada') {
     return <NotFound />

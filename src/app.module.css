@@ -447,24 +447,10 @@
   aspect-ratio: var(--card-app-slot-ratio);
 }
 
-/* ═══════════ EL ESCALÓN ═══════════
-   Uno solo, en 768, y mueve dos cosas a la vez. Es el de benji, leído
-   de su CSS servido:
-
-     .styles_container__YJPlC{padding:5rem 1rem 2.5rem; …}
-     @media screen and (max-width:768px){
-       .styles_container__YJPlC{padding:2rem 1.5rem 2.5rem}}
-
-   → aire arriba 80 → 32, márgenes 16 → 24. Verificado al píxel en su
-   página: a 769 el aire son 80, a 768 son 32.
-
-   Se eligió su manera y no la de josh, que no escalona nada (672 · 24 ·
-   64 desde 320 hasta 2560, cero clases responsive en el marco). */
-@media (max-width: 768px) {
-  .page {
-    --page-padding-top: 32px; /* 2rem */
-    --page-padding-bottom: 32px; /* el de abajo acompaña al de arriba */
-    --page-padding-inline: 24px; /* 1.5rem */
-  }
-}
+/* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que
+   pisa. Vivía acá, sobre .page, cuando .page era el único marco que
+   había; ahora el área privada tiene el suyo y heredarlo de :root es
+   tenerlo escrito una vez y no dos. Los tres lectores —.mast, .content
+   y .page— están todos adentro de .page, así que el cambio no mueve un
+   píxel: se verificó a 769 y a 768 en las dos formas. */
 
