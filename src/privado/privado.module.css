@@ -8,12 +8,29 @@
 
    Tokens compartidos, composición propia.
 
-   EL ANCHO NO SE DECIDE ACÁ. El marco pone el aire al borde y nada
-   más; cada vista elige su propio riel. Así la fase 1 no inventa un
-   número que la fase 3 tendría que discutir de nuevo.
+   EL MARCO SÓLO OWNS LO VERTICAL. El aire de los costados lo aplica
+   cada vista, no él, y eso NO es prolijidad: el playground es un canvas
+   a sangre y no puede tener márgenes, mientras que el vault sí los
+   necesita. Un padding en el marco se los impondría a los dos.
+
+   EL RIEL DEL ÁREA PRIVADA SON 80. No es un número nuevo: es el mismo
+   80 que ya usa el sistema para el aire de arriba de la página y para
+   el desplazamiento del índice lateral, medido de benji. A 1440 deja la
+   grilla en 1280, que da exactamente el ancho del contenedor de la
+   vista de artículos de linear —medido, no buscado—. La de figma usa
+   176 de margen sobre 1728, que es el mismo orden.
+
+   Abajo de 768 cae a --page-padding-inline: con la grilla en una
+   columna, 80 de margen a cada lado se come la pantalla.
    ═══════════════════════════════════════════════════════════════ */
 .marco {
-  padding: var(--page-padding-top) var(--page-padding-inline) var(--page-padding-bottom);
+  --privado-inline: 80px;
+  padding-block: var(--page-padding-top) var(--page-padding-bottom);
+}
+@media (max-width: 768px) {
+  .marco {
+    --privado-inline: var(--page-padding-inline);
+  }
 }
 
 /* LA BARRA — vault y playground.
@@ -38,6 +55,7 @@
   display: flex;
   gap: var(--privado-solapa-gap);
   margin-bottom: var(--section-content-gap);
+  padding-inline: var(--privado-inline);
 }
 
 /* text-decoration:none apaga el subrayado global de <a>. Acá no aplica:
@@ -74,6 +92,7 @@
    centrado. */
 .vacio {
   margin: 0;
+  padding-inline: var(--privado-inline);
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);

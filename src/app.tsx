@@ -310,6 +310,10 @@ export function App() {
          parpadeo de un cuadro. */
       <Suspense fallback={null}>
         <Privado vistas={PRIVADAS} actual={vista.privada.ruta} ir={ir} />
+        {/* El toggle de tema también acá: el área privada usa los mismos
+            tokens, así que hay que poder mirarla en oscuro. Vive abajo;
+            las opciones de cada vista van arriba, para no pisarse. */}
+        <Lab />
       </Suspense>
     )
   }

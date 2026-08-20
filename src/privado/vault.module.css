@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════════
+   LA GRILLA DEL VAULT
+
+   Lo medido está en .context/recon/vault/GRILLA.md. Resumen de dónde
+   coinciden las dos referencias, que es lo que se toma sin discutir:
+
+     proporción del media    16:9   linear y figma
+     hueco entre filas       64     linear y figma
+     título → caption        8      linear y figma
+
+   Y dónde NO coinciden, que es lo que hay que elegir mirando:
+
+     canaleta          figma 32 sin línea   ·  linear 64 con línea de 1px
+     media → título    figma 16             ·  linear 24
+
+   ─── LO QUE NINGUNA DE LAS DOS RESUELVE ───
+
+   Sus clips son TODOS apaisados. Los nuestros no: una grabación de
+   teléfono da 0.46 y una captura de escritorio 1.60, medido sobre el
+   vault de prueba. Una caja 16:9 fija le queda perfecta a la segunda y
+   deja a la primera como una tira flaca en el medio de un rectángulo
+   vacío.
+
+   Por eso la forma de la caja es un toggle de /prototype y no una
+   decisión copiada: es la única parte de esta grilla para la que no hay
+   referencia que valga.
+   ═══════════════════════════════════════════════════════════════ */
+.vault {
+  padding-inline: var(--privado-inline);
+}
+
+/* ─── EL FILTRO ───
+   Texto pelado, sin píldoras ni cajas: es lo que hacen las dos
+   referencias (linear "All · Changelog · Product launches…", figma
+   "All · Product · Company…"). El activo se pinta y el resto queda en
+   gris, que es exactamente el par --type-nav-c → --activo-c que ya
+   gobierna el índice de la página.
+
+   Va a 14px y no a los 13 de la barra de arriba: la barra es el chrome
+   del área privada y esto es el control de ESTA página. Un escalón de
+   presencia sin agregar un tamaño nuevo al sistema. */
+.filtros {
+  display: flex;
+  gap: 16px;
+  /* figma: del título de página a sus filtros hay 16 */
+  margin-top: 16px;
+}
+.filtro {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.filtro[data-activo] {
+  color: var(--activo-c);
+}
+.filtro:hover {
+  color: var(--activo-c);
+}
+/* La cuenta, en la misma línea. No es decoración: con el filtro puesto
+   es la única forma de saber cuántos quedaron afuera. */
+.cuenta {
+  margin-left: auto;
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--type-meta-c);
+}
+
+/* ─── LA GRILLA ─── */
+.grilla {
+  /* De figma, medido: 3 columnas de 437.33 con 32 de canaleta. */
+  --vault-columnas: 3;
+  --vault-canaleta: 32px;
+  /* Los dos referentes coinciden en 64. */
+  --vault-fila: 64px;
+  /* figma 16 · linear 24. Elegido: figma, porque su tarjeta tampoco
+     tiene descripción y el bloque de texto es igual de corto. */
+  --vault-media-titulo: 16px;
+  /* Los dos coinciden en 8. */
+  --vault-titulo-caption: 8px;
+
+  /* figma: de los filtros a la grilla, 64 */
+  margin-top: var(--section-gap);
+  display: grid;
+  grid-template-columns: repeat(var(--vault-columnas), minmax(0, 1fr));
+  column-gap: var(--vault-canaleta);
+  row-gap: var(--vault-fila);
+  /* start y no stretch: con la caja libre cada tarjeta mide lo suyo y
+     no se estira hasta la más alta de su fila. */
+  align-items: start;
+}
+
+.card {
+  position: relative;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ─── EL MEDIO ───
+   La caja lleva el fondo de la card del sistema, no negro: cuando el
+   clip no la llena, lo que se ve es la superficie del producto y no un
+   agujero. */
+.media {
+  border-radius: var(--card-radio);
+  overflow: hidden;
+  background: var(--surface);
+  display: block;
+}
+.media > * {
+  display: block;
+}
+
+/* 1 · CONTENIDA — la caja es 16:9 y el clip entra entero.
+   Es la copia literal de las dos referencias. Honesto con el material:
+   nunca te esconde nada. El costo lo pagan los verticales, que quedan
+   como una tira en el medio. */
+[data-forma='contenida'] .media {
+  aspect-ratio: 16 / 9;
+}
+[data-forma='contenida'] .media > * {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 2 · RECORTADA — la caja es 16:9 y el clip la llena, recortándose.
+   La grilla queda perfecta y no hay un solo hueco. El costo es que a un
+   clip de teléfono le corta arriba y abajo, que es justo donde viven un
+   sheet y una tab bar. */
+[data-forma='recortada'] .media {
+  aspect-ratio: 16 / 9;
+}
+[data-forma='recortada'] .media > * {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 3 · LIBRE — la caja toma la forma del clip.
+   Sin aspect-ratio y sin object-fit: el ancho manda y la altura sale de
+   la proporción natural del archivo. Es lo que hace un muro de
+   inspiración de verdad, y es lo único que no miente sobre la forma de
+   lo que guardaste. El costo es el borde de abajo desparejo, porque las
+   filas quedan tan altas como su tarjeta más alta. */
+[data-forma='libre'] .media > * {
+  width: 100%;
+  height: auto;
+}
+
+/* ─── LA LÍNEA DE LA CANALETA ───
+   Sólo en la variante de linear. Su grilla no usa column-gap: usa
+   PISTAS de 64px entre las columnas de contenido, y adentro de cada una
+   va la línea. Acá se llega a lo mismo con un pseudo-elemento en el
+   medio de la canaleta, que evita tener que reescribir
+   grid-template-columns cuando cambia la cantidad de columnas. */
+[data-canaleta='linea'] .card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(var(--vault-canaleta) / -2);
+  width: 1px;
+  background: var(--hairline);
+}
+/* La última de cada fila no lleva línea a la derecha. Va escrito una vez
+   por cantidad de columnas y no con la variable, porque nth-child() NO
+   acepta custom properties: su argumento se parsea con la gramática de
+   selectores, que se resuelve antes de que exista un valor calculado. */
+[data-canaleta='linea'][data-columnas='2'] .card:nth-child(2n)::after,
+[data-canaleta='linea'][data-columnas='3'] .card:nth-child(3n)::after,
+[data-canaleta='linea'][data-columnas='4'] .card:nth-child(4n)::after {
+  display: none;
+}
+
+/* ─── EL TEXTO ───
+   Nuestro sistema es de UN tamaño y la jerarquía la hace el peso. Las
+   referencias usan tamaños distintos (linear 20 el título y 13 la
+   meta), y acá eso no se copia: el título va en 500 —el mismo peso que
+   el título de una pieza— y el caption en 460. */
+.cuerpo {
+  margin-top: var(--vault-media-titulo);
+}
+.titulo {
+  font-size: var(--type-h3-fs);
+  font-weight: var(--type-h3-fw);
+  letter-spacing: var(--type-h3-ls);
+  line-height: var(--type-h3-lh);
+  color: var(--type-h3-c);
+}
+/* Categoría y fecha en una sola línea, como la referencia de figma. La
+   categoría en tinta y la fecha en gris: no es una decisión de color
+   nueva, es la regla del sistema —lo que se lee va en ink, lo que anota
+   va en gris— aplicada a las dos mitades de la misma línea. */
+.caption {
+  margin-top: var(--vault-titulo-caption);
+  display: flex;
+  gap: 6px;
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--type-meta-c);
+}
+.fuente {
+  color: var(--ink);
+  text-transform: capitalize;
+}
+/* El clip que quedó suelto en la raíz del vault, sin carpeta que lo
+   clasifique. Se marca en vez de esconderse: así se ve que hay que
+   acomodarlo. */
+.suelto {
+  color: var(--type-meta-c);
+}
+
+/* ─── EL HOVER ───
+   El de linear, medido: NADA se mueve, NADA escala y la imagen NO se
+   oscurece. Lo único que pasa es que aparece una flecha.
+
+   Su transición es 100ms con la curva quad, y acá se usan los tokens
+   del sistema que dicen lo mismo por propiedad: la opacidad y el
+   transform son del elemento entero, así que van juntos con el par de
+   texto —100ms— que es el número que él usa. */
+.flecha {
+  margin-left: 2px;
+  opacity: 0;
+  transform: translateX(-2px);
+  transition:
+    opacity var(--dur-text) var(--ease-text),
+    transform var(--dur-text) var(--ease-text);
+}
+.card:hover .flecha,
+.card:focus-visible .flecha {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ─── EL ESCALÓN ───
+   Abajo de 768 la grilla es de una columna sí o sí, pase lo que pase
+   con el toggle: tres columnas de 100px no son una grilla. */
+@media (max-width: 768px) {
+  .grilla {
+    /* Se pisa la propiedad resuelta y NO la variable. El toggle escribe
+       --vault-columnas en el atributo style, y una variable de hoja de
+       estilos no le gana a una inline sin !important. Escribiendo
+       grid-template-columns directo, la cascada normal alcanza. */
+    grid-template-columns: minmax(0, 1fr);
+    --vault-canaleta: 0px;
+  }
+  [data-canaleta='linea'] .card::after {
+    display: none;
+  }
+}
+
+/* ─── ESTADOS ───
+   El vault sin conectar. No es un error de la app: falta un dato de
+   configuración, y el mensaje dice exactamente cuál y dónde ponerlo. */
+.aviso {
+  margin-top: var(--section-content-gap);
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+.aviso code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--ink);
+}

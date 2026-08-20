@@ -1,4 +1,41 @@
 /* Picker canónico de /prototype. Es andamio, no diseño del producto. */
+
+/* La PILA es la que está fija, no cada picker. Con dos o tres opciones
+   apiladas, si cada una se posicionara sola habría que darle a cada una
+   su desplazamiento a mano y recalcularlos al agregar la siguiente. */
+:global(.proto-pila) {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+/* relative y no static: el highlight se mueve con el offsetLeft del
+   botón activo, y offsetLeft se mide contra el offsetParent. En static
+   el offsetParent pasaría a ser la pila —que está centrada y es más
+   ancha— y el highlight quedaría corrido en cada fila. */
+:global(.proto-pila[data-position='top']) {
+  bottom: auto;
+  top: 24px;
+}
+:global(.proto-pila .proto-picker) {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
+}
+
+/* La etiqueta de la fila. No es un botón: dice de qué se elige. */
+:global(.proto-picker-etiqueta) {
+  padding: 0 8px 0 6px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
 :global(.proto-picker) {
   position: fixed;
   bottom: 24px;
