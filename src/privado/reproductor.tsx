@@ -58,20 +58,8 @@ const reloj = (s: number) => {
   return `${m}:${String(r).padStart(2, '0')}`
 }
 
-export type Controles = 'esquinas' | 'barra'
-export type Pista = 'fina' | 'media' | 'oculta'
-
-export function Reproductor({
-  clip,
-  controles = 'barra',
-  pista = 'media',
-}: {
-  clip: Clip
-  controles?: Controles
-  pista?: Pista
-}) {
+export function Reproductor({ clip }: { clip: Clip }) {
   const video = useRef<HTMLVideoElement | null>(null)
-  const marco = useRef<HTMLDivElement | null>(null)
   const [corriendo, setCorriendo] = useState(false)
   const [t, setT] = useState(0)
   const [dur, setDur] = useState(0)
@@ -119,26 +107,41 @@ export function Reproductor({
     [cuadro, totalCuadros],
   )
 
-  /* El teclado sólo actúa cuando el foco está adentro del reproductor:
-     un listener global se comería las flechas de toda la página. */
+  /* EL TECLADO ESCUCHA EN EL DOCUMENTO, no en el marco.
+
+     Estaba atado al foco del reproductor, y así fallaba justo en el caso
+     que más se usa: clickeás el video para pausarlo —lo que NO le da el
+     foco al marco, porque el clic cae en el <video>— y a partir de ahí
+     las flechas no hacen nada. Quedabas pausado y sin teclado.
+
+     Ahora que las flechas visibles se fueron, el teclado es el ÚNICO
+     camino al cuadro a cuadro, así que no puede depender de dónde quedó
+     el foco. Y el listener no se come nada: sólo existe mientras hay un
+     clip abierto, y en esa vista no hay nada más que use las flechas.
+
+     Se saltea cuando el foco está en un control: si estás sobre el botón
+     de play, el espacio ya lo activa el navegador y hacerlo dos veces
+     sería volver al estado anterior. */
   useEffect(() => {
-    const el = marco.current
-    if (!el) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
+      const t = e.target as HTMLElement | null
+      const enControl =
+        t instanceof HTMLElement &&
+        (t.closest('button, input, textarea, select') || t.isContentEditable)
       if (e.key === 'ArrowRight') {
         e.preventDefault()
         mover(e.shiftKey ? 10 : 1)
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         mover(e.shiftKey ? -10 : -1)
-      } else if (e.key === ' ' || e.key === 'k') {
+      } else if ((e.key === ' ' || e.key === 'k') && !enControl) {
         e.preventDefault()
         alternar()
       }
     }
-    el.addEventListener('keydown', onKey)
-    return () => el.removeEventListener('keydown', onKey)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
   }, [mover, alternar])
 
   useEffect(() => {
@@ -159,16 +162,11 @@ export function Reproductor({
   }
 
   return (
-    /* tabIndex para que el marco pueda recibir el foco y con él las
-       flechas. El outline lo da el sistema. */
-    <div
-      className={css.marco}
-      data-controles={controles}
-      data-pista={pista}
-      data-corriendo={corriendo ? '' : undefined}
-      ref={marco}
-      tabIndex={0}
-    >
+    /* Sin tabIndex: el marco ya no necesita el foco porque el teclado
+       escucha en el documento. Los controles que sí son interactivos
+       —play y velocidad— son botones y entran solos al orden de
+       tabulación. */
+    <div className={css.marco} data-corriendo={corriendo ? '' : undefined}>
       <video
         className={css.video}
         ref={video}
@@ -183,39 +181,17 @@ export function Reproductor({
       />
 
       <div className={css.controles}>
-        {/* El transporte va junto —flechas y play— y no suelto: son una
-            sola cosa, y agrupados se pueden mandar de una a un rincón sin
-            que cada uno tenga que saber dónde caer. Sin esto, en la
-            variante de esquinas se pisaban entre ellos. */}
-        <div className={css.transporte}>
-          {/* Las flechas de cuadro. Se deshabilitan cuando el contenedor
-              no dio el dato, en vez de moverse "más o menos un cuadro" —
-              que es justamente lo que este reproductor existe para no
-              hacer. */}
-          <button
-            className={css.paso}
-            onClick={() => mover(-1)}
-            disabled={!cuadro}
-            aria-label="Un cuadro atrás"
-          >
-            ◀
-          </button>
-          <button
-            className={css.paso}
-            onClick={() => mover(1)}
-            disabled={!cuadro}
-            aria-label="Un cuadro adelante"
-          >
-            ▶
-          </button>
-          <button
-            className={css.play}
-            onClick={alternar}
-            aria-label={corriendo ? 'Pausar' : 'Reproducir'}
-          >
-            <Glifo pausa={corriendo} />
-          </button>
-        </div>
+        {/* NO HAY BOTONES DE CUADRO. El paso vive sólo en las flechas del
+            teclado: son más precisas —podés mantenerlas apretadas y con
+            shift saltás de a diez— y no hay que apuntarle a un botón de
+            24px mientras mirás otra cosa. Estuvieron y se sacaron. */}
+        <button
+          className={css.play}
+          onClick={alternar}
+          aria-label={corriendo ? 'Pausar' : 'Reproducir'}
+        >
+          <Glifo pausa={corriendo} />
+        </button>
 
         <div
           className={css.pista}
@@ -235,9 +211,11 @@ export function Reproductor({
           aria-valuemax={Math.round(dur * 1000)}
           aria-valuenow={Math.round(t * 1000)}
         >
+          {/* Sin perilla: con el riel en 2px la posición la dice el
+              llenado, y un círculo encima de una línea así de fina pesa
+              más que la línea entera. */}
           <span className={css.riel} />
           <span className={css.lleno} style={{ transform: `scaleX(${avance})` }} />
-          <span className={css.perilla} style={{ left: `${avance * 100}%` }} />
         </div>
 
         {/* El número de cuadro es el dato que se viene a buscar: con él

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import css from './vault.module.css'
 import { Volver, clicDeLink } from '../parts'
-import { Picker, Pila } from '../proto/picker'
-import { Reproductor, type Controles, type Pista } from './reproductor'
+import { Reproductor } from './reproductor'
 import { useClips, type Clip, type Fuente } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
@@ -30,13 +29,6 @@ type Filtro = (typeof FILTROS)[number]
    obliga al navegador a buscar ahí y pintar ESE cuadro. 0.1 y no 0
    porque en 0 algunos contenedores todavía no tienen un cuadro clave. */
 const primerCuadro = (url: string) => `${url}#t=0.1`
-
-/* Los dos ejes del reproductor que todavía no están decididos. Ver
-   reproductor.module.css: uno existe porque apple y benji no coinciden
-   en dónde ponen sus controles, y el otro porque para la barra de
-   tiempo no hay NINGUNA referencia medible. */
-const CONTROLES: readonly Controles[] = ['barra', 'esquinas']
-const PISTAS: readonly Pista[] = ['fina', 'media', 'oculta']
 
 function Tarjeta({ clip, onAbrir }: { clip: Clip; onAbrir: (c: Clip) => void }) {
   return (
@@ -66,8 +58,6 @@ export function Vault() {
   const estado = useClips()
   const [filtro, setFiltro] = useState<Filtro>('todo')
   const [abierto, setAbierto] = useState<Clip | null>(null)
-  const [controles, setControles] = useState<Controles>('barra')
-  const [pista, setPista] = useState<Pista>('media')
 
   /* Escape cierra el detalle, igual que en el producto. */
   useEffect(() => {
@@ -95,8 +85,6 @@ export function Vault() {
 
   const visibles = estado.clips.filter((c) => filtro === 'todo' || c.fuente === (filtro as Fuente))
 
-  /* Los dos toggles sólo tienen sentido con un clip abierto: son del
-     reproductor, no de la grilla. Arriba, para no chocar con el tema. */
   if (abierto) {
     return (
       <div className={css.detalle}>
@@ -104,22 +92,11 @@ export function Vault() {
         <h1 className={css.detalleTitulo}>{abierto.nombre}</h1>
         <div className={css.escenario}>
           {abierto.clase === 'video' ? (
-            <Reproductor clip={abierto} controles={controles} pista={pista} />
+            <Reproductor clip={abierto} />
           ) : (
             <img src={abierto.url} alt="" />
           )}
         </div>
-        {abierto.clase === 'video' && (
-          <Pila posicion="arriba">
-            <Picker
-              etiqueta="controles"
-              opciones={CONTROLES}
-              valor={controles}
-              onCambio={setControles}
-            />
-            <Picker etiqueta="pista" opciones={PISTAS} valor={pista} onCambio={setPista} />
-          </Pila>
-        )}
       </div>
     )
   }
