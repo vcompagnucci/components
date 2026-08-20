@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import css from './vault.module.css'
+import { Picker, Pila } from '../proto/picker'
 import { enFecha, useClips, type Clip, type Fuente } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
@@ -16,6 +17,18 @@ import { enFecha, useClips, type Clip, type Fuente } from './clips'
 
 const FILTROS = ['todo', 'nativo', 'web'] as const
 type Filtro = (typeof FILTROS)[number]
+
+/* TODAS LAS CARDS MIDEN LO MISMO — decidido, y en contra de benji, que
+   deja mandar al contenido. Él tiene una columna y puede; en tres, la
+   altura variable deja filas desparejas de hasta 209px y eso se lee como
+   error.
+
+   Falta el número, y los tres candidatos salen de leer SU card de tres
+   maneras: su proporción (418), su altura literal (532), y la altura a
+   la que nuestro clip vertical entra con los 228 de ancho que él le da
+   al suyo (574). El detalle está en vault.module.css. */
+const ALTOS = ['418', '532', '574'] as const
+type Alto = (typeof ALTOS)[number]
 
 /* El primer cuadro y nada más. Un <video> con preload="metadata" no
    decodifica ninguna imagen y la caja queda negra; el fragmento #t=
@@ -56,6 +69,15 @@ function Tarjeta({ clip }: { clip: Clip }) {
 export function Vault() {
   const estado = useClips()
   const [filtro, setFiltro] = useState<Filtro>('todo')
+  const [alto, setAlto] = useState<Alto>('532')
+
+  /* Arriba, para no chocar con el toggle de tema, que vive abajo. Se va
+     apenas esté elegida la altura. */
+  const opciones = (
+    <Pila posicion="arriba">
+      <Picker etiqueta="alto de caja" opciones={ALTOS} valor={alto} onCambio={setAlto} />
+    </Pila>
+  )
 
   if (estado.cargando) return null
 
@@ -95,12 +117,16 @@ export function Vault() {
       {visibles.length === 0 ? (
         <p className={css.aviso}>Sin clips acá.</p>
       ) : (
-        <div className={css.grilla}>
+        <div
+          className={css.grilla}
+          style={{ '--vault-caja-alto': `${alto}px` } as CSSProperties}
+        >
           {visibles.map((c) => (
             <Tarjeta clip={c} key={c.ruta} />
           ))}
         </div>
       )}
+      {opciones}
     </div>
   )
 }

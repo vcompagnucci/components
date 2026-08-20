@@ -77,6 +77,13 @@
   padding: 0;
   border: 0;
   background: transparent;
+  /* La inicial en mayúscula. Va en CSS y no en el texto porque los
+     valores —"todo", "nativo", "web"— son DATOS: "nativo" y "web" son
+     los nombres de las carpetas del vault y se comparan contra ellos.
+     Capitalizarlos en el origen obligaría a bajar la caja en cada
+     comparación, que es la clase de detalle que se olvida una vez y
+     rompe el filtro sin decir nada. */
+  text-transform: capitalize;
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
@@ -121,15 +128,30 @@
   --vault-media-titulo: 16px;
   --vault-titulo-caption: 8px;
 
+  /* ─── LA ALTURA DE LA CAJA ───
+     Tres candidatos, y ninguno inventado. Los tres salen de la misma
+     card de benji medida, leída de tres maneras distintas:
+
+       418   su PROPORCIÓN. Su card es 550×532, o sea 0.968; aplicada a
+             nuestra columna de 405 da 418. Es la más compacta y la que
+             más se parece a su cuadrado.
+       532   su ALTURA literal, la de 17 de sus 45 cards. Es el número
+             que él escribe.
+       574   la altura a la que NUESTRO clip de teléfono entra con los
+             228 de ancho que él le da al suyo. Abajo de esto el clip
+             vertical se achica por falta de alto y deja de medir 228.
+
+     Se elige mirando, con /prototype. Lo que cambia entre los tres es
+     quién paga: en 418 se achica el vertical, en 574 le sobra aire al
+     apaisado. */
+  --vault-caja-alto: 532px;
+
   /* figma: de los filtros a la grilla, 64 */
   margin-top: var(--section-gap);
   display: grid;
   grid-template-columns: repeat(var(--vault-columnas), minmax(0, 1fr));
   column-gap: var(--vault-canaleta);
   row-gap: var(--vault-fila);
-  /* start y no stretch: la altura la manda el contenido de cada card,
-     que es lo de benji. Con stretch todas se estirarían hasta la más
-     alta de su fila y el clip quedaría flotando en el medio. */
   align-items: start;
 }
 
@@ -144,7 +166,19 @@
    La card de benji. El fondo es --surface, el mismo de la card del
    producto: cuando el clip no la llena, lo que se ve es la superficie
    del sistema y no un agujero. */
+/* TODAS LA MISMA ALTURA. Es una decisión tomada CONTRA benji, y queda
+   dicho: él deja que el contenido mande y por eso sus 45 cards tienen
+   cinco alturas distintas. Se lo puede permitir porque tiene una sola
+   columna; en tres, la altura variable deja las filas desparejas —la
+   peor medía 209px— y eso en una grilla se lee como error y no como
+   variedad.
+
+   El precio se paga en el clip apaisado, que queda con aire arriba y
+   abajo. Se acepta a cambio de que la grilla sea una grilla.
+
+   El número está en --vault-caja-alto, arriba. */
 .media {
+  height: var(--vault-caja-alto);
   padding: var(--card-app-padding);
   border-radius: var(--card-radio);
   overflow: hidden;
@@ -154,31 +188,30 @@
   justify-content: center;
   transition: background-color var(--dur-surface) var(--ease-surface);
 }
-/* Ni width:100% ni height:100%: el clip entra con su forma y lo que lo
-   limita es la caja. */
+/* EL CLIP LLENA SU HUECO Y `contain` HACE EL RESTO.
+
+   Con la caja de alto fijo, el elemento ocupa el hueco entero y
+   object-fit dibuja la imagen adentro respetando su proporción. La
+   franja que sobra queda transparente y como el fondo es --surface, no
+   se ve: la imagen parece flotar centrada en la caja.
+
+   O sea que la caja del ELEMENTO puede ser más grande que la imagen que
+   se ve. Es intencional y es lo que evita el otro problema: sin un
+   tamaño explícito, un clip más chico que la caja se dibujaba a su
+   tamaño natural y encogía la card — una imagen de 1×1 daba una caja de
+   81px de alto. Medido, no supuesto. Ninguna de las 45 cards de benji
+   deja que el archivo decida su tamaño: su <img> declara width:227.5px. */
 .media > * {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
-/* EL ANCHO SIEMPRE ES EXPLÍCITO, nunca el natural del archivo. Su <img>
-   declara width:227.5px y deja que la altura caiga sola; ninguna de sus
-   45 cards deja que el archivo decida su tamaño.
-
-   Sin esto, un clip más chico que la caja se dibuja a su tamaño natural
-   y la card se encoge alrededor: una imagen de 1×1 en el vault de
-   prueba daba una caja de 81px de alto. Medido, no supuesto.
-
-   El teléfono va a 228 —el ancho que él eligió, y ya es token nuestro—
-   y no al de la columna: ésa es la pieza que evita que un vertical se
-   coma la pantalla. El min() cubre la columna más angosta que eso. */
+/* El teléfono se topa a 228 —el ancho que él eligió, y ya es token
+   nuestro— y no llega al de la columna. Ésa es la pieza que evita que un
+   vertical se coma la pantalla. */
 .card[data-fuente='nativo'] .media > * {
-  width: min(var(--card-app-slot-ancho), 100%);
-}
-.card:not([data-fuente='nativo']) .media > * {
-  width: 100%;
+  max-width: var(--card-app-slot-ancho);
 }
 
 /* El hover de la superficie, el mismo de la card del producto: oscurece
@@ -259,6 +292,12 @@
   }
   .media {
     padding: 40px 24px;
+    /* En una columna la altura fija deja de tener sentido: no hay
+       vecina con la que emparejarse, y clavarla sólo agregaría aire.
+       Vuelve a mandar el contenido, que es lo de benji — y él, con una
+       columna, es exactamente este caso. */
+    height: auto;
+    min-height: 0;
   }
 }
 
