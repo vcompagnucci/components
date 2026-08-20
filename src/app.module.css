@@ -262,14 +262,18 @@
 
 /* La pieza entera es el botón: el título también es clickeable y entra
    por teclado, no sólo el rectángulo. */
+/* Es un <a href> y no un botón — ver el comentario en parts.tsx. Por eso
+   acá se neutraliza lo del ancla y no lo del botón: el subrayado y el
+   color heredado, en vez de border, background y text-align. El
+   `color: inherit` importa: sin él el título de la pieza tomaría el
+   color de link del navegador. */
 .streamItem {
   display: block;
   width: 100%;
   padding: 0;
-  border: 0;
-  background: transparent;
-  text-align: left;
   border-radius: var(--card-radio);
+  color: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 .streamItem + .streamItem {

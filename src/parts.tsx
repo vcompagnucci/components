@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import type { Piece } from './pieces'
 
@@ -47,13 +48,32 @@ export function Item({
      "Web" se apoya en la misma línea que este título. */
   primera?: boolean
 }) {
+  /* ES UN <a href> DE VERDAD, no un botón. Medido en benji: su ítem de
+     lista es un <a href="/drawesome"> y el clic normal navega del lado
+     del cliente —cero pedidos de documento— pero cmd-click abre pestaña
+     nueva. Era un <button> con pushState y por eso no había cmd-click,
+     ni clic del medio, ni "abrir en pestaña nueva" o "copiar dirección"
+     en el menú contextual; y un lector de pantalla anunciaba "botón".
+
+     El interceptor deja pasar todo lo que el navegador hace mejor:
+     cualquier tecla modificadora, y cualquier botón que no sea el
+     principal. Sólo el clic pelado se convierte en navegación de
+     cliente. */
+  const abrir = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented) return
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (e.button !== 0) return
+    e.preventDefault()
+    onOpen(piece)
+  }
+
   return (
-    <button className={css.streamItem} id={slug(piece.name)} onClick={() => onOpen(piece)}>
+    <a className={css.streamItem} id={slug(piece.name)} href={`/${slug(piece.name)}`} onClick={abrir}>
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
         {piece.name}
       </div>
       <div className={css.streamPreview} />
-    </button>
+    </a>
   )
 }
 
