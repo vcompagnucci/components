@@ -120,6 +120,39 @@ qué se tomó así.
 | Colores/espaciado | Tokens heredados del DESIGN.md de Carousels (solo tipografía, colores y tamaños) | `src/tokens.css` |
 | Stack | Vite + React 19, versiones exactas, CSS plano + CSS Modules | — |
 
+## El área privada — vault y playground
+
+Dos cosas en un mismo lugar y con distinta responsabilidad: el **vault**
+es la pared de referencias que mirás, el **playground** es donde
+construís. Ninguna de las dos se publica.
+
+Lo medido de las referencias está en `.context/recon/vault/GRILLA.md`.
+
+| Decisión | Valor | Fuente |
+| --- | --- | --- |
+| No se publica | `/vault` y `/playground` existen **sólo en dev**, y no porque el host las bloquee sino porque **el código no llega al build** | dos pliegues sobre `import.meta.env.DEV`: la lista de rutas se pliega a `[]` y el componente a `null`. Verificado: **0** ocurrencias de `vault`, `playground` y `privado`-como-ruta en `dist/`, **0** imports dinámicos, un solo chunk. En producción `/vault` cae en la misma rama que cualquier URL inventada — 404, sin regla especial |
+| ↳ el borde es una carpeta | todo lo que cuelga de `src/privado/` hereda la puerta | un flag repartido por archivos se olvida; un directorio no. La dependencia va en **un solo sentido**: lo privado puede importar del producto, nunca al revés |
+| Dónde viven los clips | En una carpeta **tuya, fuera del repo** — puede ser tu Obsidian. `VAULT_DIR` en `.env.local`, gitignoreado | ni un clip entra a git. Sin prefijo `VITE_` a propósito: con él, Vite hornearía la ruta de tu disco en el bundle del cliente |
+| ↳ el puente | plugin de Vite `apply:'serve'` que sirve esa carpeta en `/vault-media/` | en `vite build` ni se instancia. **38 chequeos HTTP** en verde |
+| ↳ tres guardas | lista **blanca** de extensiones de video e imagen · nada que empiece con punto · `realpath` de los dos lados | la blanca importa de verdad si apuntás esto a tu Obsidian: un `.md` no se sirve nunca, y no porque una regla lo bloquee sino porque no está en la lista de lo que sí. La de punto cierra `.obsidian/` y `.trash/`. La de realpath impide que un symlink camine para afuera |
+| ↳ una guarda que faltaba | la de realpath estaba **sólo al servir**, y el índice llegó a listar un symlink a `/etc/hosts` como un mp4 de 213 bytes | no se podía descargar, pero su tamaño y su fecha ya estaban publicados. Ahora está escrita una vez y la usan los dos caminos. La agarró el vault de prueba, que tiene casos hostiles a propósito |
+| ↳ Range requests | implementadas en el puente, no en el reproductor | son propiedad del **transporte**: sin ellas Chrome no puede buscar dentro del video y Safari directamente no reproduce, y llegar al cuadro exacto es todo el punto. Chrome real y WebKit cargan, buscan al medio exacto y saltan 1/60s |
+| ↳ nota de entorno | las pruebas de video van con **WebKit o `channel:'chrome'`** | el Chromium que trae Playwright se compila sin H.264 y falla con código 4 sobre bytes que los otros dos reproducen bien |
+| La carpeta es el manifiesto | nombre, fuente y fecha se **derivan** del archivo y de dónde lo soltaste. No hay JSON que mantener | un manifiesto a mano se desincroniza el día que arrastrás un archivo sin editarlo, y entonces el vault miente. Así no puede |
+| La grilla | 3 columnas · canaleta **32** · filas **64** · título→caption **8** | filas y título→caption son donde **linear.app/now y el archivo de figma coinciden exacto**, así que se toman sin discutir |
+| ↳ el riel | **80** a cada lado, cayendo a `--page-padding-inline` abajo de 768 | no es un número nuevo: es el mismo 80 del aire superior y del índice lateral. A 1440 deja la grilla en **1280**, que da exacto el contenedor de linear — convergencia, no búsqueda |
+| ↳ la canaleta va limpia | 32 sin línea, la de figma, contra los 64-con-línea de linear | su línea de 1px existe **porque sus cards no tienen fondo**: sin ella nada separaría una columna de otra. La nuestra es una superficie pintada con su propio borde, y una línea encima competiría con él |
+| **La forma de la caja** | la card de **benji** en family-values: `padding 40/60`, radio 8, flex centrado, el clip adentro con ancho explícito y la **altura mandada por el contenido** | sus clips y los de figma son **todos apaisados**; los nuestros van de **0.46** (grabación de teléfono) a **1.60** (captura de escritorio). No hay referencia que copiar, así que se probaron las tres respuestas obvias con `/prototype` y las tres fallan: 16:9 conteniendo deja al vertical como una tira entre dos campos vacíos, 16:9 recortando le corta arriba y abajo —donde viven el sheet y la tab bar— y dejar que la caja siga al clip da 881px contra 253 |
+| ↳ qué hace él, medido | 45 cards **en una sola columna**, 550 de ancho fijo y **cinco alturas**: 532 ×17 · 475 ×12 · 443 ×8 · 346 ×7 · 368 ×1 | su respuesta a las formas distintas es **no imponer ninguna**. `532.42 = 40 + 448.42 + 40 + 4` — la altura la manda el contenido. Se lo permite tener una columna |
+| ↳ y ya eran tokens nuestros | `--card-app-padding` y `--card-app-slot-ancho` salieron de medir **esta misma card** para la página de piezas | no se agrega nada al sistema, se reusa |
+| ↳ el costo, dicho | tres columnas en vez de una dejan las filas **desparejas**, peor caso **209px** | se miró y se aceptó: cada epígrafe queda bajo su propia card y el conjunto se lee como un muro. La alternativa —todas a 532, su altura más usada— le mete **354px** de aire vacío a un apaisado, y eso él no lo hace nunca: su contenido corto tiene card corta |
+| ↳ el borde no se copia | sin anillo ni sombra | la regla de josh ya está decidida en `tokens.css`: la card se define por contraste. Se copia la geometría, se respeta lo decidido |
+| ↳ ancho explícito, siempre | el teléfono a **228**, el resto al 100% de la caja | ninguna de sus 45 cards deja que el archivo decida su tamaño. Sin esto un clip más chico que la caja se dibuja a su tamaño natural: una imagen de 1×1 daba una caja de **81px** de alto |
+| El hover | aparece una flecha; la imagen **no** se mueve, **no** escala y **no** se oscurece. La superficie sí oscurece, como la card del producto | medido en linear: en toda su tarjeta lo único que cambia es `opacity 0→1` y `translateX(−2→0)` en 100ms |
+| **Corrección: el zoom de benji no existe** | `react-medium-image-zoom` está en su CSS servido pero renderiza **0 elementos** en `/`, `/family-values`, `/liveline`, `/drawesome`, `/honkish` y `/pixelmelt` | mismo caso que las utilidades `active:scale` de josh. Tampoco hay hover con escala: el único `scale` que toca una card es **estático** (`1.06`, para que la captura sangre bajo el bisel del teléfono) |
+| ↳ lo que sí hace en cada card | un toggle de velocidad **1x / 0.5x** arriba a la derecha — 45 en family-values, 34 en honkish | 28×20, 12px/460, radio 38, `#989897`, dos `<span>` que se cruzan por opacidad, `all .2s ease`. Es evidencia directa para el reproductor |
+| ↳ nota de método | una sonda dio *"0 reglas `:hover` en toda la página"* y era **falso**: el número real es 68 | sus hojas son de otro origen, `sheet.cssRules` tira excepción y la sonda las salteaba en silencio. Contra CSS de otro origen hay que capturar el **texto** de la respuesta, no leer el CSSOM |
+
 ## Error 404
 
 | Decisión | Valor | Fuente |
