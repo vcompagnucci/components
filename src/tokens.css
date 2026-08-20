@@ -50,7 +50,7 @@
   --surface: #f8f8f6;
   /* El hover oscurece el relleno y NADA MÁS: ni sombra, ni escala, ni
      movimiento, ni opacidad. Eso es de josh, y la transición de 150ms
-     también — es el --dur-color que ya teníamos.
+     también — es el --dur-surface que ya teníamos.
 
      Sus cajas de demo no sirven de referencia acá porque no reaccionan
      al hover: no son clickeables. Los únicos dos hovers que tiene en las
@@ -456,11 +456,20 @@
      —"esto es una card, esto no"— sino por lo que se anima, que es lo
      que se lee en el CSS de linear:
 
-       background-color            →  --ease-surface
-       color, text-decoration-color →  --ease-text
+       background-color             →  --ease-surface · --dur-surface
+       color, text-decoration-color →  --ease-text    · --dur-text
 
-     Así la flecha de volver, que anima las dos cosas, se parte sola sin
-     que haya que decidir a qué familia pertenece.
+     CON UNA EXCEPCIÓN, Y ES LA FLECHA DE VOLVER. Anima fondo Y color a
+     la vez, así que si cada propiedad tomara su par terminarían en
+     momentos distintos —150 el fondo, 100 el color— y se leería como dos
+     cosas. La regla de elementos apareados de animations.dev es
+     explícita: "elements that animate together must use the same easing
+     and duration... si se mueven como una unidad, tienen que sentirse
+     como una unidad". Así que ahí gana el ELEMENTO y no la propiedad:
+     sus dos transiciones van con el par de superficie.
+
+     La regla completa queda: manda la propiedad, salvo cuando un solo
+     elemento anima las dos familias — ahí manda el elemento.
 
      LA SUPERFICIE VA EN EASE-OUT. Es lo que hacen las tres cards con
      hover de linear, sin una excepción:
@@ -479,6 +488,22 @@
      mañana se prefiere lo que ellos ship-ean, quad es
      cubic-bezier(.25,.46,.45,.94) y es su caballo de batalla con 60
      usos.
+
+     LA DURACIÓN TAMBIÉN SE PARTE, Y ESTO SÍ ES COMPOSICIÓN NUESTRA.
+     Ninguna de las dos referencias parte la duración: benji usa 100ms
+     para superficie y para texto, josh usa 150 para las dos. Medido en
+     runtime sobre 3 páginas de cada uno:
+
+       benji   background-color 100ms ×10   ·   color 100ms ×23
+       josh    background-color 150ms ×11   ·   color 150ms ×21 (a mano)
+                                                color 250ms ×17
+
+     Acá se toma el número de benji para el texto y el de josh para la
+     superficie. Es una combinación que ninguno de los dos ship-ea, y se
+     eligió mirando: a 100ms el hover de la card son 6 cuadros en vez de
+     9, y con un delta de 4 unidades eso lo deja casi como un encendido
+     seco; en el texto, donde el delta es de 101 unidades, los 100ms se
+     leen justos.
 
      EL TEXTO VA EN `ease`, la palabra clave. Cuatro fuentes coinciden:
        benji            CADA transición de su bundle, sin una sola curva
@@ -530,8 +555,9 @@
      La asimetría queda anotada para el PRESS, que va a existir con la
      pieza Button. Ahí las tres fuentes sí aplican. */
   --ease-surface: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-surface: 150ms;
   --ease-text: ease;
-  --dur-color: 150ms;
+  --dur-text: 100ms;
 
   /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
      al 40%, 8px entre uno y otro.
@@ -918,7 +944,7 @@ a {
   text-decoration: underline;
   text-decoration-color: var(--link-underline);
   text-decoration-thickness: 1px;
-  transition: text-decoration-color var(--dur-color) var(--ease-text);
+  transition: text-decoration-color var(--dur-text) var(--ease-text);
 }
 a:hover {
   text-decoration-color: var(--link-underline-hover);

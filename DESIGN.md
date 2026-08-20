@@ -1082,24 +1082,50 @@ su marco).
 anima nada. Y no hay una sola transición de posición: los cuatro lugares
 donde hay `transition` **cruzan un color**.
 
-| token | valor | quién lo lee |
-|---|---|---|
-| `--dur-color` | `150ms` | los cuatro |
-| `--ease-surface` | `cubic-bezier(.23,1,.32,1)` | lo que anima `background-color` |
-| `--ease-text` | `ease` | lo que anima `color` y `text-decoration-color` |
+| familia | curva | duración | qué anima |
+|---|---|---|---|
+| **superficie** | `--ease-surface: cubic-bezier(.23,1,.32,1)` | `--dur-surface: 150ms` | `background-color` |
+| **texto** | `--ease-text: ease` | `--dur-text: 100ms` | `color`, `text-decoration-color` |
 
 ```
-.indexLink      color                     --ease-text
-.streamPreview  background-color          --ease-surface
-.back           background-color          --ease-surface
-.back           color                     --ease-text
-a               text-decoration-color     --ease-text
+.indexLink      color                     100ms  ease
+.streamPreview  background-color          150ms  quint
+.back           background-color          150ms  quint      ← el par gana
+.back           color                     150ms  quint      ← sobre la propiedad
+a               text-decoration-color     100ms  ease
 ```
 
-**Dos curvas, partidas por PROPIEDAD y no por componente.** El corte es
-el que se lee en el CSS de linear, y tiene una ventaja concreta: la
-flecha de volver anima las dos cosas y se parte sola, sin que haya que
-decidir si "es una card".
+**Todo se parte por PROPIEDAD y no por componente**, que es el corte que
+se lee en el CSS de linear.
+
+**Con una excepción, y es la flecha de volver.** Anima fondo *y* color a
+la vez, así que si cada propiedad tomara su par terminarían en momentos
+distintos —150 el fondo, 100 el color— y se leería como dos cosas. La
+regla de elementos apareados de animations.dev es explícita: *"elements
+that animate together must use the same easing and duration… si se mueven
+como una unidad, tienen que sentirse como una unidad."* Ahí gana el
+**elemento**.
+
+> **La regla completa:** manda la propiedad, salvo cuando un solo
+> elemento anima las dos familias — ahí manda el elemento.
+
+### La duración se parte, y esto sí es composición nuestra
+
+**Ninguna de las dos referencias parte la duración.** Medido en runtime
+sobre 3 páginas de cada uno:
+
+```
+benji   background-color 100ms ×10   ·   color 100ms ×23
+josh    background-color 150ms ×11   ·   color 150ms ×21 (a mano)
+                                         color 250ms ×17
+```
+
+benji usa 100 para las dos familias; josh usa 150 para las dos. Acá se
+toma **el número de benji para el texto y el de josh para la
+superficie** — una combinación que ninguno de los dos ship-ea, elegida
+mirando: a 100ms el hover de la card son 6 cuadros en vez de 9, y con un
+delta de 4 unidades eso lo deja casi como un encendido seco; en el texto,
+donde el delta es de 101 unidades, los 100ms se leen justos.
 
 ### La superficie va en ease-out
 

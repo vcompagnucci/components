@@ -127,7 +127,7 @@
   color: var(--type-nav-c);
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dur-color) var(--ease-text);
+  transition: color var(--dur-text) var(--ease-text);
 }
 /* La pieza que estás mirando se pinta. La regla es la de benji: activa
    es la última cuyo borde superior ya pasó una línea a 128px del tope
@@ -301,7 +301,7 @@
   min-height: var(--card-alto);
   background: var(--surface);
   border-radius: var(--card-radio);
-  transition: background-color var(--dur-color) var(--ease-surface);
+  transition: background-color var(--dur-surface) var(--ease-surface);
 }
 /* EL SISTEMA DE JOSH, COMPLETO: el hover oscurece el relleno y no pasa
    nada más. Ni sombra, ni escala, ni movimiento, ni opacidad, ni press.
@@ -337,10 +337,14 @@
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  /* La flecha anima las dos cosas, así que se parte: su fondo es
-     superficie, su color es texto. */
-  transition: background-color var(--dur-color) var(--ease-surface),
-    color var(--dur-color) var(--ease-text);
+  /* La flecha anima fondo Y color, y va con el par de SUPERFICIE en los
+     dos: si cada propiedad tomara el suyo terminarían en momentos
+     distintos —150 el fondo, 100 el color— y se leería como dos cosas.
+     Es la regla de elementos apareados de animations.dev: lo que se
+     mueve junto tiene que sentirse como una unidad. Manda la propiedad,
+     salvo cuando un elemento anima las dos familias. */
+  transition: background-color var(--dur-surface) var(--ease-surface),
+    color var(--dur-surface) var(--ease-surface);
 }
 .back:hover {
   background: var(--a1);
