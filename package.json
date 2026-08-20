@@ -10,7 +10,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "rutas": "node scripts/rutas.mjs",
+    "prebuild": "node scripts/rutas.mjs"
   },
   "dependencies": {
     "react": "19.2.8",

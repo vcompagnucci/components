@@ -3,18 +3,51 @@ import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { Lab } from './proto/lab'
+import { NotFound } from './not-found'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 
-/* Rutas sin router: son dos vistas. `/` es la lista, `/button` la pieza.
-   Vite sirve index.html para rutas desconocidas (appType spa por
-   defecto), así que entrar directo a /button funciona en dev y en
-   preview; al desplegar, el host necesita el mismo fallback a
-   index.html — es la única condición que impone esto. */
-const fromUrl = () => {
-  const s = decodeURIComponent(location.pathname.slice(1))
-  return PIECES.find((p) => slug(p.name) === s) ?? null
+/* Rutas sin router: son TRES vistas. `/` es la lista, `/button` la
+   pieza, y cualquier otra cosa es una ruta que no existe.
+
+   Las tres respuestas son las de benji y josh, que coinciden exactas —
+   medido con curl contra las dos:
+
+     /drawesome     200            la pieza
+     /no-existe     404            la URL SE QUEDA, no redirige
+     /Drawesome     404            la mayúscula NO se normaliza
+     /drawesome/    308 → sin barra  redirect permanente al canónico
+
+   La barra final se resuelve acá con replaceState —el equivalente de
+   cliente de un 308: no agrega entrada al historial, así que el botón
+   de atrás no queda atrapado rebotando— y en el host con la config de
+   verdad. El resto no se toca: una ruta inválida se queda donde está.
+
+   Y el título NO cambia en el 404. También medido: el de benji sigue
+   diciendo "Benji Taylor" y el de josh "Josh Puckett".
+
+   El status HTTP real lo tiene que dar el host, porque un SPA que ya
+   cargó no puede cambiarlo. Como las 18 rutas se conocen en build, el
+   host puede servir index.html sólo para ésas y devolver un 404 de
+   verdad para todo lo demás — que es exactamente lo que hacen los dos.
+   Está en vercel.json. */
+type Vista = { tipo: 'lista' } | { tipo: 'pieza'; piece: Piece } | { tipo: 'nada' }
+
+const desdeUrl = (): Vista => {
+  let ruta: string
+  try {
+    ruta = decodeURIComponent(location.pathname)
+  } catch {
+    return { tipo: 'nada' }
+  }
+  if (ruta.length > 1 && ruta.endsWith('/')) {
+    ruta = ruta.replace(/\/+$/, '')
+    history.replaceState(history.state, '', ruta + location.search + location.hash)
+  }
+  if (ruta === '' || ruta === '/') return { tipo: 'lista' }
+  const encontrada = PIECES.find((p) => slug(p.name) === ruta.slice(1))
+  return encontrada ? { tipo: 'pieza', piece: encontrada } : { tipo: 'nada' }
 }
 
 /* 80px de descuento: el mismo aire superior de la página, así el título
@@ -91,8 +124,12 @@ function Index({ activa }: { activa: string | null }) {
 }
 
 export function App() {
-  const [selected, setSelected] = useState<Piece | null>(fromUrl)
+  const [vista, setVista] = useState<Vista>(desdeUrl)
   const [activa, setActiva] = useState<string | null>(null)
+  /* La lista es la única vista con índice y scrollspy; las otras dos
+     comparten "no es la lista". */
+  const selected = vista.tipo === 'pieza' ? vista.piece : null
+  const esLista = vista.tipo === 'lista'
   const listScroll = useRef(0)
   const first = useRef(true)
 
@@ -118,7 +155,7 @@ export function App() {
 
      En useLayoutEffect, antes de pintar, para que no se vea el salto. */
   useLayoutEffect(() => {
-    if (selected) return
+    if (!esLista) return
     const alinear = () => {
       const nav = document.querySelector<HTMLElement>('[aria-label="Pieces"]')
       const desde = document.querySelector<HTMLElement>(ALINEAR.desde)
@@ -131,13 +168,13 @@ export function App() {
     alinear()
     window.addEventListener('resize', alinear)
     return () => window.removeEventListener('resize', alinear)
-  }, [selected])
+  }, [esLista])
 
   /* La pieza activa necesita el scroll, porque la respuesta cambia de
      forma continua y no en un borde. Se calcula en rAF para no hacer
      layout más de una vez por cuadro. */
   useEffect(() => {
-    if (selected) return
+    if (!esLista) return
     let pedido = 0
     const leer = () => {
       pedido = 0
@@ -154,10 +191,10 @@ export function App() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [selected])
+  }, [esLista])
 
   useEffect(() => {
-    const onPop = () => setSelected(fromUrl())
+    const onPop = () => setVista(desdeUrl())
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
@@ -175,13 +212,13 @@ export function App() {
       first.current = false
       return
     }
-    window.scrollTo(0, selected ? 0 : listScroll.current)
-  }, [selected])
+    window.scrollTo(0, esLista ? listScroll.current : 0)
+  }, [vista])
 
   const open = (p: Piece) => {
     listScroll.current = window.scrollY
     history.pushState({ fromList: true }, '', `/${slug(p.name)}`)
-    setSelected(p)
+    setVista({ tipo: 'pieza', piece: p })
   }
 
   /* Si llegaste desde la lista, volvés por el historial y la pila no
@@ -193,7 +230,7 @@ export function App() {
       return
     }
     history.pushState({}, '', '/')
-    setSelected(null)
+    setVista({ tipo: 'lista' })
   }
 
   useEffect(() => {
@@ -203,6 +240,10 @@ export function App() {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   })
+
+  if (vista.tipo === 'nada') {
+    return <NotFound />
+  }
 
   if (selected) {
     return (

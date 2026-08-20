@@ -79,13 +79,6 @@
   color: #fff;
 }
 
-:global(.proto-picker-divider) {
-  width: 1px;
-  height: 16px;
-  margin: 0 4px;
-  background: rgba(255, 255, 255, 0.12);
-}
-
 :global(.proto-picker-replay) {
   padding: 0 10px;
   font-size: 14px;
@@ -96,36 +89,7 @@
   top: 24px;
 }
 
-/* Los diales, al lado del picker de presets. Mismo lenguaje visual:
-   son andamio, no diseño del producto. */
-:global(.proto-picker-readout) {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 6px;
-  color: rgba(255, 255, 255, 0.5);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-:global(.proto-picker-readout b) {
-  color: #fff;
-  font-weight: 500;
-}
-:global(.proto-picker-step) {
-  padding: 0 10px;
-  font-size: 15px;
-}
-:global(.proto-picker-chip) {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
-}
-
 :global(.proto-picker-item:disabled) {
   opacity: 0.3;
   cursor: default;
-}
-:global(.proto-picker-readout[data-apagado]) {
-  opacity: 0.3;
 }
