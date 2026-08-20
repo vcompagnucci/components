@@ -1141,20 +1141,37 @@ en sus tres páginas salen todas de una utilidad de Tailwind
 su CSS. Y el viejo `--ease-out` era el quint aplicado a las cuatro,
 incluidas las tres de texto.
 
-### Y una cosa medida que sigue abierta
+### El hover es simétrico, y se queda así
 
-Nuestro hover es **simétrico**: 150 entrando y 150 saliendo. Tres fuentes
-dicen que no debería serlo:
+150 entrando y 150 saliendo. **Hubo una vuelta atrás acá**: se había
+escrito que tres fuentes pedían asimetría, y era falso.
+
+La regla asimétrica de linear existe en su CSS —`.rWdRxW_card` con
+`:hover { transition-duration: var(--speed-highlightFadeIn) }`, donde
+`FadeIn` es `0s`— pero vive en `ContactLink.BDqMG6gX.css` y renderiza
+**cero** elementos. Es el mismo error que las utilidades `active:scale`
+de josh: está en el bundle y no la usa nadie. La card que **sí**
+renderiza, `.Dc5tqa_customerCard` ×24 en su home, es simétrica.
 
 ```
-linear · su card    --speed-highlightFadeIn: 0s   contra  FadeOut: .15s
-benji  · su botón   press 20ms                    contra  base .2s
-Apple               "respond on pointer-down, not on release"
+linear · 5 páginas   21 elementos hovereables con transición · 0 asimétricos
+benji  · su lista    opacity 0.14s ease → 0.14s ease      simétrico
+josh   · su fila     0.15s              → 0.15s           simétrico
 ```
 
-`/review-animations` lo marca como finding en su estándar 9: *"symmetric
-timing on a press-and-release is a finding"*. Está medido, prototipado y
-sin decidir.
+Y los otros dos "acuerdos" no eran de hover: los 20ms de benji son de un
+`:active`, y el *"respond on pointer-down"* de Apple es del press. El
+estándar 9 de `/review-animations` nombra textualmente *"a press, a hold,
+a destructive confirm"* y *"press-and-release or hold"* — nunca hover.
+
+Y tiene sentido que sean distintos. Un press es un acto **deliberado** y
+merece acuse instantáneo; un hover es **incidental** — el puntero cruza
+cosas que no quisiste tocar. Con entrada en 0ms, barrer la lista hace
+destellar cada card a plena intensidad. Los 150ms funcionan de hecho como
+amortiguador.
+
+La asimetría queda anotada para el **press**, que va a existir con la
+pieza Button. Ahí las tres fuentes sí aplican.
 
 **No hay bloque de `prefers-reduced-motion`** y no hace falta: no queda
 movimiento que reducir. Verificado con `reduced-motion: reduce` — la card

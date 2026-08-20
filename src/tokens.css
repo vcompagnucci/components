@@ -499,13 +499,36 @@
      CSS. Y el viejo --ease-out era el quint heredado de Carousels
      aplicado a las cuatro, incluidas las tres de texto.
 
-     LO QUE SIGUE ABIERTO: nuestro hover es SIMÉTRICO, 150 y 150. La
-     card de linear entra en 0s y sale en .15s
-     (--speed-highlightFadeIn: 0s contra --speed-highlightFadeOut:
-     .15s); el press de benji entra en 20ms contra .2s de base; Apple
-     pide responder en pointer-down. /review-animations lo marca como
-     finding en su estándar 9: "symmetric timing on a press-and-release
-     is a finding". Está medido y sin decidir. */
+     Y UNA COSA QUE PARECÍA ABIERTA Y NO LO ESTÁ: el hover es SIMÉTRICO,
+     150 entrando y 150 saliendo, y se queda así.
+
+     Hubo una vuelta atrás acá. Se había escrito que tres fuentes pedían
+     asimetría, y era falso. La regla asimétrica de linear existe
+     —.rWdRxW_card con :hover{transition-duration:var(--speed-highlight
+     FadeIn)} donde FadeIn es 0s— pero vive en ContactLink.css y
+     renderiza CERO elementos. Es el mismo error que las utilidades
+     active:scale de josh: está en el bundle y no la usa nadie. La card
+     que SÍ renderiza en linear, .Dc5tqa_customerCard, ×24 en su home,
+     es simétrica.
+
+     Barrido en vivo sobre 5 páginas de linear: 21 elementos hovereables
+     con transición, CERO cambian de duración al hover. La lista de benji
+     (opacity .14s) y la fila de josh (.15s) también son simétricas.
+
+     Y los otros dos "acuerdos" no eran de hover: los 20ms de benji son
+     de un :active, y el "respond on pointer-down" de Apple es del press.
+     El estándar 9 de /review-animations nombra textualmente "a press, a
+     hold, a destructive confirm" y "press-and-release or hold" — nunca
+     hover.
+
+     La razón por la que son distintos: un press es un acto DELIBERADO y
+     merece acuse instantáneo; un hover es INCIDENTAL, el puntero cruza
+     cosas que no quisiste tocar. Con entrada en 0ms, barrer la lista
+     hace destellar cada card a plena intensidad. Los 150ms funcionan de
+     hecho como amortiguador.
+
+     La asimetría queda anotada para el PRESS, que va a existir con la
+     pieza Button. Ahí las tres fuentes sí aplican. */
   --ease-surface: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-text: ease;
   --dur-color: 150ms;
