@@ -134,7 +134,7 @@
    del viewport. Él la marca subiendo el color y nada más — sin barra ni
    punto. */
 .indexLink[data-active] {
-  color: var(--index-activo-c);
+  color: var(--activo-c);
 }
 /* Y el hover va detrás de (hover: hover), que es el ÚNICO lugar del
    sistema donde se gatea. No es simetría: es dónde aparece el
@@ -162,7 +162,7 @@
    Tampoco tienen un índice que se quede en pantalla al tocarlo. */
 @media (hover: hover) {
   .indexLink:hover {
-    color: var(--index-activo-c);
+    color: var(--activo-c);
   }
 }
 /* El índice se esconde y no se reemplaza: es una decisión, no una
@@ -359,7 +359,26 @@
    el radio también, porque es lo que le da forma al anillo de foco —
    el outline sigue el border-radius. */
 .back:hover {
-  color: var(--ink);
+  /* Llega a --activo-c, no a la tinta. Es lo de benji, medido: su
+     .styles_backButton va de rgba(0,0,0,.4) a rgba(0,0,0,.8) y NO llega
+     a su tinta — para en 51 sobre su canvas. Nosotros paramos en 65,
+     porque el 80% se escribe desde nuestra base de ink y no desde negro
+     puro: es la misma estructura de "un alfa, dos bases" que ya rige los
+     grises de texto.
+
+     Y es el MISMO token que marca la pieza activa del índice. En su
+     sistema hover y activo son una sola declaración —
+       nav ul li a:hover, nav ul li[data-active=true] a
+         { color: hsla(0,0%,7%,.8) }
+     — porque dicen lo mismo: "ésta". Acá también.
+
+     Se descartó llegar a la tinta (17, que es lo que hace josh: su
+     "Home" va de neutral-400 a neutral-900) y llegar al nivel del hover
+     de texto (102, --link-underline-hover). El segundo era tentador
+     porque unificaría todo lo que reacciona al puntero en un solo color,
+     pero en oscuro cae en 160 contra un reposo de 155: cinco unidades,
+     invisible. */
+  color: var(--activo-c);
 }
 
 .detailHead {

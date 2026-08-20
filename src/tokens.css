@@ -153,7 +153,7 @@
      secundario sobre la card, sale bien sin tocar nada.
 
      Lo de acá es el ÚNICO nivel secundario del sistema. El otro alfa
-     que existe es --index-activo-c (80%), que es un estado, no un
+     que existe es --activo-c (80%), que es un estado, no un
      nivel. */
   --secundario-alfa: 37%;
   --text-secondary: color-mix(in srgb, #000 var(--secundario-alfa), transparent);
@@ -448,7 +448,14 @@
          { color: hsla(0,0%,7%,.8) }
      O sea que la pieza que estás mirando se destaca sin ser lo más
      oscuro de la pantalla — eso queda para los títulos. */
-  --index-activo-c: rgba(18, 18, 18, 0.8);
+  /* Y EL NOMBRE NO LLEVA EL COMPONENTE. Se llamaba --index-activo-c
+     cuando el índice era su único lector; hoy son tres —el activo del
+     índice, su hover, y el hover de la flecha de volver— en dos
+     componentes distintos. Por la regla 4, el nombre es el rol, y el rol
+     es el nivel que marca "ésta": porque la estás señalando con el
+     puntero o porque es donde estás. Que las dos cosas compartan color
+     es de él, no una economía nuestra. */
+  --activo-c: rgba(18, 18, 18, 0.8);
 
   /* motion. La página NO tiene animación de entrada: al abrir una pieza
      y al volver no se anima nada. Nada se desplaza, nada escala, nada
@@ -800,7 +807,7 @@ html {
     /* Mismo número, base dada vuelta. La regla de linear. */
     --hairline: rgba(255, 255, 255, 0.051);
 
-    --index-activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
+    --activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
 
     --selection-bg: #191918; /* +16 */
     --selection-color: var(--ink);
