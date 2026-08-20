@@ -1158,22 +1158,70 @@ Sin decidir.
 
 ---
 
+## Elevación — NO HAY, y es una decisión
+
+Cero `box-shadow` en todo el producto. La card se define por **contraste**
+contra el canvas: es la regla de josh, elegida contra la de benji, que la
+define con una línea de 1px. No hay un token de sombra porque no hay una
+sola sombra que nombrar.
+
+Medido en cuatro páginas de referencia, y el resultado es más fuerte de
+lo esperado:
+
+| página | sombras | z-index |
+|---|---|---|
+| benji · home | **0** | — |
+| benji · family-values | 52 | sí |
+| josh · home | **0** | — |
+| josh · interface-craft | **0** | — |
+
+Las 52 de benji son **todas** `0px 0px 0px 1px`: cero blur, cero offset.
+Son bordes dibujados con `box-shadow`, no elevación. **En las cuatro
+páginas no hay una sola sombra con blur.** La elevación como lenguaje
+visual no existe en ninguno de los dos.
+
+> `/better-ui` pide lo contrario —"sombras para elevación, bordes para
+> estructura"— y benji hace justo eso al revés: usa sintaxis de sombra
+> para estructura. Se sigue a las referencias, que es de dónde salió
+> todo el resto del sistema.
+
+## z-index — CERO, y todavía no es decidible
+
+Hoy nada se superpone. El índice es `fixed` pero vive en el margen y no
+pisa nada, así que ni él lo necesita.
+
+El único `z-index` del código es el del picker del lab, que es andamio.
+josh no tiene ninguno en sus dos páginas; benji los tiene sólo en
+`family-values`, su única página con demos interactivos. Es exactamente
+nuestro reparto: **el chrome de la página no necesita apilado; las piezas
+sí.**
+
+Cinco de las 18 son capas —Dialog, Sheet, Tooltip, Context Menu, Action
+Sheet— y la escala se decide cuando exista la primera. Inventarla ahora
+sería elegir números sin nada que ordenar.
+
 ## Lo que falta
 
-**Sin decidir, y no se puede decidir mirando referencias — necesita la
-primera pieza real adentro del rectángulo:**
+**No decidible todavía — necesita una pieza real adentro del rectángulo:**
 
-- focus visible en la card, active, estado vacío, loading
+- estado vacío y loading
+- la escala de apilado (arriba)
 - la escala fina de espaciado interno de componentes — aunque ahí las dos
   referencias ya coinciden: radios de 4 y 6 para controles chicos
 
 **Decidible ya:**
 
 - si el sistema suma un tamaño más grande y uno más chico
-
-**Recién cerrado:** la proporción de la card, su superficie, su hover y
-su radio. `--radius-tbd` ya no existe: es `--card-radio: 8px`.
+- los datos: 18 nombres inventados, y sus descripciones afirman valores
+  de motion que nadie midió. Una **contradice** lo medido: el `desc` de
+  Button dice `Press to scale(0.96)` y el press se descartó con 23
+  páginas de evidencia
 
 **Otra etapa:** el detalle entero — layout, la flecha `←` que hoy es un
-carácter crudo, copy-URL. Sus valores (34, 24, 10, 8, 4) están marcados
-**ANDAMIO** en el CSS.
+carácter crudo, copy-URL.
+
+> Lo que decía antes esta sección y ya no es cierto: listaba "focus
+> visible en la card" y "active" como pendientes, y los dos están
+> horneados —el anillo medido en los tres motores, y el press decidido
+> como *no hay*. También llamaba pendiente al radio, que es
+> `--card-radio: 8px` desde el censo de las 7 páginas.
