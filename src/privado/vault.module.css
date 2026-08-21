@@ -73,7 +73,11 @@
   gap: 16px;
 }
 .filtro {
-  padding: 0;
+  /* El blanco, igual que las solapas y desde el mismo token: es el
+     mismo tipo de control —una palabra clickeable sin caja— en la misma
+     fila. El porqué está en privado.module.css, en --privado-blanco-*. */
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
   border: 0;
   background: transparent;
   /* La inicial en mayúscula. Va en CSS y no en el texto porque los

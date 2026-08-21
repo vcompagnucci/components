@@ -38,6 +38,33 @@
    vista el contenido queda tapado justo abajo. */
 .marco {
   --privado-inline: 80px;
+
+  /* ─── EL BLANCO, SIN CAJA ───
+     Las dos filas de la cabecera son PALABRAS y se quedan así: ni
+     píldora, ni fondo, ni borde. Lo que crece es el área clickeable,
+     que no se ve.
+
+     El padding agranda el blanco y un margen negativo del mismo tamaño
+     lo devuelve al layout, así que el texto no se mueve ni un píxel y
+     el hueco que se ve entre palabras sigue siendo el mismo 16.
+
+     MEDIDO ANTES: los cinco controles median 16px de alto —"All" era
+     15×16— contra el mínimo de 24×24. Con esto quedan en 32 de alto y
+     ninguno por debajo de 24 de ancho.
+
+     6 A LOS COSTADOS Y NO MÁS: el hueco entre palabras es 16, así que
+     6+6 deja 4px de tierra de nadie entre un blanco y el siguiente. Con
+     8 se tocarían, y un clic justo en el medio caería en cualquiera de
+     los dos sin que se pueda saber cuál.
+
+     Arriba y abajo no hay vecino, así que los 8 salen gratis.
+
+     Vive acá y no en cada archivo porque lo leen las dos filas —las
+     solapas y el filtro— y viven en módulos distintos. Dos nombres para
+     el mismo número se separan solos con el tiempo. */
+  --privado-blanco-y: 8px;
+  --privado-blanco-x: 6px;
+
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -105,6 +132,9 @@
    distinguirse del texto que lo rodea. Una solapa de navegación no está
    adentro de nada. Es lo que ya hace .streamItem por lo mismo. */
 .solapa {
+  /* El blanco. Ver --privado-blanco-* arriba, en .marco. */
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-fw);
   letter-spacing: var(--type-nav-ls);
