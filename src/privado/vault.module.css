@@ -83,11 +83,22 @@
      comparación, que es la clase de detalle que se olvida una vez y
      rompe el filtro sin decir nada. */
   text-transform: capitalize;
-  font-size: var(--type-body-fs);
-  font-weight: var(--type-body-fw);
-  letter-spacing: var(--type-body-ls);
-  line-height: var(--type-body-lh);
-  color: var(--type-body-c);
+  /* EL MISMO JUEGO QUE LAS SOLAPAS, no uno propio. Estuvo a 14 contra
+     los 13 de ellas, buscando un escalón de presencia — y un píxel de
+     diferencia no es una jerarquía: se lee como una inconsistencia.
+
+     Desde que los dos están en las puntas de UNA fila, la POSICIÓN ya
+     hace la distinción, así que ese píxel no tenía trabajo. La fila es
+     una sola cosa —el chrome del área privada— y una sola cosa lleva un
+     solo juego de tipografía.
+
+     El activo sube a --activo-c, igual que la solapa activa: el mismo
+     token, que es el que el sistema nombró para decir "ésta". */
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
@@ -313,6 +324,18 @@
        queda, el escenario toma lo que queda de eso, y el clip se acomoda
        adentro. Si mañana la cabecera crece, el clip se achica solo. */
 .detalle {
+  /* El aire desde la barra. Lo tenía la barra como margin-bottom y se lo
+     saqué al mudar el filtro adentro de ella; la grilla se puso el suyo
+     propio, y el detalle quedó sin ninguno — la flecha de volver
+     terminaba pegada a "Vault · Playground".
+
+     Es --section-content-gap, el mismo que hay del rótulo de una sección
+     a su primera pieza: el mismo rol, un encabezado y lo que encabeza. Y
+     es exactamente el que la barra daba antes.
+
+     No los 160 de la grilla: acá el alto es finito —el clip tiene que
+     entrar entero— y cada píxel de arriba se lo saca al clip. */
+  margin-top: var(--section-content-gap);
   /* Toma todo el alto que le deja el marco. */
   flex: 1;
   min-height: 0;

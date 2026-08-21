@@ -132,8 +132,11 @@
 
    Alineado a la izquierda, con el resto. Nada en esta página está
    centrado. */
+/* Mismo aire que el detalle, y por lo mismo: la barra ya no lo da, así
+   que lo reclama el de abajo. Sin esto el playground vacío también
+   arrancaba pegado a la barra. */
 .vacio {
-  margin: 0;
+  margin: var(--section-content-gap) 0 0;
   padding-inline: var(--privado-inline);
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);

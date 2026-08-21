@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import css from './vault.module.css'
 import { Volver, clicDeLink } from '../parts'
@@ -73,19 +73,68 @@ export const rutaDeClip = (ruta: string) =>
   '/vault/' + ruta.split('/').map(encodeURIComponent).join('/')
 
 function Tarjeta({ clip, onAbrir }: { clip: Clip; onAbrir: (c: Clip) => void }) {
+  const video = useRef<HTMLVideoElement | null>(null)
+
+  /* EL CLIP SE REPRODUCE AL PASAR EL PUNTERO. Medido en linear.app/now,
+     que es lo mismo que hace benji con sus 53 videos de family-values —
+     él los arranca al entrar en pantalla, linear al hover.
+
+     Su comportamiento exacto, los cuatro puntos:
+
+       en reposo       paused, mostrando el primer cuadro
+       al hover        play(), y loop
+       AL SALIR        pause() y SE QUEDA donde estaba: medido en t=2.18
+                       después de salir, y al volver a entrar siguió en
+                       3.09. No rebobina
+       reduced-motion  NO reproduce. Verificado: con la preferencia
+                       puesta, su video se queda en paused t=0
+
+     Que retome en vez de volver a cero es el detalle que vale: en una
+     pared de referencias el puntero se te va todo el tiempo, y rebobinar
+     te haría empezar de nuevo cada vez.
+
+     Es también lo que convierte esto en un vault de MOVIMIENTO: sin
+     esto es un álbum de primeros cuadros congelados, y lo que se viene a
+     mirar acá es cómo se mueven las cosas. */
+  const reduce = () =>
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  const entrar = () => {
+    if (reduce()) return
+    video.current?.play().catch(() => {})
+  }
+  const salir = () => video.current?.pause()
+
   return (
     /* Es un <a href> de verdad, igual que la pieza del producto: el clic
        pelado abre el detalle, y cmd-click abre el clip en una pestaña
-       nueva. Mismo interceptor. */
+       nueva. Mismo interceptor.
+
+       El disparador es la CARD entera y no el video: el hueco es de 405
+       de ancho y el clip puede medir 228, así que apuntarle sólo al
+       video dejaría media card muerta. */
     <a
       className={css.card}
       href={rutaDeClip(clip.ruta)}
       data-fuente={clip.fuente ?? undefined}
       onClick={clicDeLink(() => onAbrir(clip))}
+      onMouseEnter={entrar}
+      onMouseLeave={salir}
+      /* Y también con el teclado: si podés llegar tabulando, tenés que
+         poder ver lo mismo que con el puntero. */
+      onFocus={entrar}
+      onBlur={salir}
     >
       <div className={css.media}>
         {clip.clase === 'video' ? (
-          <video src={primerCuadro(clip.url)} preload="metadata" muted playsInline />
+          <video
+            ref={video}
+            src={primerCuadro(clip.url)}
+            preload="metadata"
+            muted
+            loop
+            playsInline
+          />
         ) : (
           <img src={clip.url} alt="" loading="lazy" />
         )}
