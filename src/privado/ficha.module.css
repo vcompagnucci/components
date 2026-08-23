@@ -228,9 +228,20 @@
 .bloque {
   margin-top: 16px;
 }
-.fila + .fila,
-.fila + .bloque {
+.fila + .fila {
   margin-top: 8px;
+}
+/* Notes es un BLOQUE, no una fila: el rótulo va arriba y la nota debajo,
+   y los dos tienen que leerse como UN par. Con 8px arriba y los 2px que
+   dejaba el rótulo inline, el rótulo quedaba más cerca de la fila de
+   Device que de su propia nota —medido— y la nota se leía pegada al
+   título. Ahora ata para abajo: 16 arriba, 6 entre rótulo y nota. */
+.fila + .bloque {
+  margin-top: 16px;
+}
+.bloque .rotulo {
+  display: block;
+  margin-bottom: 6px;
 }
 /* Added se separa de lo editable: es del archivo, no tuyo. */
 .pie {

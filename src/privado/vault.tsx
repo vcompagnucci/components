@@ -3,7 +3,14 @@ import { createPortal } from "react-dom";
 import css from "./vault.module.css";
 import { Volver, clicDeLink } from "../parts";
 import { Reproductor } from "./reproductor";
-import { useClips, subirClip, type Clip, type Fuente } from "./clips";
+import {
+  useClips,
+  subirClip,
+  renombrarClip,
+  type Clip,
+  type Fuente,
+} from "./clips";
+import { alPlayground } from "./vistas";
 import { BotonFicha, FichaTecnica } from "./ficha";
 import {
   DialogoPapelera,
@@ -118,6 +125,91 @@ function Mas() {
 /* La ruta de un clip, codificada segmento por segmento: encodeURI
    entero dejaría pasar un "#" o un "?" en el nombre del archivo y
    partiría la URL. */
+/* EL TÍTULO SE EDITA EN EL LUGAR. Antes abría el diálogo de renombrar,
+   y para un nombre es demasiado ceremonia: clic, cursor, escribís. Es
+   el mismo trato que los campos de la ficha, que tampoco piden permiso.
+   El diálogo sigue vivo para la grilla, donde no hay título que tocar.
+
+   MUESTRA EL NOMBRE DE ARCHIVO, no la frase capitalizada de la card.
+   Hubo una versión que enseñaba la frase y cambiaba a nombre real al
+   enfocar: lo que ves tiene que ser lo que guardás, y con el valor
+   cambiando bajo el dedo el cursor caía en cualquier lado. La frase
+   sigue en la grilla, que es donde se lee y no se edita.
+
+   Y NO SE SELECCIONA SOLO. Seleccionar todo al enfocar pintaba un
+   bloque blanco sobre el título —el resalte del sistema, del ancho del
+   texto— que era justo lo contrario de discreto. El clic deja el
+   cursor donde lo pusiste, que es lo único que hacía falta. */
+function TituloEditable({
+  clip,
+  onRenombrado,
+}: {
+  clip: Clip;
+  onRenombrado: (ruta: string) => void;
+}) {
+  /* null = no lo estoy editando. No es un booleano aparte porque el
+     borrador Y el modo son la misma cosa. */
+  const [borrador, setBorrador] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  /* EN UN REF Y NO EN ESTADO, y es la única forma de que ande: Escape
+     tiene que limpiar el borrador y sacar el foco, pero setBorrador es
+     asíncrono y blur() es inmediato, así que el onBlur corría con el
+     borrador VIEJO todavía adentro y Escape terminaba GUARDANDO lo que
+     acababas de descartar. El ref se lee ya escrito. */
+  const cancelado = useRef(false);
+
+  const guardar = async () => {
+    if (cancelado.current) {
+      cancelado.current = false;
+      return;
+    }
+    if (borrador === null) return;
+    const nombre = borrador.trim();
+    if (!nombre || nombre === clip.archivo) {
+      setBorrador(null);
+      setError(null);
+      return;
+    }
+    try {
+      onRenombrado(await renombrarClip(clip.ruta, nombre));
+      setBorrador(null);
+      setError(null);
+    } catch (e) {
+      /* El borrador NO se borra: lo que escribiste sigue ahí para que
+         lo corrijas en vez de tener que escribirlo de nuevo. */
+      setError(String((e as Error).message));
+    }
+  };
+
+  return (
+    <div className={css.detalleTituloCaja}>
+      {/* El input vive DENTRO del h1: el detalle no puede quedarse sin
+          encabezado sólo porque el título ahora se edite. */}
+      <h1 className={css.detalleTituloMarco}>
+        <input
+          className={css.detalleTitulo}
+          value={borrador ?? clip.archivo}
+          aria-label="Rename clip"
+          spellCheck={false}
+          onFocus={() => setBorrador(clip.archivo)}
+          onChange={(e) => setBorrador(e.target.value)}
+          onBlur={guardar}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              cancelado.current = true;
+              setBorrador(null);
+              setError(null);
+              e.currentTarget.blur();
+            }
+          }}
+        />
+      </h1>
+      {error && <p className={css.detalleTituloError}>{error}</p>}
+    </div>
+  );
+}
+
 export const rutaDeClip = (ruta: string) =>
   "/vault/" + ruta.split("/").map(encodeURIComponent).join("/");
 
@@ -266,10 +358,12 @@ export function Vault({
     !estado.cargando && estado.conectado && abierto
       ? (estado.clips.find((c) => c.ruta === abierto) ?? null)
       : null;
-  /* La ficha arranca abierta: casi ningún clip tiene nada escrito, y
-     cerrada de entrada no habría cómo descubrirla. Plegarla NO mueve el
-     clip: su espacio queda reservado igual. */
-  const [fichaAbierta, setFichaAbierta] = useState(true);
+  /* La ficha arranca CERRADA. Arrancaba abierta cuando casi ningún clip
+     tenía nada escrito y de otro modo no había cómo descubrirla; ahora
+     que los videos del vault vienen con source y notas, el panel abierto
+     de entrada se come el ancho antes de que lo pidas. Plegarla NO mueve
+     el clip: su espacio queda reservado igual. */
+  const [fichaAbierta, setFichaAbierta] = useState(false);
   const [menu, setMenu] = useState<{ clip: Clip; donde: Donde } | null>(null);
   const [renombrando, setRenombrando] = useState<Clip | null>(null);
   const [borrando, setBorrando] = useState<Clip | null>(null);
@@ -292,8 +386,19 @@ export function Vault({
      reemplaza la entrada de historial, el detalle queda apuntando a un
      archivo que ya no existe y se vuelve solo a la grilla. */
   const trasRenombrar = (nueva: string) => {
-    if (clip && abierto === clip.ruta)
+    if (clip && abierto === clip.ruta) {
+      /* replaceState y NO pushState: renombrar no es navegar, y una
+         entrada nueva dejaría el botón de atrás apuntando a un nombre
+         que ya no existe.
+
+         Pero replaceState NO dispara popstate, así que el router se
+         quedaba con la ruta vieja mientras la barra mostraba la nueva:
+         recargar() traía el clip renombrado, la ruta vieja no matcheaba
+         a nadie, y el detalle se vaciaba. El evento sintético es lo que
+         le avisa —es a lo único que app.tsx escucha. */
       history.replaceState({}, "", rutaDeClip(nueva));
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
     recargar();
   };
   const trasPapelera = () => {
@@ -306,12 +411,27 @@ export function Vault({
      que la grilla y el detalle comparten el mismo código en vez de tener
      cada uno el suyo. */
   const sujeto = menu?.clip ?? renombrando ?? borrando;
+
+  /* MANDAR EL CLIP AL PLAYGROUND. El vault no sabe nada de vistas —ni
+     las tiene cargadas, ni le hace falta— así que todo el trabajo lo
+     hace el helper de vistas.ts: busca la vista más reciente o crea una,
+     le agrega el frame, guarda, y devuelve a dónde ir. Acá queda sólo la
+     navegación, que sí es del vault.
+
+     Si el vault no está conectado devuelve null y no se va a ningún
+     lado: es la misma pantalla que ya te lo dijo. */
+  const alLienzo = async (c: Clip) => {
+    const id = await alPlayground(c.ruta);
+    if (id) ir("/playground/" + id);
+  };
+
   const capa = sujeto ? (
     <>
       <MenuClip
         clip={sujeto}
         donde={menu?.donde ?? null}
         onCerrar={() => setMenu(null)}
+        onPlayground={() => alLienzo(sujeto)}
         onRenombrar={() => setRenombrando(sujeto)}
         onPapelera={() => setBorrando(sujeto)}
       />
@@ -348,7 +468,7 @@ export function Vault({
               punta, lejos de los valores de la ficha — pegado a ellos
               fue una queja — y en el lugar clásico del inspector. */}
           <div className={css.detalleFila}>
-            <h1 className={css.detalleTitulo}>{clip.nombre}</h1>
+            <TituloEditable clip={clip} onRenombrado={trasRenombrar} />
             <BotonFicha
               abierta={fichaAbierta}
               onToggle={() => setFichaAbierta((v) => !v)}

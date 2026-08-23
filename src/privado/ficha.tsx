@@ -66,6 +66,9 @@ export function BotonFicha({
         <motion.path
           d="M10.25 3.75 H11.5 A1.75 1.75 0 0 1 13.25 5.5 V10.5 A1.75 1.75 0 0 1 11.5 12.25 H10.25 Z"
           fill="currentColor"
+          /* Mismo motivo que la hoja: al montar el ícono tiene que
+             aparecer ya en su estado, no vaciarse a la vista. */
+          initial={false}
           animate={{ opacity: abierta ? 1 : 0 }}
           transition={RESORTE}
         />
@@ -285,6 +288,12 @@ export function FichaTecnica({
           El clip no participa: su espacio está reservado siempre.
           `inert` apaga foco y punteros del panel oculto de una vez. */}
       <motion.div
+        /* `initial={false}` porque al ENTRAR al clip la ficha tiene que
+           estar ya donde va, no animarse hasta ahí. Sin esto motion toma
+           el estilo pintado —opacidad 1, sin correr— como punto de
+           partida y se veía la ficha abrirse y cerrarse sola: 365 ms
+           medidos. Plegarla a mano sigue animando igual. */
+        initial={false}
         animate={{ opacity: abierta ? 1 : 0, x: abierta ? 0 : 8 }}
         transition={RESORTE}
         inert={!abierta}

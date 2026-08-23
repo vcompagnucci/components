@@ -70,13 +70,21 @@
      produce; la de benji está dimensionada para que un teléfono entre
      parado con aire, que es exactamente el caso que acá no se podía
      resolver. Se le toma a openai la grilla —columnas, canaleta, fila,
-     riel, tope— y a benji la card. */
-  --vault-proporcion: 550 / 528;
+     riel, tope— y a benji la card.
+
+     SE DECLARA EN `.marco` (privado.module.css), no acá: subió el día
+     que el playground dibujó su propia grilla con la misma forma, porque
+     una custom property se hereda y no se busca — desde `.playground`,
+     hermano de `.vault`, esta declaración no resolvía. Y NO está en
+     tokens.css a propósito: ahí se filtraban los cuatro nombres al
+     bundle de producción (medido, grep en dist); `.marco` nunca se
+     publica. La medición y el porqué se quedan acá, que es donde
+     valen. */
 
   /* EL HUECO DEL CLIP A SU RÓTULO. figma 16 · linear 24; gana figma,
      porque su tarjeta tampoco tiene descripción y el bloque de texto es
-     igual de corto. */
-  --vault-media-titulo: 16px;
+     igual de corto. También en `.marco`, por lo mismo:
+     --vault-media-titulo. */
 
   /* LOS DOS VIVEN ACÁ Y NO EN .grilla, y es el mismo motivo: los leen dos
      cosas que NO son parientes —la card de la grilla y la card del
@@ -211,9 +219,9 @@
    nuestra estaba en 32/64, que es la mitad de esa relación. */
 .grilla {
   --vault-columnas: 3;
-  --vault-canaleta: 24px;
-  --vault-fila: 80px;
-
+  /* La canaleta (24) y la fila (80) también se fueron a `.marco`: las
+     lee la grilla del playground, que no cuelga de acá. Medidas de
+     openai.com/news en ocho ventanas — ver arriba. */
 
   /* EL AIRE HASTA LA GRILLA.
 
@@ -394,7 +402,7 @@
    A 1440 da 32 y 48 sobre una card de 443×425, y deja el hueco en
    346×361 con el teléfono en 167×361. Igual que él, lo que lo ata es el
    ALTO: su teléfono mide 448.42 en un hueco de 452.42. */
-.card[data-fuente='native'] .media > * {
+.card[data-fuente="native"] .media > * {
   position: absolute;
   /* El hueco de benji sobre su card, tal cual, en los dos ejes:
        izquierda   60 / 550 = 10.909%      ancho  430 / 550 = 78.1818%
@@ -569,13 +577,59 @@
   align-items: center;
   margin: 0 0 24px;
 }
+/* El título ES el input. Sin caja ni subrayado en reposo: la misma
+   regla que los campos de la ficha, que tampoco anuncian que se editan.
+   El único aviso es el color al pasar por encima, que es como avisa
+   todo lo demás acá. */
 .detalleTitulo {
+  display: block;
+  width: 100%;
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: var(--type-h1-fs);
   font-weight: var(--type-h1-fw);
   letter-spacing: var(--type-h1-ls);
   line-height: var(--type-h1-lh);
+  font-family: inherit;
   color: var(--type-h1-c);
+  cursor: text;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.detalleTitulo:hover {
+  color: var(--activo-c);
+}
+/* SIN ANILLO, igual que en la ficha: el anillo del sistema dibuja una
+   caja alrededor de un texto que no tiene caja. El cursor titilando ya
+   dice dónde estás. */
+.detalleTitulo:focus {
+  outline: none;
+  color: var(--type-h1-c);
+}
+.detalleTituloCaja {
+  flex: 1;
+  min-width: 0;
+}
+/* El h1 sólo envuelve: todo lo tipográfico vive en el input. */
+.detalleTituloMarco {
+  margin: 0;
+  font: inherit;
+}
+/* Si seleccionás a mano, que se vea como en el resto del sitio y no
+   como un bloque del sistema encima del título. */
+.detalleTitulo::selection {
+  color: var(--selection-color);
+  background: var(--selection-bg);
+}
+/* El error del servidor —"ya hay uno con ese nombre"— debajo del
+   título. En --ink y en tamaño meta, igual que el error del diálogo:
+   acá nada grita en rojo. */
+.detalleTituloError {
+  margin: 4px 0 0;
+  font-size: var(--type-meta-fs);
+  line-height: var(--type-meta-lh);
+  color: var(--ink);
 }
 /* min-height:0 es LA pieza que hace que esto funcione. Por defecto un
    ítem de flex no se encoge por debajo de su contenido, así que sin
