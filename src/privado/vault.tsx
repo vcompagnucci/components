@@ -16,6 +16,7 @@ import {
   DialogoPapelera,
   DialogoRenombrar,
   MenuClip,
+  useUltimo,
   type Donde,
 } from "./acciones";
 
@@ -368,6 +369,21 @@ export function Vault({
   const [renombrando, setRenombrando] = useState<Clip | null>(null);
   const [borrando, setBorrando] = useState<Clip | null>(null);
 
+  /* UNA sola capa para las dos vistas. El sujeto sale del estado —el
+     clip sobre el que se abrió el menú, o el que está en un diálogo— así
+     que la grilla y el detalle comparten el mismo código en vez de tener
+     cada uno el suyo.
+
+     Y CON useUltimo, porque este valor se vuelve null en el mismo
+     instante en que la salida tendría que empezar: sin él la capa entera
+     se desmonta y el menú y el diálogo desaparecen de golpe en vez de
+     irse. Ver el hook en acciones.tsx.
+
+     Va ACÁ ARRIBA y no donde se usa: es un hook, y abajo hay dos
+     `return` tempranos —cargando y sin conectar—. Un hook después de un
+     return condicional se saltea en algunos renders y rompe el orden. */
+  const sujeto = useUltimo(menu?.clip ?? renombrando ?? borrando);
+
   if (estado.cargando) return null;
 
   if (!estado.conectado) {
@@ -405,12 +421,6 @@ export function Vault({
     if (clip && abierto === clip.ruta) history.back();
     recargar();
   };
-
-  /* UNA sola capa para las dos vistas. El sujeto sale del estado —el
-     clip sobre el que se abrió el menú, o el que está en un diálogo— así
-     que la grilla y el detalle comparten el mismo código en vez de tener
-     cada uno el suyo. */
-  const sujeto = menu?.clip ?? renombrando ?? borrando;
 
   /* MANDAR EL CLIP AL PLAYGROUND. El vault no sabe nada de vistas —ni
      las tiene cargadas, ni le hace falta— así que todo el trabajo lo
@@ -736,7 +746,17 @@ function Donde({
     /* onClose cubre TODAS las formas de cerrar —Escape, el botón, y
        close() desde acá— así que el estado se limpia en un solo lugar y
        no en tres. */
-    <dialog className={css.dialogo} ref={dialogo} onClose={onCerrar}>
+    <dialog
+      className={css.dialogo}
+      ref={dialogo}
+      /* El clic afuera cierra, igual que los otros tres. Acá descarta
+         los archivos que estabas por subir —pero eso ya lo hacía
+         Escape, que sale por este mismo `close`, así que no aparece una
+         forma nueva de perder algo: aparece la misma, con el gesto que
+         la gente ya prueba primero. */
+      closedby="any"
+      onClose={onCerrar}
+    >
       <p className={css.dialogoQue}>
         {mostrados.length === 1
           ? mostrados[0]?.name

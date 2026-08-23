@@ -16,6 +16,46 @@ import { aPapelera, renombrarClip, type Clip } from "./clips";
 
 export type Donde = { x: number; y: number } | null;
 
+/* ═══════════════════════════════════════════════════════════════
+   MIENTRAS ALGO SE VA, TODAVÍA HAY QUE SABER QUÉ ERA.
+
+   Todas las salidas del área privada estaban escritas y NINGUNA corría.
+   Medido cuadro a cuadro: el menú desaparecía del DOM en el primer
+   cuadro después del clic, y el diálogo pasaba de opacity 1 a no
+   existir. Los 120ms del menú y los 180 del diálogo nunca existieron.
+
+   La causa no estaba en el CSS —que está bien— sino en quién lo
+   monta. La capa de menús y diálogos se renderiza sólo si hay sujeto:
+
+     const sujeto = menu?.clip ?? renombrando ?? borrando
+     const capa = sujeto ? (<><Menu …/><Dialogo …/></>) : null
+
+   y el sujeto se vuelve null EXACTAMENTE en el instante en que la
+   salida tendría que empezar. React arranca el nodo, y un nodo que no
+   está no puede animarse. Es la misma trampa que ya había resuelto a
+   mano el diálogo de subir, con su lista `mostrados`: "lo último que
+   hubo se queda hasta que llegue otra cosa".
+
+   Esto es esa idea, una sola vez y para todos: devuelve lo que hay, y
+   si no hay nada, lo último que hubo. El sujeto sobrevive a su propia
+   salida y recién ahí se puede animar.
+
+   Se ajusta el estado DURANTE el render —el patrón que documenta React
+   para derivar de props— y no en un efecto: en un efecto habría un
+   cuadro con el sujeto ya en null, que es el respingo que venimos a
+   sacar.
+
+   LO QUE LE ENTRA TIENE QUE SER ESTABLE ENTRE RENDERS mientras no
+   cambie de verdad: compara por identidad. Un valor que viene de
+   useState —que es el caso de los tres que lo usan— lo es. Un objeto
+   armado en el render no, y ahí React corta con "Too many re-renders";
+   falla fuerte y a la vista, no en silencio. */
+export function useUltimo<T>(v: T | null | undefined): T | null {
+  const [ultimo, setUltimo] = useState<T | null>(v ?? null);
+  if (v != null && v !== ultimo) setUltimo(v);
+  return v ?? ultimo;
+}
+
 /* Dónde se abre el menú. Si no entra hacia abajo o hacia la derecha, se
    da vuelta — y el ORIGEN DE LA ESCALA se da vuelta con él, para que
    siga creciendo desde el punto donde apretaste y no desde una esquina
@@ -89,13 +129,18 @@ export function Menu({
     };
   }, [donde, onCerrar]);
 
-  if (!donde) return null;
-
+  /* NO SE DESMONTA AL CERRAR: se apaga. Antes era `if (!donde) return
+     null` y por eso los 120ms de salida que están escritos en el CSS no
+     corrían nunca —el nodo ya no estaba—. Ahora el que manda es
+     `data-abierto`, que es contra lo que el CSS ya estaba escrito.
+     `pos` no se toca al cerrar (el efecto de arriba sale temprano si no
+     hay `donde`), así que el menú se va desde donde estaba y no salta
+     a la esquina. */
   return (
     <div
       ref={caja}
       className={css.menu}
-      data-abierto=""
+      data-abierto={donde ? "" : undefined}
       role="menu"
       aria-label={etiqueta}
       style={{ left: pos.left, top: pos.top, transformOrigin: pos.origen }}
@@ -178,13 +223,30 @@ export function Dialogo({
     if (abierto && !d.open) d.showModal();
     if (!abierto && d.open) d.close();
   }, [abierto]);
+  /* Lo que el diálogo DICE también tiene que sobrevivir a su salida.
+     Con `{abierto && children}` el contenido se iba en el primer cuadro
+     y la caja se desvanecía vacía: 180ms de tarjeta en blanco. */
+  const dentro = useUltimo(abierto ? children : null);
+
   return (
     <dialog
       className={`${dlg.dialogo} ${css.corto}`}
       ref={ref}
+      /* CLIC AFUERA CIERRA. Es el light dismiss del navegador
+         —`closedby="any"`, Chrome 134 / Safari 26 / Firefox 141— y no
+         un listener nuestro: la plataforma ya sabe que un clic que
+         EMPIEZA afuera y TERMINA afuera cierra, y que uno que empieza
+         adentro y se arrastra afuera (seleccionar texto hasta pasarse
+         del borde) no. Escrito a mano eso siempre sale mal.
+
+         Y cierra por el mismo camino que Escape y que el botón Cancel:
+         dispara `close`, que es lo que escucha onClose. Una sola salida
+         para las cuatro formas de cerrar, y la animación es la misma
+         para todas. */
+      closedby="any"
       onClose={onCerrar}
     >
-      {abierto && children}
+      {dentro}
     </dialog>
   );
 }

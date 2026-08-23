@@ -99,11 +99,15 @@
   color: var(--ink);
   resize: none;
   overflow: hidden;
-  /* SIN ANILLO ACÁ, y sólo acá. El anillo del sistema es una caja, y
-     esta ficha es la única superficie donde escribir no puede tener
-     caja — pedido sobre una captura. El foco NO queda mudo: lo marca
-     el rótulo encendiéndose (abajo) más el caret. En el resto del
-     sistema el anillo sigue intacto. */
+  /* SIN ANILLO. El anillo es una caja, y acá se escribe sobre algo que
+     no tiene caja — pedido sobre una captura. El foco NO queda mudo: lo
+     marca el rótulo encendiéndose (abajo) más el caret.
+     Ésa terminó siendo LA REGLA de toda el área privada, y no una
+     excepción de la ficha: donde el texto que se edita no tiene caja
+     —acá, el título del clip en el vault, el nombre de la vista en el
+     playground— el anillo se apaga y lo dice el caret. Donde sí la
+     tiene, como el campo del diálogo de renombrar, el anillo del
+     sistema sigue intacto. */
   outline: none;
 }
 .campo {

@@ -40,19 +40,37 @@
      que pide algo que entra en pantalla. */
   opacity: 0;
   transform: scale(0.96);
+  /* ─── Y LA SALIDA, QUE ES ESTE MISMO BLOQUE ───
+     Acá decía `overlay` y `display` con allow-discrete. Las dos son
+     para elementos de la CAPA SUPERIOR —un <dialog> o un popover— y
+     esto es un div: no hacían nada. Y encima el menú se desmontaba al
+     cerrar, así que la salida no tenía ni nodo que animar.
+
+     `visibility` sí sirve en un div, y para esto es mejor que las
+     otras dos: la transición de visibility tiene la regla vieja de CSS
+     —si alguno de los dos extremos es `visible`, se queda visible toda
+     la transición— así que al abrir aparece en el cuadro 0 y al cerrar
+     se queda hasta el último. Es exactamente lo que hace falta, sin
+     allow-discrete.
+
+     Y de paso hace lo que `return null` hacía gratis: escondido, el
+     menú no recibe clics ni Tab, y desaparece del árbol de
+     accesibilidad. Un menú apagado no puede seguir siendo pulsable. */
+  visibility: hidden;
   transition:
     opacity 120ms var(--ease-dialogo),
     transform 120ms var(--ease-dialogo),
-    overlay 120ms allow-discrete,
-    display 120ms allow-discrete;
+    visibility 120ms;
 }
 .menu[data-abierto] {
   opacity: 1;
   transform: scale(1);
+  visibility: visible;
   /* La entrada es más larga que la salida: al cerrar ya decidiste. */
   transition:
     opacity 160ms var(--ease-dialogo),
-    transform 160ms var(--ease-dialogo);
+    transform 160ms var(--ease-dialogo),
+    visibility 160ms;
 }
 @starting-style {
   .menu[data-abierto] {
