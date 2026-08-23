@@ -19,13 +19,25 @@ const slug = (s) =>
 
 const src = readFileSync(new URL('../src/pieces.ts', import.meta.url), 'utf8')
 const rutas = [...src.matchAll(/name: '([^']+)'/g)].map((m) => slug(m[1]))
-if (!rutas.length) throw new Error('no se encontró ninguna pieza en pieces.ts')
+/* CERO PIEZAS ES UN ESTADO LEGÍTIMO —el inventario placeholder se borró
+   entero antes de la primera real— pero sólo si el archivo lo dice a
+   propósito con el array vacío literal. Sin ese marcador, cero nombres
+   significa que el regex dejó de entender pieces.ts, y eso sigue
+   frenando el build: publicar rutas desincronizadas en silencio es lo
+   que este script existe para impedir. */
+const vacioAProposito = /PIECES:\s*Piece\[\]\s*=\s*\[\]/.test(src)
+if (!rutas.length && !vacioAProposito)
+  throw new Error('no se encontró ninguna pieza en pieces.ts')
 
 const config = {
   $schema: 'https://openapi.vercel.sh/vercel.json',
   /* La barra final redirige al canónico con 308, como los dos. */
   trailingSlash: false,
-  rewrites: [{ source: `/:pieza(${rutas.join('|')})`, destination: '/index.html' }],
+  /* Sin piezas no hay rewrite: sólo existe `/`, y cualquier otra URL
+     recibe el 404 del host. */
+  ...(rutas.length
+    ? { rewrites: [{ source: `/:pieza(${rutas.join('|')})`, destination: '/index.html' }] }
+    : {}),
 }
 
 const salida = new URL('../vercel.json', import.meta.url)

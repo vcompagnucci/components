@@ -5,6 +5,11 @@ import type { Privada } from '../app'
 import { Vault } from './vault'
 import { Playground } from './playground'
 
+/* Acá vivió una barra de solapas para la portada —los links de entrada
+   a Vault y Playground sobre la home de dev— y se quitó por pedido: al
+   área privada se entra por URL, sin puerta visible. La portada es la
+   página del producto y no lleva chrome de desarrollo. */
+
 /* ═══════════════════════════════════════════════════════════════
    EL ÁREA PRIVADA — el vault y el playground.
 

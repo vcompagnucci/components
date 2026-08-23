@@ -59,6 +59,12 @@ const PRIVADAS: Privada[] = import.meta.env.DEV
 
 const Privado = import.meta.env.DEV ? lazy(() => import('./privado/privado')) : null
 
+/* A PROPÓSITO NO HAY NINGÚN LINK HACIA /vault NI /playground en la
+   portada, ni siquiera en dev: al área privada se entra escribiendo la
+   URL. Hubo una barra de solapas acá y se quitó por pedido — la
+   portada es la página del producto, y el área privada no es parte del
+   producto. */
+
 /* Rutas sin router: son TRES vistas. `/` es la lista, `/button` la
    pieza, y cualquier otra cosa es una ruta que no existe.
 
@@ -79,10 +85,12 @@ const Privado = import.meta.env.DEV ? lazy(() => import('./privado/privado')) : 
    diciendo "Benji Taylor" y el de josh "Josh Puckett".
 
    El status HTTP real lo tiene que dar el host, porque un SPA que ya
-   cargó no puede cambiarlo. Como las 18 rutas se conocen en build, el
-   host puede servir index.html sólo para ésas y devolver un 404 de
-   verdad para todo lo demás — que es exactamente lo que hacen los dos.
-   Está en vercel.json. */
+   cargó no puede cambiarlo. Como las rutas de las piezas se conocen en
+   build, el host puede servir index.html sólo para ésas y devolver un
+   404 de verdad para todo lo demás — que es exactamente lo que hacen
+   los dos. Está en vercel.json; hoy, con PIECES vacío, no hay rewrite
+   ninguno y sólo existe `/` — el rewrite vuelve con la primera pieza
+   real. */
 type Vista =
   | { tipo: 'lista' }
   | { tipo: 'pieza'; piece: Piece }
@@ -106,10 +114,20 @@ const desdeUrl = (): Vista => {
 
      Matchea la ruta exacta Y sus subrutas: /vault y /vault/lo/que/sea.
      El separador en el startsWith importa — sin él "/vaultimpostor"
-     también entraría. */
-  const privada = PRIVADAS.find((p) => ruta === p.ruta || ruta.startsWith(p.ruta + '/'))
-  if (privada) {
-    return { tipo: 'privado', privada, resto: ruta.slice(privada.ruta.length + 1) }
+     también entraría.
+
+     EL TERCER PLIEGUE: el bloque entero va detrás de import.meta.env.DEV
+     aunque el find ya sea rama muerta con la lista vacía. Lo que el
+     minificador no puede probar muerto es el LITERAL 'privado' del
+     retorno — medido: viajaba al bundle como palabra suelta, la única
+     del área en dist. Con el if constante, Rollup tira el bloque entero,
+     literal incluido. (El gate del render abajo lo logra gratis con su
+     `&& Privado`, que ya es null en producción.) */
+  if (import.meta.env.DEV) {
+    const privada = PRIVADAS.find((p) => ruta === p.ruta || ruta.startsWith(p.ruta + '/'))
+    if (privada) {
+      return { tipo: 'privado', privada, resto: ruta.slice(privada.ruta.length + 1) }
+    }
   }
   const encontrada = PIECES.find((p) => slug(p.name) === ruta.slice(1))
   return encontrada ? { tipo: 'pieza', piece: encontrada } : { tipo: 'nada' }
@@ -129,8 +147,18 @@ const goTo = (name: string) => {
 
 /* "Web", el primer rótulo del índice, se apoya en la misma línea que
    "Button", el título de la primera pieza. Los dos extremos del par que
-   se eligió mirando; el cómo está en el efecto que lo mide. */
-const ALINEAR = { desde: '[data-primer-rotulo]', hasta: '[data-primera-pieza]' }
+   se eligió mirando; el cómo está en el efecto que lo mide.
+
+   SIN PIEZAS EL ANCLA ES EL PROPIO "Web" DEL CUERPO: con la lista
+   vacía no hay primera pieza y el índice se quedaba pegado al
+   masthead — la misma palabra dos veces en pantalla a dos alturas
+   distintas, medido 106px de desvío. La reserva alinea rótulo contra
+   rótulo; cuando la primera pieza real llegue, vuelve a mandar ella. */
+const ALINEAR = {
+  desde: '[data-primer-rotulo]',
+  hasta: '[data-primera-pieza]',
+  reserva: '[data-primer-grupo]',
+}
 
 /* Cuál pieza está activa: la ÚLTIMA cuyo borde superior ya pasó una
    línea a --index-spy-line del tope del viewport.
@@ -146,6 +174,10 @@ const ALINEAR = { desde: '[data-primer-rotulo]', hasta: '[data-primera-pieza]' }
 const LINEA_SPY = 128
 
 function piezaActiva(): string | null {
+  /* Sin piezas no hay activa — y sin esta salida, la cláusula del final
+     del documento leería PIECES[-1] y reventaría en el primer scroll de
+     una página corta. */
+  if (PIECES.length === 0) return null
   let activa: string | null = null
   for (const p of PIECES) {
     const el = document.getElementById(slug(p.name))
@@ -162,6 +194,14 @@ function piezaActiva(): string | null {
 }
 
 function Index({ activa }: { activa: string | null }) {
+  /* Sin piezas no hay índice: un nav con dos rótulos y cero links es
+     andamiaje a la vista. La misma decisión que las secciones del
+     cuerpo, abajo. */
+  /* EL ÍNDICE SE QUEDA AUNQUE NO HAYA PIEZAS — pedido explícito: los
+     rótulos Web y App son la estructura de la casa, y la estructura se
+     ve aunque las salas estén vacías. Un grupo sin piezas rinde su
+     rótulo y una lista vacía; el efecto que alinea contra la primera
+     pieza ya sabe no hacer nada si no la encuentra. */
   return (
     <nav className={css.index} aria-label="Pieces">
       {PLATFORMS.map((pl) => (
@@ -224,7 +264,9 @@ export function App() {
     const alinear = () => {
       const nav = document.querySelector<HTMLElement>('[aria-label="Pieces"]')
       const desde = document.querySelector<HTMLElement>(ALINEAR.desde)
-      const hasta = document.querySelector<HTMLElement>(ALINEAR.hasta)
+      const hasta =
+        document.querySelector<HTMLElement>(ALINEAR.hasta) ??
+        document.querySelector<HTMLElement>(ALINEAR.reserva)
       if (!nav || !desde || !hasta) return
       const actual = parseFloat(getComputedStyle(nav).top) || 0
       const delta = baseDeTexto(hasta) - baseDeTexto(desde)
@@ -270,7 +312,10 @@ export function App() {
      diciendo "Library", igual que antes. */
   useEffect(() => {
     if (vista.tipo === 'pieza') document.title = `${vista.piece.name} — Library`
-    else if (vista.tipo === 'privado') document.title = vista.privada.nombre
+    /* El DEV delante pliega el literal 'privado' fuera del bundle — ver
+       el tercer pliegue en desdeUrl. En producción esta rama es
+       inalcanzable igual (desdeUrl nunca devuelve ese tipo). */
+    else if (import.meta.env.DEV && vista.tipo === 'privado') document.title = vista.privada.nombre
     else document.title = 'Library'
   }, [vista])
 
@@ -357,10 +402,19 @@ export function App() {
       <Index activa={activa} />
       <Masthead />
       <div className={css.content}>
+        {/* Las secciones también se quedan con cero piezas — misma
+            decisión que el índice: la estructura está, el contenido
+            llega. */}
         {PLATFORMS.map((pl) => (
           <section className={css.group} key={pl} data-plataforma={pl}>
             <div className={css.groupHead}>
-              <div className={css.groupLabel}>{pl}</div>
+              {/* El ancla de reserva del índice cuando no hay piezas. */}
+              <div
+                className={css.groupLabel}
+                data-primer-grupo={pl === PLATFORMS[0] ? '' : undefined}
+              >
+                {pl}
+              </div>
               <span className={css.groupLine} aria-hidden />
             </div>
             {by(pl).map((p, i) => (

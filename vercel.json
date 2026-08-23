@@ -1,10 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/:pieza(button|input|select|switch|checkbox|slider|tabs|tooltip|dialog|sheet|tab-bar|pull-to-refresh|swipe-actions|action-sheet|toggle|picker|haptic-button|context-menu)",
-      "destination": "/index.html"
-    }
-  ]
+  "trailingSlash": false
 }
