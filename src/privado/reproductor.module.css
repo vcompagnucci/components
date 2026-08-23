@@ -1,0 +1,300 @@
+/* ═══════════════════════════════════════════════════════════════
+   EL REPRODUCTOR
+
+   Existe para llegar al cuadro exacto donde arranca un gesto, contar
+   hasta donde termina, y sacar la duración en milisegundos.
+
+   ─── LO MEDIDO, y no se toca ───
+   Está en .context/recon/vault/REPRODUCTOR.md.
+
+     botón de play    38×38, glifo de 20×20         apple
+     transición       opacity 100ms linear + transform .2s ease   apple
+     deshabilitado    opacity .32                   apple
+     velocidad        28×20, 12px/460, radio 38     benji
+     su transición    all .2s ease                  benji
+     cross-fade       dos textos con inset:0        benji
+
+   Los dos renderizan de verdad —28 videos de apple, 45 de benji— y no
+   son reglas muertas en un bundle.
+
+   ─── LO QUE SE ELIGIÓ MIRANDO ───
+   Dos cosas no se podían resolver con evidencia y se probaron con
+   /prototype:
+
+   1 · DÓNDE VIVEN LOS CONTROLES. Apple los ancla ABAJO A LA DERECHA
+       encima del video; benji ARRIBA A LA DERECHA. Los dos medidos, y
+       no pueden tener razón a la vez. Se probó la de ellos —"esquinas",
+       con el scrim de apple para sostener el contraste sobre un
+       contenido que no controlamos— y GANÓ UNA FILA DEBAJO DEL VIDEO,
+       que no es de ninguno de los dos. Ventaja: nada tapa el clip, y al
+       estar sobre el canvas no necesita scrim ni blur — usa los colores
+       del sistema tal cual.
+
+   2 · LA PISTA. NO HAY REFERENCIA MEDIBLE: Safari tiene el shadow root
+       cerrado en los dos motores, el reproductor completo de
+       apple-events no monta sus controles fuera de una sesión real, y
+       Podcasts y x.com piden login. Así que esto es NUESTRO y se dice
+       así. Se probaron tres —fina, media y oculta— y ganó FINA: riel de
+       2px y sin perilla. A ese grosor la pista deja de ser un control
+       que compite y pasa a ser una lectura, que es lo que se le pide.
+
+   ─── LO QUE NO EXISTE Y ES A PROPÓSITO ───
+   NO HAY BOTONES DE CUADRO. Estuvieron —dos flechas de 24px al lado del
+   play— y se sacaron. El paso vive sólo en las flechas del teclado: son
+   más precisas, se pueden mantener apretadas, y con shift saltan de a
+   diez. Apuntarle a un botón chico mientras mirás otra cosa es
+   exactamente el trabajo que este reproductor tiene que ahorrar.
+   ═══════════════════════════════════════════════════════════════ */
+.marco {
+  --rep-play: 38px; /* apple, medido */
+  --rep-glifo: 20px; /* apple, medido */
+  --rep-chico-h: 20px; /* benji, medido */
+  --rep-radio-pildora: 38px; /* benji, medido */
+  --rep-gap: 8px; /* benji, medido */
+
+  /* La pista. Estos SON NUESTROS: no hay referencia que copiar.
+     El riel es lo que se VE; el alto es el área para agarrarla. Son dos
+     números distintos a propósito — una línea de 2px es imposible de
+     tomar con el puntero, y engordarla para que se pueda agarrar sería
+     elegir el grosor por una razón que no es la visual. */
+  --rep-riel: 2px;
+  --rep-pista-alto: 12px;
+  /* Lo que se lleva la barra: el alto del botón de play —el elemento
+     más alto de la fila— más el aire que la separa del video. Lleva
+     nombre porque ahora el VIDEO lo necesita para saber cuánto alto le
+     queda. Si cambia el margen de .controles, cambia acá. */
+  --rep-barra: calc(var(--rep-play) + 12px);
+
+  /* El último eslabón de la cadena que hace que el clip entre siempre:
+     el reproductor toma el alto que le pasa el escenario, la barra se
+     queda con lo suyo —es flex:none— y el video se acomoda a lo que
+     sobra. Ver privado.module.css. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* ANCHO AUTO: el marco se encoge al ancho del video, así que la barra
+     mide lo mismo que el clip en vez de cruzar la página entera.
+     Para que eso funcione la barra tiene que dejar de inflar el
+     max-content del marco — ver .controles. */
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  /* min-width:0 — un ítem de flex no se encoge por debajo de su
+     contenido por defecto, y el contenido acá es un video cuyo ancho
+     natural puede ser 1920. Sin esto el reproductor desbordaba el
+     escenario por 80px de cada lado, medido. */
+  min-width: 0;
+}
+
+/* EL VIDEO ES LA IMAGEN, no la caja que la contiene.
+
+   Antes esto era `flex:1; width:100%; object-fit:contain`, con este
+   comentario: "la franja que sobra queda del color de la superficie,
+   así que no se ve". SE VE, y se lleva puesto el borde redondeado.
+   Medido en un escenario de 1312: el elemento daba 1312×606 y la
+   imagen 1108×606, o sea 102px de franja a cada lado — y el
+   border-radius dibujado en las esquinas de la FRANJA, a 102px de las
+   de la imagen. En claro la franja casi no se distingue del fondo; en
+   oscuro --surface y --canvas están a cinco pasos y lo único que se ve
+   es que el clip perdió las esquinas.
+
+   Esa misma franja producía un segundo defecto, peor: al plegar la
+   ficha, la imagen llegaba a su tamaño final en 60ms y después se
+   corría 102px a la derecha durante 440ms más, recentrándose dentro de
+   una caja que seguía creciendo. Crecía, terminaba, y RECIÉN AHÍ se
+   deslizaba.
+
+   ─── POR QUÉ ASÍ Y NO MÁS SIMPLE ───
+   Se midió elemento contra imagen en cuatro anchos de caja:
+     width:100% + object-fit    franja de hasta 195px en horizontal
+     flex:1 + width:auto        arregla horizontal, rompe vertical
+     alto con cqh + width auto  igual que la anterior
+     ésta                       iguales en los cuatro
+
+   La clave es min(): un porcentaje dentro de `width` SIEMPRE resuelve
+   contra el ancho, así que el alto disponible no se puede escribir con
+   `%` — hace falta una unidad de contenedor. De ahí el 100cqh, y de ahí
+   que el escenario tenga que declararse contenedor de tamaño.
+
+   El tope de ancho va en `max-width` y no adentro de un `min()`: con
+   `min(...)` WebKit no recorta y el video se desborda del marco.
+   Con max-width sí, y como el alto está en `auto` y hay aspect-ratio,
+   recortar el ancho recalcula el alto solo — que es justo lo que hace
+   falta.
+
+   ─── POR QUÉ EL TOPE ES 100% Y NO 100cqw ───
+   Se probó con cqw y WebKit lo resuelve MAL en la cascada: el
+   max-width computado quedaba en 1368.71875px cuando el contenido del
+   escenario medía 1000 — la unidad se congeló en un valor transitorio
+   del montaje y ni un reflow la refresca. Aplicada inline sí daba 1000.
+   Es un problema de invalidación con contenedores que cambian de
+   tamaño, y el ancho del escenario cambia en cada cuadro de la
+   animación.
+
+   El alto sí puede usar cqh porque el escenario NO cambia de alto: aunque
+   el valor se cachee, es el correcto.
+
+   --rep-ratio lo pone el reproductor al leer los metadatos; el 16/9 es
+   sólo para el instante previo, y evita un salto al cargar. */
+.video {
+  display: block;
+  flex: none;
+  aspect-ratio: var(--rep-ratio, 16 / 9);
+  height: auto;
+  width: calc((100cqh - var(--rep-barra)) * var(--rep-ratio, 16 / 9));
+  max-width: 100%;
+  border-radius: var(--card-radio);
+  background: var(--surface);
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* ─── LA BARRA ───
+   Una fila debajo del video, sobre el fondo de la página. */
+.controles {
+  /* flex:none — la barra nunca cede su alto. Lo que se achica cuando
+     falta lugar es el video, no los controles. */
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--rep-gap);
+  margin-top: 12px;
+  /* width:0 + min-width:100% — LA BARRA NO OPINA SOBRE EL ANCHO.
+     La pista del scrubber quiere estirarse, así que su contribución al
+     max-content hacía que el marco midiera la página entera: el video
+     quedaba pegado a la izquierda y la barra cruzaba de lado a lado.
+     Con width:0 la barra aporta cero al ancho del marco —que entonces
+     se encoge al video— y min-width:100% la estira de vuelta hasta ese
+     ancho ya resuelto. */
+  width: 0;
+  min-width: 100%;
+}
+
+/* ─── EL BOTÓN DE PLAY · de apple, medido ─── */
+.play {
+  flex: none;
+  width: var(--rep-play);
+  height: var(--rep-play);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* La suya, literal: sólo opacidad y transform. El COLOR del icono no
+     lleva transición en su reproductor —cambia de golpe— y acá
+     tampoco. */
+  transition:
+    opacity 100ms linear,
+    transform 0.2s ease;
+}
+.play:disabled {
+  opacity: 0.32; /* apple, medido */
+  cursor: default;
+}
+/* currentColor en vez de la máscara de apple: el efecto es el mismo —el
+   color del icono es una propiedad CSS, tematizable— con una pieza
+   menos. El dibujo es nuestro; de él se copian las medidas, no el
+   arte. */
+.glifo {
+  width: var(--rep-glifo);
+  height: var(--rep-glifo);
+  fill: currentColor;
+}
+
+/* ─── LA VELOCIDAD · de benji, medido ───
+   Dos estados y no un menú. Los dos textos van superpuestos con
+   inset:0 y se cruzan por opacidad: sin eso el botón cambia de ancho
+   entre "1x" y "0.5x" y todo lo que tiene al lado salta. */
+.velocidad {
+  flex: none;
+  position: relative;
+  width: 34px;
+  height: var(--rep-chico-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--rep-radio-pildora);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px; /* suyo */
+  font-weight: 460; /* suyo */
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease; /* suyo, literal */
+}
+.velocidad:hover {
+  color: var(--ink);
+}
+.velocidad > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: inherit;
+}
+.velocidad > span[data-activo] {
+  opacity: 1;
+}
+
+/* ─── LA LECTURA ───
+   El número de cuadro es el dato que se viene a buscar acá: con él
+   contás de dónde a dónde dura un gesto. El tiempo va al lado porque es
+   lo que después escribís en el CSS.
+
+   Tabular para que los dígitos no bailen mientras corre: sin eso el
+   número cambia de ancho en cada cuadro y la barra entera tiembla. */
+.lectura {
+  display: flex;
+  align-items: center;
+  gap: var(--rep-gap);
+  height: var(--rep-chico-h);
+  font-size: 12px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tiempo {
+  color: var(--ink);
+}
+.cuadro {
+  color: var(--text-secondary);
+}
+
+/* ─── LA PISTA — SIN REFERENCIA, ES NUESTRA ───
+   El riel usa --hairline y el lleno --ink: son los dos tokens que el
+   sistema ya tiene para "estructura tenue" y "lo que se lee". No hay
+   ningún color nuevo. */
+.pista {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--rep-pista-alto);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.riel,
+.lleno {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--rep-riel);
+  border-radius: 999px;
+}
+.riel {
+  background: var(--hairline);
+}
+.lleno {
+  background: var(--ink);
+  /* scaleX y no width: se anima en el compositor y no dispara layout en
+     cada cuadro de pantalla. El origen a la izquierda porque el llenado
+     crece desde ahí. */
+  transform-origin: left center;
+  will-change: transform;
+}

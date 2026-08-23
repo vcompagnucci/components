@@ -1,0 +1,1020 @@
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS — lo decidido, y de dónde sale cada cosa.
+
+   Medido del código servido de benji.org: la TIPOGRAFÍA entera (tamaño,
+   pesos, tracking, interlínea), la hairline, el marco y su escalón, el
+   índice. Las citas están en .context/recon/ (TYPE-SYSTEMS, RESPONSIVE,
+   NAVIGATION).
+
+   Heredado del DESIGN.md de Carousels: los COLORES enteros, el anillo
+   de foco y los tiempos de motion. No se pueden verificar contra la
+   fuente —ese archivo no está en este repo ni en el disco— pero son
+   decisiones ya tomadas y se respetan como están.
+
+   El radio YA NO está pendiente: es --card-radio: 8px, del censo de las
+   7 páginas.
+
+   ELEVACIÓN: no hay, y es una decisión. Cero box-shadow en todo el
+   producto. La card se define por contraste contra el canvas, que es la
+   regla de josh — elegida contra la de benji, que la define con una
+   línea de 1px. No hay un token de sombra porque no hay una sola
+   sombra que nombrar.
+
+   Z-INDEX: cero en el producto, y todavía no es decidible. Hoy nada se
+   superpone: el índice es fixed pero vive en el margen y no pisa nada.
+   Cinco de las 18 piezas son capas —Dialog, Sheet, Tooltip, Context
+   Menu, Action Sheet— y el orden de apilado se decide cuando exista la
+   primera, no antes: inventar una escala ahora sería elegir números sin
+   nada que ordenar.
+
+   EL DOCUMENTO COMPLETO ES ../DESIGN.md: cada token con su valor, su
+   grado de evidencia, la tabla de los cinco viewports y las cuatro
+   reglas que gobiernan cómo se agregan los que falten.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* superficies y texto */
+  --canvas: #fdfdfc;
+  /* La card es más OSCURA que la página, no más clara, y no lleva ni
+     anillo ni sombra: el contraste hace todo el trabajo. Es la regla de
+     josh, elegida contra la de benji (card al ras del fondo, definida
+     por una línea de 1px).
+
+     Se traslada su DELTA, no su valor. Su card es #fafaf9 sobre blanco
+     puro, o sea −5; nuestro canvas ya arranca 2 unidades abajo, así que
+     copiarle el hex daría sólo −3. Sobre #fdfdfc, −5 da #f8f8f6.
+
+     El azul baja 6/5 de lo que bajan rojo y verde: es su relación de
+     canal, y sin eso el gris se enfría al profundizar.
+
+     Se eligió −5 de una rampa de cinco (−3 · −5 · −8 · −12 · −16). */
+  --surface: #f8f8f6;
+  /* El hover oscurece el relleno y NADA MÁS: ni sombra, ni escala, ni
+     movimiento, ni opacidad. Eso es de josh, y la transición de 150ms
+     también — es el --dur-surface que ya teníamos.
+
+     Sus cajas de demo no sirven de referencia acá porque no reaccionan
+     al hover: no son clickeables. Los únicos dos hovers que tiene en las
+     7 páginas medidas son
+       cards de la home   #fafafa → #f5f5f5   (neutral-50 → neutral-100)
+       botón de /bloom    #44403c → #57534e   (stone-700 → stone-600)
+     Los dos, UN ESCALÓN de su rampa — y el del botón aclara, así que su
+     regla es un paso y no una dirección.
+
+     El paso de acá es de 4, ELEGIDO a ojo entre tres:
+       −3   lo que da copiar su hex literal (#f5f5f5) sobre nuestro
+            fondo, porque su página arranca en 250 y la nuestra en 253
+       −4   éste
+       −5   su escalón de verdad
+     O sea medio escalón, y no sale de ninguna referencia. Con el radio
+     en 8 la card se lee más contenida que con 12 y pide menos hover.
+
+     (Antes acá decía que su hover cae −10 respecto de su página. Ese
+     delta salía de medir contra el blanco de /pasito, y el hover ocurre
+     en su home, que es #fafafa.) */
+  --surface-hover: #f4f4f1;
+  /* NO HAY --surface-press: LA CARD NO TIENE PRESS. No es una omisión,
+     es el resultado de contar. En las 23 páginas de las dos referencias
+     más altas —9 de benji, 14 de josh— hay UN solo :active vivo, y es
+     un botón de 40×40 en benji.org/honkish que ni baja ni escala: le
+     quita el anillo de 1px que le puso el hover (box-shadow spread
+     1px → 0px, transition-duration 0.02s medida en runtime). Su press
+     no agrega un estado, RETIRA el hover.
+
+     Las listas de los dos —lo mismo que es nuestra card— no tienen
+     press: el :active pinta idéntico al :hover, medido en vivo en las
+     dos. Y las utilidades active:scale-[0.94/0.96/0.98] existen en el
+     bundle de josh y las usa CERO elementos.
+
+     Hubo un --surface-press #f0f0ec —el --color-bg-level-3 de linear,
+     que cae justo en nuestro paso siguiente— y se retiró al elegir el
+     sistema de josh. La derivación queda en README por si vuelve;
+     cuando la pieza Button necesite un press se va a medir para un
+     botón, que es donde toda esa evidencia sí aplica. */
+  --ink: #111111;
+
+  /* ═══════════ EL NIVEL SECUNDARIO — UN ALFA, DOS BASES ═══════════
+     Es la estructura de benji, verificada en su CSS servido. Él
+     declara UN SOLO token de color de texto —--body-color:#111— y
+     ningún token de gris. Todo lo que se ve gris es su negro o su ink
+     a un alfa, y el alfa manda: .4 aparece en 40 declaraciones, el
+     siguiente (.5) en 8.
+
+     Sus "dos grises" salen de ESE MISMO 40% escrito desde dos bases:
+       anotación   rgba(0,0,0,.4)      → 152   fecha, "Index", epígrafes
+       nav         hsla(0,0%,7%,.4)    → 159   su índice de página
+     Los 7 de diferencia no los decidió: son la fuga de haber escrito la
+     misma regla desde negro puro en un archivo y desde su ink en otro.
+     Su sistema es de UN nivel secundario, no de dos.
+
+     Acá se toma la regla y se le cambia el número. El 37% se eligió en
+     DOS PASOS, y los dos importan porque miran cosas distintas:
+
+     PRIMERO EL BARRIO, con un slider sobre la anotación sola: 163,
+     contra cuatro marcas medidas y compuestas sobre este fondo —
+        99   emil · su secundario de prosa
+       130   emil · sus epígrafes de 12px
+       138   lo que había, heredado de Carousels
+       152   benji · fecha, epígrafes, notas al pie
+       163   el del slider, más claro que los cuatro
+     Ese slider movía UN renglón de la página —el subtítulo del
+     masthead— porque en ese momento la nav todavía era un número
+     aparte. Sirvió para ubicar la zona, no para fijar el número.
+
+     DESPUÉS EL NÚMERO, sobre un barrido de seis alfas donde las dos se
+     mueven juntas, mirado de tres formas: la rampa de corrido, los dos
+     derivados EN CONTACTO —donde el escalón se ve como costura o no se
+     ve— y el texto real a 13/16 contra 14/20. Ganó 37%.
+
+     De ahí caen las dos, medidas por píxel (α=.4 reproduce sus 152 y
+     159 clavados, que es lo que valida el modelo):
+       anotación   negro  @ 37%  → 160
+       nav         --ink  @ 37%  → 166
+     La anotación queda 3 más oscura que el 163 del slider: ΔL .006,
+     adentro del ruido. El barrio se respetó; el número lo puso el
+     barrido.
+
+     DOS CONSECUENCIAS, las dos buscadas:
+
+     1. LA NAV SE MUEVE. Venía en 159 porque se copió de su
+        hsla(0,0%,7%,.4) al hornear la tipografía del índice, y nunca se
+        eligió. Bajo esta regla no se elige: se deriva. Elegir más claro
+        que él la arrastra 7 unidades.
+
+     2. EL ORDEN SE ARREGLA SOLO. Antes la anotación quedaba MÁS CLARA
+        que la nav (163 contra 159), al revés que él. Ahora la nav es la
+        más clara de las dos, como en su página, y no porque se haya
+        decidido: cae de que ink es más claro que negro puro. El gap
+        queda en 6; el suyo es 7.
+
+     El alfa va en un token propio para que la regla sea UNA sola cosa y
+     no dos que hay que mantener sincronizadas — que es exactamente cómo
+     se desincronizaron las anteriores. Y va en alfa y no en sólido
+     porque así compone sobre cualquier fondo: el día que haya texto
+     secundario sobre la card, sale bien sin tocar nada.
+
+     Lo de acá es el ÚNICO nivel secundario del sistema. El otro alfa
+     que existe es --activo-c (80%), que es un estado, no un
+     nivel. */
+  --secundario-alfa: 37%;
+  --text-secondary: color-mix(in srgb, #000 var(--secundario-alfa), transparent);
+
+  /* LOS LINKS. El link NO tiene color propio: hereda el del bloque donde
+     cae. Lo que lo marca es un subrayado en un tono aparte, mucho más
+     claro que el texto. Es lo que hacen DOS de las tres referencias:
+
+       benji  pseudo-elemento de 1px  #d9d9d9  → hover #666
+       emil   text-decoration real    #bcbbb5 a 1.5px
+
+     Acá se usa el mecanismo de emil —text-decoration-color, que no
+     necesita position:relative ni un ::before— con los valores de benji,
+     porque nuestro texto es de 14px y no de 16: una línea de 1px le
+     queda más proporcionada que una de 1.5.
+
+     El hover mueve el SUBRAYADO, no el texto. */
+  --link-underline: #d9d9d9;
+  --link-underline-hover: #666666;
+
+  /* LA SELECCIÓN. Las tres referencias tienen regla global y no dicen
+     lo mismo:
+
+       benji  ::selection{color:var(--selection-color);
+                          background:var(--selection-bg)}
+              #ededed de fondo y el texto FORZADO a #111
+       josh   ::selection{color:#fff;background:#000}
+              inversión total, también fuerza
+       emil   ::selection{background:var(--color-gray-500)}
+              #e2e1de, y NO toca el color del texto
+
+     Se toma la de benji, y lo que la decide es FORZAR EL COLOR. Emil
+     puede no hacerlo porque su secundario de prosa está en 99; el
+     nuestro está en 160, y 160 sobre su #e2e1de da 2.00:1 — el
+     subtítulo del masthead se volvería ilegible justo mientras lo
+     seleccionás. Forzado a ink da 16.13:1.
+
+     Además es lo mismo que ya dice la regla de color del sistema: todo
+     lo que se LEE va en ink. Seleccionar un texto es el acto de leerlo,
+     así que la selección lo promueve a ink. No es una regla nueva, es
+     la misma aplicada a un estado.
+
+     Y su #ededed se copia LITERAL, cosa que no pasó nunca en este
+     sistema. Su canvas es #fdfdfc y el nuestro también —el de emil
+     igual, su --color-gray-100 es #fdfdfc— así que acá copiar el hex
+     copia el contraste. En la card, en el hover y en los grises hubo
+     que trasladar el delta porque los fondos no coincidían; acá sí
+     coinciden.
+
+     Sobre la card (−5) la selección queda 5 unidades más cerca del
+     fondo. Se aceptó: es el mismo sólido que usa él, y hoy la card no
+     tiene texto. */
+  --selection-bg: #ededed;
+  --selection-color: var(--ink);
+
+  /* rampa alfa */
+  /* --a1 SE FUE: su único lector era el fondo del hover de la flecha de
+     volver, y ese hover ahora pinta sólo el glifo —como hacen las dos
+     referencias, medido—. Un token sin lector es código muerto. Su
+     valor era rgba(0,0,0,.04) en claro, invertido en oscuro y al doble
+     en alto contraste. (Antes acá decía que lo usaba el foco: no era
+     cierto, el foco usa --focus-outline.)
+     --a4 y --card-ring se fueron con el anillo de
+     la card: elegida la regla de josh, no hay ninguna línea que pintar. */
+  /* la hairline de benji: #f2f2f2 → (255-242)/255 = .051. En alpha y no
+     en sólido para que componga sobre --canvas y no asuma blanco puro */
+  --hairline: rgba(0, 0, 0, 0.051);
+
+  /* ═══════════ TIPOGRAFÍA — el sistema de benji ═══════════
+     Decidido contra el de josh sobre la página real. Un tamaño, cuatro
+     pesos, un gris: el chrome desaparece y la pieza es lo único que se
+     ve. Josh hace lo contrario (cinco tamaños, dos pesos, cinco grises)
+     y su costo era competir con las piezas — lo medido de los dos está
+     en .context/recon/TYPE-SYSTEMS.md.
+
+     Todos los valores salen de su CSS servido. Su texto de 14px lleva
+     line-height:1.25rem y letter-spacing:-.00563rem en TODAS sus reglas,
+     sin excepción, y los pesos que usa de verdad son 460 · 500 · 560 ·
+     600.
+
+     Antes acá había un tracking de −0.004rem que no era de nadie, un
+     1.3 de interlínea que tampoco, y tres interlíneas distintas.
+
+     LA ESCALA DE PESOS EN USO ES DE TRES: 460 · 500 · 600.
+     El 560 quedó fuera. Tres es donde está el consenso de sistemas de
+     diseño —EightShapes: "some systems can get away with as few as two
+     or three weights"— y el 460 no se puede sacar porque es el cuerpo y
+     tiene que ser más liviano que todo lo demás.
+
+     Y él nunca usa un salto menor a 40 para separar dos niveles de la
+     misma jerarquía. Los sub-40 que sí tiene —430 en cursivas, 450 en
+     internos de componente— son compensación óptica, no escalones.
+     Medido y citado en .context/recon/TYPE-SYSTEMS.md. */
+  --fs: 14px;
+  --lh: 1.428571; /* su 1.25rem sobre 14px = 20px */
+  --fw-body: 460;
+  --tracking: -0.00563rem;
+
+  /* ─── ROLES DE TEXTO ───
+     Cada rol como un juego de tokens en vez de valores sueltos por
+     clase. En este sistema todos comparten tamaño y se separan por
+     peso, así que los roles parecen redundantes — pero son el lugar
+     donde vive esa decisión, y sin ellos el peso de cada rol vuelve a
+     quedar escondido en su clase.
+
+     La interlínea va en px y no como razón: es la forma de benji
+     (1.25rem absoluto, que no escala si cambia el tamaño) y además deja
+     que el cálculo del hueco del rótulo la consuma directo. Las dos
+     caen en múltiplos de 4. */
+  /* 500 y no 600: el título de la página NO es lo más pesado que hay.
+     Es el peso de su header h1 (.article > header h1{font-weight:500}),
+     y la razón es funcional — el título se lee una vez y su rango ya se
+     lo da la posición, solo arriba y rodeado de aire. El peso se guarda
+     para lo que hay que buscar. */
+  --type-h1-fs: 14px; /* título de página y del detalle */
+  --type-h1-lh: 20px;
+  --type-h1-fw: 500;
+  --type-h1-ls: -0.00563rem;
+  --type-h1-c: var(--ink);
+
+  /* Sólo el subtítulo del masthead. La descripción del detalle SALIÓ de
+     este rol al tomar el uso de benji: es prosa, y su regla 1 es que
+     todo lo que se lee va en ink. El gris queda para lo que ANOTA — su
+     <time> bajo el h1 es exactamente el rol del subtítulo. */
+  --type-body-fs: 14px; /* subtítulo del masthead */
+  --type-body-lh: 20px;
+  --type-body-fw: 460;
+  --type-body-ls: -0.00563rem;
+  --type-body-c: var(--text-secondary);
+
+  /* 600 — lo MÁS pesado de la página, por encima del título. Es lo que
+     él hace y está verificado end-to-end: el separador de /liveline es
+     un h1 dentro de <article class="article">, así que cae en
+     .article h1{font-weight:600}. (El 560 que había acá antes salía de
+     .article h2, que es un sub-encabezado dentro del artículo, no el
+     separador que copiamos.)
+
+     Los encabezados de sección se buscan muchas veces y en malas
+     condiciones, en medio de contenido, mientras el ojo salta. Ahí el
+     peso es funcional, no jerárquico: va donde está el trabajo. */
+  --type-h2-fs: 14px; /* rótulo de sección — "Web" / "App" */
+  --type-h2-lh: 20px;
+  --type-h2-fw: 600;
+  --type-h2-ls: -0.00563rem;
+  --type-h2-c: var(--ink);
+
+  /* 500, el mismo que el título de página. El empate es el costo de
+     bajar a tres pesos y está aceptado: los distingue la posición y el
+     contexto, no el peso. Él no tiene este rol —no hay en su sitio una
+     lista de pares [nombre + card]— así que acá no hay nada que copiar. */
+  --type-h3-fs: 14px; /* título de pieza */
+  --type-h3-lh: 20px;
+  --type-h3-fw: 500;
+  --type-h3-ls: -0.00563rem;
+  --type-h3-c: var(--ink);
+
+  --type-meta-fs: 14px; /* la plataforma, en el detalle */
+  --type-meta-lh: 20px;
+  --type-meta-fw: 460;
+  --type-meta-ls: -0.00563rem;
+  --type-meta-c: var(--text-secondary);
+
+  /* Su índice: 13px/460, tracking -.0025rem, lh 1.2 y color al 40%.
+     El 1.2 da 15.6; 16 lo pega a la escala de 4.
+
+     Un solo juego para todo el índice: el rótulo "Web" y sus links son
+     idénticos propiedad por propiedad, y al rótulo lo separa sólo el
+     aire. Es exactamente lo de benji — su `nav h2` y su `nav ul li a`
+     comparten tamaño, peso, tracking, interlínea y color, y el único
+     que se mueve es el activo, que sube a --ink. Probado contra la
+     alternativa (rótulo como encabezado, 500 en ink) y elegido a ojo.
+
+     Que sean un solo juego y no dos con el mismo valor es a propósito:
+     dos nombres para un mismo número se separan solos con el tiempo. */
+  --type-nav-fs: 13px;
+  --type-nav-lh: 16px;
+  --type-nav-ls: -0.0025rem;
+  --type-nav-fw: 460;
+  /* La otra base del nivel secundario: el mismo alfa que la anotación,
+     desde --ink en vez de negro puro. Compone en 166. Es la posición de
+     benji —su nav sale de su ink y su anotación de negro, y por eso la
+     nav le queda la más clara de las dos. La explicación entera está
+     arriba, en --secundario-alfa.
+
+     REESCRITO: la nav ya NO sale del --ink. Sale de la misma base que
+     la anotación —negro— con un alfa más bajo. Es UNA BASE Y DOS ALFAS
+     en vez de un alfa y dos bases, y no mueve ningún valor: negro@34.4%
+     da los mismos 166 que daba ink@37%.
+
+     El motivo es el modo oscuro. Derivando la nav del ink, el ink queda
+     atrapado: tiene que entrar ~17 unidades desde el extremo o las dos
+     bases se aplastan una contra otra. Eso obligaba a un ink de 238 en
+     oscuro y dejaba el texto 7.5 Lc por debajo del claro. Con dos alfas
+     el ink queda libre y puede ir a 250 —el de josh, y el que empata el
+     contraste del claro al decimal— sin tocar el par.
+
+     Es la estructura que benji usa para su nav en reposo y activa:
+     hsla(0,0%,7%,.4) y .8, una base y dos alfas. */
+  --nav-alfa: 34.4%;
+  --type-nav-c: color-mix(in srgb, #000 var(--nav-alfa), transparent);
+
+  /* ═══════════ ESPACIADO ═══════════
+     Nombres al modo de apple: DUEÑO → PARTE → PROPIEDAD → LADO, siempre
+     el sustantivo primero y la propiedad al final. Medido de su CSS
+     servido: --buystrip-content-padding, --buystrip-items-padding-bottom,
+     --media-gallery-bottom-content-padding-left. Linear y OpenAI hacen
+     lo mismo más corto (--button-gap, --page-top-gap).
+
+     Ninguno de los tres tiene un token nombrado por su valor. En 1.3 MB
+     de su CSS no hay un solo --space-4. Por eso acá tampoco: la escala
+     cruda se borró y cada número decidido tiene un nombre que dice qué
+     separa.
+
+     Y los tres comparten otra cosa que nosotros ya hacíamos sin
+     nombrarla: EL NOMBRE ES EL ROL, EL VALOR ES CONTEXTUAL. El
+     --button-gap de linear vale 4, 6 u 8 según el tamaño del botón; los
+     paddings de apple cambian con el breakpoint. Acá pasa lo mismo con
+     los tres de abajo, que se mueven en 768.
+
+     REGLA: todo espaciado de LAYOUT es múltiplo de 4. Adentro de un
+     componente no rige — es lo que hace benji, que usa 2, 3, 5, 6 y 10
+     pero sólo en .Toolbar_*, .BarSlider_field y variantes de botón,
+     nunca en el layout de la página. Hoy no tenemos nada interno: la
+     card está vacía y el único componente es la flecha del detalle. */
+
+  /* el marco. Comportamiento de benji: escalona en 768 y no interpola
+     —no hay clamp() ni vw en ninguna parte, igual que él.
+
+     El padding lateral es 16 arriba de 768 y 24 abajo. No es una
+     inconsistencia: arriba de 768 el riel está centrado con aire de
+     sobra a los costados y el padding es vestigial, sólo angosta la
+     columna. Abajo de 592 el riel ES el viewport y ese mismo padding
+     pasa a ser la única distancia al borde de la pantalla. */
+  --page-padding-inline: 16px;
+  --page-padding-top: 80px; /* 5rem */
+
+  /* 80 abajo, el mismo número que arriba, y escalona con él. No sale de
+     las referencias: las dos cierran corto (benji 40, josh 64) porque
+     abajo tienen footer y nosotros no vamos a tener, así que ese aire es
+     el final de la página y no una separación. Benji NO escalona el suyo
+     de abajo — acá se decidió que sí, para que arriba y abajo sean el
+     mismo número en todo ancho. */
+  --page-padding-bottom: 80px;
+
+  /* EL ESCALÓN DEL MARCO — uno solo, en 768, y mueve dos cosas a la vez.
+     Es el de benji, leído de su CSS servido:
+
+       .styles_container__YJPlC{padding:5rem 1rem 2.5rem; …}
+       @media screen and (max-width:768px){
+         .styles_container__YJPlC{padding:2rem 1.5rem 2.5rem}}
+
+     → aire arriba 80 → 32, márgenes 16 → 24. Verificado al píxel en su
+     página: a 769 el aire son 80, a 768 son 32.
+
+     Se eligió su manera y no la de josh, que no escalona nada (672 · 24
+     · 64 desde 320 hasta 2560, cero clases responsive en el marco).
+
+     El bloque que lo aplica está abajo de este :root. Va en :root y no
+     sobre una clase porque es una propiedad DEL MARCO y hay más de un
+     marco: la página y el área privada. */
+
+  /* 592 = 37rem justos. Elegido con scrubber sobre la página real, entre
+     el de benji (582, su 36.375rem) y el de josh (672, 42rem). Con el
+     padding de 16 la columna queda en 560 = 35rem: los dos caen en rem
+     enteros, cosa que no pasaba con ninguno de los dos extremos. */
+  --page-content-max-width: 592px;
+
+  /* ─── EL FOCO ───
+     2px sólido y SIN transición. Lo de la transición es de benji: es lo
+     único de su página que aparece instantáneo, contra los 200ms que
+     tiene todo lo demás.
+
+     EL COLOR es el anillo de foco por defecto de Chromium, medido del
+     motor y no citado de memoria. Los tres motores dan tres azules
+     distintos, y los tres se midieron enfocando un botón sin estilos y
+     leyendo el píxel pintado:
+
+       Chromium  -webkit-focus-ring-color  #005fcc   sólido
+       WebKit    -webkit-focus-ring-color  #0067f4   pintado al 50%
+       Firefox   (no soporta la keyword)   #007aff   sólido
+
+     Se eligió el de Chromium por ser el más grave de los tres —el que
+     de verdad suena a navegador viejo— y el de más contraste: |Lc| 77.8
+     en claro y 34.8 en oscuro, cómodo sobre el piso de 30 que APCA pide
+     para componentes de interfaz.
+
+     DOS COSAS QUE SALIERON DE MEDIRLOS Y VALE ANOTAR: el azul que había
+     acá antes, rgba(0,122,255,.5) heredado de benji, es exactamente el
+     de Firefox; y WebKit pinta el suyo a 50% de alfa clavado, o sea que
+     el mecanismo del anillo viejo de Safari era el mismo que teníamos.
+
+     EL OFFSET es de josh —:focus-visible{outline:2px solid var(--accent);
+     outline-offset:2px}— y no es adorno. Sin él el anillo CORTA las
+     letras de los links del índice, que son texto sin padding. Con 2px
+     las encuadra, y en la card el outline sigue el radio 8 solo.
+     Reemplaza el padding:0 2px / margin:0 -2px con el que benji despega
+     el suyo: hace lo mismo sin tocar el layout.
+
+     Es lo único del sistema que no sale de nuestro tono. A propósito:
+     un anillo de foco tiene que leerse como "esto no es contenido", así
+     que no puede ser un gris de la página. */
+  --focus-outline: 2px solid #005fcc;
+  --focus-outline-offset: 2px;
+  --focus-transition: none;
+
+  /* El activo y el hover del índice NO llegan al ink: se quedan en 65.
+     Es su regla, explícita en una sola declaración para los dos estados:
+       nav ul li a:hover, nav ul li[data-active=true] a
+         { color: hsla(0,0%,7%,.8) }
+     O sea que la pieza que estás mirando se destaca sin ser lo más
+     oscuro de la pantalla — eso queda para los títulos. */
+  /* Y EL NOMBRE NO LLEVA EL COMPONENTE. Se llamaba --index-activo-c
+     cuando el índice era su único lector; hoy son tres —el activo del
+     índice, su hover, y el hover de la flecha de volver— en dos
+     componentes distintos. Por la regla 4, el nombre es el rol, y el rol
+     es el nivel que marca "ésta": porque la estás señalando con el
+     puntero o porque es donde estás. Que las dos cosas compartan color
+     es de él, no una economía nuestra. */
+  --activo-c: rgba(18, 18, 18, 0.8);
+
+  /* motion. La página NO tiene animación de entrada: al abrir una pieza
+     y al volver no se anima nada. Nada se desplaza, nada escala, nada
+     rota: los cuatro lugares donde hay transición cambian un color.
+     Por eso tampoco hace falta un bloque de prefers-reduced-motion
+     acá: no queda movimiento que reducir. El scroll suave del índice sí
+     lo consulta, en app.tsx.
+
+     DOS CURVAS, PARTIDAS POR PROPIEDAD. El corte no es por componente
+     —"esto es una card, esto no"— sino por lo que se anima, que es lo
+     que se lee en el CSS de linear:
+
+       background-color             →  --ease-surface · --dur-surface
+       color, text-decoration-color →  --ease-text    · --dur-text
+
+     CON UNA EXCEPCIÓN, Y ES LA FLECHA DE VOLVER. Anima fondo Y color a
+     la vez, así que si cada propiedad tomara su par terminarían en
+     momentos distintos —150 el fondo, 100 el color— y se leería como dos
+     cosas. La regla de elementos apareados de animations.dev es
+     explícita: "elements that animate together must use the same easing
+     and duration... si se mueven como una unidad, tienen que sentirse
+     como una unidad". Así que ahí gana el ELEMENTO y no la propiedad:
+     sus dos transiciones van con el par de superficie.
+
+     La regla completa queda: manda la propiedad, salvo cuando un solo
+     elemento anima las dos familias — ahí manda el elemento.
+
+     LA SUPERFICIE VA EN EASE-OUT. Es lo que hacen las tres cards con
+     hover de linear, sin una excepción:
+       .Dc5tqa_customerCard   filter .16s  --ease-out-quad
+       .do0YxW_card           filter .2s   ease-out (palabra clave)
+       .rWdRxW_card           all   .15s   --ease-out-cubic
+     Y el valor es el que prescribe /review-animations en su catálogo,
+     línea 32: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, con el
+     comentario "strong ease-out for UI".
+
+     ESTO ES UNA DIVERGENCIA CONSCIENTE, y queda escrita. Linear usa
+     ease-out en sus cards pero NUNCA este valor: sus tres usan quad,
+     la palabra clave y cubic. Declara el quint entre sus 18 curvas de
+     Penner y lo usa UNA vez en todo el sitio. O sea que la familia sale
+     de linear medido y el número sale de la skill, y no coinciden. Si
+     mañana se prefiere lo que ellos ship-ean, quad es
+     cubic-bezier(.25,.46,.45,.94) y es su caballo de batalla con 60
+     usos.
+
+     LA DURACIÓN TAMBIÉN SE PARTE, Y ESTO SÍ ES COMPOSICIÓN NUESTRA.
+     Ninguna de las dos referencias parte la duración: benji usa 100ms
+     para superficie y para texto, josh usa 150 para las dos. Medido en
+     runtime sobre 3 páginas de cada uno:
+
+       benji   background-color 100ms ×10   ·   color 100ms ×23
+       josh    background-color 150ms ×11   ·   color 150ms ×21 (a mano)
+                                                color 250ms ×17
+
+     Acá se toma el número de benji para el texto y el de josh para la
+     superficie. Es una combinación que ninguno de los dos ship-ea, y se
+     eligió mirando: a 100ms el hover de la card son 6 cuadros en vez de
+     9, y con un delta de 4 unidades eso lo deja casi como un encendido
+     seco; en el texto, donde el delta es de 101 unidades, los 100ms se
+     leen justos.
+
+     EL TEXTO VA EN `ease`, la palabra clave. Cuatro fuentes coinciden:
+       benji            CADA transición de su bundle, sin una sola curva
+                        custom. Duraciones .14s, .15s y .2s.
+       josh, a mano     .company-link  color 0.15s ease   ×18
+                        .role-text     color 0.15s ease   × 3
+       linear           25 de sus 46 transiciones de color, el 54% — 21
+                        sin declarar curva (que en CSS es `ease`) más 4
+                        explícitas.
+       /review-animations, línea 23, y también /animate y
+                        /web-animation-design: "hover o cambio de color
+                        → ease".
+
+     ANTES ACÁ HUBO DOS CURVAS Y LAS DOS ESTABAN MAL, por accidente y no
+     por reparto. --ease-fill se horneó como "la curva de josh" y no lo
+     era: las 21 apariciones de cubic-bezier(.4,0,.2,1) en sus tres
+     páginas salen TODAS de una utilidad de Tailwind y ninguna de su
+     CSS. Y el viejo --ease-out era el quint heredado de Carousels
+     aplicado a las cuatro, incluidas las tres de texto.
+
+     Y UNA COSA QUE PARECÍA ABIERTA Y NO LO ESTÁ: el hover es SIMÉTRICO,
+     150 entrando y 150 saliendo, y se queda así.
+
+     Hubo una vuelta atrás acá. Se había escrito que tres fuentes pedían
+     asimetría, y era falso. La regla asimétrica de linear existe
+     —.rWdRxW_card con :hover{transition-duration:var(--speed-highlight
+     FadeIn)} donde FadeIn es 0s— pero vive en ContactLink.css y
+     renderiza CERO elementos. Es el mismo error que las utilidades
+     active:scale de josh: está en el bundle y no la usa nadie. La card
+     que SÍ renderiza en linear, .Dc5tqa_customerCard, ×24 en su home,
+     es simétrica.
+
+     Barrido en vivo sobre 5 páginas de linear: 21 elementos hovereables
+     con transición, CERO cambian de duración al hover. La lista de benji
+     (opacity .14s) y la fila de josh (.15s) también son simétricas.
+
+     Y los otros dos "acuerdos" no eran de hover: los 20ms de benji son
+     de un :active, y el "respond on pointer-down" de Apple es del press.
+     El estándar 9 de /review-animations nombra textualmente "a press, a
+     hold, a destructive confirm" y "press-and-release or hold" — nunca
+     hover.
+
+     La razón por la que son distintos: un press es un acto DELIBERADO y
+     merece acuse instantáneo; un hover es INCIDENTAL, el puntero cruza
+     cosas que no quisiste tocar. Con entrada en 0ms, barrer la lista
+     hace destellar cada card a plena intensidad. Los 150ms funcionan de
+     hecho como amortiguador.
+
+     La asimetría queda anotada para el PRESS, que va a existir con la
+     pieza Button. Ahí las tres fuentes sí aplican. */
+  --ease-surface: cubic-bezier(0.23, 1, 0.32, 1);
+  /* La curva de las superficies que APARECEN —diálogos, menús—: un
+     ease-out muy adelantado, que es lo que el reparto de motion pide
+     para algo que entra. Nació en vault.module.css con la nota de que
+     subiera acá si aparecía una segunda; aparecieron dos. */
+  --ease-dialogo: cubic-bezier(0.19, 1, 0.22, 1);
+  --dur-surface: 150ms;
+  --ease-text: ease;
+  --dur-text: 100ms;
+
+  /* el índice lateral. Medido de benji: fixed a 80/80, links 13px/460
+     al 40%, 8px entre uno y otro.
+
+     El rótulo pide el doble de aire que un link, y el aire lo carga él
+     mismo — es su estructura exacta (nav > h2 + ul): el h2 lleva
+     padding:0 0 1rem y la ul su gap:.5rem. Medido en su página:
+     caja del h2 31.59 − texto 15.60 = 16.00 de hueco; y 8.00 clavado
+     entre link y link, cinco veces seguidas.
+
+     El salto entre grupos no sale de él: su índice es plano, un solo
+     título y una sola lista, así que para "grupo → grupo" no hay
+     evidencia. Es el mismo doble una vez más — 8 · 16 · 32 — que es
+     como ya escala todo lo demás del sistema. */
+  --index-offset-left: 80px;
+  --index-offset-top: 80px;
+  --index-item-gap: 8px;
+  --index-label-gap: 16px;
+  --index-group-gap: 32px;
+
+  /* ─── LOS HUECOS VERTICALES DE LA PÁGINA ───
+     Cada uno nombrado por el bloque que lo reclama, porque el aire lo
+     reclama el de abajo y no lo empuja el de arriba — la forma de benji,
+     verificada en su página real donde el contenedor de su gráfico lleva
+     style="margin-top:2rem".
+
+     Ordenados por tamaño se lee la escala sola, todos múltiplos de 4:
+     4 · 8 · 12 · 40 · 48 · 60 · 64
+
+     El detalle de cada uno y de dónde salió está en el README y en
+     .context/recon/NAVIGATION.md. */
+
+  /* el subtítulo, de su título. Análogo exacto de benji: su <header> es
+     el mismo par —un h1 y una línea secundaria, los dos 14px/lh20— con
+     display:flex; flex-direction:column; gap:.25rem. Como los dos textos
+     son del mismo tamaño la interlínea ya los separa: estos 4 son un
+     empujón, no una separación. */
+  --masthead-subtitle-gap: 4px;
+
+  /* el rótulo de sección, de su hairline. Medido de su separador. */
+  --section-rule-gap: 8px;
+
+  /* la primera pieza, del rótulo. Es el hueco que se VE, de la línea al
+     primer texto, no el margin: la línea va centrada en la caja del
+     rótulo y el CSS descuenta esa media caja. 40 es el número de benji
+     en /liveline, medido en 13 de sus 15 secciones. Tiene que quedar por
+     debajo de --piece-gap o el rótulo se despega de su grupo. */
+  --section-content-gap: 40px;
+
+  /* la primera sección, del masthead. */
+  --section-first-gap: 60px;
+
+  /* una sección, de la anterior. El de benji, medido. */
+  --section-gap: 64px;
+
+  /* la card, de su nombre. ELEGIDO A OJO con scrubber sobre la página
+     real, no copiado: ninguna referencia tiene nuestra estructura, una
+     lista de pares [nombre corto + card grande] repetida 19 veces. Lo
+     más cercano es josh en /pasito, h2 20px/500 seguido directo de una
+     card de código a 16 (mt-4). Se probaron 12 y 16 con las 19 piezas
+     apiladas y ganó 12. */
+  --piece-card-gap: 12px;
+
+  /* una pieza, de la anterior. El de benji, medido. */
+  --piece-gap: 48px;
+
+  /* El radio de la card. Censo de las 7 páginas de las dos referencias:
+     para cajas grandes hay exactamente dos números y no hay un tercero.
+
+       benji   8    50 usos en family-values, 4 en liveline
+               14   3 usos, sólo el frame hero de /drawesome
+       josh    12   11 en su home, 5 en pasito, 2 en bloom
+               16   6 usos, sus cajas de <img> en pasito
+               32   1 uso, el demo portada de /bloom
+
+     Elegido el 8: es el radio más repetido de las dos referencias
+     juntas, y el único que las dos usan en cajas grandes. Los otros tres
+     son one-offs de una sola página. Además es múltiplo de 4, que el 14
+     no es.
+
+     En controles chicos los dos coinciden en 4 y 6, así que cuando haya
+     una pieza real ahí no va a haber nada que decidir. */
+  --card-radio: 8px;
+
+  /* ─── LA CAJA DE LA PIEZA ───
+     Altura fija y no proporción. Sale de seis casos medidos entre las
+     dos referencias (.context/recon/CARDS.md): lo que corre lleva altura
+     elegida a mano, y lo quieto deja mandar al contenido. Ninguno de los
+     dos usa aspect-ratio para algo vivo.
+
+     WEB · 260 en la lista, 400 al abrir.
+
+     Los dos son de benji y la relación entre ellos también: adentro de
+     una página larga sus demos de /liveline miden 260 —su segundo valor
+     más usado, ×4 de 21— y cuando el demo ES la página, el frame de
+     /drawesome mide 400. Nosotros tenemos esas mismas dos situaciones.
+
+     No cambian con el viewport, y eso también es suyo: sus 20 demos
+     miden 180–300 idénticos a 1440, 768, 500, 390 y 320. Lo único que
+     se mueve es el ancho, así que la card pasa de 2.12:1 a 1.05:1 sola.
+
+     Van como min-height: son un PISO. Si una pieza necesita más, empuja
+     y la card la sigue. Con la card vacía da igual; la diferencia es
+     toda a futuro. */
+  --card-alto: 260px;
+  --card-alto-detalle: 400px;
+
+  /* La caja de la pieza en App. NO lleva altura: la altura es el hueco
+     del teléfono más el padding, igual que la de benji. La forma del
+     contenido manda, que es lo que hacen los dos referentes.
+
+     Medido de benji · family-values, la variante que más usa (17 de 45):
+
+       caja       550 × 532.42   radio 8 · #fcfcfc · 0 0 0 1px #f2f2f2
+       padding    40px 60px
+       teléfono   228 × 448      (natural 762×1502)
+
+     Su 532.42 no es un número elegido: es 40 + 448 + 4.42 + 40, y ese
+     4.42 es el hueco de línea que deja el display:inline-block del
+     teléfono. Nuestro equivalente da 528 limpio, múltiplo de 4.
+
+     Y NO se fija en 528, porque su card tampoco lo hace. Barrido de 13
+     anchos sobre su página: 532.42 clavado de 1920 hasta 430, y ahí
+     empieza a bajar — 521.6 en 390, 462.5 en 360, 383.6 en 320. Sin una
+     sola media query: sus clases no tienen ninguna. Lo que pasa es que
+     el ancho útil (caja − 120 de padding) cae abajo de los 228 del
+     teléfono y el teléfono se achica solo, arrastrando la caja.
+
+     El umbral sale de la misma cuenta en las dos páginas: la caja mide
+     viewport − 48, así que el teléfono empieza a ceder cuando
+     viewport − 48 − 120 < 228, o sea abajo de 396. Nos da idéntico sin
+     copiar ningún breakpoint.
+
+     Y el teléfono también crece al abrir la pieza, con otro número suyo:
+     228 es el que usa dentro de una caja (17 de 45) y 319 el que usa
+     cuando el teléfono va solo. La caja lo sigue en los dos. */
+  --card-app-padding: 40px 60px;
+  --card-app-slot-ancho: 228px;
+  --card-app-slot-detalle: 319px;
+  --card-app-slot-ratio: 228 / 448;
+}
+
+/* El escalón. El porqué de cada número está arriba, en :root. */
+@media (max-width: 768px) {
+  :root {
+    --page-padding-top: 32px; /* 2rem */
+    --page-padding-bottom: 32px; /* el de abajo acompaña al de arriba */
+    --page-padding-inline: 24px; /* 1.5rem */
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Las dos, no sólo light: le dice al navegador que los controles
+     nativos y las barras de scroll pueden ir en cualquiera de los dos.
+     Sin declararlo, con el sistema en oscuro la página queda mitad y
+     mitad. Ninguna de las cinco referencias lo declara. */
+  color-scheme: light dark;
+  background: var(--canvas);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODO OSCURO
+
+   Se dispara con el sistema y nada más, como josh — sin toggle. De
+   las cinco referencias medidas sólo él tiene tema oscuro de página:
+   benji y emil tienen paletas oscuras en su CSS pero sólo para
+   componentes embebidos, y linear fuerza data-theme="dark" e ignora
+   el sistema.
+
+   TODO SE DERIVA DE CUATRO NÚMEROS. No hay una paleta escrita a mano:
+   hay un punto elegido en un espacio, y el resto cae de dos reglas.
+
+     profundidad  9      el gris del canvas
+     calidez      .003   croma en OKLCH sobre H 106.4, el tono medido
+                         del --canvas claro
+     ink          250    el de josh (--foreground:#fafafa)
+     tono         106.4  el mismo en los dos modos
+
+   LAS DOS REGLAS, y sólo dos. Antes hubo una versión con cuatro
+   ratios distintos conviviendo —1.54 la card, 2.83 la selección, 1.60
+   los alfas, 0.99 el subrayado— y cada uno tenía su excusa, pero
+   juntos no eran un sistema.
+
+   1 · EL TEXTO CONSERVA EL CONTRASTE. Tiene un piso de legibilidad
+       que las superficies no tienen, así que lo que se sostiene es el
+       Lc y no el número:
+                        claro   oscuro
+         ink            104.1    104.4    ink 250
+         anotación       50.3     48.1    blanco @ 59.2%
+         nav             46.7     42.5    blanco @ 55%
+         activo          92.9     93.4    ink @ 93%
+       El 59.2% sale del ×1.6 que benji aplica en sus dos tokens con
+       alfa (.28→.45 y .10→.16, el mismo factor dos veces). El 93% no
+       conserva el alfa sino la POSICIÓN del activo entre la nav y el
+       ink: en claro el 80% lo deja al 80.4% de ese recorrido, y en
+       oscuro hace falta 93% para caer en el mismo punto, porque
+       arriba de la nav queda menos lugar.
+
+   2 · TODO LO DEMÁS CONSERVA LA DISTANCIA E INVIERTE LA DIRECCIÓN.
+       En claro la card está a −5 del canvas, el hover a −9, la
+       selección a −16, el subrayado a −36 y su hover a −151. Acá
+       están a +5, +9, +16, +36 y +151. Los alfas hacen lo mismo:
+       mismo número, base dada vuelta.
+
+       Eso último es de linear: su --color-border-translucent es
+       #0000000d en claro y #ffffff0d en oscuro, ×1.00 — y ese
+       #0000000d es 5.098%, nuestra --hairline a tres decimales.
+
+   POR QUÉ LA DISTANCIA Y NO EL ΔL. Es un compromiso, no una ley.
+   OKLab dice que ΔL igual se ve igual; conservar la distancia de 8
+   bits da ~1.5× de ΔL, así que la card ES algo más notoria en oscuro.
+   Pero conservar el ΔL exacto la dejaría en +3 y desaparece, y las
+   dos referencias con escala propia agrandan mucho más —emil ×3.00,
+   linear ×4.48— por robustez entre pantallas, no por apariencia:
+   cerca del negro OLED e IPS divergen, hay luz ambiente y hay bandeo
+   de 8 bits. Esto queda en el medio y se enuncia en una frase.
+   APCA no puede arbitrarlo: devuelve 0.0 para todas las opciones de
+   superficie, está hecho para texto.
+
+   LA RAMPA se genera en OKLCH con croma y tono CONSTANTES, que es el
+   método de linear: un solo tono en los dos modos, con el tinte
+   viviendo en toda la escala y no sólo en el fondo.
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #090908;
+    --surface: #0e0e0d; /* +5 */
+    --surface-hover: #121211; /* +9 */
+    --ink: #fafaf9; /* el 250 de josh, con nuestro tono */
+
+    /* Las dos bases se dan vuelta: negro → blanco. Los alfas suben
+       porque lo que se conserva es el contraste, no el número. */
+    --secundario-alfa: 59.2%;
+    --nav-alfa: 55%;
+    --text-secondary: color-mix(in srgb, #fff var(--secundario-alfa), transparent);
+    --type-nav-c: color-mix(in srgb, #fff var(--nav-alfa), transparent);
+
+    /* Mismo número, base dada vuelta. La regla de linear. */
+    --hairline: rgba(255, 255, 255, 0.051);
+
+    --activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
+
+    /* INVERSIÓN, la decisión de josh — no el delta de benji.
+       Estaba en #191918, el +16 del claro trasladado, y era INVISIBLE:
+       16 pasos cerca del negro no se ven como 16 cerca del blanco, la
+       gama los aplasta. Señalado en uso: "al seleccionar texto no se
+       nota".
+
+       Benji no puede votar acá —su sitio no tiene modo oscuro, 0 media
+       queries en su CSS— y linear resuelve con su azul de marca, que
+       este sistema no tiene. El que queda es josh:
+         ::selection{color:#fff;background:#000}
+       inversión total. Con nuestros tokens: fondo a tinta, texto a
+       canvas. Cero colores nuevos, y la selección es un estado
+       transitorio que el usuario provocó arrastrando — puede ser
+       fuerte. */
+    --selection-bg: var(--ink);
+    --selection-color: var(--canvas);
+
+    --link-underline: #2d2d2b; /* +36 */
+    --link-underline-hover: #a0a09e; /* +151 */
+
+    /* El acento se aclara, que es lo que hacen benji (#08f → #3d9bff)
+       y josh (#6366f1 → #818cf8). Sale de subirle la L al #005fcc con
+       el ΔL de ellos; el mismo cálculo sobre el #007aff de firefox da
+       #3f9aff contra el #3d9bff medido de benji, una unidad. */
+    --focus-outline: 2px solid #347ee5;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALTO CONTRASTE
+
+   `prefers-contrast: more` es cuando alguien prendió "Aumentar
+   contraste" en su sistema. No es una preferencia estética como el modo
+   oscuro: es de accesibilidad, y quien la prende está pidiendo
+   explícitamente que los grises tenues dejen de ser tenues.
+
+   ES LA PRIMERA DECISIÓN DE COLOR SIN NINGUNA REFERENCIA. Cero
+   ocurrencias de prefers-contrast en los cinco bundles medidos —benji,
+   emil, animations.dev, josh, linear—. Lo único vecino es un
+   @media (forced-colors:active) en animations.dev, que es una utilidad
+   de Tailwind y no una decisión de paleta. Así que acá la regla la pone
+   /better-colors: ensanchar el gap de L al menos 0.15 y verificar contra
+   los umbrales PREFERIDOS de APCA, Lc 90 cuerpo y 75 no-cuerpo.
+
+   DÓNDE ESTÁBAMOS:
+     ink          Lc 104.1 claro · 104.4 oscuro    pasa 90, no se toca
+     anotación    Lc  50.3      ·  48.1            pide 75, NO pasa
+     nav          Lc  46.7      ·  42.5            pide 75, NO pasa
+
+   Y ACÁ HAY UNA CONVERGENCIA QUE DECIDE SOLA: el alfa que hace falta
+   para llegar a Lc 75 sale EL MISMO para la anotación y para la nav —
+   57.4% en claro, 78.8% en oscuro—, porque las dos apuntan al mismo
+   número. O sea que en alto contraste LOS DOS GRISES SE COLAPSAN EN UNO.
+
+   No es una pérdida, es la respuesta correcta: la distinción entre esos
+   dos era de 3.6 Lc en su mejor momento, y es exactamente el tipo de
+   sutileza que alguien pidiendo más contraste quiere que desaparezca. La
+   jerarquía que sobrevive —ink contra secundario— es la que carga
+   significado.
+
+   Y llegar a Lc 75 ensancha el gap entre 0.153 y 0.194 en los cuatro
+   casos, o sea más que el 0.15 que pide el skill. El umbral manda y no
+   hace falta un segundo cálculo.
+
+   LO DEMÁS NO LO PIDE EL SKILL, es nuestro criterio: bajo alto
+   contraste la estructura también tiene que leerse, así que TODAS LAS
+   DISTANCIAS QUE NO SON TEXTO SE DUPLICAN. Es una sola regla y no
+   cuatro números sueltos — card −5→−10, hover −9→−18, selección
+   −16→−32, subrayado −36→−72, y los alfas de línea al doble. El hover
+   del subrayado va directo a --ink: duplicar sus 151 se sale del rango.
+
+   El anillo de foco corre un escalón de acento más en cada dirección,
+   con el mismo ΔL con el que se derivó su par: claro |Lc| 77.8 → 87.9,
+   oscuro 34.8 → 48.7.
+
+   Los dos bloques van con (prefers-color-scheme) explícito en vez de
+   depender del orden en la cascada. `light` matchea también cuando no
+   hay preferencia declarada, así que no queda ningún hueco.
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
+  :root {
+    /* un solo gris: los dos alfas al mismo número */
+    --secundario-alfa: 57.4%;
+    --nav-alfa: 57.4%;
+
+    --surface: #f3f3f0; /* −10 */
+    --surface-hover: #ebebe6; /* −18 */
+    --selection-bg: #dddddd; /* −32 */
+    --link-underline: #b5b5b5; /* −72 */
+    --link-underline-hover: var(--ink);
+
+    --hairline: rgba(0, 0, 0, 0.102);
+
+    --focus-outline: 2px solid #0042ad;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root {
+    --secundario-alfa: 78.8%;
+    --nav-alfa: 78.8%;
+
+    --surface: #131312; /* +10 */
+    --surface-hover: #1b1b1a; /* +18 */
+    /* La selección no se duplica acá: la base oscura ya es inversión
+       total —tinta sobre canvas— y no hay escalón por encima de eso. */
+    --link-underline: #51514f; /* +72 */
+    --link-underline-hover: var(--ink);
+
+    --hairline: rgba(255, 255, 255, 0.102);
+
+    --focus-outline: 2px solid #589cfe;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  /* Las dos, no una. El antialiasing de macOS afina el trazo, y en este
+     sistema la jerarquía ES el trazo: 460 · 500 · 600, todo a 14px. Con
+     sólo la de -webkit, Firefox dibujaba los tres escalones más pesados
+     y más juntos que el resto de los navegadores. Es lo que hace benji
+     en su body, las dos seguidas (SOURCE: bd-d660f1d84c4a4312.css). */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: var(--fs);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--tracking);
+  line-height: var(--lh);
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* font:inherit NO arrastra letter-spacing en controles de formulario */
+button {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+/* El link hereda el color de su bloque y lo marca un subrayado aparte,
+   mucho más claro. Es la regla de benji y de emil, las dos referencias
+   que tienen prosa con links. Ninguno de los dos usa el color del texto
+   para decir que algo es clickeable.
+
+   Hoy la página no tiene ningún <a>: esto es la regla lista para cuando
+   el detalle tenga texto. Los links del índice y el botón de volver son
+   <button>, así que no los toca.
+
+   El hover mueve el SUBRAYADO, no el texto — por eso la transición va
+   sobre text-decoration-color y nada más. */
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur-text) var(--ease-text);
+}
+a:hover {
+  text-decoration-color: var(--link-underline-hover);
+}
+
+:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+  transition: var(--focus-transition);
+}
+
+/* Sin ::-moz-selection. Benji y emil lo mandan los dos, pero es su
+   autoprefixer, no una necesidad: firefox soporta ::selection sin
+   prefijo desde la 62 (2018). */
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
+}

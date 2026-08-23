@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.context/
+.DS_Store
+
+# La carpeta del vault sale de acá y es de cada máquina. .env.example
+# sí se versiona: es la plantilla.
+.env.local
+.env*.local
