@@ -2,7 +2,6 @@ import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 're
 import css from './app.module.css'
 import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
-import { Lab } from './proto/lab'
 import { NotFound } from './not-found'
 
 const PLATFORMS = ['Web', 'App'] as const
@@ -376,10 +375,6 @@ export function App() {
          parpadeo de un cuadro. */
       <Suspense fallback={null}>
         <Privado vistas={PRIVADAS} actual={vista.privada.ruta} resto={vista.resto} ir={ir} />
-        {/* El toggle de tema también acá: el área privada usa los mismos
-            tokens, así que hay que poder mirarla en oscuro. Vive abajo;
-            las opciones de cada vista van arriba, para no pisarse. */}
-        <Lab />
       </Suspense>
     )
   }
@@ -392,7 +387,6 @@ export function App() {
     return (
       <div className={css.page}>
         <Detail piece={selected} onBack={back} />
-        <Lab />
       </div>
     )
   }
@@ -423,7 +417,6 @@ export function App() {
           </section>
         ))}
       </div>
-      <Lab />
     </div>
   )
 }
