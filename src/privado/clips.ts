@@ -82,6 +82,19 @@ const aFrase = (s: string) => {
   return limpio ? limpio[0].toUpperCase() + limpio.slice(1) : s;
 };
 
+/* "web/sheet-que-se-estira.png" → "Sheet que se estira".
+
+   ES LA MISMA CUENTA QUE `nombre`, pero partiendo de la ruta en vez del
+   índice, y existe para UN caso: el lienzo del playground guarda en cada
+   frame la RUTA del clip, así que cuando el archivo ya no está —lo
+   renombraste, lo mandaste a la papelera— lo único que queda para
+   mostrar es esa ruta. Y una ruta cruda en pantalla es un dato de disco,
+   no un nombre.
+
+   Con esto el clip que falta se sigue llamando como se llamaba. */
+export const nombreDeRuta = (ruta: string) =>
+  aFrase((ruta.split("/").pop() ?? ruta).replace(/\.[^.]+$/, ""));
+
 /* La carpeta clasifica. El primer nivel y nada más: "native/2026/x.mp4"
    sigue siendo native. Lo que no cae en ninguna queda sin clasificar en
    vez de inventarle una — así se ve que hay un clip suelto en la raíz y
@@ -142,29 +155,32 @@ export async function guardarFicha(
    la pone él, copiándola del archivo, así que renombrar no puede
    cambiar el tipo. Devuelve la ruta nueva, que es distinta — la ruta ES
    el nombre. */
-export async function renombrarClip(ruta: string, nombre: string): Promise<string> {
-  const r = await fetch('/vault-media/__renombrar', {
-    method: 'PUT',
-    headers: { 'content-type': 'application/json' },
+export async function renombrarClip(
+  ruta: string,
+  nombre: string,
+): Promise<string> {
+  const r = await fetch("/vault-media/__renombrar", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({ ruta, nombre }),
-  })
-  const d = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`)
-  return d.ruta as string
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
+  return d.ruta as string;
 }
 
 /* A LA PAPELERA, no borrar. El servidor mueve el archivo a la papelera
    del sistema en vez de hacer unlink: desde una app de estudio un
    borrado no tiene undo que lo salve, y así se recupera desde Finder. */
 export async function aPapelera(ruta: string): Promise<void> {
-  const r = await fetch('/vault-media/__papelera', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
+  const r = await fetch("/vault-media/__papelera", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({ ruta }),
-  })
+  });
   if (!r.ok) {
-    const d = await r.json().catch(() => ({}))
-    throw new Error(d?.error ?? `error ${r.status}`)
+    const d = await r.json().catch(() => ({}));
+    throw new Error(d?.error ?? `error ${r.status}`);
   }
 }
 

@@ -45,23 +45,28 @@ export default function Privado({
   resto: string
   ir: (ruta: string) => void
 }) {
-  /* ⌘Z DESHACE LA ÚLTIMA NAVEGACIÓN.
+  /* ⌘Z DESHACE LA ÚLTIMA NAVEGACIÓN — Y ES EL ÚLTIMO ESLABÓN, NO EL
+     ÚNICO.
 
      Es lo mismo que el gesto de atrás del trackpad, pero con el teclado
      — y en un lugar donde vas a estar con las dos manos en él, saltando
      de cuadro en cuadro con las flechas. Sacar la mano para hacer un
      gesto de dos dedos rompe eso.
 
-     Hoy lo único que hay para deshacer es haber navegado. Cuando el
-     playground tenga acciones de verdad —mover un frame, cambiar un
-     valor— ⌘Z va a tener que deshacer ESO y no la navegación, y esta
-     regla se vuelve el último eslabón de la pila y no el único.
-     Anotado acá para que ese día no se descubra de casualidad.
+     ESE DÍA LLEGÓ: el playground ya tiene acciones de verdad —mover un
+     frame, agregar un clip, borrar una vista— y su ⌘Z deshace ESO. Su
+     manejador escucha en CAPTURA, así que corre antes que éste sin
+     depender del orden en que montaron los efectos, y marca el evento
+     con preventDefault. Acá alcanza con apartarse al verlo marcado.
 
-     ⇧⌘Z queda libre a propósito: es rehacer, y no hay nada que rehacer
-     todavía. */
+     O sea que en el vault ⌘Z sigue siendo "volver", y en el playground
+     es "deshacer". El que no tiene nada que deshacer cede.
+
+     ⇧⌘Z ya no queda libre: es rehacer, y lo atiende el playground. */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      /* Ya lo tomó alguien con más derecho — ver arriba. */
+      if (e.defaultPrevented) return
       if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return
       if (e.shiftKey) return
       const t = e.target as HTMLElement | null
@@ -86,6 +91,19 @@ export default function Privado({
      en qué vista estás: lo que decide es si hay algo abierto. */
   const enDetalle = resto !== ''
 
+  /* ─── EL LIENZO NO TIENE MARCO ───
+     Con una vista del playground abierta, la barra de solapas NO se
+     dibuja y el marco pierde su aire vertical: un lienzo es todo lo que
+     hay en la pantalla, y una fila de chrome arriba le come 32 px de
+     tablero para decir algo que ya está dicho —la sidebar del propio
+     lienzo tiene la flecha para volver, y ésa es la salida—.
+
+     Es la única vista del área privada que se comporta así, y por eso la
+     condición mira las dos cosas: la ruta Y que haya algo abierto. El
+     detalle de un clip del vault sigue llevando su barra, porque ahí
+     seguís mirando el vault. */
+  const enLienzo = actual === '/playground' && enDetalle
+
   /* EL HUECO DE ACCIONES de la barra. La vista que esté abierta pone
      acá su propio control —el vault pone su filtro— y queda en la MISMA
      FILA que las solapas, contra la otra punta.
@@ -103,24 +121,30 @@ export default function Privado({
   const [acciones, setAcciones] = useState<HTMLElement | null>(null)
 
   return (
-    <div className={css.marco} data-detalle={enDetalle ? '' : undefined}>
+    <div
+      className={css.marco}
+      data-detalle={enDetalle ? '' : undefined}
+      data-lienzo={enLienzo ? '' : undefined}
+    >
       {/* Las solapas son links de verdad, con el mismo interceptor que la
           pieza de la lista: cmd-click abre pestaña nueva. */}
-      <nav className={css.barra} aria-label="Private">
-        {vistas.map((v) => (
-          <a
-            className={css.solapa}
-            key={v.ruta}
-            href={v.ruta}
-            data-activa={actual === v.ruta ? '' : undefined}
-            aria-current={actual === v.ruta ? 'page' : undefined}
-            onClick={clicDeLink(() => ir(v.ruta))}
-          >
-            {v.nombre}
-          </a>
-        ))}
-        <div className={css.acciones} ref={setAcciones} />
-      </nav>
+      {!enLienzo && (
+        <nav className={css.barra} aria-label="Private">
+          {vistas.map((v) => (
+            <a
+              className={css.solapa}
+              key={v.ruta}
+              href={v.ruta}
+              data-activa={actual === v.ruta ? '' : undefined}
+              aria-current={actual === v.ruta ? 'page' : undefined}
+              onClick={clicDeLink(() => ir(v.ruta))}
+            >
+              {v.nombre}
+            </a>
+          ))}
+          <div className={css.acciones} ref={setAcciones} />
+        </nav>
+      )}
       {actual === '/vault' ? (
         <Vault abierto={resto} ir={ir} acciones={acciones} />
       ) : (

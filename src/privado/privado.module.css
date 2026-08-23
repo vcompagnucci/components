@@ -83,6 +83,42 @@
   --privado-blanco-y: 8px;
   --privado-blanco-x: 6px;
 
+  /* ─── LA GRILLA DE CONTENIDO Y LA CAJA DE UNA CARD ───
+     Los cuatro se midieron para el vault y VIVÍAN EN vault.module.css.
+     Subieron el día que el playground dibujó su propia grilla de vistas
+     con la misma forma, y por la regla de siempre en este proyecto: UNA
+     CUSTOM PROPERTY SE HEREDA, NO SE BUSCA. Declarados en `.vault` o en
+     `.grilla` no los ve `.playground`, que es un HERMANO y no un
+     descendiente — y no fallan a la vista, resuelven al fallback del
+     `var()`. Dos coincidían con su fallback por casualidad y el tercero
+     no: el rótulo de una opción del diálogo del playground quedaba a
+     12px donde el vault lo pone a 16. Medido.
+
+     Es la tercera vez que esa trampa muerde acá. Por eso el arreglo no
+     es otro fallback: es que el valor viva donde los dos lo heredan.
+
+     Y VIVEN ACÁ Y NO EN tokens.css, que era el otro lugar posible. Dos
+     razones, y la segunda es la que decide:
+       · el producto no dibuja ninguna de estas dos grillas, así que en
+         :root serían cuatro declaraciones que nadie lee
+       · tokens.css SÍ se publica. Poner "--vault-…" ahí mete el
+         vocabulario del área privada en el bundle de producción, y este
+         proyecto tiene una sola regla dura sobre eso: el área privada NO
+         LLEGA al build. Verificado con grep sobre dist/ — con los
+         tokens allá aparecían cuatro veces.
+     `.marco` es el ancestro común de las dos vistas y sólo existe en
+     desarrollo. Es exactamente el lugar.
+
+     Los números y su procedencia siguen anotados en vault.module.css,
+     que es donde se midieron:
+       canaleta y fila   openai.com/news, ocho ventanas
+       proporción        la card de benji en family-values, 550×528
+       media-titulo      figma, 16 (contra los 24 de linear) */
+  --vault-canaleta: 24px;
+  --vault-fila: 80px;
+  --vault-proporcion: 550 / 528;
+  --vault-media-titulo: 16px;
+
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -98,6 +134,16 @@
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
+}
+/* Y CON UN LIENZO ABIERTO ADEMÁS PIERDE EL AIRE. El marco sólo owns lo
+   vertical —eso está dicho arriba— y acá lo entrega entero: el lienzo es
+   a sangre en los cuatro lados y lo único que lo acota es la sidebar,
+   que la pone él. Sin esto quedaban 80 px de canvas arriba y otros 80
+   abajo de una tela que tiene que llegar al borde de la ventana.
+   Ver `enLienzo` en privado.tsx: es la misma condición de los dos
+   lados. */
+.marco[data-lienzo] {
+  padding-block: 0;
 }
 /* 767 y no 768: a 768 exacto openai todavía da 32 de aire y 3 columnas
    —medido—, así que el corte va un píxel más abajo. */

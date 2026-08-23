@@ -31,18 +31,30 @@ function ubicar(d: { x: number; y: number }, ancho: number, alto: number) {
   };
 }
 
-export function MenuClip({
-  clip,
+/* ═══════════════════════════════════════════════════════════════
+   EL MENÚ, SIN SABER SOBRE QUÉ SE ABRIÓ.
+
+   Acá vive TODO lo que hace que un menú flotante sea un menú flotante:
+   dónde se ubica, hacia dónde se da vuelta cuando no entra, desde qué
+   esquina crece, y las tres formas de cerrarlo. Lo que NO sabe es qué
+   dicen sus ítems ni sobre qué objeto son — eso lo pone el que lo usa.
+
+   Se separó cuando apareció el segundo cliente: el clic derecho sobre
+   una card del PLAYGROUND quiere el mismo menú con otras dos palabras.
+   Copiarlo habría dejado dos superficies que se parecen hasta el día en
+   que una se toque.
+   ═══════════════════════════════════════════════════════════════ */
+export function Menu({
   donde,
+  etiqueta,
+  items,
   onCerrar,
-  onRenombrar,
-  onPapelera,
 }: {
-  clip: Clip;
   donde: Donde;
+  /* Para quien lo escucha en vez de verlo: sobre qué se abrió. */
+  etiqueta: string;
+  items: [string, () => void][];
   onCerrar: () => void;
-  onRenombrar: () => void;
-  onPapelera: () => void;
 }) {
   const caja = useRef<HTMLDivElement | null>(null);
   const [pos, setPos] = useState({ left: 0, top: 0, origen: "top left" });
@@ -79,18 +91,13 @@ export function MenuClip({
 
   if (!donde) return null;
 
-  const items: [string, () => void][] = [
-    ["Rename", onRenombrar],
-    ["Move to Trash", onPapelera],
-  ];
-
   return (
     <div
       ref={caja}
       className={css.menu}
       data-abierto=""
       role="menu"
-      aria-label={clip.nombre}
+      aria-label={etiqueta}
       style={{ left: pos.left, top: pos.top, transformOrigin: pos.origen }}
     >
       {items.map(([et, hacer]) => (
@@ -110,10 +117,52 @@ export function MenuClip({
   );
 }
 
+export function MenuClip({
+  clip,
+  donde,
+  onCerrar,
+  onPlayground,
+  onRenombrar,
+  onPapelera,
+}: {
+  clip: Clip;
+  donde: Donde;
+  onCerrar: () => void;
+  onPlayground: () => void;
+  onRenombrar: () => void;
+  onPapelera: () => void;
+}) {
+  /* EL ORDEN ES POR CONSECUENCIA, de la más liviana a la más pesada:
+     mandar el clip a un lienzo no lo toca, renombrarlo cambia el
+     archivo, y la papelera se lo lleva. Así lo destructivo queda
+     siempre último y lejos del cursor cuando el menú se abre hacia
+     abajo. */
+  return (
+    <Menu
+      donde={donde}
+      etiqueta={clip.nombre}
+      onCerrar={onCerrar}
+      items={[
+        /* "Open in playground" y no "Add to playground": lo que hace de
+           verdad es LLEVARTE ahí, con el clip ya puesto. Prometer sólo
+           la mitad del gesto haría que la navegación se sintiera un
+           salto que no pediste. */
+        ["Open in playground", onPlayground],
+        ["Rename", onRenombrar],
+        ["Move to Trash", onPapelera],
+      ]}
+    />
+  );
+}
+
 /* Un <dialog> nativo: el foco atrapado, Escape, el fondo inerte y el
    ::backdrop salen gratis. La animación es la misma del diálogo de
-   subir — overlay y display con allow-discrete más @starting-style. */
-function Dialogo({
+   subir — overlay y display con allow-discrete más @starting-style.
+
+   Exportado por la misma razón que Menu: los diálogos de la vista del
+   playground son esta caja con otro contenido adentro. La superficie
+   vive acá; lo que dice, en cada uno. */
+export function Dialogo({
   abierto,
   onCerrar,
   children,
