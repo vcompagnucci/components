@@ -173,9 +173,10 @@
   background: var(--surface-hover);
 }
 
-/* El botón de la barra y el de borrar. Texto pelado, como todo el chrome
-   del área privada: ni píldora, ni fondo, ni borde. Mismo juego
-   tipográfico que las solapas y el filtro, porque es la misma fila y la
+/* El botón de borrar — hoy el único de esta clase: "Add clip" era el
+   otro y lo reemplazó el + del índice del tablero. Texto pelado, como
+   todo el chrome del área privada: ni píldora, ni fondo, ni borde.
+   Mismo juego tipográfico que las solapas y el filtro, porque es la
    misma clase de control. */
 .accion {
   padding: var(--privado-blanco-y) var(--privado-blanco-x);
@@ -194,10 +195,10 @@
 /* GATEADO POR PUNTERO FINO. En el resto del área privada el hover va sin
    gatear, y ahí el razonamiento vale: esas palabras NAVEGAN, así que
    tocarlas desmonta el elemento y el hover pegado del táctil se va solo.
-   Acá no: "Add clip" abre un diálogo y el botón se queda montado abajo,
-   así que en una pantalla táctil quedaría encendido hasta que toques
-   otra cosa. Es el caso exacto del artefacto, y es el único de esta
-   familia que lo tiene. */
+   Acá no: "Delete view" abre un diálogo y el botón se queda montado
+   abajo, así que en una pantalla táctil quedaría encendido hasta que
+   toques otra cosa. Es el caso exacto del artefacto, y lo comparte con
+   los renglones del índice (.fila), por lo mismo. */
 @media (hover: hover) and (pointer: fine) {
   .accion:hover {
     color: var(--activo-c);
@@ -214,7 +215,11 @@
    LO ÚNICO QUE NO SE COPIA ES EL MARGEN. Allá el + convive con tres
    filtros y necesita --vault-mas-gap para no leerse como un cuarto
    filtro; acá está solo en su punta de la barra, así que no hay contra
-   qué separarse y el margen sería un hueco sin dueño. */
+   qué separarse y el margen sería un hueco sin dueño.
+
+   Y ES SÓLO DE LA BARRA: el + de la sidebar del lienzo es .masPelado,
+   sin círculo — encabezado de sección y barra son dos contextos, ver
+   la nota allá. */
 .mas {
   --mas-relleno: rgb(0 0 0 / 0.08);
   --mas-relleno-hover: rgb(0 0 0 / 0.14);
@@ -306,8 +311,9 @@
        · el nombre de la vista, que es lo más largo y lo único que crece.
          176 a --type-body (14px) son unos 24 caracteres antes de
          recortar
-       · "Add clip" y "Delete view", que a --type-nav (13px) entran con
-         aire de sobra
+       · los renglones del índice y "Delete view", que a --type-nav
+         (13px) entran con aire de sobra — un nombre de clip largo corta
+         con puntos suspensivos y muestra el resto en su tooltip
 
      EL ANCHO TOTAL SE DERIVA, no se escribe: la columna más el riel del
      área privada a cada lado. Y como ese riel ya escala solo —32 arriba
@@ -328,7 +334,14 @@
 .panel {
   flex: none;
   width: var(--lienzo-panel);
-  padding: var(--page-padding-top) var(--privado-inline) var(--page-padding-bottom);
+  /* ABAJO EL RIEL, NO LA PÁGINA: el 80 de --page-padding-bottom es el
+     aire editorial con el que una página de producto termina, y acá
+     dejaba a "Delete view" flotando a un décimo de pantalla del borde
+     (pedido: "que esté más abajo"). Una herramienta abraza su marco
+     con el mismo número a los tres lados: --privado-inline, que además
+     ya escala solo (32 arriba de 767, 24 abajo). El 80 de ARRIBA se
+     queda: alinea la flecha con la del detalle del vault. */
+  padding: var(--page-padding-top) var(--privado-inline) var(--privado-inline);
   background: var(--canvas);
   display: flex;
   flex-direction: column;
@@ -341,7 +354,7 @@
      Se probó contra --index-group-gap (32), que es el salto entre dos
      grupos del índice del producto, y perdió: acá no hay dos grupos
      pares, hay un título y su contenido. Los renglones DE ADENTRO de un
-     grupo sí usan el 8 del índice — ver .panelAcciones. */
+     grupo sí usan el 8 del índice — ver .filas. */
   gap: var(--section-content-gap);
   overflow-y: auto;
 
@@ -396,23 +409,246 @@
   display: block;
 }
 
-/* Y las acciones, en columna, con el mismo 8 que separa dos links del
-   índice. `align-items: flex-start` para que cada palabra mida lo suyo:
-   estiradas al ancho de la columna, el blanco de "Add clip" llegaría
-   hasta el borde derecho de la sidebar y un clic a 200px de la palabra
-   la dispararía igual. Es la misma decisión —y la misma línea— que
-   .indexList. */
-.panelAcciones {
+/* ─── EL ÍNDICE DEL TABLERO ───
+   La sección toma el resto de la columna (`flex: 1`): el pie queda
+   apoyado en el fondo, y la lista tiene un alto real contra el cual
+   scrollear si algún día hay treinta clips — scrollea ELLA y no el
+   panel entero, para que "Delete view" no se vaya de la pantalla
+   empujado por la lista.
+
+   EL GAP ES 8 Y NO EL 16 DEL ÍNDICE, porque el filo se lleva la otra
+   mitad: el 16 entre rótulo y renglones se partió en 8 + línea + 8
+   (ver .clipsCabecera). El total rótulo→renglón sigue siendo el mismo
+   aire, ahora con el estante en el medio. */
+.clips {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: var(--index-item-gap);
+}
+
+/* ─── EL FILO DE LA CABECERA — elegido en prototipo (ronda 2) ───
+   El rótulo y el +, en una línea de nav, con UNA hairline abajo al
+   ancho de la columna: el rótulo tiene estante. Queda dicho con
+   honestidad: las dos referencias medidas ponen sus líneas ENTRE
+   ZONAS, a sangre (Paper: paper.design hero; Figma: help.figma.com
+   art. 360039831974) y ninguna subraya un rótulo contra sus propias
+   filas — esa variante ("Zonas") se prototipó y PERDIÓ a ojo. El filo
+   es la regla de sección de linear, y acá gana porque la sidebar ya
+   tiene su límite de zona: el border-right.
+
+   La línea NO la traspasa nada, por construcción: el + pelado vive en
+   el blanco expandido de una línea de 16 —igual que un renglón— así
+   que su glifo termina 8px arriba del filo. Con el círculo de 32 esto
+   no se podía: sobresalía −8 por lado y cruzaba la línea (medido en la
+   ronda 1, y es la mitad de por qué el círculo se fue).
+
+   El rótulo es .indexLabel del producto, en valores: pesa lo mismo que
+   sus renglones — "no es un encabezado, es la primera línea de su
+   grupo". */
+.clipsCabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--index-item-gap);
+  border-bottom: 1px solid var(--hairline);
+}
+/* ─── EL FILO EN OSCURO NO PUEDE USAR --hairline ───
+   Blanco al 5.1% sobre #090908 compone ~#151514: un delta de 12 que el
+   gamma aplasta cerca del negro — MEDIDO invisible (es la misma física
+   por la que la selección oscura necesitó invertirse en vez de sumar
+   16). El frontier de la sidebar sobrevive con ese token porque ahí se
+   encuentran DOS rellenos distintos que ayudan; esta línea vive sola
+   sobre un solo fondo y necesita su propio número.
+
+   0.08 no es nuevo: es el anillo oscuro del menú flotante
+   (acciones.module.css) — la respuesta que el sistema ya dio para "un
+   borde blanco de 1px que tiene que leerse sobre oscuro". */
+@media (prefers-color-scheme: dark) {
+  .clipsCabecera {
+    border-bottom-color: rgb(255 255 255 / 0.08);
+  }
+}
+/* Con más contraste pedido, el token global sube a 0.102 y le gana al
+   0.08: esta regla evita que el arreglo de arriba lo deje ABAJO de lo
+   que el usuario pidió. */
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  .clipsCabecera {
+    border-bottom-color: var(--hairline);
+  }
+}
+.clipsRotulo {
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  white-space: nowrap;
+}
+
+/* ─── EL + PELADO ───
+   Sin círculo: en un encabezado de sección el glifo va desnudo — es lo
+   que hacen Paper ("Pages +") y el sidebar nuevo de Figma, las dos
+   medidas en sus capturas oficiales. El círculo del vault queda para
+   las barras, donde el + convive con palabras de nav y necesita cuerpo
+   propio; acá el rótulo ya lo ancla.
+
+   La caja es EXACTAMENTE la de un renglón: el blanco expandido de la
+   casa (8/6 con margen negativo), así que la cabecera mide una línea
+   de nav y el glifo de 16 queda adentro de ella. El borde derecho del
+   glifo cae en el borde de la columna por el mismo mecanismo que
+   alinea el texto de las filas al izquierdo.
+
+   El puntal del ::before es el de .mas, y hace falta por lo mismo que
+   allá: en ≤560 la sidebar es una FILA alineada por baseline, y un
+   botón que sólo tiene un SVG adentro no tiene base de texto — sin el
+   puntal, la barra se alinearía contra el piso del botón y empujaría
+   al resto (medido en .mas: las solapas bajaban 3.28px). */
+.masPelado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+  border: 0;
+  background: none;
+  color: var(--type-nav-c);
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.masPelado::before {
+  content: '\200B';
+  width: 0;
+  overflow: hidden;
+  font-size: var(--type-nav-fs);
+  line-height: var(--type-nav-lh);
+}
+.masPelado:hover {
+  color: var(--activo-c);
+}
+.masPelado:focus-visible {
+  outline: none;
+  color: var(--activo-c);
+}
+
+/* La lista, con el 8 del índice entre renglones. El scroll es de acá
+   (ver .clips), y el padding compensado con margen negativo devuelve
+   el lugar que el blanco expandido de las filas necesita: sin él,
+   `overflow` recortaría los 6px de padding que asoman del borde y el
+   hover moriría pegado al texto. El texto queda exactamente donde
+   estaría sin nada de esto — el padding y el margen se cancelan. */
+.filas {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--index-item-gap);
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+}
+.renglon {
+  min-width: 0;
+}
+
+/* Cada renglón, texto pelado: el mismo juego de nav que "Delete view"
+   y el índice del producto. `width: fit-content` y no 100% por la
+   regla de .indexList — cada palabra mide lo suyo, y un clic a 150px
+   de un nombre corto no puede seleccionar nada. El tope permite la
+   columna MÁS el blanco compensado, y ahí cortan los puntos
+   suspensivos — esto no es un input: acá sí hay text-overflow honesto,
+   con el nombre entero en el tooltip (ver el TSX).
+
+   La transición lleva color Y opacidad/transform: color para los
+   estados, y el par opacidad+transform para la llegada — los MISMOS
+   tokens del frame en la tela, porque un renglón que aparece acá y un
+   frame que aparece allá son el mismo hecho contado dos veces, y dos
+   relojes para un solo hecho se notarían. */
+.fila {
+  display: block;
+  width: fit-content;
+  max-width: calc(100% + var(--privado-blanco-x) * 2);
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  cursor: pointer;
+  transition:
+    color var(--dur-text) var(--ease-text),
+    opacity var(--lienzo-entra) var(--lienzo-curva),
+    transform var(--lienzo-entra) var(--lienzo-curva);
+}
+/* Los tres estados, con la gramática de la casa: gris que espera,
+   ink-activo al señalar —puntero o teclado, el mismo aviso—, e ink
+   pleno el elegido. El elegido va escrito ÚLTIMO para ganarle al
+   hover: una fila elegida no parpadea al pasarle por encima.
+   El hover gateado por puntero fino, como .accion y por lo mismo: el
+   renglón queda montado después de tocarlo, y en táctil el hover
+   pegado quedaría encendido hasta tocar otra cosa. */
+@media (hover: hover) and (pointer: fine) {
+  .fila:hover {
+    color: var(--activo-c);
+  }
+}
+/* Sin anillo, como todo el texto de esta columna: el aviso de foco es
+   el mismo color que el hover — señalar con el teclado y señalar con
+   el puntero son el mismo gesto. */
+.fila:focus-visible {
+  outline: none;
+  color: var(--activo-c);
+}
+.fila[data-elegido] {
+  color: var(--ink);
+}
+
+/* La llegada de un renglón nuevo: el gesto del frame, a escala de
+   texto. El frame entra fundiendo con scale 0.98 porque a 480px eso
+   son ~10px de recorrido; en una línea de 16, una escala sería un
+   desenfoque — el mismo recorrido se hace en translate, 4px subiendo a
+   su lugar, la dirección de la entrada del detalle del vault. */
+@starting-style {
+  .fila[data-nuevo] {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+/* Y la salida por donde entró, en menos tiempo — las dos mitades de un
+   gesto reversible, como el frame. El renglón sigue en el DOM mientras
+   `yendose` dura y lo desmonta `quitar` al terminar la transición del
+   frame, así que los dos se despiden en el mismo intervalo. */
+.fila[data-saliendo] {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    color var(--dur-text) var(--ease-text),
+    opacity var(--lienzo-sale) var(--lienzo-curva),
+    transform var(--lienzo-sale) var(--lienzo-curva);
+}
+
+/* El estado vacío, donde irían los renglones, en el gris que anota. */
+.sinClips {
+  margin: 0;
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--type-meta-c);
 }
 
 /* El nombre se edita en el lugar, así que el input NO se ve como un
    input: sin borde, sin fondo, sin sombra. Es el título, y resulta que
    además se puede escribir encima.
-   El foco lo sigue marcando el anillo del sistema — eso no se apaga.
    Ocupa el ancho de la columna para que el cursor caiga donde tocaste
    aunque toques después del texto. */
 .nombre {
@@ -437,6 +673,32 @@
   letter-spacing: var(--type-h1-ls);
   line-height: var(--type-h1-lh);
   color: var(--type-h1-c);
+  /* El cursor de texto sobre TODO el ancho, no sólo sobre las letras: es
+     lo único que dice, antes de tocar, que esto se escribe. */
+  cursor: text;
+  transition: color var(--dur-text) var(--ease-text);
+}
+/* El aviso de que se edita es el color al pasar por encima, que es como
+   avisa todo lo demás acá. */
+.nombre:hover {
+  color: var(--activo-c);
+}
+/* SIN ANILLO. Estaba el del sistema: una caja azul de borde grueso
+   alrededor de un título que no tiene caja, con la esquina cuadrada que
+   no usa ninguna otra superficie de esta app. Dibujaba un formulario
+   donde hay un nombre.
+   El cursor titilando ya dice dónde estás —es el mismo indicador que
+   tiene cualquier texto que se escribe— y es la misma decisión que ya
+   toman el título del clip en el vault y los campos de la ficha. */
+.nombre:focus {
+  outline: none;
+  color: var(--type-h1-c);
+}
+/* Y si seleccionás a mano, el gris de la casa y no el azul del sistema:
+   el otro bloque de color que aparecía al hacer doble clic. */
+.nombre::selection {
+  color: var(--selection-color);
+  background: var(--selection-bg);
 }
 
 /* ─── EL PIE DE LA SIDEBAR ───
@@ -460,15 +722,17 @@
   align-items: flex-start;
   gap: var(--index-label-gap);
 }
-/* El dato quieto, en el gris que ANOTA: el mismo de la ficha del vault y
-   de todo lo que en este sistema comenta en vez de decir. */
+/* La cuenta pasó a ser SÓLO el canal de anuncio (ver el TSX): el índice
+   de la sección Clips es la cuenta visible. La receta es .oculto del
+   vault — recortada, no display:none, porque un aria-live apagado no
+   anuncia nada. */
 .cuenta {
-  margin: 0;
-  font-size: var(--type-meta-fs);
-  font-weight: var(--type-meta-fw);
-  letter-spacing: var(--type-meta-ls);
-  line-height: var(--type-meta-lh);
-  color: var(--type-meta-c);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* LA TELA, a sangre y sin riel: es el lienzo de verdad. Los frames se
@@ -856,12 +1120,16 @@
   .marco[data-saliendo] .medio,
   .marco[data-saliendo] .hueco,
   .manija,
-  .marco[data-elegido] .manija {
+  .marco[data-elegido] .manija,
+  /* El renglón del índice acompaña al frame también acá: fundido sí,
+     recorrido no. */
+  .fila[data-saliendo] {
     transform: none;
   }
   @starting-style {
     .marco[data-nuevo] .medio,
-    .marco[data-nuevo] .hueco {
+    .marco[data-nuevo] .hueco,
+    .fila[data-nuevo] {
       transform: none;
     }
   }
@@ -925,19 +1193,30 @@
     margin-bottom: 0;
     flex: none;
   }
-  .panelAcciones,
   .panelPie {
     flex-direction: row;
     align-items: baseline;
     gap: var(--index-group-gap);
     margin-top: 0;
   }
-  /* La cuenta se va: en una fila, tres palabras más empujan el nombre
-     hasta que no queda nombre. Es lo primero que sobra — es un dato, no
-     una acción, y el tablero está a la vista. La `aria-live` se va con
-     ella, y queda dicho: en este ancho, borrar un frame sin puntero no
-     se anuncia. */
-  .cuenta {
+  /* El índice se reduce a su +: en una fila no hay dónde apilar
+     renglones, y el rótulo sin renglones no rotula nada. El + pelado
+     queda en la barra, y su ::before le da la base de texto con la que
+     este `baseline` lo alinea. EL FILO TAMBIÉN SE VA: subrayaba a la
+     cabecera respecto de sus renglones, y sin renglones no separa
+     nada. La cuenta recortada NO se apaga: sigue anunciando el
+     Backspace en este ancho, que antes quedaba mudo. */
+  .clips {
+    flex: none;
+    min-height: auto;
+  }
+  .clipsCabecera {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .clipsRotulo,
+  .filas,
+  .sinClips {
     display: none;
   }
 }

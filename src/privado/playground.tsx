@@ -10,7 +10,7 @@ import css from './playground.module.css'
 import dlg from './vault.module.css'
 import { Volver, clicDeLink } from '../parts'
 import { nombreDeRuta, useClips, type Clip } from './clips'
-import { Dialogo, Menu, type Donde } from './acciones'
+import { Dialogo, Menu, useUltimo, type Donde } from './acciones'
 import acc from './acciones.module.css'
 import { SIN_NOMBRE, nuevoId, useVistas, type Frame, type Vista } from './vistas'
 
@@ -49,6 +49,17 @@ export function Playground({
   const [menu, setMenu] = useState<{ vista: Vista; donde: Donde } | null>(null)
   const [renombrando, setRenombrando] = useState<Vista | null>(null)
   const [borrando, setBorrando] = useState<Vista | null>(null)
+
+  /* UNA sola capa para el menú y sus dos diálogos. El sujeto sale del
+     estado —la vista sobre la que se abrió el menú, o la que está en un
+     diálogo— igual que en el vault.
+
+     Y con useUltimo por lo mismo que allá: este valor cae a null en el
+     mismo cuadro en que la salida tendría que arrancar, así que sin él
+     la capa se desmonta y no hay nada que animar. Sube acá arriba por
+     la misma razón que los tres useState de arriba —es un hook, y abajo
+     hay tres returns condicionales—. */
+  const sujeto = useUltimo(menu?.vista ?? renombrando ?? borrando)
 
   /* ─── ⌘Z Y ⇧⌘Z, EN TODO EL PLAYGROUND ───
      Acá arriba y no adentro del lienzo: deshacer vale igual en la grilla
@@ -140,10 +151,6 @@ export function Playground({
     </button>
   )
 
-  /* UNA sola capa para el menú y sus dos diálogos. El sujeto sale del
-     estado —la vista sobre la que se abrió el menú, o la que está en un
-     diálogo— igual que en el vault. */
-  const sujeto = menu?.vista ?? renombrando ?? borrando
   const capa = sujeto ? (
     <>
       <Menu
@@ -1509,42 +1516,101 @@ function Lienzo({
             }
           />
         </div>
-        {/* Las acciones, como columna de palabras: es la misma forma que
-            la lista de piezas del índice del producto, y el mismo hueco
-            de 8 entre renglones.
-            "Add clip" antes que "Delete view" porque agregar es lo que
-            vas a hacer todo el tiempo y borrar una sola vez — y de paso
-            la destructiva queda lo más lejos posible del nombre que
-            estás editando. */}
-        <div className={css.panelAcciones}>
-          <button className={css.accion} onClick={() => setEligiendo(true)}>
-            Add clip
-          </button>
+        {/* ─── EL ÍNDICE DEL TABLERO ───
+            La sidebar decía "Add clip" y "1 clip" y nada más: el lienzo
+            tenía contenido y su chrome no sabía NOMBRARLO. Esto es la
+            lista de lo que hay, con la misma anatomía que el índice del
+            producto —un rótulo que pesa lo mismo que sus renglones, 16
+            de aire, 8 entre líneas— porque es el mismo trabajo.
+
+            Tocar un renglón es `elegir`: exactamente lo que hace tocar
+            el frame en la tela — selecciona, sube al frente, y le saca
+            el foco al nombre si estabas escribiendo. Un solo verbo para
+            el mismo hecho, venga del índice o de la tela, y por eso los
+            dos lados quedan sincronizados sin más estado.
+
+            El + va PELADO, sin el círculo del vault, y no es un
+            capricho: en un encabezado de sección el glifo desnudo es lo
+            que hacen las dos referencias medidas — "Pages +" en Paper
+            (SOURCE: captura oficial del app en paper.design) y
+            "Pages"/"Layers" en el sidebar nuevo de Figma (SOURCE:
+            help.figma.com, art. 360039831974). El círculo queda para
+            las BARRAS (el vault y la grilla de vistas), que es otro
+            contexto: allá el + convive con palabras de nav y necesita
+            cuerpo propio; acá cuelga de un rótulo que ya lo ancla.
+            Reemplaza a "Add clip", que era una palabra gris que pesaba
+            MENOS que el nombre de la vista siendo la acción más
+            frecuente del tablero. Elegido en prototipo (ronda 2,
+            "Filo") contra la línea de zonas de las referencias y
+            contra la cabecera-menú. */}
+        <div className={css.clips}>
+          <div className={css.clipsCabecera}>
+            <span className={css.clipsRotulo}>Clips</span>
+            <button
+              className={css.masPelado}
+              aria-label="Add clip"
+              onClick={() => setEligiendo(true)}
+            >
+              <Mas />
+            </button>
+          </div>
+          {n > 0 ? (
+            <ul className={css.filas} aria-label="Clips in this view">
+              {dibujo.map((f) => {
+                /* El mismo nombre que ya muestra el frame en la tela
+                   (`etiqueta`, más abajo): una pieza se llama por su ref
+                   y un clip por su nombre de archivo sin carpeta. */
+                const nombre = f.tipo === 'pieza' ? f.ref : nombreDeRuta(f.ref)
+                return (
+                  <li key={f.id} className={css.renglon}>
+                    <button
+                      className={css.fila}
+                      /* `aria-current` y no `aria-selected`: las opciones
+                         del listbox son los frames de la tela. Esto es su
+                         índice, y la fila del elegido es "la actual". */
+                      aria-current={elegido === f.id || undefined}
+                      data-elegido={elegido === f.id ? '' : undefined}
+                      data-nuevo={aparecidos.includes(f.id) ? '' : undefined}
+                      data-saliendo={yendose === f.id ? '' : undefined}
+                      /* La columna corta con puntos suspensivos; el
+                         tooltip nativo muestra el nombre entero. La misma
+                         señal que ya da el nombre de la vista arriba. */
+                      title={nombre}
+                      onClick={() => elegir(f.id)}
+                    >
+                      {nombre}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            /* El estado vacío en palabras, donde irían los renglones: la
+               misma decisión que "Nothing here." en la grilla del vault.
+               "No clips" y no un cero — un cero se lee como dato roto. */
+            <p className={css.sinClips}>{cuenta}</p>
+          )}
         </div>
 
-        {/* ─── EL PIE: LO QUE HAY, Y LO QUE SE LLEVA TODO ───
-            "Delete view" bajó acá desde el bloque de arriba, y no es
-            prolijidad. Estaba pegado a "Add clip", con la misma
-            tipografía, el mismo color y 8px de distancia: dos palabras
-            indistinguibles a un píxel de error, una que agrega y otra que
-            se lleva la vista entera. En esta casa no hay colores de
-            estado —ni uno en todo el producto— así que la diferencia no
-            se puede pintar: se pone en el ESPACIO. Arriba lo que hacés
-            todo el tiempo, abajo lo que hacés una vez.
-
-            Con la confirmación que ahora sí pide, la protección quedó en
+        {/* ─── EL PIE: LO QUE SE LLEVA TODO ───
+            "Delete view" vive solo, al fondo. En esta casa no hay
+            colores de estado —ni un rojo en todo el producto— así que la
+            protección de la única acción destructiva se pone en el
+            ESPACIO: toda la columna de distancia entre ella y lo que se
+            usa todo el tiempo. Con la confirmación que pide después, son
             dos capas: llegar hasta acá, y decir que sí. */}
         <div className={css.panelPie}>
           <button className={css.accion} onClick={() => setBorrando(true)}>
             Delete view
           </button>
-          {/* UN DATO QUIETO. No es una acción y no se toca: dice de qué
-              tamaño es lo que estás mirando. Va en el gris que ANOTA, el
-              mismo de la ficha del vault.
-              `aria-live` porque es la ÚNICA confirmación de que un
-              Backspace borró algo: sin puntero no hay forma de notar que
-              el tablero tiene un clip menos. Es `polite` y no `assertive`
-              para no interrumpir lo que se esté leyendo. */}
+          {/* LA CUENTA YA NO SE VE: el índice de arriba ES la cuenta
+              para quien mira. Pero sigue en el DOM, recortada con la
+              receta de .oculto del vault, porque `aria-live` es la ÚNICA
+              confirmación de que un Backspace borró algo sin puntero.
+              Antes era visible y se apagaba con display:none en ≤560,
+              o sea que en ese ancho borrar no se anunciaba — quedaba
+              anotado como deuda. Recortada en vez de apagada, anuncia en
+              todos los anchos. `polite` para no interrumpir. */}
           <p className={css.cuenta} aria-live="polite">
             {cuenta}
           </p>
@@ -1678,7 +1744,17 @@ function Elegir({
   }, [abierto, montada])
 
   return (
-    <dialog className={`${dlg.dialogo} ${css.elegir}`} ref={caja} onClose={onCerrar}>
+    <dialog
+      className={`${dlg.dialogo} ${css.elegir}`}
+      ref={caja}
+      /* El clic afuera cierra. Elegir un clip es la decisión más
+         liviana de la app —no borra ni escribe nada— así que salirse
+         tiene que costar lo mismo que entrar. Lo hace el navegador con
+         `closedby="any"`, que dispara `close` y sale por el mismo
+         onClose que Escape. */
+      closedby="any"
+      onClose={onCerrar}
+    >
       <h2 className={css.elegirTitulo}>Add clip</h2>
       {montada &&
         (clips.length === 0 ? (
