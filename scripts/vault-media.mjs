@@ -44,6 +44,7 @@
    ═══════════════════════════════════════════════════════════════ */
 import fs from 'node:fs'
 import path from 'node:path'
+import os from 'node:os'
 import { cuadroDe } from './cuadros.mjs'
 
 /* Los cuadros se leen del contenedor UNA vez por archivo. La clave lleva
@@ -98,11 +99,157 @@ const oculto = (nombre) => nombre.startsWith('.')
 const FICHAS = '.lima-vault.json'
 
 const FICHA_CAMPOS = ['notes', 'source', 'device']
+
+/* ═══════════ LAS VISTAS DEL PLAYGROUND ═══════════
+   Un archivo aparte de las fichas, y no un campo más adentro de ellas:
+   una ficha describe UN clip y vive atada a su ruta, mientras que una
+   vista es un lienzo con varias cosas encima. Meterlas juntas ataría el
+   borrado de un clip al borrado de un lienzo.
+
+   Va al lado, en la raíz del vault y empezando con punto, por las mismas
+   dos razones que las fichas: no ensucia tu carpeta y ya queda afuera de
+   todo lo que se sirve.
+
+   EL CLIENTE MANDA EL DOCUMENTO ENTERO y el servidor lo sanea. Es la
+   forma más simple que funciona para una herramienta de un solo usuario
+   en desarrollo; con dos pestañas abiertas, la última que guarda gana.
+   Queda dicho para el día que moleste. */
+const VISTAS = '.lima-playground.json'
+const TIPOS_FRAME = new Set(['pieza', 'clip'])
+const MAX_VISTAS = 200
+const MAX_FRAMES = 60
+const LARGO_REF = 600
+
+/* Todo lo que entra pasa por acá. Lo que no se reconoce NO se guarda: es
+   la misma regla que la ficha, que descarta los campos de más en vez de
+   escribirlos. */
+const num = (v, min, max, porDefecto) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(Math.max(v, min), max) : porDefecto
+const texto = (v, largo) => (typeof v === 'string' ? v.slice(0, largo) : '')
+
+function sanearVistas(d) {
+  if (!Array.isArray(d)) return []
+  return d.slice(0, MAX_VISTAS).map((v) => ({
+    id: texto(v?.id, 64),
+    nombre: texto(v?.nombre, 200),
+    creada: num(v?.creada, 0, Number.MAX_SAFE_INTEGER, 0),
+    frames: (Array.isArray(v?.frames) ? v.frames : []).slice(0, MAX_FRAMES).map((f) => ({
+      id: texto(f?.id, 64),
+      tipo: TIPOS_FRAME.has(f?.tipo) ? f.tipo : 'clip',
+      ref: texto(f?.ref, LARGO_REF),
+      /* El lienzo es infinito pero no tanto: un valor absurdo mandado a
+         mano dejaría un frame imposible de encontrar. */
+      x: num(f?.x, -100000, 100000, 0),
+      y: num(f?.y, -100000, 100000, 0),
+      ancho: num(f?.ancho, 40, 8000, 400),
+      alto: num(f?.alto, 40, 8000, 300),
+    })),
+  })).filter((v) => v.id)
+}
 const LARGO_MAX = 4000
 
-function leerFichas(raiz) {
+/* ═══════════ SUBIR UN CLIP ═══════════
+   El único camino del puente que crea archivos NUEVOS en tu carpeta, así
+   que las guardas van todas ANTES de tocar el disco y en este orden:
+
+     1. la fuente sale de una lista de dos, no del cliente
+     2. el nombre pasa por basename, que le arranca cualquier separador
+     3. nada que empiece con punto — la misma regla que ya esconde
+        .obsidian y .trash, ahora del lado de la escritura
+     4. la extensión tiene que estar en la MISMA lista blanca con la que
+        se sirve. Si no se puede servir, no se puede subir
+     5. el tamaño se corta mientras entra, no cuando ya está en memoria
+     6. no se pisa nada nunca: si el nombre está tomado, se numera
+     7. escritura atómica, igual que los .json
+
+   `dentro()` NO sirve para el destino: usa realpathSync y el archivo
+   todavía no existe. Lo que se valida es la CARPETA —que existe, o se
+   crea— y que el nombre no pueda salirse de ella.
+
+   LA FUENTE ES UNA DE DOS y el servidor la traduce a la carpeta que YA
+   tengas: si tu vault dice "nativo" se escribe ahí, y no se te crea una
+   "native" al lado. La app se adapta a tu disco y no al revés — la misma
+   razón por la que el índice acepta las dos ortografías. */
+const FUENTES = {
+  native: ['native', 'nativo'],
+  web: ['web'],
+}
+const PESO_MAX = 512 * 1024 * 1024
+
+/* La carpeta donde va a caer, creándola si hace falta. Devuelve null si
+   la fuente no es una de las dos. */
+function carpetaDe(raiz, fuente) {
+  const opciones = FUENTES[fuente]
+  if (!opciones) return null
+  for (const nombre of opciones) {
+    const abs = path.join(raiz, nombre)
+    if (dentro(raiz, abs) && fs.statSync(abs).isDirectory()) return abs
+  }
+  /* Ninguna existe todavía: se crea la canónica, la primera de la lista. */
+  const abs = path.join(raiz, opciones[0])
+  fs.mkdirSync(abs, { recursive: true })
+  return dentro(raiz, abs)
+}
+
+/* El nombre, saneado. Devuelve null si no queda nada usable.
+
+   basename se lleva puesto cualquier separador, así que "../../x.mp4"
+   queda en "x.mp4" y "/etc/passwd.mp4" en "passwd.mp4". Después se
+   rechaza lo que empiece con punto, que cubre "..", ".env" y el
+   "..\\..\\x" que en posix basename no toca porque la barra invertida
+   no es separador acá. */
+function nombreSano(crudo) {
+  if (typeof crudo !== 'string') return null
+  const base = path.basename(crudo.replace(/\0/g, '')).trim()
+  if (!base || base.startsWith('.')) return null
+  if (base.includes('/') || base.includes('\\')) return null
+  if (base.length > 200) return null
+  if (!TIPOS[path.extname(base).toLowerCase()]) return null
+  return base
+}
+
+/* Un nombre libre en esa carpeta. No se pisa NUNCA: subir dos veces algo
+   que se llama igual te deja los dos, y el que ya estaba no se toca. */
+/* EL NOMBRE QUE ESCRIBÍS AL RENOMBRAR.
+   Distinto de nombreSano: eso valida un archivo entrante y exige una
+   extensión de la lista blanca. Acá lo que llega es un NOMBRE PARA
+   LEER, sin extensión, y la extensión la pone el servidor copiándola
+   del archivo original. Así renombrar no puede cambiar el tipo de un
+   archivo — que es exactamente el agujero que abriría dejar pasar la
+   extensión del cliente. */
+function baseSana(crudo) {
+  if (typeof crudo !== 'string') return null
+  const crudoLimpio = crudo.replace(/\0/g, '').trim()
+  /* El separador se rechaza ANTES de normalizar, no después. Con
+     basename primero, "../fuera" se convertía en "fuera" y pasaba: el
+     archivo no escapaba —la normalización lo impide— pero aceptar en
+     silencio un nombre con traversal adentro es sorprender al que lo
+     escribió. Si trae separadores, es un no. */
+  if (crudoLimpio.includes('/') || crudoLimpio.includes('\\')) return null
+  let base = path.basename(crudoLimpio).trim()
+  if (!base || base.startsWith('.')) return null
+  /* Si escribiste la extensión igual, se saca: si no, "sheet.mov"
+     terminaría siendo "sheet.mov.mov". */
+  const ext = path.extname(base).toLowerCase()
+  if (TIPOS[ext]) base = base.slice(0, -ext.length).trim()
+  if (!base || base.startsWith('.')) return null
+  if (base.length > 180) return null
+  return base
+}
+
+function libre(carpeta, base) {
+  const ext = path.extname(base)
+  const raiz = path.basename(base, ext)
+  for (let i = 0; i < 1000; i++) {
+    const nombre = i === 0 ? base : `${raiz} ${i + 1}${ext}`
+    if (!fs.existsSync(path.join(carpeta, nombre))) return nombre
+  }
+  return null
+}
+
+function leerJson(raiz, archivo) {
   try {
-    const t = fs.readFileSync(path.join(raiz, FICHAS), 'utf8')
+    const t = fs.readFileSync(path.join(raiz, archivo), 'utf8')
     const d = JSON.parse(t)
     return d && typeof d === 'object' ? d : {}
   } catch {
@@ -117,8 +264,8 @@ function leerFichas(raiz) {
    deja el archivo truncado y te comés todas las fichas. rename es
    atómico en el mismo sistema de archivos, así que o está la versión
    vieja entera o la nueva entera. */
-function escribirFichas(raiz, datos) {
-  const destino = path.join(raiz, FICHAS)
+function escribirJson(raiz, archivo, datos) {
+  const destino = path.join(raiz, archivo)
   const temp = destino + '.tmp'
   fs.writeFileSync(temp, JSON.stringify(datos, null, 2) + '\n')
   fs.renameSync(temp, destino)
@@ -286,6 +433,124 @@ export function vaultMedia(dirCrudo) {
            Esa validación es la guarda: no se resuelve ninguna ruta con
            lo que llega del cliente, así que no hay traversal posible
            por construcción, no porque haya un filtro que lo atrape. */
+        /* ─── SUBIR UN CLIP ───
+           Los bytes van CRUDOS en el cuerpo y los metadatos en la query,
+           no en un multipart. Un multipart habría que parsearlo —o traer
+           una dependencia para hacerlo— y lo único que se sube acá es un
+           archivo por vez: el sobre no aporta nada y sí agrega superficie.
+
+           Se escribe en streaming a un temporal. Nunca se junta el
+           archivo entero en memoria: un video de 400MB no tiene por qué
+           pasar por el heap para llegar al disco. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__subir') {
+          if (!raiz) return json(res, 409, { error: motivo })
+
+          const q = new URLSearchParams((req.url || '').split('?')[1] ?? '')
+          const base = nombreSano(q.get('nombre'))
+          if (!base) return json(res, 400, { error: 'nombre no admitido' })
+
+          let carpeta
+          try {
+            carpeta = carpetaDe(raiz, q.get('fuente'))
+          } catch (e) {
+            return json(res, 500, { error: String(e?.message ?? e) })
+          }
+          if (!carpeta) return json(res, 400, { error: 'fuente no admitida' })
+
+          const nombre = libre(carpeta, base)
+          if (!nombre) return json(res, 409, { error: 'demasiados con ese nombre' })
+
+          /* El temporal va en la MISMA carpeta que el destino: rename
+             sólo es atómico dentro del mismo sistema de archivos, y
+             /tmp puede estar en otro. Empieza con punto, así que si algo
+             sale mal lo que queda tirado ya está afuera de todo lo que
+             se sirve y de todo lo que se lista. */
+          const temp = path.join(carpeta, `.subiendo-${process.pid}-${Date.now()}`)
+          const destino = path.join(carpeta, nombre)
+          const flujo = fs.createWriteStream(temp)
+          let bytes = 0
+          let cortado = false
+
+          const limpiar = () => {
+            try {
+              fs.unlinkSync(temp)
+            } catch {}
+          }
+
+          req.on('data', (c) => {
+            bytes += c.length
+            if (bytes > PESO_MAX && !cortado) {
+              cortado = true
+              flujo.destroy()
+              req.destroy()
+              limpiar()
+            }
+          })
+          req.on('error', () => {
+            if (!cortado) {
+              cortado = true
+              flujo.destroy()
+              limpiar()
+            }
+          })
+          flujo.on('error', () => {
+            if (!cortado) {
+              cortado = true
+              limpiar()
+              json(res, 500, { error: 'no se pudo escribir' })
+            }
+          })
+          req.pipe(flujo)
+
+          flujo.on('finish', () => {
+            if (cortado) return
+            /* Un cuerpo vacío deja un archivo de 0 bytes que después
+               aparece en la grilla como un clip roto. Mejor no crearlo. */
+            if (!bytes) {
+              limpiar()
+              return json(res, 400, { error: 'cuerpo vacío' })
+            }
+            try {
+              fs.renameSync(temp, destino)
+            } catch (e) {
+              limpiar()
+              return json(res, 500, { error: String(e?.message ?? e) })
+            }
+            const rel = path.relative(raiz, destino).split(path.sep).join('/')
+            return json(res, 200, { ok: true, ruta: rel, bytes })
+          })
+          return
+        }
+
+        /* Las vistas del playground. Mismo esqueleto que la ficha —cuerpo
+           acotado, JSON o 400, saneado antes de tocar el disco, escritura
+           atómica— y por eso la lectura del cuerpo se comparte. */
+        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__vistas') {
+          if (!raiz) return json(res, 409, { error: motivo })
+          let cuerpo = ''
+          req.setEncoding('utf8')
+          req.on('data', (c) => {
+            cuerpo += c
+            if (cuerpo.length > 512 * 1024) req.destroy()
+          })
+          req.on('end', () => {
+            let d
+            try {
+              d = JSON.parse(cuerpo)
+            } catch {
+              return json(res, 400, { error: 'json inválido' })
+            }
+            const vistas = sanearVistas(d?.vistas)
+            try {
+              escribirJson(raiz, VISTAS, { vistas })
+            } catch (e) {
+              return json(res, 500, { error: String(e?.message ?? e) })
+            }
+            return json(res, 200, { ok: true, vistas })
+          })
+          return
+        }
+
         if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__ficha') {
           if (!raiz) return json(res, 409, { error: motivo })
           let cuerpo = ''
@@ -315,7 +580,7 @@ export function vaultMedia(dirCrudo) {
               if (typeof v === 'string' && v.trim()) limpia[k] = v.slice(0, LARGO_MAX)
             }
 
-            const todas = leerFichas(raiz)
+            const todas = leerJson(raiz, FICHAS)
             /* Una ficha vacía se BORRA en vez de quedar como un objeto
                sin nada: si vaciás los campos, el archivo queda como si
                nunca la hubieras escrito. */
@@ -323,11 +588,136 @@ export function vaultMedia(dirCrudo) {
             else delete todas[ruta]
 
             try {
-              escribirFichas(raiz, todas)
+              escribirJson(raiz, FICHAS, todas)
             } catch (e) {
               return json(res, 500, { error: String(e?.message ?? e) })
             }
             return json(res, 200, { ok: true, ficha: todas[ruta] ?? null })
+          })
+          return
+        }
+
+        /* ─── RENOMBRAR ───
+           La ruta NUNCA sale del cliente: se busca el clip en el índice
+           y se usa la que el servidor ya conoce. El cliente sólo aporta
+           un nombre, y ese nombre no puede traer separadores, ni
+           empezar con punto, ni cambiar la extensión.
+
+           No pisa: si ya existe uno así, devuelve 409 en vez de
+           sobreescribir. Un renombre que se come otro archivo es
+           exactamente la clase de error que no tiene vuelta. */
+        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__renombrar') {
+          if (!raiz) return json(res, 409, { error: motivo })
+          let cuerpo = ''
+          req.setEncoding('utf8')
+          req.on('data', (c) => {
+            cuerpo += c
+            if (cuerpo.length > 8 * 1024) req.destroy()
+          })
+          req.on('end', () => {
+            let d
+            try {
+              d = JSON.parse(cuerpo)
+            } catch {
+              return json(res, 400, { error: 'json inválido' })
+            }
+            const ruta = typeof d?.ruta === 'string' ? d.ruta : ''
+            const clip = recorrer(raiz).find((c) => c.ruta === ruta)
+            if (!clip) return json(res, 404, { error: 'ese clip no está en el vault' })
+
+            const base = baseSana(d?.nombre)
+            if (!base) return json(res, 400, { error: 'nombre no admitido' })
+
+            const desde = dentro(raiz, path.join(raiz, ruta))
+            if (!desde) return json(res, 404, { error: 'ese clip no está en el vault' })
+            const carpeta = path.dirname(desde)
+            const destino = path.join(carpeta, base + path.extname(ruta))
+            if (path.dirname(destino) !== carpeta) return json(res, 400, { error: 'nombre no admitido' })
+            if (destino === desde) return json(res, 200, { ok: true, ruta })
+            if (fs.existsSync(destino)) return json(res, 409, { error: 'ya hay uno con ese nombre' })
+
+            try {
+              fs.renameSync(desde, destino)
+            } catch (e) {
+              return json(res, 500, { error: String(e?.message ?? e) })
+            }
+
+            /* LA FICHA VIAJA CON EL ARCHIVO. Está indexada por ruta, así
+               que sin esto renombrar te borraba lo que habías escrito. */
+            const nuevaRuta = path.relative(raiz, destino).split(path.sep).join('/')
+            const todas = leerJson(raiz, FICHAS)
+            if (todas[ruta]) {
+              todas[nuevaRuta] = todas[ruta]
+              delete todas[ruta]
+              try {
+                escribirJson(raiz, FICHAS, todas)
+              } catch {
+                /* el archivo ya se renombró; la ficha se recupera sola
+                   la próxima vez que la escribas */
+              }
+            }
+            return json(res, 200, { ok: true, ruta: nuevaRuta })
+          })
+          return
+        }
+
+        /* ─── A LA PAPELERA ───
+           MUEVE, no borra. Un unlink desde una app de estudio es
+           irreversible y no hay undo que lo salve; la papelera es lo que
+           hace Finder y te deja recuperarlo. Cuesta más código y vale la
+           pena.
+
+           Si la papelera no está donde se espera —otro sistema, o el
+           vault en otro volumen, que hace fallar el rename con EXDEV—
+           se responde con el error en vez de caer a borrar de verdad.
+           Fallar es mejor que borrar algo que no se puede recuperar. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__papelera') {
+          if (!raiz) return json(res, 409, { error: motivo })
+          let cuerpo = ''
+          req.setEncoding('utf8')
+          req.on('data', (c) => {
+            cuerpo += c
+            if (cuerpo.length > 8 * 1024) req.destroy()
+          })
+          req.on('end', () => {
+            let d
+            try {
+              d = JSON.parse(cuerpo)
+            } catch {
+              return json(res, 400, { error: 'json inválido' })
+            }
+            const ruta = typeof d?.ruta === 'string' ? d.ruta : ''
+            if (!recorrer(raiz).some((c) => c.ruta === ruta)) {
+              return json(res, 404, { error: 'ese clip no está en el vault' })
+            }
+            const desde = dentro(raiz, path.join(raiz, ruta))
+            if (!desde) return json(res, 404, { error: 'ese clip no está en el vault' })
+
+            const papelera = path.join(os.homedir(), '.Trash')
+            let stat
+            try {
+              stat = fs.statSync(papelera)
+            } catch {
+              return json(res, 501, { error: 'no hay papelera en este sistema' })
+            }
+            if (!stat.isDirectory()) return json(res, 501, { error: 'no hay papelera en este sistema' })
+
+            const nombre = libre(papelera, path.basename(desde))
+            if (!nombre) return json(res, 409, { error: 'demasiados con ese nombre en la papelera' })
+            try {
+              fs.renameSync(desde, path.join(papelera, nombre))
+            } catch (e) {
+              return json(res, 500, { error: String(e?.message ?? e) })
+            }
+
+            const todas = leerJson(raiz, FICHAS)
+            if (todas[ruta]) {
+              delete todas[ruta]
+              try {
+                escribirJson(raiz, FICHAS, todas)
+              } catch {}
+            }
+            return json(res, 200, { ok: true, a: nombre })
           })
           return
         }
@@ -342,9 +732,17 @@ export function vaultMedia(dirCrudo) {
         }
 
         /* El índice: qué hay en el vault, y si el vault existe. */
+        /* Se sanea también AL LEER y no sólo al escribir: el archivo se
+           puede editar a mano, y un valor roto ahí no tiene que poder
+           romper el lienzo. */
+        if (pedido === '/__vistas') {
+          if (!raiz) return json(res, 200, { conectado: false, motivo, vistas: [] })
+          return json(res, 200, { conectado: true, vistas: sanearVistas(leerJson(raiz, VISTAS)?.vistas) })
+        }
+
         if (pedido === '/__indice') {
           if (!raiz) return json(res, 200, { conectado: false, motivo, clips: [] })
-          const fichas = leerFichas(raiz)
+          const fichas = leerJson(raiz, FICHAS)
           const clips = recorrer(raiz).map((c) => ({ ...c, ficha: fichas[c.ruta] ?? null }))
           return json(res, 200, { conectado: true, carpeta: raiz, clips })
         }
