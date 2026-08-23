@@ -584,6 +584,11 @@
      La asimetría queda anotada para el PRESS, que va a existir con la
      pieza Button. Ahí las tres fuentes sí aplican. */
   --ease-surface: cubic-bezier(0.23, 1, 0.32, 1);
+  /* La curva de las superficies que APARECEN —diálogos, menús—: un
+     ease-out muy adelantado, que es lo que el reparto de motion pide
+     para algo que entra. Nació en vault.module.css con la nota de que
+     subiera acá si aparecía una segunda; aparecieron dos. */
+  --ease-dialogo: cubic-bezier(0.19, 1, 0.22, 1);
   --dur-surface: 150ms;
   --ease-text: ease;
   --dur-text: 100ms;
@@ -835,8 +840,22 @@ html {
 
     --activo-c: color-mix(in srgb, var(--ink) 93%, transparent);
 
-    --selection-bg: #191918; /* +16 */
-    --selection-color: var(--ink);
+    /* INVERSIÓN, la decisión de josh — no el delta de benji.
+       Estaba en #191918, el +16 del claro trasladado, y era INVISIBLE:
+       16 pasos cerca del negro no se ven como 16 cerca del blanco, la
+       gama los aplasta. Señalado en uso: "al seleccionar texto no se
+       nota".
+
+       Benji no puede votar acá —su sitio no tiene modo oscuro, 0 media
+       queries en su CSS— y linear resuelve con su azul de marca, que
+       este sistema no tiene. El que queda es josh:
+         ::selection{color:#fff;background:#000}
+       inversión total. Con nuestros tokens: fondo a tinta, texto a
+       canvas. Cero colores nuevos, y la selección es un estado
+       transitorio que el usuario provocó arrastrando — puede ser
+       fuerte. */
+    --selection-bg: var(--ink);
+    --selection-color: var(--canvas);
 
     --link-underline: #2d2d2b; /* +36 */
     --link-underline-hover: #a0a09e; /* +151 */
@@ -925,7 +944,8 @@ html {
 
     --surface: #131312; /* +10 */
     --surface-hover: #1b1b1a; /* +18 */
-    --selection-bg: #292927; /* +32 */
+    /* La selección no se duplica acá: la base oscura ya es inversión
+       total —tinta sobre canvas— y no hay escalón por encima de eso. */
     --link-underline: #51514f; /* +72 */
     --link-underline-hover: var(--ink);
 

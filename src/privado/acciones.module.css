@@ -1,0 +1,206 @@
+/* ═══════════════════════════════════════════════════════════════
+   LO QUE SE PUEDE HACER CON UN CLIP — el menú del clic derecho.
+
+   Renombrar y mandar a la papelera vivían afuera de la app: había que
+   ir al Finder. Ahora están donde está el clip.
+
+   ─── EL MENÚ ES UNA SUPERFICIE, no una palabra ───
+   Es la única cosa del área privada que tiene caja, y es a propósito:
+   aparece FLOTANDO sobre contenido que no controlamos —un clip puede
+   ser de cualquier color— así que sin fondo propio no habría forma de
+   garantizar que se lea. El resto del chrome vive sobre el canvas y por
+   eso puede ser texto pelado.
+   ═══════════════════════════════════════════════════════════════ */
+.menu {
+  position: fixed;
+  z-index: 40;
+  margin: 0;
+  padding: 4px;
+  min-width: 168px;
+  border: 0;
+  border-radius: var(--card-radio);
+  background: var(--canvas);
+  /* La única sombra del sistema. Un menú flotante sin separación del
+     fondo se lee como parte de lo que tapa. */
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.06),
+    0 8px 24px rgb(0 0 0 / 0.12),
+    0 2px 6px rgb(0 0 0 / 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  /* ─── LA ENTRADA ───
+     ESCALA DESDE DONDE SE APRETÓ, no desde el centro: transform-origin
+     lo pone el componente con la esquina que le tocó según dónde haya
+     caído el cursor. Un menú que crece desde su centro se despega del
+     gesto que lo abrió.
+
+     0.96 y no 0: nada aparece de la nada. Y ease-out fuerte, que es lo
+     que pide algo que entra en pantalla. */
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 120ms var(--ease-dialogo),
+    transform 120ms var(--ease-dialogo),
+    overlay 120ms allow-discrete,
+    display 120ms allow-discrete;
+}
+.menu[data-abierto] {
+  opacity: 1;
+  transform: scale(1);
+  /* La entrada es más larga que la salida: al cerrar ya decidiste. */
+  transition:
+    opacity 160ms var(--ease-dialogo),
+    transform 160ms var(--ease-dialogo);
+}
+@starting-style {
+  .menu[data-abierto] {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .menu {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.08),
+      0 8px 24px rgb(0 0 0 / 0.4),
+      0 2px 6px rgb(0 0 0 / 0.24);
+  }
+}
+
+/* Un ítem es una palabra, como todo el resto: lo que le da cuerpo es el
+   relleno al pasar por encima, no una caja permanente. */
+.item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  border-radius: 5px;
+  padding: 6px 10px;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: 20px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--dur-text) var(--ease-text);
+}
+.item:hover,
+.item:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+/* Mandar a la papelera no se pinta de rojo: en esta interfaz no hay ni
+   un color de estado, y meter el primero para un item de menú sería
+   inventar un nivel entero del sistema. Lo que lo distingue es el
+   diálogo que abre — que sí te para y te pregunta. */
+
+/* ─── LOS DIÁLOGOS ───
+   Angostos: lo que muestran es una pregunta y un campo, no dos cards.
+   Comparten el resto del tratamiento con el diálogo de subir. */
+.corto {
+  width: min(420px, calc(100vw - 48px));
+}
+.titulo {
+  margin: 0;
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  color: var(--ink);
+}
+.dice {
+  margin: 8px 0 0;
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--text-secondary);
+}
+/* El campo se ve como campo ACÁ y no en la ficha, y la diferencia no es
+   capricho: en la ficha escribís sobre un valor que ya está en su
+   lugar; acá el diálogo existe SÓLO para que escribas, así que el
+   cursor tiene que saber dónde caer antes de que empieces. */
+.campo {
+  width: 100%;
+  margin-top: 20px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--ink);
+}
+.pie {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.accion {
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: 20px;
+  color: var(--type-nav-c);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-text) var(--ease-text),
+    color var(--dur-text) var(--ease-text),
+    transform 100ms var(--ease-dialogo);
+}
+.accion:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+/* La confirmación se siente en el dedo, no se ve: 0.97 es lo que se
+   percibe como apretado sin que la caja se desarme. */
+.accion:active {
+  transform: scale(0.97);
+}
+.accion[data-fuerte] {
+  background: var(--ink);
+  color: var(--canvas);
+}
+.accion[data-fuerte]:hover {
+  background: var(--ink);
+  color: var(--canvas);
+  opacity: 0.88;
+}
+.accion:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+.error {
+  margin: 12px 0 0;
+  font-size: var(--type-meta-fs);
+  line-height: var(--type-meta-lh);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .menu[data-abierto] {
+    transform: none;
+  }
+  @starting-style {
+    .menu[data-abierto] {
+      transform: none;
+    }
+  }
+  .accion:active {
+    transform: none;
+  }
+}

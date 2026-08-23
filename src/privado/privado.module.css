@@ -13,15 +13,32 @@
    a sangre y no puede tener márgenes, mientras que el vault sí los
    necesita. Un padding en el marco se los impondría a los dos.
 
-   EL RIEL DEL ÁREA PRIVADA SON 80. No es un número nuevo: es el mismo
-   80 que ya usa el sistema para el aire de arriba de la página y para
-   el desplazamiento del índice lateral, medido de benji. A 1440 deja la
-   grilla en 1280, que da exactamente el ancho del contenedor de la
-   vista de artículos de linear —medido, no buscado—. La de figma usa
-   176 de margen sobre 1728, que es el mismo orden.
+   ─── EL RIEL ES EL DE OPENAI: TOPE 1440, AIRE 32 ───
+   Antes eran 80 de aire y ningún tope, o sea que a 2560 la grilla medía
+   2400 y las cards se estiraban sin fin. Ahora se clava.
 
-   Abajo de 768 cae a --page-padding-inline: con la grilla en una
-   columna, 80 de margen a cada lado se come la pantalla.
+   SOURCE · openai.com/news, el ancestro que pone el tope
+     .max-w-container{max-width:1440px}   padding: 0 32px
+
+   Con box-sizing:border-box eso deja el contenido en 1376, y 1440−64 da
+   exactamente lo mismo: el tope y el aire son el mismo par de números.
+
+   RUNTIME · su grilla medida en ocho ventanas
+     2560 · 1920 · 1728 · 1440   →  1376, CLAVADO. No crece nunca
+     1280 → 1216   1024 → 960   768 → 704      aire 32, 3 columnas
+      744 → 696 ... 570 → 522                  aire 24, 2 columnas
+      560 → 512 ... 430 → 382                  aire 24, 1 columna
+   La canaleta (24) y la fila (80) NO cambian en ningún ancho.
+
+   Sus cortes son container queries sobre el contenedor —2 columnas hasta
+   512 de contenedor— y acá se expresan en viewport, que es lo que usa el
+   resto del sistema: 768 y 560. El de 560 sale de su propia cuenta,
+   512 + 24 + 24, y coincide con lo medido (570 da 2 columnas, 560 da 1).
+
+   EL TOPE VA EN CADA VISTA Y NO EN EL MARCO, por lo mismo que el aire:
+   el playground es un canvas a sangre y un max-width en el marco se lo
+   impondría. La barra lo lleva para quedar sobre el mismo riel que la
+   grilla.
    ═══════════════════════════════════════════════════════════════ */
 /* EL MARCO MIDE LA VENTANA. Es lo que hace posible que el detalle de un
    clip entre SIEMPRE entero: es el primer eslabón de una cadena de flex
@@ -37,7 +54,8 @@
    vh mide la ventana MÁS GRANDE posible, así que con las barras a la
    vista el contenido queda tapado justo abajo. */
 .marco {
-  --privado-inline: 80px;
+  --privado-inline: 32px;
+  --privado-ancho: 1440px;
 
   /* ─── EL BLANCO, SIN CAJA ───
      Las dos filas de la cabecera son PALABRAS y se quedan así: ni
@@ -81,9 +99,11 @@
   min-height: 0;
   overflow: hidden;
 }
-@media (max-width: 768px) {
+/* 767 y no 768: a 768 exacto openai todavía da 32 de aire y 3 columnas
+   —medido—, así que el corte va un píxel más abajo. */
+@media (max-width: 767px) {
   .marco {
-    --privado-inline: var(--page-padding-inline);
+    --privado-inline: 24px;
   }
 }
 
@@ -103,6 +123,18 @@
    tenga algo más que dos palabras. */
 .barra {
   --privado-solapa-gap: 16px;
+  /* El mismo riel que la grilla: tope y aire salen del marco, así que
+     las solapas arrancan en la misma x que la primera card.
+
+     `width: 100%` NO es redundante y la primera versión no lo tenía. En
+     un flex de columna el ítem se estira solo por el align-items:stretch
+     implícito, pero un margen automático en el eje transversal APAGA ese
+     estirado: el ítem pasa a medir su contenido. La barra quedaba del
+     ancho de sus dos palabras y centrada — medido, 558px a la derecha de
+     donde arranca la primera card. */
+  max-width: var(--privado-ancho);
+  width: 100%;
+  margin-inline: auto;
   display: flex;
   gap: var(--privado-solapa-gap);
   padding-inline: var(--privado-inline);
@@ -156,21 +188,8 @@
   color: var(--activo-c);
 }
 
-/* EL ESTADO VACÍO. Va en el gris secundario y no en tinta: la regla del
-   sistema es que la prosa va en ink y lo que ANOTA va en gris. "Nothing
-   here" no es contenido: es una nota sobre el estado del contenido.
-
-   Alineado a la izquierda, con el resto. Nada en esta página está
-   centrado. */
-/* Mismo aire que el detalle, y por lo mismo: la barra ya no lo da, así
-   que lo reclama el de abajo. Sin esto el playground vacío también
-   arrancaba pegado a la barra. */
-.vacio {
-  margin: var(--section-content-gap) 0 0;
-  padding-inline: var(--privado-inline);
-  font-size: var(--type-body-fs);
-  font-weight: var(--type-body-fw);
-  letter-spacing: var(--type-body-ls);
-  line-height: var(--type-body-lh);
-  color: var(--type-body-c);
-}
+/* Acá vivía .vacio, el estado vacío del playground. Se fue cuando el
+   playground dejó de ser un cascarón y pasó a tener módulo propio: su
+   aviso vive ahora en playground.module.css, al lado de su lista y su
+   lienzo. Este archivo se queda con lo que comparten las dos vistas —el
+   marco, la barra, las solapas— y nada más. */

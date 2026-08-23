@@ -59,6 +59,11 @@
      elegir el grosor por una razón que no es la visual. */
   --rep-riel: 2px;
   --rep-pista-alto: 12px;
+  /* Lo que se lleva la barra: el alto del botón de play —el elemento
+     más alto de la fila— más el aire que la separa del video. Lleva
+     nombre porque ahora el VIDEO lo necesita para saber cuánto alto le
+     queda. Si cambia el margen de .controles, cambia acá. */
+  --rep-barra: calc(var(--rep-play) + 12px);
 
   /* El último eslabón de la cadena que hace que el clip entre siempre:
      el reproductor toma el alto que le pasa el escenario, la barra se
@@ -67,7 +72,12 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  /* ANCHO AUTO: el marco se encoge al ancho del video, así que la barra
+     mide lo mismo que el clip en vez de cruzar la página entera.
+     Para que eso funcione la barra tiene que dejar de inflar el
+     max-content del marco — ver .controles. */
+  width: auto;
+  max-width: 100%;
   max-height: 100%;
   /* min-width:0 — un ítem de flex no se encoge por debajo de su
      contenido por defecto, y el contenido acá es un video cuyo ancho
@@ -76,18 +86,63 @@
   min-width: 0;
 }
 
-/* El video LLENA su hueco y object-fit dibuja la imagen adentro
-   respetando su proporción. La franja que sobra queda del color de la
-   superficie, así que no se ve: el clip parece flotar centrado.
+/* EL VIDEO ES LA IMAGEN, no la caja que la contiene.
 
-   Es la misma técnica que la card de la grilla, y por lo mismo — es la
-   única forma de garantizar que nunca se corte sin depender de cuánto
-   mida el clip. */
+   Antes esto era `flex:1; width:100%; object-fit:contain`, con este
+   comentario: "la franja que sobra queda del color de la superficie,
+   así que no se ve". SE VE, y se lleva puesto el borde redondeado.
+   Medido en un escenario de 1312: el elemento daba 1312×606 y la
+   imagen 1108×606, o sea 102px de franja a cada lado — y el
+   border-radius dibujado en las esquinas de la FRANJA, a 102px de las
+   de la imagen. En claro la franja casi no se distingue del fondo; en
+   oscuro --surface y --canvas están a cinco pasos y lo único que se ve
+   es que el clip perdió las esquinas.
+
+   Esa misma franja producía un segundo defecto, peor: al plegar la
+   ficha, la imagen llegaba a su tamaño final en 60ms y después se
+   corría 102px a la derecha durante 440ms más, recentrándose dentro de
+   una caja que seguía creciendo. Crecía, terminaba, y RECIÉN AHÍ se
+   deslizaba.
+
+   ─── POR QUÉ ASÍ Y NO MÁS SIMPLE ───
+   Se midió elemento contra imagen en cuatro anchos de caja:
+     width:100% + object-fit    franja de hasta 195px en horizontal
+     flex:1 + width:auto        arregla horizontal, rompe vertical
+     alto con cqh + width auto  igual que la anterior
+     ésta                       iguales en los cuatro
+
+   La clave es min(): un porcentaje dentro de `width` SIEMPRE resuelve
+   contra el ancho, así que el alto disponible no se puede escribir con
+   `%` — hace falta una unidad de contenedor. De ahí el 100cqh, y de ahí
+   que el escenario tenga que declararse contenedor de tamaño.
+
+   El tope de ancho va en `max-width` y no adentro de un `min()`: con
+   `min(...)` WebKit no recorta y el video se desborda del marco.
+   Con max-width sí, y como el alto está en `auto` y hay aspect-ratio,
+   recortar el ancho recalcula el alto solo — que es justo lo que hace
+   falta.
+
+   ─── POR QUÉ EL TOPE ES 100% Y NO 100cqw ───
+   Se probó con cqw y WebKit lo resuelve MAL en la cascada: el
+   max-width computado quedaba en 1368.71875px cuando el contenido del
+   escenario medía 1000 — la unidad se congeló en un valor transitorio
+   del montaje y ni un reflow la refresca. Aplicada inline sí daba 1000.
+   Es un problema de invalidación con contenedores que cambian de
+   tamaño, y el ancho del escenario cambia en cada cuadro de la
+   animación.
+
+   El alto sí puede usar cqh porque el escenario NO cambia de alto: aunque
+   el valor se cachee, es el correcto.
+
+   --rep-ratio lo pone el reproductor al leer los metadatos; el 16/9 es
+   sólo para el instante previo, y evita un salto al cargar. */
 .video {
   display: block;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
+  flex: none;
+  aspect-ratio: var(--rep-ratio, 16 / 9);
+  height: auto;
+  width: calc((100cqh - var(--rep-barra)) * var(--rep-ratio, 16 / 9));
+  max-width: 100%;
   border-radius: var(--card-radio);
   background: var(--surface);
   object-fit: contain;
@@ -104,6 +159,15 @@
   align-items: center;
   gap: var(--rep-gap);
   margin-top: 12px;
+  /* width:0 + min-width:100% — LA BARRA NO OPINA SOBRE EL ANCHO.
+     La pista del scrubber quiere estirarse, así que su contribución al
+     max-content hacía que el marco midiera la página entera: el video
+     quedaba pegado a la izquierda y la barra cruzaba de lado a lado.
+     Con width:0 la barra aporta cero al ancho del marco —que entonces
+     se encoge al video— y min-width:100% la estira de vuelta hasta ese
+     ancho ya resuelto. */
+  width: 0;
+  min-width: 100%;
 }
 
 /* ─── EL BOTÓN DE PLAY · de apple, medido ─── */

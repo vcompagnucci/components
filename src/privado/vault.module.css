@@ -1,59 +1,99 @@
 /* ═══════════════════════════════════════════════════════════════
    LA GRILLA DEL VAULT
 
-   Lo medido está en .context/recon/vault/GRILLA.md.
+   ES LA DE OPENAI /news, medida entera con /web-clone. Los números y sus
+   recibos están abajo, en .grilla y en .media; el CSS servido está
+   guardado en .context/recon/vault/grillas/.
 
-   ─── LO QUE VIENE DE QUE LAS DOS REFERENCIAS COINCIDEN ───
-   linear.app/now y el archivo de figma dicen lo mismo en tres cosas, y
-   por eso las tres se toman sin discutir:
+   ─── LO QUE HABÍA ANTES, Y POR QUÉ SE FUE ───
+   La card era la de benji en family-values: 550 de ancho, padding 40 60,
+   el clip centrado adentro con `contain` y la caja en un alto fijo.
 
-     hueco entre filas        64
-     título → caption          8
-     media en 16:9            ← ver más abajo: esta NO sobrevivió
+   Se cayó por una razón sola y medible: SU CARD ES PARA CONTENIDO
+   ANGOSTO Y ALTO. Sus 53 clips de family-values son verticales
+   (762×1502) y sus 60 de aire por lado son holgados justamente por eso.
+   Su caja usa el 41% del ancho y el 84% del alto.
 
-   ─── LO QUE NINGUNA DE LAS DOS RESUELVE ───
-   Sus clips son TODOS apaisados. Los nuestros no: una grabación de
-   teléfono da 0.46 y una captura de escritorio 1.60, medido sobre el
-   vault de prueba. Se probaron las tres respuestas obvias con
-   /prototype y las tres fallan:
+   Con una grabación de pantalla adentro la relación se da vuelta: 70%
+   del ancho y 31% del alto, y una captura de 1440×900 terminaba dibujada
+   a 285×178 — el 22% del área de la card, con 316px de caja vacía.
 
-     16:9 con el clip adentro   el vertical queda como una tira flaca
-                                entre dos campos vacíos
-     16:9 recortando            le corta arriba y abajo, que es donde
-                                viven el sheet y la tab bar
-     la caja sigue al clip      881px de alto contra 253, grilla al
-                                doble de larga
+   Y la referencia no podía resolverlo porque no tiene el problema: en
+   las tres páginas suyas que se midieron aparece UN solo clip apaisado,
+   y lo dibuja al 100% del ancho de su contenedor, sin caja y sin aire.
 
-   ─── LA RESPUESTA ES LA DE BENJI ───
-   Medido en family-values: 45 cards, todas arrancando en la misma x
-   —o sea UNA columna, display:block— de 550 de ancho fijo, y con CINCO
-   alturas distintas: 532 ×17 · 475 ×12 · 443 ×8 · 346 ×7 · 368 ×1.
+   ─── LO QUE DICEN LAS TRES REFERENCIAS ───
+   openai/news, linear/blog y linear/customers coinciden en dos cosas, y
+   las dos contradecían lo que teníamos:
 
-     padding 40px 60px · radio 8 · flex centrado
-     el clip: 227.5 × 448.42, natural 762×1502
-     532.42 = 40 + 448.42 + 40 + 4   ← la altura la manda el contenido
+     el medio declara una PROPORCIÓN, nunca un alto en píxeles
+       openai 1/1 · linear 16/9 en sus dos páginas
+     el medio va A SANGRE
+       padding 0 y sangría 0/0 en las tres
 
-   Su respuesta al problema de las formas es NO IMPONER NINGUNA: ancho
-   fijo, el clip centrado adentro con aire, y la caja se acomoda.
+   Los dos además RECORTAN, y eso es lo que se copió: la decisión tomada
+   es que la vista del componente ocupe toda la card.
 
-   Y esos números ya son tokens nuestros. --card-app-padding y
-   --card-app-slot-ancho salieron de medir ESTA MISMA card para la
-   página de piezas. Acá no se agrega nada al sistema: se reusa.
-
-   EL COSTO, dicho: él tiene una columna y nosotros tres, así que las
-   filas quedan desparejas — la peor mide 209px de diferencia. Se miró y
-   se aceptó: cada epígrafe queda bajo su propia card y el conjunto se
-   lee como un muro, que es lo que es. La alternativa —todas a 532, su
-   altura más usada— le mete 354px de aire vacío a un clip apaisado, y
-   eso él no lo hace nunca: su contenido corto tiene card corta.
-
-   LO ÚNICO QUE NO SE LE COPIA ES EL BORDE. Su card lleva
-   box-shadow:0 0 0 1px #f2f2f2 sobre #fcfcfc. Nuestro sistema ya
-   decidió lo contrario —la regla de josh: la card se define por
-   contraste contra el canvas, sin anillo ni sombra— y está resuelto en
-   tokens.css. Se respeta lo decidido y se copia la geometría.
+   ─── LO QUE NO SE COPIA ───
+   El borde. La card de benji lleva box-shadow:0 0 0 1px #f2f2f2 sobre
+   #fcfcfc. Nuestro sistema ya decidió lo contrario —la regla de josh: la
+   card se define por contraste contra el canvas, sin anillo ni sombra—
+   y está resuelto en tokens.css.
    ═══════════════════════════════════════════════════════════════ */
+/* El riel de openai: tope de 1440 y 32 de aire, los dos declarados en
+   privado.module.css para que la barra y la grilla queden en la misma x.
+   Con border-box, 1440 − 32 − 32 deja el contenido en 1376, que es el
+   número que él tiene medido en cuatro ventanas distintas. */
 .vault {
+  /* ─── LA FORMA DE LA CAJA: UNA SOLA, LA DE BENJI ───
+     TODAS LAS CARDS MIDEN LO MISMO. Es la restricción dura, y es la que
+     manda sobre todo lo demás de este bloque: la proporción NO puede
+     seguir al clip, porque los clips tienen dos formas.
+
+     Hubo antes una por fuente —8/5 al web y 9/19.5 al teléfono— y cada
+     clip llenaba su card sin recortarse, pero eso daba dos cards: 443×277
+     y 443×959 a 1440. La de teléfono ocupaba casi una pantalla entera y
+     en "All" las filas quedaban desparejas. Se descartó por eso.
+
+     El número es el de benji, medido en family-values y ya anotado en
+     tokens.css:
+
+       caja       550 × 532.42
+       teléfono   227.5 × 448.42   (natural 762×1502)
+       padding    40px 60px
+
+     532.42 = 40 + 448.42 + 4.42 + 40, donde el 4.42 es el hueco de línea
+     que deja su display:inline-block. Nuestro equivalente limpio son 528,
+     que además es múltiplo de 4. De ahí 550/528, o sea 25/24.
+
+     Y NO es la de openai. Su 1/1 es para imágenes cuadradas que él mismo
+     produce; la de benji está dimensionada para que un teléfono entre
+     parado con aire, que es exactamente el caso que acá no se podía
+     resolver. Se le toma a openai la grilla —columnas, canaleta, fila,
+     riel, tope— y a benji la card. */
+  --vault-proporcion: 550 / 528;
+
+  /* EL HUECO DEL CLIP A SU RÓTULO. figma 16 · linear 24; gana figma,
+     porque su tarjeta tampoco tiene descripción y el bloque de texto es
+     igual de corto. */
+  --vault-media-titulo: 16px;
+
+  /* LOS DOS VIVEN ACÁ Y NO EN .grilla, y es el mismo motivo: los leen dos
+     cosas que NO son parientes —la card de la grilla y la card del
+     diálogo, que cuelga del vault— y una custom property se hereda, no
+     se busca.
+
+     Declarado en .grilla, en el diálogo no resolvía: el aspect-ratio
+     caía en `auto` y el margen del rótulo en 0. Eso último es lo que
+     dejaba el "Native" pegado al clip a 1.5px en vez de 17.5, medido.
+
+     Ninguna de las dos avisó. Una custom property que no existe no es un
+     error: la declaración entera se descarta y la regla queda como si
+     nunca se hubiera escrito. */
+
+  max-width: var(--privado-ancho);
+  width: 100%;
+  margin-inline: auto;
   padding-inline: var(--privado-inline);
 }
 
@@ -69,8 +109,24 @@
    en gris — el par --type-nav-c → --activo-c que ya gobierna el índice
    de la página. */
 .filtros {
+  /* 16 entre los tres filtros: es lo que separa dos palabras cortas sin
+     que se lean como una, el mismo que hay entre Vault y Playground. */
+  --vault-filtro-gap: 16px;
+
+  /* ─── EL + NO ES UN CUARTO FILTRO ───
+     La fila son TRES ESTADOS y UNA ACCIÓN. Estaban los cuatro huecos en
+     16 idénticos —medido— y con eso "All Native Web +" se lee como una
+     sola lista de cuatro cosas del mismo tipo.
+
+     32 es el doble del hueco de adentro del grupo, que es la relación
+     más simple que se lee como "esto es otra cosa" sin abrir un número
+     nuevo: ya es el riel de la página, y es múltiplo de 4. La misma
+     cuenta que hace la grilla, cuyos 160 de aire son 2× los 80 del
+     marco. */
+  --vault-mas-gap: 32px;
+
   display: flex;
-  gap: 16px;
+  gap: var(--vault-filtro-gap);
 }
 .filtro {
   /* El blanco, igual que las solapas y desde el mismo token: es el
@@ -126,43 +182,38 @@
 
 */
 
-/* ─── LA GRILLA ───
-   Tres columnas: es lo que usan las dos referencias.
+/* ─── LA GRILLA ES LA DE OPENAI ───
+   Medida con /web-clone en ocho ventanas. Los recibos están en
+   .context/recon/vault/grillas/.
 
-   LA CANALETA VA LIMPIA, la de figma, y contra la de linear. Él tira
-   una línea de 1px en una pista de 64 entre columna y columna, y hace
-   falta PORQUE SUS CARDS NO TIENEN FONDO: su media va a sangre, así que
-   sin la línea no habría nada separando una columna de la otra. La
-   nuestra ahora es una superficie pintada con su propio borde, y una
-   línea encima competiría con él. */
+   SOURCE · openai-news.css.txt + la clase del nodo
+     grid gap-x-6 gap-y-20 @sm:grid-cols-2 @md:grid-cols-3
+     .gap-x-6{column-gap:calc(var(--spacing) * 6)}   → 24
+     .gap-y-20{row-gap:calc(var(--spacing) * 20)}    → 80
+     grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+     .max-w-container{max-width:1440px}  padding: 0 32px
+
+   RUNTIME · sus columnas y su canaleta no cambian nunca
+     2560 · 1920 · 1728 · 1440  →  contenedor 1376, 3 col   CLAVADO
+     1280 → 1216 · 1024 → 960 · 768 → 704   3 col, aire 32
+      744 → 696 ... 570 → 522               2 col, aire 24
+      560 → 512 ... 430 → 382               1 col, aire 24
+     canaleta 24 y fila 80 en LOS OCHO anchos
+
+   LO QUE CAMBIÓ CONTRA LO QUE HABÍA
+     canaleta   32 → 24
+     fila       64 → 80
+     el riel    80 sin tope → 32 con tope de 1440 (está en privado.module.css)
+
+   La fila de 80 es más del triple que la canaleta de 24, y eso no es un
+   descuido suyo: separa las filas mucho más de lo que separa las
+   columnas, así que la grilla se lee como filas y no como una malla. La
+   nuestra estaba en 32/64, que es la mitad de esa relación. */
 .grilla {
   --vault-columnas: 3;
-  --vault-canaleta: 32px;
-  --vault-fila: 64px;
-  /* figma 16 · linear 24. Gana figma: su tarjeta tampoco tiene
-     descripción y el bloque de texto es igual de corto. */
-  --vault-media-titulo: 16px;
+  --vault-canaleta: 24px;
+  --vault-fila: 80px;
 
-  /* ─── LA ALTURA DE LA CAJA ───
-     574: la altura a la que NUESTRO clip de teléfono entra con los 228
-     de ancho que benji le da al suyo. Abajo de esto el vertical se
-     achica por falta de alto y deja de medir 228 — o sea que 574 es el
-     único punto donde el teléfono mide exactamente lo que mide el de
-     él. Es la definición más fiel de "como lo hace benji" que se puede
-     dar teniendo tres columnas y no una.
-
-     Elegido mirando, contra otros dos que también salían de su card:
-       418   su PROPORCIÓN (550×532 = 0.968) aplicada a nuestros 405
-       532   su ALTURA literal, la de 17 de sus 45 cards
-
-     Lo que cambia entre los tres es quién paga. Medido como cuánto del
-     hueco llena la imagen que se ve:
-                vertical   apaisado
-       418        68%        53%
-       532        91%        39%
-       574       100%        36%      ← éste
-     Se eligió que llene el vertical. */
-  --vault-caja-alto: 574px;
 
   /* EL AIRE HASTA LA GRILLA.
 
@@ -180,6 +231,22 @@
   column-gap: var(--vault-canaleta);
   row-gap: var(--vault-fila);
   align-items: start;
+}
+
+/* Sus cortes de columna, en viewport. Él los hace con container queries
+   —2 columnas mientras el contenedor mida más de 512— y acá se expresan
+   contra la ventana, que es lo que usa el resto del sistema. El 560 sale
+   de su misma cuenta, 512 + 24 + 24, y el corte va EN 560 y no en 559:
+   medido, a 570 él da 2 columnas y a 560 exacto ya da 1. */
+@media (max-width: 767px) {
+  .grilla {
+    --vault-columnas: 2;
+  }
+}
+@media (max-width: 560px) {
+  .grilla {
+    --vault-columnas: 1;
+  }
 }
 
 .card {
@@ -205,8 +272,36 @@
 
    El número está en --vault-caja-alto, arriba. */
 .media {
-  height: var(--vault-caja-alto);
-  padding: var(--card-app-padding);
+  /* LA PROPORCIÓN MANDA, NO UN ALTO EN PÍXELES. Es lo que hacen las tres
+     referencias medidas —openai declara 1/1, linear 16/9 en dos páginas
+     distintas— y ninguna clava un alto. Con la proporción sobre una
+     columna de ancho fijo el alto sale solo y todas las cards de una
+     fila miden lo mismo, que es lo único que --vault-caja-alto protegía.
+
+     openai.com/news, RUNTIME en ocho ventanas: aspect-ratio 1/1 en
+     todas, sin excepción. */
+  aspect-ratio: var(--vault-proporcion);
+
+  /* SIN AIRE Y SIN RADIO, como ellos: padding 0 y sangría 0/0 medidas en
+     su card, y border-radius 0. El clip llega al borde.
+
+     Esto es lo que reemplaza a --card-app-padding (40 60), que era de
+     benji pero de otra card: 550 de ancho con un teléfono de 228
+     adentro. Sus 60 por lado eran holgados porque su contenido es
+     angosto y alto; acá dejaban una grabación de 1440×900 dibujada a
+     285×178, el 22% del área de la card. */
+  padding: 0;
+  /* Contenedor de posicionamiento: el clip de teléfono se cuelga de acá
+     con `inset` para conseguir una caja de alto DEFINIDO. Ver abajo. */
+  position: relative;
+  /* EL RADIO ES EL DEL SISTEMA y no el de ellos. Openai la deja en 0 y
+     linear en 5; nuestro --card-radio son 8 y ya gobierna la card del
+     producto. Copiar el 0 metería una card con esquina viva al lado de
+     una redondeada en la misma app.
+     Es la misma regla con la que no se le copió el borde a benji: la
+     geometría se cita, las decisiones ya tomadas del sistema se
+     respetan. `overflow: hidden` es lo que hace que el clip, que ahora
+     llega al borde con `cover`, se recorte contra ese radio. */
   border-radius: var(--card-radio);
   overflow: hidden;
   background: var(--surface);
@@ -228,18 +323,101 @@
    tamaño natural y encogía la card — una imagen de 1×1 daba una caja de
    81px de alto. Medido, no supuesto. Ninguna de las 45 cards de benji
    deja que el archivo decida su tamaño: su <img> declara width:227.5px. */
+/* Y EL CLIP LLENA LA CARD ENTERA. `cover` y no `contain`: es la decisión
+   tomada —la vista del componente ocupa toda la card— y es también lo
+   que hacen los dos, openai en /news y linear en /customers.
+
+   Lo que se pierde depende de cuán lejos esté la forma de la caja de la
+   del clip, y eso es lo que queda abierto abajo, en el andamio. */
 .media > * {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
+}
+/* EL TOPE DE 228 DEL TELÉFONO SE FUE. Existía para que un clip vertical
+   no se comiera la pantalla cuando la caja medía 574 de alto y el clip
+   entraba con `contain`. Ahora la caja tiene proporción y el clip la
+   llena con `cover`, así que un ancho máximo de 228 sólo lograría que la
+   card quedara medio vacía — justo lo que se vino a arreglar.
+
+   Queda anotado que la regla venía escrita 'nativo' contra el 'native'
+   que emite el TSX, o sea que nunca matcheó.
+   (era .card[data-fuente='native'] .media > * { max-width: 228px }) */
+
+/* ─── EL TELÉFONO, COMO LO HACE BENJI ───
+   Adentro de la card y con aire alrededor, no llenándola. Es la única
+   regla que mira la fuente, y existe porque con una sola proporción para
+   todos el teléfono ya no puede llenar la card sin perder medio clip:
+   recortado a 25/24 pierde el 54%, y lo que se pierde son el borde de
+   arriba y el de abajo, que es justo donde viven el sheet y la tab bar.
+
+   EL AIRE ESTÁ EN PORCENTAJE Y NO EN PÍXELES a propósito. Un padding en
+   porcentaje se resuelve SIEMPRE contra el ancho, en los cuatro lados,
+   así que 40/550 y 60/550 reproducen su proporción exacta en cualquier
+   ancho de columna sin una sola media query — que es también lo que hace
+   su card, que no tiene ninguna.
+
+     40 / 550 = 7.2727%     60 / 550 = 10.909%
+
+   Se aplica con `inset` sobre el clip y no con `padding` sobre la caja,
+   por una razón que está explicada abajo y que costó dos intentos. */
+/* EL AIRE VA EN `inset` Y NO EN `padding`, y costó dos intentos.
+
+   Con la caja midiendo por aspect-ratio, un hijo en flujo NO puede
+   resolver ningún porcentaje contra ese alto. Medido, las dos formas:
+
+     height: 100%       WebKit lo resuelve contra la caja de BORDE, así
+                        que el clip daba 346×425 en un hueco de 346×361:
+                        se comía el aire y quedaba cortado contra el
+                        borde por el overflow:hidden
+     max-height: 100%   directamente no ata: el clip daba 346×750 dentro
+                        de una card de 425. El 138% de la caja
+
+   La salida es sacarlo del flujo. Para un absoluto, el bloque
+   contenedor es la caja de relleno del ancestro posicionado, y ESA sí
+   tiene un alto conocido, así que un porcentaje resuelve.
+
+   Y el tamaño va explícito, no en auto: hubo un tercer intento con
+   `inset` en los cuatro lados y width/height en auto, y también falló
+   —el clip volvió a dibujarse en 886×1920, el 904% de la caja— porque
+   un elemento REEMPLAZADO con width:auto usa su tamaño intrínseco y no
+   el que le dictan los inset. Eso vale para <img> y <video> y no para
+   un <div>, que es de donde viene la intuición equivocada.
+
+   Los porcentajes son los de benji, y cada uno contra el eje que le
+   corresponde —los verticales resuelven contra el alto y los
+   horizontales contra el ancho, que es la regla de `inset`—:
+
+     40 / 528 = 7.5758%     60 / 550 = 10.909%
+
+   A 1440 da 32 y 48 sobre una card de 443×425, y deja el hueco en
+   346×361 con el teléfono en 167×361. Igual que él, lo que lo ata es el
+   ALTO: su teléfono mide 448.42 en un hueco de 452.42. */
+.card[data-fuente='native'] .media > * {
+  position: absolute;
+  /* El hueco de benji sobre su card, tal cual, en los dos ejes:
+       izquierda   60 / 550 = 10.909%      ancho  430 / 550 = 78.1818%
+       arriba      40 / 528 =  7.5758%     alto   448 / 528 = 84.8485%
+     Cuatro fracciones de su propia card, sin un número redondeado. */
+  top: 7.5758%;
+  left: 10.909%;
+  width: 78.1818%;
+  height: 84.8485%;
   object-fit: contain;
 }
-/* El teléfono se topa a 228 —el ancho que él eligió, y ya es token
-   nuestro— y no llega al de la columna. Ésa es la pieza que evita que un
-   vertical se coma la pantalla. */
-.card[data-fuente='nativo'] .media > * {
-  max-width: var(--card-app-slot-ancho);
-}
+
+/* El de web llena la card, y eso le cuesta el 35% del ancho: la card de
+   benji es casi cuadrada (1.04) y una grabación de pantalla es apaisada
+   (1.6), así que `cover` se lleva el tercio izquierdo y el derecho.
+
+   Se miró contra la alternativa —`contain`, que no pierde nada y deja el
+   clip en 443×277 con 74px de superficie arriba y abajo— y se eligió
+   llenar. Es coherente con la decisión de que la vista del componente
+   ocupe toda la card, y el que la necesita entera es el teléfono, que ya
+   la tiene. El recorte de una grabación de pantalla se lleva los
+   márgenes de la página; el de un teléfono se llevaría el sheet y la tab
+   bar, que es donde vive el gesto. */
 
 /* El hover de la superficie, el mismo de la card del producto: oscurece
    el relleno y nada más. Ni sombra, ni escala, ni movimiento. */
@@ -288,21 +466,14 @@
    Abajo de 768 la grilla es de una columna: tres columnas de 100px no
    son una grilla. Y la caja pierde el padding lateral de 60, que a ese
    ancho se come más de la mitad. */
-@media (max-width: 768px) {
-  .grilla {
-    grid-template-columns: minmax(0, 1fr);
-    --vault-canaleta: 0px;
-  }
-  .media {
-    padding: 40px 24px;
-    /* En una columna la altura fija deja de tener sentido: no hay
-       vecina con la que emparejarse, y clavarla sólo agregaría aire.
-       Vuelve a mandar el contenido, que es lo de benji — y él, con una
-       columna, es exactamente este caso. */
-    height: auto;
-    min-height: 0;
-  }
-}
+/* Acá vivía un @media (max-width: 768px) que forzaba UNA columna, ponía
+   la canaleta en 0 y le devolvía a la caja el padding de 40 24 con alto
+   automático. Era coherente con la card vieja —alto fijo de 574, aire de
+   benji— y contradice a la de openai en los tres puntos.
+
+   Lo que él hace abajo de 768 ya está declarado arriba, junto a las
+   columnas, y está medido: 2 columnas hasta 560 y 1 abajo, con la misma
+   canaleta de 24 y la misma fila de 80 que arriba. No cambia nada más. */
 
 /* ═══════════ EL DETALLE DE UN CLIP ═══════════
    Misma forma que el detalle de una pieza en el producto: flecha de
@@ -340,18 +511,66 @@
      No los 160 de la grilla: acá el alto es finito —el clip tiene que
      entrar entero— y cada píxel de arriba se lo saca al clip. */
   margin-top: var(--section-content-gap);
+  /* La geometría de la ficha, acá porque la leen DOS subárboles: el
+     escenario reserva el hueco con padding y la hoja se da su ancho.
+     Declararla más abajo repetiría el error de --vault-proporcion — una
+     custom property se hereda, no se busca. */
+  --ficha-panel: 280px;
+  --ficha-aire: 32px;
+  /* El mismo riel que la grilla, para que el título del clip abierto
+     arranque en la misma x que la card de la que salió. */
+  max-width: var(--privado-ancho);
+  width: 100%;
+  margin-inline: auto;
   /* Toma todo el alto que le deja el marco. */
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   padding-inline: var(--privado-inline);
+
+  /* ─── LA ENTRADA ───
+     Abrir un clip no enciende la vista de golpe: sube 8px y funde, con
+     la curva de las superficies que aparecen. Es la misma pareja
+     opacity+transform de todo el sistema —compositor puro— y
+     @starting-style hace la entrada sin JS. Al volver a la grilla el
+     desmontaje es inmediato: la salida de una navegación no se
+     escenifica, el usuario ya decidió irse. */
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 240ms var(--ease-dialogo),
+    transform 240ms var(--ease-dialogo);
+}
+@starting-style {
+  .detalle {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detalle {
+    transition: opacity 200ms var(--ease-text);
+  }
+  @starting-style {
+    .detalle {
+      transform: none;
+    }
+  }
 }
 .detalleCabeza {
   flex: none;
 }
-.detalleTitulo {
+/* La fila del título: el margen que tenía el h1 sube acá para que el
+   botón quede centrado contra la LÍNEA del título y no contra la línea
+   más su margen. */
+.detalleFila {
+  display: flex;
+  align-items: center;
   margin: 0 0 24px;
+}
+.detalleTitulo {
+  margin: 0;
   font-size: var(--type-h1-fs);
   font-weight: var(--type-h1-fw);
   letter-spacing: var(--type-h1-ls);
@@ -366,8 +585,29 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
+  /* ARRIBA y no al centro: con el clip centrado su tope caía por debajo
+     del de la ficha y las dos columnas no compartían ninguna línea. Así
+     el título, el clip y la ficha arrancan todos igual, y el aire que
+     sobra queda junto abajo en vez de repartido. */
+  align-items: flex-start;
   justify-content: center;
+  /* EL HUECO DE LA FICHA, RESERVADO EN LOS DOS LADOS. Con el padding
+     sólo a la derecha el clip se centraba en el espacio sobrante y se
+     veía corrido a la izquierda respecto de la página — señalado sobre
+     una captura. Simétrico, el clip cae en el centro exacto del riel y
+     no puede tocar la ficha jamás, porque el lado de ella reserva lo
+     mismo que el otro.
+
+     LO QUE CUESTA, dicho: un clip apaisado en ventana corta pierde el
+     ancho de la reserva izquierda. Hoy no muerde: todos los clips del
+     vault están atados por el alto en estas ventanas. */
+  padding-inline: calc(var(--ficha-panel) + var(--ficha-aire));
+  /* La ficha se cuelga de acá con position:absolute. */
+  position: relative;
+  /* CONTENEDOR DE TAMAÑO. El video se mide con 100cqh para saber cuánto
+     alto le queda una vez descontada la barra; un `%` dentro de `width`
+     resolvería contra el ancho. Ver .video en reproductor.module.css. */
+  container-type: size;
 }
 /* La foto: entra entera y centrada, sin caja fija. */
 .foto {
@@ -393,4 +633,296 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   color: var(--ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DÓNDE VA EL CLIP — el diálogo
+
+   Acá pasaron dos cosas antes de ésta, y las dos se fueron: un panel que
+   partía la pantalla al medio, y un menú colgado del +. Queda anotado
+   para no volver a proponerlas.
+
+   ─── LA ANIMACIÓN, decidida con /animate ───
+   Cada valor sale de una regla suya, no de un gusto:
+
+     "¿tiene que animarse?"   sí: subir un clip es ocasional, y ése es
+                              justo el renglón que la tabla marca como
+                              "standard animation". Lo que NO se anima
+                              es lo que hacés cien veces por día
+     el propósito             evitar un cambio brusco: un diálogo que
+                              aparece de golpe con un velo encima da un
+                              respingo
+     la curva                 ease-out para lo que ENTRA a la pantalla, y
+                              custom: las curvas con nombre "casi nunca
+                              son suficientemente fuertes". Es la
+                              --ease-out-expo del curso
+     la duración              200ms, adentro de su rango de 200–500 para
+                              modales
+     la salida                150ms — "las salidas son más cortas y más
+                              simples que las entradas: el usuario ya
+                              decidió, salí del camino"
+     desde dónde              scale(0.95), NUNCA scale(0). "Nada aparece
+                              de la nada"
+     el origen                center, y es una excepción explícita suya:
+                              "los modales están exentos — aparecen
+                              centrados"
+
+   Y una regla del sistema por encima de todas: sólo se animan `transform`
+   y `opacity`, que son las dos que corren en la GPU.
+
+   ─── POR QUÉ <dialog> Y NO UN DIV ───
+   showModal() trae gratis y bien hechas cuatro cosas que a mano salen
+   mal: el foco atrapado adentro, Escape, el resto de la página inerte
+   para teclado y lector de pantalla, y el ::backdrop sin un nodo extra.
+
+   `overlay` y `display` van en la transición con allow-discrete: son
+   propiedades discretas, y sin eso el diálogo desaparece de golpe en el
+   primer cuadro de la salida en vez de animarse.
+   ═══════════════════════════════════════════════════════════════ */
+.dialogo {
+  /* --ease-out-expo. Es andamio de nadie: es LA curva del curso para una
+     entrada, y vive acá porque es la primera del sistema. Si aparece una
+     segunda, sube a tokens.css. */
+  --dialogo-curva: var(--ease-dialogo);
+
+  margin: auto;
+  border: 0;
+  padding: 32px;
+  /* Era de 203 × 124 y estaba dimensionado por su contenido, que era un
+     nombre de archivo. Ahora lo dimensiona el VISTAZO, que es lo que de
+     verdad se mira para decidir. */
+  /* LAS CARDS VAN AL TAMAÑO REAL DE LA GRILLA: 443 cada una, que es
+     exactamente lo que mide una card a 1440. Deja de ser una miniatura
+     de lo que va a pasar y pasa a ser lo que va a pasar.
+
+     974 = 443 + 24 + 443 + 32 + 32, o sea las dos cards, la canaleta de
+     la grilla y el aire del diálogo. Ningún número nuevo. */
+  width: min(974px, calc(100vw - 48px));
+  border-radius: var(--card-radio);
+  background: var(--canvas);
+  color: var(--ink);
+
+  /* El estado CERRADO, que es también el de salida. La duración de la
+     salida se declara acá, en el destino de esa transición. */
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 180ms var(--dialogo-curva),
+    transform 180ms var(--dialogo-curva),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+.dialogo[open] {
+  opacity: 1;
+  transform: scale(1);
+  /* 240 y no 200: la caja creció de 608 a 974, y la duración escala con
+     el tamaño y la distancia que recorre —"un elemento más grande pesa
+     más"—. Sigue adentro del rango de 200–500 para modales.
+     La salida son 180: más corta que la entrada, siempre. */
+  transition:
+    opacity 240ms var(--dialogo-curva),
+    transform 240ms var(--dialogo-curva),
+    overlay 240ms allow-discrete,
+    display 240ms allow-discrete;
+}
+/* De dónde arranca la entrada. Sin @starting-style el navegador no tiene
+   un valor anterior desde el cual transicionar —el elemento acaba de
+   pasar de display:none— y la entrada no se anima. */
+@starting-style {
+  .dialogo[open] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* EL VELO. Su trabajo es empujar la página para atrás, así que es negro
+   con alfa —la misma forma que --hairline, que también es negro puro con
+   alfa— y no un gris teñido, que levantaría el color de lo que tapa.
+
+   En oscuro sube a 0.5: sobre un canvas que ya es casi negro, 0.28 no
+   separa nada. */
+.dialogo::backdrop {
+  background: rgb(0 0 0 / 0.28);
+  opacity: 0;
+  transition:
+    opacity 180ms var(--dialogo-curva),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+.dialogo[open]::backdrop {
+  opacity: 1;
+  transition:
+    opacity 240ms var(--dialogo-curva),
+    overlay 240ms allow-discrete,
+    display 240ms allow-discrete;
+}
+@starting-style {
+  .dialogo[open]::backdrop {
+    opacity: 0;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .dialogo::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+}
+
+/* "Reduced motion means gentler, not zero": se va el movimiento —la
+   escala— y se queda el desvanecido, que es lo que evita el respingo. */
+@media (prefers-reduced-motion: reduce) {
+  .dialogo,
+  .dialogo[open] {
+    transform: none;
+  }
+}
+
+/* QUÉ estás subiendo. Va en el gris secundario porque ANOTA: no es la
+   decisión, es contra qué la estás tomando. */
+.dialogoQue {
+  margin: 0 0 16px;
+  max-width: 32ch;
+  overflow-wrap: anywhere;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+
+/* 24 entre las dos cards, la misma canaleta que la grilla del vault:
+   son las mismas cards, así que se separan igual. */
+.dialogoOpciones {
+  display: flex;
+  gap: var(--vault-canaleta, 24px);
+}
+
+/* El reset de <button> y nada más: todo lo que se ve sale de .card, que
+   es la clase de la grilla. Lo único propio es que reparte el ancho. */
+.dialogoCard {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  transition: transform 150ms var(--dialogo-curva);
+}
+/* El apretón. 0.97 y no menos: la respuesta al apretar se SIENTE, no se
+   ve — con 0.9 la card se desploma a la vista. */
+.dialogoCard:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialogoCard:active {
+    transform: none;
+  }
+}
+
+/* Mientras sube. Va donde va todo lo que ANOTA en este sistema —el gris
+   secundario— y fijo abajo, para no empujar la grilla mientras mirás. */
+.subiendo {
+  position: fixed;
+  left: var(--privado-inline);
+  bottom: var(--page-padding-bottom);
+  z-index: 2;
+  margin: 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EL + · un círculo relleno de 32×32
+
+   ─── EL TAMAÑO ───
+   Era un carácter de texto de 20.6 × 32.0, y el mínimo es 24 × 24: el
+   único control de su fila que no llegaba. "Web", al lado, mide 39.8.
+   Ahora son 32 × 32, el alto que ya tienen todos los demás.
+
+   No llega a 44 × 44, que es el mínimo TÁCTIL. Queda dicho: esto es una
+   herramienta de escritorio con puntero, y 44 obligaría a agrandar la
+   fila entera.
+
+   ─── EL RELLENO ───
+   Estuvo en --surface (#f8f8f6) sobre --canvas (#fdfdfc): 5 unidades de
+   diferencia, un 2%. Prácticamente no se veía.
+
+   Se fue a medir cómo lo hacen las referencias, y las dos coinciden en
+   la FORMA antes que en el número — negro o blanco PURO con alfa baja,
+   nunca un gris opaco:
+
+     RUNTIME · openai.com, botón redondo de 36×36, border-radius 9999
+       rgba(0, 0, 0, 0.04) sobre blanco. Su píldora "Log in", lo mismo
+     SOURCE · su CSS lo llama --color-primary-4
+       o sea "la tinta al 4%", no un gris de una escala aparte
+     RUNTIME · linear.app, círculo de 24×24, border-radius 50%
+       rgba(255, 255, 255, 0.03) con hairline de 0.08; sus píldoras, 0.05
+
+   Y esa forma ya es la nuestra: --hairline es negro puro con alfa.
+
+   EL NÚMERO NO ES EL DE ELLOS. Estuvo en su 4% exacto y sobre nuestro
+   canvas daba un delta de 10 unidades — el doble de lo que había, y
+   todavía invisible en claro. Su botón mide 36 y el nuestro 32, y su
+   canvas es blanco puro contra el nuestro que es cálido; la misma alfa
+   no rinde lo mismo. Así que se toma la FORMA suya —negro puro con
+   alfa— y el número se sube hasta que se vea: 8%, delta de 20.
+
+   Es el caso que el sistema ya contempla al tener valores distintos por
+   tema en vez de uno solo con la misma alfa.
+
+   En oscuro va el 0.05 de las píldoras de linear y no el 0.03 de su
+   círculo: sobre un canvas casi negro, 0.03 no se ve.
+
+   EL HOVER NO TIENE RECIBO. Medí el de openai en vivo y no cambia, pero
+   el hover puede estar en un padre, así que no lo tomo como dato. Va en
+   algo menos del doble del reposo, que es la misma relación que ya usa
+   la card entre --surface y --surface-hover.
+   ═══════════════════════════════════════════════════════════════ */
+.mas {
+  --mas-relleno: rgb(0 0 0 / 0.08);
+  --mas-relleno-hover: rgb(0 0 0 / 0.14);
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  /* El botón YA ES la caja visible, así que no hay blanco invisible que
+     devolver al layout. Lo único que hace el margen izquierdo es abrir la
+     separación contra el grupo de filtros — ver --vault-mas-gap. */
+  margin: 0 0 0 calc(var(--vault-mas-gap) - var(--vault-filtro-gap));
+  border: 0;
+  border-radius: 50%;
+  background: var(--mas-relleno);
+  color: var(--type-nav-c);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-surface) var(--ease-surface),
+    color var(--dur-text) var(--ease-text);
+}
+.mas:hover {
+  background: var(--mas-relleno-hover);
+  color: var(--activo-c);
+}
+@media (prefers-color-scheme: dark) {
+  .mas {
+    --mas-relleno: rgb(255 255 255 / 0.05);
+    --mas-relleno-hover: rgb(255 255 255 / 0.1);
+  }
+}
+
+/* El <input type=file> de verdad. No se usa display:none: eso lo saca
+   del árbol de accesibilidad y, en algunos navegadores, hace que .click()
+   deje de abrir el selector. Se lo esconde del ojo dejándolo en el DOM. */
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

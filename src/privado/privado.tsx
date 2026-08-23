@@ -75,11 +75,16 @@ export default function Privado({
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  /* Con un clip abierto el marco tiene que CLAVARSE a la ventana, no
-     sólo llenarla como mínimo: es lo que le da un techo del cual colgar
-     a la cadena de flex que hace entrar el clip. La grilla no lo lleva
-     porque tiene que poder crecer y scrollear. */
-  const enDetalle = actual === '/vault' && resto !== ''
+  /* Con algo ABIERTO —un clip o una vista— el marco tiene que CLAVARSE a
+     la ventana y no sólo llenarla como mínimo: es lo que le da un techo
+     del cual colgar a la cadena de flex que hace entrar el clip, y lo
+     mismo necesita el lienzo del playground para medirse contra lo que
+     queda de pantalla.
+
+     Las dos LISTAS —la grilla y las vistas— no lo llevan, porque tienen
+     que poder crecer y scrollear. Por eso la condición mira `resto` y no
+     en qué vista estás: lo que decide es si hay algo abierto. */
+  const enDetalle = resto !== ''
 
   /* EL HUECO DE ACCIONES de la barra. La vista que esté abierta pone
      acá su propio control —el vault pone su filtro— y queda en la MISMA
@@ -119,7 +124,7 @@ export default function Privado({
       {actual === '/vault' ? (
         <Vault abierto={resto} ir={ir} acciones={acciones} />
       ) : (
-        <Playground />
+        <Playground abierta={resto} ir={ir} acciones={acciones} />
       )}
     </div>
   )

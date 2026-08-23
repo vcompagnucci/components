@@ -60,6 +60,11 @@ const reloj = (s: number) => {
 
 export function Reproductor({ clip }: { clip: Clip }) {
   const video = useRef<HTMLVideoElement | null>(null)
+  /* La proporción del clip. El CSS la necesita para que el elemento SEA
+     la imagen en vez de una caja con la imagen adentro y una franja al
+     costado; ver .video en reproductor.module.css. Sale de los
+     metadatos, que es el único lugar donde está: el índice no la trae. */
+  const [ratio, setRatio] = useState<number | null>(null)
   const [corriendo, setCorriendo] = useState(false)
   const [t, setT] = useState(0)
   const [dur, setDur] = useState(0)
@@ -166,7 +171,11 @@ export function Reproductor({ clip }: { clip: Clip }) {
        escucha en el documento. Los controles que sí son interactivos
        —play y velocidad— son botones y entran solos al orden de
        tabulación. */
-    <div className={css.marco} data-corriendo={corriendo ? '' : undefined}>
+    <div
+      className={css.marco}
+      data-corriendo={corriendo ? '' : undefined}
+      style={ratio ? ({ '--rep-ratio': String(ratio) } as React.CSSProperties) : undefined}
+    >
       <video
         className={css.video}
         ref={video}
@@ -177,7 +186,11 @@ export function Reproductor({ clip }: { clip: Clip }) {
         onClick={alternar}
         onPlay={() => setCorriendo(true)}
         onPause={() => setCorriendo(false)}
-        onLoadedMetadata={(e) => setDur(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          setDur(e.currentTarget.duration)
+          const { videoWidth: w, videoHeight: h } = e.currentTarget
+          if (w && h) setRatio(w / h)
+        }}
       />
 
       <div className={css.controles}>
