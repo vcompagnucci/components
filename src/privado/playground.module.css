@@ -1,0 +1,143 @@
+/* ═══════════════════════════════════════════════════════════════
+   EL PLAYGROUND
+
+   Comparte el riel del área privada —tope de 1440 y 32 de aire, los de
+   openai— con la lista de vistas, y NO con el lienzo: un lienzo es a
+   sangre por definición, y por eso el marco nunca puso padding propio.
+   Ver privado.module.css.
+
+   Ni un número de color, tipografía o motion suelto: todo sale de los
+   mismos tokens que el producto.
+   ═══════════════════════════════════════════════════════════════ */
+.playground {
+  max-width: var(--privado-ancho);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--privado-inline);
+}
+
+/* El mismo aire que la grilla del vault, y por lo mismo: la barra ya no
+   lo da, así que lo reclama el de abajo. */
+.lista {
+  margin: var(--section-content-gap) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  /* 8, el mismo hueco que separa dos links del índice lateral. Es el
+     mismo caso: una columna de nombres cortos. */
+  gap: 8px;
+}
+
+/* Una vista es UN NOMBRE. No lleva fecha ni cuenta de frames: es la
+   misma decisión que sacó el epígrafe de la card del vault y el "16 de
+   16" de la cabecera — un dato que no se consulta ocupando lugar.
+
+   Va en tinta y no en el gris de nav: esto es contenido tuyo, no chrome.
+   El hover apaga hacia el gris secundario en vez de encender, que es lo
+   que ya hace la pieza en la lista del producto. */
+.vista {
+  display: inline-block;
+  /* El blanco, del mismo par que las solapas y el filtro: es otra
+     palabra clickeable sin caja. Ver --privado-blanco-* en
+     privado.module.css. */
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.vista:hover {
+  color: var(--type-body-c);
+}
+
+/* El botón de la barra y el de borrar. Texto pelado, como todo el chrome
+   del área privada: ni píldora, ni fondo, ni borde. Mismo juego
+   tipográfico que las solapas y el filtro, porque es la misma fila y la
+   misma clase de control. */
+.accion {
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+  border: 0;
+  background: transparent;
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.accion:hover {
+  color: var(--activo-c);
+}
+
+.aviso {
+  margin: var(--section-content-gap) 0 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+
+/* ─── EL LIENZO ───
+   Se clava a la ventana igual que el detalle de un clip, y por lo mismo:
+   lo que hay adentro se mide contra lo que queda de pantalla en vez de
+   empujar la página. La cadena es marco → lienzo → tela. */
+.lienzo {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* La cabecera SÍ lleva el riel; la tela no. Es el único lugar donde las
+   dos cosas conviven, y por eso el padding va acá y no en .lienzo. */
+.cabeza {
+  max-width: var(--privado-ancho);
+  width: 100%;
+  margin-inline: auto;
+  margin-top: var(--section-content-gap);
+  padding-inline: var(--privado-inline);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* El nombre se edita en el lugar, así que el input NO se ve como un
+   input: sin borde, sin fondo, sin sombra. Es el título, y resulta que
+   además se puede escribir encima.
+   El foco lo sigue marcando el anillo del sistema — eso no se apaga. */
+.nombre {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: var(--privado-blanco-y) var(--privado-blanco-x);
+  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+  font-family: inherit;
+  font-size: var(--type-title-fs, var(--type-body-fs));
+  font-weight: var(--type-title-fw, var(--type-body-fw));
+  letter-spacing: var(--type-title-ls, var(--type-body-ls));
+  line-height: var(--type-title-lh, var(--type-body-lh));
+  color: var(--ink);
+}
+
+/* LA TELA, a sangre y sin riel: es el lienzo de verdad. Lo único que
+   tiene hoy es la superficie; los frames arrastrables son el paso que
+   sigue. */
+.tela {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--section-content-gap);
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+}
