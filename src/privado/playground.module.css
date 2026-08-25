@@ -323,17 +323,82 @@
   --lienzo-texto: 176px;
   --lienzo-panel: calc(var(--lienzo-texto) + var(--privado-inline) * 2);
 
+  /* ─── EL PLEGADO — 300ms con la curva del sistema ───
+     300 no sale de la nada: es la traducción a CSS del resorte con el
+     que la ficha del vault abre y cierra SU panel (RESORTE en ficha.tsx
+     — 0.35s, bounce 0). Un panel lateral que se va tarda lo mismo acá
+     que allá, y así no hay dos relojes para el mismo hecho. La curva es
+     --ease-dialogo, la que ya gobierna todo lo que entra y sale del
+     área privada. */
+  --panel-plegado: 300ms;
+
   flex: 1;
   min-height: 0;
   display: flex;
+
+  /* ─── QUIÉN PAGA EL LAYOUT CUANDO EL PANEL SE VA ───
+     Esto lo paga ÉL, con un padding, y no el panel con su `width`.
+
+     La diferencia es toda la diferencia. Un panel que anima su propio
+     ancho hace tres trabajos por cuadro: re-maqueta la página, re-maqueta
+     SU CONTENIDO —el nombre, el índice, el pie— y encima lo hace desde
+     JavaScript. Acá el costo de layout cae sobre una sola propiedad de
+     un solo elemento sin hijos propios que re-fluir, y el panel visible
+     sale del flujo y se va en `transform`, que es la vía barata.
+
+     Es la arquitectura de GitLab, y no es una preferencia: de cuatro
+     sidebars de producción medidas bajo carga sintética —la ingenua, la
+     de Notion, la de Linear y ésta— es la única que sigue a 60fps con la
+     CPU 6× frenada. Las de Notion y Linear pierden cuadros a la par,
+     aunque una anime `transform` y la otra `left`, porque las dos manejan
+     la animación con requestAnimationFrame. Lo que decide no es la
+     propiedad: es el DRIVER. Por eso esto es una transición de CSS y no
+     un `motion` como el resto del archivo — el momento en que se pliega
+     un panel es justo el momento en que el hilo principal está ocupado.
+
+     Y `position: relative` porque el panel ahora cuelga de acá. */
+  position: relative;
+  padding-left: var(--lienzo-panel);
+  transition: padding-left var(--panel-plegado) var(--ease-dialogo);
+}
+/* PLEGADA: el hueco se cierra y la tela se lo queda entero.
+   No hay ningún valor de la sidebar que cambie — se dibuja igual que
+   siempre, sólo que apoyada afuera de la pantalla. */
+.lienzo[data-sin-panel] {
+  padding-left: 0;
+}
+.lienzo[data-sin-panel] .panel {
+  /* Porcentaje y no píxeles: la columna mide 240 en escritorio y 224 en
+     tablet (--privado-inline escala sola), y `-100%` sigue siendo el
+     ancho que tenga sin que nadie recalcule nada. */
+  transform: translateX(-100%);
+}
+/* Sin movimiento, el plegado sigue existiendo: lo que se apaga es el
+   viaje, no la función. El apagado del panel NO puede estar acá — está
+   abajo, pegado a su regla, y el porqué está escrito ahí. */
+@media (prefers-reduced-motion: reduce) {
+  .lienzo {
+    transition-duration: 0.01ms;
+  }
 }
 
-/* La columna del chrome. `flex: none` y no un `width` suelto: sin eso el
-   flex se la come cuando la tela pide espacio, y la sidebar de 240
-   terminaría midiendo lo que midan sus palabras. */
+/* La columna del chrome. FUERA DEL FLUJO, clavada al borde inicial: el
+   hueco que ocupa lo reserva el padding del lienzo (ver arriba), así que
+   plegarla es moverla y no re-maquetar la página.
+
+   Acá vivía `flex: none` con esta nota: "sin eso el flex se la come
+   cuando la tela pide espacio, y la sidebar de 240 terminaría midiendo
+   lo que midan sus palabras". El problema era real y la respuesta sigue
+   siendo la misma —el ancho se declara, no se negocia—; lo que cambió es
+   que un elemento absoluto ya no es un ítem de flex, así que `flex: none`
+   no defendía nada y se fue. Lo que la defiende ahora es `width`. */
 .panel {
-  flex: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
   width: var(--lienzo-panel);
+  transition: transform var(--panel-plegado) var(--ease-dialogo);
   /* ABAJO EL RIEL, NO LA PÁGINA: el 80 de --page-padding-bottom es el
      aire editorial con el que una página de producto termina, y acá
      dejaba a "Delete view" flotando a un décimo de pantalla del borde
@@ -370,8 +435,14 @@
                          que taparlo el chrome y no al revés
 
      z-index 1 y no 40: el 40 es del menú flotante, que se dibuja sobre
-     TODO. Acá alcanza con estar un escalón sobre un hermano. */
-  position: relative;
+     TODO. Acá alcanza con estar un escalón sobre un hermano.
+
+     El `position: relative` que acompañaba a este z-index se fue arriba,
+     convertido en `absolute`: la columna ahora cuelga del lienzo para
+     poder plegarse. El z-index sigue haciendo el mismo trabajo —un
+     elemento posicionado es lo único que necesita— y encima ahora hace
+     falta de verdad: un absoluto y un hermano en flujo se apilan por
+     orden de documento, y sin el 1 la tela podría ganarle. */
   z-index: 1;
 
   /* ─── EL FILO ───
@@ -388,6 +459,20 @@
      `border` y no `box-shadow` porque acá SÍ tiene que ocupar su
      píxel: la tela empieza después de la línea, no debajo de ella. */
   border-right: 1px solid var(--hairline);
+}
+/* ─── Y ACÁ ABAJO, NO ARRIBA CON EL DEL LIENZO ───
+   El bloque de movimiento reducido del plegado está partido en dos y no
+   por gusto: el `transition` de `.panel` es un ATAJO, así que reescribe
+   `transition-duration` entero, y vive DESPUÉS en el archivo. Con las
+   dos reglas a la misma especificidad gana la última — o sea que un
+   apagado escrito más arriba no apagaba nada.
+   Medido: con el sistema en `reduce`, `.lienzo` daba 1e-05s y `.panel`
+   seguía dando 0.3s. Se veía: el hueco cerraba de golpe y la columna se
+   iba viajando igual. */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition-duration: 0.01ms;
+  }
 }
 
 /* La flecha y el nombre, uno arriba del otro. La flecha va sola en su
@@ -636,7 +721,12 @@
     transform var(--lienzo-sale) var(--lienzo-curva);
 }
 
-/* El estado vacío, donde irían los renglones, en el gris que anota. */
+/* El estado vacío —un guion— donde irían los renglones, en el gris que
+   anota. Los cuatro valores son --type-meta, que es EXACTAMENTE el par
+   con el que la ficha técnica de un clip dibuja un dato ausente: su
+   .tabla usa este mismo token y su placeholder ese mismo gris (ver
+   ficha.module.css). El guion de acá y el de allá tienen que pesar lo
+   mismo, porque son el mismo hecho — no hay nada. */
 .sinClips {
   margin: 0;
   font-size: var(--type-meta-fs);

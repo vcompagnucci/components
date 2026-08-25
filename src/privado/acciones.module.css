@@ -87,6 +87,16 @@
   }
 }
 
+/* ─── EL DISPARADOR — los tres puntos de la barra del detalle ───
+   Es la MISMA caja que el toggle del inspector: 32×32 sobre un dibujo
+   de 16, sin fondo. Por eso no la escribe de nuevo, la compone.
+
+   Sin margen negativo, al revés que el toggle: el que se apoya contra
+   el riel es el último de la fila, y éste no lo es. */
+.disparador {
+  composes: glifo from './privado.module.css';
+}
+
 /* Un ítem es una palabra, como todo el resto: lo que le da cuerpo es el
    relleno al pasar por encima, no una caja permanente. */
 .item {
@@ -110,10 +120,47 @@
   background: var(--surface);
   outline: none;
 }
-/* Mandar a la papelera no se pinta de rojo: en esta interfaz no hay ni
-   un color de estado, y meter el primero para un item de menú sería
-   inventar un nivel entero del sistema. Lo que lo distingue es el
-   diálogo que abre — que sí te para y te pregunta. */
+
+/* ─── EL ÍTEM DESTRUCTIVO ───
+   ACÁ DECÍA LO CONTRARIO: "no se pinta de rojo, en esta interfaz no hay
+   ni un color de estado, y meter el primero sería inventar un nivel
+   entero del sistema". La premisa era falsa. El nivel no había que
+   inventarlo: estaba decidido en la bitácora de Carousels, y su línea
+   374 es literalmente este caso —un ítem destructivo de menú, con su
+   texto, su hover con tinte y su hairline delante—. La derivación
+   completa y lo que se midió sobre nuestros fondos están en tokens.css,
+   en --destructivo.
+
+   El otro argumento que había —"lo que lo distingue es el diálogo que
+   abre"— tampoco se sostiene solo: pone toda la señal DESPUÉS del clic,
+   cuando lo que hace falta es que se vea ANTES.
+
+   EL HOVER NO ES --surface SINO EL TINTE. Si el rojo pintara sobre el
+   gris de siempre, el ítem se leería como los otros con una letra de
+   otro color; con el tinte, la fila entera cambia de familia. */
+.item[data-destructivo] {
+  color: var(--destructivo);
+}
+.item[data-destructivo]:hover,
+.item[data-destructivo]:focus-visible {
+  background: var(--destructivo-tinte);
+}
+
+/* LA CERCA. Va delante del destructivo y sale de la misma línea de la
+   bitácora ("preceded by a Menu.Separator hairline").
+
+   No reemplaza al orden, lo acompaña: el menú ya venía ordenado por
+   consecuencia —de la más liviana a la más pesada, ver MenuClip— y eso
+   sigue siendo lo que decide la posición. La línea sólo dice que abajo
+   empieza otra cosa.
+
+   Los márgenes laterales la dejan más corta que los ítems: una línea de
+   borde a borde parte la caja en dos menús. */
+.regla {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--hairline);
+}
 
 /* ─── LOS DIÁLOGOS ───
    Angostos: lo que muestran es una pregunta y un campo, no dos cards.

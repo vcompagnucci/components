@@ -184,6 +184,41 @@ export async function aPapelera(ruta: string): Promise<void> {
   }
 }
 
+/* ─── LA TARJETA DE UN LINK ───
+   El título y el favicon de una URL pegada en una nota. Lo busca el
+   servidor porque desde el navegador no se puede: leer github.com por
+   fetch choca contra CORS. El porqué completo, las guardas y el orden
+   de ícono medido están en scripts/tarjeta-link.mjs.
+
+   NUNCA TIRA. Un link que no se pudo resolver igual se dibuja y se
+   abre — con el host como etiqueta— así que acá el fracaso vuelve como
+   null y no como excepción: no hay ninguna decisión que tomar con el
+   motivo, y obligar a cada llamador a envolver esto en un try sería
+   pedir ceremonia por algo que ya tiene respuesta. */
+export type Tarjeta = {
+  titulo: string | null;
+  icono: string | null;
+  /* A dónde llegó después de los redirects. Sirve para NOMBRAR un
+     acortador —un t.co de X no dice nada— y nunca para navegar: el
+     ancla siempre apunta a lo que escribiste. */
+  final: string | null;
+};
+
+export async function tarjetaDeLink(url: string): Promise<Tarjeta | null> {
+  try {
+    const r = await fetch(`/vault-media/__link?url=${encodeURIComponent(url)}`);
+    const d = await r.json();
+    if (!r.ok) return null;
+    return {
+      titulo: d?.titulo ?? null,
+      icono: d?.icono ?? null,
+      final: d?.final ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function useClips() {
   const [estado, setEstado] = useState<Estado>({ cargando: true });
   /* Se incrementa para volver a pedir el índice. Es lo que hace aparecer

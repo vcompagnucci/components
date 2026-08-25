@@ -11,6 +11,12 @@
    fuente —ese archivo no está en este repo ni en el disco— pero son
    decisiones ya tomadas y se respetan como están.
 
+   CON UNA EXCEPCIÓN, y vale corregirlo acá: --destructivo SÍ está
+   verificado. El DESIGN.md sigue sin aparecer, pero la BITÁCORA de
+   Carousels sí existe —docs/design-research/design-decisions.md, en el
+   workspace `photos`— y ahí están el color, su caso de uso exacto y su
+   fecha. Es el único heredado que no es una cita ciega.
+
    El radio YA NO está pendiente: es --card-radio: 8px, del censo de las
    7 páginas.
 
@@ -157,6 +163,62 @@
      nivel. */
   --secundario-alfa: 37%;
   --text-secondary: color-mix(in srgb, #000 var(--secundario-alfa), transparent);
+
+  /* ═══════════ EL ÚNICO COLOR DE ESTADO ═══════════
+     ACÁ HABÍA ESCRITA LA DECISIÓN CONTRARIA, y se revierte a propósito.
+     acciones.module.css decía que mandar a la papelera no se pinta de
+     rojo "porque en esta interfaz no hay ni un color de estado, y meter
+     el primero para un ítem de menú sería inventar un nivel entero del
+     sistema". La premisa era falsa: el nivel NO hay que inventarlo,
+     está decidido desde antes que este repo.
+
+     LA FUENTE, y por primera vez es verificable. El DESIGN.md de
+     Carousels no está, pero su bitácora sí, en el workspace `photos`:
+     docs/design-research/design-decisions.md
+
+       Q8 (l. 95)   la familia — Apple systemRed #ff3b30, elegido por el
+                    dueño contra el #ff0052 de benji y el #fb2c36 de
+                    jakub. paco y emil no definen ninguno.
+       l. 374       NUESTRO CASO EXACTO, un ítem destructivo de menú:
+                    texto #c81e14, hover con tinte
+                    color-mix(#ff3b30 10%), y una hairline delante.
+       l. 394       el texto de error en oscuro: #ff6b60.
+
+     Los otros heredados de Carousels llevan la marca de "cita ciega"
+     porque su archivo no aparecía. Éste no: se leyó de la bitácora, con
+     línea y fecha.
+
+     MEDIDO SOBRE NUESTROS FONDOS, que es lo que hacía falta comprobar:
+
+       claro   #c81e14 sobre --canvas #fdfdfc   Lc  75.5   wcag 5.65
+               sobre el hover        #f8f8f6    Lc  72.5   wcag 5.41
+       oscuro  #ff6b60 sobre --canvas #090908   Lc −48.8   wcag 7.14
+
+     El claro transfiere clavado y no por suerte: el canvas de Carousels
+     ES este mismo #fdfdfc, los dos salieron de agentation. Y 75.5 cae
+     justo en el umbral PREFERIDO de APCA para texto que no es cuerpo.
+
+     ─── DÓNDE SE DOBLA LA REGLA, Y POR QUÉ ───
+     La regla 1 del modo oscuro de este archivo dice que el texto
+     CONSERVA EL CONTRASTE. Éste no: 75.5 contra 48.8. Es el primer
+     token de texto que no la cumple, así que va dicho y no escondido.
+
+     Se calculó qué haría falta para cumplirla: manteniendo tono y
+     croma, el rojo que da Lc −75.5 sobre #090908 es #ffbcb1 — croma
+     0.204 → 0.080. O sea un rosa pálido. Y ahí el token deja de hacer
+     su único trabajo, que no es leerse: LA PALABRA "Move to Trash" YA
+     SE LEE, en ink, a Lc 104. El rojo no carga la lectura, carga el
+     aviso. Desaturarlo para ganar contraste es cambiar lo que sí
+     importa por lo que ya estaba resuelto.
+
+     Es la misma clase de compromiso que este archivo ya declara para
+     las superficies ("es un compromiso, no una ley"), y el número
+     tampoco queda desamparado: 7.14 pasa WCAG AAA para texto normal.
+
+     EL TINTE DEL HOVER se escribe como la mezcla y no como un hex, así
+     compone sobre la superficie que le toque en cada modo. */
+  --destructivo: #c81e14;
+  --destructivo-tinte: color-mix(in srgb, #ff3b30 10%, var(--surface));
 
   /* LOS LINKS. El link NO tiene color propio: hereda el del bloque donde
      cae. Lo que lo marca es un subrayado en un tono aparte, mucho más
@@ -860,6 +922,12 @@ html {
     --link-underline: #2d2d2b; /* +36 */
     --link-underline-hover: #a0a09e; /* +151 */
 
+    /* El rojo de error en oscuro de Carousels (design-decisions l. 394).
+       El porqué de que éste NO conserve el Lc del claro está arriba, en
+       --destructivo: cumplir la regla lo dejaría en #ffbcb1, que ya no
+       es rojo. */
+    --destructivo: #ff6b60;
+
     /* El acento se aclara, que es lo que hacen benji (#08f → #3d9bff)
        y josh (#6366f1 → #818cf8). Sale de subirle la L al #005fcc con
        el ΔL de ellos; el mismo cálculo sobre el #007aff de firefox da
@@ -933,6 +1001,14 @@ html {
 
     --hairline: rgba(0, 0, 0, 0.102);
 
+    /* El rojo baja hasta el umbral de CUERPO de APCA. Derivado del
+       #c81e14 en OKLCH con tono y croma constantes —el método de la
+       rampa oscura— y verificado sobre las DOS superficies que puede
+       tocar: Lc 96.1 sobre el canvas y Lc 90.0 sobre la card de alto
+       contraste, que es el peor caso porque el hover pinta ahí.
+       WCAG 12.88. */
+    --destructivo: #690100;
+
     --focus-outline: 2px solid #0042ad;
   }
 }
@@ -950,6 +1026,12 @@ html {
     --link-underline-hover: var(--ink);
 
     --hairline: rgba(255, 255, 255, 0.102);
+
+    /* Sube de −48.8 a −65.5, que es lo que se puede ganar antes de que
+       el croma se derrumbe: 0.183 → 0.113. Un escalón más y vuelve a
+       pasar lo del #ffbcb1 —deja de ser rojo—, así que acá el techo no
+       lo pone el umbral sino la gama. WCAG 10.31. */
+    --destructivo: #ffa297;
 
     --focus-outline: 2px solid #589cfe;
   }

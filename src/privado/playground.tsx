@@ -157,9 +157,17 @@ export function Playground({
         donde={menu?.donde ?? null}
         etiqueta={sujeto.nombre}
         onCerrar={() => setMenu(null)}
+        /* Mayúsculas de título, que es lo que pide Menus › Labels: "use
+           title-style capitalization... capitalizes every word except
+           articles, coordinating conjunctions, and short prepositions".
+           Sin elipsis, igual que el menú del clip y por el mismo motivo
+           —ver MenuClip en acciones.tsx. */
         items={[
-          ['Rename view', () => setRenombrando(sujeto)],
-          ['Delete view', () => setBorrando(sujeto)],
+          { texto: 'Rename View', hacer: () => setRenombrando(sujeto) },
+          /* Borrar una vista es lo mismo que mandar un clip a la
+             papelera, así que se marca igual: rojo y con la hairline
+             delante. La regla vive en el Menu, no acá. */
+          { texto: 'Delete View', hacer: () => setBorrando(sujeto), destructivo: true },
         ]}
       />
       <DialogoRenombrarVista
@@ -1211,8 +1219,22 @@ function Lienzo({
      mismo rótulo —allá te preguntaba, acá borraba y navegaba— y la
      diferencia no la decidió nadie. */
   const [borrando, setBorrando] = useState(false)
+  /* ─── LA SIDEBAR SE PLIEGA, Y SÓLO POR TECLADO ───
+     No hay control a la vista y es a propósito: pedido explícito de que
+     el chrome del lienzo no cambie. El panel se dibuja igual que
+     siempre; lo único nuevo es que puede irse.
+
+     ARRANCA VISIBLE Y NO SE RECUERDA. Lo primero es de Apple —Sidebars
+     dice no ocultarla por defecto, para que siga siendo descubrible— y
+     lo segundo cae solo: `key={vista.id}` remonta el Lienzo al cambiar
+     de vista, así que cada lienzo abre entero. Sin persistencia no hay
+     forma de quedarse encerrado sin panel y sin saber por qué. */
+  const [panel, setPanel] = useState(true)
 
   const medirTela = () => tela.current?.getBoundingClientRect() ?? null
+  /* El ancestro que mueve la tela al plegar. Hace falta para escuchar
+     el FIN de su transición — ver el efecto de acomodar, más abajo. */
+  const lienzo = useRef<HTMLDivElement | null>(null)
 
   const ids = vista.frames.map((f) => f.id)
   const aparecidos = vistos.current === null ? [] : ids.filter((id) => !vistos.current!.has(id))
@@ -1401,7 +1423,31 @@ function Lienzo({
     /* Y al cambiar el tamaño de la ventana, que es el otro momento en
        que la tela se achica debajo de los frames. */
     window.addEventListener('resize', revisar)
-    return () => window.removeEventListener('resize', revisar)
+
+    /* ─── Y AL VOLVER LA SIDEBAR, que es el tercero ───
+       Plegarla agranda la tela y no rompe nada; DESplegarla se la come
+       240px de vuelta, y un frame que hayas dejado en esa franja queda
+       afuera. Sin esto no se notaría hasta el próximo `resize` de
+       ventana, que lo movería de golpe mucho después y sin relación
+       aparente con lo que hiciste.
+
+       SE ESCUCHA EL FIN DE LA TRANSICIÓN Y NO EL CAMBIO DE ESTADO. Este
+       efecto ya corre después de cada render —o sea que también corre al
+       apretar ⌥⌘S— pero ahí la tela TODAVÍA MIDE LO DE ANTES: el padding
+       recién arranca su transición. Medir en ese momento es medir la
+       ventana vieja.
+
+       Se filtra por propiedad y por target porque `transitionend`
+       burbujea: el transform del panel también llega hasta acá. */
+    const marco = lienzo.current
+    const alPlegar = (e: TransitionEvent) => {
+      if (e.target === marco && e.propertyName === 'padding-left') revisar()
+    }
+    marco?.addEventListener('transitionend', alPlegar)
+    return () => {
+      window.removeEventListener('resize', revisar)
+      marco?.removeEventListener('transitionend', alPlegar)
+    }
   })
 
   /* ─── EL TECLADO ───
@@ -1411,6 +1457,34 @@ function Lienzo({
      la SELECCIÓN, que ya es el sujeto de todo esto. */
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
+      /* ─── ⌥⌘S PLIEGA LA SIDEBAR, Y VA ANTES QUE EL GUARDIA ───
+         EL ATAJO ES EL DE APPLE, NO UNO NUESTRO. SOURCE:
+         support.apple.com/en-us/102650 (Mac keyboard shortcuts),
+         "Option-Command-S: Hide or show the Sidebar in Finder windows".
+         Es el mismo en Mail, Notes y Xcode. Sin control a la vista, el
+         atajo tiene que ser EL que ya sabés, no uno que haya que
+         descubrir.
+
+         SE MIRA `code` Y NO `key`, y esto es la trampa del asunto: en un
+         teclado Mac ⌥+S no produce "s" sino "ß", así que `e.key === 's'`
+         no entra nunca. `code` nombra la TECLA FÍSICA y no depende de la
+         distribución.
+
+         VA ARRIBA DEL GUARDIA a propósito. El guardia de abajo aparta
+         todo lo que llega desde un campo de texto o un diálogo porque no
+         es del tablero — y tiene razón para las flechas y el Backspace.
+         Pero esto no es una tecla del tablero: es un comando de la
+         ventana, y en Finder anda con el foco donde esté. Escribiendo el
+         nombre de la vista también tiene que andar.
+
+         Y ctrl además de cmd, como el ⌘Z de privado.tsx: la misma
+         cortesía para un teclado que no es de Mac. */
+      if ((e.metaKey || e.ctrlKey) && e.altKey && e.code === 'KeyS') {
+        e.preventDefault()
+        setPanel((v) => !v)
+        return
+      }
+
       /* ─── EL GUARDIA VA PRIMERO, ANTES QUE NINGUNA TECLA ───
          Estaba después de resolver Escape, y eso hacía que Escape
          hiciera DOS cosas de una: con el diálogo de "Add clip" abierto,
@@ -1470,20 +1544,36 @@ function Lienzo({
     return () => document.removeEventListener('keydown', tecla)
   })
 
-  /* Singular y plural, y "No clips" en vez de "0 clips": un cero se lee
-     como un dato roto y la palabra dice lo mismo mejor. Es la misma
-     decisión que "Nothing here." en la grilla del vault. */
+  /* LA CUENTA EN PALABRAS ES SÓLO PARA QUIEN ESCUCHA. Se ve una vez en
+     todo el lienzo —el aria-live del pie, recortado— desde que el hueco
+     de la lista lo dice con un guion (ver más abajo). Un guion no se
+     puede anunciar: "—" leído en voz alta no es nada, así que la frase
+     tiene que seguir existiendo para el otro canal.
+
+     Singular y plural, y "No clips" en vez de "0 clips": un cero se lee
+     como un dato roto y la palabra dice lo mismo mejor. */
   const n = vista.frames.length
   const cuenta = n === 0 ? 'No clips' : n === 1 ? '1 clip' : `${n} clips`
 
   return (
-    <div className={css.lienzo}>
+    <div
+      className={css.lienzo}
+      ref={lienzo}
+      /* Plegada, el atributo lo dice y el CSS hace el resto: el panel se
+         va en transform y la tela se queda con el lugar. La sidebar se
+         sigue dibujando igual — no cambia ni un valor suyo. */
+      data-sin-panel={panel ? undefined : ''}
+    >
       {/* ─── LA SIDEBAR ───
           Todo lo que la aplicación tiene para decir sobre esta vista, en
           una columna: de dónde volvés, cómo se llama, y qué se puede
           hacer. Se lee de arriba abajo en ese orden, que es el orden en
           que se necesita. */}
-      <aside className={css.panel}>
+      {/* `inert` plegada, la misma receta que la ficha del vault: un
+          panel que se fue no puede seguir recibiendo el tabulador ni el
+          puntero. Sin esto, tabular desde la tela caía adentro de una
+          columna que no está en pantalla y el foco desaparecía. */}
+      <aside className={css.panel} inert={!panel}>
         <div className={css.panelTitulo}>
           {/* Con la barra de solapas apagada en esta ruta, ÉSTA ES LA
               ÚNICA SALIDA. Se vuelve por el historial —lo mismo que hacen
@@ -1585,10 +1675,32 @@ function Lienzo({
               })}
             </ul>
           ) : (
-            /* El estado vacío en palabras, donde irían los renglones: la
-               misma decisión que "Nothing here." en la grilla del vault.
-               "No clips" y no un cero — un cero se lee como dato roto. */
-            <p className={css.sinClips}>{cuenta}</p>
+            /* ─── EL HUECO ES UN GUION, NO UNA FRASE ───
+               Acá decía "No clips", y eran dos problemas en una línea.
+               El primero es que la frase ya está dicha: el aria-live del
+               pie anuncia esa misma cuenta, así que el vacío se contaba
+               dos veces. El segundo es dónde estaba dicha — un rótulo
+               gris en el lugar exacto de los renglones se lee como un
+               renglón más, o sea que la lista vacía mostraba un ítem
+               para avisar que no hay ninguno.
+
+               EL GUION ES LA RESPUESTA QUE ESTA CASA YA DIO PARA UN DATO
+               AUSENTE, y no una decisión nueva: es el placeholder de
+               Source y de Notes en la ficha técnica de un clip (ver
+               ficha.tsx, y su color en .campo::placeholder). Viene con su
+               mismo par tipográfico —--type-meta al --text-secondary, que
+               es lo que .sinClips ya usaba— así que no hay ningún valor
+               que elegir. No compite con el rótulo de arriba, no pide
+               traducción, y ocupa un renglón: cuando entra el primer clip
+               la lista no salta.
+
+               `aria-hidden` porque para quien escucha no dice nada: un
+               guion es tipografía, no información. La cuenta en palabras
+               sigue viva en el aria-live del pie, que es donde tiene que
+               estar — ver la nota de `cuenta`. */
+            <p className={css.sinClips} aria-hidden="true">
+              —
+            </p>
           )}
         </div>
 

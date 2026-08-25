@@ -3,19 +3,15 @@ import { createPortal } from "react-dom";
 import css from "./vault.module.css";
 import { Volver, clicDeLink } from "../parts";
 import { Reproductor } from "./reproductor";
-import {
-  useClips,
-  subirClip,
-  renombrarClip,
-  type Clip,
-  type Fuente,
-} from "./clips";
+import { useClips, subirClip, type Clip, type Fuente } from "./clips";
 import { alPlayground } from "./vistas";
 import { BotonFicha, FichaTecnica } from "./ficha";
 import {
-  DialogoPapelera,
+  AvisoPapelera,
+  BotonPlayground,
   DialogoRenombrar,
   MenuClip,
+  mandarAPapelera,
   useUltimo,
   type Donde,
 } from "./acciones";
@@ -123,91 +119,111 @@ function Mas() {
   );
 }
 
-/* La ruta de un clip, codificada segmento por segmento: encodeURI
-   entero dejaría pasar un "#" o un "?" en el nombre del archivo y
-   partiría la URL. */
-/* EL TÍTULO SE EDITA EN EL LUGAR. Antes abría el diálogo de renombrar,
-   y para un nombre es demasiado ceremonia: clic, cursor, escribís. Es
-   el mismo trato que los campos de la ficha, que tampoco piden permiso.
-   El diálogo sigue vivo para la grilla, donde no hay título que tocar.
+/* ═══════════════════════════════════════════════════════════════
+   EL TÍTULO ES EL MENÚ DEL DOCUMENTO.
 
-   MUESTRA EL NOMBRE DE ARCHIVO, no la frase capitalizada de la card.
-   Hubo una versión que enseñaba la frase y cambiaba a nombre real al
-   enfocar: lo que ves tiene que ser lo que guardás, y con el valor
-   cambiando bajo el dedo el cursor caía en cualquier lado. La frase
-   sigue en la grilla, que es donde se lee y no se edita.
+   ─── LO QUE SE RETIRA, Y POR QUÉ ───
+   Hasta acá el título se editaba en el lugar: clic, cursor, escribís.
+   Era menos ceremonia que un diálogo y por eso se había elegido. Lo que
+   lo tira abajo no es la ceremonia sino que ESE CLIC YA NO ALCANZA para
+   todo lo que hay que poder hacer: con renombrar y la papelera y el
+   playground viviendo sólo en el clic derecho, las tres eran invisibles.
+   Un título que se edita al tocarlo se queda con el gesto y no deja
+   lugar para nada más.
 
-   Y NO SE SELECCIONA SOLO. Seleccionar todo al enfocar pintaba un
-   bloque blanco sobre el título —el resalte del sistema, del ancho del
-   texto— que era justo lo contrario de discreto. El clic deja el
-   cursor donde lo pusiste, que es lo único que hacía falta. */
-function TituloEditable({
+   Ahora el gesto abre el MENÚ DEL DOCUMENTO, que es como la HIG llama a
+   esto: "Next to the title, the toolbar can include a document menu that
+   contains standard and app-specific commands that affect the document
+   as a whole, such as Duplicate, Rename, Move, and Export"
+   —Toolbars › Item groupings, borde inicial—. Nuestras tres acciones
+   caen todas en esa descripción; ninguna es un sobrante de la barra,
+   que es para lo que existe el menú More del otro borde.
+
+   Renombrar vuelve al diálogo, que nunca se fue: lo seguía usando la
+   grilla, donde no hay título que tocar. Ahora los dos caminos entran
+   por el mismo lugar.
+
+   ─── EL TÍTULO Y LA FLECHA SON UN SOLO BOTÓN ───
+   No un texto con una manija al lado. El chevron es la señal de que hay
+   algo debajo, pero el blanco que se aprieta es la palabra entera — si
+   fueran dos, tocar el título no haría nada y sería justo el gesto que
+   la gente prueba primero.
+
+   MUESTRA EL NOMBRE DE ARCHIVO y no la frase capitalizada de la card.
+   Lo que ves tiene que ser lo que se guarda; la frase vive en la
+   grilla, que es donde se lee y no se toca.
+
+   ─── LA CONVENCIÓN: MENOS DE 15 CARACTERES ───
+   Es el tope de la HIG (Toolbars › Titles) y su motivo es funcional:
+   que quede lugar para los demás controles de la barra. Acá ese lugar
+   es literal — la fila es flecha · título · playground · inspector.
+
+   Y lo que hace que 15 alcancen no es comprimir: es no repetir. EL
+   TÍTULO DICE QUÉ ES EL GESTO; `Source` DICE DE DÓNDE SALIÓ. El modelo
+   está en el vault: "Swipe to pay", 12 caracteres, sin nombrar la app.
+
+   NO SE VALIDA EN CÓDIGO, a propósito: el nombre ES el nombre del
+   archivo en tu disco, y una herramienta que te impide llamar a tus
+   archivos como querés tiene la dependencia al revés. La convención
+   vive en el README y se aplica escribiendo, no fallando.
+   ═══════════════════════════════════════════════════════════════ */
+function TituloMenu({
   clip,
-  onRenombrado,
+  abierto,
+  onAbrir,
 }: {
   clip: Clip;
-  onRenombrado: (ruta: string) => void;
+  abierto: boolean;
+  /* Devuelve SU PROPIO rectángulo. Es el mismo trato que el disparador
+     de Device en la ficha: el que sabe dónde está es el botón. */
+  onAbrir: (ancla: DOMRect | null) => void;
 }) {
-  /* null = no lo estoy editando. No es un booleano aparte porque el
-     borrador Y el modo son la misma cosa. */
-  const [borrador, setBorrador] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  /* EN UN REF Y NO EN ESTADO, y es la única forma de que ande: Escape
-     tiene que limpiar el borrador y sacar el foco, pero setBorrador es
-     asíncrono y blur() es inmediato, así que el onBlur corría con el
-     borrador VIEJO todavía adentro y Escape terminaba GUARDANDO lo que
-     acababas de descartar. El ref se lee ya escrito. */
-  const cancelado = useRef(false);
-
-  const guardar = async () => {
-    if (cancelado.current) {
-      cancelado.current = false;
-      return;
-    }
-    if (borrador === null) return;
-    const nombre = borrador.trim();
-    if (!nombre || nombre === clip.archivo) {
-      setBorrador(null);
-      setError(null);
-      return;
-    }
-    try {
-      onRenombrado(await renombrarClip(clip.ruta, nombre));
-      setBorrador(null);
-      setError(null);
-    } catch (e) {
-      /* El borrador NO se borra: lo que escribiste sigue ahí para que
-         lo corrijas en vez de tener que escribirlo de nuevo. */
-      setError(String((e as Error).message));
-    }
+  /* ─── EL MENÚ CUELGA DE LA PALABRA, NO DEL BLANCO ───
+     El botón arranca 6px antes que el texto: ése es el padding que le
+     agranda el área de clic, devuelto al layout con un margen negativo.
+     Anclando el menú al botón quedaba a 202 y el título a 208 — seis
+     píxeles fuera del riel, que es la misma clase de error que arreglan
+     los márgenes ópticos de .play y del toggle de la ficha.
+     Así que el ancla se arma a mano: la x y el ancho salen del TEXTO,
+     el alto del botón entero para que el menú caiga debajo de toda el
+     área de clic y no del renglón. */
+  const anclarEnLaPalabra = (boton: HTMLButtonElement) => {
+    const b = boton.getBoundingClientRect();
+    const t = boton.firstElementChild!.getBoundingClientRect();
+    return new DOMRect(t.left, b.top, t.width, b.height);
   };
 
   return (
-    <div className={css.detalleTituloCaja}>
-      {/* El input vive DENTRO del h1: el detalle no puede quedarse sin
-          encabezado sólo porque el título ahora se edite. */}
-      <h1 className={css.detalleTituloMarco}>
-        <input
-          className={css.detalleTitulo}
-          value={borrador ?? clip.archivo}
-          aria-label="Rename clip"
-          spellCheck={false}
-          onFocus={() => setBorrador(clip.archivo)}
-          onChange={(e) => setBorrador(e.target.value)}
-          onBlur={guardar}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") {
-              cancelado.current = true;
-              setBorrador(null);
-              setError(null);
-              e.currentTarget.blur();
-            }
-          }}
-        />
-      </h1>
-      {error && <p className={css.detalleTituloError}>{error}</p>}
-    </div>
+    /* El botón vive DENTRO del h1: el detalle no puede quedarse sin
+       encabezado porque su título ahora abra un menú. */
+    <h1 className={css.detalleTituloMarco}>
+      <button
+        className={css.detalleTitulo}
+        aria-haspopup="menu"
+        aria-expanded={abierto}
+        onClick={(e) => onAbrir(abierto ? null : anclarEnLaPalabra(e.currentTarget))}
+      >
+        <span className={css.detalleTituloTexto}>{clip.archivo}</span>
+        {/* El mismo chevron que anuncia la lista de Device en la ficha,
+            por lo mismo: un popup DICE que es un popup. */}
+        <svg
+          className={css.detalleTituloChevron}
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M4.5 6.5 8 10l3.5-3.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </h1>
   );
 }
 
@@ -367,7 +383,11 @@ export function Vault({
   const [fichaAbierta, setFichaAbierta] = useState(false);
   const [menu, setMenu] = useState<{ clip: Clip; donde: Donde } | null>(null);
   const [renombrando, setRenombrando] = useState<Clip | null>(null);
-  const [borrando, setBorrando] = useState<Clip | null>(null);
+  /* Mandar a la papelera YA NO ES UN ESTADO: es una llamada. Acá vivía
+     `borrando`, el clip esperando confirmación, y se fue con el diálogo
+     —ver AvisoPapelera en acciones.tsx—. Lo único que queda es lo que
+     puede salir mal. */
+  const [fallo, setFallo] = useState<string | null>(null);
 
   /* UNA sola capa para las dos vistas. El sujeto sale del estado —el
      clip sobre el que se abrió el menú, o el que está en un diálogo— así
@@ -382,7 +402,7 @@ export function Vault({
      Va ACÁ ARRIBA y no donde se usa: es un hook, y abajo hay dos
      `return` tempranos —cargando y sin conectar—. Un hook después de un
      return condicional se saltea en algunos renders y rompe el orden. */
-  const sujeto = useUltimo(menu?.clip ?? renombrando ?? borrando);
+  const sujeto = useUltimo(menu?.clip ?? renombrando);
 
   if (estado.cargando) return null;
 
@@ -417,8 +437,20 @@ export function Vault({
     }
     recargar();
   };
-  const trasPapelera = () => {
-    if (clip && abierto === clip.ruta) history.back();
+  /* EL CLIP SE VA, Y SI FALLA SE DICE. Antes esto era el "onListo" del
+     diálogo de confirmación; ahora es el gesto entero, porque no hay
+     nada que confirmar.
+
+     Si el clip que se fue es el que estás mirando, se vuelve solo a la
+     grilla: quedarse en el detalle de un archivo que ya no existe sería
+     mirar un hueco. */
+  const aLaPapelera = async (c: Clip) => {
+    const error = await mandarAPapelera(c);
+    if (error) {
+      setFallo(error);
+      return;
+    }
+    if (abierto === c.ruta) history.back();
     recargar();
   };
 
@@ -435,30 +467,44 @@ export function Vault({
     if (id) ir("/playground/" + id);
   };
 
-  const capa = sujeto ? (
+  /* EL AVISO DE FALLO NO NECESITA SUJETO y por eso queda afuera del
+     guard: cuando el clip se fue bien, `sujeto` es el último que hubo;
+     cuando falló, lo que importa es el mensaje y no sobre qué era. */
+  const capa = (
     <>
-      <MenuClip
-        clip={sujeto}
-        donde={menu?.donde ?? null}
-        onCerrar={() => setMenu(null)}
-        onPlayground={() => alLienzo(sujeto)}
-        onRenombrar={() => setRenombrando(sujeto)}
-        onPapelera={() => setBorrando(sujeto)}
-      />
-      <DialogoRenombrar
-        clip={sujeto}
-        abierto={renombrando?.ruta === sujeto.ruta}
-        onCerrar={() => setRenombrando(null)}
-        onListo={trasRenombrar}
-      />
-      <DialogoPapelera
-        clip={sujeto}
-        abierto={borrando?.ruta === sujeto.ruta}
-        onCerrar={() => setBorrando(null)}
-        onListo={trasPapelera}
-      />
+      {sujeto && (
+        <>
+          <MenuClip
+            clip={sujeto}
+            donde={menu?.donde ?? null}
+            onCerrar={() => setMenu(null)}
+            /* SÓLO EN LA GRILLA. En el detalle mandar al playground ya
+               es un botón de la barra, así que el menú no lo repite; en
+               la grilla no hay barra y el clic derecho es el único
+               camino. Es la misma capa para las dos vistas, así que la
+               diferencia la decide el único dato que las separa: si hay
+               un clip abierto. */
+            onPlayground={clip ? undefined : () => alLienzo(sujeto)}
+            onRenombrar={() => setRenombrando(sujeto)}
+            /* SIN PREGUNTAR: se va y listo. El porqué está en
+               acciones.tsx, arriba de AvisoPapelera — la HIG
+               desaconseja el alert para una acción destructiva
+               reversible, y ésta lo es porque el clip va a la papelera
+               del sistema. El aviso ahora llega ANTES, con el ítem en
+               rojo. */
+            onPapelera={() => aLaPapelera(sujeto)}
+          />
+          <DialogoRenombrar
+            clip={sujeto}
+            abierto={renombrando?.ruta === sujeto.ruta}
+            onCerrar={() => setRenombrando(null)}
+            onListo={trasRenombrar}
+          />
+        </>
+      )}
+      <AvisoPapelera error={fallo} onCerrar={() => setFallo(null)} />
     </>
-  ) : null;
+  );
 
   if (clip) {
     return (
@@ -470,15 +516,30 @@ export function Vault({
         }}
       >
         {capa}
+        {/* UNA FILA: flecha · título · [··· inspector]. El orden y el
+            reparto son los de la HIG de Apple (Toolbars › Item
+            groupings); el porqué completo, lo que costó y lo que se
+            descartó están en .detalleCabeza, en vault.module.css, y el
+            del ··· en BotonAcciones.
+
+            Atrás y ⌘Z hacen lo mismo que esta flecha porque los tres son
+            history.back(): una sola forma de cerrar. */}
         <div className={css.detalleCabeza}>
-          {/* Atrás y ⌘Z hacen lo mismo que esta flecha porque los tres
-              son history.back(): una sola forma de cerrar. */}
-          <Volver onClick={() => history.back()} />
-          {/* El título y el toggle comparten fila: el botón en la otra
-              punta, lejos de los valores de la ficha — pegado a ellos
-              fue una queja — y en el lugar clásico del inspector. */}
-          <div className={css.detalleFila}>
-            <TituloEditable clip={clip} onRenombrado={trasRenombrar} />
+          <Volver onClick={() => history.back()} extra={css.volverEnFila} />
+          {/* ES EL MISMO MENÚ QUE EL DEL CLIC DERECHO, con los mismos
+              tres ítems. Que `Open in playground` esté además como ícono
+              no lo saca de acá: la HIG pide que todo ítem de la barra
+              exista también como comando, porque la barra se puede
+              ocultar. Acá el ícono es el atajo y el menú la lista. */}
+          <TituloMenu
+            clip={clip}
+            abierto={menu?.donde != null && "ancla" in menu.donde}
+            onAbrir={(ancla) =>
+              setMenu(ancla ? { clip, donde: { ancla, alinear: "izq" } } : null)
+            }
+          />
+          <div className={css.detalleAcciones}>
+            <BotonPlayground onIr={() => alLienzo(clip)} />
             <BotonFicha
               abierta={fichaAbierta}
               onToggle={() => setFichaAbierta((v) => !v)}

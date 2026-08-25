@@ -4,6 +4,200 @@ Exposición de componentes: piezas web e iOS, cada una perteneciente a UNA
 plataforma, mostradas en una página única. No es una librería instalable.
 No se muestra código. El detalle **es** el producto.
 
+Detrás hay un área privada que sólo existe en desarrollo: el **vault**
+—la pared de referencias— y el **playground** —el taller—. Las tres
+cosas son un solo recorrido, y está contado abajo.
+
+## Arrancar en un worktree nuevo
+
+```bash
+pnpm install
+cp .env.example .env.local   # y poné tu VAULT_DIR
+pnpm dev                     # http://localhost:3000
+pnpm typecheck
+pnpm build                   # corre prebuild → regenera vercel.json
+```
+
+Node ≥24, pnpm. Versiones exactas en `package.json`, sin `^` ni `~`.
+
+**Lo que NO viaja al worktree.** Están gitignoreados `node_modules/`,
+`dist/`, `.env.local` y **`.context/` entero**. Lo último importa más de
+lo que parece: el README cita `.context/recon/*.md` como la fuente de
+casi todas las mediciones —`TYPE-SYSTEMS.md`, `RESPONSIVE.md`,
+`NAVIGATION.md`, `CARDS.md`, `vault/GRILLA.md`, `vault/REPRODUCTOR.md`—
+y **ninguno de esos archivos existe acá**: se escribieron en otro
+worktree y no se versionan. Las conclusiones sí sobrevivieron, porque
+están en `README.md` y en `DESIGN.md`. Si hace falta el número crudo, se
+vuelve a medir; citar el archivo sin haberlo abierto no vale.
+
+**El vault tampoco viaja**: los clips viven en una carpeta tuya fuera del
+repo. Sin `VAULT_DIR`, `/vault` y `/playground` cargan igual y dicen
+*"Vault not connected"*; el resto de la app anda sin enterarse.
+
+## El recorrido de una pieza
+
+Tres estaciones y una frontera. Va dicho en cada una qué está cableado,
+qué es a mano y qué todavía no existe.
+
+```
+   tu carpeta          /vault           /playground             /
+  (VAULT_DIR)  ───▶  la referencia ──▶  el taller    ─ ─ ─ ─▶  la exposición
+  soltás un clip     mirás y anotás    construís               se publica
+                                                          ↑
+                                            este tramo todavía no
+                                            está cableado (ver 3)
+```
+
+### 1 · El vault — lo que mirás
+
+**Entra un archivo, no un registro.** Soltás un video o una imagen en
+`VAULT_DIR` y aparece en la grilla. La carpeta **es** el manifiesto: el
+nombre sale del nombre del archivo, `native`/`web` de la subcarpeta donde
+lo soltaste, la fecha del sistema de archivos (`src/privado/clips.ts`).
+No hay JSON que mantener, y por eso el vault no puede mentir — un
+manifiesto a mano se desincroniza el día que arrastrás algo sin editarlo.
+
+**El puente es un plugin de Vite**, `scripts/vault-media.mjs`, con
+`apply: 'serve'`: en `vite build` ni se instancia. Sirve los medios en
+`/vault-media/` más siete endpoints —`__indice`, `__ficha`, `__vistas`,
+`__renombrar`, `__papelera`, `__subir`, `__link`— y **tres guardas**,
+porque esto puede estar apuntando a tu Obsidian: lista blanca de
+extensiones, nada que empiece con punto, `realpath` de los dos lados.
+
+**Lo que anotás vos** —`notes`, `source`, `device`— vive en
+`.lima-vault.json`, en la raíz del vault y al lado de los clips. Tres
+campos, y son los mismos que valida el servidor: agregar uno acá sin
+agregarlo allá lo descarta al guardar, en silencio.
+
+**El detalle existe para medir.** El reproductor va cuadro a cuadro con
+las flechas (sola 1 · option 10 · command a los bordes) y el paso lo lee
+del contenedor del mp4, no lo estima (`scripts/cuadros.mjs`).
+
+**La salida al taller**: en la grilla, clic derecho → `Open in
+Playground`. Adentro de un clip, el ícono ↗ de la cabecera. Los dos
+llaman a lo mismo, `alPlayground(ruta)` en `vistas.ts`.
+
+### 2 · El playground — donde se construye
+
+**Vistas = lienzos**, como entrar a distintos archivos de Figma. Al revés
+que los clips, esto **no** se deriva del disco: una vista existe porque
+la creaste, así que sí hay algo que mantener y vive en
+`.lima-playground.json`, también en la raíz del vault. No en
+`localStorage` a propósito: una vista referencia clips por su ruta, así
+que pertenece al mismo lugar que ellos.
+
+**Un frame es una cosa puesta en la tela**, y tiene dos tipos: `clip`
+(`ref` = la ruta del archivo) y `pieza` (`ref` = el nombre de la pieza).
+Es una **referencia y no una copia**: si le cambiás la ficha a un clip,
+el frame que lo muestra ya está actualizado; si el clip se va del vault,
+el frame se queda diciendo a qué apuntaba, en vez de desaparecer sin que
+nadie lo note.
+
+**`alPlayground` no abre un selector.** El clip cae en la vista más
+reciente —la de `creada` más alta— y si no hay ninguna, la crea: mandar
+algo al playground tiene que funcionar la primera vez que lo apretás.
+Nace a 480×270 y el lienzo le corrige la proporción cuando el medio
+termina de cargar.
+
+**⌘Z y ⇧⌘Z deshacen acá**, por snapshots del documento entero: 100 pasos,
+en memoria, se vacían al recargar. En el vault ⌘Z sigue siendo *volver* —
+el playground escucha en captura y el de `privado.tsx` se aparta al ver
+el evento marcado, así que quién gana no depende del orden de montaje.
+
+**Acá está el eslabón que falta.** `tipo: 'pieza'` está en el modelo y
+**nada lo crea todavía**: no hay interfaz para poner una pieza nuestra en
+el lienzo, y si un frame llegara con ese tipo se dibuja un hueco con la
+palabra `Piece` (`playground.tsx:512`). O sea que hoy el playground itera
+**sobre las referencias**, no sobre la pieza que estás construyendo. El
+andamio está puesto y dicho; falta la función.
+
+### 3 · La library — lo público
+
+`src/pieces.ts` es el inventario, y **está vacío a propósito**: los 18
+placeholders se borraron enteros antes de la primera pieza real, para que
+nada genérico se confunda con una decisión. La primera define el molde.
+
+**Publicar una pieza son dos cosas, y sólo una es a mano:**
+
+1. Una entrada en `PIECES` — `name`, `platform`, `desc`. El `slug` del
+   nombre es su URL: `Photo picker` → `/photo-picker`.
+2. `prebuild` corre `scripts/rutas.mjs`, que **regenera `vercel.json`**
+   con el rewrite de esas rutas. No se escribe a mano: sin el rewrite la
+   URL da 404 en producción y nada lo diría. Cero piezas es un estado
+   legítimo, pero el script sólo lo acepta si `pieces.ts` lo dice con el
+   array vacío literal — si no, entiende que el regex se rompió y frena
+   el build.
+
+> **Trampa que hoy no muerde y va a morder.** Los dos slugs no son el
+> mismo: `parts.tsx` hace `toLowerCase().replace(/\s+/g, '-')` y
+> `rutas.mjs` hace `replace(/[^a-z0-9]+/g, '-')`. Con nombres de una o
+> dos palabras coinciden; el día que una pieza lleve un signo en el medio
+> (`Toggle & switch`), el cliente navega a una URL que el rewrite no
+> cubre. Se arregla compartiendo la función, no ajustando una de las dos.
+
+**`platform` decide cómo se demuestra, y nada más**: Web va viva en el
+navegador, App va en video. No se decide por pieza.
+
+**El stage está vacío.** `Detail`, en `parts.tsx`, dibuja
+`.detailPreview`: un div con la altura y el hueco de teléfono ya
+resueltos y **nada adentro**. Construir la primera pieza ahí es el
+pendiente más grande del repo.
+
+### La frontera
+
+Todo lo que cuelga de `src/privado/` existe **sólo en desarrollo**, y no
+porque el host lo bloquee: el código **no llega al build**. Son dos
+pliegues sobre `import.meta.env.DEV` en `app.tsx` —la lista de rutas a
+`[]`, el componente a `null`— y Rollup borra el import dinámico entero.
+Verificado contando ocurrencias en `dist/`: cero. En producción `/vault`
+cae en la misma rama que cualquier URL inventada.
+
+El borde es una **carpeta** y no un flag repartido por archivos: un flag
+se olvida, un directorio no. Cualquier archivo nuevo ahí adentro hereda
+la puerta sin que nadie tenga que acordarse.
+
+**La dependencia va en un solo sentido.** Lo privado puede importar del
+producto (tokens, `clicDeLink`, `Volver`); el producto **no** puede
+importar de lo privado, porque eso lo arrastraría al bundle. Cuando el
+lienzo tenga que dibujar una pieza de verdad, el import va en esa
+dirección —privado → producto— y por eso el modelo guarda el **nombre**
+de la pieza y no su componente.
+
+## El mapa del repo
+
+| dónde | qué |
+| --- | --- |
+| `src/app.tsx` | el router (sin librería: `pushState` y dos vistas), el scrollspy, la puerta de lo privado |
+| `src/pieces.ts` | el inventario público. Hoy vacío |
+| `src/parts.tsx` | masthead, ítem de lista, detalle, flecha de volver, `slug`, `clicDeLink` |
+| `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
+| `src/not-found.tsx` | el 404 con física |
+| `src/privado/privado.tsx` | el marco del área privada: solapas, hueco de acciones, ⌘Z de navegación |
+| `src/privado/vault.tsx` | la grilla y el detalle de un clip |
+| `src/privado/clips.ts` | el índice del vault y la derivación desde el archivo |
+| `src/privado/reproductor.tsx` | cuadro a cuadro, pista de 2px, velocidad 1x/0.5x |
+| `src/privado/ficha.tsx` | los cuatro datos al costado del clip |
+| `src/privado/enlaces.ts` · `enlace.tsx` | encontrar los links de una nota y dibujarlos |
+| `src/privado/playground.tsx` | la lista de vistas y el lienzo |
+| `src/privado/vistas.ts` | modelo de vistas, persistencia, deshacer/rehacer, `alPlayground` |
+| `src/privado/acciones.tsx` | menú del clic derecho, diálogos, botones del chrome |
+| `scripts/vault-media.mjs` | el puente al vault |
+| `scripts/cuadros.mjs` | `mdhd` + `stts` del mp4/mov, sin ffprobe |
+| `scripts/rutas.mjs` | `vercel.json` desde `pieces.ts`, en prebuild |
+| `scripts/tarjeta-link.mjs` | título y favicon de un link, del lado del servidor |
+
+## Dónde está escrita cada cosa
+
+- **`README.md`** — la bitácora. Cada decisión, su valor y de dónde
+  salió. Es lo primero que hay que leer antes de tocar algo que ya está
+  decidido: casi todo lo que parece arbitrario tiene una medición atrás.
+- **`DESIGN.md`** — la referencia. Los tokens, sus valores en cada
+  viewport, los grados de evidencia y las cuatro reglas del sistema.
+- **`AGENTS.md`** (esto) — cómo funciona el producto y cómo se trabaja.
+- **Los archivos mismos.** Cada `.tsx` y cada `.module.css` lleva el
+  porqué arriba, y es donde más rápido se entiende algo. Cuando se decide
+  algo nuevo, se escribe ahí **y** en la bitácora.
+
 ## Referencias máximas
 
 **[benji.org](https://benji.org/) (Benji Taylor) y
@@ -14,7 +208,8 @@ páginas de verdad, nunca de memoria.
 
 Referencias secundarias: [emilkowal.ski](https://emilkowal.ski/) (Emil
 Kowalski) para motion y calma vertical, [rauno.me/craft](https://rauno.me/craft)
-para el formato de exposición.
+para el formato de exposición. Para el área privada se midieron además
+`linear.app/now`, el archivo de Figma y la HIG de Apple.
 
 ### Regla de evidencia
 
@@ -23,9 +218,16 @@ Nunca se afirma un valor de estos sitios sin medirlo. Dos grados:
 - **SOURCE** — leído del CSS servido (`curl` al `.css` que sirve el sitio).
 - **RUNTIME** — `getComputedStyle` en el navegador.
 
-El CSS servido gana sobre el computed cuando difieren. El análisis acumulado
-vive en `.context/recon/TYPE-SYSTEMS.md`, con los archivos CSS descargados al
-lado como cita. Si vas a agregar una conclusión, agregá también la medición.
+El CSS servido gana sobre el computed cuando difieren. Y una regla que
+existe en la hoja **no** es una regla en la pantalla: si la conclusión
+depende de lo que se renderiza, hay que mirar el HTML servido. Eso ya
+falló tres veces acá —el zoom de benji, las utilidades `active:scale` de
+josh, la card asimétrica de linear—: las tres reglas existían y
+renderizaban **cero** elementos.
+
+La HIG de Apple no se puede leer con `WebFetch` —sus páginas se arman con
+JS— pero sí en JSON:
+`https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<pagina>.json`.
 
 ### Cómo resuelve cada uno la jerarquía
 
@@ -62,16 +264,19 @@ cosa o para quién es, nunca lo bien hecha que está.
 - Las decisiones se exploran con el skill `prototype`: variantes reales detrás
   del picker, en la página real, y el usuario elige mirando. Todo lo que no
   está bajo estudio se mantiene congelado, para que la comparación sea limpia.
-- El taller vive en `.context/prototypes/` (gitignoreado). El repo Vite es
-  canónico: cuando algo se decide, se hornea acá y el harness se saca.
+- El taller vive fuera del build (`proto/`, `.context/prototypes/`). El repo
+  Vite es canónico: cuando algo se decide, se hornea acá y el harness se saca.
 - **Nada se afirma sin medir.** Ni valores propios ni ajenos. Los reportes
   citan números tomados del navegador, no estimaciones.
-- **No se razona sobre datos inventados.** El inventario de `src/pieces.ts`
-  es placeholder para que el esqueleto renderice: no es un plan y no sirve
-  como evidencia para decidir categorías, nombres ni proporciones. Contar
-  sobre él y presentar el resultado como dato es un error.
+- **No se razona sobre datos inventados.** Contar sobre placeholders y
+  presentar el resultado como dato es un error — ya pasó con las 18 piezas
+  de scaffolding que hubo en `pieces.ts`.
+- **Una atribución también se verifica.** El `←` de la flecha de volver
+  estuvo atribuido a benji y josh en la bitácora, y los dos usan palabras
+  (`Index`, `Home`): era una decisión nuestra con una cita prestada encima.
 
 ## Estado
 
-Lo decidido y su fundamento está en `README.md`. Los pendientes están marcados
-como tales en `src/tokens.css`.
+Lo decidido y su fundamento está en `README.md`, y ahí mismo está la lista
+de **Pendiente**. Los pendientes de tokens están marcados como tales en
+`src/tokens.css`.

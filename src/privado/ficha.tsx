@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import css from "./ficha.module.css";
 import menu from "./acciones.module.css";
 import { guardarFicha, type Clip, type Ficha } from "./clips";
+import { Enlace } from "./enlace";
+import { partir, type Tramo } from "./enlaces";
 
 /* ═══════════════════════════════════════════════════════════════
    LA FICHA TÉCNICA. Siempre visible, cuatro datos, editar es tocar y
@@ -137,8 +139,84 @@ function useGuardado(
   return [local, cambiar] as const;
 }
 
-/* La nota crece con lo que escribís: describir un gesto no entra en un
-   alto fijo de tres líneas. */
+/* ═══════════════════════════════════════════════════════════════
+   LA NOTA — se lee con los links dibujados, se edita en texto plano.
+
+   ─── POR QUÉ HAY DOS VISTAS Y NO UN EDITOR RICO ───
+   Un textarea no puede dibujar nada: es texto plano y punto. Para que
+   un link se vea como un link había dos caminos, y el otro era un
+   contentEditable — o sea un editor de texto rico, con su modelo de
+   documento, su manejo de IME, su pila de deshacer propia y su forma
+   nueva de romperse al pegar. Para un campo de notas de tres renglones
+   eso es traer un submarino a un charco.
+
+   Acá la nota SIGUE SIENDO UN STRING en todos lados —en el disco, en
+   la ficha, en el textarea— y lo que cambia es cómo se dibuja cuando
+   no la estás editando. No hay un segundo modelo que pueda quedar
+   desincronizado, porque no hay un segundo modelo.
+
+   ─── EL INTERCAMBIO SÓLO EXISTE SI HAY UN LINK ───
+   Sin links, esto es exactamente el textarea de siempre. Es la
+   propiedad que hace la función barata: el 90% de las notas no cambia
+   de comportamiento ni de árbol.
+
+   ─── EDITAR ES TOCAR Y ESCRIBIR, TAMBIÉN ACÁ ───
+   Tocar la vista de lectura abre el editor CON EL CURSOR DONDE
+   TOCASTE, no al final. Sin esa cuenta, corregir una palabra en el
+   medio de una nota obliga a navegar con las flechas desde el final, y
+   eso se siente como que el campo te pelea.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Chrome y Firefox tienen caretPositionFromPoint; Safari sólo tiene el
+   caretRangeFromPoint viejo. Los dos contestan lo mismo —qué nodo de
+   texto y en qué carácter cayó un punto de la pantalla— con dos formas
+   distintas. */
+type ConCaret = Document & {
+  caretPositionFromPoint?: (
+    x: number,
+    y: number,
+  ) => { offsetNode: Node; offset: number } | null;
+  caretRangeFromPoint?: (x: number, y: number) => Range | null;
+};
+
+function caracterEn(x: number, y: number): { nodo: Node; offset: number } | null {
+  const d = document as ConCaret;
+  const p = d.caretPositionFromPoint?.(x, y);
+  if (p) return { nodo: p.offsetNode, offset: p.offset };
+  const r = d.caretRangeFromPoint?.(x, y);
+  if (r) return { nodo: r.startContainer, offset: r.startOffset };
+  return null;
+}
+
+/* De un punto de la pantalla al índice en el texto CRUDO.
+
+   La traducción hace falta porque las dos vistas no miden lo mismo: un
+   link de 101 caracteres se dibuja como una etiqueta de 14, así que el
+   carácter 12 de lo que ves no es el carácter 12 de lo que hay. Cada
+   tramo lleva su `desde` —su posición en el crudo— y cada <span> lleva
+   su índice, así que la cuenta es una suma y no una estimación.
+
+   Cuando el clic no cae sobre ningún tramo —el aire a la derecha del
+   último renglón, que es donde uno hace clic para "entrar" a un campo—
+   el cursor va al final, que es exactamente lo que se espera ahí. */
+function posicionDe(
+  e: React.MouseEvent<HTMLElement>,
+  tramos: Tramo[],
+  largo: number,
+): number {
+  const p = caracterEn(e.clientX, e.clientY);
+  if (!p) return largo;
+  const desde =
+    p.nodo.nodeType === Node.TEXT_NODE
+      ? p.nodo.parentElement
+      : (p.nodo as Element);
+  const caja = desde?.closest<HTMLElement>("[data-tramo]");
+  if (!caja) return largo;
+  const t = tramos[Number(caja.dataset.tramo)];
+  if (!t) return largo;
+  return t.desde + Math.min(p.offset, t.texto.length);
+}
+
 function Nota({
   valor,
   onValor,
@@ -147,12 +225,88 @@ function Nota({
   onValor: (v: string) => void;
 }) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
+  const [editando, setEditando] = useState(false);
+  /* Dónde arranca el cursor al abrir el editor. null = al final. */
+  const cursor = useRef<number | null>(null);
+
+  const tramos = useMemo(() => partir(valor), [valor]);
+  const conLinks = tramos.some((t) => t.tipo === "link");
+  const leyendo = conLinks && !editando;
+
+  /* La nota crece con lo que escribís: describir un gesto no entra en
+     un alto fijo de tres líneas. Corre también al entrar en edición,
+     porque ahí el textarea acaba de montarse con el texto ya adentro y
+     todavía mide un renglón. */
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || leyendo) return;
     el.style.height = "0px";
     el.style.height = `${el.scrollHeight}px`;
-  }, [valor]);
+  }, [valor, leyendo]);
+
+  /* El foco y el cursor se ponen DESPUÉS de montar el textarea, que es
+     cuando existe. Va en un efecto y no en el manejador del clic por
+     eso mismo: ahí todavía no hay dónde poner el cursor. */
+  useEffect(() => {
+    if (leyendo) return;
+    const el = ref.current;
+    if (!el || document.activeElement === el) return;
+    const i = cursor.current ?? valor.length;
+    cursor.current = null;
+    el.focus();
+    el.setSelectionRange(i, i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leyendo]);
+
+  const aEditar = (i: number | null) => {
+    cursor.current = i;
+    setEditando(true);
+  };
+
+  if (leyendo)
+    return (
+      <div
+        className={`${css.nota} ${css.lectura}`}
+        /* CON EL ANILLO DE FOCO PUESTO, y es una excepción razonada a
+           la regla del área privada. Esa regla dice que donde se edita
+           texto sin caja el anillo se apaga porque lo reemplaza el
+           caret — y acá, leyendo, no hay caret que lo reemplace. La
+           premisa no se cumple, así que la excepción tampoco aplica.
+           Al entrar en edición el textarea sí lo apaga, como siempre. */
+        tabIndex={0}
+        role="group"
+        aria-label="Notes — press Enter to edit"
+        onClick={(e) => {
+          /* Arrastrar para seleccionar y copiar NO abre el editor: si
+             hay algo seleccionado, el gesto era otro. Sin esto, copiar
+             un pedazo de la nota la reemplazaba por su versión cruda a
+             mitad del gesto. */
+          const sel = window.getSelection();
+          if (sel && !sel.isCollapsed) return;
+          aEditar(posicionDe(e, tramos, valor.length));
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
+          /* Enter ABRE, no escribe: el salto de línea lo pone el
+             textarea recién cuando está adentro. */
+          e.preventDefault();
+          aEditar(null);
+        }}
+      >
+        {tramos.map((t, i) =>
+          t.tipo === "link" ? (
+            <Enlace key={i} url={t.url} />
+          ) : (
+            /* data-tramo es lo que hace posible devolver el cursor al
+               carácter que tocaste. Ver posicionDe. */
+            <span key={i} data-tramo={i}>
+              {t.texto}
+            </span>
+          ),
+        )}
+      </div>
+    );
+
   return (
     <textarea
       ref={ref}
@@ -162,6 +316,9 @@ function Nota({
       aria-label="Notes"
       rows={1}
       onChange={(e) => onValor(e.target.value)}
+      /* Salir del campo vuelve a lectura. Si no hay ningún link, esto
+         no cambia nada visible: `leyendo` sigue siendo false. */
+      onBlur={() => setEditando(false)}
     />
   );
 }

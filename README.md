@@ -12,6 +12,12 @@ pnpm build
 pnpm typecheck
 ```
 
+**Cómo funciona todo** —el recorrido de un clip del vault al playground y
+de ahí a la exposición pública, el mapa del repo, la frontera entre lo
+privado y lo que se publica, y qué hace falta para arrancar en un
+worktree nuevo— está en **[AGENTS.md](AGENTS.md)**. Es lo primero que
+hay que leer.
+
 El sistema completo —cada token, su valor en los cinco viewports, su
 grado de evidencia y las reglas que gobiernan lo que falta— está en
 **[DESIGN.md](DESIGN.md)**. Acá va el registro de cada decisión y por
@@ -155,6 +161,9 @@ Lo medido de las referencias está en `.context/recon/vault/GRILLA.md`.
 | **Corrección: el zoom de benji no existe** | `react-medium-image-zoom` está en su CSS servido pero renderiza **0 elementos** en `/`, `/family-values`, `/liveline`, `/drawesome`, `/honkish` y `/pixelmelt` | mismo caso que las utilidades `active:scale` de josh. Tampoco hay hover con escala: el único `scale` que toca una card es **estático** (`1.06`, para que la captura sangre bajo el bisel del teléfono) |
 | ↳ lo que sí hace en cada card | un toggle de velocidad **1x / 0.5x** arriba a la derecha — 45 en family-values, 34 en honkish | 28×20, 12px/460, radio 38, `#989897`, dos `<span>` que se cruzan por opacidad, `all .2s ease`. Es evidencia directa para el reproductor |
 | ↳ nota de método | una sonda dio *"0 reglas `:hover` en toda la página"* y era **falso**: el número real es 68 | sus hojas son de otro origen, `sheet.cssRules` tira excepción y la sonda las salteaba en silencio. Contra CSS de otro origen hay que capturar el **texto** de la respuesta, no leer el CSSOM |
+| **La sidebar del lienzo se pliega con `⌥⌘S`** | y **no hay control a la vista**: el chrome del lienzo no cambia en nada | el atajo es el de Apple, no uno nuestro — [Mac keyboard shortcuts](https://support.apple.com/en-us/102650): *Option-Command-S* oculta o muestra la sidebar en Finder, y es el mismo en Mail, Notes y Xcode. Se mira `e.code === 'KeyS'` y no `e.key`, porque en un teclado Mac ⌥+S produce `ß`. Arranca **visible** y no se recuerda entre vistas ([Sidebars](https://developer.apple.com/design/human-interface-guidelines/sidebars): no ocultarla por defecto). **Verificado**: abierta, la geometría es idéntica al píxel a la de antes — panel `0..240`, chevron `31..47`, nombre `26..201`; plegada, la tela pasa a `0..1440` |
+| ↳ quién paga el layout | un `padding-left` en `.lienzo`; el panel sale del flujo y viaja en `transform`, con transición de **CSS** | es la arquitectura de GitLab. De cuatro sidebars de producción medidas bajo carga —la ingenua, Notion, Linear y ésta— es la única que sigue a 60fps con la CPU **6× frenada**. Notion anima `transform` y Linear anima `left` y **pierden cuadros a la par**: las dos usan `requestAnimationFrame`. Lo que decide es el **driver**, no la propiedad — y plegar un panel pasa justo cuando el hilo principal está ocupado |
+| ↳ y los frames se re-acomodan al **volver** | se escucha `transitionend` de `padding-left`, no el cambio de estado | desplegar le come 240px a la tela, y un frame dejado en esa franja queda afuera. Al apretar la tecla la tela **todavía mide lo de antes**, así que medir ahí no ve nada. Se filtra por propiedad **y por target** porque `transitionend` burbujea: verificado, al lienzo le llegan también el `color` de un `input` y el `transform` del `aside` |
 
 ### El reproductor
 
@@ -170,8 +179,11 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
 | ↳ el cross-fade | dos `<span>` superpuestos con `inset:0` que se cruzan por opacidad | suyo, y no es adorno: *"1x"* y *"0.5x"* no miden lo mismo, así que sin esto el botón cambia de ancho y salta todo lo que tiene al lado |
 | **Dónde van los controles** | una **fila debajo del video** | elegido mirando, y **no es de ninguno de los dos**: apple ancla abajo a la derecha *encima* del video, benji arriba a la derecha, y los dos medidos no pueden tener razón a la vez. Debajo nada tapa el clip, y al estar sobre el canvas no necesita scrim ni blur — usa los colores del sistema tal cual. Se probó la variante "esquinas" con el scrim exacto de apple y perdió |
 | **La pista** | riel de **2px**, sin perilla | **sin referencia medible**, y se dice así: Safari tiene el shadow root **cerrado** en los dos motores, `apple-events` no monta sus controles headless, y Podcasts y x.com piden login. Es nuestra. Se probaron fina/media/oculta y ganó fina: a ese grosor deja de ser un control que compite y pasa a ser una lectura. Usa `--hairline` y `--ink`, sin ningún color nuevo |
-| **Sin botones de cuadro** | el paso vive **sólo en las flechas del teclado** | estuvieron —dos flechas de 24px al lado del play— y se sacaron. El teclado es más preciso, se puede mantener apretado, y con **shift salta de a diez**. Apuntarle a un botón chico mientras mirás otra cosa es el trabajo que este reproductor tiene que ahorrar |
-| ↳ y eso destapó un bug real | el listener escucha en el **documento**, no en el foco del reproductor | estaba atado al foco y fallaba en el caso más común: clickeás el video para pausarlo, el clic cae en el `<video>` y el marco nunca toma el foco, así que desde ahí las flechas no hacen nada. **Verificado: tras clickear para pausar, `activeElement` es `BODY`.** Ahora sólo existe mientras hay un clip abierto, donde nada más usa las flechas, y se saltea si el foco está en un control |
+| **Sin botones de cuadro** | el paso vive **sólo en las flechas del teclado** | estuvieron —dos flechas de 24px al lado del play— y se sacaron. El teclado es más preciso y se puede mantener apretado. Apuntarle a un botón chico mientras mirás otra cosa es el trabajo que este reproductor tiene que ahorrar |
+| ↳ los modificadores | sola **1 cuadro** · **option 10** · **command a los bordes** (inicio / final). `shift` sigue haciendo lo mismo que `option` | son las tres distancias que se piden de verdad: el cuadro exacto, cruzar un gesto entero, y volver al principio para contarlo otra vez. **Verificado en `Reminders App.mov` (256 cuadros)**: 0→1→2, option 2→12→22→12, command→255, command→0, y clampea en los dos extremos sin pasarse |
+| ↳ y command+flecha lleva `preventDefault` de verdad | sin él, back/forward del navegador | es el atajo nativo de historial: sin cortarlo, "ir al final del clip" te saca de la página. **Verificado: la URL no cambia en ninguno de los dos sentidos** |
+| ↳ y eso destapó un bug real | el listener escucha en el **documento**, no en el foco del reproductor | estaba atado al foco y fallaba en el caso más común: clickeás el video para pausarlo, el clic cae en el `<video>` y el marco nunca toma el foco, así que desde ahí las flechas no hacen nada. **Verificado: tras clickear para pausar, `activeElement` es `BODY`.** Ahora sólo existe mientras hay un clip abierto |
+| ↳ pero el foco **sí** importa para las flechas | en un **campo de texto** el reproductor no las toca; en un **botón** sí | la ficha de al lado tiene título, fuente y notas, y ahí `option+flecha` es saltar de palabra y `command+flecha` ir al borde de la línea: robárselas rompe lo que en mac se hace sin pensar. Los botones no usan flechas, así que después de apretar play seguís yendo cuadro a cuadro. **Verificado con el caret adentro del título: la flecha mueve el cursor y el cuadro no se mueve.** El espacio sí se saltea en cualquier control, botones incluidos — ahí ya lo activa el navegador |
 | El paso de cuadro | del **contenedor**, no estimado | `scripts/cuadros.mjs` lee `mdhd` (timescale) y `stts` (deltas) del mp4/mov. Sin `ffprobe` y sin dependencias. **Validado 9/9**: cuadros × duración-de-cuadro reproduce la duración que reporta el navegador |
 | ↳ busca el **medio** del cuadro | `(destino + 0.5) · cuadro` | pedir exactamente `N·cuadro` cae en la frontera entre dos cuadros y el navegador puede resolver para cualquiera de los dos |
 | ↳ tasa variable | se devuelve el delta más frecuente **con `variable: true`** | para que quien lo use sepa que el paso es aproximado, en vez de creer que es exacto |
@@ -199,3 +211,231 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
 - Radios, elevación, z-index — se definen desde la primera pieza construida
 - Primera pieza a construir dentro del stage
 - Footer / firma: el nombre "Vito Compagnucci" todavía no está en ninguna parte
+- **`Reminders App`** es el único clip que dice DÓNDE en vez de QUÉ, y repite
+  su `Source` (`Apple Reminders App`) palabra por palabra. Entra en 15, así
+  que no urge; falta saber qué gesto muestra para poder nombrarlo.
+- **El lienzo del playground no entró al modelo de la barra.** Tiene `←` y
+  nombre en su sidebar, que es leading + título con otra ropa. Queda como
+  excepción documentada hasta que se decida si se une.
+- **La barra sigue siendo tres mecanismos para cuatro pantallas** — el portal
+  anónimo de `.acciones`, la fila del detalle y la sidebar del lienzo. Falta
+  decidir si pasa a ser un componente con zonas (`leading` / `trailing`).
+- **No hay undo adentro de la app, y ése es el hueco más concreto que queda.**
+  Desde el 2026-08-25 `Move to Trash` no pregunta, siguiendo
+  [Alerts › Best practices](https://developer.apple.com/design/human-interface-guidelines/alerts#Best-practices):
+  no se alerta por una acción destructiva común y **reversible**. Pero el
+  criterio literal de Apple es *"¿lo pueden deshacer?"*, y hoy se deshace en el
+  **Finder**, no acá. El patrón completo es borrar sin preguntar **y** ofrecer
+  el undo en el acto.
+
+  **El medio decidido es [Sonner](https://sonner.emilkowal.ski/)**, de Emil
+  Kowalski — que además es una de las referencias medidas de este sistema. Es
+  también lo que elige `/pick-ui-library` para toasts en vez de escribirlo a
+  mano, y el repo ya tiene la skill `ask-sonner` para el cableado.
+
+  **Lo que abre, dicho antes de abrirlo:** sería la **primera dependencia de
+  UI** del proyecto — hoy no hay ninguna, todo está construido desde
+  referencias medidas. Y traería una superficie que el sistema declara no
+  tener: `playground.module.css` dice "cero rojos en todo el producto" y no hay
+  toast ni barra de estado en ninguna parte. O sea que hay que decidir dos
+  cosas, no una: si entra la librería, y qué lugar ocupa un toast en un
+  chrome que hasta hoy son sólo palabras sobre el canvas.
+
+  Pospuesto a propósito. Cuando exista, `aLaPapelera` en `vault.tsx` es su
+  primer cliente y `AvisoPapelera` probablemente se va con él.
+
+- **La flecha de volver ya es el chevron estándar** (resuelto el 2026-08-25).
+  Lo que queda anotado es lo que se descubrió al cambiarla: el `←` que había
+  **no venía de la recon**. El README lo atribuía a benji y josh, y los dos
+  usan palabras (`Index`, `Home`). Era una decisión nuestra sin recibo, con una
+  cita prestada encima. Vale como recordatorio de que una atribución también se
+  verifica.
+
+## El aire de arriba es 80, en todas las pantallas
+
+**Una sola distancia, no una por vista.** Es la regla de benji y se volvió a
+medir en vivo para esto, a 1728×900: su `.styles_container__YJPlC` lleva
+`padding: 80px 16px 40px` y es **el mismo contenedor en todas sus páginas** —
+verificado en su home y en `/liveline`, `/drawesome` y `/honkish`. Lo primero
+que hay cae en **top 80** en las cuatro: en la home su `<h1>`, en un detalle su
+link `Index`. No tiene un aire de lista y otro de detalle.
+
+Del lado nuestro tres de cuatro ya lo cumplían:
+
+| pantalla | primer elemento | top |
+|---|---|---:|
+| Library | `<h1>` Library | 80 |
+| Detalle de una pieza | la flecha | 80 |
+| Vault, la grilla | la solapa `Vault` | 80 |
+| **Vault, un clip abierto** | la flecha | ~~120~~ → **80** |
+
+El detalle del clip llevaba `margin-top: 40` para separarse de la barra de
+solapas — pero **en el detalle la barra no se renderiza** (`sinSolapas`, en
+`privado.tsx`), así que separaba de nada. Se retiró.
+
+**El clip no cambió de tamaño**, y eso fue deliberado. Al liberar los 40 de
+arriba el clip se los quedaba: medido, 536×536 → 576×576. Se devolvieron abajo
+—`.escenario` pasó de `padding-bottom: 56` a `96`— porque ese valor **no es un
+margen inferior sino el control del tamaño del clip**: su trabajo es sostener
+el tamaño que se eligió mirando. El aire total de la página no se movió un
+píxel; sólo cambió de punta.
+
+## La cabecera del detalle
+
+`← · Photo picker ⌄ ·········· ↗ · ▮▯`
+
+**El título ES el menú del documento.** Tocar el nombre —o su chevron, que son
+un solo botón— abre `Rename` y `Move to Trash`. Es el *document menu* que
+describe [Toolbars › Item groupings](https://developer.apple.com/design/human-interface-guidelines/toolbars#Item-groupings)
+para el borde inicial: comandos que afectan al documento entero. Nuestras
+acciones caen todas ahí; ninguna es un sobrante de la barra, que es para lo
+que existe el menú *More* del otro borde.
+
+**Se retiró el renombre en el lugar.** El título se editaba al tocarlo y era
+menos ceremonia que un diálogo. Lo que lo tira abajo no es la ceremonia: es
+que ese clic no alcanzaba para todo lo que había que poder hacer, así que
+renombrar, la papelera y el playground vivían sólo en el clic derecho —o sea,
+invisibles—. Un título que se edita al tocarlo se queda con el gesto.
+
+**Sólo una acción sube a ícono: el playground.** Es la única que no es sobre
+la identidad ni la existencia del archivo, y la única sin consecuencia —
+mandarla mil veces no rompe nada. Un ícono permanente es para lo que se
+aprieta sin pensar. Por eso **no está en el menú**: repetirla a diez píxeles
+sería ofrecer dos veces lo mismo. En la grilla sí está en el clic derecho,
+porque ahí no hay barra.
+
+**El toggle del inspector va último, contra el riel.** La misma página ancla
+el de sidebar al *far leading edge*; éste es su espejo. Y es el que se aprieta
+repetido, así que es el que no puede moverse de lugar. El hueco entre los dos
+íconos es **8** — el de controles del sistema (esta fila, el `--rep-gap` del
+reproductor, el `--index-item-gap`). Hubo una versión con 16 y estaba mal
+leída: 16 es el hueco entre **palabras** del chrome, no entre controles.
+
+**El nombre nunca se recorta.** Acá el título ES el nombre del archivo en tu
+disco, y un nombre a medias no sirve para lo único que se hace con él. Si no
+entra, empuja — y ahí la convención de los 15 caracteres deja de ser una nota
+y se ve.
+
+Se descartaron: **`Expuesto`** (cada acción un glifo — el de playground no se
+lee sin tooltip y la papelera queda a un clic permanente), **`Panel`** (las
+acciones dentro del inspector, que arranca cerrado), **`Borde`** (el menú
+`···` en el borde final; se implementó y se revirtió: su menú cae encima del
+inspector cuando está abierto), **`Popover`** (el título abre una superficie
+con el campo del nombre adentro) y **`Limpio`** (el detalle no puede borrar).
+
+### Auditoría contra la HIG
+
+**Sin íconos en los ítems, y no es una omisión.**
+[Menus › Icons](https://developer.apple.com/design/human-interface-guidelines/menus#Icons)
+pide usarlos con moderación y cierra la puerta al caso mixto: los ítems de un
+mismo grupo llevan ícono **todos o ninguno**. Hoy ninguno. Ponerle uno sólo a
+`Move to Trash` —que es lo que hace la bitácora de Carousels, con `#e5352b`—
+obligaría a dárselo también a `Rename…`, al menú de la grilla y al del
+playground. Es una decisión de lenguaje entera, no un detalle de una fila.
+
+**Mayúsculas de título** en todas las etiquetas: `Open in Playground`,
+`Rename View`, `Delete View`. Lo pide la misma sección.
+
+**Borrar no pregunta.**
+[Alerts › Best practices](https://developer.apple.com/design/human-interface-guidelines/alerts#Best-practices)
+dice evitar el alert para acciones destructivas **comunes y reversibles**, y su
+ejemplo es borrar un archivo. Se retiró `DialogoPapelera` entero. Verificado
+end-to-end con un archivo de prueba: el clip sale del vault y aparece en la
+papelera de macOS, o sea que la premisa se cumple de verdad y no por
+suposición. Lo que queda es `AvisoPapelera`, que **no** es el mismo diálogo con
+otro texto: tiene un solo botón, no hay nada que decidir, y existe porque la
+misma página dice que un alert sí sirve para contar un problema — sin él, un
+fallo del servidor sería silencioso.
+
+**La advertencia no desapareció, cambió de momento:** antes llegaba después
+del clic; ahora llega antes, con el ítem en rojo.
+
+**La flecha de volver es un chevron**, el símbolo estándar que pide
+[Toolbars › Navigation](https://developer.apple.com/design/human-interface-guidelines/toolbars#Navigation).
+Era `←`, y el README llegó a atribuirlo a la recon de benji y josh — pero los
+dos usan **palabras** (`Index`, `Home`), así que ninguno lo respaldaba. Era
+nuestro y sin recibo. Va dibujado y no escrito, por lo mismo que el `+` de la
+grilla: un glifo se apoya en la línea de base y nunca queda centrado.
+
+**Lo único que se aparta a propósito:** `Rename` no lleva elipsis. *Menus ›
+Labels* la pide cuando la acción necesita más información antes de completarse,
+y ésta abre un diálogo que pide el nombre. Retirada por decisión del dueño
+(2026-08-25): el menú tiene dos ítems y los dos son evidentes, así que el signo
+agrega ruido sin resolver ninguna duda.
+
+**Lo que nos falta para el patrón completo:** el criterio de Apple es *"¿lo
+pueden deshacer?"*, y acá se deshace en el **Finder**, no en la app. La versión
+completa sería borrar sin preguntar **y** ofrecer un undo adentro — que hoy no
+tiene dónde vivir, porque este sistema no tiene toast ni barra de estado.
+Cuando exista esa superficie, éste es su primer cliente.
+
+**Un detalle que sí coincide con el ejemplo textual de Apple:** el rojo va en
+el **ítem del menú** y no en el botón del diálogo. Alerts dice que cuando la
+persona ya eligió deliberadamente la acción destructiva —su ejemplo es
+`Empty Trash`— el botón que la confirma **no** lleva el estilo destructivo.
+El nuestro va en `--ink`.
+
+## El rojo destructivo
+
+`Move to Trash` se pinta en `--destructivo`, con una hairline delante.
+**Acá había escrita la decisión contraria** en `acciones.module.css` — *"no hay
+ni un color de estado, y meter el primero sería inventar un nivel entero"*. La
+premisa era falsa: el nivel estaba decidido desde antes que este repo, en la
+bitácora de Carousels (`docs/design-research/design-decisions.md`, línea 374),
+y su caso es literalmente éste. La familia es Apple `#ff3b30`, elegida ahí
+contra el `#ff0052` de benji.
+
+Medido sobre **nuestros** fondos, que es lo que había que comprobar:
+
+| | valor | sobre `--canvas` | WCAG |
+|---|---|---:|---:|
+| claro | `#c81e14` | Lc 75.5 | 5.65 |
+| oscuro | `#ff6b60` | Lc −48.8 | 7.14 |
+
+El claro transfiere clavado y no por suerte: el canvas de Carousels es este
+mismo `#fdfdfc`, los dos salieron de agentation. Y 75.5 cae justo en el umbral
+**preferido** de APCA para texto que no es cuerpo.
+
+**Dónde se dobla la regla.** El modo oscuro de este sistema exige que el texto
+conserve su contraste, y éste no lo hace. Se calculó qué haría falta:
+manteniendo tono y croma, el rojo que da Lc −75.5 sobre `#090908` es `#ffbcb1`
+— croma 0.204 → 0.080, un rosa pálido. Ahí el token deja de hacer su único
+trabajo. **La palabra ya se lee**, en ink, a Lc 104; el rojo no carga la
+lectura, carga el aviso. Es el primer token de texto que no cumple la regla y
+va dicho, no escondido.
+
+## Cómo se nombra un clip
+
+**Menos de 15 caracteres.** Es el tope de la HIG de Apple en
+[Toolbars › Titles](https://developer.apple.com/design/human-interface-guidelines/toolbars#Titles),
+y el motivo que ella misma da es funcional: que quede lugar para los demás
+controles de la barra. Desde que la cabecera del detalle es UNA fila
+—flecha · título · inspector— ese lugar es literal.
+
+**El título dice QUÉ es el gesto. `Source` dice DE DÓNDE salió.** Los dos
+campos existen y hacen cosas distintas, y sacar esa repetición es lo que
+hace que 15 caracteres alcancen: no hay que comprimir nada, hay que dejar
+de decir dos veces lo mismo.
+
+El modelo ya existía en el vault: **`Swipe to pay`** son 12 caracteres, no
+nombra la app, y dice exactamente qué vas a ver. Contra ése se escribieron
+los demás.
+
+**Aplicado el 2026-08-24.** Cinco de siete clips se pasaban; en tres de
+ellos lo único que sobraba era el nombre de la app, que su propio `Source`
+ya decía:
+
+| antes | | después | |
+|---|---:|---|---:|
+| Bottom accessory like Apple Music mini player | 45 | Mini player | 11 |
+| Copy text animation from Apple Passwords | 40 | Copy text | 9 |
+| ~~Berry~~ Floating Bar ~~Bug~~ | 22 | Floating bar | 12 |
+| ~~ChatGPT~~ photo selector | 22 | Photo picker | 12 |
+| ~~X App's~~ Swipeable Tabs | 22 | Swipeable tabs | 14 |
+
+Mediana 22 → **12**. Las fichas viajan con el archivo en el mismo paso que
+lo renombra, así que ninguna quedó huérfana.
+
+No está forzado por código a propósito: el nombre es el nombre del archivo
+en tu disco, y una app que te impide llamar a tus archivos como querés
+tiene la dependencia al revés.

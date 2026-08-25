@@ -95,10 +95,43 @@ export function Item({
    pinta SÓLO el glifo y no el cuadrado de 34×34 —que es el área de
    click y queda invisible—; es unánime en las dos referencias y está
    explicado en app.module.css. */
-export function Volver({ onClick }: { onClick: () => void }) {
+/* `extra` existe para UN caso y conviene decir cuál: .back trae un
+   margin-bottom de 24 porque nació encima de un título, en su propia
+   fila. Desde que la cabecera del detalle del vault es UNA fila —la
+   flecha, el título y el toggle juntos, ver detalleCabeza— ese margen
+   ahí abajo empuja el alto de la fila y descentra la flecha. El
+   llamador que lo necesita lo apaga; los demás no se enteran. */
+/* ─── ES UN CHEVRON, NO UNA FLECHA ───
+   Era "←", el carácter. Lo cambia Toolbars › Navigation, que pide el
+   Back ESTÁNDAR y su símbolo: "Use the standard Back and Close buttons.
+   People know that the standard Back button lets them retrace their
+   steps… Prefer the standard symbols for each, and don't use a text
+   label that says Back". El estándar de Apple es un chevron.
+
+   La flecha no venía de ningún lado medido, y vale decirlo porque el
+   README llegó a citar a benji y josh: los dos usan PALABRAS —"Index",
+   "Home"—, así que ninguno respaldaba el "←". Era nuestro y sin recibo.
+
+   Y VA DIBUJADO, no escrito, por lo mismo que el + de la grilla: un
+   glifo se apoya en la línea de base, así que dentro de una caja nunca
+   queda centrado. 16×16 y trazo 1.5, las medidas del resto de los
+   glifos; la punta en x=6 y los brazos en 10 lo dejan centrado exacto. */
+export function Volver({ onClick, extra }: { onClick: () => void; extra?: string }) {
   return (
-    <button className={css.back} aria-label="Back" onClick={onClick}>
-      ←
+    <button
+      className={extra ? `${css.back} ${extra}` : css.back}
+      aria-label="Back"
+      onClick={onClick}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d="M10 4 6 8l4 4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </button>
   )
 }

@@ -10,9 +10,13 @@
      botón de play    38×38, glifo de 20×20         apple
      transición       opacity 100ms linear + transform .2s ease   apple
      deshabilitado    opacity .32                   apple
-     velocidad        28×20, 12px/460, radio 38     benji
+     velocidad        alto 20, 12px/460, radio 38   benji
      su transición    all .2s ease                  benji
-     cross-fade       dos textos con inset:0        benji
+     cross-fade       dos textos apilados           benji
+
+   Del botón de velocidad se copia todo menos el ANCHO: los 28px que se
+   le midieron son el ancho de SU etiqueta en SU tipografía, no una
+   medida del control. Acá lo da el contenido — ver .velocidad.
 
    Los dos renderizan de verdad —28 videos de apple, 45 de benji— y no
    son reglas muertas en un bundle.
@@ -175,6 +179,28 @@
   flex: none;
   width: var(--rep-play);
   height: var(--rep-play);
+  /* ─── EL DIBUJO CONTRA EL BORDE, NO LA CAJA ───
+     La caja de la barra YA medía exactamente lo mismo que el video
+     —medido: los dos de 496 a 1232— pero no se veía así, y el motivo es
+     que lo que el ojo alinea es la TINTA. El glifo son 20px centrados
+     en un blanco de 38, así que arrancaba 9px adentro del borde
+     izquierdo del clip y la fila entera se leía más angosta que él.
+
+     El margen negativo es exactamente ese hueco, escrito como la resta
+     que lo origina y no como −9: si mañana cambia el tamaño del botón o
+     del glifo, se corrige solo.
+
+     Es el mismo recurso que usa el toggle de la ficha para poner su
+     dibujo sobre el riel de la página. Y el área de clic no se pierde:
+     cuelga en el margen, que es blanco de todos modos.
+
+     LA SANGRÍA PROPIA DEL DIBUJO NO SE TOCA. El triángulo arranca en
+     x=6 de un lienzo de 20 —y las barras de pausa en 5.5—, que es su
+     compensación óptica: la punta de un triángulo pegada a un borde
+     duro se lee como si se saliera. Es la misma razón por la que una
+     letra tiene sangría lateral. Acá se corrige lo que era accidental
+     —el centrado en el blanco— y se respeta lo que era una decisión. */
+  margin-left: calc((var(--rep-glifo) - var(--rep-play)) / 2);
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -206,13 +232,36 @@
 }
 
 /* ─── LA VELOCIDAD · de benji, medido ───
-   Dos estados y no un menú. Los dos textos van superpuestos con
-   inset:0 y se cruzan por opacidad: sin eso el botón cambia de ancho
-   entre "1x" y "0.5x" y todo lo que tiene al lado salta. */
+   Dos estados y no un menú. Los dos textos van apilados en la misma
+   celda y se cruzan por opacidad.
+
+   ─── LOS DOS ESTADOS MIDEN LO MISMO, Y ESO NO ES CASUALIDAD ───
+   Con las etiquetas "1x" y "0.5x" el botón tenía tres condiciones que no
+   se pueden cumplir a la vez: cerrar contra el borde del video, dejar el
+   mismo aire que el resto de la fila, y no cambiar de ancho al alternar.
+   Se resolvía fijando el ancho en 34px y anclando el texto a la derecha
+   —la fila no saltaba— pero el hueco a la izquierda del texto sí:
+   22.6px en "1x" contra 9.8px en "0.5x" (medido). Es decir que la
+   distancia entre el contador de cuadros y la velocidad cambiaba 13px en
+   cada clic. La caja quedaba quieta y el ojo veía saltar el aire, que es
+   lo mismo que se quería evitar.
+
+   LA SALIDA ES QUE LAS DOS ETIQUETAS MIDAN IGUAL: "1.0x" y "0.5x" con
+   cifras tabulares dan 25.06px las dos, medido — es el mismo recurso que
+   ya usa .lectura para que el contador no tiemble mientras corre, y la
+   misma convención de un instrumento que mide (0:00, 0/255, 1.0x).
+   Con eso el ancho se lo puede dar el contenido, y las tres condiciones
+   se cumplen solas: cero hueco muerto, aire constante de --rep-gap, y el
+   borde derecho clavado donde termina el clip.
+
+   El 28 de ancho que se le midió a benji NO se copia: es el ancho de SU
+   etiqueta en SU tipografía. Lo que se copia de él es el alto, el
+   tamaño, el peso, el radio y la transición. */
 .velocidad {
   flex: none;
-  position: relative;
-  width: 34px;
+  /* grid y no position:absolute: apilando los dos textos en la celda
+     1/1 el botón mide lo que mide el más ancho, sin número mágico. */
+  display: grid;
   height: var(--rep-chico-h);
   padding: 0;
   border: 0;
@@ -222,6 +271,8 @@
   font-size: 12px; /* suyo */
   font-weight: 460; /* suyo */
   line-height: 1;
+  /* Lo que iguala los dos estados; ver arriba. */
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: all 0.2s ease; /* suyo, literal */
 }
@@ -229,11 +280,16 @@
   color: var(--ink);
 }
 .velocidad > span {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* CONTRA LA DERECHA Y NO CENTRADO, por lo mismo que el play se corre a
+     la izquierda: el que cierra la fila es este texto y tiene que morir
+     donde muere el clip. Con las dos etiquetas ya iguales esto no
+     debería cambiar nada — es el seguro para el día que una tipografía
+     de reemplazo no traiga cifras tabulares: el borde derecho aguanta
+     igual y lo único que cede es el aire de la izquierda. */
+  justify-content: flex-end;
   opacity: 0;
   transition: inherit;
 }

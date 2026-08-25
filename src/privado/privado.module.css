@@ -57,6 +57,7 @@
   --privado-inline: 32px;
   --privado-ancho: 1440px;
 
+
   /* ─── EL BLANCO, SIN CAJA ───
      Las dos filas de la cabecera son PALABRAS y se quedan así: ni
      píldora, ni fondo, ni borde. Lo que crece es el área clickeable,
@@ -232,6 +233,74 @@
    razonamiento que deja la card y la flecha de volver sin gatear. */
 .solapa:hover {
   color: var(--activo-c);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UN GLIFO DE LA BARRA — 32×32 de blanco sobre un dibujo de 16.
+
+   La cuenta es la del + de la grilla y la del toggle de la ficha: el
+   dibujo mide 16 y el área de click 32, así que ninguno queda por
+   debajo del mínimo de 24 aunque el ícono sea chico.
+
+   VIVE ACÁ POR LA REGLA DE SIEMPRE: lo leen DOS módulos —el toggle del
+   inspector, en ficha.module.css, y el disparador del menú, en
+   acciones.module.css— y dos copias de la misma caja se separan solas
+   con el tiempo. Es exactamente el motivo por el que --privado-blanco-*
+   y --vault-* también viven en este archivo.
+
+   Lo que NO entra acá es la posición: el margen negativo que pone el
+   dibujo sobre el riel es de UNO de los dos, y lo pone él. */
+.glifo {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--type-nav-c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* El radio no se ve —no hay fondo— pero le da forma al anillo de foco,
+     que sigue el border-radius. Es lo mismo que hace .back. */
+  border-radius: 8px;
+  /* ─── EL PRESS, QUE ESTOS GLIFOS NO TENÍAN ───
+     Un botón que reacciona al puntero y no reacciona al dedo se siente
+     muerto. No es un valor nuevo: es el de .accion en
+     acciones.module.css, la única cosa del sistema que hoy tiene press
+     —0.97 y 100ms— con la nota de que "se siente en el dedo, no se ve".
+     Acá aplica igual.
+
+     La card sigue sin press y eso no cambia: tokens.css tiene contado
+     por qué (un solo :active vivo en 23 páginas de las referencias, y
+     es de un botón). Esto ES un botón. */
+  transition:
+    color var(--dur-text) var(--ease-text),
+    transform 100ms var(--ease-dialogo);
+}
+.glifo:hover {
+  color: var(--activo-c);
+}
+.glifo:active {
+  transform: scale(0.97);
+}
+/* CON SU MENÚ ABIERTO EL DISPARADOR SE QUEDA ENCENDIDO. Sin esto, al
+   sacar el puntero para ir a un ítem el glifo se apaga y el menú queda
+   colgando de nada. --activo-c es el color que en este sistema significa
+   "ésta" —el del hover y el de la pieza activa del índice—, así que no
+   entra ningún color nuevo.
+
+   Sólo a los que abren un menú. El toggle del inspector también lleva
+   aria-expanded, pero él ya dice su estado rellenando el compartimento
+   del dibujo; agregarle color sería decir lo mismo dos veces. */
+.glifo[aria-haspopup='menu'][aria-expanded='true'] {
+  color: var(--activo-c);
+}
+@media (prefers-reduced-motion: reduce) {
+  .glifo:active {
+    transform: none;
+  }
 }
 
 /* Acá vivía .vacio, el estado vacío del playground. Se fue cuando el

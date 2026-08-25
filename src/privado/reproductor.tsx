@@ -14,8 +14,8 @@ import type { Clip } from './clips'
      de apple   el botón de play/pausa — 38×38, icono de 20, y sus
                 colores exactos en claro y en oscuro. 28 videos suyos
                 lo usan, así que renderiza de verdad
-     de benji   el toggle de velocidad — dos estados (1x y 0.5x), NO un
-                menú, con los dos textos cruzándose por opacidad para
+     de benji   el toggle de velocidad — dos estados (1.0x y 0.5x), NO
+                un menú, con los dos textos cruzándose por opacidad para
                 que el botón no cambie de ancho. 45 elementos
 
    LO QUE NO TIENE REFERENCIA es la barra de tiempo. Los controles
@@ -31,6 +31,16 @@ import type { Clip } from './clips'
 
 /* Los dos de benji, y en ese orden: su botón arranca en 1x. */
 export const VELOCIDADES = [1, 0.5] as const
+
+/* SIEMPRE UN DECIMAL: "1.0x", no "1x".
+   No es cosmética, es lo que hace que los dos estados midan lo mismo.
+   Con cifras tabulares —las que ya usa la lectura de al lado— "1.0x" y
+   "0.5x" dan 25.06px las dos, medido, así que el botón puede tomar el
+   ancho de su contenido sin que la fila salte ni cambie el aire al
+   alternar. La explicación larga está en .velocidad, en el CSS.
+   Y de paso es como escribe un instrumento que mide: 0:00, 0/255,
+   1.0x, todos con la misma cantidad de dígitos siempre. */
+const etiqueta = (v: number) => `${v.toFixed(1)}x`
 
 /* Los iconos son nuestros —dos formas triviales— y no los de Apple: se
    copian sus medidas, no su dibujo. Van con `currentColor` en vez de la
@@ -112,6 +122,33 @@ export function Reproductor({ clip }: { clip: Clip }) {
     [cuadro, totalCuadros],
   )
 
+  /* A LOS BORDES. Mismo criterio que `mover`: se cae en el MEDIO del
+     primer o del último cuadro, no en el borde del clip. Pedir
+     exactamente `duration` deja el video en estado terminado y qué
+     cuadro muestra ahí depende del navegador; pedir 0 sí es seguro
+     —no hay frontera por debajo— pero se usa el medio igual para que
+     el número de cuadro salga por el mismo camino en los dos extremos.
+
+     Sin metadatos de cuadro se cae a la duración menos un pelo, que es
+     lo mejor que se puede decir sin saber cuánto dura un cuadro. */
+  const extremo = useCallback(
+    (dir: number) => {
+      const v = video.current
+      if (!v) return
+      v.pause()
+      if (dir < 0) {
+        v.currentTime = cuadro ? cuadro * 0.5 : 0
+        return
+      }
+      const fin = Number.isFinite(v.duration) ? Math.max(v.duration - 0.001, 0) : 0
+      /* Se acota contra la duración: `cuadros` sale de redondear y puede
+         quedar medio cuadro más allá del final real del archivo. */
+      v.currentTime =
+        cuadro && totalCuadros ? Math.min((totalCuadros - 0.5) * cuadro, fin) : fin
+    },
+    [cuadro, totalCuadros],
+  )
+
   /* EL TECLADO ESCUCHA EN EL DOCUMENTO, no en el marco.
 
      Estaba atado al foco del reproductor, y así fallaba justo en el caso
@@ -121,33 +158,57 @@ export function Reproductor({ clip }: { clip: Clip }) {
 
      Ahora que las flechas visibles se fueron, el teclado es el ÚNICO
      camino al cuadro a cuadro, así que no puede depender de dónde quedó
-     el foco. Y el listener no se come nada: sólo existe mientras hay un
-     clip abierto, y en esa vista no hay nada más que use las flechas.
+     el foco. Y el listener sólo existe mientras hay un clip abierto.
 
-     Se saltea cuando el foco está en un control: si estás sobre el botón
-     de play, el espacio ya lo activa el navegador y hacerlo dos veces
-     sería volver al estado anterior. */
+     LAS FLECHAS SON CUATRO GESTOS:
+
+       sola      un cuadro
+       option    diez cuadros — el salto grueso para cruzar un gesto
+                 entero sin soltar la tecla. shift hace lo mismo y se
+                 queda: ya estaba y no cuesta nada
+       command   al principio o al final del clip
+
+     command+flecha es back/forward del navegador, así que el
+     `preventDefault` de esa rama no es cosmético: sin él te vas de la
+     página en vez de saltar al final del video.
+
+     Y JUSTO POR ESO EL FOCO SÍ IMPORTA PARA LAS FLECHAS. La ficha de al
+     lado tiene el título, la fuente y las notas: campos de texto donde
+     option+flecha salta de palabra y command+flecha va al principio o
+     al final de la línea. Robárselas mientras escribís rompe lo que en
+     mac hace todo el mundo sin pensarlo, así que en un campo el
+     reproductor no toca las flechas. En un BOTÓN sí las toca —los
+     botones no usan flechas— para que después de apretar play sigas
+     yendo cuadro a cuadro.
+
+     El espacio se saltea en cualquier control, botones incluidos: si
+     estás sobre el de play, el espacio ya lo activa el navegador y
+     hacerlo dos veces sería volver al estado anterior. */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.ctrlKey) return
       const t = e.target as HTMLElement | null
-      const enControl =
-        t instanceof HTMLElement &&
-        (t.closest('button, input, textarea, select') || t.isContentEditable)
-      if (e.key === 'ArrowRight') {
+      const foco = (sel: string) =>
+        t instanceof HTMLElement && (!!t.closest(sel) || t.isContentEditable)
+
+      const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
+      if (dir) {
+        if (foco('input, textarea, select')) return
         e.preventDefault()
-        mover(e.shiftKey ? 10 : 1)
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        mover(e.shiftKey ? -10 : -1)
-      } else if ((e.key === ' ' || e.key === 'k') && !enControl) {
+        if (e.metaKey) extremo(dir)
+        else mover(dir * (e.altKey || e.shiftKey ? 10 : 1))
+        return
+      }
+
+      if (e.metaKey || e.altKey) return
+      if ((e.key === ' ' || e.key === 'k') && !foco('button, input, textarea, select')) {
         e.preventDefault()
         alternar()
       }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [mover, alternar])
+  }, [mover, extremo, alternar])
 
   useEffect(() => {
     const v = video.current
@@ -195,9 +256,10 @@ export function Reproductor({ clip }: { clip: Clip }) {
 
       <div className={css.controles}>
         {/* NO HAY BOTONES DE CUADRO. El paso vive sólo en las flechas del
-            teclado: son más precisas —podés mantenerlas apretadas y con
-            shift saltás de a diez— y no hay que apuntarle a un botón de
-            24px mientras mirás otra cosa. Estuvieron y se sacaron. */}
+            teclado: son más precisas —podés mantenerlas apretadas, con
+            option saltás de a diez y con command a los bordes— y no hay
+            que apuntarle a un botón de 24px mientras mirás otra cosa.
+            Estuvieron y se sacaron. */}
         <button
           className={css.play}
           onClick={alternar}
@@ -244,17 +306,18 @@ export function Reproductor({ clip }: { clip: Clip }) {
           )}
         </div>
 
-        {/* El toggle de benji: dos estados, y los dos textos superpuestos
-            con inset:0 cruzándose por opacidad. Sin eso el botón cambia
-            de ancho entre "1x" y "0.5x" y la barra salta. */}
+        {/* El toggle de benji: dos estados, y los dos textos apilados en
+            la misma celda cruzándose por opacidad. Las etiquetas van con
+            un decimal para que los dos estados midan igual — ver
+            `etiqueta` arriba. */}
         <button
           className={css.velocidad}
           onClick={() => setVel((v) => (v === 1 ? 0.5 : 1))}
-          aria-label={`Speed ${vel}x`}
+          aria-label={`Speed ${etiqueta(vel)}`}
         >
           {VELOCIDADES.map((v) => (
             <span key={v} data-activo={v === vel ? '' : undefined}>
-              {v}x
+              {etiqueta(v)}
             </span>
           ))}
         </button>

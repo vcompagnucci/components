@@ -96,17 +96,35 @@ export default function Privado({
      en qué vista estás: lo que decide es si hay algo abierto. */
   const enDetalle = resto !== ''
 
-  /* ─── EL LIENZO NO TIENE MARCO ───
-     Con una vista del playground abierta, la barra de solapas NO se
-     dibuja y el marco pierde su aire vertical: un lienzo es todo lo que
-     hay en la pantalla, y una fila de chrome arriba le come 32 px de
-     tablero para decir algo que ya está dicho —la sidebar del propio
-     lienzo tiene la flecha para volver, y ésa es la salida—.
+  /* ─── ADENTRO DE ALGO NO HAY SOLAPAS ───
+     Abierto un clip o un lienzo, la barra de solapas NO se dibuja.
 
-     Es la única vista del área privada que se comporta así, y por eso la
-     condición mira las dos cosas: la ruta Y que haya algo abierto. El
-     detalle de un clip del vault sigue llevando su barra, porque ahí
-     seguís mirando el vault. */
+     Antes esto valía sólo para el lienzo, con este argumento: "el
+     detalle de un clip sigue llevando su barra, porque ahí seguís
+     mirando el vault". Se revirtió por pedido, y el argumento se cae
+     solo cuando se mira la pantalla: en el detalle NO se puede ir a
+     Playground sin volver primero, así que las dos palabras no son
+     navegación —son un rótulo de dónde estás—, y eso ya lo dice el
+     título del clip, que está justo debajo.
+
+     La salida tampoco depende de ellas: la flecha de volver, el gesto
+     de atrás y ⌘Z hacen los tres history.back().
+
+     Y ADEMÁS PAGA. El detalle está atado al alto de la ventana
+     —height:100dvh, overflow:hidden— y el reproductor reparte lo que
+     sobra: sacar la fila de chrome no deja un hueco, se lo lleva el
+     clip, que es lo único que se vino a mirar.
+
+     EL HUECO DE ACCIONES SE VA CON ELLA, y no se pierde nada: el único
+     que lo usa es el filtro del vault, que sólo existe en la grilla. El
+     detalle nunca portaleó nada ahí. */
+  const sinSolapas = enDetalle
+
+  /* El lienzo además ENTREGA EL AIRE VERTICAL del marco: es a sangre en
+     los cuatro lados y lo único que lo acota es su propia sidebar. Sin
+     esto quedaban 80px de canvas arriba y otros 80 abajo de una tela
+     que tiene que llegar al borde de la ventana. El detalle de un clip
+     no: ahí el aire sigue siendo parte de la composición. */
   const enLienzo = actual === '/playground' && enDetalle
 
   /* EL HUECO DE ACCIONES de la barra. La vista que esté abierta pone
@@ -133,7 +151,7 @@ export default function Privado({
     >
       {/* Las solapas son links de verdad, con el mismo interceptor que la
           pieza de la lista: cmd-click abre pestaña nueva. */}
-      {!enLienzo && (
+      {!sinSolapas && (
         <nav className={css.barra} aria-label="Private">
           {vistas.map((v) => (
             <a

@@ -15,9 +15,18 @@
    cuadros, tamaño, peso— y se sacaron a pedido: lo que se consulta al
    estudiar un gesto ya lo muestra el reproductor.
    ═══════════════════════════════════════════════════════════════ */
+/* BAJA CON EL CLIP. Era `top: 0` y alcanzaba, porque el escenario no
+   tenía aire arriba y el clip arrancaba en su borde. Desde que el aire
+   se reparte para centrar el video —ver --escenario-arriba en
+   vault.module.css— eso dejó de ser cierto: un absolute mide `top`
+   contra la caja de RELLENO, no contra la de contenido, así que la
+   ficha se quedaba pegada al borde mientras el clip bajaba 44 y las dos
+   columnas dejaban de compartir una línea. Eso último es una decisión
+   vieja y explícita del escenario, no un accidente, así que se
+   sostiene leyendo el mismo número. */
 .hoja {
   position: absolute;
-  top: 0;
+  top: var(--escenario-arriba, 0);
   right: 0;
   width: var(--ficha-panel);
 }
@@ -25,33 +34,27 @@
 /* ─── EL BOTÓN DEL PANEL ───
    Vive en la fila del título, en la otra punta: lejos de los valores
    —pegado a ellos fue una queja— y en el lugar clásico del toggle de
-   inspector. 32×32 de área sobre un glifo de 16, la cuenta del + de la
-   grilla. Sin caja, como todo el chrome del área privada. */
+   inspector. La caja —32×32 sobre un dibujo de 16, sin fondo, con su
+   hover y su press— la pone .glifo, que vive en privado.module.css
+   porque ahora la comparte con el disparador del menú de la barra.
+
+   Lo único suyo es el margen, y es lo que tiene que ser suyo: dónde
+   cae este glifo no es asunto de la caja. */
 .boton {
-  margin-left: auto;
+  composes: glifo from './privado.module.css';
   /* EN LA COLUMNA DE GLIFOS DEL MARGEN. A la derecha del riel ya vive
      una columna de insignias —el ↗ de Source y el › de Device, centro
      en riel + 16— y este glifo tiene que compartir ese eje: alineado
      al borde del riel quedaban dos columnas de glifos a 16px una de
      otra, señalado sobre una captura. Caja de 32 con dibujo de 16:
      −32 pone el centro del dibujo exactamente en riel + 16. El área de
-     clic cuelga en el margen de la página, como todos los blancos. */
+     clic cuelga en el margen de la página, como todos los blancos.
+
+     `margin-left: auto` SE FUE de acá: empujaba al toggle cuando era el
+     único del extremo, y desde que tiene un vecino —el ···— lo que se
+     empuja es el grupo. Ese auto ahora vive en .trailing, en
+     vault.module.css. */
   margin-right: -32px;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--type-nav-c);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: color var(--dur-text) var(--ease-text);
-}
-.boton:hover {
-  color: var(--activo-c);
 }
 
 /* Rótulo a la izquierda y valor a la derecha contra un borde común.
@@ -118,6 +121,42 @@
 .campo::placeholder,
 .nota::placeholder {
   color: var(--text-secondary);
+}
+
+/* ─── LA NOTA, LEYÉNDOSE ───
+   La misma caja que el textarea —hereda .nota— con lo puesto para que
+   un div de texto se comporte como uno. Comparten clase a propósito:
+   son las dos caras de un mismo campo, y si la tipografía o el ancho
+   se separaran, la nota daría un salto al pasar de leer a editar.
+
+   ESTA VISTA SÓLO EXISTE CUANDO LA NOTA TIENE UN LINK. Sin links no se
+   monta y el campo es el textarea de siempre. El porqué está en
+   ficha.tsx. */
+.lectura {
+  /* Los saltos de línea y los espacios son parte de lo que escribiste.
+     El textarea los respeta; sin esto, la nota se reacomodaría sola al
+     dejar de editarla. */
+  white-space: pre-wrap;
+  /* Una URL no tiene espacios donde cortar. Sin esto desborda la
+     columna en vez de envolverse — que es el defecto que esta función
+     vino a arreglar. Sigue haciendo falta con los links ya dibujados:
+     el texto de alrededor puede traer una ruta larga sin protocolo,
+     que no es un link y nadie va a acortar. */
+  overflow-wrap: anywhere;
+  cursor: text;
+  /* Una nota de un solo renglón no puede medir cero: sin piso, el
+     hueco hasta Added se movería al entrar y salir de edición. */
+  min-height: var(--type-meta-lh);
+}
+/* EL ANILLO VUELVE ACÁ, y es la única excepción a la regla de que en
+   el área privada el texto sin caja no lleva anillo. Esa regla se
+   apoya en que el caret marca el foco; leyendo no hay caret, así que
+   el foco de teclado se quedaría marcado sólo por el rótulo. La
+   excepción dura lo que dura la lectura: al entrar en edición manda
+   .nota y el anillo se apaga, como en todos los demás campos. */
+.lectura:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 /* ─── EL LINK DE SOURCE ───

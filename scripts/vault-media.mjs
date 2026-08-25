@@ -46,6 +46,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { cuadroDe } from './cuadros.mjs'
+import { tarjetaDe } from './tarjeta-link.mjs'
 
 /* Los cuadros se leen del contenedor UNA vez por archivo. La clave lleva
    tamaño y mtime, así que reemplazar un clip lo vuelve a leer solo y no
@@ -745,6 +746,28 @@ export function vaultMedia(dirCrudo) {
           const fichas = leerJson(raiz, FICHAS)
           const clips = recorrer(raiz).map((c) => ({ ...c, ficha: fichas[c.ruta] ?? null }))
           return json(res, 200, { conectado: true, carpeta: raiz, clips })
+        }
+
+        /* ─── EL TÍTULO Y EL ÍCONO DE UN LINK ───
+           El porqué entero está en tarjeta-link.mjs. Acá sólo hay dos
+           decisiones de ruteo:
+
+           VA ANTES DEL CORTE DE `raiz` porque es el único camino del
+           puente que NO toca el vault. Una nota con un link se tiene
+           que poder leer igual con VAULT_DIR desconectada: el link no
+           es un archivo tuyo.
+
+           Y NO VALIDA LA URL ACÁ. La valida tarjetaDe, que es la que
+           sale a buscarla — dos validaciones de lo mismo en dos
+           archivos se separan solas. */
+        if (pedido === '/__link') {
+          const url = new URLSearchParams((req.url || '').split('?')[1] ?? '').get('url')
+          if (!url) return json(res, 400, { error: 'falta url' })
+          tarjetaDe(url).then(
+            (t) => json(res, 200, t),
+            (e) => json(res, 500, { error: String(e?.message ?? e) }),
+          )
+          return
         }
 
         if (!raiz) return json(res, 404, { error: motivo })
