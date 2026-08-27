@@ -24,7 +24,7 @@ Node ≥24, pnpm. Versiones exactas en `package.json`, sin `^` ni `~`.
 pieza App — tiene su propio `package.json`:
 
 ```bash
-cd nativo && pnpm install && pnpm ios
+cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
 ```
 
 **Lo que NO viaja al worktree.** Están gitignoreados `node_modules/`,
@@ -220,7 +220,7 @@ recon que la fundamenta en `.context/recon/TALLER-NATIVO.md`
 (gitignoreada, por eso lo importante vive acá). En tres comandos:
 
 ```bash
-cd nativo && pnpm install && pnpm ios
+cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
 pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
 ```
@@ -256,6 +256,11 @@ pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
   build nativo. La regla del repo se cumple donde acá significa algo —
   **el SDK es el último**, 57. La tabla con las cuatro versiones y su
   porqué está en `nativo/AGENTS.md`.
+- **El dev build anda, con un parche de dos líneas.** Xcode 26.2 rechaza
+  una anotación que `expo-modules-jsi` 57.0.5 le puso a un constructor;
+  `patches/expo-modules-jsi@57.0.5.patch` la saca y deja el header
+  idéntico al de 57.0.4, que Expo publicó y compila. El porqué completo
+  está en `nativo/AGENTS.md`.
 - **SwiftUI todavía no tiene taller**: espera a la primera pieza que lo
   pida. Ahí van View por pieza + `#Preview` y los springs de iOS 17.
 

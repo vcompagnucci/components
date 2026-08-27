@@ -27,40 +27,61 @@ conclusiones viven acá y en el AGENTS de arriba.
 
 ```bash
 pnpm install                  # una vez por worktree
-pnpm ios                      # Metro + simulador, sobre Expo Go
+pnpm ios:build                # UNA vez por máquina: compila el dev client
+pnpm ios                      # el día a día: Metro + la app en el simulador
 pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
-pnpm ios:build                # dev build propio — ver el bloqueo abajo
 ```
 
-### Hoy corre sobre Expo Go, y hay un motivo
+`pnpm ios:build` compila el **dev client** —la app `Taller` que queda
+instalada en el simulador— y sólo hace falta repetirlo cuando entra una
+dependencia NATIVA nueva. El resto del tiempo alcanza `pnpm ios`, que
+levanta Metro y abre la app ya instalada. Todo lo que sea TypeScript
+recarga en caliente.
 
-**`pnpm ios:build` está bloqueado por la versión de Xcode**, no por el
-proyecto: SDK 57 pide **Xcode 26.4 o más nuevo** y esta máquina tiene
-26.2. Se intentó y falla al compilar `expo-modules-jsi`:
+**No es Expo Go.** Expo Go sirve para arrancar, pero no trae
+`@shopify/react-native-skia` —es un módulo nativo de terceros— y Skia es
+justamente una de las razones de este taller.
 
+### El parche de `expo-modules-jsi`, y por qué existe
+
+`pnpm ios:build` falla de fábrica con **Xcode 26.2**: `expo-modules-jsi`
+57.0.5 anota dos constructores de `RuntimeScheduler` con
+`SWIFT_RETURNS_RETAINED`, pero la clase recién se declara
+`SWIFT_SHARED_REFERENCE` en su llave de cierre. Clang lee el header en
+orden, así que en el constructor el tipo todavía no es shared reference
+y rechaza la anotación. El issue
+[expo/expo#49426](https://github.com/expo/expo/issues/49426) lo cerró un
+mantenedor de Expo el 2026-08-27 con *"Upgrade Xcode to 26.4 or newer
+which is required for SDK 57"*.
+
+**No hizo falta actualizar Xcode.** Las dos anotaciones **entraron en
+57.0.5**: 57.0.0 a 57.0.4 no las tienen, y el diff de ese header entre
+57.0.4 y 57.0.5 son exactamente esas dos líneas y nada más (verificado
+leyendo los dos archivos de unpkg, sin instalarlos). Así que
+`patches/expo-modules-jsi@57.0.5.patch` las saca, y el header queda
+**idéntico byte a byte al de 57.0.4** — una versión que Expo publicó y
+que compila. No es un parche inventado: es volver a lo último que
+funcionaba.
+
+Bajar el paquete a 57.0.4 no era opción: `expo-modules-core` pide
+`~57.0.5`.
+
+**Cuándo sacarlo:** cuando esta máquina tenga Xcode 26.4+. Ahí se borra
+el patch, se saca `patchedDependencies` de `pnpm-workspace.yaml`, y a
+reconstruir. El parche viaja con el repo, así que cualquier worktree
+compila igual mientras tanto.
+
+### El otro paso que no es obvio
+
+Skia necesita bajar sus binarios **antes** de que corra `pod install`:
+
+```bash
+npx install-skia
 ```
-RuntimeScheduler.h:61 'RuntimeScheduler' cannot be annotated with
-SWIFT_RETURNS_RETAINED because it is not returning a
-SWIFT_SHARED_REFERENCE type
-```
 
-No es un bug para parchear ni se arregla subiendo de versión — se
-verificó que el header es idéntico en el patch siguiente
-(`expo-modules-jsi` 57.0.5 y 57.0.6, leídos de unpkg sin instalarlos), y
-el issue [expo/expo#49426](https://github.com/expo/expo/issues/49426) lo
-cerró un mantenedor de Expo el 2026-08-27 con la respuesta:
-*"Upgrade Xcode to 26.4 or newer which is required for SDK 57"*.
-
-**Mientras tanto Expo Go alcanza para casi todo.** `pnpm ios` corre — el
-índice del taller se verificó andando en el simulador. Lo que Expo Go
-**no** trae es `@shopify/react-native-skia`, porque es un módulo nativo
-de terceros: una pieza que importe Skia va a fallar hasta que se pueda
-hacer el dev build. Reanimated, Gesture Handler y expo-haptics sí están.
-
-**Y si hacés el dev build alguna vez**: Skia necesita bajar sus binarios
-antes de que corra `pod install` — `npx install-skia`. El postinstall no
-lo hizo solo con pnpm.
+Con pnpm el postinstall no lo hace solo. Si `pnpm ios:build` se queja de
+*"Skia prebuilt binaries not found"*, es esto.
 
 `pnpm nueva` es el `New sketch` de este lado: crea la carpeta y nada
 más. **El índice se deriva de las carpetas** (`require.context` en
@@ -88,6 +109,12 @@ src/app/
 nombre del archivo de la grabación, y la URL de la pieza publicada. Por
 eso `pnpm nueva` usa la misma cuenta que `slug()` en `src/pieces.ts` del
 repo web. Si divergieran, la pieza publicada no apuntaría a su taller.
+
+**Verificado de punta a punta** el 2026-08-27: `pnpm nueva` creó una
+pieza, el dev build la dibujó con **Skia** en el simulador, `pnpm grabar`
+escribió el clip en el vault, y `scripts/cuadros.mjs` del repo web lo
+parseó (tasa fija, 40 unidades por cuadro) — o sea que el reproductor
+puede ir cuadro a cuadro sobre lo que sale de acá.
 
 **Sin header, y se graba así.** Una pieza ocupa la pantalla entera: todo
 lo que no sea la pieza terminaría adentro del video. Para volver al
@@ -130,11 +157,10 @@ háptica ni pantalla de 120Hz**, que son justo dos de las cosas que este
 vault estudia. Un gesto que se siente bien en el simulador puede sentirse
 mal en la mano.
 
-**Con dev build propio en el teléfono** hace falta el mismo Xcode 26.4
-de arriba, más firmar la app: con una cuenta gratis de Apple sirve, pero
-el perfil vence a los 7 días y hay que reinstalar. La salida limpia es
-EAS Build, que compila en la nube y no depende de tu Xcode — está
-disponible y todavía no se probó acá.
+**Con dev build propio en el teléfono** hay que firmar la app: con una
+cuenta gratis de Apple alcanza, pero el perfil vence a los 7 días y hay
+que reinstalar. La salida limpia es EAS Build, que compila en la nube —
+disponible y todavía no probado acá.
 
 **Grabar desde el teléfono es distinto.** `pnpm grabar` usa `simctl`, que
 sólo habla con simuladores: contra un iPhone real no sirve. Ahí se graba

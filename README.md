@@ -221,6 +221,10 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
   su `AGENTS.md`); el proyecto Xcode espera a la primera pieza que lo
   pida — View por pieza + `#Preview`, springs de iOS 17, Inject para
   recarga en caliente.
+- **El parche de `expo-modules-jsi` es temporal.** Existe porque esta
+  máquina tiene Xcode 26.2 y SDK 57 pide 26.4+. Cuando Xcode se
+  actualice: borrar `nativo/patches/`, sacar `patchedDependencies` de
+  `nativo/pnpm-workspace.yaml`, reconstruir.
 - **Los MCP que le dan ojos al agente no están conectados.** Están
   relevados en la recon (`expo-mcp` del lado RN, XcodeBuildMCP del lado
   Xcode, y Xcode 26.3+ expone MCP nativo — esta máquina tiene 26.2).
