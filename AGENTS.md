@@ -8,6 +8,12 @@ Detrás hay un área privada que sólo existe en desarrollo: el **vault**
 —la pared de referencias— y el **playground** —el taller—. Las tres
 cosas son un solo recorrido, y está contado abajo.
 
+> **¿Venís a construir una pieza?** Andá directo a
+> [**El proceso, paso a paso**](#el-proceso-paso-a-paso): hay un camino
+> para **Web** y otro para **App**, numerados. El resto de este archivo
+> explica POR QUÉ cada paso es así — leelo cuando algo no cierre, o
+> antes de cambiar algo que ya está decidido.
+
 ## Arrancar en un worktree nuevo
 
 ```bash
@@ -62,6 +68,118 @@ qué es a mano y qué todavía no existe.
 El vault no publica nada — es la pared de referencias. Publicar es el
 final del taller y vive donde está tu trabajo: **elegís un frame del
 tablero y la acción aparece en la sidebar** (clic derecho: atajo).
+
+---
+
+## El proceso, paso a paso
+
+Lo de arriba es el mapa; esto es el procedimiento. **Dos caminos, y lo
+primero que hay que decidir es cuál** — porque no se cruzan: una pieza
+Web se construye en el navegador y se publica corriendo; una pieza App
+se construye contra el simulador y se publica en video. Lo decide
+`platform`, que a su vez lo decide una sola pregunta: **¿dónde corre la
+cosa que estás mostrando?** Navegador → Web. App instalada → App.
+
+Las tres reglas que valen para los dos caminos, antes de empezar:
+
+1. **Una mini-decisión por vez.** Lo que no está bajo estudio se queda
+   congelado, para que la comparación sea limpia.
+2. **Nada se afirma sin medir** — ni un valor propio ni uno ajeno. Ver
+   *Regla de evidencia*, más abajo.
+3. **El porqué se escribe arriba del archivo y en la bitácora.** Un
+   valor sin recibo es un valor que alguien va a cambiar sin saber qué
+   rompe.
+
+### Camino A · una pieza **Web**
+
+| # | Paso | Cómo |
+| --- | --- | --- |
+| 0 | Levantá el repo | `pnpm install && pnpm dev` → `localhost:3000` |
+| 1 | **Juntá la referencia** *(opcional)* | Soltá el clip en `VAULT_DIR/web/`. Aparece solo en `/vault` |
+| 2 | **Estudiala** *(opcional)* | Abrí el clip: flechas para ir cuadro a cuadro, `option` 10, `command` a los bordes. Anotá `Source` y `Notes` en la ficha |
+| 3 | **Llevala al tablero** *(opcional)* | Clic derecho en la grilla → `Open in Playground`, o el ↗ del detalle |
+| 4 | **Creá el boceto** | En el lienzo: `+` → **New sketch**. Escribe `src/privado/bocetos/<slug>.tsx` y lo pone en la tela |
+| 5 | **Escribí** | Editá ese archivo. Vite lo recarga en el frame **sin recargar la página**. Un boceto roto apaga sólo su frame y se recupera al guardar |
+| 6 | **Probalo** | Clic para elegir el frame → ahí el boceto recibe los clics y podés apretarle los botones. `Escape` para volver a moverlo |
+| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción → **Add** |
+| 8 | **Verificá** | Te deja en `/<slug>` con el componente **corriendo**. Mirá también la home: el preview vivo va en las dos vistas |
+| 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
+
+Qué pasó por detrás en el paso 7: el archivo se **copió** de
+`src/privado/bocetos/` a `src/piezas/<slug>.tsx` —cruzó la frontera, ver
+abajo— y entró la entrada en `PIECES`. **A partir de ahí el canónico es
+el archivo publicado**; el boceto se queda en tu tablero.
+
+> Una pieza publicada **no puede importar nada de `src/privado/`**. El
+> boceto nace autocontenido y tiene que seguir siéndolo.
+
+### Camino B · una pieza **App** (Expo / React Native)
+
+| # | Paso | Cómo |
+| --- | --- | --- |
+| 0 | Levantá el taller | `cd nativo && pnpm install`. **La primera vez en la máquina**, además `pnpm ios:build` (compila el dev client). Después alcanza `pnpm ios` |
+| 1 | **Juntá la referencia** *(opcional)* | Soltá la grabación ajena en `VAULT_DIR/native/`, estudiala en `/vault` como en el camino A |
+| 2 | **Creá la pieza** | `pnpm nueva "Swipe to pay"` → `nativo/src/app/swipe-to-pay/index.tsx`. El índice del taller la levanta solo |
+| 3 | **Escribí** | Editá ese archivo. Metro recarga en caliente. Disponibles: Reanimated, Gesture Handler, Skia, expo-haptics |
+| 4 | **Miralo correr** | En el simulador. Para volver al índice, **swipe desde el borde izquierdo** |
+| 5 | **Probalo en el teléfono** | Vale la pena: el simulador **no tiene háptica ni 120Hz**. Expo Go + misma Wi-Fi, o `pnpm start --tunnel` |
+| 6 | **Grabá** | `pnpm grabar swipe-to-pay`. Corta con Enter. Barra en 9:41, `--codec h264`, escribe **directo a `VAULT_DIR/native/`** |
+| 7 | **Llevala al tablero** | La grabación ya está en `/vault`: clic derecho → `Open in Playground` |
+| 8 | **Publicá** | Con el frame elegido, `Add to Library` → nombre + descripción → **Add** |
+| 9 | **Verificá** | Te deja en `/<slug>` con el video autoreproduciendo en el hueco del teléfono |
+| 10 | **Escribí el porqué** | Igual que el camino A |
+
+Qué pasó por detrás en el paso 8: el video se copió a
+`public/piezas/<slug>.<ext>` —el vault no viaja al deploy— y entró la
+entrada en `PIECES` con `platform: 'App'` y su `video`.
+
+### Lo que vale para los dos
+
+**El slug es el mismo string en todos lados.** La carpeta del taller
+nativo, el nombre del archivo de la grabación, el archivo del demo web,
+y la URL pública. Sale de `slug()` en `src/pieces.ts`, que es la única
+cuenta que existe. Si dos divergen, la pieza no encuentra su propio
+material.
+
+**Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
+HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
+salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
+dice exactamente qué vas a ver.
+
+**Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
+dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo
+copiado se retira.
+
+**Antes de dar algo por terminado**, en los dos caminos:
+
+```bash
+pnpm typecheck && pnpm build          # el repo web
+pnpm --dir nativo typecheck           # el taller, si lo tocaste
+```
+
+### Qué NO hacer
+
+- **No publicar material ajeno.** Los clips del vault son referencias de
+  otras apps; el inventario lleva sólo piezas construidas de verdad. Si
+  publicás algo para probar, revertilo: borrá la entrada de `PIECES` y
+  el archivo de `public/piezas/` o `src/piezas/`.
+- **No importar de `src/privado/` desde el producto.** La dependencia va
+  en un solo sentido o el área privada termina en el bundle.
+- **No agregar placeholders.** Acá se borraron 18 piezas de scaffolding
+  antes de la primera real, para que nada genérico se confunda con una
+  decisión.
+- **No `npm install` en `nativo/`.** Las versiones las elige
+  `expo install`, que respeta lo que el SDK verificó.
+- **No dejar bocetos de prueba** en `src/privado/bocetos/` ni
+  grabaciones de prueba en el vault.
+
+---
+
+## Las tres estaciones, por dentro
+
+Hasta acá, qué hacer. De acá en adelante, **por qué cada paso es así** y
+qué hay debajo de cada uno — lo que hay que leer antes de cambiar algo
+que ya está decidido.
 
 ### 1 · El vault — lo que mirás
 

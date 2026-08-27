@@ -5,6 +5,12 @@ completo (vault → playground → library), la regla de evidencia y el
 método de trabajo están ahí. Esto es sólo el taller donde se construyen
 las piezas **App**.
 
+> **El procedimiento numerado es el
+> [Camino B](../AGENTS.md#camino-b-una-pieza-app-expo-react-native)**,
+> en el AGENTS de la raíz: del `pnpm nueva` hasta la pieza publicada.
+> Este archivo explica cómo funciona el taller por dentro y qué hacer
+> cuando algo falla.
+
 > **Expo cambió.** Antes de escribir código, leé la doc de la versión
 > exacta: <https://docs.expo.dev/versions/v57.0.0/>
 
