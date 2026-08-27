@@ -217,6 +217,18 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
 - **El lienzo del playground no entró al modelo de la barra.** Tiene `←` y
   nombre en su sidebar, que es leading + título con otra ropa. Queda como
   excepción documentada hasta que se decida si se une.
+- **El taller nativo de SwiftUI.** El de Expo ya existe (`nativo/`, ver
+  su `AGENTS.md`); el proyecto Xcode espera a la primera pieza que lo
+  pida — View por pieza + `#Preview`, springs de iOS 17, Inject para
+  recarga en caliente.
+- **Los MCP que le dan ojos al agente no están conectados.** Están
+  relevados en la recon (`expo-mcp` del lado RN, XcodeBuildMCP del lado
+  Xcode, y Xcode 26.3+ expone MCP nativo — esta máquina tiene 26.2).
+  Mientras tanto el agente escribe archivos y vos mirás el simulador,
+  que es el modo que ya funciona.
+- **`expo-haptics` quedó una versión atrás** (57.0.1 contra 57.0.2), y
+  no por accidente: la 57.0.2 salió el 2026-08-26 y el cooldown de 24h
+  la bloqueó. `npx expo install --fix` la sube cuando pase la ventana.
 - **El inspector de selección del lienzo, cuando haya con qué.** Hoy la
   única acción de un frame elegido (`Add to Library`) vive en la sidebar,
   debajo del índice. El día que se acumulen más —duplicar, medidas,

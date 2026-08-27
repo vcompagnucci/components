@@ -20,6 +20,13 @@ pnpm build                   # corre prebuild → regenera vercel.json
 
 Node ≥24, pnpm. Versiones exactas en `package.json`, sin `^` ni `~`.
 
+**El taller nativo se instala aparte**, y sólo cuando vas a tocar una
+pieza App — tiene su propio `package.json`:
+
+```bash
+cd nativo && pnpm install && pnpm ios
+```
+
 **Lo que NO viaja al worktree.** Están gitignoreados `node_modules/`,
 `dist/`, `.env.local` y **`.context/` entero**. Lo último importa más de
 lo que parece: el README cita `.context/recon/*.md` como la fuente de
@@ -46,6 +53,10 @@ qué es a mano y qué todavía no existe.
 
                                               web: boceto vivo   →  pieza Web (corre)
                                               app: grabación     →  pieza App (video)
+                            ↑
+                    nativo/ + pnpm grabar
+                    (el taller de App escribe
+                     su grabación acá adentro)
 ```
 
 El vault no publica nada — es la pared de referencias. Publicar es el
@@ -201,6 +212,53 @@ teléfono, y eso es una decisión y no una carencia — `react-native-web`
 dibujaría la forma y mentiría justo en lo que este vault estudia, que es
 el gesto y el háptico.
 
+### El taller nativo — `nativo/`
+
+Una app de **Expo adentro de este mismo repo**, con su propio toolchain.
+Su guía completa está en [`nativo/AGENTS.md`](nativo/AGENTS.md) y la
+recon que la fundamenta en `.context/recon/TALLER-NATIVO.md`
+(gitignoreada, por eso lo importante vive acá). En tres comandos:
+
+```bash
+cd nativo && pnpm install && pnpm ios
+pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
+pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
+```
+
+- **Una sola app-taller, una carpeta por pieza.** Medido contra lo que
+  hacen los referentes: **nadie arma un repo por demo** — Mangano
+  sostiene 127 animaciones en una app Expo, Candillon una carpeta por
+  episodio, Gitter un `.swift` por interfaz. El repo propio es el premio
+  de la pieza que se volvió librería (Wave, Motion), nunca el punto de
+  partida.
+- **Adentro del repo y no al lado**, y acá nos apartamos de la recon a
+  propósito: la unidad de trabajo es un **worktree**, y todo lo que
+  queda afuera no viaja — ya pasó con el vault y con `.context/`. El
+  taller es código. La frontera la hace la carpeta, como con
+  `src/privado/`: `nativo/` tiene su `package.json` y su `tsconfig`, el
+  `tsc` de la raíz sólo mira `src`, y Vite sólo sigue lo que cuelga de
+  `index.html`. Verificado: con `nativo/` presente, `pnpm typecheck` y
+  `pnpm build` de la raíz no lo tocan.
+- **El índice del taller se deriva de las carpetas** (`require.context`
+  en `nativo/src/app/index.tsx`), igual que el vault se deriva del
+  disco: no hay lista que mantener y no puede mentir.
+- **El slug es el mismo string en tres lados** — la carpeta del taller,
+  el archivo de la grabación, y la URL de la pieza publicada.
+- **El cierre es `pnpm grabar`**: clava la barra de estado en 9:41,
+  graba con `--codec h264` —el default de `simctl` es **HEVC** y puede
+  no reproducirse en el `<video>` de la exposición, que es la trampa más
+  cara del camino porque no falla al grabar sino en la pieza ya
+  publicada— y escribe **directo a `VAULT_DIR/native/`**. Parás y el
+  clip ya está en la grilla → Open in Playground → Add to Library.
+- **Las versiones las elige `expo install`, no npm.** Una dependencia de
+  RN trae código nativo compilado contra el runtime del SDK: la última
+  de npm contra SDK 57 es una combinación que nadie probó, y rompe el
+  build nativo. La regla del repo se cumple donde acá significa algo —
+  **el SDK es el último**, 57. La tabla con las cuatro versiones y su
+  porqué está en `nativo/AGENTS.md`.
+- **SwiftUI todavía no tiene taller**: espera a la primera pieza que lo
+  pida. Ahí van View por pieza + `#Preview` y los springs de iOS 17.
+
 **El stage sabe mostrar las dos.** `Muestra`, en `parts.tsx`, decide por
 `platform`: la grabación de una App en el hueco de teléfono que la caja
 ya reservaba, o el componente de una Web corriendo vivo — resuelto por
@@ -235,6 +293,10 @@ de la pieza y no su componente.
 | `src/pieces.ts` | el inventario público y el `slug` canónico. Hoy vacío |
 | `src/demos.tsx` | el mapa nombre → componente de las piezas Web |
 | `src/piezas/` | **el demo de cada pieza Web**, un archivo por slug. Acá aterriza un boceto publicado |
+| `nativo/` | **el taller nativo**: app Expo con su propio toolchain. Ver su `AGENTS.md` |
+| `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
+| `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
+| `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |
 | `src/parts.tsx` | masthead, ítem de lista, detalle, la muestra (video/vivo), flecha de volver, `clicDeLink` |
 | `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
 | `src/not-found.tsx` | el 404 con física |
