@@ -8,6 +8,12 @@ Detrás hay un área privada que sólo existe en desarrollo: el **vault**
 —la pared de referencias— y el **playground** —el taller—. Las tres
 cosas son un solo recorrido, y está contado abajo.
 
+> **¿Venís a construir una pieza?** Andá directo a
+> [**El proceso, paso a paso**](#el-proceso-paso-a-paso): hay un camino
+> para **Web** y otro para **App**, numerados. El resto de este archivo
+> explica POR QUÉ cada paso es así — leelo cuando algo no cierre, o
+> antes de cambiar algo que ya está decidido.
+
 ## Arrancar en un worktree nuevo
 
 ```bash
@@ -19,6 +25,13 @@ pnpm build                   # corre prebuild → regenera vercel.json
 ```
 
 Node ≥24, pnpm. Versiones exactas en `package.json`, sin `^` ni `~`.
+
+**El taller nativo se instala aparte**, y sólo cuando vas a tocar una
+pieza App — tiene su propio `package.json`:
+
+```bash
+cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
+```
 
 **Lo que NO viaja al worktree.** Están gitignoreados `node_modules/`,
 `dist/`, `.env.local` y **`.context/` entero**. Lo último importa más de
@@ -46,11 +59,127 @@ qué es a mano y qué todavía no existe.
 
                                               web: boceto vivo   →  pieza Web (corre)
                                               app: grabación     →  pieza App (video)
+                            ↑
+                    nativo/ + pnpm grabar
+                    (el taller de App escribe
+                     su grabación acá adentro)
 ```
 
 El vault no publica nada — es la pared de referencias. Publicar es el
 final del taller y vive donde está tu trabajo: **elegís un frame del
 tablero y la acción aparece en la sidebar** (clic derecho: atajo).
+
+---
+
+## El proceso, paso a paso
+
+Lo de arriba es el mapa; esto es el procedimiento. **Dos caminos, y lo
+primero que hay que decidir es cuál** — porque no se cruzan: una pieza
+Web se construye en el navegador y se publica corriendo; una pieza App
+se construye contra el simulador y se publica en video. Lo decide
+`platform`, que a su vez lo decide una sola pregunta: **¿dónde corre la
+cosa que estás mostrando?** Navegador → Web. App instalada → App.
+
+Las tres reglas que valen para los dos caminos, antes de empezar:
+
+1. **Una mini-decisión por vez.** Lo que no está bajo estudio se queda
+   congelado, para que la comparación sea limpia.
+2. **Nada se afirma sin medir** — ni un valor propio ni uno ajeno. Ver
+   *Regla de evidencia*, más abajo.
+3. **El porqué se escribe arriba del archivo y en la bitácora.** Un
+   valor sin recibo es un valor que alguien va a cambiar sin saber qué
+   rompe.
+
+### Camino A · una pieza **Web**
+
+| # | Paso | Cómo |
+| --- | --- | --- |
+| 0 | Levantá el repo | `pnpm install && pnpm dev` → `localhost:3000` |
+| 1 | **Juntá la referencia** *(opcional)* | Soltá el clip en `VAULT_DIR/web/`. Aparece solo en `/vault` |
+| 2 | **Estudiala** *(opcional)* | Abrí el clip: flechas para ir cuadro a cuadro, `option` 10, `command` a los bordes. Anotá `Source` y `Notes` en la ficha |
+| 3 | **Llevala al tablero** *(opcional)* | Clic derecho en la grilla → `Open in Playground`, o el ↗ del detalle |
+| 4 | **Creá el boceto** | En el lienzo: `+` → **New sketch**. Escribe `src/privado/bocetos/<slug>.tsx` y lo pone en la tela |
+| 5 | **Escribí** | Editá ese archivo. Vite lo recarga en el frame **sin recargar la página**. Un boceto roto apaga sólo su frame y se recupera al guardar |
+| 6 | **Probalo** | Clic para elegir el frame → ahí el boceto recibe los clics y podés apretarle los botones. `Escape` para volver a moverlo |
+| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción → **Add** |
+| 8 | **Verificá** | Te deja en `/<slug>` con el componente **corriendo**. Mirá también la home: el preview vivo va en las dos vistas |
+| 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
+
+Qué pasó por detrás en el paso 7: el archivo se **copió** de
+`src/privado/bocetos/` a `src/piezas/<slug>.tsx` —cruzó la frontera, ver
+abajo— y entró la entrada en `PIECES`. **A partir de ahí el canónico es
+el archivo publicado**; el boceto se queda en tu tablero.
+
+> Una pieza publicada **no puede importar nada de `src/privado/`**. El
+> boceto nace autocontenido y tiene que seguir siéndolo.
+
+### Camino B · una pieza **App** (Expo / React Native)
+
+| # | Paso | Cómo |
+| --- | --- | --- |
+| 0 | Levantá el taller | `cd nativo && pnpm install`. **La primera vez en la máquina**, además `pnpm ios:build` (compila el dev client). Después alcanza `pnpm ios` |
+| 1 | **Juntá la referencia** *(opcional)* | Soltá la grabación ajena en `VAULT_DIR/native/`, estudiala en `/vault` como en el camino A |
+| 2 | **Creá la pieza** | `pnpm nueva "Swipe to pay"` → `nativo/src/app/swipe-to-pay/index.tsx`. El índice del taller la levanta solo |
+| 3 | **Escribí** | Editá ese archivo. Metro recarga en caliente. Disponibles: Reanimated, Gesture Handler, Skia, expo-haptics |
+| 4 | **Miralo correr** | En el simulador. Para volver al índice, **swipe desde el borde izquierdo** |
+| 5 | **Probalo en el teléfono** | Vale la pena: el simulador **no tiene háptica ni 120Hz**. Expo Go + misma Wi-Fi, o `pnpm start --tunnel` |
+| 6 | **Grabá** | `pnpm grabar swipe-to-pay`. Corta con Enter. Barra en 9:41, `--codec h264`, escribe **directo a `VAULT_DIR/native/`** |
+| 7 | **Llevala al tablero** | La grabación ya está en `/vault`: clic derecho → `Open in Playground` |
+| 8 | **Publicá** | Con el frame elegido, `Add to Library` → nombre + descripción → **Add** |
+| 9 | **Verificá** | Te deja en `/<slug>` con el video autoreproduciendo en el hueco del teléfono |
+| 10 | **Escribí el porqué** | Igual que el camino A |
+
+Qué pasó por detrás en el paso 8: el video se copió a
+`public/piezas/<slug>.<ext>` —el vault no viaja al deploy— y entró la
+entrada en `PIECES` con `platform: 'App'` y su `video`.
+
+### Lo que vale para los dos
+
+**El slug es el mismo string en todos lados.** La carpeta del taller
+nativo, el nombre del archivo de la grabación, el archivo del demo web,
+y la URL pública. Sale de `slug()` en `src/pieces.ts`, que es la única
+cuenta que existe. Si dos divergen, la pieza no encuentra su propio
+material.
+
+**Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
+HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
+salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
+dice exactamente qué vas a ver.
+
+**Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
+dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo
+copiado se retira.
+
+**Antes de dar algo por terminado**, en los dos caminos:
+
+```bash
+pnpm typecheck && pnpm build          # el repo web
+pnpm --dir nativo typecheck           # el taller, si lo tocaste
+```
+
+### Qué NO hacer
+
+- **No publicar material ajeno.** Los clips del vault son referencias de
+  otras apps; el inventario lleva sólo piezas construidas de verdad. Si
+  publicás algo para probar, revertilo: borrá la entrada de `PIECES` y
+  el archivo de `public/piezas/` o `src/piezas/`.
+- **No importar de `src/privado/` desde el producto.** La dependencia va
+  en un solo sentido o el área privada termina en el bundle.
+- **No agregar placeholders.** Acá se borraron 18 piezas de scaffolding
+  antes de la primera real, para que nada genérico se confunda con una
+  decisión.
+- **No `npm install` en `nativo/`.** Las versiones las elige
+  `expo install`, que respeta lo que el SDK verificó.
+- **No dejar bocetos de prueba** en `src/privado/bocetos/` ni
+  grabaciones de prueba en el vault.
+
+---
+
+## Las tres estaciones, por dentro
+
+Hasta acá, qué hacer. De acá en adelante, **por qué cada paso es así** y
+qué hay debajo de cada uno — lo que hay que leer antes de cambiar algo
+que ya está decidido.
 
 ### 1 · El vault — lo que mirás
 
@@ -201,6 +330,58 @@ teléfono, y eso es una decisión y no una carencia — `react-native-web`
 dibujaría la forma y mentiría justo en lo que este vault estudia, que es
 el gesto y el háptico.
 
+### El taller nativo — `nativo/`
+
+Una app de **Expo adentro de este mismo repo**, con su propio toolchain.
+Su guía completa está en [`nativo/AGENTS.md`](nativo/AGENTS.md) y la
+recon que la fundamenta en `.context/recon/TALLER-NATIVO.md`
+(gitignoreada, por eso lo importante vive acá). En tres comandos:
+
+```bash
+cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
+pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
+pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
+```
+
+- **Una sola app-taller, una carpeta por pieza.** Medido contra lo que
+  hacen los referentes: **nadie arma un repo por demo** — Mangano
+  sostiene 127 animaciones en una app Expo, Candillon una carpeta por
+  episodio, Gitter un `.swift` por interfaz. El repo propio es el premio
+  de la pieza que se volvió librería (Wave, Motion), nunca el punto de
+  partida.
+- **Adentro del repo y no al lado**, y acá nos apartamos de la recon a
+  propósito: la unidad de trabajo es un **worktree**, y todo lo que
+  queda afuera no viaja — ya pasó con el vault y con `.context/`. El
+  taller es código. La frontera la hace la carpeta, como con
+  `src/privado/`: `nativo/` tiene su `package.json` y su `tsconfig`, el
+  `tsc` de la raíz sólo mira `src`, y Vite sólo sigue lo que cuelga de
+  `index.html`. Verificado: con `nativo/` presente, `pnpm typecheck` y
+  `pnpm build` de la raíz no lo tocan.
+- **El índice del taller se deriva de las carpetas** (`require.context`
+  en `nativo/src/app/index.tsx`), igual que el vault se deriva del
+  disco: no hay lista que mantener y no puede mentir.
+- **El slug es el mismo string en tres lados** — la carpeta del taller,
+  el archivo de la grabación, y la URL de la pieza publicada.
+- **El cierre es `pnpm grabar`**: clava la barra de estado en 9:41,
+  graba con `--codec h264` —el default de `simctl` es **HEVC** y puede
+  no reproducirse en el `<video>` de la exposición, que es la trampa más
+  cara del camino porque no falla al grabar sino en la pieza ya
+  publicada— y escribe **directo a `VAULT_DIR/native/`**. Parás y el
+  clip ya está en la grilla → Open in Playground → Add to Library.
+- **Las versiones las elige `expo install`, no npm.** Una dependencia de
+  RN trae código nativo compilado contra el runtime del SDK: la última
+  de npm contra SDK 57 es una combinación que nadie probó, y rompe el
+  build nativo. La regla del repo se cumple donde acá significa algo —
+  **el SDK es el último**, 57. La tabla con las cuatro versiones y su
+  porqué está en `nativo/AGENTS.md`.
+- **El dev build anda, con un parche de dos líneas.** Xcode 26.2 rechaza
+  una anotación que `expo-modules-jsi` 57.0.5 le puso a un constructor;
+  `patches/expo-modules-jsi@57.0.5.patch` la saca y deja el header
+  idéntico al de 57.0.4, que Expo publicó y compila. El porqué completo
+  está en `nativo/AGENTS.md`.
+- **SwiftUI todavía no tiene taller**: espera a la primera pieza que lo
+  pida. Ahí van View por pieza + `#Preview` y los springs de iOS 17.
+
 **El stage sabe mostrar las dos.** `Muestra`, en `parts.tsx`, decide por
 `platform`: la grabación de una App en el hueco de teléfono que la caja
 ya reservaba, o el componente de una Web corriendo vivo — resuelto por
@@ -235,6 +416,10 @@ de la pieza y no su componente.
 | `src/pieces.ts` | el inventario público y el `slug` canónico. Hoy vacío |
 | `src/demos.tsx` | el mapa nombre → componente de las piezas Web |
 | `src/piezas/` | **el demo de cada pieza Web**, un archivo por slug. Acá aterriza un boceto publicado |
+| `nativo/` | **el taller nativo**: app Expo con su propio toolchain. Ver su `AGENTS.md` |
+| `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
+| `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
+| `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |
 | `src/parts.tsx` | masthead, ítem de lista, detalle, la muestra (video/vivo), flecha de volver, `clicDeLink` |
 | `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
 | `src/not-found.tsx` | el 404 con física |

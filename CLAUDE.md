@@ -4,6 +4,12 @@
 funciona todo: el recorrido de una pieza (vault → playground → library),
 el mapa del repo, la frontera dev/producción y el método de trabajo.
 
+**Si venís a construir una pieza**, el procedimiento numerado está en
+[AGENTS.md › El proceso, paso a paso](AGENTS.md#el-proceso-paso-a-paso)
+— un camino para **Web** (boceto en el playground, se publica corriendo)
+y otro para **App** (Expo en `nativo/`, se publica en video). Lo primero
+que hay que decidir es cuál: ¿dónde corre la cosa que estás mostrando?
+
 Este archivo es un puntero a propósito — no repite contenido, para que no
 pueda quedar viejo.
 
