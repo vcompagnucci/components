@@ -9,10 +9,18 @@ import { createPortal } from 'react-dom'
 import css from './playground.module.css'
 import dlg from './vault.module.css'
 import { Volver, clicDeLink } from '../parts'
-import { nombreDeRuta, useClips, type Clip } from './clips'
-import { Dialogo, Menu, useUltimo, type Donde } from './acciones'
+import { nombreDeRuta, publicarClip, useClips, type Clip } from './clips'
+import { Dialogo, DialogoPublicar, Menu, useUltimo, type Donde } from './acciones'
 import acc from './acciones.module.css'
 import { SIN_NOMBRE, nuevoId, useVistas, type Frame, type Vista } from './vistas'
+import {
+  BOCETOS,
+  Boceto,
+  crearBoceto,
+  nombreDeBoceto,
+  publicarBoceto,
+  refLibre,
+} from './bocetos'
 
 /* ═══════════════════════════════════════════════════════════════
    EL PLAYGROUND — donde se construye.
@@ -503,6 +511,12 @@ function Medio({
   sabido: boolean
   onMedida: (w: number, h: number) => void
 }) {
+  /* UN BOCETO ES CÓDIGO TUYO Y SE DIBUJA SOLO. Va antes que todo lo
+     demás porque no tiene clip y caería en el hueco de abajo. Todo lo
+     suyo —cargarlo, recargarlo al guardar, y no tirar el tablero cuando
+     está a medias— vive en bocetos.tsx. */
+  if (frame.tipo === 'boceto') return <Boceto ref_={frame.ref} />
+
   /* EL HUECO. Una pieza nuestra —que todavía no se dibuja— o un clip que
      ya no está en el vault, porque lo renombraste o lo mandaste a la
      papelera. En los dos casos el frame SE QUEDA y dice a qué apuntaba:
@@ -612,6 +626,7 @@ function Marco({
   onElegir,
   onMover,
   onMedida,
+  onMenu,
 }: {
   frame: Frame
   clip: Clip | null
@@ -626,6 +641,10 @@ function Marco({
   onElegir: (id: string) => void
   onMover: (id: string, a: { x: number; y: number; ancho: number; alto: number }) => void
   onMedida: (id: string, w: number, h: number) => void
+  /* El clic derecho: qué se puede hacer con ESTE frame. El menú y sus
+     diálogos viven en el Lienzo —son uno solo para el tablero, como la
+     capa del vault— y acá sólo se avisa dónde se abrió. */
+  onMenu: (id: string, x: number, y: number) => void
 }) {
   const caja = useRef<HTMLDivElement | null>(null)
   const gesto = useRef<Gesto | null>(null)
@@ -633,6 +652,22 @@ function Marco({
     /* Sólo el botón principal. El derecho abre menús y el del medio
        pega: ninguno de los dos arrastra. */
     if (e.button !== 0) return
+
+    /* ─── ADENTRO DE UN BOCETO ELEGIDO MANDA EL BOCETO ───
+       Un boceto es TU componente y hay que poder apretarle los botones.
+       Pero este manejador hace `preventDefault` y toma el puntero, así
+       que si el gesto empezara acá el clic nunca llegaría adentro.
+
+       El reparto es por SELECCIÓN, que es lo que hacen los editores de
+       tablero: sin elegir, el boceto no recibe el puntero (lo apaga el
+       CSS) y el frame se arrastra como cualquier otro; elegido, el
+       puntero pasa y el tablero se aparta. Para volver a moverlo,
+       Escape —que deselecciona— y a arrastrar.
+
+       Las manijas quedan afuera de la excepción a propósito: son del
+       frame, no del boceto, y redimensionar tiene que andar siempre. */
+    if (!esquina && (e.target as HTMLElement).closest?.('[data-boceto]')) return
+
     const el = caja.current
     const tela = medirTela()
     if (!el || !tela) return
@@ -827,6 +862,14 @@ function Marco({
       onPointerMove={mover}
       onPointerUp={soltar}
       onPointerCancel={soltar}
+      /* El clic derecho es del frame, no del navegador ni de la tela.
+         Funciona igual adentro de un boceto elegido: el evento burbujea
+         desde el contenido hasta acá. */
+      onContextMenu={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        onMenu(frame.id, e.clientX, e.clientY)
+      }}
     >
       <Medio
         frame={frame}
@@ -1219,6 +1262,16 @@ function Lienzo({
      mismo rótulo —allá te preguntaba, acá borraba y navegaba— y la
      diferencia no la decidió nadie. */
   const [borrando, setBorrando] = useState(false)
+  /* ─── EL CLIC DERECHO SOBRE UN FRAME: PUBLICAR ───
+     Acá vive Add to Library, y no en el vault, porque acá está TU
+     trabajo: el vault es lo externo. Qué pieza sale lo dice el frame —
+     un boceto publica Web viva, una grabación publica App— así que el
+     diálogo no pregunta plataforma. Una capa para el tablero entero,
+     con useUltimo para que la salida tenga qué animar, igual que la
+     del vault. */
+  const [menuFrame, setMenuFrame] = useState<{ frame: Frame; donde: Donde } | null>(null)
+  const [publicando, setPublicando] = useState<Frame | null>(null)
+  const framePub = useUltimo(menuFrame?.frame ?? publicando)
   /* ─── LA SIDEBAR SE PLIEGA, Y SÓLO POR TECLADO ───
      No hay control a la vista y es a propósito: pedido explícito de que
      el chrome del lienzo no cambie. El panel se dibuja igual que
@@ -1252,6 +1305,10 @@ function Lienzo({
      lo único que se le pide. */
   const capas = new Map(vista.frames.map((f, i) => [f.id, i]))
   const dibujo = [...vista.frames].sort((a, b) => (a.id < b.id ? -1 : 1))
+  /* El frame elegido como DATO, no como id: lo leen la acción de
+     publicar de la sidebar y nada más. Derivado en cada render — la
+     fuente de verdad sigue siendo `elegido`. */
+  const frameElegido = vista.frames.find((f) => f.id === elegido) ?? null
 
   /* SELECCIONAR SUBE AL FRENTE. Es lo que hace que "tocá lo que querés
      mirar" alcance para desapilar dos frames superpuestos, sin un menú
@@ -1357,14 +1414,24 @@ function Lienzo({
     )
   }
 
-  /* AGREGAR. La medida llega del elemento que estabas mirando en el
-     diálogo —ya cargado, así que su proporción es un hecho y no una
-     estimación— y si no se pudo medir se cae en la provisional. */
-  const agregar = (clip: Clip, m: { ancho: number; alto: number } | null) => {
+  /* PONER ALGO EN LA TELA. Es el mismo trabajo para las tres cosas que
+     entran —un clip, un boceto, y algún día una pieza— así que la
+     posición, el encaje y la cascada se escriben UNA vez y lo único que
+     cambia es qué se pone.
+
+     La medida llega del elemento que estabas mirando en el diálogo —ya
+     cargado, así que su proporción es un hecho y no una estimación— y si
+     no se pudo medir se cae en la provisional. Un boceto no tiene
+     proporción natural: nace provisional siempre, y lo que lo define es
+     el tamaño que le des arrastrando. */
+  const poner = (
+    tipo: Frame['tipo'],
+    ref: string,
+    m: { ancho: number; alto: number } | null,
+  ) => {
     const r = medirTela()
-    /* Si el clip no entra en la tela a su tamaño de arranque —una
-       ventana chica, un clip muy vertical— nace más chico en vez de
-       nacer cortado. */
+    /* Si no entra en la tela a su tamaño de arranque —una ventana chica,
+       un clip muy vertical— nace más chico en vez de nacer cortado. */
     const pedido = m ?? PROVISIONAL
     const { ancho, alto } = r ? caber(pedido.ancho, pedido.alto, r) : pedido
     const salto = (vista.frames.length % VUELTAS) * CASCADA
@@ -1377,10 +1444,27 @@ function Lienzo({
     const id = nuevoId()
     cambiar(vista.id, (v) => ({
       ...v,
-      frames: [...v.frames, { id, tipo: 'clip', ref: clip.ruta, ...p, ancho, alto }],
+      frames: [...v.frames, { id, tipo, ref, ...p, ancho, alto }],
     }))
     setElegido(id)
     setEligiendo(false)
+  }
+
+  const agregar = (clip: Clip, m: { ancho: number; alto: number } | null) =>
+    poner('clip', clip.ruta, m)
+
+  /* EL ARCHIVO PRIMERO, EL FRAME DESPUÉS. Si el servidor no lo pudo
+     escribir no se pone nada: un frame apuntando a un archivo que no
+     existe sería un hueco que no se puede arreglar desde acá.
+
+     El frame se pone SIN ESPERAR a que Vite avise que el archivo
+     existe. No hace falta: mientras el glob no lo tenga, el frame dibuja
+     su hueco con el nombre, y cuando el hot update llega —un par de
+     cuadros— se dibuja solo. Esperar sería quedarse mirando un diálogo
+     abierto por nada. */
+  const nuevoBoceto = async () => {
+    const ref = await crearBoceto(refLibre())
+    if (ref) poner('boceto', ref, null)
   }
 
   /* ─── LO GUARDADO SE ACOMODA A LA TELA QUE HAY HOY ───
@@ -1702,6 +1786,26 @@ function Lienzo({
               —
             </p>
           )}
+          {/* ─── LA ACCIÓN DE LA SELECCIÓN, VISIBLE ───
+              Publicar estuvo sólo en el clic derecho y es la lección ya
+              aprendida en el vault: un menú contextual no anuncia nada.
+              El patrón de referencia es el panel derecho de Figma —una
+              zona que muestra las acciones de lo elegido— pero UNA
+              acción no paga una superficie nueva, así que la zona nace
+              adentro de la sidebar que ya existe: aparece con la
+              selección, debajo del índice que la nombra. El día que las
+              acciones de selección se acumulen, este bloque es el que
+              se muda al inspector (queda en el README como pendiente).
+
+              A 16 del índice —el aire de GRUPO del sistema, el doble
+              del 8 entre renglones— para que no se lea como un frame
+              más: los renglones son sustantivos y esto es un verbo. El
+              clic derecho sigue ofreciéndola, como atajo. */}
+          {frameElegido && frameElegido.tipo !== 'pieza' && (
+            <button className={css.publicar} onClick={() => setPublicando(frameElegido)}>
+              Add to Library
+            </button>
+          )}
         </div>
 
         {/* ─── EL PIE: LO QUE SE LLEVA TODO ───
@@ -1763,14 +1867,61 @@ function Lienzo({
             onElegir={elegir}
             onMover={mover}
             onMedida={medida}
+            onMenu={(id, x, y) => {
+              const frame = vista.frames.find((f) => f.id === id)
+              if (frame) setMenuFrame({ frame, donde: { x, y } })
+            }}
           />
         ))}
       </div>
+
+      {/* El menú del frame y el diálogo de publicar. framePub es el
+          último frame sobre el que se abrió algo — sobrevive al cierre
+          para que la salida tenga qué animar. */}
+      {framePub && (
+        <>
+          <Menu
+            donde={menuFrame?.donde ?? null}
+            etiqueta={framePub.tipo === 'pieza' ? framePub.ref : nombreDeRuta(framePub.ref)}
+            onCerrar={() => setMenuFrame(null)}
+            items={[
+              /* Sólo lo publicable: un boceto o un clip. Un frame de
+                 pieza ya está publicado — su menú no ofrece nada aún. */
+              ...(framePub.tipo !== 'pieza'
+                ? [{ texto: 'Add to Library', hacer: () => setPublicando(framePub) }]
+                : []),
+            ]}
+          />
+          <DialogoPublicar
+            abierto={publicando?.id === framePub.id}
+            nombreInicial={
+              framePub.tipo === 'boceto'
+                ? nombreDeBoceto(framePub.ref)
+                : nombreDeRuta(framePub.ref)
+            }
+            /* La oración dice a dónde va el archivo, que es lo único que
+               cambia entre las dos ramas. */
+            dice={
+              framePub.tipo === 'boceto'
+                ? 'The sketch joins the product and the piece goes live as Web.'
+                : 'The recording joins the repo and the piece goes live as App.'
+            }
+            hacer={(nombre, desc) =>
+              framePub.tipo === 'boceto'
+                ? publicarBoceto(framePub.ref, nombre, desc)
+                : publicarClip(framePub.ref, nombre, desc)
+            }
+            onCerrar={() => setPublicando(null)}
+          />
+        </>
+      )}
 
       <Elegir
         abierto={eligiendo}
         clips={clips ?? []}
         onElegir={agregar}
+        onBoceto={(ref) => poner('boceto', ref, null)}
+        onNuevoBoceto={nuevoBoceto}
         onCerrar={() => setEligiendo(false)}
       />
 
@@ -1816,11 +1967,15 @@ function Elegir({
   abierto,
   clips,
   onElegir,
+  onBoceto,
+  onNuevoBoceto,
   onCerrar,
 }: {
   abierto: boolean
   clips: Clip[]
   onElegir: (c: Clip, m: { ancho: number; alto: number } | null) => void
+  onBoceto: (ref: string) => void
+  onNuevoBoceto: () => void
   onCerrar: () => void
 }) {
   const caja = useRef<HTMLDialogElement | null>(null)
@@ -1867,12 +2022,43 @@ function Elegir({
       closedby="any"
       onClose={onCerrar}
     >
-      <h2 className={css.elegirTitulo}>Add clip</h2>
-      {montada &&
-        (clips.length === 0 ? (
-          <p className={css.aviso}>Nothing in the vault yet.</p>
-        ) : (
+      {/* "Add" y no "Add clip": desde que también se agregan bocetos, el
+          título nombraba una de las dos cosas que hay adentro. */}
+      <h2 className={css.elegirTitulo}>Add</h2>
+      {montada && (
+        <>
           <div className={css.grilla}>
+            {/* ─── EMPEZAR UN COMPONENTE DESDE CERO ───
+                Va PRIMERO y con la misma caja que todo lo demás: es una
+                opción más de la grilla, no un botón aparte, así que no
+                hay una segunda geometría que decidir. El + adentro del
+                hueco del medio ocupa el lugar de la miniatura, que es
+                exactamente lo que esta opción no tiene todavía.
+
+                Crea el archivo y lo pone en la tela. No pregunta el
+                nombre: es la regla que ya usa "New view" — un modal
+                antes de ver nada te obliga a bautizar algo que todavía
+                no existe. */}
+            <button className={`${dlg.card} ${css.opcion}`} onClick={onNuevoBoceto}>
+              <div className={css.opcionCaja}>
+                <Mas />
+              </div>
+              <div className={dlg.titulo}>New sketch</div>
+            </button>
+            {/* Los que ya escribiste. Sin miniatura: dibujar el boceto
+                acá adentro lo montaría trece veces por abrir el diálogo,
+                y un componente a medias puede hacer cualquier cosa. La
+                palabra dice qué es. */}
+            {BOCETOS.map((ref) => (
+              <button
+                className={`${dlg.card} ${css.opcion}`}
+                key={ref}
+                onClick={() => onBoceto(ref)}
+              >
+                <div className={css.opcionCaja}>Sketch</div>
+                <div className={dlg.titulo}>{nombreDeBoceto(ref)}</div>
+              </button>
+            ))}
             {clips.map((c) => (
               /* ─── ES LA CARD DEL VAULT, NO UNA MINIATURA PROPIA ───
                  Las mismas clases: su proporción (550/528, la de benji),
@@ -1909,7 +2095,13 @@ function Elegir({
               </button>
             ))}
           </div>
-        ))}
+          {/* El aviso queda DEBAJO de la grilla y ya no la reemplaza: con
+              el vault vacío igual se puede empezar un boceto, así que
+              cambiar la grilla entera por un renglón de texto escondería
+              la única acción disponible. */}
+          {clips.length === 0 && <p className={css.aviso}>Nothing in the vault yet.</p>}
+        </>
+      )}
     </dialog>
   )
 }

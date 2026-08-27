@@ -8,26 +8,20 @@
    Se genera y no se escribe a mano porque escribirla a mano es duplicar
    pieces.ts en un archivo que nadie mira: el día que se agregue una
    pieza, su URL daría 404 en producción y nada lo diría. Corre en
-   prebuild, así no se puede publicar desincronizado. */
-import { readFileSync, writeFileSync } from 'node:fs'
+   prebuild, así no se puede publicar desincronizado.
 
-const slug = (s) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
+   IMPORTA pieces.ts DE VERDAD, no lo lee con un regex. Acá vivía un
+   matchAll de `name: '...'` con su propia copia del slug, y las dos
+   cosas eran deuda: el regex se rompía en silencio si el archivo
+   cambiaba de forma (por eso existía el guard de "vacío a propósito"),
+   y el slug copiado divergía del de la página. Node ≥24 —que engines ya
+   exige— corre TypeScript sin tipos ejecutables, así que se puede leer
+   la lista real con la cuenta real. Si pieces.ts no compila, esto
+   revienta acá y el build no sale: mismo freno, sin regex. */
+import { writeFileSync, readFileSync } from 'node:fs'
+import { PIECES, slug } from '../src/pieces.ts'
 
-const src = readFileSync(new URL('../src/pieces.ts', import.meta.url), 'utf8')
-const rutas = [...src.matchAll(/name: '([^']+)'/g)].map((m) => slug(m[1]))
-/* CERO PIEZAS ES UN ESTADO LEGÍTIMO —el inventario placeholder se borró
-   entero antes de la primera real— pero sólo si el archivo lo dice a
-   propósito con el array vacío literal. Sin ese marcador, cero nombres
-   significa que el regex dejó de entender pieces.ts, y eso sigue
-   frenando el build: publicar rutas desincronizadas en silencio es lo
-   que este script existe para impedir. */
-const vacioAProposito = /PIECES:\s*Piece\[\]\s*=\s*\[\]/.test(src)
-if (!rutas.length && !vacioAProposito)
-  throw new Error('no se encontró ninguna pieza en pieces.ts')
+const rutas = PIECES.map((p) => slug(p.name))
 
 const config = {
   $schema: 'https://openapi.vercel.sh/vercel.json',

@@ -805,6 +805,19 @@
    16 entre la acción y el dato: el mismo hueco que el índice del
    producto pone entre su rótulo y su lista, y por lo mismo — son dos
    cosas de distinta naturaleza que igual pertenecen al mismo bloque. */
+/* La acción de la selección: la misma palabra de chrome que "Delete
+   view" —el par gris → ink de la nav, el blanco expandido— con el aire
+   de GRUPO encima. El gap de la columna ya pone 8; estos 8 lo llevan a
+   16, que es la distancia con la que el índice del producto separa dos
+   grupos. Sin ese aire se leería como un renglón más de la lista.
+   `align-self` porque .clips estira a sus hijos y el blanco del botón
+   debe terminar donde termina la palabra. */
+.publicar {
+  composes: accion;
+  margin-top: calc(var(--index-item-gap) + var(--privado-blanco-y) * -1);
+  align-self: flex-start;
+}
+
 .panelPie {
   margin-top: auto;
   display: flex;
@@ -1011,7 +1024,8 @@
    480px, 0.98 son 9.6px de recorrido, que es un gesto claro. Y nunca 0:
    nada aparece de la nada. */
 .medio,
-.hueco {
+.hueco,
+.boceto {
   transition:
     opacity var(--lienzo-entra) var(--lienzo-curva),
     transform var(--lienzo-entra) var(--lienzo-curva);
@@ -1025,7 +1039,8 @@
    ninguno lo tiene puesto salvo el que acabás de agregar. */
 @starting-style {
   .marco[data-nuevo] .medio,
-  .marco[data-nuevo] .hueco {
+  .marco[data-nuevo] .hueco,
+  .marco[data-nuevo] .boceto {
     opacity: 0;
     transform: scale(0.98);
   }
@@ -1034,7 +1049,8 @@
    tiempo. Salir por donde se entró es lo que hace que las dos mitades se
    lean como un solo gesto reversible y no como dos efectos. */
 .marco[data-saliendo] .medio,
-.marco[data-saliendo] .hueco {
+.marco[data-saliendo] .hueco,
+.marco[data-saliendo] .boceto {
   opacity: 0;
   transform: scale(0.98);
   transition-duration: var(--lienzo-sale);
@@ -1049,6 +1065,40 @@
   /* El nodo no participa del gesto: los eventos los maneja el frame, y
      un <video> que los intercepte deja el arrastre a medias. */
   pointer-events: none;
+}
+
+/* ─── UN BOCETO ───
+   Tu componente, ocupando el frame entero. La caja es lo único que pone
+   el lienzo: tamaño, el radio del sistema, y una superficie abajo para
+   que un boceto sin fondo propio no quede flotando sobre la tela. Todo
+   lo demás lo escribís vos.
+
+   `overflow: hidden` porque un boceto a medias puede desbordar, y lo que
+   se sale de un frame se dibuja encima de los vecinos: el recorte es lo
+   que hace que un error tuyo no se lea como un error del tablero.
+
+   ─── EL PUNTERO SE REPARTE POR SELECCIÓN ───
+   Sin elegir, el boceto no lo recibe y el frame se arrastra igual que
+   uno con un clip adentro. Elegido, lo recibe él y podés apretarle los
+   botones a lo que estás construyendo. El frame se aparta del lado del
+   JS también —ver `bajar` en playground.tsx— porque acá sólo se decide
+   QUIÉN recibe el evento, y sin la otra mitad el gesto se lo quedaría
+   igual por burbujeo.
+
+   Es lo que hacen los editores de tablero, y el precio está a la vista:
+   un boceto elegido no se mueve arrastrándolo del medio. Se aprieta
+   Escape —que deselecciona— y vuelve a ser un frame. Queda anotado como
+   candidato a mirarse con /prototype si molesta. */
+.boceto {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--card-radio);
+  background: var(--surface);
+  pointer-events: none;
+}
+.marco[data-elegido] .boceto {
+  pointer-events: auto;
 }
 
 /* ─── CUANDO NO HAY QUÉ MOSTRAR ───
@@ -1376,6 +1426,31 @@
   color: inherit;
   cursor: pointer;
   transition: transform 150ms var(--ease-dialogo);
+}
+
+/* ─── LA CAJA DE UNA OPCIÓN SIN MINIATURA ───
+   Las de boceto: la que empieza uno nuevo y las que ya existen. Ocupa el
+   lugar de la miniatura y con SU MISMA PROPORCIÓN —el mismo token, no un
+   número copiado— porque si no la fila se despareja y el diálogo deja de
+   leerse como una grilla.
+
+   No reusa `.media` de la card del vault a propósito: esa clase le clava
+   100% de ancho y alto a lo que tenga adentro, que es justo lo que hace
+   falta para un clip y lo contrario de lo que hace falta para un glifo
+   de 16px.
+
+   En el gris que ANOTA: lo que va acá no es contenido, es la etiqueta de
+   un contenido que todavía no se puede mostrar. Mismo criterio que el
+   hueco del frame. */
+.opcionCaja {
+  aspect-ratio: var(--vault-proporcion);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
 }
 /* El apretón, el mismo de la card del diálogo de subir: 0.97 se SIENTE
    apretado sin que la caja se desarme. */

@@ -19,12 +19,19 @@ import { useCallback, useEffect, useRef, useState } from 'react'
    lista— así que este archivo puede quedarse con la parte cómoda.
    ═══════════════════════════════════════════════════════════════ */
 
-export type TipoFrame = 'pieza' | 'clip'
+export type TipoFrame = 'pieza' | 'clip' | 'boceto'
 
-/* Un frame es UNA cosa puesta en el lienzo: o una pieza nuestra, o un
-   clip del vault. `ref` dice cuál — el nombre de la pieza, o la ruta del
-   clip— y es una referencia y no una copia a propósito: si le cambiás la
-   ficha a un clip, el frame que lo muestra ya está actualizado. */
+/* Un frame es UNA cosa puesta en el lienzo, y hay tres:
+
+     clip     una referencia del vault. `ref` es su ruta
+     boceto   un componente que estás escribiendo. `ref` es el nombre de
+              su archivo en src/privado/bocetos/, sin extensión
+     pieza    una pieza publicada. `ref` es su nombre. Todavía no se
+              dibuja: ver el hueco en playground.tsx
+
+   Los tres guardan una REFERENCIA y no una copia, a propósito: si le
+   cambiás la ficha a un clip o escribís en un boceto, el frame que lo
+   muestra ya está actualizado. Nada del contenido vive acá adentro. */
 export type Frame = {
   id: string
   tipo: TipoFrame

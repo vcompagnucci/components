@@ -1,11 +1,15 @@
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
-import type { Piece } from './pieces'
+import { slug, type Piece } from './pieces'
+import { DemoVivo } from './demos'
 
 /* Piezas de la página, cada una con una sola responsabilidad. Viven
    acá y no en app.tsx para que app quede sólo con la composición. */
 
-export const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-')
+/* El slug vive en pieces.ts —lo comparten la página, rutas.mjs y el
+   puente que publica— y de acá sólo se re-exporta para los lectores
+   que ya lo importaban de este lado. */
+export { slug }
 
 /* EL INTERCEPTOR DE UN LINK DE CLIENTE. Medido en benji: su ítem de
    lista es un <a href="/drawesome"> y el clic normal navega del lado del
@@ -85,9 +89,37 @@ export function Item({
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
         {piece.name}
       </div>
-      <div className={css.streamPreview} />
+      <div className={css.streamPreview}>
+        <Muestra piece={piece} />
+      </div>
     </a>
   )
+}
+
+/* ─── CÓMO SE MUESTRA UNA PIEZA ───
+   Lo decide `platform`, que es la regla de pieces.ts: App es su
+   grabación, Web es el componente CORRIENDO — el mapa nombre → archivo
+   vive en demos.tsx. La misma muestra sirve a la lista y al detalle,
+   porque la decisión del producto es que el preview vivo esté en las
+   dos.
+
+   La grabación autoreproduce, muda y en loop: acá el movimiento ES el
+   contenido, y es lo que hacen los demos de benji en family-values —45
+   videos girando a la vez—. La regla contraria del playground (arranca
+   quieto, lo despierta un clic) es de un tablero de estudio donde ocho
+   loops pelean por tu atención; una exposición existe para mostrarse
+   sola.
+
+   El video ocupa el hueco del teléfono que la caja ya reservaba —el
+   mismo ancho por token— y la altura sale de la proporción del archivo,
+   que en una grabación de iPhone es la del teléfono. El ::before que
+   reservaba ese hueco en vacío se apaga solo (ver :has en
+   app.module.css). */
+function Muestra({ piece }: { piece: Piece }) {
+  if (piece.video)
+    return <video className={css.demo} src={piece.video} autoPlay muted loop playsInline />
+  if (piece.platform === 'Web') return <DemoVivo name={piece.name} />
+  return null
 }
 
 /* La flecha de volver. Vive acá y no adentro de Detail porque la usan
@@ -146,7 +178,9 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
           <div className={css.detailMeta}>{piece.platform}</div>
           <p className={css.detailDesc}>{piece.desc}</p>
         </div>
-        <div className={css.detailPreview} data-plataforma={piece.platform} />
+        <div className={css.detailPreview} data-plataforma={piece.platform}>
+          <Muestra piece={piece} />
+        </div>
       </div>
     </div>
   )

@@ -14,8 +14,26 @@ export type Piece = {
   name: string
   platform: Platform
   desc: string
+  /* La grabación que la demuestra, en /piezas/ dentro de public/. Lo
+     escribe Add to Library —el clic derecho sobre un frame del
+     playground—, que copia el archivo y agrega la entrada: ver
+     __publicar en scripts/vault-media.mjs. Es de las piezas App; una
+     Web va viva —su archivo está en src/piezas/, resuelto por slug en
+     demos.tsx— y no lo lleva. */
+  video?: string
 }
 
+/* LA URL DE UNA PIEZA, y hay UNA sola cuenta. Vivían dos que coincidían
+   de casualidad —parts.tsx cambiaba espacios por guiones, rutas.mjs
+   tiraba todo lo que no fuera [a-z0-9]— y con el primer nombre que
+   llevara un signo (`Toggle & switch`) el cliente iba a navegar a una
+   URL que el rewrite de vercel no cubría. Vive acá porque la leen los
+   tres: la página, el generador de rutas y el puente que publica. */
+export const slug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 
 /* VACÍO A PROPÓSITO. Acá vivieron 18 placeholders que existían sólo
    para que el esqueleto renderizara algo; se borraron enteros antes de
