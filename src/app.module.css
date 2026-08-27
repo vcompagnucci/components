@@ -231,6 +231,37 @@
   max-width: 100%;
   aspect-ratio: var(--card-app-slot-ratio);
 }
+/* CON GRABACIÓN, EL HUECO ES ELLA. El ::before de arriba existe para
+   reservar la silueta del teléfono cuando no hay nada que mostrar; con
+   un video adentro los dos convivirían y la caja mediría doble. El video
+   toma el MISMO ancho por el MISMO token, y la altura ya no es la del
+   ratio reservado sino la del archivo — que en una grabación de iPhone
+   es la misma silueta, ahora de verdad. */
+.group[data-plataforma='App'] .streamPreview:has(.demo)::before {
+  content: none;
+}
+.demo {
+  display: block;
+  width: var(--card-app-slot-ancho);
+  max-width: 100%;
+  /* El radio de los controles chicos, no el de la card: una grabación
+     cruda tiene esquinas vivas y dentro de una superficie ya redondeada
+     se leen como sin terminar. 8 es lo que ya usan los clips del
+     playground y las cajas del sistema. */
+  border-radius: var(--card-radio);
+}
+
+/* ─── EL ESCENARIO DE UN DEMO VIVO (pieza Web) ───
+   La caja de la card ya decide el piso —260 en la lista, 400 en el
+   detalle, la decisión medida de benji— y este envoltorio sólo lo
+   HEREDA y centra lo que el componente dibuje. `inherit` y no el token
+   de nuevo: así el piso está escrito una vez y el escenario no puede
+   desincronizarse de su caja. El componente manda en todo lo demás. */
+.demoVivo {
+  min-height: inherit;
+  display: grid;
+  place-items: center;
+}
 .group:first-child {
   padding-top: calc(var(--section-first-gap) - 8px); /* 8 = el margin del mast */
 }
@@ -445,6 +476,14 @@
   width: var(--card-app-slot-detalle);
   max-width: 100%;
   aspect-ratio: var(--card-app-slot-ratio);
+}
+/* Mismo reemplazo que en la lista: con grabación, el hueco es ella, al
+   ancho del teléfono del detalle. */
+.detailPreview[data-plataforma='App']:has(.demo)::before {
+  content: none;
+}
+.detailPreview .demo {
+  width: var(--card-app-slot-detalle);
 }
 
 /* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que

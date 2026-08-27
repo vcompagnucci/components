@@ -355,7 +355,13 @@ export function MenuClip({
      mandar el clip a un lienzo no lo toca, renombrarlo cambia el
      archivo, y la papelera se lo lleva. Así lo destructivo queda
      siempre último y lejos del cursor cuando el menú se abre hacia
-     abajo. La hairline que lo separa la pone el Menu, por la bandera. */
+     abajo. La hairline que lo separa la pone el Menu, por la bandera.
+
+     ADD TO LIBRARY NO ESTÁ, y estuvo: publicar vivió un día en este
+     menú y se movió al tablero. El vault es lo EXTERNO —referencias que
+     mirás— y publicar es el final del taller, así que el gesto vive
+     donde está tu trabajo: el clic derecho sobre un frame del
+     playground. Ver DialogoPublicar, abajo. */
   return (
     <Menu
       donde={donde}
@@ -505,6 +511,106 @@ export function DialogoRenombrar({
           onClick={guardar}
         >
           Rename
+        </button>
+      </div>
+    </Dialogo>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PUBLICAR — la parte de "esto ya está" del recorrido.
+
+   Vive en el TABLERO, no en el vault: el vault es lo externo —lo que
+   mirás— y lo que se publica es lo tuyo, que es lo que está en el
+   playground. El clic derecho sobre un frame ofrece Add to Library, y
+   qué pieza sale lo dice el frame: un boceto publica Web viva, una
+   grabación publica App. Por eso NO hay selector de plataforma.
+
+   El formulario es el molde de la pieza y nada más: nombre y una línea
+   de descripción, exactamente los dos renglones del detalle público. El
+   nombre llega puesto —el del boceto o el del clip—; la descripción
+   arranca vacía a propósito, es el único dato que el archivo no sabe de
+   sí mismo.
+
+   AL TERMINAR TE LLEVA A LA PIEZA. No hay toast en este sistema; la
+   confirmación es la página real de la library con el demo andando.
+   Navegación dura a propósito: pieces.ts acaba de cambiar en el disco
+   y recargar es la forma de que TODOS los módulos la vean, sin
+   depender de en qué orden llegue el hot update.
+
+   Este componente no sabe QUÉ publica: recibe el verbo por prop, como
+   Menu recibe sus ítems. Lo que cambia entre las dos ramas —el endpoint
+   y la oración que anticipa qué va a pasar— lo pone el tablero. */
+export function DialogoPublicar({
+  abierto,
+  nombreInicial,
+  dice,
+  hacer,
+  onCerrar,
+}: {
+  abierto: boolean;
+  nombreInicial: string;
+  /* La oración bajo el título: qué va a pasar, dicho antes. */
+  dice: string;
+  hacer: (nombre: string, desc: string) => Promise<string>;
+  onCerrar: () => void;
+}) {
+  const [nombre, setNombre] = useState(nombreInicial);
+  const [desc, setDesc] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [yendo, setYendo] = useState(false);
+  useEffect(() => {
+    if (abierto) {
+      setNombre(nombreInicial);
+      setDesc("");
+      setError(null);
+    }
+  }, [abierto, nombreInicial]);
+
+  const listo = !yendo && !!nombre.trim() && !!desc.trim();
+  const publicar = async () => {
+    if (!listo) return;
+    setYendo(true);
+    setError(null);
+    try {
+      const slug = await hacer(nombre.trim(), desc.trim());
+      location.assign("/" + slug);
+    } catch (e) {
+      setError(String((e as Error).message));
+      setYendo(false);
+    }
+  };
+
+  return (
+    <Dialogo abierto={abierto} onCerrar={onCerrar}>
+      <h2 className={css.titulo}>Add to Library</h2>
+      <p className={css.dice}>{dice}</p>
+      <input
+        className={css.campo}
+        value={nombre}
+        autoFocus
+        aria-label="Piece name"
+        onChange={(e) => setNombre(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && publicar()}
+      />
+      {/* La descripción es el subtítulo del detalle, y el placeholder
+          empuja hacia la regla del copy del sistema: decir qué es o
+          para quién es, nunca lo bien hecha que está. */}
+      <input
+        className={css.campo}
+        value={desc}
+        aria-label="Description"
+        placeholder="What it does"
+        onChange={(e) => setDesc(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && publicar()}
+      />
+      {error && <p className={css.error}>{error}</p>}
+      <div className={css.pie}>
+        <button className={css.accion} onClick={onCerrar}>
+          Cancel
+        </button>
+        <button className={css.accion} data-fuerte="" disabled={!listo} onClick={publicar}>
+          Add
         </button>
       </div>
     </Dialogo>

@@ -40,13 +40,17 @@ Tres estaciones y una frontera. Va dicho en cada una qué está cableado,
 qué es a mano y qué todavía no existe.
 
 ```
-   tu carpeta          /vault           /playground             /
-  (VAULT_DIR)  ───▶  la referencia ──▶  el taller    ─ ─ ─ ─▶  la exposición
-  soltás un clip     mirás y anotás    construís               se publica
-                                                          ↑
-                                            este tramo todavía no
-                                            está cableado (ver 3)
+   tu carpeta            /vault                /playground              /
+  (VAULT_DIR)   ───▶   lo EXTERNO      ───▶   lo TUYO         ───▶   la exposición
+  soltás clips         mirás y anotás         iterás tu pieza        Add to Library
+
+                                              web: boceto vivo   →  pieza Web (corre)
+                                              app: grabación     →  pieza App (video)
 ```
+
+El vault no publica nada — es la pared de referencias. Publicar es el
+final del taller y vive donde está tu trabajo: **elegís un frame del
+tablero y la acción aparece en la sidebar** (clic derecho: atajo).
 
 ### 1 · El vault — lo que mirás
 
@@ -86,12 +90,14 @@ la creaste, así que sí hay algo que mantener y vive en
 `localStorage` a propósito: una vista referencia clips por su ruta, así
 que pertenece al mismo lugar que ellos.
 
-**Un frame es una cosa puesta en la tela**, y tiene dos tipos: `clip`
-(`ref` = la ruta del archivo) y `pieza` (`ref` = el nombre de la pieza).
-Es una **referencia y no una copia**: si le cambiás la ficha a un clip,
-el frame que lo muestra ya está actualizado; si el clip se va del vault,
-el frame se queda diciendo a qué apuntaba, en vez de desaparecer sin que
-nadie lo note.
+**Un frame es una cosa puesta en la tela**, y tiene tres tipos: `clip`
+(`ref` = la ruta del archivo en el vault), `boceto` (`ref` = el nombre de
+su archivo en `src/privado/bocetos/`) y `pieza` (`ref` = el nombre de la
+pieza; todavía sin dibujo). Siempre es una **referencia y no una copia**:
+si le cambiás la ficha a un clip o escribís en un boceto, el frame que lo
+muestra ya está actualizado; si el clip se va del vault, el frame se
+queda diciendo a qué apuntaba, en vez de desaparecer sin que nadie lo
+note.
 
 **`alPlayground` no abre un selector.** El clip cae en la vista más
 reciente —la de `creada` más alta— y si no hay ninguna, la crea: mandar
@@ -104,12 +110,39 @@ en memoria, se vacían al recargar. En el vault ⌘Z sigue siendo *volver* —
 el playground escucha en captura y el de `privado.tsx` se aparta al ver
 el evento marcado, así que quién gana no depende del orden de montaje.
 
-**Acá está el eslabón que falta.** `tipo: 'pieza'` está en el modelo y
-**nada lo crea todavía**: no hay interfaz para poner una pieza nuestra en
-el lienzo, y si un frame llegara con ese tipo se dibuja un hueco con la
-palabra `Piece` (`playground.tsx:512`). O sea que hoy el playground itera
-**sobre las referencias**, no sobre la pieza que estás construyendo. El
-andamio está puesto y dicho; falta la función.
+**Escribir un componente desde cero: los bocetos.** Un frame `boceto` es
+**un archivo de verdad** en `src/privado/bocetos/`, que exporta un
+componente por defecto. `New sketch`, en el diálogo del `+`, crea el
+archivo y lo pone en la tela; después lo abrís en tu editor —o se lo
+pasás a un agente— y escribís. Vite lo recarga en el frame **sin recargar
+la página**: no se pierde la posición de nada.
+
+Eso es a propósito el camino más corto para las dos formas de trabajar:
+un agente escribe archivos, no tipea en un textarea, así que si el boceto
+ES un archivo las dos son la misma y ninguna necesita interfaz. Por eso
+tampoco hay un editor adentro del navegador.
+
+Tres cosas que conviene saber antes de tocarlo:
+
+- **Un boceto roto no tira el tablero.** Cada uno va adentro de un límite
+  de error, así que lo único que se apaga es su frame — y se recupera
+  solo en el siguiente guardado, sin recargar.
+- **El puntero se reparte por selección.** Sin elegir, el frame se
+  arrastra; elegido, el boceto recibe los clics y podés probar lo que
+  estás construyendo. Para volver a moverlo, Escape.
+- **Es sólo web.** Una pieza de App no se construye acá: se construye
+  contra el simulador, con el agente al lado, y llega a la exposición
+  como video (ver abajo).
+
+**Y acá se publica.** Con un frame elegido, `Add to Library` aparece en
+la sidebar —debajo del índice, el patrón del panel de selección de Figma
+colapsado en el panel que ya existe— y el clic derecho lo ofrece como
+atajo. Un boceto sale como pieza Web viva, una grabación como pieza App.
+El detalle está en la sección 3.
+
+**Lo que sigue faltando** es `tipo: 'pieza'`: está en el modelo y nada lo
+crea: si un frame llegara con ese tipo se dibuja un hueco con la palabra
+`Piece`. El andamio está puesto y dicho; falta la pieza que lo estrene.
 
 ### 3 · La library — lo público
 
@@ -117,31 +150,62 @@ andamio está puesto y dicho; falta la función.
 placeholders se borraron enteros antes de la primera pieza real, para que
 nada genérico se confunda con una decisión. La primera define el molde.
 
-**Publicar una pieza son dos cosas, y sólo una es a mano:**
+**Publicar es un gesto del tablero.** Elegís el frame y `Add to Library`
+aparece en la sidebar (el clic derecho lo repite como atajo): nombre
+(llega puesto) y una línea de descripción, que
+son literalmente los dos renglones del detalle público. **La plataforma
+la dice el frame**, no un selector:
 
-1. Una entrada en `PIECES` — `name`, `platform`, `desc`. El `slug` del
-   nombre es su URL: `Photo picker` → `/photo-picker`.
+- un frame **boceto** publica una pieza **Web**: su archivo se copia de
+  `src/privado/bocetos/` a `src/piezas/<slug>.tsx` — el lado público de
+  la frontera — y el demo corre **vivo** en la lista y el detalle.
+- un frame **clip** (una grabación tuya que entró por el vault) publica
+  una pieza **App**: el video se copia a `public/piezas/<slug>.<ext>` y
+  autoreproduce en el hueco del teléfono.
+
+El servidor hace las dos escrituras o ninguna —el archivo del demo y la
+entrada en `PIECES`— y no pisa nada nunca: repetir un nombre es un 409.
+Al terminar te deja parado en la página nueva, que es la confirmación.
+
+**Cómo vive una pieza Web**: `src/piezas/<slug>.tsx` exporta el
+componente por defecto y `demos.tsx` lo resuelve **por nombre** — el
+slug es el mapa, no hay registro que mantener. Publicar es COPIA, no
+mudanza: el boceto queda en el tablero; desde ahí la pieza se edita en
+su archivo publicado. Y como es producto, **no puede importar nada de
+`src/privado/`**.
+
+Alrededor:
+
+1. La entrada en `PIECES` — `name`, `platform`, `desc`, y `video` sólo
+   para App. El `slug` del nombre es su URL: `Photo picker` →
+   `/photo-picker`. También se puede escribir a mano; publicar es el
+   camino corto.
 2. `prebuild` corre `scripts/rutas.mjs`, que **regenera `vercel.json`**
-   con el rewrite de esas rutas. No se escribe a mano: sin el rewrite la
-   URL da 404 en producción y nada lo diría. Cero piezas es un estado
-   legítimo, pero el script sólo lo acepta si `pieces.ts` lo dice con el
-   array vacío literal — si no, entiende que el regex se rompió y frena
-   el build.
+   con el rewrite de esas rutas — importa `PIECES` y `slug` de verdad
+   (Node ≥24 corre TypeScript), así que si `pieces.ts` no compila, el
+   build frena ahí.
 
-> **Trampa que hoy no muerde y va a morder.** Los dos slugs no son el
-> mismo: `parts.tsx` hace `toLowerCase().replace(/\s+/g, '-')` y
-> `rutas.mjs` hace `replace(/[^a-z0-9]+/g, '-')`. Con nombres de una o
-> dos palabras coinciden; el día que una pieza lleve un signo en el medio
-> (`Toggle & switch`), el cliente navega a una URL que el rewrite no
-> cubre. Se arregla compartiendo la función, no ajustando una de las dos.
+El `slug` es **uno solo** y vive en `pieces.ts`: lo comparten la página,
+el generador de rutas y el puente que publica. Acá vivían dos cuentas
+distintas que coincidían de casualidad; quedó una.
 
 **`platform` decide cómo se demuestra, y nada más**: Web va viva en el
-navegador, App va en video. No se decide por pieza.
+navegador, App va en video. No se decide por pieza — y publicar tampoco
+lo pregunta, lo lee del frame.
 
-**El stage está vacío.** `Detail`, en `parts.tsx`, dibuja
-`.detailPreview`: un div con la altura y el hueco de teléfono ya
-resueltos y **nada adentro**. Construir la primera pieza ahí es el
-pendiente más grande del repo.
+**Y decide también dónde se construye.** Una pieza **Web** se boceta en
+el lienzo del playground. Una pieza **App** no: se escribe con el agente
+mientras la mirás correr en el simulador de iOS, y entra a la exposición
+como **grabación de pantalla**. El playground no intenta simular un
+teléfono, y eso es una decisión y no una carencia — `react-native-web`
+dibujaría la forma y mentiría justo en lo que este vault estudia, que es
+el gesto y el háptico.
+
+**El stage sabe mostrar las dos.** `Muestra`, en `parts.tsx`, decide por
+`platform`: la grabación de una App en el hueco de teléfono que la caja
+ya reservaba, o el componente de una Web corriendo vivo — resuelto por
+slug en `demos.tsx`. Lo que falta ahora no es mecanismo: es la primera
+pieza real.
 
 ### La frontera
 
@@ -168,8 +232,10 @@ de la pieza y no su componente.
 | dónde | qué |
 | --- | --- |
 | `src/app.tsx` | el router (sin librería: `pushState` y dos vistas), el scrollspy, la puerta de lo privado |
-| `src/pieces.ts` | el inventario público. Hoy vacío |
-| `src/parts.tsx` | masthead, ítem de lista, detalle, flecha de volver, `slug`, `clicDeLink` |
+| `src/pieces.ts` | el inventario público y el `slug` canónico. Hoy vacío |
+| `src/demos.tsx` | el mapa nombre → componente de las piezas Web |
+| `src/piezas/` | **el demo de cada pieza Web**, un archivo por slug. Acá aterriza un boceto publicado |
+| `src/parts.tsx` | masthead, ítem de lista, detalle, la muestra (video/vivo), flecha de volver, `clicDeLink` |
 | `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
 | `src/not-found.tsx` | el 404 con física |
 | `src/privado/privado.tsx` | el marco del área privada: solapas, hueco de acciones, ⌘Z de navegación |
@@ -180,6 +246,8 @@ de la pieza y no su componente.
 | `src/privado/enlaces.ts` · `enlace.tsx` | encontrar los links de una nota y dibujarlos |
 | `src/privado/playground.tsx` | la lista de vistas y el lienzo |
 | `src/privado/vistas.ts` | modelo de vistas, persistencia, deshacer/rehacer, `alPlayground` |
+| `src/privado/bocetos.tsx` | el registro de bocetos: los encuentra, los dibuja y aguanta que estén rotos |
+| `src/privado/bocetos/` | **acá se escribe.** Un archivo por boceto, componente por defecto |
 | `src/privado/acciones.tsx` | menú del clic derecho, diálogos, botones del chrome |
 | `scripts/vault-media.mjs` | el puente al vault |
 | `scripts/cuadros.mjs` | `mdhd` + `stts` del mp4/mov, sin ffprobe |

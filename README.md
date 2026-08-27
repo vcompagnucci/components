@@ -217,6 +217,12 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
 - **El lienzo del playground no entró al modelo de la barra.** Tiene `←` y
   nombre en su sidebar, que es leading + título con otra ropa. Queda como
   excepción documentada hasta que se decida si se une.
+- **El inspector de selección del lienzo, cuando haya con qué.** Hoy la
+  única acción de un frame elegido (`Add to Library`) vive en la sidebar,
+  debajo del índice. El día que se acumulen más —duplicar, medidas,
+  orden— ese bloque es el que se muda a un panel derecho estilo Figma,
+  decidido con `/prototype`. Abrir la superficie ahora sería chrome para
+  una sola palabra.
 - **La barra sigue siendo tres mecanismos para cuatro pantallas** — el portal
   anónimo de `.acciones`, la fila del detalle y la sidebar del lienzo. Falta
   decidir si pasa a ser un componente con zonas (`leading` / `trailing`).
@@ -403,6 +409,71 @@ manteniendo tono y croma, el rojo que da Lc −75.5 sobre `#090908` es `#ffbcb1`
 trabajo. **La palabra ya se lee**, en ink, a Lc 104; el rojo no carga la
 lectura, carga el aviso. Es el primer token de texto que no cumple la regla y
 va dicho, no escondido.
+
+## Los bocetos — escribir un componente desde cero en el lienzo
+
+El playground tenía las referencias y no tenía dónde construir: sus frames
+sólo podían apuntar a un clip del vault. Desde el 2026-08-26 hay un tercer
+tipo de frame, `boceto`, y es **un archivo de verdad** en
+`src/privado/bocetos/` que exporta un componente por defecto.
+
+| Decisión | Valor | Fuente |
+| --- | --- | --- |
+| Qué es un boceto | Un `.tsx` en `src/privado/bocetos/`, resuelto con `import.meta.glob`. `New sketch` crea el archivo y lo pone en la tela | el frame ya guardaba una **referencia** y no una copia para los clips; un boceto usa exactamente el mismo trato, con el `ref` apuntando al nombre del archivo |
+| **No hay editor en el navegador** | escribís en tu editor y Vite recarga el frame | Monaco o CodeMirror más un transformador en el cliente sería una dependencia grande para darte un editor **peor** que el que ya tenés abierto al lado. Y sobre todo: **un agente escribe archivos, no tipea en un textarea**. Si el boceto es un archivo, las dos formas de trabajar —vos en el editor, un agente en la terminal— son la MISMA y ninguna necesita interfaz |
+| ↳ verificado en vivo | editar el archivo cambia el frame **sin recargar la página** | medido: `performance.getEntriesByType('navigation')[0].type` sigue en `navigate` después de tres ediciones, y el contenido del frame cambió las tres veces |
+| **Un boceto roto no tira el tablero** | cada uno adentro de un límite de error; se apaga sólo su frame, con el nombre y la palabra `Error` | escribir libremente significa que la mitad del tiempo el archivo está a medias. Sin esto un `null.map()` desmonta el lienzo entero y perdés los otros frames, la selección y el gesto a medio hacer. **Verificado**: con el boceto roto el tablero siguió montado y el frame dijo `Error` |
+| ↳ y se recupera solo | el límite se limpia en el siguiente hot update, que es cuando arreglaste el archivo | si no, el frame quedaría en rojo para siempre y habría que recargar — o sea perder justo lo que este componente vino a salvar. Se limpia **sólo si hay error**: pisar el estado en cada guardado remontaría todos los bocetos del tablero cada vez que tocás cualquier archivo |
+| **El puntero se reparte por selección** | sin elegir el frame se arrastra; elegido, el boceto recibe los clics | hay que poder apretarle los botones a lo que estás construyendo, pero el gesto del frame hace `preventDefault` y toma el puntero: si empezara ahí, el clic nunca llegaría adentro. Es lo que hacen los editores de tablero. **Verificado**: elegido, tres clics dieron tres incrementos; deseleccionado, `pointer-events` computa `none` |
+| ↳ el precio, dicho | un boceto elegido no se mueve arrastrándolo del medio: Escape y vuelve a ser un frame | queda anotado como candidato a mirarse con `/prototype` si molesta |
+| El diálogo pasó a llamarse `Add` | y `New sketch` es la primera opción de la grilla, con la misma caja que las demás | era `Add clip`, y desde que también se agregan bocetos nombraba una de las dos cosas que hay adentro. La opción nueva es una card más y no un botón aparte, así que no hay una segunda geometría que decidir |
+| ↳ no pregunta el nombre | nace `sketch`, `sketch-2`… y se renombra renombrando el archivo | es la regla que ya usa `New view`: un modal antes de ver nada te obliga a bautizar algo que todavía no existe |
+| El endpoint escribe **adentro del repo** | `POST /vault-media/__boceto`, única excepción del puente | un boceto es código: tiene que estar donde Vite lo compile y donde tu editor y un agente lo puedan abrir. La carpeta es fija y sale de `import.meta.url`, y del nombre sólo sobreviven letras, números y guiones — con ese alfabeto no hay `..` que construir. **Verificado**: `?nombre=../../etc/passwd` escribió `etc-passwd.tsx` adentro de la carpeta, y nada afuera |
+| ↳ no pisa nada | se escribe con `wx`, y si existe devuelve 409 | el chequeo y la escritura son la misma operación, así que no hay ventana entre "no está" y "lo escribo". **Verificado**: el segundo POST con el mismo nombre da 409 |
+| **Y sigue sin llegar a producción** | `dist/` no menciona `boceto` ni una vez | el borde es la carpeta: todo esto cuelga de `src/privado/` y hereda la puerta. Verificado después de `pnpm build` |
+
+**El playground es sólo web, y es una decisión.** Una pieza de App no se
+construye acá: se escribe con el agente al lado mientras la mirás correr
+en el **simulador de iOS**, y entra a la exposición como **grabación de
+pantalla** — que es lo que `platform` ya decía sobre cómo se demuestra,
+ahora también sobre dónde se construye. Se evaluó meter el teléfono
+adentro del lienzo y se descartó: `react-native-web` dibujaría la forma y
+mentiría justo en lo que este vault estudia, que es el gesto y el háptico
+—el mismo argumento por el que Expo pasó a video—, y un simulador
+streameado (`simctl io booted screenshot` más `idb ui tap`) da la imagen
+pero no el *feel*, que es lo único que no se puede juzgar de otra manera.
+
+## Publicar — del playground a la library
+
+El recorrido cierra desde el 2026-08-26, y cierra **en el tablero**:
+`Add to Library` es el clic derecho sobre un frame del playground. Un
+boceto sale como pieza **Web viva**; una grabación, como pieza **App**
+en video.
+
+**Estuvo un día en el vault y se movió**, y la corrección es de modelo,
+no de lugar: el vault es lo EXTERNO —la pared de referencias que mirás—
+y lo que se publica es lo TUYO, que vive en el playground. El flujo
+entero quedó: vault (externo) → playground (iterás tu pieza, con las
+referencias al lado) → library. Publicar es el final del taller, así que
+el gesto vive donde está el trabajo.
+
+| Decisión | Valor | Fuente |
+| --- | --- | --- |
+| **La acción es visible, no sólo clic derecho** | elegís el frame y `Add to Library` aparece en la sidebar, debajo del índice, a **16** —el aire de grupo, medido— para que no se lea como un renglón más: los renglones son sustantivos y esto es un verbo | la lección ya aprendida en el vault: *un menú contextual no anuncia nada*. El patrón de referencia es el panel derecho de Figma —las acciones de lo elegido— pero UNA acción no paga una superficie nueva: la zona nace adentro de la sidebar que ya existe. El clic derecho queda como atajo |
+| **La plataforma la dice el frame**, sin selector | un frame `boceto` publica Web; un frame `clip` publica App | es la regla que ya existía —*App se demuestra en video, Web va viva*— leída al revés. Un selector ofrecería combinaciones que el sistema ya declaró inválidas |
+| El formulario es el molde de la pieza | dos campos: nombre y una línea de descripción — exactamente los dos renglones del detalle público. El nombre llega puesto; la descripción arranca vacía porque es el único dato que el archivo no sabe de sí mismo | la carpeta-es-el-manifiesto del vault, aplicada al publicar: no se pide nada que ya se sepa |
+| **Cómo vive una pieza Web** | su archivo en `src/piezas/<slug>.tsx`, resuelto **por nombre** en `demos.tsx` — glob perezoso, cache por ref, mismo trío que los bocetos | el slug es el mapa, así que no hay registro que mantener a mano — la decisión de la carpeta-manifiesto, ahora del lado público. En el build cada pieza sale como su propio chunk (**verificado**: `press-counter-….js`, 0.44 kB) |
+| ↳ publicar es COPIA, no mudanza | el boceto queda en el tablero; la pieza se edita en su archivo publicado | mover el archivo rompería los frames que lo referencian. El costo —dos archivos que pueden divergir— queda dicho: desde la publicación, el canónico es `src/piezas/` |
+| ↳ y cruza la frontera de verdad | de `src/privado/bocetos/` a `src/piezas/` | `src/privado/` no llega al build, así que una pieza publicada necesita su archivo del lado público. Por lo mismo, una pieza no puede importar nada de `src/privado/` — era cierto para el boceto (nace autocontenido) y tiene que seguir siéndolo |
+| Las dos escrituras o ninguna | el archivo del demo se copia y la entrada entra a `pieces.ts`; si la segunda falla, la primera se deshace | el vault y `src/privado/` viven fuera del deploy; sin el copiado la pieza apuntaría a algo que producción no tiene |
+| No se pisa nada nunca | nombre o archivo repetidos → **409**, no un reemplazo | la misma regla que subir un clip y crear un boceto: `COPYFILE_EXCL`, chequeo y copia en una sola operación. **Verificado**: mismo slug con otro nombre devuelve 409 |
+| La confirmación es la página | al publicar navegás a `/​<slug>` y ves el demo andando | este sistema no tiene toast (el undo de Sonner sigue pospuesto); la library real es mejor confirmación que cualquier cartel. Navegación dura a propósito: `pieces.ts` acaba de cambiar en disco y recargar garantiza que todos los módulos la vean |
+| El demo Web corre vivo en las DOS vistas | lista y detalle, el mismo componente, centrado en la caja con el piso heredado (`min-height: inherit`) | la decisión ya estaba tomada: *"con preview vivo en la lista, el detalle no aporta la pieza — aporta lo que la rodea"*. **Verificado**: el botón de prueba contó 3 clics en `/press-counter` |
+| La grabación toma el hueco del teléfono | el `::before` que reservaba la silueta se apaga (`:has`) y el video usa el mismo ancho por el mismo token — 228 en la lista, 319 en el detalle | el hueco existía para esto: era la reserva de un contenido que ahora llegó. **Verificado**: 228 y 319 medidos |
+| ↳ autoreproduce, muda, en loop | `autoplay muted loop playsinline` | el movimiento ES el contenido, y es lo que hacen los demos de benji en family-values — 45 videos girando a la vez. La regla contraria del playground (arranca quieto) es de un tablero de estudio; una exposición existe para mostrarse sola |
+| **El slug quedó UNO** | vive en `pieces.ts` y lo comparten la página, `rutas.mjs` y el puente | vivían dos cuentas que coincidían de casualidad —espacios→guión en `parts.tsx`, todo-lo-no-alfanumérico→guión en `rutas.mjs`— y con el primer nombre con signo divergían. Publicar nombra el archivo del demo con el slug, así que una tercera copia era inaceptable |
+| ↳ y `rutas.mjs` dejó el regex | importa `PIECES` y `slug` de `pieces.ts` de verdad | Node ≥24 —que `engines` ya exigía— corre TypeScript sin tipos ejecutables. El guard de "vacío a propósito" murió con el regex que protegía: si `pieces.ts` no compila, el build frena ahí — el mismo freno, sin heurística |
+| Verificado de punta a punta, dos veces | **Web**: New sketch → escribir el archivo → clic derecho → `/press-counter` con el botón contando clics. **App**: la rama clip publica, el video reproduce en su hueco, `vercel.json` regenerado | hecho con material de prueba y **revertido**: el inventario sólo lleva piezas construidas de verdad |
 
 ## Cómo se nombra un clip
 

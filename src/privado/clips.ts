@@ -151,6 +151,27 @@ export async function guardarFicha(
   return d.ficha ?? null;
 }
 
+/* PUBLICAR una grabación como pieza App. Se dispara desde el TABLERO
+   —el clic derecho sobre el frame— porque publicar es el final del
+   taller, no un gesto del vault. El servidor copia el video a
+   public/piezas/ y anota la entrada en pieces.ts, las dos cosas o
+   ninguna. Devuelve el slug, que es a dónde navegar: la pieza ya está
+   en la library. */
+export async function publicarClip(
+  ruta: string,
+  nombre: string,
+  desc: string,
+): Promise<string> {
+  const r = await fetch("/vault-media/__publicar", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tipo: "clip", ruta, nombre, desc }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
+  return d.slug as string;
+}
+
 /* RENOMBRAR. El servidor sólo acepta un nombre PARA LEER: la extensión
    la pone él, copiándola del archivo, así que renombrar no puede
    cambiar el tipo. Devuelve la ruta nueva, que es distinta — la ruta ES

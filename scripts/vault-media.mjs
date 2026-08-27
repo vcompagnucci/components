@@ -45,8 +45,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { fileURLToPath } from 'node:url'
 import { cuadroDe } from './cuadros.mjs'
 import { tarjetaDe } from './tarjeta-link.mjs'
+/* La MISMA cuenta que usan la página y rutas.mjs. Publicar nombra el
+   archivo del video con el slug de la pieza, así que si acá viviera
+   una copia, la URL y el archivo podrían divergir en silencio. */
+import { slug as slugDePieza } from '../src/pieces.ts'
 
 /* Los cuadros se leen del contenedor UNA vez por archivo. La clave lleva
    tamaño y mtime, así que reemplazar un clip lo vuelve a leer solo y no
@@ -116,7 +121,7 @@ const FICHA_CAMPOS = ['notes', 'source', 'device']
    en desarrollo; con dos pestañas abiertas, la última que guarda gana.
    Queda dicho para el día que moleste. */
 const VISTAS = '.lima-playground.json'
-const TIPOS_FRAME = new Set(['pieza', 'clip'])
+const TIPOS_FRAME = new Set(['pieza', 'clip', 'boceto'])
 const MAX_VISTAS = 200
 const MAX_FRAMES = 60
 const LARGO_REF = 600
@@ -396,6 +401,149 @@ const json = (res, codigo, cuerpo) => {
   res.end(JSON.stringify(cuerpo))
 }
 
+/* ═══════════ LOS BOCETOS ═══════════
+   El único endpoint de este archivo que NO toca el vault: escribe
+   adentro del repo, en src/privado/bocetos/. Va dicho fuerte porque
+   rompe la simetría de todo lo demás, y la razón es que un boceto es
+   código —tiene que estar donde Vite lo compile y donde tu editor y un
+   agente lo puedan abrir— y no un medio.
+
+   LA CARPETA ES FIJA Y SALE DE ESTE ARCHIVO, no de nada que mande el
+   cliente: se deriva de import.meta.url, así que no depende ni del
+   cwd. Lo único que llega de afuera es el nombre, y de él sólo
+   sobreviven letras, números y guiones. Con ese alfabeto no hay ".."
+   que construir: el path traversal no se bloquea, no se puede escribir.
+
+   NO PISA NADA. Si el archivo existe se devuelve 409 y el que llama se
+   entera: un botón que silenciosamente reemplaza lo que escribiste no
+   es un botón, es una trampa. */
+const BOCETOS_DIR = fileURLToPath(new URL('../src/privado/bocetos/', import.meta.url))
+
+const refDeBoceto = (crudo) => {
+  if (typeof crudo !== 'string') return null
+  const s = crudo
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return s && s.length <= 60 ? s : null
+}
+
+/* "sheet-que-se-estira" → "SheetQueSeEstira". Un componente de React
+   tiene que empezar en mayúscula o JSX lo trata como una etiqueta HTML.
+   Y si el nombre arranca con número —"3-puntos"— se le antepone una
+   letra, porque un identificador no puede. */
+const identificadorDe = (ref) => {
+  const id = ref
+    .split('-')
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join('')
+  return /^[0-9]/.test(id) ? 'B' + id : id
+}
+
+/* LA PLANTILLA ES CASI NADA, y es a propósito: lo que se abre tiene que
+   ser una hoja en blanco con el mínimo para que dibuje algo, no un
+   ejemplo que después hay que borrar. El div al 100% existe porque el
+   frame ya tiene el tamaño; sin eso el primer boceto nace de 0 de alto y
+   parece que no funcionó. */
+/* ═══════════ PUBLICAR — del playground a la library ═══════════
+   El segundo endpoint que escribe adentro del repo, con el mismo
+   permiso que __boceto: lo que produce es producto, no un medio del
+   vault. Se publica DESDE EL TABLERO —el clic derecho sobre un frame—
+   porque ahí es donde está tu trabajo; el vault es lo externo y no
+   publica nada.
+
+   Hace DOS cosas y las dos tienen que quedar o ninguna:
+
+     1. copia el archivo del demo al lado público de la frontera:
+          una grabación  →  public/piezas/<slug><ext>   (pieza App)
+          un boceto      →  src/piezas/<slug>.tsx       (pieza Web)
+        El vault y src/privado/ no viajan al deploy; por eso el copiado
+        existe. Y es COPIA, no mudanza: el frame del tablero sigue
+        apuntando a lo suyo — desde acá, la pieza se edita en su archivo
+        publicado.
+     2. agrega la entrada a src/pieces.ts, que es el inventario real:
+        de ahí salen la página, el índice y el vercel.json del prebuild.
+
+   Si el segundo paso falla, el primero se deshace. No se pisa nada
+   nunca: publicar dos veces es un 409, no un reemplazo silencioso.
+
+   LA PLATAFORMA LA DICE EL FRAME, no un selector: una grabación ES una
+   pieza App y un boceto ES una pieza Web — es la regla de `platform`
+   (App va en video, Web va viva) leída al revés. */
+const PIEZAS_DIR = fileURLToPath(new URL('../public/piezas/', import.meta.url))
+const PIEZAS_SRC = fileURLToPath(new URL('../src/piezas/', import.meta.url))
+const PIEZAS_TS = fileURLToPath(new URL('../src/pieces.ts', import.meta.url))
+
+/* Los textos viajan a un archivo .ts entre comillas simples: se escapan
+   la barra y la comilla, y los saltos de línea se vuelven espacio — un
+   nombre o una descripción no tienen renglones. */
+const aLiteral = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\s+/g, ' ').trim()
+
+function agregarPieza(nombre, desc, plataforma, video) {
+  const src = fs.readFileSync(PIEZAS_TS, 'utf8')
+
+  /* El duplicado se chequea por SLUG y no por nombre: dos nombres
+     distintos que cayeran en la misma URL romperían el rewrite. Se lee
+     el archivo fresco en cada pedido — el import de arriba quedó
+     congelado al arrancar el servidor y no vería lo recién publicado. */
+  const tomados = [...src.matchAll(/name: '((?:[^'\\]|\\.)*)'/g)].map((m) =>
+    slugDePieza(m[1].replace(/\\(.)/g, '$1')),
+  )
+  if (tomados.includes(slugDePieza(nombre))) return { error: 'ya hay una pieza con esa URL' }
+
+  const entrada = [
+    '  {',
+    `    name: '${aLiteral(nombre)}',`,
+    `    platform: '${plataforma}',`,
+    `    desc: '${aLiteral(desc)}',`,
+    /* Una pieza Web no lleva video: su demo es el archivo en
+       src/piezas/, que se resuelve por slug — ver demos.tsx. */
+    ...(video ? [`    video: '${video}',`] : []),
+    '  },',
+  ].join('\n')
+
+  /* La lista vacía se reemplaza entera; con piezas, la nueva entra antes
+     del `]` que cierra el array — que es lo último del archivo, así que
+     el último corchete del texto es el suyo. */
+  let siguiente
+  if (/PIECES: Piece\[\] = \[\]/.test(src)) {
+    siguiente = src.replace('PIECES: Piece[] = []', `PIECES: Piece[] = [\n${entrada}\n]`)
+  } else {
+    const cierre = src.lastIndexOf(']')
+    if (cierre < 0) return { error: 'pieces.ts no tiene la forma esperada' }
+    siguiente = src.slice(0, cierre) + entrada + '\n' + src.slice(cierre)
+  }
+
+  const temp = PIEZAS_TS + '.tmp'
+  fs.writeFileSync(temp, siguiente)
+  fs.renameSync(temp, PIEZAS_TS)
+  return { ok: true }
+}
+
+const plantillaDeBoceto = (ref) => `/* ${identificadorDe(ref)} — un boceto del lienzo.
+
+   Escribí lo que quieras acá y guardá: Vite lo recarga en el frame sin
+   tocar la página. Los tokens del sistema (--ink, --surface, --canvas,
+   las duraciones y las curvas) están disponibles como variables CSS. */
+export default function ${identificadorDe(ref)}() {
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'grid',
+        placeItems: 'center',
+        color: 'var(--ink)',
+      }}
+    >
+      ${identificadorDe(ref)}
+    </div>
+  )
+}
+`
+
 export function vaultMedia(dirCrudo) {
   /* Se resuelve UNA vez, al arrancar, y con realpath: la comparación
      de después es entre rutas reales, así que un symlink no la
@@ -672,6 +820,107 @@ export function vaultMedia(dirCrudo) {
            vault en otro volumen, que hace fallar el rename con EXDEV—
            se responde con el error en vez de caer a borrar de verdad.
            Fallar es mejor que borrar algo que no se puede recuperar. */
+        /* CREAR UN BOCETO. No pide `raiz`: un boceto es código del repo y
+           no tiene nada que ver con tu carpeta de clips, así que se puede
+           escribir uno con el vault desconectado. Ver BOCETOS_DIR. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__boceto') {
+          const q = new URLSearchParams((req.url || '').split('?')[1] ?? '')
+          const ref = refDeBoceto(q.get('nombre'))
+          if (!ref) return json(res, 400, { error: 'nombre no admitido' })
+
+          const destino = path.join(BOCETOS_DIR, ref + '.tsx')
+          try {
+            fs.mkdirSync(BOCETOS_DIR, { recursive: true })
+            /* 'wx' falla si existe, y esa es toda la guarda: el chequeo y
+               la escritura son la misma operación, así que no hay ventana
+               entre "no está" y "lo escribo". */
+            fs.writeFileSync(destino, plantillaDeBoceto(ref), { flag: 'wx' })
+          } catch (e) {
+            if (e?.code === 'EEXIST') return json(res, 409, { error: 'ya existe', ref })
+            return json(res, 500, { error: String(e?.message ?? e) })
+          }
+          return json(res, 200, { ok: true, ref })
+        }
+
+        /* PUBLICAR UN FRAME COMO PIEZA. El porqué y las dos escrituras
+           están arriba, en el bloque de PIEZAS_DIR. Dos ramas por el
+           tipo del frame: `boceto` publica Web, lo demás es un clip del
+           vault y publica App. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__publicar') {
+          let cuerpo = ''
+          req.setEncoding('utf8')
+          req.on('data', (c) => {
+            cuerpo += c
+            if (cuerpo.length > 8 * 1024) req.destroy()
+          })
+          req.on('end', () => {
+            let d
+            try {
+              d = JSON.parse(cuerpo)
+            } catch {
+              return json(res, 400, { error: 'json inválido' })
+            }
+
+            const nombre = String(d?.nombre ?? '').trim()
+            const desc = String(d?.desc ?? '').trim()
+            if (!nombre || nombre.length > 80) return json(res, 400, { error: 'nombre no admitido' })
+            if (desc.length > 200) return json(res, 400, { error: 'descripción demasiado larga' })
+            const s = slugDePieza(nombre)
+            if (!s) return json(res, 400, { error: 'con ese nombre no se puede armar una URL' })
+
+            /* Resuelto el origen, las dos ramas terminan igual: copiar
+               con EXCL, anotar en pieces.ts, y deshacer la copia si la
+               anotación no entró. */
+            const publicar = (origen, destino, plataforma, video) => {
+              try {
+                fs.mkdirSync(path.dirname(destino), { recursive: true })
+                /* COPYFILE_EXCL: chequeo y copia en una sola operación,
+                   igual que el 'wx' de los bocetos. */
+                fs.copyFileSync(origen, destino, fs.constants.COPYFILE_EXCL)
+              } catch (e) {
+                if (e?.code === 'EEXIST')
+                  return json(res, 409, { error: 'ya hay una pieza publicada con esa URL' })
+                return json(res, 500, { error: String(e?.message ?? e) })
+              }
+              try {
+                const r = agregarPieza(nombre, desc, plataforma, video)
+                if (r.error) {
+                  fs.unlinkSync(destino)
+                  return json(res, 409, { error: r.error })
+                }
+              } catch (e) {
+                try {
+                  fs.unlinkSync(destino)
+                } catch {}
+                return json(res, 500, { error: String(e?.message ?? e) })
+              }
+              return json(res, 200, { ok: true, slug: s })
+            }
+
+            /* ─── UN BOCETO → PIEZA WEB ───
+               No pide el vault: el archivo vive en el repo. El ref pasa
+               por el mismo alfabeto con el que se creó, así que no hay
+               ruta que armar hacia afuera de la carpeta. */
+            if (d?.tipo === 'boceto') {
+              const ref = refDeBoceto(d?.ref)
+              if (!ref) return json(res, 400, { error: 'ref no admitido' })
+              const origen = path.join(BOCETOS_DIR, ref + '.tsx')
+              if (!fs.existsSync(origen)) return json(res, 404, { error: 'no existe' })
+              return publicar(origen, path.join(PIEZAS_SRC, s + '.tsx'), 'Web', null)
+            }
+
+            /* ─── UN CLIP → PIEZA APP ─── */
+            if (!raiz) return json(res, 409, { error: motivo })
+            const origen = dentro(raiz, path.join(raiz, String(d?.ruta ?? '')))
+            if (!origen) return json(res, 404, { error: 'no existe' })
+            const ext = path.extname(origen).toLowerCase()
+            if (!VIDEO.has(ext))
+              return json(res, 400, { error: 'una pieza App se demuestra con una grabación' })
+            return publicar(origen, path.join(PIEZAS_DIR, s + ext), 'App', `/piezas/${s}${ext}`)
+          })
+          return
+        }
+
         if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__papelera') {
           if (!raiz) return json(res, 409, { error: motivo })
           let cuerpo = ''
