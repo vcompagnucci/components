@@ -8,7 +8,8 @@
     "scheme": "nativo",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.anonymous.nativo"
     },
     "android": {
       "adaptiveIcon": {

@@ -36,6 +36,7 @@
   "scripts": {
     "start": "expo start",
     "ios": "expo start --ios",
+    "ios:build": "expo run:ios",
     "nueva": "node scripts/nueva.mjs",
     "grabar": "node scripts/grabar.mjs",
     "typecheck": "tsc --noEmit",

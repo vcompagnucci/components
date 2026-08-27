@@ -23,14 +23,44 @@ volvió librería, nunca el punto de partida. La recon está en
 `.context/recon/TALLER-NATIVO.md` de la raíz — gitignoreada, así que sus
 conclusiones viven acá y en el AGENTS de arriba.
 
-## Los tres comandos
+## Los comandos
 
 ```bash
 pnpm install                  # una vez por worktree
-pnpm ios                      # levanta Metro y abre el simulador
+pnpm ios                      # Metro + simulador, sobre Expo Go
 pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
+pnpm ios:build                # dev build propio — ver el bloqueo abajo
 ```
+
+### Hoy corre sobre Expo Go, y hay un motivo
+
+**`pnpm ios:build` está bloqueado por la versión de Xcode**, no por el
+proyecto: SDK 57 pide **Xcode 26.4 o más nuevo** y esta máquina tiene
+26.2. Se intentó y falla al compilar `expo-modules-jsi`:
+
+```
+RuntimeScheduler.h:61 'RuntimeScheduler' cannot be annotated with
+SWIFT_RETURNS_RETAINED because it is not returning a
+SWIFT_SHARED_REFERENCE type
+```
+
+No es un bug para parchear ni se arregla subiendo de versión — se
+verificó que el header es idéntico en el patch siguiente
+(`expo-modules-jsi` 57.0.5 y 57.0.6, leídos de unpkg sin instalarlos), y
+el issue [expo/expo#49426](https://github.com/expo/expo/issues/49426) lo
+cerró un mantenedor de Expo el 2026-08-27 con la respuesta:
+*"Upgrade Xcode to 26.4 or newer which is required for SDK 57"*.
+
+**Mientras tanto Expo Go alcanza para casi todo.** `pnpm ios` corre — el
+índice del taller se verificó andando en el simulador. Lo que Expo Go
+**no** trae es `@shopify/react-native-skia`, porque es un módulo nativo
+de terceros: una pieza que importe Skia va a fallar hasta que se pueda
+hacer el dev build. Reanimated, Gesture Handler y expo-haptics sí están.
+
+**Y si hacés el dev build alguna vez**: Skia necesita bajar sus binarios
+antes de que corra `pod install` — `npx install-skia`. El postinstall no
+lo hizo solo con pnpm.
 
 `pnpm nueva` es el `New sketch` de este lado: crea la carpeta y nada
 más. **El índice se deriva de las carpetas** (`require.context` en
@@ -87,6 +117,33 @@ igual, en el único lugar donde acá significa algo: **el SDK es el
 la ventana, `npx expo install --fix` lo sube.
 
 Las versiones van **exactas**, sin `~`, como en el repo web.
+
+## Probar en tu iPhone de verdad
+
+**Hoy sí, con Expo Go**, y sin build: instalás Expo Go de la App Store,
+la misma red Wi-Fi que la Mac, `pnpm start` y escaneás el QR. Si la red
+no coopera (Wi-Fi de invitados, VPN), `pnpm start --tunnel`. Vale lo
+mismo que en el simulador: todo menos Skia.
+
+Y vale la pena hacerlo aunque el simulador ande: **el simulador no tiene
+háptica ni pantalla de 120Hz**, que son justo dos de las cosas que este
+vault estudia. Un gesto que se siente bien en el simulador puede sentirse
+mal en la mano.
+
+**Con dev build propio en el teléfono** hace falta el mismo Xcode 26.4
+de arriba, más firmar la app: con una cuenta gratis de Apple sirve, pero
+el perfil vence a los 7 días y hay que reinstalar. La salida limpia es
+EAS Build, que compila en la nube y no depende de tu Xcode — está
+disponible y todavía no se probó acá.
+
+**Grabar desde el teléfono es distinto.** `pnpm grabar` usa `simctl`, que
+sólo habla con simuladores: contra un iPhone real no sirve. Ahí se graba
+con la grabación de pantalla de iOS (Centro de Control) y el archivo se
+pasa a `VAULT_DIR/native/` a mano — AirDrop, o cable con QuickTime. El
+resto del recorrido no cambia: la grilla lo levanta igual.
+
+Queda dicho para cuando moleste: si grabar desde el teléfono se vuelve
+frecuente, el paso a automatizar es ese traslado, no la grabación.
 
 ## El agente al lado del simulador
 
