@@ -333,9 +333,12 @@ el gesto y el háptico.
 ### El taller nativo — `nativo/`
 
 Una app de **Expo adentro de este mismo repo**, con su propio toolchain.
-Su guía completa está en [`nativo/AGENTS.md`](nativo/AGENTS.md) y la
-recon que la fundamenta en `.context/recon/TALLER-NATIVO.md`
-(gitignoreada, por eso lo importante vive acá). En tres comandos:
+Su guía completa está en [`nativo/AGENTS.md`](nativo/AGENTS.md) —ahí
+están también las convenciones que valen para toda pieza y las trampas
+que ya conocemos— y el material de vidrio tiene su propia referencia en
+[`nativo/VIDRIO.md`](nativo/VIDRIO.md). La recon que fundamenta el taller
+está en `.context/recon/TALLER-NATIVO.md` (gitignoreada, por eso lo
+importante vive acá). En tres comandos:
 
 ```bash
 cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
@@ -417,6 +420,7 @@ de la pieza y no su componente.
 | `src/demos.tsx` | el mapa nombre → componente de las piezas Web |
 | `src/piezas/` | **el demo de cada pieza Web**, un archivo por slug. Acá aterriza un boceto publicado |
 | `nativo/` | **el taller nativo**: app Expo con su propio toolchain. Ver su `AGENTS.md` |
+| `nativo/VIDRIO.md` | referencia del material de vidrio: por qué un `GlassView` no se anima por opacidad |
 | `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
 | `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
 | `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |

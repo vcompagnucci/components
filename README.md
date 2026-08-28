@@ -230,6 +230,13 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
   Xcode, y Xcode 26.3+ expone MCP nativo — esta máquina tiene 26.2).
   Mientras tanto el agente escribe archivos y vos mirás el simulador,
   que es el modo que ya funciona.
+- **Grabar para verificar, no sólo para publicar.** `pnpm grabar` hace el
+  clip final —barra en 9:41, h264, derecho al vault—. Falta lo otro: una
+  grabación corta durante la iteración, para que el agente vea lo que
+  hizo. Es lo único que `react-native-motion` tiene y nosotros no (ver
+  [Lo que trajimos de leer otro repo](#lo-que-trajimos-de-leer-otro-repo)).
+  Va junto con el punto de arriba: sin ojos, grabar no le sirve a nadie
+  más que a vos.
 - **`expo-haptics` quedó una versión atrás** (57.0.1 contra 57.0.2), y
   no por accidente: la 57.0.2 salió el 2026-08-26 y el cooldown de 24h
   la bloqueó. `npx expo install --fix` la sube cuando pase la ventana.
@@ -526,3 +533,72 @@ lo renombra, así que ninguna quedó huérfana.
 No está forzado por código a propósito: el nombre es el nombre del archivo
 en tu disco, y una app que te impide llamar a tus archivos como querés
 tiene la dependencia al revés.
+
+## Lo que trajimos de leer otro repo
+
+**El 2026-08-28** leímos entero
+[SchroederNathan/react-native-motion](https://github.com/SchroederNathan/react-native-motion)
+—siete animaciones Expo/RN, sitio de docs aparte— buscando qué del método
+ajeno servía acá. No tiene licencia: el único `LICENSE` es el MIT de Expo
+que deja `create-expo-app`. Así que **no viajó código**, viajaron
+conclusiones.
+
+**Lo que sí trajimos.** Cierran cada animación con una lista de
+invariantes —`Do not change these behaviors`— y eso es nuestra regla del
+recibo en un formato que otro agente puede ejecutar. Clasifiqué las 28
+líneas de sus cuatro listas:
+
+| | cuántas | qué se hizo |
+|---|---:|---|
+| Propias de su implementación | 13 | nada, no aplican |
+| Trampas generales disfrazadas de regla de pieza | 8 | → `nativo/AGENTS.md` › *Lo que ya sabemos que muerde* |
+| Convención de API del stack | 7 | → `nativo/AGENTS.md` › *Lo que vale para toda pieza* |
+
+Las 8 entraron **como reglas, no como sugerencias**. Vienen de un repo
+donde las constantes se sacan cuadro a cuadro de la referencia y cada
+decisión lleva su comentario arriba: el que no esté de acuerdo con una,
+que mida antes de tocarla.
+
+**Y el formato del bloque**, con un agregado nuestro: cada línea lleva su
+grado de evidencia — `SOURCE` si lo dice el código, `RUNTIME` si se midió
+corriendo. Sin eso, "500 ms" y "210 ms" parecen la misma clase de número
+y no lo son: uno es una decisión, el otro es una lectura de la
+referencia.
+
+**Por qué las convenciones van en un solo lugar.** Copiaron la misma regla
+a mano en sus cuatro briefs, y en el cuarto quedó vieja: el del radial
+menu manda usar `runOnJS`, pero su propio código usa `scheduleOnRN` trece
+veces y `runOnJS` ninguna. Se actualizaron tres de cuatro. Verificado
+contra nuestro propio `node_modules`: `runOnJS` está
+`@deprecated` en `react-native-worklets@0.10.1`
+(`lib/typescript/threads.native.d.ts:103`).
+
+**`nativo/VIDRIO.md`** salió de la misma lectura: `expo-glass-effect` ya
+estaba instalado y tiene trampas que no se ven venir —un `GlassView` bajo
+una opacidad animada **no dibuja nada**, y recortarlo mata el bulto del
+material bajo el dedo—. Y una regla que se olvida: el `BlurView` de la
+caída sí hay que recortarlo, o sea las dos ramas del mismo componente
+llevan reglas opuestas.
+
+**Con `expo-blur` 57.0.2 instalado el mismo día**, aunque todavía no haya
+pieza que lo use. Es la escalera completa o no es escalera: abajo de iOS
+26 el material no existe, y descubrirlo cuando la pieza ya está a medias
+cuesta un `pnpm ios:build` en el peor momento. Se reconstruyó el dev
+client en el mismo paso.
+
+**Lo que no trajimos**, y por qué:
+
+| | |
+|---|---|
+| Su skill `make-interfaces-feel-better` | es CSS puro para su sitio Next.js — cero menciones a React Native en sus 959 líneas. Y `~/.claude/skills/better-ui` es la misma familia con cuatro archivos más |
+| Su registry escrito a mano | el nuestro se deriva de las carpetas. El de ellos ya se desincronizó: `linear-tab-bar` está cargado en `data/animations.ts` y no tiene ni carpeta ni entrada en el registry |
+| El monorepo con sitio de docs aparte | resuelve un problema que no tenemos. Ellos hacen una vidriera para que otros copien; acá el producto es la exposición |
+
+**Lo único que nos falta y ellos tienen:** graban el simulador *durante*
+la iteración, no sólo al publicar. Diez `.mp4` se les colaron al repo en
+`.argent/recordings/` —no está en su `.gitignore`— y entraron en los
+mismos commits que las animaciones. Medidos con `ffprobe`: h264, 30 fps,
+1206×2622 y 1320×2868, o sea dos simuladores distintos por UDID en el
+nombre. Nuestro `pnpm grabar` graba para **publicar**; esto sería para
+**verificar**, y es otra cosa. Queda en Pendiente, junto con los MCP que
+le dan ojos al agente.

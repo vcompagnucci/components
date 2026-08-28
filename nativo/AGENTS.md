@@ -128,6 +128,139 @@ lo que no sea la pieza terminaría adentro del video. Para volver al
 que no dibuja nada. Si tu pieza necesita ese borde, apagalo en su propia
 pantalla con `<Stack.Screen options={{ gestureEnabled: false }} />`.
 
+### Al pie de la pieza va lo que es de la pieza
+
+Cuando termines, cerrá el archivo con un bloque de invariantes: los
+valores que alguien tendría que volver a medir antes de tocarlos, y por
+qué. Uno por línea, con su grado de evidencia.
+
+```
+/*
+ * No tocar sin volver a medir
+ *
+ * — El long press dura 500 ms, y el pan arranca con
+ *   activateAfterLongPress(500). Es el mismo número a propósito: si se
+ *   separan, el menú abre pero el dedo no llega a arrastrar.
+ *   SOURCE: los dos gestos leen LONG_PRESS_MS.
+ *
+ * — El overlay entra en 210 ms y sale en 170 ms, ease-in-out.
+ *   RUNTIME: medido cuadro a cuadro sobre la grabación de referencia.
+ *
+ * — El release se sigue con un contador que incrementa, no con un
+ *   booleano.  SIN RECIBO: falta anotar qué se rompe con el booleano.
+ */
+```
+
+Esa última línea es la más importante del bloque. **Un valor sin recibo
+por lo menos avisa que le falta**; una razón inventada que suena bien no
+avisa nada.
+
+Y ojo con qué entra acá: sólo lo de esta pieza. Lo que valga para
+cualquier otra va en la sección de abajo, una sola vez.
+
+## Lo que vale para toda pieza
+
+Estas reglas no son de ninguna pieza en particular — son cómo se usa el
+stack acá. Van escritas **una sola vez, en este archivo**.
+
+No es manía de orden. En `SchroederNathan/react-native-motion` la misma
+regla está copiada a mano en cuatro briefs, y en el cuarto quedó vieja:
+el del radial menu manda usar `runOnJS`, pero su propio código usa
+`scheduleOnRN` trece veces y `runOnJS` ninguna. Se copió a cuatro
+lugares y se actualizaron tres.
+
+### Llamar a JS desde un worklet: `scheduleOnRN`
+
+```ts
+import { scheduleOnRN } from 'react-native-worklets'
+```
+
+`runOnJS` **está deprecada**. SOURCE: `react-native-worklets@0.10.1`,
+`lib/typescript/threads.native.d.ts:103` — *"@deprecated Use
+`scheduleOnRN` instead."* Sigue funcionando y sigue exportada desde
+`react-native-reanimated`, así que nada se rompe; simplemente no se
+escribe más.
+
+**No es un reemplazo textual** — cambia la forma de llamarla:
+
+| | |
+| --- | --- |
+| vieja | `runOnJS(fn)(a, b)` — devuelve una función, y esa se llama |
+| nueva | `scheduleOnRN(fn, a, b)` — los argumentos van directo |
+
+### Shared values: `.get()` / `.set()`
+
+`.value` **no** está deprecada: los tres conviven en `SharedValue` y
+ninguno está marcado (SOURCE: `react-native-reanimated@4.5.1`,
+`lib/typescript/commonTypes.d.ts:129-136`). Elegimos `.get()`/`.set()`
+para que el taller sea uno solo, no porque el otro esté mal. Si algún
+día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
+
+## Lo que ya sabemos que muerde
+
+Ocho cosas que no son obvias y cuestan una tarde cada una. Salieron de
+leer `SchroederNathan/react-native-motion` el 2026-08-28 — allá están
+escritas como reglas de una pieza puntual, pero ninguna lo es.
+
+Vienen de un repo donde las constantes se sacan cuadro a cuadro de la
+referencia y cada decisión tiene su comentario arriba. **Tratalas como
+reglas, no como sugerencias**: si una te parece mal, medí antes de
+cambiarla.
+
+**Gestos y animación**
+
+1. **Cancelá lo que está corriendo antes de arrancar otra animación**
+   sobre el mismo shared value. Dos springs encimados sobre el mismo
+   valor pelean. Se nota sobre todo en press y en efectos que siguen al
+   dedo, donde los disparos se pisan.
+
+2. **Al soltar un pan, proyectá la velocidad antes de redondear.** Si
+   decidís a qué ítem cae un carrusel sólo por la posición, un flick
+   corto y rápido se queda donde estaba y se siente pegajoso. Se redondea
+   `posición + velocidad × factor`, no la posición sola.
+
+3. **Dos gestos que tienen que coincidir salen de una sola constante.**
+   Un long-press de 500 ms con un pan que activa a 500 ms tiene que leer
+   la misma variable: si se separan, alguien toca uno y el gesto abre
+   pero no arrastra.
+
+**Render**
+
+4. **Props primitivas si querés que `memo` corte de verdad.** Un objeto o
+   una función nueva en cada render hace que la comparación dé distinto
+   siempre y `memo` no ahorre nada. Misma regla que del lado web, pero
+   acá se paga en cuadros.
+
+**Skia**
+
+5. **El layout de texto sale de los avances de glifo, no de los bounds.**
+   Los bounds miden la tinta dibujada, así que una `o` y una `l` dan
+   anchos distintos y el texto baila. El avance es cuánto corre el
+   cursor: es lo que usa la tipografía para maquetar.
+
+6. **Poné el `origin` si querés que un glifo escale desde su centro.**
+   Por defecto escala desde la baseline y la letra se va para abajo.
+
+**Composición de vistas**
+
+7. **El `BlurView` va afuera del `MaskedView`, no adentro.** Sale de su
+   carrusel, que tiene un fondo desenfocado atrás de una máscara — o sea
+   de haberlo armado al derecho y al revés. El brief no dice qué se
+   rompe; lo que sí sabemos es de dónde muestrea un blur (punto 8), y
+   adentro de la máscara lo que encuentra no es la pantalla.
+
+8. **Un `BlurView` sólo ve lo que hay en su propia ventana.** En Android,
+   una hoja hospedada sobre el teclado vive en otra ventana: el blur no
+   encuentra nada detrás y sale el tinte solo. Si tu pieza depende del
+   desenfoque, en Android hay que caer a un color plano — y ese color
+   también se mide, no se elige.
+
+## El vidrio
+
+`expo-glass-effect` ya está instalado (57.0.1) y tiene trampas que no se
+ven venir — la principal es que **un `GlassView` bajo una opacidad
+animada no dibuja nada**. Está todo en [`VIDRIO.md`](VIDRIO.md).
+
 ## El stack, y por qué NO son las últimas versiones
 
 | | instalado | último en npm |
