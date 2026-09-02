@@ -369,10 +369,32 @@
    respuesta para las tres: el teléfono ya venía en `contain` acá abajo,
    la grabación de web lo necesita, y un clip suelto sin clasificar es
    justo cuando más falta hace verlo entero para saber qué es. */
+/* ─── CORREGIDO: UN SOLO ENCUADRE PARA TODAS LAS FUENTES ───
+   Acá decía width/height 100% —el clip llena la caja— y sólo `native`
+   llevaba el hueco con aire. Ahora el hueco es de todos, y no por
+   gusto: Vito pidió que "el rectángulo blanco dentro de cada card tenga
+   el mismo tamaño", y con dos reglas eso era imposible — `Shelf to card`
+   (web) dibujaba su bandeja a 442.6×424.9 al lado de las de `native` a
+   295.1×295.1.
+
+   La regla sola no alcanza: con `contain`, el tamaño de la bandeja lo
+   decide la proporción del ARCHIVO. Por eso los dos clips con bandeja
+   que no eran cuadrados se rellenaron con su propio fondo hasta 1:1
+   —`Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 →
+   2868×2868— y así todas las bandejas caen en 295.11×295.11 a 1440.
+
+   Lo que cuesta y queda dicho: `Copy text` (web, recorte oscuro a 25/24
+   hecho para llenar la card) pasa a 295.1×283.3 con superficie
+   alrededor; y el diálogo de subir muestra Native y Web iguales, porque
+   ya no hay nada visual que los distinga. Los valores están abajo, con
+   su recibo. */
 .media > * {
   display: block;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 7.5758%; /* 40 / 528, benji */
+  left: 16.6667%; /* (100 − 66.6667) / 2 */
+  width: 66.6667%;
+  height: 84.8485%; /* 448 / 528, benji */
   object-fit: contain;
 }
 /* EL TOPE DE 228 DEL TELÉFONO SE FUE. Existía para que un clip vertical
@@ -433,20 +455,51 @@
    A 1440 da 32 y 48 sobre una card de 443×425, y deja el hueco en
    346×361 con el teléfono en 167×361. Igual que él, lo que lo ata es el
    ALTO: su teléfono mide 448.42 en un hueco de 452.42. */
-.card[data-fuente="native"] .media > * {
-  position: absolute;
-  /* El hueco de benji sobre su card, tal cual, en los dos ejes:
-       izquierda   60 / 550 = 10.909%      ancho  430 / 550 = 78.1818%
-       arriba      40 / 528 =  7.5758%     alto   448 / 528 = 84.8485%
-     Cuatro fracciones de su propia card, sin un número redondeado. */
-  top: 7.5758%;
-  left: 10.909%;
-  width: 78.1818%;
-  height: 84.8485%;
-  object-fit: contain;
-}
+/* ─── EL ANCHO YA NO ES EL DE BENJI: 78.1818% → 66.6667% ───
+   Lo pidió Vito mirando la grilla, y el motivo se ve medido. El 78.1818%
+   sólo ATA cuando el archivo es más ancho que alto, y la mayoría de lo
+   que hay en `nativo/` no tiene forma de teléfono: es un recorte
+   cuadrado. RUNTIME a 1440, card de 442.66 × 424.94:
 
-/* EL DE WEB NO LLEVA REGLA, y eso es la decisión y no un olvido. Con
+     Photo picker · Mini player · Swipe to pay    1:1    346.06 de ancho
+     Attach morph · Hold to commit               ~0.96   346.06
+     Swipeable tabs                               1.05   346.06
+
+   Seis de ocho salían al MISMO ancho, el máximo, con 48.3 de aire al
+   costado contra 39.4 arriba: el marco más flaco justo donde la card
+   tiene más lugar. A 2/3 el tope baja a 295.11 y el aire lateral sube a
+   73.78.
+
+   El 2/3 no tiene referencia detrás y conviene decirlo. Es el número
+   redondo que cumple las dos condiciones que sí se verifican: achica lo
+   cuadrado, y NO toca lo que de verdad tiene forma de teléfono, porque a
+   esos los ata el ALTO y quedan debajo del tope —
+
+     Swipe actions  1320×1772 → 268.57 de ancho   (< 295.11, intacto)
+     Floating bar   1320×2868 → 165.85            (intacto)
+
+   Por eso el alto NO se toca: 84.8485% sigue siendo 448/528 de benji, y
+   es lo que sostiene a esos dos. Lo único que se le retiró es el ancho.
+   Verificado a 1440, 900, 700, 500 y 390: proporcional en los cinco.
+
+   LA REGLA VIVÍA ACÁ, SÓLO PARA `native`, y se mudó a `.media > *` (más
+   arriba) el día que la bandeja tuvo que medir lo mismo en todas las
+   cards. Hubo una ida y vuelta antes y queda dicha: se unificó, se
+   revirtió porque nadie lo había pedido y achicaba los clips de web, y
+   volvió cuando sí se pidió. Las dos verticales siguen siendo el hueco
+   de benji sobre su card —arriba 40/528 = 7.5758%, alto 448/528 =
+   84.8485%—; las horizontales eran las suyas (60/550 y 430/550) y las
+   reemplaza el 2/3. */
+
+/* ─── CORREGIDO: EL DE WEB SÍ LLEVA REGLA, LA MISMA QUE TODOS ───
+   Lo de abajo decía lo contrario y era una decisión. Se deja entera
+   porque su segunda mitad —el encuadre de una grabación se hace en el
+   archivo, no acá— sigue valiendo; lo que cayó es la primera línea. El
+   porqué está en el bloque de `.media > *`.
+
+   Lo que decía:
+
+   EL DE WEB NO LLEVA REGLA, y eso es la decisión y no un olvido. Con
    `contain` arriba ya entra entero y todo lo grande que la card permite.
    Un `inset` como el del teléfono sólo lo achicaría.
 
