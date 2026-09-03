@@ -35,6 +35,7 @@ conclusiones viven acá y en el AGENTS de arriba.
 pnpm install                  # una vez por worktree
 pnpm ios:build                # UNA vez por máquina: compila el dev client
 pnpm ios                      # el día a día: Metro + la app en el simulador
+pnpm telefono                 # Metro para Expo Go, con QR — ver "en tu iPhone"
 pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
 ```
@@ -108,13 +109,31 @@ de `/vault`: de ahí, Open in Playground → Add to Library.
 src/app/
 ├── _layout.tsx          el Stack, sin header en ninguna pantalla
 ├── index.tsx            el índice, derivado de las carpetas
-└── <slug>/index.tsx     UNA pieza = UNA carpeta = UNA ruta
+└── <slug>/index.tsx     UNA pieza = UNA carpeta = UNA ruta — un puntero
+src/piezas/<slug>/
+├── index.tsx            exporta la pantalla, y nada más
+├── pantalla.tsx         la pieza montada: datos, paleta, composición y
+│                        el bloque "No tocar sin volver a medir" al pie
+├── <mecanismo>.tsx      lo que se mueve, en archivos por responsabilidad
+├── medidas.ts           cada valor con su recibo, y las paletas
+├── tema.ts              el contexto de la paleta
+└── <datos>.ts, media/   contenido del mock, si lo hay
 ```
 
 **El slug es el mismo string en los tres lados**: la carpeta acá, el
 nombre del archivo de la grabación, y la URL de la pieza publicada. Por
 eso `pnpm nueva` usa la misma cuenta que `slug()` en `src/pieces.ts` del
 repo web. Si divergieran, la pieza publicada no apuntaría a su taller.
+
+**La ruta es un puntero y la pieza vive en `src/piezas/<slug>/`.** No
+es gusto: Expo Router convierte en ruta **todo** `.tsx` que cuelgue de
+`src/app/` (su doc: *"Non-navigation components live outside the src/app
+directory"*), así que un `barra.tsx` al lado de la ruta sería
+`/swipeable-tabs/barra`. La carpeta tiene la forma de un componente de
+[react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations)
+—una pantalla que se monta sola, un `index.tsx` que la exporta, el
+mecanismo, el tema y los datos al lado— menos su registry a mano: acá
+el índice sigue saliendo de las carpetas de `src/app/`.
 
 **Verificado de punta a punta** el 2026-08-27: `pnpm nueva` creó una
 pieza, el dev build la dibujó con **Skia** en el simulador, `pnpm grabar`
@@ -130,7 +149,7 @@ pantalla con `<Stack.Screen options={{ gestureEnabled: false }} />`.
 
 ### Al pie de la pieza va lo que es de la pieza
 
-Cuando termines, cerrá el archivo con un bloque de invariantes: los
+Cuando termines, cerrá `pantalla.tsx` con un bloque de invariantes: los
 valores que alguien tendría que volver a medir antes de tocarlos, y por
 qué. Uno por línea, con su grado de evidencia.
 
@@ -198,9 +217,10 @@ día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
 
 ## Lo que ya sabemos que muerde
 
-Ocho cosas que no son obvias y cuestan una tarde cada una. Salieron de
-leer `SchroederNathan/react-native-motion` el 2026-08-28 — allá están
-escritas como reglas de una pieza puntual, pero ninguna lo es.
+Nueve cosas que no son obvias y cuestan una tarde cada una. Las ocho
+primeras salieron de leer `SchroederNathan/react-native-motion` el
+2026-08-28 — allá están escritas como reglas de una pieza puntual, pero
+ninguna lo es. La novena salió de medirla acá.
 
 Vienen de un repo donde las constantes se sacan cuadro a cuadro de la
 referencia y cada decisión tiene su comentario arriba. **Tratalas como
@@ -255,6 +275,38 @@ cambiarla.
    desenfoque, en Android hay que caer a un color plano — y ese color
    también se mide, no se elige.
 
+**Consistencia entre shared values**
+
+9. **Si dos valores tienen que ser ciertos AL MISMO TIEMPO, son un valor,
+   no dos.** Reanimated ordena sus mappers topológicamente, pero arma las
+   aristas con las **salidas declaradas** — y `useAnimatedReaction` llama
+   a `startMapper(fun, inputs)` sin ninguna (SOURCE: reanimated 4.5.1,
+   `src/hook/useAnimatedReaction.ts:68`, contra `useDerivedValue.ts:71`
+   que sí la pasa). O sea que **nada garantiza que una reacción corra
+   antes de quien lee lo que escribe**, y su propio `mappers.ts` lo
+   advierte: *"the updated value can be read by mappers that run later in
+   the same frame but previous mappers would access the old value"*.
+
+   Cómo se ve cuando muerde: un par de valores que se cruzan queda
+   inconsistente por un cuadro y la propiedad que dependa de los dos
+   pega un salto. En swipeable-tabs eran `desde`/`hasta` (de una
+   reacción) más `avance` (derivado): cada cruce de página dejaba a los
+   estilos con los extremos nuevos y el avance viejo —saturado en 1— y
+   **cada ícono prendía del todo un cuadro antes de hacer su fundido**.
+   Medido: los seis tabs de un barrido hacían `0.000 → 1.000 → 0.008`.
+
+   El arreglo no es reordenar nada: es un solo `useDerivedValue` que
+   devuelve el objeto entero. Ahí no queda orden que equivocar, y como es
+   un derived value declara su salida y el sort lo pone antes de todos
+   sus lectores.
+
+   **Y el instrumento importa tanto como la regla.** Esto es invisible
+   para una grabación mirada de a un cuadro: se ve anotando, desde
+   adentro del propio mapper del estilo, el valor que se pinta cada
+   cuadro. Ojo también con `simctl recordVideo`, que escribe a **tasa
+   variable**: pasarlo por `fps=60` antes de mirarlo cuadro a cuadro
+   inventa cuadros y fabrica glitches que no existen.
+
 ## El vidrio
 
 `expo-glass-effect` ya está instalado (57.0.1) y tiene trampas que no se
@@ -286,20 +338,70 @@ Las versiones van **exactas**, sin `~`, como en el repo web.
 
 ## Probar en tu iPhone de verdad
 
-**Hoy sí, con Expo Go**, y sin build: instalás Expo Go de la App Store,
-la misma red Wi-Fi que la Mac, `pnpm start` y escaneás el QR. Si la red
-no coopera (Wi-Fi de invitados, VPN), `pnpm start --tunnel`. Vale lo
-mismo que en el simulador: todo menos Skia.
+Vale la pena aunque el simulador ande: **el simulador no tiene háptica
+ni pantalla de 120Hz**, que son justo dos de las cosas que este vault
+estudia. Un gesto que se siente bien en el simulador puede sentirse mal
+en la mano.
 
-Y vale la pena hacerlo aunque el simulador ande: **el simulador no tiene
-háptica ni pantalla de 120Hz**, que son justo dos de las cosas que este
-vault estudia. Un gesto que se siente bien en el simulador puede sentirse
-mal en la mano.
+### El Expo Go de la App Store NO sirve — pero hay uno que sí
 
-**Con dev build propio en el teléfono** hay que firmar la app: con una
-cuenta gratis de Apple alcanza, pero el perfil vence a los 7 días y hay
-que reinstalar. La salida limpia es EAS Build, que compila en la nube —
-disponible y todavía no probado acá.
+Y no es cuestión de actualizar. **El Expo Go de la App Store es la
+versión 54.0.2, publicada el 2025-09-23** — verificado el 2026-08-27 en
+la ficha de la App Store y en cuatro tiendas. Este taller es **SDK 57** y
+el manifiesto que sirve Metro pide `runtimeVersion: exposdk:57.0.0`. Expo
+Go en iOS implementa **un solo SDK a la vez**, así que el de SDK 54 no
+abre un proyecto de SDK 57.
+
+Lo que pasó: **Apple no aprobó Expo Go de SDK 55 en adelante**, y la
+tienda quedó clavada en 54. Está contado por Expo en
+`expo.dev/changelog/expo-go-and-app-store-may-2026`. El teléfono dice
+*"necesitás una versión más nueva"* y tiene razón — pero el botón de
+actualizar no existe, porque no hay nada más nuevo publicado ahí.
+
+**La salida es <https://sign.expo.dev>**, que es de Expo: firma el Expo
+Go de la versión que le pidas con **tu Apple ID gratis** y lo instala en
+el teléfono. La doc de Expo lo dice con todas las letras, en
+`troubleshooting/expo-go-version-mismatch`:
+
+> "This installer uses your Apple ID's free developer provisioning, so it
+> does not require a paid Apple Developer Program membership. The
+> certificate is valid for about seven days."
+
+El binario existe y es público: la API de Expo
+(`api.expo.dev/v2/versions/latest`) da para SDK 57 el cliente **57.0.9**,
+en `github.com/expo/expo-go-releases`.
+
+**El procedimiento, una vez:**
+
+1. En <https://sign.expo.dev>: elegís SDK **57**, entrás con tu cuenta de
+   Expo, elegís el dispositivo y ponés tu Apple ID. (Expo dice que esas
+   credenciales las usa como proxy de sesión y no las guarda.)
+2. En el iPhone: **Ajustes › Privacidad y seguridad › Modo de
+   desarrollador**, encender y reiniciar. Sin eso, iOS no corre una app
+   firmada para desarrollo.
+3. Acá: `pnpm telefono` —que es `expo start --go`— y escaneás el QR. La
+   misma red Wi-Fi que la Mac. Si la red no coopera (Wi-Fi de invitados,
+   VPN), `pnpm telefono --tunnel`.
+
+**A los 7 días vence** y hay que volver al paso 1. No hay que rehacer
+nada del proyecto: se re-firma la app y listo.
+
+**Y ojo con lo que Expo Go no trae.** Es el runtime de Expo, no el dev
+client de este taller: si una pieza usa `@shopify/react-native-skia` no
+va a andar ahí, y va a fallar en el teléfono aunque ande en el
+simulador. Todo lo demás —reanimated, gesture-handler, expo-symbols,
+expo-haptics— sí está.
+
+**Las alternativas sin vencimiento cuestan plata.** `eas go` compila tu
+propio Expo Go y lo sube a TU TestFlight, y EAS Build hace lo mismo con
+la app: los dos necesitan el **Apple Developer Program pago**, porque la
+distribución ad hoc de iOS exige un perfil que liste el UDID de cada
+teléfono. Está en `build/internal-distribution` de la doc de Expo. Y un
+detalle que muerde: un teléfono recién registrado con `eas device:create`
+tarda **24 a 72 horas** en procesarse del lado de Apple.
+
+**Grabar desde el teléfono es distinto** de grabar del simulador: ver
+abajo.
 
 **Grabar desde el teléfono es distinto.** `pnpm grabar` usa `simctl`, que
 sólo habla con simuladores: contra un iPhone real no sirve. Ahí se graba
@@ -330,3 +432,38 @@ dependencias nativas viven en la app instalada en el simulador, así que
 mientras una pieza sea sólo TypeScript —el caso normal— cualquier
 worktree la alimenta con su propio Metro. Recién si entra una
 dependencia nativa nueva hay que reconstruir.
+
+## Un worktree por vez contra el simulador
+
+Pero **de a uno**: dos worktrees no pueden usar el simulador al mismo
+tiempo, y la forma en que falla es traicionera.
+
+El dev client se compila con `expo run:ios`, y ese build **no incluye
+`expo-dev-client`** — no está en `package.json`, y está verificado:
+adentro de `Taller.app` no hay `EXDevLauncher` ni nada del launcher. Sin
+launcher no hay pantalla para elegir servidor, así que la app pide el
+bundle **siempre a `localhost:8081`**, el puerto que `expo run:ios` le
+horneó.
+
+Entonces el segundo `pnpm ios` encuentra el 8081 ocupado, ofrece el 8082
+—y en modo no interactivo ni eso: corta— y si lo levantás igual, la app
+sigue leyendo del primero. Nadie avisa, porque del lado tuyo compila
+todo bien. **El síntoma es el peor posible: el índice del taller aparece
+sin tu pieza**, como si `require.context` no la hubiera encontrado.
+
+Se descarta en diez segundos:
+
+```bash
+lsof -nP -iTCP:8081 -sTCP:LISTEN     # ¿de quién es el puerto?
+```
+
+Si ese pid no es tu Metro, es el de otro worktree, y la única salida es
+cortarlo y levantar el tuyo en 8081. No hay atajo — se probaron los dos
+que parecían obvios y ninguno anda: `simctl openurl` con el esquema del
+dev client (la app no entiende ese URL, no tiene launcher) y forzar
+`RCT_jsLocation` en el plist de la app (Expo lo pisa con el puerto del
+build en cada arranque).
+
+Si esto empieza a molestar seguido, lo que hay que agregar es
+`expo-dev-client`. Es una dependencia nativa: obliga a `pnpm ios:build`
+de nuevo, y por eso es una decisión y no un arreglo al pasar.

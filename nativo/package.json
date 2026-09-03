@@ -38,6 +38,7 @@
     "start": "expo start --dev-client",
     "ios": "expo start --dev-client --ios",
     "ios:build": "expo run:ios",
+    "telefono": "expo start --go",
     "nueva": "node scripts/nueva.mjs",
     "grabar": "node scripts/grabar.mjs",
     "typecheck": "tsc --noEmit",

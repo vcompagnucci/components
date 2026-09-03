@@ -602,3 +602,42 @@ mismos commits que las animaciones. Medidos con `ffprobe`: h264, 30 fps,
 nombre. Nuestro `pnpm grabar` graba para **publicar**; esto sería para
 **verificar**, y es otra cosa. Queda en Pendiente, junto con los MCP que
 le dan ojos al agente.
+
+## La primera pieza App: los tabs de X, medidos contra la app real
+
+**Swipeable tabs** (`nativo/src/piezas/swipeable-tabs/`) es la primera
+pieza que sale del taller nativo, y fija cómo se construye una: **nada se
+afirma sin medir**. La referencia no fue una idea de cómo se mueve X sino
+X mismo — el clip del vault y después cuatro grabaciones de la cuenta del
+usuario, en su teléfono (1320×2868, 60 fps), leídas cuadro a cuadro con
+scripts de ffmpeg y no a ojo. De ahí salieron los seis reposos de la
+barra al décimo de punto, la regla de la inclinación (`BARRA.apartar`),
+la curva del toque (easeOutCubic, 300 ms, ajustada contra tres toques),
+el pliegue de la cabecera con el scroll (traslación = scroll al décimo,
+fundido lineal) y **las dos paletas**, la oscura y la clara, con el mismo
+método. Cada número lleva su recibo arriba en `medidas.ts`, y la planilla
+entera vive en `.context/recon/swipeable-tabs/MEDICIONES.md`.
+
+**Lo que se decidió contra la referencia también quedó escrito**, con la
+prueba de que la referencia hace otra cosa: la fila de tabs sólo se corre
+cuando el tab destino no entra en pantalla (`BARRA.fila = 'visible'`),
+aunque la grabación muestra a X centrando siempre; el bloque de arriba
+frena con su divisor pegado a la barra de estado en vez de salir entero.
+Las dos son pedidos del usuario probados en el teléfono, y las variantes
+fieles están a una palabra de distancia. Y las que se probaron y se
+rechazaron —el bloque desvaneciéndose entero, el recorrido completo del
+pliegue— quedaron anotadas arriba del código para que nadie las repita.
+
+**La forma de la carpeta** es la de un componente de
+[react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations):
+una pantalla autocontenida, un `index.tsx` que la exporta, el mecanismo
+en archivos por responsabilidad, el tema y los datos al lado. La ruta en
+`src/app/` es un puntero. Su registry a mano no viajó, por lo mismo de
+siempre: el índice del taller se deriva de las carpetas.
+
+**Lo que aprendimos del método**, más que de la pieza: una sonda
+determinista es UN estado por recarga, no una línea de tiempo de timers;
+el simulador no puede recibir un tap, así que el camino del toque se
+prueba en el teléfono; y cuando el usuario dice "se siente abrupto", se
+toca una perilla o se pregunta cuál, no la geometría — la vuelta grande
+se rechazó en el acto.
