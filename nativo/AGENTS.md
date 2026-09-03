@@ -38,6 +38,7 @@ pnpm ios                      # el día a día: Metro + la app en el simulador
 pnpm telefono                 # Metro para Expo Go, con QR — ver "en tu iPhone"
 pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
+pnpm mockup swipe-to-pay ~/fondo.png   # la grabación adentro de un iPhone, para X
 ```
 
 `pnpm ios:build` compila el **dev client** —la app `Taller` que queda
@@ -411,6 +412,49 @@ resto del recorrido no cambia: la grilla lo levanta igual.
 
 Queda dicho para cuando moleste: si grabar desde el teléfono se vuelve
 frecuente, el paso a automatizar es ese traslado, no la grabación.
+
+## Grabar la pieza, y el mockup para X
+
+Lo que se aprendió grabando la primera pieza (2026-09-03), en orden de
+lo que muerde:
+
+**`simctl` graba a tasa variable.** Mientras algo se mueve escribe 60
+cuadros por segundo (deltas de 17 ms, medido); con la pantalla quieta no
+escribe ninguno. El `<video>` lo reproduce bien, pero **normalizá con
+`fps=60` ANTES de recortar**: un `-ss` sobre el archivo crudo cae en el
+primer cuadro escrito después del punto de corte y el reposo inicial
+desaparece entero. Orden correcto: `fps=60,trim=start=…,setpts=PTS-STARTPTS`,
+y `tpad` para sostener el último cuadro, que tampoco se grabó.
+
+**La tuerca azul es Expo Go**, el botón flotante de su menú de
+desarrollo; en el teléfono no aparece y el dev client no lo tiene. En el
+simulador se apaga con la preferencia de Expo Go, sin matar nada:
+
+```bash
+xcrun simctl spawn booted defaults write host.exp.Exponent EXDevMenuShowFloatingActionButton -bool false
+```
+
+y relanzar Expo Go. Queda apagada para ese simulador.
+
+**El agente puede grabar solo.** No hay forma de mandarle un dedo al
+simulador, pero la pieza se maneja desde adentro con una sonda temporal:
+los toques son `alTocar(i)`, el camino real; los arrastres se sintetizan
+moviendo el offset del pager cuadro a cuadro con
+`withSequence(withTiming(15 % del viaje, 110 ms, easeInQuad), withTiming(destino, 430 ms, easeOutCubic))`
+—un dedo que acelera y suelta, ajustado a ojo contra los arrastres
+medidos de X— con `movimiento` puesto a mano en `arrastre`/`quieto`. La
+sonda se borra antes de cerrar, como todas.
+
+**`pnpm mockup <slug> <imagen>`** mete la grabación del vault en el
+bisel oficial de Apple sobre una imagen: 2160² a 60 fps, que es el
+techo real de un post de X. La composición está medida sobre un clip de
+un design engineer (teléfono al 92 % del alto, sombra apenas visible) y
+el recibo de cada número está arriba de `scripts/mockup.mjs`. Perillas:
+`--lado=derecha|centro`, `--color=Silver|"Deep Blue"|"Cosmic Orange"`,
+`--blur`, `--luz`. Los PNG del bisel viven en `.context/mockup/`,
+gitignoreados: la licencia de Apple permite usarlos para mockups de
+interfaces de sus plataformas y no redistribuirlos. Se bajan de
+<https://developer.apple.com/design/resources/> (Bezel-iPhone-17.dmg).
 
 ## El agente al lado del simulador
 
