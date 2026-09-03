@@ -86,23 +86,43 @@ if (!fs.existsSync(imagen)) {
   process.exit(1)
 }
 
-/* ─── LA GEOMETRÍA, en un lienzo de 2160² ───
-   El cuerpo del bisel (1412×2958 en el PNG) se escala a 1987 de alto:
-   el 92 % del lienzo, como en la referencia. */
-const LIENZO = 2160
-const s = 1987 / 2958
-const png = { w: Math.round(1470 * s), h: Math.round(3000 * s) } // 987 × 2014
-const cuerpo = { w: Math.round(1412 * s), h: 1987, dx: Math.round(29 * s), dy: Math.round(20 * s) } // 959×1987, offset 20,13
-const pantalla = { w: Math.round(1320 * s), h: Math.round(2868 * s), dx: Math.round(75 * s), dy: Math.round(66 * s) } // 886×1926, offset 50,44
-const radio = Math.round(186 * s) // 125
-const radioCuerpo = Math.round(200 * s) // 134
+/* ─── EL LIENZO SALE DE LA IMAGEN, no al revés ───
+   2160² es el techo de X, pero una imagen chica escalada a 2160 se
+   ablanda: cada píxel se reparte en 2.4 y los puntos de una trama se
+   vuelven manchas. Si la imagen es más chica que 2160, el lienzo es el
+   múltiplo ENTERO más grande que entra (900 → 1800, 1080 → 2160) y se
+   escala con vecino más cercano: cada píxel pasa a un bloque exacto y
+   la imagen queda tal cual, nítida. Con `--lienzo=N` se fuerza. */
+const dimImagen = (() => {
+  const out = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', imagen]).toString().trim()
+  const [w, h] = out.split(',').map(Number)
+  return { w, h }
+})()
+const menor = Math.min(dimImagen.w, dimImagen.h)
+const LIENZO = Number(opciones.lienzo ?? (menor >= 2160 ? 2160 : menor * Math.max(1, Math.floor(2160 / menor))))
+const entero = LIENZO % menor === 0
+const flags = entero ? 'neighbor' : 'lanczos'
 
-const lado = opciones.lado ?? 'derecha'
-const margen = 100
+/* ─── LA GEOMETRÍA ───
+   El cuerpo del bisel (1412×2958 en el PNG) se escala al 92 % del alto
+   del lienzo, como en la referencia. */
+const s = (0.92 * LIENZO) / 2958
+const png = { w: Math.round(1470 * s), h: Math.round(3000 * s) }
+const cuerpo = { w: Math.round(1412 * s), h: Math.round(2958 * s), dx: Math.round(29 * s), dy: Math.round(20 * s) }
+const pantalla = { w: Math.round(1320 * s), h: Math.round(2868 * s), dx: Math.round(75 * s), dy: Math.round(66 * s) }
+const radio = Math.round(186 * s)
+const radioCuerpo = Math.round(200 * s)
+
+/* Centrado por defecto. `--lado=derecha` corre el teléfono al borde y
+   deja ver la mitad izquierda de la imagen. */
+const lado = opciones.lado ?? 'centro'
+const margen = Math.round(LIENZO * 0.046)
 const pngX = lado === 'centro' ? Math.round((LIENZO - png.w) / 2) : LIENZO - margen - cuerpo.dx - cuerpo.w - 8
 const pngY = Math.round((LIENZO - png.h) / 2)
 
-const blur = Number(opciones.blur ?? 4)
+/* Sin desenfoque ni cambio de luz por defecto: la imagen es la imagen.
+   Las perillas existen para fotos que compiten con el teléfono. */
+const blur = Number(opciones.blur ?? 0)
 const luz = Number(opciones.luz ?? 0)
 
 /* Una máscara rectangular con esquinas redondeadas, en expresión de geq:
@@ -119,25 +139,26 @@ const mascara = (w, h, r, alfa) => {
   return `if(${fuera},0,${alfa})`
 }
 
-const sombraPad = 200
+const sombraPad = Math.round(200 * s / (1987 / 2958))
 const filtro = [
-  `[1:v]scale=${LIENZO}:${LIENZO}:force_original_aspect_ratio=increase:flags=lanczos,crop=${LIENZO}:${LIENZO},` +
+  `[1:v]scale=${LIENZO}:${LIENZO}:force_original_aspect_ratio=increase:flags=${flags},crop=${LIENZO}:${LIENZO},` +
     (blur > 0 ? `gblur=sigma=${blur},` : '') +
-    `eq=brightness=${luz},format=rgba[bg]`,
+    (luz !== 0 ? `eq=brightness=${luz},` : '') +
+    `format=rgba[bg]`,
   `color=c=black:s=${cuerpo.w}x${cuerpo.h}:d=1,format=rgba,geq=r=0:g=0:b=0:a='${mascara(cuerpo.w, cuerpo.h, radioCuerpo, 95)}',` +
-    `pad=${cuerpo.w + 2 * sombraPad}:${cuerpo.h + 2 * sombraPad}:${sombraPad}:${sombraPad}:color=black@0,gblur=sigma=55[sombra]`,
+    `pad=${cuerpo.w + 2 * sombraPad}:${cuerpo.h + 2 * sombraPad}:${sombraPad}:${sombraPad}:color=black@0,gblur=sigma=${Math.round(55 * s / (1987 / 2958))}[sombra]`,
   `[2:v]scale=${png.w}:${png.h}[bisel]`,
   `[0:v]scale=${pantalla.w}:${pantalla.h},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='${mascara(pantalla.w, pantalla.h, radio, 255)}'[pantalla]`,
-  `[bg][sombra]overlay=x=${pngX + cuerpo.dx - sombraPad}:y=${pngY + cuerpo.dy - sombraPad + 24}:shortest=1[a]`,
+  `[bg][sombra]overlay=x=${pngX + cuerpo.dx - sombraPad}:y=${pngY + cuerpo.dy - sombraPad + Math.round(24 * s / (1987 / 2958))}:shortest=1[a]`,
   `[a][pantalla]overlay=x=${pngX + pantalla.dx}:y=${pngY + pantalla.dy}[b]`,
   `[b][bisel]overlay=x=${pngX}:y=${pngY},format=yuv420p[out]`,
 ].join(';')
 
 const salidaDir = path.join(RAIZ, '.context/mockup/salida')
 fs.mkdirSync(salidaDir, { recursive: true })
-const salida = opciones.salida ?? path.join(salidaDir, `${slug}${lado === 'centro' ? '-centro' : ''}.mp4`)
+const salida = opciones.salida ?? path.join(salidaDir, `${slug}${lado === 'centro' ? '' : `-${lado}`}.mp4`)
 
-console.log(`clip     ${clip}\nimagen   ${imagen}\nbisel    ${color}\nlado     ${lado}  blur ${blur}  luz ${luz}\nsalida   ${salida}`)
+console.log(`clip     ${clip}\nimagen   ${imagen} (${dimImagen.w}×${dimImagen.h})\nlienzo   ${LIENZO}² · escalado ${flags}${entero ? ' ×' + LIENZO / menor : ''}\nbisel    ${color}\nlado     ${lado}  blur ${blur}  luz ${luz}\nsalida   ${salida}`)
 execFileSync(
   'ffmpeg',
   ['-v', 'error', '-y', '-i', clip, '-loop', '1', '-i', imagen, '-i', bisel,

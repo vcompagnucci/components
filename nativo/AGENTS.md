@@ -446,11 +446,15 @@ medidos de X— con `movimiento` puesto a mano en `arrastre`/`quieto`. La
 sonda se borra antes de cerrar, como todas.
 
 **`pnpm mockup <slug> <imagen>`** mete la grabación del vault en el
-bisel oficial de Apple sobre una imagen: 2160² a 60 fps, que es el
-techo real de un post de X. La composición está medida sobre un clip de
-un design engineer (teléfono al 92 % del alto, sombra apenas visible) y
-el recibo de cada número está arriba de `scripts/mockup.mjs`. Perillas:
-`--lado=derecha|centro`, `--color=Silver|"Deep Blue"|"Cosmic Orange"`,
+bisel oficial de Apple sobre una imagen, a 60 fps. **El lienzo sale de
+la imagen**: 2160² es el techo de X, pero una imagen chica escalada a
+2160 se ablanda, así que el lienzo es el múltiplo entero más grande que
+entra (900 → 1800) y se escala con vecino más cercano — la imagen queda
+píxel por píxel, sin desenfoque ni cambio de luz salvo que se pidan. La
+composición está medida sobre un clip de un design engineer (teléfono
+centrado al 92 % del alto, sombra apenas visible) y el recibo de cada
+número está arriba de `scripts/mockup.mjs`. Perillas: `--lienzo=N`,
+`--lado=centro|derecha`, `--color=Silver|"Deep Blue"|"Cosmic Orange"`,
 `--blur`, `--luz`. Los PNG del bisel viven en `.context/mockup/`,
 gitignoreados: la licencia de Apple permite usarlos para mockups de
 interfaces de sus plataformas y no redistribuirlos. Se bajan de
