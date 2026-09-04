@@ -614,6 +614,48 @@ nombre. Nuestro `pnpm grabar` graba para **publicar**; esto sería para
 **verificar**, y es otra cosa. Queda en Pendiente, junto con los MCP que
 le dan ojos al agente.
 
+## Las notas del detalle — líneas de benji, tono de josh
+
+**El detalle existía para esto** y estaba vacío: *"la lista muestra, el
+detalle explica"*. Desde el 2026-09-04 una pieza puede traer un texto
+largo bajo su preview, partido en secciones: de dónde salió, qué se
+midió, qué peleó. Vive en `src/notas/<slug>.tsx`, con el mismo mecanismo
+que los demos —glob perezoso por slug, sin registro que mantener— y una
+pieza sin notas no dibuja nada.
+
+**La línea de `PIECES` no se tocó, y son dos cosas distintas.** Esa es la
+que se escribe al publicar y la que se lee de corrido bajo la pieza;
+las notas son lo que sigue. Meter la prosa en el inventario habría
+hinchado el archivo que leen la página, `rutas.mjs` y el puente que
+publica.
+
+**Las líneas son de benji y el tono es de josh, y conviene decir de quién
+es cada mitad** porque la mezcla es nuestra:
+
+- El separador **es el mismo objeto** que parte la lista en Web y App
+  (`.groupHead`: rótulo 14/600 + hairline hasta el borde del riel, hueco
+  de 8), que ya estaba medido de `/liveline` y `/drawesome`. No se
+  escribió una segunda línea: una sola línea en la página es una sola
+  regla.
+- **Josh no tiene ninguna**: cero `<hr>` en `/melt-effect` (SOURCE,
+  2026-09-04, sobre el HTML servido). Lo suyo son los **rótulos** —
+  cortos, en sentence case, a veces una pregunta: *"1. What's a
+  displacement map?"*, *"Shaping with frequencies"*, *"The filter"*,
+  *"Apply it"*— y la **prosa**: primera persona del plural para el
+  método, frases cortas, el mecanismo nombrado con precisión, la
+  advertencia dicha sin dramatismo (*"A note on performance. Animating
+  filter attributes re-evaluates the entire filter graph every
+  frame"*) y los errores propios admitidos. Nada de autoelogio: eso ya
+  era la regla del copy acá.
+
+**Los dos huecos son tokens que ya existían** —64 arriba de cada rótulo
+(`--section-gap`) y 40 de la línea al primer renglón
+(`--section-content-gap`)— y **no se volvieron a elegir**: se reusan para
+tener un número por relación. Que sean los correctos *para prosa* está
+**sin medir**, igual que la línea de aire entre párrafos (hoy la
+interlínea del cuerpo). Las tres se deciden con el scrubber sobre esta
+página, y están marcadas como pendientes en el CSS.
+
 ## La primera pieza App: los tabs de X, medidos contra la app real
 
 **Swipeable tabs** (`nativo/src/piezas/swipeable-tabs/`) es la primera
@@ -785,3 +827,15 @@ condición correcta es `movimiento === toque`: para un toque real es lo
 mismo, y para cualquier otra cosa que use `destino` la barra sigue al
 contenido. Verificado en la tira de cuadros del arrastre lento: el
 subrayado viaja continuo de Following a Stocks y las tintas se cruzan.
+
+**Tercera toma: dos atrás al final, y nacer en Following de verdad.**
+Dos pedidos más sobre el video: que al llegar al último tab vuelva dos
+atrás y termine ahí, y que el primer cuadro muestre Following con el
+contenido de Following —mostraba el tab de Following con el contenido
+de For you. Lo segundo era la sonda: un `scrollTo` en el primer efecto
+no movía el pager (el contenido todavía no estaba) y sólo `scrollX`
+cambiaba, así que la barra y el contenido nacían desacordados. Ahora el
+pager nace con `contentOffset` en Following y `scrollX` nace ahí
+también. El clip queda en 12.9 s: arrastre lento a 1.20, toque a For
+you a 3.80, cinco flicks hasta Design y dos de vuelta hasta Tech, cada
+uno a 1.0 s del anterior.

@@ -63,11 +63,11 @@ export const PARAMETROS: Parametros = {
     k1: 1.576,
     /* hasta que termina la parte lenta del clip. Medido sobre la toma
        del 2026-09-04 (diferencia entre cuadros a 60 fps): el arrastre
-       lento Following → Stocks va de 1.18 a 2.83 s, el toque a For you
-       a 3.80, y los cinco flicks cada 1.0 s desde 4.80. La salida
-       arranca a 3.0 y termina a 3.62, antes del toque: la entrada
-       cubre el arrastre lento entero y lo demás se ve desde el
-       encuadre final */
+       lento Following → Stocks va de 1.20 a 2.85 s, el toque a For you
+       a 3.80, y los siete flicks cada 1.0 s desde 4.81 (cinco hasta
+       Design, dos de vuelta hasta Tech). La salida arranca a 3.0 y
+       termina a 3.62, antes del toque: la entrada cubre el arrastre
+       lento entero y lo demás se ve desde el encuadre final */
     hasta: 3.0,
     /* 0.62 s a 1.161× (528 → 389) */
     sale: 0.62,
