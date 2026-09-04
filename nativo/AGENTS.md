@@ -38,7 +38,8 @@ pnpm ios                      # el día a día: Metro + la app en el simulador
 pnpm telefono                 # Metro para Expo Go, con QR — ver "en tu iPhone"
 pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
-pnpm mockup swipe-to-pay ~/fondo.png   # la grabación adentro de un iPhone, para X
+pnpm mockup swipe-to-pay --verificar   # primero: ¿el hueco del bisel queda lleno en toda la cámara?
+pnpm mockup swipe-to-pay               # la grabación en un iPhone negro, fondo neutro, cámara: para X
 ```
 
 `pnpm ios:build` compila el **dev client** —la app `Taller` que queda
@@ -445,20 +446,50 @@ moviendo el offset del pager cuadro a cuadro con
 medidos de X— con `movimiento` puesto a mano en `arrastre`/`quieto`. La
 sonda se borra antes de cerrar, como todas.
 
-**`pnpm mockup <slug> <imagen>`** mete la grabación del vault en el
-bisel oficial de Apple sobre una imagen, a 60 fps. **El lienzo sale de
-la imagen**: 2160² es el techo de X, pero una imagen chica escalada a
-2160 se ablanda, así que el lienzo es el múltiplo entero más grande que
-entra (900 → 1800) y se escala con vecino más cercano — la imagen queda
-píxel por píxel, sin desenfoque ni cambio de luz salvo que se pidan. La
-composición está medida sobre un clip de un design engineer (teléfono
-centrado al 92 % del alto, sombra apenas visible) y el recibo de cada
-número está arriba de `scripts/mockup.mjs`. Perillas: `--lienzo=N`,
-`--lado=centro|derecha`, `--color=Silver|"Deep Blue"|"Cosmic Orange"`,
-`--blur`, `--luz`. Los PNG del bisel viven en `.context/mockup/`,
-gitignoreados: la licencia de Apple permite usarlos para mockups de
-interfaces de sus plataformas y no redistribuirlos. Se bajan de
-<https://developer.apple.com/design/resources/> (Bezel-iPhone-17.dmg).
+**`pnpm mockup <slug>`** mete la grabación del vault en el bisel
+oficial de Apple, sobre un fondo neutro, con una cámara que entra y
+sale, a 2160² y 60 fps. **La referencia es el clip de @nater02**
+(x.com/nater02/status/2092952884987957708) y está medida cuadro a
+cuadro: fondo RGB (235, 230, 232) plano; teléfono negro al 95.3 % del
+alto, centrado; sombra sólo a la derecha y abajo, dos capas (una
+apretada y una ancha) ajustadas contra el perfil de luma; la cámara
+entra a 1.576× en 0.65 s, se queda, y sale a 1.161× en 0.62 s, con las
+dos curvas ajustadas a una bézier cúbica (rms 0.005). El teléfono es el
+**iPhone 17 en Black** —el de la referencia por proporción y color; el
+Pro Max no viene en negro— y la grabación del Pro Max entra en su hueco
+escalada (misma proporción al 0.1 %). Los recibos, uno por número,
+están arriba de `scripts/mockup.mjs`.
+
+Perillas: `--espera` (segundos con el teléfono entero antes de entrar),
+`--hasta` (cuándo salir: el final del primer gesto), `--foco` (dónde
+apunta la entrada, como fracción del alto del cuerpo; 0.145 es la fila
+de tabs de esta pieza), `--camara=quieta`, `--modelo`, `--color`,
+`--fondo`, `--lado`. Con una imagen (`pnpm mockup <slug> <imagen>`) el
+lienzo sale de la imagen —el múltiplo entero más grande que entra, con
+vecino más cercano, píxel por píxel— y la cámara va quieta salvo que se
+pida (`--blur`, `--luz`, `--lienzo` siguen ahí).
+
+**Antes de mirar el resultado, `pnpm mockup <slug> --verificar`.** Mete
+un rojo pleno en vez de la grabación, renderiza la cámara entera sin
+pérdida y comprueba píxel por píxel que el hueco del bisel está lleno
+en doce estados de la cámara. Existe porque la primera versión de la
+cámara apoyaba la pantalla 15×20 px corrida y en la esquina de arriba
+a la izquierda asomaba el fondo; en el cuadro entero no se veía, en el
+zoom del usuario sí ("mirá los bordes, no se fillean", 2026-09-04).
+Cada capa se posiciona por su cuenta y se redondea a píxel por cuadro:
+un origen mal tomado no falla, se ve. Los PNG del bisel viven en
+`.context/mockup/`, gitignoreados: la licencia de Apple permite usarlos
+para mockups de interfaces de sus plataformas y no redistribuirlos. Se
+bajan de <https://developer.apple.com/design/resources/>
+(Bezel-iPhone-17.dmg).
+
+**Lo que este pipeline no da, y qué lo daría.** Los gestos son
+sintéticos (la sonda mueve el pager con curvas medidas), no un dedo. Si
+se quiere el feel de un dedo real, la grabación se hace en el teléfono
+con Expo Go y una herramienta que grabe por USB con marco: Screen
+Studio lo hace pero sin auto-zoom en iOS (no ve los toques); Matte
+graba simulador o iPhone con marco y zoom. Lo demás —fondo, cámara,
+sombra— ya está acá, medido, y es gratis.
 
 ## El agente al lado del simulador
 

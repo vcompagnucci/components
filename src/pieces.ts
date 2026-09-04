@@ -41,4 +41,11 @@ export const slug = (name: string) =>
    decisión. La lista se llena SÓLO con piezas construidas de verdad —
    la primera define el molde. La página, el índice y vercel.json ya
    saben vivir con cero. */
-export const PIECES: Piece[] = []
+export const PIECES: Piece[] = [
+  {
+    name: 'Swipeable tabs',
+    platform: 'App',
+    desc: 'X’s home tabs: the row follows the swipe, and the whole header folds away with the scroll.',
+    video: '/piezas/swipeable-tabs.mp4',
+  },
+]

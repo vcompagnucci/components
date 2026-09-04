@@ -641,3 +641,68 @@ el simulador no puede recibir un tap, así que el camino del toque se
 prueba en el teléfono; y cuando el usuario dice "se siente abrupto", se
 toca una perilla o se pregunta cuál, no la geometría — la vuelta grande
 se rechazó en el acto.
+
+## El video para X, medido contra el clip de @nater02
+
+La pieza ya corría y estaba grabada; faltaba el video que se publica. El
+usuario trajo la referencia exacta —un clip de @nater02 en X: 720² a 60
+fps, 24.6 s— y cuatro palabras: el zoom al inicio, el fondo neutro, el
+teléfono tal cual ese en el medio, la fluidez. Se midió cuadro a cuadro
+antes de tocar nada, como con la pieza:
+
+| qué | medido | de dónde |
+| --- | --- | --- |
+| fondo | RGB (235, 230, 232), plano | las cuatro esquinas y los bordes, iguales en todos los cuadros |
+| teléfono | negro, cuerpo 335×686 en 720² → 95.3 % del alto, centrado | el borde del cuerpo por fila y columna en el cuadro 0 |
+| sombra | sólo a la derecha y abajo; dos capas, una apretada (α .60, σ 8, corrida 12) y una ancha (α .20, σ 30, corrida 70) | ajuste por mínimos cuadrados sobre el perfil de luma a cada 6 px, con los lados sin sombra como restricción |
+| cámara | entra a 1.576× en 0.65 s, se queda 0.18 s, sale a 1.161× en 0.62 s y no se mueve más | el ancho del cuerpo cuadro a cuadro (335 → 528 → 389) |
+| curvas | entrada bézier (0.30, 0.05, 0.40, 0.90), salida (0.25, 0.25, 0.20, 0.90) | búsqueda sobre los cuatro puntos de control, rms 0.005; ninguna curva CSS conocida baja de 0.03 |
+
+**El teléfono es el iPhone 17 en Black.** La proporción del cuerpo de la
+referencia (2.05) está más cerca del 17 (2.066) que del Pro Max (2.095),
+y el Pro Max no viene en negro. La grabación del Pro Max entra en el
+hueco del 17 escalada: la proporción es la misma al 0.1 %. Ahora hay dos
+modelos medidos en el script y la cámara mueve cada capa por cuadro desde
+su fuente, sin re-escalar el cuadro compuesto: al 1.58× el bisel se
+agranda un 20 % sobre el PNG y la grabación entra casi 1:1.
+
+**La cámara apunta a la acción de ESTA pieza, no a la de la referencia.**
+Ahí la acción está abajo (un menú que se despliega desde el teclado) y el
+zoom deja el borde de arriba cortado; acá está arriba (la fila de tabs),
+así que la entrada apunta a la fila —al 33 % del alto— y la salida deja
+el borde de arriba a 7.2 % del lienzo con el de abajo cortado. Es el
+espejo, con los mismos números.
+
+**Los bordes, y por qué ahora hay `--verificar`.** La primera versión
+tenía la pantalla 15×20 px corrida —`pant.x` estaba en coordenadas del
+PNG y se sumaba a un origen que era el cuerpo— y en la esquina de arriba
+a la izquierda asomaba el fondo por el hueco. En el cuadro entero no se
+veía; el usuario lo vio en un zoom: "tenés que ser mucho más detallista,
+mirá los bordes, no se fillean". Con capas que se posicionan por su
+cuenta y se redondean a píxel en cada cuadro, un origen mal tomado no
+falla: se ve. Así que `pnpm mockup <slug> --verificar` mete un rojo pleno
+en vez de la grabación, renderiza la cámara entera sin pérdida (RGB,
+ffv1: en yuv420p el croma se promedia de a 2 px y un rojo pegado al bisel
+deja de ser rojo sin que haya ningún hueco) y comprueba píxel por píxel
+que el hueco del bisel está lleno en doce estados de la cámara. Corre
+antes de mirar nada.
+
+**La primera pieza App entró a la library por su propio camino**: el clip
+en el vault, `Add to Library` (su endpoint, el mismo que usa la sidebar),
+la entrada en `PIECES` y `vercel.json` regenerado por el build. El vault
+guarda el máster (1320×2868, 25 MB: es lo que graba el simulador) y eso
+es lo que publicar copia tal cual; para la exposición se re-encodeó a
+720×1564 (5.6 MB), el doble del hueco de 319 del detalle. **Pendiente:**
+publicar debería transcodificar solo —el máster es para el mockup, la
+web no lo necesita— y el tiempo de la barra de estado sale "09:41" porque
+el simulador está en formato de 24 horas; la próxima grabación lo cambia
+con `AppleICUForce12HourTime` antes de grabar.
+
+**Herramientas, para la próxima.** Lo que hace este pipeline —bisel
+oficial, fondo, sombra, cámara— lo hacen también Screen Studio (graba el
+iPhone por USB con marco, pero no ve los toques: sin auto-zoom en iOS) y
+Matte (graba simulador o iPhone con marco y zoom). Lo que ninguna
+herramienta arregla es la fuente: los gestos de esta grabación son
+sintéticos, la sonda mueve el pager con curvas medidas. Un dedo real en
+el teléfono con Expo Go es la otra mitad de "la fluidez", y es una
+grabación distinta, no un ajuste del mockup.
