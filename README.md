@@ -85,6 +85,7 @@ qué se tomó así.
 | ↳ **con** scrollspy | La pieza que estás mirando se pinta (en **65**, ver arriba). Activa es la última cuyo borde superior ya pasó una línea a **128px** del tope, más un guarda al final del documento | es la regla de benji, sacada de su bundle: su fórmula lleva medio viewport de los dos lados y se cancela. Antes acá decía "sin scrollspy" — se revirtió |
 | Separador de sección | Rótulo 14px/600/#111 + hairline hasta el borde del riel; hueco de 8px, 64px arriba, 56px abajo | el separador de benji en /liveline y /drawesome, medido en vivo — su `<hr>` está vacío, lo que pinta es el div que React le envuelve |
 | Para qué existe el detalle | Para **las notas y el aire**: el porqué, las decisiones y los números, más la pieza sola en pantalla y más grande. La lista muestra, el detalle explica. No es sólo una pieza agrandada | con preview vivo en la lista, el detalle no aporta la pieza (ya la tenías): aporta lo que la rodea |
+| ↳ y la descripción va **debajo** de la pieza | Arriba queda `título + plataforma`; la prosa entra después del preview, a **24** | pedido de Vito el 2026-09-04, y es orden de lectura y no un valor: primero se ve la cosa, después se lee qué es. Lo que gana de paso es que arriba queda **exactamente** el par medido de benji —su `h1` con su `time` a 4px— sin un tercer renglón que él no tiene. El 24 no se eligió mirando: se reusa el `margin-bottom` del bloque de arriba para no tener dos números para la misma relación (texto contra la pieza). Queda para pasarle el scrubber |
 | Espaciado de la lista | Aire arriba/abajo **80 → 32** · masthead→sección **60** · rótulo→pieza **40** · nombre→card **12** · entre piezas **48** · entre secciones **64** · rótulo↔hairline **8** · subtítulo **4**. **Todos múltiplos de 4** | elegidos con scrubber sobre la página real. Los 40, 48 y 64 son de benji, medidos; el resto se decidió acá. Detalle en `.context/recon/NAVIGATION.md` |
 | ↳ nombres de los tokens | **Dueño → parte → propiedad**, al modo de apple: `--page-padding-top`, `--section-content-gap`, `--piece-card-gap`, `--index-group-gap`. **La escala `--space-*` se borró entera** | medido en 1.3 MB de CSS servido de apple, linear y openai. Apple: `--buystrip-content-padding`, `--media-gallery-bottom-content-padding-left`. Linear más corto: `--button-gap`, `--kbd-gap`. OpenAI intermedio: `--page-top-gap`, `--tabs-sticky-gap`. **Ninguno de los tres tiene un token nombrado por su valor** — no hay un solo `--space-4` en los tres bundles. Y los tres comparten que el nombre es el ROL y el valor es contextual: el `--button-gap` de linear vale 4, 6 u 8 según el tamaño |
 | ↳ ×4 en layout, libre en componentes | Todo espaciado de **layout** es múltiplo de 4. **Adentro de un componente no rige** | es lo que hace benji: usa 2, 3, 5, 6 y 10 —el 6px aparece 28 veces— pero **sólo** en `.Toolbar_*`, `.BarSlider_field`, `.submitButton` y variantes `[data-size=sm]`. Ni uno solo en layout de página. Misma forma que su regla de pesos: los valores sucios existen para compensación e internos, nunca para la estructura. Hoy no tenemos nada interno — la card está vacía y el único componente es la flecha del detalle, que es andamio |
@@ -762,3 +763,25 @@ final.
 **Verificado antes de mirar:** los doce estados de la cámara con el
 hueco lleno (0 píxeles sin rojo), y las esquinas a 3× en los cuadros
 del zoom y del encuadre final.
+
+**Segunda toma, con lo que el usuario vio.** Sobre el primer video dijo
+tres cosas: que de For you a Following "se traba", que la parte rápida
+pasa demasiado rápido, y que entre Following y Stocks tiene que ir
+lento. Medido sobre la grabación: la entrada a Following era un salto
+instantáneo (un solo cuadro), Following → Stocks era un toque de 0.27 s
+y la ráfaga eran toques cada 600 ms. La toma nueva arranca en Following,
+arrastra a Stocks en 1.65 s con un seno in-out (X, medido: 1.73), toca
+For you y hace cinco flicks de un tab cada 1.0 s con el perfil de dedo
+ajustado contra X (15 % en 110 ms, el resto en 430). Los gestos van
+por los caminos reales de la pieza, con una sonda `?demo=1` que vive en
+el árbol de trabajo y no viaja.
+
+**Y un bug de la pieza que la sonda destapó.** Al mover el pager por
+`destino` con `movimiento` en arrastre, la barra leía el tramo del
+toque —`destino !== NADIE` era su condición— y el subrayado quedaba
+clavado en For you mientras el contenido viajaba ("está bugueada toda
+la animación de las tabs… nunca está la animación a medias"). La
+condición correcta es `movimiento === toque`: para un toque real es lo
+mismo, y para cualquier otra cosa que use `destino` la barra sigue al
+contenido. Verificado en la tira de cuadros del arrastre lento: el
+subrayado viaja continuo de Following a Stocks y las tintas se cruzan.

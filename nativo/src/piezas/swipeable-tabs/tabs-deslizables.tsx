@@ -236,7 +236,13 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba }: Props) {
      ─────────────────────────────────────────────────────────────── */
   const ultimo = tabs.length - 1
   const tramo = useDerivedValue<Tramo>(() => {
-    if (destino.get() !== NADIE) {
+    /* El tramo del toque vale MIENTRAS HAY UN TOQUE, y el toque es
+       `movimiento === toque`, no `destino !== NADIE`: cualquier otra
+       cosa que mueva el pager por `destino` (una sonda de grabación,
+       2026-09-04) dejaba a la barra leyendo `toqueDesde`/`toqueHasta`
+       viejos y el subrayado quedaba clavado en For you mientras el
+       contenido viajaba. */
+    if (destino.get() !== NADIE && movimiento.get() === MOVIMIENTO.toque) {
       return { d: toqueDesde.get(), h: toqueHasta.get(), t: avanceToque.get() }
     }
     const p = progreso.get()
