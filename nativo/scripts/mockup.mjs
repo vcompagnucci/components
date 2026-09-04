@@ -398,14 +398,18 @@ if (!fs.existsSync(sombra)) {
    del clip. Cada capa se escala por cuadro y se apoya con la cámara. */
 const blur = Number(opciones.blur ?? 0)
 const luz = Number(opciones.luz ?? 0)
+/* Las imágenes fijas se decodifican UNA vez y se repiten en el grafo
+   (`loop`): con `-loop 1` ffmpeg volvía a descomprimir los tres PNG
+   sesenta veces por segundo y eso, no el encoder, era el cuello. */
 const entradas = [
   ...(verificar ? ['-f', 'lavfi', '-i', `color=c=red:s=${clipW}x${clipH}:r=60:d=3.6`] : ['-i', clip]),
-  '-loop', '1', '-framerate', '60', '-i', mascara,
-  '-loop', '1', '-framerate', '60', '-i', bisel,
-  '-loop', '1', '-framerate', '60', '-i', sombra,
+  '-framerate', '60', '-i', mascara,
+  '-framerate', '60', '-i', bisel,
+  '-framerate', '60', '-i', sombra,
 ]
+const fijo = 'loop=loop=-1:size=1:start=0'
 const fondoFiltro = imagen
-  ? `[4:v]scale=${L}:${L}:force_original_aspect_ratio=increase:flags=${flagsImagen},crop=${L}:${L},` +
+  ? `[4:v]${fijo},scale=${L}:${L}:force_original_aspect_ratio=increase:flags=${flagsImagen},crop=${L}:${L},` +
     (blur > 0 ? `gblur=sigma=${blur},` : '') +
     (luz !== 0 ? `eq=brightness=${luz},` : '') +
     (camara === 'quieta' ? '' : `scale=w='${conCamara(tam(L))}':h='${conCamara(tam(L))}':eval=frame:flags=lanczos,`) +
@@ -413,13 +417,19 @@ const fondoFiltro = imagen
     `color=c=${fondo}:s=${L}x${L}:r=60[lienzo];` +
     `[lienzo][fondoImg]overlay=x='${conCamara(enX(0))}':y='${conCamara(enY(0))}'[bg]`
   : `color=c=${fondo}:s=${L}x${L}:r=60[bg]`
-if (imagen) entradas.push('-loop', '1', '-framerate', '60', '-i', imagen)
+if (imagen) entradas.push('-framerate', '60', '-i', imagen)
 
 const filtro = [
   fondoFiltro,
-  `[3:v]scale=w='${conCamara(tam(sombraW))}':h='${conCamara(tam(sombraH))}':eval=frame[sombra]`,
-  `[2:v]scale=w='${conCamara(tam(M.png.w * s0))}':h='${conCamara(tam(M.png.h * s0))}':eval=frame[bisel]`,
-  `[0:v]format=rgba[cruda];[cruda][1:v]alphamerge,scale=w='${conCamara(tam(pant.w * s0))}':h='${conCamara(tam(pant.h * s0))}':eval=frame[pantalla]`,
+  `[3:v]${fijo},scale=w='${conCamara(tam(sombraW))}':h='${conCamara(tam(sombraH))}':eval=frame[sombra]`,
+  `[2:v]${fijo},scale=w='${conCamara(tam(M.png.w * s0))}':h='${conCamara(tam(M.png.h * s0))}':eval=frame[bisel]`,
+  /* alphamerge con shortest=1, y NO es un detalle: sin eso, cuando la
+     grabación termina el filtro repite su último cuadro para siempre
+     contra la máscara infinita, la pantalla nunca termina, el overlay
+     con eof_action=endall nunca corta y el render sigue hasta llenar el
+     disco (una hora y 128 MB del último cuadro, 2026-09-04). El `-t`
+     de abajo es la segunda traba. */
+  `[1:v]${fijo}[mascara];[0:v]format=rgba[cruda];[cruda][mascara]alphamerge=shortest=1,scale=w='${conCamara(tam(pant.w * s0))}':h='${conCamara(tam(pant.h * s0))}':eval=frame[pantalla]`,
   `[bg][sombra]overlay=x='${conCamara(enX(bx0 - MARGEN_SOMBRA))}':y='${conCamara(enY(by0 - MARGEN_SOMBRA))}'[a]`,
   `[a][pantalla]overlay=x='${conCamara(enX(bx0 + (pant.x - M.cuerpo.x) * s0))}':y='${conCamara(enY(by0 + (pant.y - M.cuerpo.y) * s0))}':eof_action=endall[b]`,
   `[b][bisel]overlay=x='${conCamara(enX(bx0 - M.cuerpo.x * s0))}':y='${conCamara(enY(by0 - M.cuerpo.y * s0))}',format=yuv420p[out]`,
@@ -430,7 +440,7 @@ fs.mkdirSync(salidaDir, { recursive: true })
 const salida = verificar
   ? path.join(cache, 'verificacion.mkv')
   : (opciones.salida ?? path.join(salidaDir, `${slug}${lado === 'centro' ? '' : `-${lado}`}.mp4`))
-const prueba = verificar ? ['-t', '3.6'] : opciones.prueba ? ['-t', String(Number(opciones.prueba))] : []
+const prueba = ['-t', verificar ? '3.6' : opciones.prueba ? String(Number(opciones.prueba)) : clipDur.toFixed(3)]
 const preset = verificar || opciones.prueba ? 'ultrafast' : 'medium'
 
 console.log(
