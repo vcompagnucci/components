@@ -46,6 +46,8 @@ export const PIECES: Piece[] = [
     name: 'Swipeable tabs',
     platform: 'App',
     desc: 'X’s home tabs: the row follows the swipe, and the whole header folds away with the scroll.',
-    video: '/piezas/swipeable-tabs.mp4',
+    /* Sin `video` a propósito: el clip final se está haciendo aparte y
+       entra con `pnpm pieza:video swipeable-tabs <archivo>`; mientras
+       tanto la card muestra el hueco del teléfono vacío. */
   },
 ]

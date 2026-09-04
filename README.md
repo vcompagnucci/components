@@ -209,6 +209,16 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
   semánticos. También sobran `--space-2`, `--space-6` y `--space-10`, que
   rompen la regla de múltiplos de 4 — los dos primeros sin uso
 - Radios, elevación, z-index — se definen desde la primera pieza construida
+- **`Swipeable tabs` está publicada sin video.** El clip final se está
+  haciendo en otra sesión; cuando esté, entra con
+  `pnpm pieza:video swipeable-tabs <archivo>`. Falta decidir QUÉ va en el
+  hueco: la grabación cruda (la silueta del teléfono, que es lo que el
+  hueco reserva) o el mockup para X (cuadrado, con bisel y fondo: en el
+  hueco se vería un teléfono chico adentro de un cuadrado)
+- **`pnpm grabar` escribe al vault por diseño**, pero la primera pieza
+  se sacó del vault a pedido: el vault es lo ajeno. Si esa regla se
+  generaliza, `grabar` debería escribir a `.context/mockup/master/` y el
+  mockup leer de ahí (hoy se le pasa con `--clip=`)
 - Primera pieza a construir dentro del stage
 - Footer / firma: el nombre "Vito Compagnucci" todavía no está en ninguna parte
 - **`Reminders App`** es el único clip que dice DÓNDE en vez de QUÉ, y repite
@@ -706,3 +716,16 @@ herramienta arregla es la fuente: los gestos de esta grabación son
 sintéticos, la sonda mueve el pager con curvas medidas. Un dedo real en
 el teléfono con Expo Go es la otra mitad de "la fluidez", y es una
 grabación distinta, no un ajuste del mockup.
+
+**Addendum, el mismo día.** El video que estaba en la library era el
+interino —la grabación del simulador re-encodeada— y el clip final se
+está haciendo en otra sesión. Se decidió dejar la pieza **publicada con
+el hueco vacío** (la card lo reserva sola: es el `::before` de
+`.streamPreview`) y que el video entre después con un comando,
+`pnpm pieza:video <slug> <archivo>`: re-encodea para la web al ancho
+del hueco, conserva la proporción del archivo, escribe
+`public/piezas/<slug>.mp4` y completa `video` en `PIECES`. Y la pieza
+**salió del vault**: el vault es la pared de lo ajeno, y una pieza
+propia no tiene por qué pasar por ahí para llegar a la exposición. Su
+máster quedó en `.context/mockup/master/` (gitignoreado), que es de
+donde el mockup lo toma con `--clip=`.

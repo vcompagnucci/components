@@ -133,6 +133,17 @@ Qué pasó por detrás en el paso 8: el video se copió a
 `public/piezas/<slug>.<ext>` —el vault no viaja al deploy— y entró la
 entrada en `PIECES` con `platform: 'App'` y su `video`.
 
+**Si el video llega DESPUÉS** —se hace aparte, lo hace otro, o el que
+había no era el bueno— la pieza igual puede estar publicada: sin `video`
+la card muestra el hueco del teléfono vacío. Cuando el archivo esté:
+
+```bash
+pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4   # re-encodea para la web, lo deja en public/piezas/ y completa `video`
+```
+
+No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El
+porqué y las guardas están arriba de `scripts/pieza-video.mjs`.
+
 ### Lo que vale para los dos
 
 **El slug es el mismo string en todos lados.** La carpeta del taller

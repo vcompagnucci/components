@@ -446,6 +446,13 @@ moviendo el offset del pager cuadro a cuadro con
 medidos de X— con `movimiento` puesto a mano en `arrastre`/`quieto`. La
 sonda se borra antes de cerrar, como todas.
 
+**El máster de una pieza no tiene por qué estar en el vault.** El vault
+es lo ajeno; `swipeable-tabs` se sacó de ahí a pedido y su máster vive
+en `.context/mockup/master/<slug>.mp4` (gitignoreado). Al mockup se le
+pasa con `--clip=…`. Y el video que va a la library entra con
+`pnpm pieza:video <slug> <archivo>` desde la raíz, no con Add to Library
+(ver el AGENTS.md de la raíz, camino B).
+
 **`pnpm mockup <slug>`** mete la grabación del vault en el bisel
 oficial de Apple, sobre un fondo neutro, con una cámara que entra y
 sale, a 2160² y 60 fps. **La referencia es el clip de @nater02**
