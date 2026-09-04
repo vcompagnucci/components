@@ -16,13 +16,25 @@ export const esquema = z.object({
   /* cuerpo del teléfono como fracción del alto del lienzo. La
      referencia mide 0.953; el brief pide más aire: 0.75 */
   altura: z.number().min(0.3).max(1),
-  /* dos capas, en px de un lienzo de 720 (se escalan con el lienzo y
-     con el zoom): una de contacto y una ambiente, sólo a la derecha y
-     abajo. Medido en la referencia: α .60 σ 8 corrida 12 + α .20 σ 30
-     corrida 70. El brief pide una sombra más marcada: α .82 σ 7 y
-     α .32 σ 36; las corridas quedan las medidas, que son las únicas
-     que hay */
-  sombra: z.array(z.object({ alfa: z.number(), sigma: z.number(), corrida: z.number() })),
+  /* capas de sombra, en px de un lienzo de 720 (se escalan con el
+     lienzo y con el zoom). Cada capa: opacidad, desenfoque (σ), corrida
+     en x y en y, color y cuánto crece el rectángulo antes de
+     desenfocarse (`expandir`; negativo lo achica). Medido en la
+     referencia de @nater02: α .60 σ 8 (12, 12) + α .20 σ 30 (70, 70).
+     El brief pide una sombra más marcada: α .82 σ 7 y α .32 σ 36; las
+     corridas quedan las medidas. Otras variantes, medidas sobre los
+     clips del vault o tomadas de los sistemas de diseño, en
+     `sombras.ts` */
+  sombra: z.array(
+    z.object({
+      alfa: z.number(),
+      sigma: z.number(),
+      dx: z.number(),
+      dy: z.number(),
+      color: z.string(),
+      expandir: z.number(),
+    }),
+  ),
   camara: z.object({
     espera: z.number(),
     entra: z.number(),
@@ -52,8 +64,8 @@ export const PARAMETROS: Parametros = {
   fondo: '#EBE6E8',
   altura: 0.75,
   sombra: [
-    { alfa: 0.82, sigma: 7, corrida: 12 },
-    { alfa: 0.32, sigma: 36, corrida: 70 },
+    { alfa: 0.82, sigma: 7, dx: 12, dy: 12, color: '#000000', expandir: 0 },
+    { alfa: 0.32, sigma: 36, dx: 70, dy: 70, color: '#000000', expandir: 0 },
   ],
   camara: {
     /* referencia: entra desde el cuadro 0; acá un respiro de 0.25 s */

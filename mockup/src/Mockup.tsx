@@ -9,9 +9,13 @@ import { AbsoluteFill, Img, OffthreadVideo, staticFile, useCurrentFrame, useVide
 import { capas, encuadre } from './geometria'
 import type { Parametros } from './parametros'
 
-export const Mockup: React.FC<Parametros> = (p) => {
+/* `lienzo` sólo lo pasa la grilla comparativa, que dibuja varios
+   mockups chicos adentro de un cuadro grande; en la composición de
+   verdad el lienzo es el del video. */
+export const Mockup: React.FC<Parametros & { lienzo?: number }> = (p) => {
   const frame = useCurrentFrame()
-  const { fps, width: L } = useVideoConfig()
+  const { fps, width } = useVideoConfig()
+  const L = p.lienzo ?? width
   const e = encuadre(frame / fps, L, p.altura, p.camara)
   const r = capas(e, { w: p.clipAncho, h: p.clipAlto })
   /* la sombra está en px de 720: escala con el lienzo y con el zoom */
@@ -24,14 +28,14 @@ export const Mockup: React.FC<Parametros> = (p) => {
           key={i}
           style={{
             position: 'absolute',
-            left: r.cuerpo.x + c.corrida * escala,
-            top: r.cuerpo.y + c.corrida * escala,
-            width: r.cuerpo.w,
-            height: r.cuerpo.h,
-            borderRadius: r.cuerpo.r,
-            backgroundColor: 'black',
+            left: r.cuerpo.x + (c.dx - c.expandir) * escala,
+            top: r.cuerpo.y + (c.dy - c.expandir) * escala,
+            width: r.cuerpo.w + 2 * c.expandir * escala,
+            height: r.cuerpo.h + 2 * c.expandir * escala,
+            borderRadius: r.cuerpo.r + c.expandir * escala,
+            backgroundColor: c.color,
             opacity: c.alfa,
-            filter: `blur(${c.sigma * escala}px)`,
+            filter: c.sigma > 0 ? `blur(${c.sigma * escala}px)` : undefined,
           }}
         />
       ))}

@@ -648,6 +648,13 @@ es cada mitad** porque la mezcla es nuestra:
   frame"*) y los errores propios admitidos. Nada de autoelogio: eso ya
   era la regla del copy acá.
 
+**Se escribe en primera persona del singular.** *"I didn't start from a
+memory of how X feels. I started from X."* Acá adentro hay una sola
+persona y el plural sonaba a un equipo que no existe. Es además lo que
+hace josh cuando cuenta lo suyo —*"I've applied an SVG filter to it"*,
+*"I'll never forget"*— y deja el `we` para llevar al lector por un
+método. El `you` para el lector se queda, que también es suyo.
+
 **Los dos huecos son tokens que ya existían** —64 arriba de cada rótulo
 (`--section-gap`) y 40 de la línea al primer renglón
 (`--section-content-gap`)— y **no se volvieron a elegir**: se reusan para
@@ -839,3 +846,19 @@ pager nace con `contentOffset` en Following y `scrollX` nace ahí
 también. El clip queda en 12.9 s: arrastre lento a 1.20, toque a For
 you a 3.80, cinco flicks hasta Design y dos de vuelta hasta Tech, cada
 uno a 1.0 s del anterior.
+
+**Dieciséis sombras, lado a lado.** Antes de elegir la sombra del
+mockup se midió qué hacen las referencias, con el mismo método que con
+@nater02 (luma alrededor del borde del teléfono, dos gaussianas con
+corrida). Los clips del vault se parten en tres familias: **sin sombra
+o casi** (Floating bar y Photo picker: cero niveles fuera del borde;
+solarn: ocho), **una sola capa ancha y tenue apenas corrida** (Swipe to
+pay α .20 σ 60; Pill to button α .15 σ 75; Shelf to card, abajo), y
+**dos capas, contacto más ambiente, corridas a la derecha y abajo**,
+que es sólo el video de referencia. Con eso, más los sistemas de diseño
+(Material elevación 24, las capas de Comeau) y los estilos conocidos
+(larga y dura, flotante, contacto, halo, dramática), la grilla `Sombras`
+del mockup muestra dieciséis variantes del mismo cuadro con su recibo
+abajo. El modelo de sombra creció para poder dibujarlas: cada capa
+tiene corrida en x y en y, color y expansión, y la corrida diagonal
+única de antes es el caso particular.

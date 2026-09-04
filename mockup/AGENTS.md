@@ -13,6 +13,7 @@ pnpm assets            # bisel + grabación normalizada a 60 fps → public/ (gi
 pnpm verificar         # ¿el hueco del bisel queda lleno en toda la cámara? (rojo pleno, 12 cuadros)
 pnpm studio            # el look, con cada número como control
 pnpm render            # out/swipeable-tabs.mp4, 2160² · 60 fps · h264 crf 17
+pnpm still Sombras out/sombras.png   # la grilla: el reposo con dieciséis sombras, cada una con su recibo
 ```
 
 `pnpm assets --clip=/ruta/otra.mp4` para otra grabación. El máster de
@@ -26,6 +27,7 @@ vault es lo ajeno).
 | `src/parametros.ts` | **todos los números, uno por línea y con recibo**: fondo, altura del teléfono, sombra, cámara, curvas. Son las props de la composición y en Studio aparecen como controles |
 | `src/geometria.ts` | el bisel medido, la cámara (k, X, Y) y los rectángulos de cada capa. Puro, sin React: lo usan la composición y la verificación |
 | `src/Mockup.tsx` | las cuatro capas: fondo, sombra, pantalla, bisel. Cada una al tamaño que le toca en cada cuadro, sin `transform: scale` |
+| `src/sombras.ts` · `src/Grilla.tsx` | dieciséis sombras con recibo (las medidas en el vault y en @nater02, y los sistemas de diseño) y la grilla que las muestra lado a lado. La elegida pasa a `PARAMETROS.sombra` |
 | `src/Root.tsx` | la composición: 2160² · 60 fps, duración leída del clip |
 | `scripts/assets.mjs` | copia el bisel y normaliza la grabación a 60 fps constantes |
 | `scripts/verificar.mjs` | la guarda de los bordes |
