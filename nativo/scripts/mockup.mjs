@@ -69,8 +69,8 @@
  * `t`. La cámara es (k, C): un zoom y el punto del lienzo base que
  * queda en el centro; una capa que en reposo está en P se dibuja en
  * (P − C)·k + L/2. Las curvas de la referencia son bézier, que ffmpeg
- * no evalúa, así que cada una se aproxima con un polinomio de grado 5
- * ajustado acá mismo (error < 0.005).
+ * no evalúa, así que cada una se aproxima con un polinomio de grado 7
+ * ajustado acá mismo (error < 0.007, monótono cuadro a cuadro).
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -273,7 +273,12 @@ const bezier = (x1, y1, x2, y2) => (x) => {
   }
   return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t
 }
-function polinomio(fn, grado = 5) {
+/* GRADO 7, NO 5: con grado 5 la curva de salida quedaba con dos
+   cuadros de retroceso al final (el polinomio sobrepasa y vuelve:
+   P(1) = 0.987, paso −0.007 por cuadro = 6 px de rebote a 2160). Con 7
+   las dos son monótonas cuadro a cuadro y el error baja a 0.0006 /
+   0.0063. Verificado en /tmp/nater/mono.mjs, 2026-09-04. */
+function polinomio(fn, grado = 7) {
   const n = 200
   const A = []
   const b = []
@@ -426,7 +431,7 @@ const salida = verificar
   ? path.join(cache, 'verificacion.mkv')
   : (opciones.salida ?? path.join(salidaDir, `${slug}${lado === 'centro' ? '' : `-${lado}`}.mp4`))
 const prueba = verificar ? ['-t', '3.6'] : opciones.prueba ? ['-t', String(Number(opciones.prueba))] : []
-const preset = verificar || opciones.prueba ? 'ultrafast' : 'slow'
+const preset = verificar || opciones.prueba ? 'ultrafast' : 'medium'
 
 console.log(
   `clip     ${clip} (${clipW}×${clipH}, ${clipDur.toFixed(2)} s)\n` +
