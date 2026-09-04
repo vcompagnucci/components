@@ -13,6 +13,20 @@ const curva = z.object({ x1: z.number(), y1: z.number(), x2: z.number(), y2: z.n
 export const esquema = z.object({
   /* medido: RGB (235, 230, 232) plano, sin gradiente */
   fondo: z.string(),
+  /* qué hay detrás del teléfono además del color plano. `color` es la
+     referencia; lo demás es la exploración de fondos (ver fondos.ts):
+     degradados, foco, malla, grano, trama, piso, una imagen, o la
+     app misma desenfocada. Los campos que un tipo no usa se ignoran */
+  fondoEstilo: z.object({
+    tipo: z.enum(['color', 'degradado', 'foco', 'malla', 'grano', 'puntos', 'piso', 'imagen', 'app']),
+    colores: z.array(z.string()),
+    angulo: z.number(),
+    imagen: z.string(),
+    desenfoque: z.number(),
+    luz: z.number(),
+    escala: z.number(),
+    grano: z.number(),
+  }),
   /* cuerpo del teléfono como fracción del alto del lienzo. La
      referencia mide 0.953; el brief pide más aire: 0.75 */
   altura: z.number().min(0.3).max(1),
@@ -62,6 +76,7 @@ export type Parametros = z.infer<typeof esquema>
 
 export const PARAMETROS: Parametros = {
   fondo: '#EBE6E8',
+  fondoEstilo: { tipo: 'color', colores: [], angulo: 180, imagen: '', desenfoque: 0, luz: 0, escala: 1, grano: 0 },
   altura: 0.75,
   /* La sombra del video de referencia, tal cual se midió (ver la
      variante 1 de sombras.ts). El brief había pedido una más marcada

@@ -15,6 +15,7 @@ pnpm studio            # el look, con cada número como control
 pnpm render            # out/swipeable-tabs.mp4, 2160² · 60 fps · h264 crf 17
 pnpm still Sombras out/sombras.png   # la grilla: el reposo con dieciséis sombras, cada una con su recibo
 pnpm still SombrasSimetricas out/sombras-simetricas.png   # dieciséis más, sin luz de costado
+pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco, malla, grano, trama, piso, imagen, la app desenfocada
 ```
 
 `pnpm assets --clip=/ruta/otra.mp4` para otra grabación. El máster de

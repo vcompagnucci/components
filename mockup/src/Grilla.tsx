@@ -5,6 +5,7 @@ import { AbsoluteFill } from 'remotion'
 
 import { Mockup } from './Mockup'
 import { PARAMETROS } from './parametros'
+import { FONDOS } from './fondos'
 import { SOMBRAS, SOMBRAS_SIMETRICAS, type Variante } from './sombras'
 
 const TILE = 1080
@@ -13,11 +14,16 @@ const COLUMNAS = 4
 /* Vive en `Grilla.tsx` y no en `Sombras.tsx`: en un disco que no
    distingue mayúsculas, `./Sombras` resolvía a `sombras.ts` (las
    variantes) y la composición recibía `undefined`. */
-export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas' }> = ({ conjunto = 'referencias' }) => {
-  const variantes: Variante[] = conjunto === 'simetricas' ? SOMBRAS_SIMETRICAS : SOMBRAS
+type Celda = { nombre: string; nota: string; props: Partial<typeof PARAMETROS> }
+
+export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas' | 'fondos' }> = ({ conjunto = 'referencias' }) => {
+  const celdas: Celda[] =
+    conjunto === 'fondos'
+      ? FONDOS.map((v) => ({ nombre: v.nombre, nota: v.nota, props: { fondo: v.color, fondoEstilo: v.estilo } }))
+      : (conjunto === 'simetricas' ? SOMBRAS_SIMETRICAS : SOMBRAS).map((v: Variante) => ({ nombre: v.nombre, nota: v.nota, props: { sombra: v.sombra } }))
   return (
   <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
-    {variantes.map((v, i) => (
+    {celdas.map((v, i) => (
       <div
         key={v.nombre}
         style={{
@@ -29,7 +35,7 @@ export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas'
           overflow: 'hidden',
         }}
       >
-        <Mockup {...PARAMETROS} lienzo={TILE} sombra={v.sombra} />
+        <Mockup {...PARAMETROS} {...v.props} lienzo={TILE} />
         <div
           style={{
             position: 'absolute',

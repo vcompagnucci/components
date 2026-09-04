@@ -6,6 +6,7 @@
    punto del brief: no zoom al frame compuesto, que ablanda. */
 import { AbsoluteFill, Img, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
 
+import { Fondo } from './Fondo'
 import { capas, encuadre } from './geometria'
 import type { Parametros } from './parametros'
 
@@ -23,6 +24,7 @@ export const Mockup: React.FC<Parametros & { lienzo?: number }> = (p) => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: p.fondo }}>
+      <Fondo color={p.fondo} estilo={p.fondoEstilo} clip={p.clip} lienzo={L} />
       {p.sombra.map((c, i) => (
         <div
           key={i}
