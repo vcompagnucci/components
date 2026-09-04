@@ -14,6 +14,17 @@
    · DOS CAPAS, contacto + ambiente, corridas a la derecha y abajo: el
      clip de @nater02, la referencia del video (α .60 σ 8 (12,12) +
      α .20 σ 30 (70,70)).
+   · APPLE NO USA SOMBRA. El PSD del bezel (Apple Design Resources,
+     iPhone 17 - Black - Portrait.psd) tiene cuatro capas —Hardware,
+     Screen, Status Bar y un White Fill for Dark Mode apagado— y
+     ningún efecto de capa. Sus renders de prensa (newsroom, iPhone 17,
+     2025-09) miden fondo 250 a 4 px del borde del teléfono por los
+     cuatro lados, en el retrato solo y en el lineup. Y sus Marketing
+     Guidelines lo prohíben para sus imágenes de producto: "Use Apple
+     product images 'as is' and without modification. Modifications
+     include adding reflections, shadows, highlights…". Vale para las
+     imágenes de Apple; el bezel de Design Resources es para mockups
+     propios y ahí la sombra es decisión nuestra.
    Lo demás son sistemas de diseño y estilos conocidos, no medidos. */
 import type { Parametros } from './parametros'
 
@@ -37,7 +48,7 @@ export const SOMBRAS: Variante[] = [
   { nombre: 'Pill to button, medida', nota: 'α.10 σ3 + α.15 σ75 (30,10)', sombra: [capa(0.1, 3, 0, 0), capa(0.15, 75, 30, 10)] },
   { nombre: 'Shelf to card, medida abajo', nota: 'α.15 σ60 (0,20)', sombra: [capa(0.15, 60, 0, 20)] },
   { nombre: 'solarn, medida: apenas', nota: 'α.08 σ13 (0,4)', sombra: [capa(0.08, 13, 0, 4)] },
-  { nombre: 'sin sombra', nota: 'Floating bar, Photo picker, Apple', sombra: [] },
+  { nombre: 'sin sombra', nota: 'Floating bar, Photo picker, y Apple: sus bezels y sus renders no llevan', sombra: [] },
   { nombre: 'ambiente puro', nota: 'sin corrida: α.30 σ40 (0,0)', sombra: [capa(0.3, 40, 0, 0)] },
   {
     nombre: 'Material, elevación 24',
