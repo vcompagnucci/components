@@ -30,6 +30,7 @@ export const RemotionRoot: React.FC = () => (
   />
   {/* La grilla de sombras: 4×4 cuadros de 1080, el reposo con una
       sombra distinta cada uno. `pnpm still Sombras out/sombras.png`. */}
-  <Still id="Sombras" component={GrillaDeSombras} width={4320} height={4320} />
+  <Still id="Sombras" component={GrillaDeSombras} width={4320} height={4320} defaultProps={{ conjunto: 'referencias' }} />
+  <Still id="SombrasSimetricas" component={GrillaDeSombras} width={4320} height={4320} defaultProps={{ conjunto: 'simetricas' }} />
   </>
 )

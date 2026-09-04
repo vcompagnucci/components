@@ -56,3 +56,28 @@ export const SOMBRAS: Variante[] = [
   { nombre: 'luz frontal', nota: 'corta, abajo: α.25 σ18 (0,14)', sombra: [capa(0.25, 18, 0, 14)] },
   { nombre: 'dramática', nota: 'luz arriba-izquierda fuerte: α.50 σ22 (55,55)', sombra: [capa(0.5, 22, 55, 55)] },
 ]
+
+/* DIECISÉIS MÁS, SIMÉTRICAS: sin dirección de luz de costado. Todas
+   centradas en x; las "cenitales" bajan un poco (dy) y siguen siendo
+   simétricas de izquierda a derecha. Pedido del usuario, 2026-09-04:
+   "más opciones, tal vez sombras más simétricas". Ninguna es medida:
+   son la familia "una capa ancha y tenue" del vault recorrida en
+   anchura, opacidad y expansión, más algunas combinaciones. */
+export const SOMBRAS_SIMETRICAS: Variante[] = [
+  { nombre: 'ambiente fina', nota: 'α.25 σ12, centrada', sombra: [capa(0.25, 12, 0, 0)] },
+  { nombre: 'ambiente media', nota: 'α.25 σ25, centrada', sombra: [capa(0.25, 25, 0, 0)] },
+  { nombre: 'ambiente ancha', nota: 'α.25 σ45, centrada', sombra: [capa(0.25, 45, 0, 0)] },
+  { nombre: 'ambiente muy ancha', nota: 'α.20 σ70, centrada', sombra: [capa(0.2, 70, 0, 0)] },
+  { nombre: 'contacto + ambiente', nota: 'α.45 σ4 + α.18 σ35, las dos centradas', sombra: [capa(0.45, 4, 0, 0), capa(0.18, 35, 0, 0)] },
+  { nombre: 'tres capas centradas', nota: 'α.15 en σ3, σ12 y σ40', sombra: [capa(0.15, 3, 0, 0), capa(0.15, 12, 0, 0), capa(0.15, 40, 0, 0)] },
+  { nombre: 'ambiente expandida', nota: 'α.20 σ30, +16 de borde', sombra: [capa(0.2, 30, 0, 0, { expandir: 16 })] },
+  { nombre: 'ambiente contraída', nota: 'α.35 σ30, −16 de borde: luz de frente', sombra: [capa(0.35, 30, 0, 0, { expandir: -16 })] },
+  { nombre: 'casi nada', nota: 'α.08 σ13 (0,4): lo de solarn', sombra: [capa(0.08, 13, 0, 4)] },
+  { nombre: 'cenital corta', nota: 'α.30 σ16 (0,8)', sombra: [capa(0.3, 16, 0, 8)] },
+  { nombre: 'cenital larga', nota: 'α.30 σ40 (0,24)', sombra: [capa(0.3, 40, 0, 24)] },
+  { nombre: 'flotante simétrica', nota: 'α.30 σ50 (0,40)', sombra: [capa(0.3, 50, 0, 40)] },
+  { nombre: 'tinte del fondo', nota: 'sombra del color del fondo oscurecido: #4a3f44 α.35 σ35', sombra: [capa(0.35, 35, 0, 0, { color: '#4a3f44' })] },
+  { nombre: 'luz + sombra', nota: 'halo blanco α.80 σ30 +10 y ambiente α.20 σ35', sombra: [capa(0.8, 30, 0, 0, { color: '#ffffff', expandir: 10 }), capa(0.2, 35, 0, 0)] },
+  { nombre: 'borde duro', nota: 'sin desenfoque, +3 de borde, α.30', sombra: [capa(0.3, 0, 0, 0, { expandir: 3 })] },
+  { nombre: 'niebla', nota: 'α.15 σ110, +40 de borde', sombra: [capa(0.15, 110, 0, 0, { expandir: 40 })] },
+]

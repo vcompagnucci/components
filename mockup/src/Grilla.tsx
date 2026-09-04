@@ -5,7 +5,7 @@ import { AbsoluteFill } from 'remotion'
 
 import { Mockup } from './Mockup'
 import { PARAMETROS } from './parametros'
-import { SOMBRAS } from './sombras'
+import { SOMBRAS, SOMBRAS_SIMETRICAS, type Variante } from './sombras'
 
 const TILE = 1080
 const COLUMNAS = 4
@@ -13,9 +13,11 @@ const COLUMNAS = 4
 /* Vive en `Grilla.tsx` y no en `Sombras.tsx`: en un disco que no
    distingue mayúsculas, `./Sombras` resolvía a `sombras.ts` (las
    variantes) y la composición recibía `undefined`. */
-export const GrillaDeSombras: React.FC = () => (
+export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas' }> = ({ conjunto = 'referencias' }) => {
+  const variantes: Variante[] = conjunto === 'simetricas' ? SOMBRAS_SIMETRICAS : SOMBRAS
+  return (
   <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
-    {SOMBRAS.map((v, i) => (
+    {variantes.map((v, i) => (
       <div
         key={v.nombre}
         style={{
@@ -48,4 +50,5 @@ export const GrillaDeSombras: React.FC = () => (
       </div>
     ))}
   </AbsoluteFill>
-)
+  )
+}
