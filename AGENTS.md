@@ -144,6 +144,10 @@ pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4   # re-encodea para la web
 No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El
 porqué y las guardas están arriba de `scripts/pieza-video.mjs`.
 
+**El video para X** —el teléfono en su bisel sobre fondo neutro, con la
+cámara que entra y sale— se hace en `mockup/` (Remotion): `pnpm assets`
+→ `pnpm verificar` → `pnpm studio` → `pnpm render`. Ver `mockup/AGENTS.md`.
+
 ### Lo que vale para los dos
 
 **El slug es el mismo string en todos lados.** La carpeta del taller
@@ -435,6 +439,7 @@ de la pieza y no su componente.
 | `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
 | `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
 | `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |
+| `mockup/` | **el video para X de una pieza App**, en Remotion: bisel oficial, fondo neutro, cámara medida; se itera en Studio. Ver su `AGENTS.md` |
 | `src/parts.tsx` | masthead, ítem de lista, detalle, la muestra (video/vivo), flecha de volver, `clicDeLink` |
 | `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
 | `src/not-found.tsx` | el 404 con física |

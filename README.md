@@ -729,3 +729,36 @@ del hueco, conserva la proporción del archivo, escribe
 propia no tiene por qué pasar por ahí para llegar a la exposición. Su
 máster quedó en `.context/mockup/master/` (gitignoreado), que es de
 donde el mockup lo toma con `--clip=`.
+
+## El mockup en Remotion: los mismos números, iterados en vivo
+
+El pipeline de ffmpeg hacía el video bien pero cada ajuste era un
+re-encode de minutos, y el brief del video pidió lo contrario: mirar el
+look en vivo y renderizar una vez. Se armó `mockup/`, una composición de
+Remotion (React) con **exactamente los números medidos** —el bisel sobre
+el alfa del PNG, el fondo, la sombra en dos capas, la cámara de tres
+momentos y sus dos bézier— como props con esquema, que Remotion Studio
+muestra como controles. Lo que cambió respecto del pipeline, y por qué:
+
+| qué | ffmpeg | Remotion |
+| --- | --- | --- |
+| las curvas | polinomio de grado 7 ajustado a la bézier (ffmpeg no evalúa bézier) | la bézier misma, por bisección |
+| la cámara | (zoom, punto de mira) | (zoom, posición del cuerpo): el borde del teléfono va en una sola dirección |
+| cada capa | escalada por cuadro con `scale … eval=frame` | dibujada a su tamaño en cada cuadro, sin `transform: scale` |
+| el intermedio | — | PNG entre el cuadro y el encoder, no JPEG: es lo que se sube |
+| la guarda | `--verificar` | `pnpm verificar`, con la misma geometría que dibuja |
+| iterar | re-encode por ajuste | Studio, en vivo; `pnpm render` al final |
+
+Lo que el brief se apartó de la referencia, a propósito y anotado al
+lado del número: el teléfono al 75 % del alto en vez del 95.3 % (más
+aire) y la sombra más marcada (α .82 σ 7 + α .32 σ 36 en px de 720; las
+corridas quedan las medidas, que son las únicas que hay). Y una
+decisión medida sobre la grabación nueva: la cámara se queda cerrada
+hasta los 3.9 s, no los 2.6 del brief, porque el arrastre a Stocks
+termina a los 3.80 y la ráfaga de tabs empieza a los 5.37: la entrada
+cubre los dos gestos lentos y la ráfaga se ve entera desde el encuadre
+final.
+
+**Verificado antes de mirar:** los doce estados de la cámara con el
+hueco lleno (0 píxeles sin rojo), y las esquinas a 3× en los cuadros
+del zoom y del encuadre final.

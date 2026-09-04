@@ -1,0 +1,28 @@
+{
+  "name": "mockup",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "node scripts/assets.mjs",
+    "studio": "remotion studio",
+    "render": "remotion render SwipeableTabs out/swipeable-tabs.mp4",
+    "still": "remotion still SwipeableTabs",
+    "verificar": "node scripts/verificar.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.520",
+    "@remotion/cli": "4.0.520",
+    "@remotion/media-utils": "4.0.520",
+    "@remotion/renderer": "4.0.520",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "remotion": "4.0.520",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "typescript": "7.0.2"
+  }
+}
