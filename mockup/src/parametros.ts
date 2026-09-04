@@ -63,9 +63,13 @@ export type Parametros = z.infer<typeof esquema>
 export const PARAMETROS: Parametros = {
   fondo: '#EBE6E8',
   altura: 0.75,
+  /* La sombra del video de referencia, tal cual se midió (ver la
+     variante 1 de sombras.ts). El brief había pedido una más marcada
+     (α .82 σ 7 + α .32 σ 36); se miró la grilla y el usuario eligió
+     la medida, 2026-09-04. */
   sombra: [
-    { alfa: 0.82, sigma: 7, dx: 12, dy: 12, color: '#000000', expandir: 0 },
-    { alfa: 0.32, sigma: 36, dx: 70, dy: 70, color: '#000000', expandir: 0 },
+    { alfa: 0.6, sigma: 8, dx: 12, dy: 12, color: '#000000', expandir: 0 },
+    { alfa: 0.2, sigma: 30, dx: 70, dy: 70, color: '#000000', expandir: 0 },
   ],
   camara: {
     /* referencia: entra desde el cuadro 0; acá un respiro de 0.25 s */
