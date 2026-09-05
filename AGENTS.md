@@ -138,7 +138,8 @@ había no era el bueno— la pieza igual puede estar publicada: sin `video`
 la card muestra el hueco del teléfono vacío. Cuando el archivo esté:
 
 ```bash
-pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4   # re-encodea para la web, lo deja en public/piezas/ y completa `video`
+pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # re-encodea para la web, lo deja en public/piezas/ y completa `video`
+pnpm pieza:video swipeable-tabs ~/Downloads/final-oscuro.mp4 --oscuro   # la versión sobre fondo oscuro: `videoOscuro`, que la card elige en dark mode
 ```
 
 No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El

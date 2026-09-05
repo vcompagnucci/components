@@ -2,7 +2,12 @@
    un comando.
 
      pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4
+     pnpm pieza:video swipeable-tabs ~/Downloads/final-oscuro.mp4 --oscuro
      pnpm pieza:video swipeable-tabs ~/Downloads/final.mov --ancho=720 --crf=23 --pisar
+
+   `--oscuro` es la segunda mitad de la regla "cada video sale dos veces"
+   (mockup/AGENTS.md): escribe public/piezas/<slug>-oscuro.mp4 y completa
+   `videoOscuro`; la card lo elige cuando el sistema está en dark mode.
 
    Hace tres cosas, en orden: (1) busca la pieza en PIECES por su slug
    —la MISMA cuenta `slug()` de pieces.ts, así el archivo y la URL no
@@ -66,8 +71,11 @@ if (pieza.platform !== 'App') {
   console.error(`"${pieza.name}" es una pieza Web: se demuestra corriendo, no en video.`)
   process.exit(1)
 }
-if (pieza.video && opciones.pisar !== 'true') {
-  console.error(`"${pieza.name}" ya tiene video (${pieza.video}). Para reemplazarlo: --pisar`)
+const oscuro = opciones.oscuro === 'true'
+const campo = oscuro ? 'videoOscuro' : 'video'
+const sufijo = oscuro ? '-oscuro' : ''
+if (pieza[campo] && opciones.pisar !== 'true') {
+  console.error(`"${pieza.name}" ya tiene ${campo} (${pieza[campo]}). Para reemplazarlo: --pisar`)
   process.exit(1)
 }
 
@@ -93,8 +101,8 @@ const cadencia = fps > 45 ? 60 : 30
 const crf = Number(opciones.crf ?? 23)
 
 fs.mkdirSync(PIEZAS_DIR, { recursive: true })
-const destino = path.join(PIEZAS_DIR, `${slug}.mp4`)
-const temporal = path.join(PIEZAS_DIR, `.${slug}.tmp.mp4`)
+const destino = path.join(PIEZAS_DIR, `${slug}${sufijo}.mp4`)
+const temporal = path.join(PIEZAS_DIR, `.${slug}${sufijo}.tmp.mp4`)
 console.log(`origen   ${archivo} (${w}×${h}, ${fps.toFixed(2)} fps, ${duracion.toFixed(2)} s)\nsalida   ${destino} (${ancho}×${alto}, ${cadencia} fps, crf ${crf})`)
 execFileSync(
   'ffmpeg',
@@ -116,13 +124,12 @@ if (inicio < 0 || cierre < 0) {
   process.exit(1)
 }
 const bloque = src.slice(inicio, cierre)
-const linea = `video: '/piezas/${slug}.mp4',`
-const nuevoBloque = /video: '[^']*',/.test(bloque)
-  ? bloque.replace(/video: '[^']*',/, linea)
-  : `${bloque}\n    ${linea}`
+const linea = `${campo}: '/piezas/${slug}${sufijo}.mp4',`
+const yaEsta = new RegExp(`${campo}: '[^']*',`)
+const nuevoBloque = yaEsta.test(bloque) ? bloque.replace(yaEsta, linea) : `${bloque}\n    ${linea}`
 const temporalTs = PIEZAS_TS + '.tmp'
 fs.writeFileSync(temporalTs, src.slice(0, inicio) + nuevoBloque + src.slice(cierre))
 fs.renameSync(temporalTs, PIEZAS_TS)
 
 const mb = (fs.statSync(destino).size / 1024 / 1024).toFixed(1)
-console.log(`listo — ${mb} MB. pieces.ts tiene video: '/piezas/${slug}.mp4'. Mirala en /${slug}`)
+console.log(`listo — ${mb} MB. pieces.ts tiene ${campo}: '/piezas/${slug}${sufijo}.mp4'. Mirala en /${slug}`)

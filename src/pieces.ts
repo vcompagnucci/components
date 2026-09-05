@@ -21,6 +21,12 @@ export type Piece = {
      Web va viva —su archivo está en src/piezas/, resuelto por slug en
      demos.tsx— y no lo lleva. */
   video?: string
+  /* La misma grabación sobre fondo oscuro, para cuando el sistema está
+     en dark mode (la library no tiene switch: sigue a
+     prefers-color-scheme). Cada video sale dos veces —ver
+     mockup/AGENTS.md— y acá viven los dos; sin esta, se muestra `video`
+     en los dos modos. */
+  videoOscuro?: string
 }
 
 /* LA URL DE UNA PIEZA, y hay UNA sola cuenta. Vivían dos que coincidían
@@ -46,8 +52,7 @@ export const PIECES: Piece[] = [
     name: 'Swipeable tabs',
     platform: 'App',
     desc: 'X’s home tabs: the row follows the swipe, and the whole header folds away with the scroll.',
-    /* Sin `video` a propósito: el clip final se está haciendo aparte y
-       entra con `pnpm pieza:video swipeable-tabs <archivo>`; mientras
-       tanto la card muestra el hueco del teléfono vacío. */
+    video: '/piezas/swipeable-tabs.mp4',
+    videoOscuro: '/piezas/swipeable-tabs-oscuro.mp4',
   },
 ]

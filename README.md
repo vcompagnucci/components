@@ -873,3 +873,12 @@ igual porque negra sobre casi negro no se ve; el teléfono se separa por
 el canto del bisel. Y la línea completa —de la sonda en la pieza al
 render doble— quedó en `mockup/AGENTS.md`, con cada mini-decisión y su
 porqué, y la sonda de grabación para copiar en `nativo/AGENTS.md`.
+
+**Los dos videos entran a la library, y la card elige.** `Swipeable
+tabs` ya no tiene el hueco vacío: lleva el mockup claro en `video` y el
+oscuro en `videoOscuro`, los dos a 1080² (el doble del hueco del detalle
+y algo más) por `pnpm pieza:video … --oscuro`. La card los elige con
+`prefers-color-scheme`, que es lo único que la library sigue —no hay
+switch de tema—, con un `useSyncExternalStore` sobre el `matchMedia` y
+un `key` por src para que el `<video>` arranque de cero al cambiar. Sin
+`videoOscuro`, el claro va en los dos modos.

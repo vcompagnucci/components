@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import { slug, type Piece } from './pieces'
@@ -116,9 +117,31 @@ export function Item({
    que en una grabación de iPhone es la del teléfono. El ::before que
    reservaba ese hueco en vacío se apaga solo (ver :has en
    app.module.css). */
+/* El esquema del sistema, en vivo: la library no tiene switch de tema
+   —los tokens siguen a prefers-color-scheme— así que el video sigue a
+   lo mismo. useSyncExternalStore y no un useEffect con estado: la
+   suscripción es al matchMedia y el primer render ya trae el valor. */
+const OSCURO = '(prefers-color-scheme: dark)'
+function useEsquemaOscuro() {
+  return useSyncExternalStore(
+    (avisar) => {
+      const mq = window.matchMedia(OSCURO)
+      mq.addEventListener('change', avisar)
+      return () => mq.removeEventListener('change', avisar)
+    },
+    () => window.matchMedia(OSCURO).matches,
+    () => false,
+  )
+}
+
 function Muestra({ piece }: { piece: Piece }) {
-  if (piece.video)
-    return <video className={css.demo} src={piece.video} autoPlay muted loop playsInline />
+  const oscuro = useEsquemaOscuro()
+  if (piece.video) {
+    /* `key` por src: al cambiar de esquema el <video> se vuelve a
+       montar y arranca de cero, en vez de seguir con el buffer viejo. */
+    const src = oscuro && piece.videoOscuro ? piece.videoOscuro : piece.video
+    return <video key={src} className={css.demo} src={src} autoPlay muted loop playsInline />
+  }
   if (piece.platform === 'Web') return <DemoVivo name={piece.name} />
   return null
 }
