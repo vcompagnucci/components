@@ -2,6 +2,7 @@ import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import { slug, type Piece } from './pieces'
 import { DemoVivo } from './demos'
+import { Notas } from './notas'
 
 /* Piezas de la página, cada una con una sola responsabilidad. Viven
    acá y no en app.tsx para que app quede sólo con la composición. */
@@ -173,14 +174,24 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
     <div className={css.content}>
       <div className={css.detail}>
         <Volver onClick={onBack} />
+        {/* LA DESCRIPCIÓN VA DEBAJO DE LA PIEZA, no arriba. Primero se
+            ve la cosa y después se lee qué es: la lista muestra y el
+            detalle explica, así que la prosa entra cuando el preview ya
+            contestó. Arriba queda el par que SÍ está medido en benji —
+            título y una línea secundaria a 4px, su <h1> con su <time>. */}
         <div className={css.detailHead}>
           <h1 className={css.detailTitle}>{piece.name}</h1>
           <div className={css.detailMeta}>{piece.platform}</div>
-          <p className={css.detailDesc}>{piece.desc}</p>
         </div>
         <div className={css.detailPreview} data-plataforma={piece.platform}>
           <Muestra piece={piece} />
         </div>
+        {/* La línea de PIECES es la entrada, y las notas lo que sigue.
+            Son dos cosas distintas: ésta se escribe al publicar y cabe
+            en un renglón; aquéllas viven en src/notas/<slug>.tsx y una
+            pieza puede no tenerlas. */}
+        <p className={css.detailDesc}>{piece.desc}</p>
+        <Notas name={piece.name} />
       </div>
     </div>
   )

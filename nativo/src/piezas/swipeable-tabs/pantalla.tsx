@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -64,6 +65,8 @@ export function PantallaSwipeableTabs() {
      propio. La paleta oscura es la medida; la clara lleva su recibo (y
      su falta de recibo) arriba de `CLARO` en `medidas.ts`. */
   const paleta = useColorScheme() === 'light' ? CLARO : COLOR
+  const params = useLocalSearchParams<{ demo?: string }>()
+  const demo = params.demo === '1' || params.demo === 'true'
 
   return (
     <Tema.Provider value={paleta}>
@@ -78,6 +81,7 @@ export function PantallaSwipeableTabs() {
           arriba={insets.top}
           cabecera={<Cabecera />}
           pagina={(tab, indice) => <Pagina id={tab.id} indice={indice} />}
+          demo={demo}
         />
       </View>
     </Tema.Provider>

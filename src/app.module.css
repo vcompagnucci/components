@@ -443,8 +443,13 @@
    podía aplicar nunca: un número que se leía como decisión y no hacía
    nada. Si el detalle llega a querer una medida más angosta que su
    columna, es una decisión aparte y se toma con la primera pieza. */
+/* Va DEBAJO del preview (ver Detail en parts.tsx), así que estos 24 no
+   son los 8 de antes: son la misma distancia con la que el bloque de
+   arriba se despega de la caja (.detailHead margin-bottom). Un número y
+   no dos para la misma relación —texto contra la pieza—, hasta que se
+   elija con scrubber sobre la página real. */
 .detailDesc {
-  margin: 8px 0 0;
+  margin: 24px 0 0;
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
@@ -484,6 +489,38 @@
 }
 .detailPreview .demo {
   width: var(--card-app-slot-detalle);
+}
+
+/* ─── LAS NOTAS DEL DETALLE ───
+   El texto largo bajo la pieza, partido en secciones. El separador es el
+   mismo objeto que parte la lista —.groupHead y sus dos hijos—, así que
+   acá no se declara ninguna línea: se declara sólo el ritmo alrededor.
+
+   Los dos huecos son tokens que ya existían y NO se volvieron a elegir:
+   64 arriba de cada rótulo (--section-gap, el que separa Web de App) y
+   40 de la línea al primer renglón (--section-content-gap, con su
+   corrección de media caja adentro de .groupHead). Reusarlos es tener un
+   número por relación en vez de dos; que sean los correctos PARA PROSA
+   está sin medir, y se decide con el scrubber sobre esta página. */
+.notas p {
+  margin: 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  /* ink y no gris, igual que .detailDesc: es prosa, y la prosa se lee.
+     El gris es para lo que anota. Ver DESIGN.md. */
+  color: var(--ink);
+}
+/* Una línea de aire entre párrafos, que es el interlineado del cuerpo.
+   SIN RECIBO: no sale de ninguna referencia medida — es el default
+   tipográfico de toda la vida y está acá para no inventar un número.
+   Cuando la primera nota se lea en pantalla, se elige mirando. */
+.notas p + p {
+  margin-top: var(--type-body-lh);
+}
+.notaSeccion {
+  padding-top: var(--section-gap);
 }
 
 /* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que

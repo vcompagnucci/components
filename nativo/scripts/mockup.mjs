@@ -193,9 +193,9 @@ if (imagen) {
 const L = LIENZO
 
 /* ─── LA GEOMETRÍA EN REPOSO (k = 1) ───
-   El cuerpo del bisel al 95.3 % del alto del lienzo, centrado. `s0` es
+   El cuerpo del bisel al 87 % del alto del lienzo (más aire; override con --altura), centrado. `s0` es
    px del lienzo por px del PNG. */
-const ALTURA = Number(opciones.altura ?? 0.953)
+const ALTURA = Number(opciones.altura ?? 0.75)
 const s0 = (ALTURA * L) / M.cuerpo.h
 const bw0 = M.cuerpo.w * s0
 const bh0 = M.cuerpo.h * s0
@@ -228,8 +228,9 @@ const radioMascara = Math.round(M.pantalla.r / f)
 /* ─── LA SOMBRA, en px de 720 de la referencia, escalada al lienzo ─── */
 const e = L / 720
 const SOMBRA = [
-  { alfa: 0.6, sigma: 8 * e, corrida: 12 * e },
-  { alfa: 0.2, sigma: 30 * e, corrida: 70 * e },
+  /* Más marcada que la ref: contacto oscuro + ambient ancha (der/abajo). */
+  { alfa: 0.82, sigma: 7 * e, corrida: 14 * e },
+  { alfa: 0.32, sigma: 36 * e, corrida: 90 * e },
 ]
 const MARGEN_SOMBRA = Math.ceil(Math.max(...SOMBRA.map((c) => c.corrida + 3 * c.sigma)))
 
@@ -244,12 +245,12 @@ const MARGEN_SOMBRA = Math.ceil(Math.max(...SOMBRA.map((c) => c.corrida + 3 * c.
    abajo; acá está arriba). Con una imagen de fondo va `quieta` salvo
    que se pida: el zoom la sacaría del píxel exacto. */
 const camara = opciones.camara ?? (imagen ? 'quieta' : 'arranque')
-const K1 = 1.576
-const K2 = 1.161
+const K1 = Number(opciones.k1 ?? 1.576)
+const K2 = Number(opciones.k2 ?? 1.161)
 const T1 = Number(opciones.espera ?? 0.25)
-const T2 = T1 + 0.65
+const T2 = T1 + Number(opciones.entra ?? 0.65)
 const T3 = Number(opciones.hasta ?? 2.6)
-const T4 = T3 + 0.62
+const T4 = T3 + Number(opciones.sale ?? 0.62)
 const foco = Number(opciones.foco ?? 0.145)
 if (T3 < T2) {
   console.error(`--hasta (${T3}) tiene que ser mayor que el final de la entrada (${T2.toFixed(2)})`)
@@ -273,12 +274,7 @@ const bezier = (x1, y1, x2, y2) => (x) => {
   }
   return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t
 }
-/* GRADO 7, NO 5: con grado 5 la curva de salida quedaba con dos
-   cuadros de retroceso al final (el polinomio sobrepasa y vuelve:
-   P(1) = 0.987, paso −0.007 por cuadro = 6 px de rebote a 2160). Con 7
-   las dos son monótonas cuadro a cuadro y el error baja a 0.0006 /
-   0.0063. Verificado en /tmp/nater/mono.mjs, 2026-09-04. */
-function polinomio(fn, grado = 7) {
+function polinomio(fn, grado = 5) {
   const n = 200
   const A = []
   const b = []
@@ -318,8 +314,11 @@ function polinomio(fn, grado = 7) {
   }
   return { coef: x, peor }
 }
-const ENTRA = polinomio(bezier(0.3, 0.05, 0.4, 0.9))
-const SALE = polinomio(bezier(0.25, 0.25, 0.2, 0.9))
+/* Zoom óptico puro: smootherstep monótono (igual entra y sale).
+   La bézier de la ref + pan en Y se leía como “sube y baja”. */
+const smootherstep = (u) => u * u * u * (u * (u * 6 - 15) + 10)
+const ENTRA = polinomio(smootherstep)
+const SALE = polinomio(smootherstep)
 
 /* Expresiones de ffmpeg. `tramo` interpola de `a` a `b` entre t0 y t1
    con la curva `c`; `curva` arma la trayectoria completa de un valor
@@ -332,8 +331,10 @@ const curva = (v0, v1, v2) =>
     ? num(v0)
     : `if(lt(t,${num(T1)}),${num(v0)},if(lt(t,${num(T2)}),${tramo(v0, v1, ENTRA, T1, T2)},if(lt(t,${num(T3)}),${num(v1)},if(lt(t,${num(T4)}),${tramo(v1, v2, SALE, T3, T4)},${num(v2)}))))`
 const kExpr = curva(1, K1, K2)
-const cxExpr = curva(L / 2, cx1, cx1)
-const cyExpr = curva(L / 2, cy1, cy2)
+/* Reposo centrado (L/2). Al entrar el foco sube a las tabs; al salir
+   vuelve al centro — mismo smootherstep que k, sin rebote. */
+const cxExpr = num(L / 2)
+const cyExpr = curva(L / 2, cy1, L / 2)
 /* Registros: 2 = k, 4 = Cx, 5 = Cy. Cada expresión los recalcula: son
    baratas y así ninguna depende del orden en que ffmpeg las evalúe. */
 const conCamara = (expr) => `st(2,${kExpr})*0+st(4,${cxExpr})*0+st(5,${cyExpr})*0+(${expr})`
@@ -362,7 +363,7 @@ const fueraDeEsquinas = (w, h, r) => {
    a cuadro costaba más que todo el resto. */
 const cache = path.join(RAIZ, '.context/mockup/cache')
 fs.mkdirSync(cache, { recursive: true })
-const ffmpeg = (...a) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...a], { stdio: 'inherit' })
+const ffmpeg = (...a) => execFileSync('ffmpeg', ['-v', 'error', '-y', '-threads', '2', '-filter_complex_threads', '1', ...a], { stdio: 'inherit' })
 
 const mascara = path.join(cache, `mascara-${clipW}x${clipH}-r${radioMascara}.png`)
 if (!fs.existsSync(mascara))
@@ -398,18 +399,14 @@ if (!fs.existsSync(sombra)) {
    del clip. Cada capa se escala por cuadro y se apoya con la cámara. */
 const blur = Number(opciones.blur ?? 0)
 const luz = Number(opciones.luz ?? 0)
-/* Las imágenes fijas se decodifican UNA vez y se repiten en el grafo
-   (`loop`): con `-loop 1` ffmpeg volvía a descomprimir los tres PNG
-   sesenta veces por segundo y eso, no el encoder, era el cuello. */
 const entradas = [
   ...(verificar ? ['-f', 'lavfi', '-i', `color=c=red:s=${clipW}x${clipH}:r=60:d=3.6`] : ['-i', clip]),
-  '-framerate', '60', '-i', mascara,
-  '-framerate', '60', '-i', bisel,
-  '-framerate', '60', '-i', sombra,
+  '-loop', '1', '-framerate', '60', '-i', mascara,
+  '-loop', '1', '-framerate', '60', '-i', bisel,
+  '-loop', '1', '-framerate', '60', '-i', sombra,
 ]
-const fijo = 'loop=loop=-1:size=1:start=0'
 const fondoFiltro = imagen
-  ? `[4:v]${fijo},scale=${L}:${L}:force_original_aspect_ratio=increase:flags=${flagsImagen},crop=${L}:${L},` +
+  ? `[4:v]scale=${L}:${L}:force_original_aspect_ratio=increase:flags=${flagsImagen},crop=${L}:${L},` +
     (blur > 0 ? `gblur=sigma=${blur},` : '') +
     (luz !== 0 ? `eq=brightness=${luz},` : '') +
     (camara === 'quieta' ? '' : `scale=w='${conCamara(tam(L))}':h='${conCamara(tam(L))}':eval=frame:flags=lanczos,`) +
@@ -417,19 +414,13 @@ const fondoFiltro = imagen
     `color=c=${fondo}:s=${L}x${L}:r=60[lienzo];` +
     `[lienzo][fondoImg]overlay=x='${conCamara(enX(0))}':y='${conCamara(enY(0))}'[bg]`
   : `color=c=${fondo}:s=${L}x${L}:r=60[bg]`
-if (imagen) entradas.push('-framerate', '60', '-i', imagen)
+if (imagen) entradas.push('-loop', '1', '-framerate', '60', '-i', imagen)
 
 const filtro = [
   fondoFiltro,
-  `[3:v]${fijo},scale=w='${conCamara(tam(sombraW))}':h='${conCamara(tam(sombraH))}':eval=frame[sombra]`,
-  `[2:v]${fijo},scale=w='${conCamara(tam(M.png.w * s0))}':h='${conCamara(tam(M.png.h * s0))}':eval=frame[bisel]`,
-  /* alphamerge con shortest=1, y NO es un detalle: sin eso, cuando la
-     grabación termina el filtro repite su último cuadro para siempre
-     contra la máscara infinita, la pantalla nunca termina, el overlay
-     con eof_action=endall nunca corta y el render sigue hasta llenar el
-     disco (una hora y 128 MB del último cuadro, 2026-09-04). El `-t`
-     de abajo es la segunda traba. */
-  `[1:v]${fijo}[mascara];[0:v]format=rgba[cruda];[cruda][mascara]alphamerge=shortest=1,scale=w='${conCamara(tam(pant.w * s0))}':h='${conCamara(tam(pant.h * s0))}':eval=frame[pantalla]`,
+  `[3:v]scale=w='${conCamara(tam(sombraW))}':h='${conCamara(tam(sombraH))}':eval=frame[sombra]`,
+  `[2:v]scale=w='${conCamara(tam(M.png.w * s0))}':h='${conCamara(tam(M.png.h * s0))}':eval=frame[bisel]`,
+  `[0:v]format=rgba[cruda];[cruda][1:v]alphamerge,scale=w='${conCamara(tam(pant.w * s0))}':h='${conCamara(tam(pant.h * s0))}':eval=frame[pantalla]`,
   `[bg][sombra]overlay=x='${conCamara(enX(bx0 - MARGEN_SOMBRA))}':y='${conCamara(enY(by0 - MARGEN_SOMBRA))}'[a]`,
   `[a][pantalla]overlay=x='${conCamara(enX(bx0 + (pant.x - M.cuerpo.x) * s0))}':y='${conCamara(enY(by0 + (pant.y - M.cuerpo.y) * s0))}':eof_action=endall[b]`,
   `[b][bisel]overlay=x='${conCamara(enX(bx0 - M.cuerpo.x * s0))}':y='${conCamara(enY(by0 - M.cuerpo.y * s0))}',format=yuv420p[out]`,
@@ -440,7 +431,9 @@ fs.mkdirSync(salidaDir, { recursive: true })
 const salida = verificar
   ? path.join(cache, 'verificacion.mkv')
   : (opciones.salida ?? path.join(salidaDir, `${slug}${lado === 'centro' ? '' : `-${lado}`}.mp4`))
-const prueba = ['-t', verificar ? '3.6' : opciones.prueba ? String(Number(opciones.prueba)) : clipDur.toFixed(3)]
+const prueba = verificar ? ['-t', '3.6'] : opciones.prueba ? ['-t', String(Number(opciones.prueba))] : []
+/* `medium` y no `slow`: a crf 17 la calidad la fija el crf y `slow`
+   duplicaba el tiempo (13 min por 25 s a 2160²) sin diferencia visible. */
 const preset = verificar || opciones.prueba ? 'ultrafast' : 'medium'
 
 console.log(
@@ -498,8 +491,8 @@ if (!verificar) {
   cuadros.forEach((n, i) => {
     const t = n / 60
     const k = valor(t, 1, K1, K2)
-    const cx = valor(t, L / 2, cx1, cx1)
-    const cy = valor(t, L / 2, cy1, cy2)
+    const cx = L / 2
+    const cy = valor(t, L / 2, cy1, L / 2)
     const S = s0 * k
     const pngX = (bx0 - M.cuerpo.x * s0 - cx) * k + L / 2
     const pngY = (by0 - M.cuerpo.y * s0 - cy) * k + L / 2

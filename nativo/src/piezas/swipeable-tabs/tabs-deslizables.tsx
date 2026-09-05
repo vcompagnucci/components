@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics'
-import { memo, useCallback, useMemo, useState, type ReactNode } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import Animated, {
   Easing,
@@ -11,6 +11,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated'
@@ -149,9 +150,11 @@ type Props = {
   /** El alto de la barra de estado: el bloque plegable la incluye y la
       tapa que queda cuando se fue mide exactamente eso. */
   arriba: number
+  /** Coreografía one-shot para grabar (Stocks lento → resto rápido). */
+  demo?: boolean
 }
 
-export function TabsDeslizables({ tabs, pagina, cabecera, arriba }: Props) {
+export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }: Props) {
   const { width } = useWindowDimensions()
   const paleta = usePaleta()
 
@@ -171,7 +174,10 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba }: Props) {
     [alto, recorrido, subida, posiciones],
   )
   const pager = useAnimatedRef<Animated.ScrollView>()
-  const scrollX = useSharedValue(0)
+  /* SONDA: en demo el pager nace en Following (ver `contentOffset`) y
+     la barra tiene que nacer ahí también, o el primer cuadro muestra
+     el tab de Following con el contenido de For you. */
+  const scrollX = useSharedValue(demo ? width : 0)
   const destino = useSharedValue(NADIE)
 
   /* Qué está moviendo el contenido. La barra lo necesita para saber si
@@ -475,6 +481,92 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba }: Props) {
     },
   )
 
+
+  /* ═══ SONDA DE GRABACIÓN (?demo=1) — no forma parte de la pieza ═══
+     Una coreografía one-shot para grabar el video, con gestos
+     sintéticos que van por los caminos reales de la pieza: los
+     arrastres mueven el offset del pager cuadro a cuadro con
+     `movimiento` en `arrastre` (la barra sigue al contenido como con un
+     dedo) y los toques son `alTocar`. Se borra antes de cerrar, como
+     todas las sondas.
+
+     Lo que pidió el usuario sobre la toma anterior (2026-09-04): que la
+     entrada a Following no se trabe (era un salto instantáneo), que
+     Following → Stocks sea LENTO, y que la parte rápida no pase tan
+     rápido (eran toques cada 600 ms).
+
+       0.0  nace en Following, barra y contenido (contentOffset)
+       1.5  arrastre lento Following → Stocks: 1.7 s, seno in-out —un
+            dedo que acelera y frena— (X, medido: 1.73 s)
+       4.1  toque a For you
+       5.1  cinco flicks de un tab, cada 1.0 s: 15 % del viaje en 110 ms
+            (easeInQuad) y el resto en 430 ms (easeOutCubic), el perfil
+            ajustado contra los arrastres medidos de X
+      10.1  en Design, dos flicks atrás (AI, Tech), cada 1.0 s
+      12.1  quieto en Tech hasta el final */
+  useEffect(() => {
+    if (!demo || width <= 0) return
+    let cancel = false
+    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+    /* Los arrastres van por `destino`, el mismo puente que usa el toque
+       (su reacción hace `scrollTo` por cuadro y el `onScroll` alimenta
+       `scrollX`): una reacción propia sobre otro shared value dejó la
+       toma anterior con saltos en vez de arrastres. */
+    const arrastre = (desde: number, hasta: number, lento: boolean) =>
+      scheduleOnUI(
+        (a: number, b: number, ancho: number, esLento: boolean) => {
+          'worklet'
+          movimiento.set(MOVIMIENTO.arrastre)
+          destino.set(a * ancho)
+          const fin = (terminado?: boolean) => {
+            'worklet'
+            if (!terminado) return
+            destino.set(NADIE)
+            movimiento.set(MOVIMIENTO.quieto)
+          }
+          if (esLento) {
+            destino.set(withTiming(b * ancho, { duration: 1700, easing: Easing.inOut(Easing.sin) }, fin))
+          } else {
+            destino.set(
+              withSequence(
+                withTiming((a + (b - a) * 0.15) * ancho, { duration: 110, easing: Easing.in(Easing.quad) }),
+                withTiming(b * ancho, { duration: 430, easing: Easing.out(Easing.cubic) }, fin),
+              ),
+            )
+          }
+        },
+        desde,
+        hasta,
+        width,
+        lento,
+      )
+    ;(async () => {
+      await wait(1500)
+      if (cancel) return
+      arrastre(1, 2, true)
+      await wait(1700 + 900)
+      if (cancel) return
+      alTocar(0)
+      await wait(300 + 700)
+      for (const i of [1, 2, 3, 4, 5]) {
+        if (cancel) return
+        arrastre(i - 1, i, false)
+        await wait(1000)
+      }
+      /* Llegado al último tab, dos flicks atrás y ahí termina
+         (pedido del usuario, 2026-09-04). */
+      for (const i of [4, 3]) {
+        if (cancel) return
+        arrastre(i + 1, i, false)
+        await wait(1000)
+      }
+    })()
+    return () => {
+      cancel = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot de grabación
+  }, [demo, width])
+
   return (
     <View style={[css.pieza, { backgroundColor: paleta.fondo }]}>
       {/* El pager ocupa la pantalla ENTERA, barra de estado incluida: el
@@ -489,6 +581,11 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba }: Props) {
           showsHorizontalScrollIndicator={false}
           onScroll={alScrollear}
           scrollEventThrottle={16}
+          /* SONDA: nacer en Following de verdad. Un `scrollTo` en el
+             primer efecto no movía el pager (el contenido todavía no
+             estaba) y quedaba la barra en Following con el contenido
+             de For you. */
+          contentOffset={demo ? { x: width, y: 0 } : undefined}
         >
           {hojas.map((hoja, indice) => (
             <Hoja
