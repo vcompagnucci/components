@@ -10,7 +10,8 @@
     "verificar": "node scripts/verificar.mjs",
     "typecheck": "tsc --noEmit",
     "render:oscuro": "remotion render SwipeableTabs out/swipeable-tabs-oscuro.mp4 --props='{\"fondo\":\"#1C181A\"}'",
-    "render:ambos": "pnpm render && pnpm render:oscuro"
+    "render:ambos": "pnpm render && pnpm render:oscuro",
+    "render:library": "remotion render SwipeableTabs out/library-claro.mp4 --props='{\"fondo\":\"#f8f8f6\",\"altura\":0.86,\"camara\":{\"espera\":0.25,\"entra\":0.65,\"k1\":1.576,\"hasta\":3.0,\"sale\":0.62,\"k2\":1.0,\"foco\":0.145,\"focoEnLienzo\":0.33,\"aireArriba\":0.07,\"curvaEntra\":{\"x1\":0.3,\"y1\":0.05,\"x2\":0.4,\"y2\":0.9},\"curvaSale\":{\"x1\":0.25,\"y1\":0.25,\"x2\":0.2,\"y2\":0.9}}}' && remotion render SwipeableTabs out/library-oscuro.mp4 --props='{\"fondo\":\"#0e0e0d\",\"altura\":0.86,\"camara\":{\"espera\":0.25,\"entra\":0.65,\"k1\":1.576,\"hasta\":3.0,\"sale\":0.62,\"k2\":1.0,\"foco\":0.145,\"focoEnLienzo\":0.33,\"aireArriba\":0.07,\"curvaEntra\":{\"x1\":0.3,\"y1\":0.05,\"x2\":0.4,\"y2\":0.9},\"curvaSale\":{\"x1\":0.25,\"y1\":0.25,\"x2\":0.2,\"y2\":0.9}}}'"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.520",

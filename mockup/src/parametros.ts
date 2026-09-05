@@ -85,6 +85,14 @@ export type Parametros = z.infer<typeof esquema>
    teléfono se separa por el canto metálico del bisel, como en Apple. */
 export const FONDO_OSCURO = '#1C181A'
 
+/* LA LIBRARY LLEVA SU PROPIA VERSIÓN (pnpm render:library): el mismo
+   mockup con el fondo de la card —`--surface` de tokens.css, #f8f8f6 en
+   claro y #0e0e0d en oscuro— para que el cuadrado se funda con la caja,
+   el teléfono al 86 % del alto (benji.org: 85 % de su card, medido) y
+   la salida de la cámara a 1× para que el teléfono termine entero y
+   centrado en el hueco. Pedido del usuario, 2026-09-05: "más grande
+   dentro del cuadrado, como benji; el fondo, el de la library". */
+
 export const PARAMETROS: Parametros = {
   fondo: '#EBE6E8',
   fondoEstilo: { tipo: 'color', colores: [], angulo: 180, imagen: '', desenfoque: 0, luz: 0, escala: 1, grano: 0 },

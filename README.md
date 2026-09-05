@@ -882,3 +882,21 @@ y algo más) por `pnpm pieza:video … --oscuro`. La card los elige con
 switch de tema—, con un `useSyncExternalStore` sobre el `matchMedia` y
 un `key` por src para que el `<video>` arranque de cero al cambiar. Sin
 `videoOscuro`, el claro va en los dos modos.
+
+**El mockup en la library, grande y del color de la card.** Dos quejas
+sobre la primera puesta: el teléfono se veía chico adentro del cuadrado
+y el fondo del mockup no era el de la library. Se probó dibujar el
+teléfono con CSS alrededor de la grabación cruda, como hace benji.org
+(su video es la pantalla sola y la página pone un phone.png; medido:
+marco del 4.3 % del ancho, esquina del hueco al 14.4 %) y se rechazó:
+"el mockup del iPhone debe estar como antes". Lo que quedó: la library
+lleva **su propio par de renders** del mismo mockup, con el fondo igual
+a `--surface` de la card en cada tema, el teléfono al 86 % del cuadro
+(benji: 85 %, medido en su card) y la salida de la cámara a 1× para que
+el teléfono termine entero y centrado. Y la muestra se dimensiona por
+el ALTO del hueco: una grabación cruda sigue cayendo en 228×448, y el
+cuadrado llena lo que la caja deja, 440. Medido en el navegador: en
+claro el video decodifica (248, 248, 246), la superficie exacta; en
+oscuro decodifica (14, 14, 14) contra (14, 14, 13) de la superficie —un
+nivel de azul que el 4:2:0 del h264 no puede dar (probados 10 a 14 de
+azul: ninguno cae en 13). No se ve, y no se toca el token por un códec.

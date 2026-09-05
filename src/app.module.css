@@ -242,7 +242,19 @@
 }
 .demo {
   display: block;
-  width: var(--card-app-slot-ancho);
+  /* EL ALTO DEL HUECO, y el ancho lo da el archivo. Una grabación cruda
+     (la silueta del teléfono) cae en 228×448, el hueco exacto de antes;
+     el mockup para la library (cuadrado, con el bisel de Apple y la
+     cámara, ver mockup/AGENTS.md) quiere 448×448 y la caja lo frena en
+     440: la caja mide 560 con 60 de padding por lado (medido), y el
+     `max-width` lo contiene sin deformarlo —object-fit es contain—, así
+     que queda un cuadrado de 440 con el teléfono al 86 %, 378 px. Es
+     el tamaño del teléfono de benji.org en su card (medido en Family
+     Values: 468 px en una caja de 552, el 85 %). Antes el ancho era el
+     del hueco y el cuadrado quedaba en 228: el teléfono, chico ("tiene
+     que verse más grande dentro del cuadrado", 2026-09-05). */
+  height: var(--card-app-slot-alto);
+  width: auto;
   max-width: 100%;
   /* El radio de los controles chicos, no el de la card: una grabación
      cruda tiene esquinas vivas y dentro de una superficie ya redondeada
@@ -488,7 +500,7 @@
   content: none;
 }
 .detailPreview .demo {
-  width: var(--card-app-slot-detalle);
+  height: var(--card-app-slot-alto-detalle);
 }
 
 /* ─── LAS NOTAS DEL DETALLE ───

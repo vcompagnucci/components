@@ -12,7 +12,8 @@ cd mockup && pnpm install
 pnpm assets            # bisel + grabación normalizada a 60 fps → public/ (gitignoreado)
 pnpm verificar         # ¿el hueco del bisel queda lleno en toda la cámara? (rojo pleno, 12 cuadros)
 pnpm studio            # el look, con cada número como control
-pnpm render:ambos      # out/swipeable-tabs.mp4 (claro) y out/swipeable-tabs-oscuro.mp4: cada video sale dos veces
+pnpm render:ambos      # out/swipeable-tabs.mp4 (claro) y out/swipeable-tabs-oscuro.mp4: cada video sale dos veces, para X
+pnpm render:library    # out/library-claro.mp4 y out/library-oscuro.mp4: el par de la library, con el fondo de su card
 pnpm still Sombras out/sombras.png   # la grilla: el reposo con dieciséis sombras, cada una con su recibo
 pnpm still SombrasSimetricas out/sombras-simetricas.png   # dieciséis más, sin luz de costado
 pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco, malla, grano, trama, piso, imagen, la app desenfocada
@@ -39,7 +40,7 @@ se nombra.
 | 7 | **`pnpm verificar`** antes de mirar: el hueco del bisel lleno en doce estados de la cámara | `scripts/verificar.mjs` |
 | 8 | **La cámara se ajusta a la toma**: `hasta` = fin del gesto lento medido; entrada y salida son las de la referencia | `src/parametros.ts` |
 | 9 | **Se mira en Studio**, se toca lo que haga falta, y **se renderiza dos veces**: `pnpm render:ambos` → claro y oscuro | abajo |
-| 10 | **El video de la library es otro**: la grabación cruda, por `pnpm pieza:video` desde la raíz. El mockup es para X | raíz `AGENTS.md`, camino B |
+| 10 | **La library lleva su propio render**: `pnpm render:library` saca claro y oscuro con el fondo de la card (`--surface`: #f8f8f6 y #0e0e0d), el teléfono al 86 % y la salida de la cámara a 1× para que termine entero; entran por `pnpm pieza:video … --ancho=1280` y `--oscuro` desde la raíz. El de X es el otro par | raíz `AGENTS.md`, camino B |
 
 ## Las mini-decisiones, y por qué
 
