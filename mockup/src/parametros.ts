@@ -85,13 +85,17 @@ export type Parametros = z.infer<typeof esquema>
    teléfono se separa por el canto metálico del bisel, como en Apple. */
 export const FONDO_OSCURO = '#1C181A'
 
-/* LA LIBRARY LLEVA SU PROPIA VERSIÓN (pnpm render:library): el mismo
-   mockup con el fondo de la card —`--surface` de tokens.css, #f8f8f6 en
-   claro y #0e0e0d en oscuro— para que el cuadrado se funda con la caja,
-   el teléfono al 86 % del alto (benji.org: 85 % de su card, medido) y
-   la salida de la cámara a 1× para que el teléfono termine entero y
-   centrado en el hueco. Pedido del usuario, 2026-09-05: "más grande
-   dentro del cuadrado, como benji; el fondo, el de la library". */
+/* LA LIBRARY LLEVA UN SOLO RENDER, TRANSPARENTE Y SIN SOMBRA
+   (pnpm render:library → scripts/library.mjs): el fondo lo pone la
+   card de la library en el tema que sea, y el teléfono va sin sombra,
+   como los videos de Family en benji.org. Teléfono al 86 % del cuadro
+   (benji: 85 %, medido) y la salida de la cámara a 1× para que termine
+   entero y centrado. Antes se rendía un par claro/oscuro con el color
+   de la card horneado y el usuario lo rechazó: "que haya solo un
+   fondo, el del lugar que da la library, y sin sombra, como Family"
+   (2026-09-05). El alfa viaja en dos archivos porque ningún códec lo
+   lleva a todos los navegadores: WebM VP9 para Chrome y Firefox, HEVC
+   con alfa en .mov para Safari. */
 
 export const PARAMETROS: Parametros = {
   fondo: '#EBE6E8',

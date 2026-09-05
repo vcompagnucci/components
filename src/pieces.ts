@@ -21,12 +21,13 @@ export type Piece = {
      Web va viva —su archivo está en src/piezas/, resuelto por slug en
      demos.tsx— y no lo lleva. */
   video?: string
-  /* La misma grabación sobre fondo oscuro, para cuando el sistema está
-     en dark mode (la library no tiene switch: sigue a
-     prefers-color-scheme). Cada video sale dos veces —ver
-     mockup/AGENTS.md— y acá viven los dos; sin esta, se muestra `video`
-     en los dos modos. */
-  videoOscuro?: string
+  /* El mismo video con alfa en HEVC (.mov) para Safari, que no
+     reproduce el alfa del WebM. Una pieza App se muestra transparente
+     y sin sombra sobre la superficie de la card, como los videos de
+     Family en benji.org: el fondo lo pone la library en el tema que
+     sea, así que no hacen falta versiones por tema. Lo escribe
+     `pnpm pieza:video … --alfa`; sin esto, `video` va solo. */
+  videoHevc?: string
 }
 
 /* LA URL DE UNA PIEZA, y hay UNA sola cuenta. Vivían dos que coincidían
@@ -52,7 +53,7 @@ export const PIECES: Piece[] = [
     name: 'Swipeable tabs',
     platform: 'App',
     desc: 'X’s home tabs: the row follows the swipe, and the whole header folds away with the scroll.',
-    video: '/piezas/swipeable-tabs.mp4',
-    videoOscuro: '/piezas/swipeable-tabs-oscuro.mp4',
+    video: '/piezas/swipeable-tabs.webm',
+    videoHevc: '/piezas/swipeable-tabs.mov',
   },
 ]

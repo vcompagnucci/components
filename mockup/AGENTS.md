@@ -13,7 +13,7 @@ pnpm assets            # bisel + grabación normalizada a 60 fps → public/ (gi
 pnpm verificar         # ¿el hueco del bisel queda lleno en toda la cámara? (rojo pleno, 12 cuadros)
 pnpm studio            # el look, con cada número como control
 pnpm render:ambos      # out/swipeable-tabs.mp4 (claro) y out/swipeable-tabs-oscuro.mp4: cada video sale dos veces, para X
-pnpm render:library    # out/library-claro.mp4 y out/library-oscuro.mp4: el par de la library, con el fondo de su card
+pnpm render:library    # out/library.webm + out/library.mov: UN video transparente y sin sombra para la library (el fondo lo pone la card)
 pnpm still Sombras out/sombras.png   # la grilla: el reposo con dieciséis sombras, cada una con su recibo
 pnpm still SombrasSimetricas out/sombras-simetricas.png   # dieciséis más, sin luz de costado
 pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco, malla, grano, trama, piso, imagen, la app desenfocada
@@ -40,7 +40,7 @@ se nombra.
 | 7 | **`pnpm verificar`** antes de mirar: el hueco del bisel lleno en doce estados de la cámara | `scripts/verificar.mjs` |
 | 8 | **La cámara se ajusta a la toma**: `hasta` = fin del gesto lento medido; entrada y salida son las de la referencia | `src/parametros.ts` |
 | 9 | **Se mira en Studio**, se toca lo que haga falta, y **se renderiza dos veces**: `pnpm render:ambos` → claro y oscuro | abajo |
-| 10 | **La library lleva su propio render**: `pnpm render:library` saca claro y oscuro con el fondo de la card (`--surface`: #f8f8f6 y #0e0e0d), el teléfono al 86 % y la salida de la cámara a 1× para que termine entero; entran por `pnpm pieza:video … --ancho=1280` y `--oscuro` desde la raíz. El de X es el otro par | raíz `AGENTS.md`, camino B |
+| 10 | **La library lleva UN solo render, transparente y sin sombra**, como los videos de Family en benji.org: `pnpm render:library` saca `out/library.webm` (VP9 con alfa, Chrome y Firefox) y `out/library.mov` (HEVC con alfa por VideoToolbox, Safari), 1280², teléfono al 86 %, cámara terminando a 1×. El fondo lo pone la card en el tema que sea. Entra por `pnpm pieza:video <slug> mockup/out/library --alfa` desde la raíz. El de X es el par con fondo | raíz `AGENTS.md`, camino B |
 
 ## Las mini-decisiones, y por qué
 
@@ -53,6 +53,7 @@ se nombra.
 - **La grabación: nace en el tab inicial de verdad** (`contentOffset`), arrastre lento de 1.65 s con seno in-out, toques por `alTocar`, flicks con el perfil de dedo medido en X (15 % en 110 ms, el resto en 430) cada 1.0 s, y al llegar al último tab dos de vuelta.
 - **Un bug de la pieza que la sonda destapó:** la barra tomaba "hay un toque" de `destino !== NADIE`; la condición es `movimiento === toque`. Está commiteado en la pieza.
 - **Dos fondos por video:** claro (#EBE6E8) y oscuro (#1C181A, el neutro bajado al 11 % con el mismo tinte; sin referencia medida en el vault). La sombra no cambia.
+- **En la library, ningún fondo y ninguna sombra:** el video va transparente sobre la superficie de la card, como Family en benji.org. Se probó hornear el color de la card por tema (claro exacto, oscuro a un nivel de azul) y se rechazó: "que haya solo un fondo, el del lugar que da la library". El alfa viaja en dos archivos, WebM VP9 y HEVC .mov, porque ningún códec lo lleva a todos los navegadores.
 
 ## Dónde está cada cosa
 

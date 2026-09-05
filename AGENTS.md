@@ -138,9 +138,14 @@ había no era el bueno— la pieza igual puede estar publicada: sin `video`
 la card muestra el hueco del teléfono vacío. Cuando el archivo esté:
 
 ```bash
-pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # re-encodea para la web, lo deja en public/piezas/ y completa `video`
-pnpm pieza:video swipeable-tabs ~/Downloads/final-oscuro.mp4 --oscuro   # la versión sobre fondo oscuro: `videoOscuro`, que la card elige en dark mode
+pnpm pieza:video swipeable-tabs mockup/out/library --alfa        # el par con alfa de `pnpm render:library` (webm + mov), tal cual, y completa `video` y `videoHevc`
+pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # un video opaco cualquiera: re-encodea para la web y completa `video`
 ```
+
+Una pieza App se muestra **transparente y sin sombra** sobre la
+superficie de la card, como los videos de Family en benji.org: el fondo
+lo pone la library en el tema que sea, así que no hay versiones por
+tema. El porqué está en `mockup/AGENTS.md`.
 
 No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El
 porqué y las guardas están arriba de `scripts/pieza-video.mjs`.

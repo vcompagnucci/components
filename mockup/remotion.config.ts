@@ -8,6 +8,7 @@ import { Config } from '@remotion/cli/config'
 Config.setEntryPoint('src/index.ts')
 Config.setVideoImageFormat('png')
 Config.setCodec('h264')
-Config.setCrf(17)
+/* El crf va en cada script y no acá: ProRes (el máster con alfa de la
+   library) no acepta crf y con esta línea global el render se caía. */
 Config.setPixelFormat('yuv420p')
 Config.setOverwriteOutput(true)

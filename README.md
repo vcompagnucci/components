@@ -900,3 +900,18 @@ claro el video decodifica (248, 248, 246), la superficie exacta; en
 oscuro decodifica (14, 14, 14) contra (14, 14, 13) de la superficie —un
 nivel de azul que el 4:2:0 del h264 no puede dar (probados 10 a 14 de
 azul: ninguno cae en 13). No se ve, y no se toca el token por un códec.
+
+**Un solo fondo: el de la library.** El par con el color de la card
+horneado tampoco gustó: "que haya solo un fondo, que sea el del lugar
+que da la library, y sin sombra, como hace Family". Así que la library
+lleva **un video transparente y sin sombra** —el teléfono al 86 % del
+cuadro y la cámara terminando a 1×— y el fondo lo pone la card en el
+tema que sea; los tokens mandan, el video no trae color. Es lo que hace
+Family en benji.org: la página pone el fondo y el teléfono va limpio. El
+alfa viaja en dos archivos porque ningún códec lo lleva a todos los
+navegadores: WebM VP9 con alfa para Chrome y Firefox, y HEVC con alfa en
+.mov para Safari, que sale del máster ProRes 4444 con el encoder de
+VideoToolbox de macOS. La card los ofrece con dos `<source>`, el .mov
+primero: Safari es el único que lo abre, y al revés tomaría el WebM y lo
+dibujaría sobre negro. Con esto `videoOscuro` y el hook del esquema de
+color se fueron: no hay nada que elegir por tema.
