@@ -157,7 +157,13 @@ function Reproductor({ piece }: { piece: Piece }) {
         type="button"
         className={css.velocidad}
         data-velocidad={velocidad}
-        onClick={() => setVelocidad(otra)}
+        /* En la lista el reproductor vive adentro del link de la card: el
+           clic no puede subir, o cambia la velocidad Y navega al detalle. */
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setVelocidad(otra)
+        }}
         aria-label={`Velocidad ${velocidad}x. Cambiar a ${otra}x`}
       >
         {VELOCIDADES.map((v) => (

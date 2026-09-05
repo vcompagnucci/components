@@ -951,3 +951,9 @@ usuario— y queda siempre visible donde no hay hover. La velocidad se
 vuelve a escribir en `loadedmetadata`, porque un cambio de fuente la
 devuelve a 1. Verificado en Chrome: 1 → 0.5 → 1 en `playbackRate`, el
 ancho 28 → 40, el rótulo cruzado, opacidad 0 sin el mouse y 1 con él.
+
+**Ajuste al botón de velocidad.** Siempre visible en el detalle, como en
+benji; en el hub de la library sólo con el mouse sobre el video, porque
+ahí es una lista y un control por card es ruido. Sin fondo ni cambio de
+color al pasar por encima: el rótulo alcanza. Y el rótulo es "1x", no
+"1.0x".

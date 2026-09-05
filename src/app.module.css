@@ -275,9 +275,12 @@
    por opacidad; hover: color al 60 % y fondo #f2f2f2; todo con
    `transition: all .2s ease`. Acá los colores son los tokens que ya
    dicen lo mismo —text-secondary y surface-hover— y la tipografía es
-   la de nav (13/460), la más chica del sistema, en vez de 12. Y se
-   revela con el mouse sobre el video (benji lo deja siempre visible):
-   con hover, opacidad 0 → 1; sin hover (touch), siempre. */
+   la de nav (13/460), la más chica del sistema, en vez de 12. Dónde se
+   ve: en el DETALLE siempre, como en benji; en el hub de la library
+   sólo con el mouse sobre el video —ahí es una lista, y un control
+   por card es ruido— y siempre donde no hay hover (touch). Sin cambio
+   de fondo ni de color al pasar por encima: el rótulo alcanza (pedido
+   del usuario, 2026-09-05; benji sí pinta #f2f2f2). */
 .reproductor {
   position: relative;
 }
@@ -301,12 +304,9 @@
   letter-spacing: var(--type-nav-ls);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  opacity: 0;
   transition:
     opacity var(--dur-surface) var(--ease-surface),
-    width var(--dur-surface) var(--ease-surface),
-    background var(--dur-surface) var(--ease-surface),
-    color var(--dur-surface) var(--ease-surface);
+    width var(--dur-surface) var(--ease-surface);
 }
 .velocidad[data-velocidad='0.5'] {
   width: 40px;
@@ -323,16 +323,16 @@
 .velocidad span[data-activa='true'] {
   opacity: 1;
 }
-.reproductor:hover .velocidad,
-.velocidad:focus-visible {
+/* En la lista, oculto hasta el hover (o el foco); en el detalle, siempre. */
+.streamPreview .velocidad {
+  opacity: 0;
+}
+.streamPreview .reproductor:hover .velocidad,
+.streamPreview .velocidad:focus-visible {
   opacity: 1;
 }
-.velocidad:hover {
-  color: var(--ink);
-  background: var(--surface-hover);
-}
 @media (hover: none) {
-  .velocidad {
+  .streamPreview .velocidad {
     opacity: 1;
   }
 }
