@@ -957,3 +957,18 @@ benji; en el hub de la library sólo con el mouse sobre el video, porque
 ahí es una lista y un control por card es ruido. Sin fondo ni cambio de
 color al pasar por encima: el rótulo alcanza. Y el rótulo es "1x", no
 "1.0x".
+
+**La calidad a 0.5×, medida antes de tocar.** "A 0.5 se ve en mala
+calidad, medio lag." En Chrome, con `getVideoPlaybackQuality`: 240
+cuadros presentados en 4 s a 1× y 119 a 0.5×, cero caídos en los dos
+casos. Es decir, el navegador no pierde nada: a 0.5× muestra 30 cuadros
+únicos por segundo porque la grabación tiene 60, y eso es un techo de
+la fuente, no del códec. Se probó levantarlo interpolando a 120 con
+`minterpolate` y se descartó con evidencia: en el arrastre lento deja
+fantasmas en los bordes del texto, y en los flicks duplica las letras
+enteras. Lo que sí mejora la calidad se hizo: el video pasa de 1280² a
+**1120², que es 1:1 con la caja de 560 en retina** —cada píxel del video
+cae en uno de la pantalla, sin re-muestreo— y decodifica un 23 % menos;
+el VP9 va a crf 18 explícito y el HEVC de Safari sube de calidad 70 a
+85 sin priorizar velocidad. Un 120 real pediría grabar a 120 Hz, y el
+simulador rinde a 60.

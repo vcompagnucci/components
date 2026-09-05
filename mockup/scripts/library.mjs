@@ -41,10 +41,18 @@ const props = JSON.stringify({
   },
 })
 const remotion = (...a) => execFileSync('npx', ['remotion', ...a], { cwd: AQUI, stdio: 'inherit' })
-const ESCALA = String(1280 / 2160)
+/* 1120², no 1280: la caja de la card mide 560 y en una pantalla retina
+   son 1120 píxeles de dispositivo, así que 1120 es 1:1 —cada píxel del
+   video cae en uno de la pantalla, sin re-muestreo— y decodifica un 23 %
+   menos que 1280. Medido en Chrome antes del cambio: 0 cuadros caídos a
+   1× y a 0.5×; lo que se ve "con lag" a 0.5× son los 30 cuadros únicos
+   por segundo que da una grabación de 60, y eso no lo arregla ningún
+   códec (se probó interpolar a 120 con minterpolate: fantasmas en el
+   texto en los flicks; descartado). */
+const ESCALA = String(1120 / 2160)
 
 console.log('1/3  WebM VP9 con alfa (1280²)')
-remotion('render', 'SwipeableTabs', 'out/library.webm', '--codec=vp9', '--pixel-format=yuva420p', `--scale=${ESCALA}`, `--props=${props}`, '--log=error')
+remotion('render', 'SwipeableTabs', 'out/library.webm', '--codec=vp9', '--pixel-format=yuva420p', '--crf=18', `--scale=${ESCALA}`, `--props=${props}`, '--log=error')
 
 console.log('2/3  máster ProRes 4444 con alfa (1280²)')
 /* --pixel-format=yuva444p10le, y no es opcional: sin él Remotion escribe
@@ -56,7 +64,9 @@ console.log('3/3  HEVC con alfa para Safari (VideoToolbox)')
 execFileSync(
   'ffmpeg',
   ['-v', 'error', '-y', '-i', path.join(OUT, 'library-master.mov'), '-vf', 'format=bgra',
-    '-c:v', 'hevc_videotoolbox', '-alpha_quality', '0.9', '-q:v', '70', '-tag:v', 'hvc1', '-an', '-movflags', '+faststart',
+    /* calidad 85 de 100, sin priorizar velocidad: Safari es la mitad de los
+       que miran, y a 0.5× cada cuadro se mira el doble de tiempo */
+    '-c:v', 'hevc_videotoolbox', '-alpha_quality', '0.95', '-q:v', '85', '-realtime', 'false', '-prio_speed', 'false', '-tag:v', 'hvc1', '-an', '-movflags', '+faststart',
     path.join(OUT, 'library.mov')],
   { stdio: 'inherit' },
 )
