@@ -142,16 +142,41 @@ function Reproductor({ piece }: { piece: Piece }) {
     v.addEventListener('loadedmetadata', aplicar)
     return () => v.removeEventListener('loadedmetadata', aplicar)
   }, [velocidad])
+  /* SÓLO REPRODUCE LO QUE SE VE. Un VP9 con alfa se decodifica por
+     software (Chrome no tiene camino de hardware para el alfa), y a
+     1120² y 60 fps son dos decodificaciones por cuadro; con la lista
+     creciendo, diez videos girando fuera de pantalla son diez veces
+     eso, peleando por la CPU con el que sí se mira. Lo que hace benji:
+     su player se monta recién cuando entra en pantalla. Acá se pausa
+     y se retoma con IntersectionObserver, y `preload="auto"` para que
+     lo visible tenga todo el archivo antes de arrancar. */
+  useEffect(() => {
+    const v = video.current
+    if (!v || typeof IntersectionObserver === 'undefined') return
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        if (entrada.isIntersecting) void v.play().catch(() => {})
+        else v.pause()
+      },
+      { threshold: 0.1 },
+    )
+    observador.observe(v)
+    return () => observador.disconnect()
+  }, [])
   const otra: Velocidad = velocidad === 1 ? 0.5 : 1
+  /* Con alfa, las esquinas del cuadro son transparentes: redondearlas
+     es una máscara sobre una capa de 1120² por cuadro para no cambiar
+     nada. Se apaga. */
+  const claseVideo = piece.videoHevc ? `${css.demo} ${css.demoAlfa}` : css.demo
   return (
     <div className={css.reproductor}>
       {piece.videoHevc ? (
-        <video ref={video} className={css.demo} autoPlay muted loop playsInline>
+        <video ref={video} className={claseVideo} autoPlay muted loop playsInline preload="auto" disablePictureInPicture>
           <source src={piece.videoHevc} type='video/quicktime; codecs="hvc1"' />
           <source src={piece.video} type="video/webm" />
         </video>
       ) : (
-        <video ref={video} className={css.demo} src={piece.video} autoPlay muted loop playsInline />
+        <video ref={video} className={css.demo} src={piece.video} autoPlay muted loop playsInline preload="auto" disablePictureInPicture />
       )}
       <button
         type="button"

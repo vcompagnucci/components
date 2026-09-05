@@ -284,6 +284,10 @@
 .reproductor {
   position: relative;
 }
+/* Sin máscara de esquinas cuando el video es transparente (ver Reproductor). */
+.demoAlfa {
+  border-radius: 0;
+}
 .velocidad {
   position: absolute;
   top: 16px;

@@ -972,3 +972,25 @@ cae en uno de la pantalla, sin re-muestreo— y decodifica un 23 % menos;
 el VP9 va a crf 18 explícito y el HEVC de Safari sube de calidad 70 a
 85 sin priorizar velocidad. Un 120 real pediría grabar a 120 Hz, y el
 simulador rinde a 60.
+
+**Los 60 fps, de punta a punta, medidos.** Tres lugares donde se
+podrían perder cuadros, y qué dio cada uno:
+
+| dónde | medida | resultado |
+| --- | --- | --- |
+| la grabación | cuadros escritos dentro de cada gesto contra la duración del gesto × 60, en tres tomas | 100.7 %, 101.1 % y 100.2 %: no falta ninguno. Los deltas de 20–30 ms entre marcas de tiempo son jitter del grabador, no cuadros perdidos (si faltaran, la completitud bajaría) |
+| el render | Remotion dibuja cada cuadro por número, no por reloj | por construcción, 776 de 776 |
+| el navegador | `getVideoPlaybackQuality` en Chrome, 4 s a 1× y 4 s a 0.5× | 240 y 119 presentados, 0 caídos |
+
+Lo que quedaba por hacer no era arreglar una pérdida sino cuidar que no
+aparezca cuando la lista crezca: un VP9 con alfa se decodifica por
+software en Chrome (no hay camino de hardware para el alfa), y son dos
+decodificaciones por cuadro. Así que **el reproductor sólo reproduce lo
+que se ve** —pausa y retoma con IntersectionObserver, como benji, que
+monta su player recién en pantalla—, precarga entero lo visible, y no
+redondea las esquinas del video transparente: era una máscara sobre una
+capa de 1120² por cuadro para no cambiar nada. Si algún día un equipo
+flojo cae cuadros, el siguiente escalón es un h264 opaco con el color
+de la card horneado, que decodifica en hardware en todos lados; se
+descartó por ahora porque el oscuro queda a un nivel de azul de la
+superficie.
