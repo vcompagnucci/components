@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import { slug, type Piece } from './pieces'
@@ -116,22 +117,66 @@ export function Item({
    que en una grabación de iPhone es la del teléfono. El ::before que
    reservaba ese hueco en vacío se apaga solo (ver :has en
    app.module.css). */
-function Muestra({ piece }: { piece: Piece }) {
-  if (piece.video) {
-    /* Con alfa, el video es transparente y el fondo lo pone la card:
-       el .mov (HEVC con alfa) va PRIMERO para Safari, que es el único
-       que lo abre; Chrome y Firefox lo saltan por el type y toman el
-       WebM VP9 con alfa. Al revés, Safari tomaría el WebM y lo
-       dibujaría sobre negro. */
-    if (piece.videoHevc)
-      return (
-        <video className={css.demo} autoPlay muted loop playsInline>
+/* ─── LA VELOCIDAD DEL VIDEO ───
+   Lo que hace benji.org en Family Values, medido en su código: un botón
+   arriba a la derecha del demo que alterna 1x ↔ 0.5x y escribe
+   `playbackRate`; los dos rótulos viven superpuestos y se cruzan por
+   opacidad, y el botón cambia de ancho (1.75rem ↔ 2.5rem) con la misma
+   transición. Acá se muestra al pasar el mouse por el video (pedido del
+   usuario); en benji está siempre visible. Los números están en
+   app.module.css. La velocidad se vuelve a escribir en `loadedmetadata`
+   porque un cambio de fuente la devuelve a 1. */
+const VELOCIDADES = [1, 0.5] as const
+type Velocidad = (typeof VELOCIDADES)[number]
+
+function Reproductor({ piece }: { piece: Piece }) {
+  const video = useRef<HTMLVideoElement>(null)
+  const [velocidad, setVelocidad] = useState<Velocidad>(1)
+  useEffect(() => {
+    const v = video.current
+    if (!v) return
+    v.playbackRate = velocidad
+    const aplicar = () => {
+      v.playbackRate = velocidad
+    }
+    v.addEventListener('loadedmetadata', aplicar)
+    return () => v.removeEventListener('loadedmetadata', aplicar)
+  }, [velocidad])
+  const otra: Velocidad = velocidad === 1 ? 0.5 : 1
+  return (
+    <div className={css.reproductor}>
+      {piece.videoHevc ? (
+        <video ref={video} className={css.demo} autoPlay muted loop playsInline>
           <source src={piece.videoHevc} type='video/quicktime; codecs="hvc1"' />
           <source src={piece.video} type="video/webm" />
         </video>
-      )
-    return <video className={css.demo} src={piece.video} autoPlay muted loop playsInline />
-  }
+      ) : (
+        <video ref={video} className={css.demo} src={piece.video} autoPlay muted loop playsInline />
+      )}
+      <button
+        type="button"
+        className={css.velocidad}
+        data-velocidad={velocidad}
+        onClick={() => setVelocidad(otra)}
+        aria-label={`Velocidad ${velocidad}x. Cambiar a ${otra}x`}
+      >
+        {VELOCIDADES.map((v) => (
+          <span key={v} data-activa={v === velocidad}>
+            {v}x
+          </span>
+        ))}
+      </button>
+    </div>
+  )
+}
+
+function Muestra({ piece }: { piece: Piece }) {
+  /* Con alfa, el video es transparente y el fondo lo pone la card: el
+     .mov (HEVC con alfa) va PRIMERO para Safari, que es el único que lo
+     abre; Chrome y Firefox lo saltan por el type y toman el WebM VP9
+     con alfa. Al revés, Safari tomaría el WebM y lo dibujaría sobre
+     negro. Ver Reproductor. */
+  if (piece.video) return <Reproductor piece={piece} />
   if (piece.platform === 'Web') return <DemoVivo name={piece.name} />
   return null
 }

@@ -935,3 +935,19 @@ que casi viaja: el máster ProRes 4444 salía sin alfa —esquina 255,
 medido— porque Remotion necesita `--pixel-format=yuva444p10le` además
 del perfil; el .mov de Safari habría tenido fondo negro. El script lo
 mide ahora antes de seguir y corta si el alfa no es cero.
+
+**La velocidad, como en Family Values.** Al pasar el mouse por el video
+aparece arriba a la derecha un botón que alterna 1x y 0.5x y escribe
+`playbackRate`. Está medido en el código de benji.org: 1rem de padding
+desde la esquina, 0.75rem/460, alto 1.25rem, radio píldora, color
+#989897, ancho 1.75rem en 1x y 2.5rem en 0.5x, los dos rótulos
+superpuestos y cruzados por opacidad, hover con fondo #f2f2f2, todo con
+`transition: all .2s ease`. Acá los colores son los tokens que ya dicen
+lo mismo —`--text-secondary` y `--surface-hover`—, la tipografía la de
+nav (13/460, la más chica del sistema) y el movimiento `--dur-surface`
+con `--ease-surface`. Una diferencia a propósito: en benji el botón
+está siempre; acá se revela con el mouse sobre el video —lo pidió el
+usuario— y queda siempre visible donde no hay hover. La velocidad se
+vuelve a escribir en `loadedmetadata`, porque un cambio de fuente la
+devuelve a 1. Verificado en Chrome: 1 → 0.5 → 1 en `playbackRate`, el
+ancho 28 → 40, el rótulo cruzado, opacidad 0 sin el mouse y 1 con él.

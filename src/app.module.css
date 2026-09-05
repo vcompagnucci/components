@@ -267,6 +267,76 @@
   border-radius: var(--card-radio);
 }
 
+/* ─── EL REPRODUCTOR: el video y su velocidad ───
+   El botón de velocidad de benji.org (Family Values), medido en su CSS:
+   arriba a la derecha con 1rem de padding; 0.75rem/460, alto 1.25rem,
+   radio píldora, color #989897; ancho 1.75rem en 1x y 2.5rem en 0.5x;
+   los dos rótulos superpuestos (position:absolute; inset:0) y cruzados
+   por opacidad; hover: color al 60 % y fondo #f2f2f2; todo con
+   `transition: all .2s ease`. Acá los colores son los tokens que ya
+   dicen lo mismo —text-secondary y surface-hover— y la tipografía es
+   la de nav (13/460), la más chica del sistema, en vez de 12. Y se
+   revela con el mouse sobre el video (benji lo deja siempre visible):
+   con hover, opacidad 0 → 1; sin hover (touch), siempre. */
+.reproductor {
+  position: relative;
+}
+.velocidad {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: flex-end;
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--type-nav-fs);
+  line-height: var(--type-nav-lh);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-surface) var(--ease-surface),
+    width var(--dur-surface) var(--ease-surface),
+    background var(--dur-surface) var(--ease-surface),
+    color var(--dur-surface) var(--ease-surface);
+}
+.velocidad[data-velocidad='0.5'] {
+  width: 40px;
+}
+.velocidad span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: inherit;
+}
+.velocidad span[data-activa='true'] {
+  opacity: 1;
+}
+.reproductor:hover .velocidad,
+.velocidad:focus-visible {
+  opacity: 1;
+}
+.velocidad:hover {
+  color: var(--ink);
+  background: var(--surface-hover);
+}
+@media (hover: none) {
+  .velocidad {
+    opacity: 1;
+  }
+}
+
 /* ─── EL ESCENARIO DE UN DEMO VIVO (pieza Web) ───
    La caja de la card ya decide el piso —260 en la lista, 400 en el
    detalle, la decisión medida de benji— y este envoltorio sólo lo
