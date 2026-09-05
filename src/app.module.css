@@ -240,21 +240,25 @@
 .group[data-plataforma='App'] .streamPreview:has(.demo)::before {
   content: none;
 }
+/* Con video, la caja es el video: sin padding, sin flex. */
+.group[data-plataforma='App'] .streamPreview:has(.demo) {
+  padding: 0;
+  display: block;
+}
 .demo {
   display: block;
-  /* EL ALTO DEL HUECO, y el ancho lo da el archivo. Una grabación cruda
-     (la silueta del teléfono) cae en 228×448, el hueco exacto de antes;
-     el mockup para la library (cuadrado, con el bisel de Apple y la
-     cámara, ver mockup/AGENTS.md) quiere 448×448 y la caja lo frena en
-     440: la caja mide 560 con 60 de padding por lado (medido), y el
-     `max-width` lo contiene sin deformarlo —object-fit es contain—, así
-     que queda un cuadrado de 440 con el teléfono al 86 %, 378 px. Es
-     el tamaño del teléfono de benji.org en su card (medido en Family
-     Values: 468 px en una caja de 552, el 85 %). Antes el ancho era el
-     del hueco y el cuadrado quedaba en 228: el teléfono, chico ("tiene
-     que verse más grande dentro del cuadrado", 2026-09-05). */
-  height: var(--card-app-slot-alto);
-  width: auto;
+  /* EL VIDEO ES LA CAJA. Con la grabación transparente, el cuadrado del
+     mockup ocupa la caja entera —sin el padding de 40/60 que reservaba
+     el hueco— y así el borde del video ES el borde de la caja: cuando
+     la cámara entra (1.576×) el teléfono se corta contra el límite del
+     espacio que da la library, no contra un cuadrado invisible 60 px
+     más adentro ("que el corte al hacer zoom sea natural, con el borde
+     en el espacio que brinda la library", 2026-09-05). Y más cerca: a
+     560 de lado el teléfono al 92 % mide 515 px; antes, en el cuadrado
+     de 440 al 86 %, 378. El hueco de 228×448 sigue existiendo para la
+     card sin video (el ::before). */
+  width: 100%;
+  height: auto;
   max-width: 100%;
   /* El radio de los controles chicos, no el de la card: una grabación
      cruda tiene esquinas vivas y dentro de una superficie ya redondeada
@@ -499,8 +503,9 @@
 .detailPreview[data-plataforma='App']:has(.demo)::before {
   content: none;
 }
-.detailPreview .demo {
-  height: var(--card-app-slot-alto-detalle);
+.detailPreview[data-plataforma='App']:has(.demo) {
+  padding: 0;
+  display: block;
 }
 
 /* ─── LAS NOTAS DEL DETALLE ───

@@ -88,9 +88,10 @@ export const FONDO_OSCURO = '#1C181A'
 /* LA LIBRARY LLEVA UN SOLO RENDER, TRANSPARENTE Y SIN SOMBRA
    (pnpm render:library → scripts/library.mjs): el fondo lo pone la
    card de la library en el tema que sea, y el teléfono va sin sombra,
-   como los videos de Family en benji.org. Teléfono al 86 % del cuadro
-   (benji: 85 %, medido) y la salida de la cámara a 1× para que termine
-   entero y centrado. Antes se rendía un par claro/oscuro con el color
+   como los videos de Family en benji.org. Teléfono al 92 % del cuadro —el
+   video es la caja entera de la card y el usuario lo quiso más cerca;
+   benji va al 85 %— y la cámara que entra a los tabs y se queda hasta el
+   final (`hasta` fuera del clip): lo que se muestra son los tabs. Antes se rendía un par claro/oscuro con el color
    de la card horneado y el usuario lo rechazó: "que haya solo un
    fondo, el del lugar que da la library, y sin sombra, como Family"
    (2026-09-05). El alfa viaja en dos archivos porque ningún códec lo

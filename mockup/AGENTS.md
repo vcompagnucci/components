@@ -40,7 +40,7 @@ se nombra.
 | 7 | **`pnpm verificar`** antes de mirar: el hueco del bisel lleno en doce estados de la cámara | `scripts/verificar.mjs` |
 | 8 | **La cámara se ajusta a la toma**: `hasta` = fin del gesto lento medido; entrada y salida son las de la referencia | `src/parametros.ts` |
 | 9 | **Se mira en Studio**, se toca lo que haga falta, y **se renderiza dos veces**: `pnpm render:ambos` → claro y oscuro | abajo |
-| 10 | **La library lleva UN solo render, transparente y sin sombra**, como los videos de Family en benji.org: `pnpm render:library` saca `out/library.webm` (VP9 con alfa, Chrome y Firefox) y `out/library.mov` (HEVC con alfa por VideoToolbox, Safari), 1280², teléfono al 86 %, cámara terminando a 1×. El fondo lo pone la card en el tema que sea. Entra por `pnpm pieza:video <slug> mockup/out/library --alfa` desde la raíz. El de X es el par con fondo | raíz `AGENTS.md`, camino B |
+| 10 | **La library lleva UN solo render, transparente y sin sombra**, como los videos de Family en benji.org: `pnpm render:library` saca `out/library.webm` (VP9 con alfa, Chrome y Firefox) y `out/library.mov` (HEVC con alfa por VideoToolbox, Safari), 1280², teléfono al 92 %, y la cámara entra a los tabs y SE QUEDA hasta el final: lo que se muestra son los tabs. El video es la caja entera de la card, así el corte del zoom cae en su borde; el fondo lo pone la card en el tema que sea. Entra por `pnpm pieza:video <slug> mockup/out/library --alfa` desde la raíz. El de X es el par con fondo | raíz `AGENTS.md`, camino B |
 
 ## Las mini-decisiones, y por qué
 
@@ -53,7 +53,7 @@ se nombra.
 - **La grabación: nace en el tab inicial de verdad** (`contentOffset`), arrastre lento de 1.65 s con seno in-out, toques por `alTocar`, flicks con el perfil de dedo medido en X (15 % en 110 ms, el resto en 430) cada 1.0 s, y al llegar al último tab dos de vuelta.
 - **Un bug de la pieza que la sonda destapó:** la barra tomaba "hay un toque" de `destino !== NADIE`; la condición es `movimiento === toque`. Está commiteado en la pieza.
 - **Dos fondos por video:** claro (#EBE6E8) y oscuro (#1C181A, el neutro bajado al 11 % con el mismo tinte; sin referencia medida en el vault). La sombra no cambia.
-- **En la library, ningún fondo y ninguna sombra:** el video va transparente sobre la superficie de la card, como Family en benji.org. Se probó hornear el color de la card por tema (claro exacto, oscuro a un nivel de azul) y se rechazó: "que haya solo un fondo, el del lugar que da la library". El alfa viaja en dos archivos, WebM VP9 y HEVC .mov, porque ningún códec lo lleva a todos los navegadores.
+- **En la library, ningún fondo y ninguna sombra:** el video va transparente sobre la superficie de la card, como Family en benji.org, y ES la caja entera (560 de lado, teléfono al 92 %): el corte cuando la cámara entra cae en el borde de la caja, no en un cuadrado invisible más adentro. Y en la library la cámara no sale: entra a los tabs y se queda. El ProRes con alfa necesita `--pixel-format=yuva444p10le`; sin eso sale opaco (medido) y el script lo detecta y corta. Se probó hornear el color de la card por tema (claro exacto, oscuro a un nivel de azul) y se rechazó: "que haya solo un fondo, el del lugar que da la library". El alfa viaja en dos archivos, WebM VP9 y HEVC .mov, porque ningún códec lo lleva a todos los navegadores.
 
 ## Dónde está cada cosa
 

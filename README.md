@@ -915,3 +915,23 @@ VideoToolbox de macOS. La card los ofrece con dos `<source>`, el .mov
 primero: Safari es el único que lo abre, y al revés tomaría el WebM y lo
 dibujaría sobre negro. Con esto `videoOscuro` y el hook del esquema de
 color se fueron: no hay nada que elegir por tema.
+
+**Más cerca, y el corte del zoom en el borde de la caja.** Con el video
+transparente, el cuadrado del mockup vivía centrado en la caja de la
+card con el padding de 40/60 alrededor, y cuando la cámara entraba el
+teléfono se cortaba contra ese cuadrado invisible, 60 px adentro del
+borde de la caja: un corte que no venía de nada. Ahora el video ES la
+caja —560 de lado, sin padding— y el corte cae en el borde del espacio
+que da la library, que es donde un ojo espera un límite. Y el teléfono
+va al 92 % del cuadro, 515 px en vez de 378, porque el usuario lo pidió
+más cerca. El hueco de 228×448 sigue vivo para la card sin video.
+
+**En la library la cámara se queda.** "Que sea todo exactamente igual
+salvo que una vez que se hace zoom, se quede ahí hasta el final, así
+se ve lo que estoy mostrando, que son los tabs." Así que el render de
+la library entra a la fila de tabs y no sale: `hasta` fuera del clip.
+El video de X sigue con la salida medida en la referencia. Y un bug
+que casi viaja: el máster ProRes 4444 salía sin alfa —esquina 255,
+medido— porque Remotion necesita `--pixel-format=yuva444p10le` además
+del perfil; el .mov de Safari habría tenido fondo negro. El script lo
+mide ahora antes de seguir y corta si el alfa no es cero.
