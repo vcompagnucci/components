@@ -994,3 +994,17 @@ flojo cae cuadros, el siguiente escalón es un h264 opaco con el color
 de la card horneado, que decodifica en hardware en todos lados; se
 descartó por ahora porque el oscuro queda a un nivel de azul de la
 superficie.
+
+**Las notas de la pieza, en el tono de Josh Puckett.** Se leyeron sus
+páginas —Bloom, Pasito, Melt Effect— y las secciones de Family Values
+de benji. Josh: una línea bajo el título que dice qué es, secciones
+cortas con títulos llanos ("Anatomy", "A note on performance"), dos o
+tres oraciones cada una, "you" cuando te habla, y una parte por oración
+cuando desarma el componente. Benji escribe ensayos largos por
+principios y sólo se le toma el pie de un renglón bajo cada demo. Las
+notas de Swipeable tabs pasan de un ensayo de cinco secciones largas a
+seis secciones de 252 palabras en total: qué hace, anatomía, de dónde
+salen los números, lo que cambié a propósito, una nota sobre la
+grabación y probarlo en la mano. La línea del detalle: "X’s home tabs
+for Expo. Swipe between feeds, tap to jump, and the header folds away
+as you scroll."
