@@ -146,7 +146,9 @@ porqué y las guardas están arriba de `scripts/pieza-video.mjs`.
 
 **El video para X** —el teléfono en su bisel sobre fondo neutro, con la
 cámara que entra y sale— se hace en `mockup/` (Remotion): `pnpm assets`
-→ `pnpm verificar` → `pnpm studio` → `pnpm render`. Ver `mockup/AGENTS.md`.
+→ `pnpm verificar` → `pnpm studio` → `pnpm render:ambos`. **Cada video
+sale dos veces**, sobre fondo claro y sobre fondo oscuro. El proceso
+entero y cada mini-decisión están en `mockup/AGENTS.md`.
 
 ### Lo que vale para los dos
 

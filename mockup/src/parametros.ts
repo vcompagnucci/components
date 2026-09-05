@@ -74,6 +74,17 @@ export const esquema = z.object({
 
 export type Parametros = z.infer<typeof esquema>
 
+/* CADA VIDEO SALE DOS VECES: sobre el fondo claro (la referencia) y
+   sobre uno oscuro. Regla del usuario, 2026-09-04: "a cada video hay
+   que hacerle dos fondos, uno para light mode y uno para dark mode".
+   El oscuro NO está medido —el vault no tiene ninguna referencia sobre
+   fondo oscuro: Mini player y Hold to commit, que parecían oscuros,
+   miden 253–255 en las esquinas— así que es el neutro medido bajado a
+   ~11 % de luminancia con el mismo tinte: (235,230,232) → (28,24,26).
+   La sombra queda la misma: negra sobre casi negro no se ve, y el
+   teléfono se separa por el canto metálico del bisel, como en Apple. */
+export const FONDO_OSCURO = '#1C181A'
+
 export const PARAMETROS: Parametros = {
   fondo: '#EBE6E8',
   fondoEstilo: { tipo: 'color', colores: [], angulo: 180, imagen: '', desenfoque: 0, luz: 0, escala: 1, grano: 0 },

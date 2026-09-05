@@ -862,3 +862,14 @@ del mockup muestra dieciséis variantes del mismo cuadro con su recibo
 abajo. El modelo de sombra creció para poder dibujarlas: cada capa
 tiene corrida en x y en y, color y expansión, y la corrida diagonal
 única de antes es el caso particular.
+
+**Dos fondos por video, y el proceso escrito entero.** Regla nueva: cada
+video sale dos veces, sobre el fondo claro medido y sobre uno oscuro
+(`pnpm render:ambos`). El oscuro no tiene referencia en el vault —los
+clips que parecían oscuros, Mini player y Hold to commit, miden blanco
+en las esquinas: era el teléfono ocupando el cuadro— así que es el
+neutro bajado al 11 % con el mismo tinte, #1C181A, y la sombra queda
+igual porque negra sobre casi negro no se ve; el teléfono se separa por
+el canto del bisel. Y la línea completa —de la sonda en la pieza al
+render doble— quedó en `mockup/AGENTS.md`, con cada mini-decisión y su
+porqué, y la sonda de grabación para copiar en `nativo/AGENTS.md`.

@@ -437,6 +437,46 @@ xcrun simctl spawn booted defaults write host.exp.Exponent EXDevMenuShowFloating
 
 y relanzar Expo Go. Queda apagada para ese simulador.
 
+**La sonda de grabación (`?demo=1`), para copiar.** Es lo que grabó
+el video de swipeable-tabs y no viaja con la pieza; queda acá para la
+próxima. Tres reglas que salieron de tres tomas fallidas:
+
+1. **Nacer en el tab inicial de verdad:** `contentOffset={{ x: width, y: 0 }}`
+   en el pager y `scrollX` naciendo en `width`. Un `scrollTo` en el
+   primer efecto no llega al pager y deja la barra en un tab con el
+   contenido de otro.
+2. **Los arrastres van por el puente que ya existe** (`destino`, cuya
+   reacción hace `scrollTo` por cuadro y cuyo `onScroll` alimenta
+   `scrollX`), con `movimiento` en `arrastre` y `destino` de vuelta a
+   `NADIE` al terminar. Una reacción propia sobre otro shared value
+   saltaba en vez de arrastrar.
+3. **Los toques son `alTocar`.** Y la barra tiene que tomar "hay un
+   toque" de `movimiento === toque`, no de `destino !== NADIE`, o lee
+   el tramo del toque durante un arrastre sintético.
+
+```tsx
+const arrastre = (a: number, b: number, lento: boolean) =>
+  scheduleOnUI((a: number, b: number, ancho: number, lento: boolean) => {
+    'worklet'
+    movimiento.set(MOVIMIENTO.arrastre)
+    destino.set(a * ancho)
+    const fin = (t?: boolean) => { 'worklet'; if (t) { destino.set(NADIE); movimiento.set(MOVIMIENTO.quieto) } }
+    destino.set(lento
+      ? withTiming(b * ancho, { duration: 1700, easing: Easing.inOut(Easing.sin) }, fin)
+      : withSequence(
+          withTiming((a + (b - a) * 0.15) * ancho, { duration: 110, easing: Easing.in(Easing.quad) }),
+          withTiming(b * ancho, { duration: 430, easing: Easing.out(Easing.cubic) }, fin)))
+  }, a, b, width, lento)
+// espera 1500 · arrastre(1, 2, true) · espera 2600 · alTocar(0) · espera 1000
+// · flicks 0→5 cada 1000 · dos de vuelta cada 1000
+```
+
+La toma: `status_bar override --time 9:41 … --batteryState discharging
+--batteryLevel 100`, `terminate host.exp.Exponent`, `recordVideo --codec
+h264`, `openurl exp://127.0.0.1:8082/--/<slug>?demo=1`, 25–30 s; medir
+los gestos con la diferencia entre cuadros a 60 fps y cortar 1.2 s antes
+del primero. El máster va a `.context/mockup/master/`.
+
 **El agente puede grabar solo.** No hay forma de mandarle un dedo al
 simulador, pero la pieza se maneja desde adentro con una sonda temporal:
 los toques son `alTocar(i)`, el camino real; los arrastres se sintetizan

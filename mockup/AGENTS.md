@@ -12,7 +12,7 @@ cd mockup && pnpm install
 pnpm assets            # bisel + grabación normalizada a 60 fps → public/ (gitignoreado)
 pnpm verificar         # ¿el hueco del bisel queda lleno en toda la cámara? (rojo pleno, 12 cuadros)
 pnpm studio            # el look, con cada número como control
-pnpm render            # out/swipeable-tabs.mp4, 2160² · 60 fps · h264 crf 17
+pnpm render:ambos      # out/swipeable-tabs.mp4 (claro) y out/swipeable-tabs-oscuro.mp4: cada video sale dos veces
 pnpm still Sombras out/sombras.png   # la grilla: el reposo con dieciséis sombras, cada una con su recibo
 pnpm still SombrasSimetricas out/sombras-simetricas.png   # dieciséis más, sin luz de costado
 pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco, malla, grano, trama, piso, imagen, la app desenfocada
@@ -21,6 +21,37 @@ pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco
 `pnpm assets --clip=/ruta/otra.mp4` para otra grabación. El máster de
 swipeable-tabs vive en `.context/mockup/master/` (no en el vault: el
 vault es lo ajeno).
+
+## El proceso, de punta a punta
+
+Es la línea que se siguió con `swipeable-tabs` (2026-09-04) y la que se
+repite con cada pieza App. Cada paso tiene su recibo en el archivo que
+se nombra.
+
+| # | paso | dónde |
+| --- | --- | --- |
+| 1 | **La pieza corre en el simulador** (Pro Max, Expo Go por Metro 8082), sin la tuerca de Expo Go (`EXDevMenuShowFloatingActionButton` en false) | `nativo/AGENTS.md` |
+| 2 | **La coreografía es una sonda** en la pieza, `?demo=1`: gestos sintéticos por los caminos reales (`alTocar` para toques, el pager por `destino` con `movimiento` en arrastre para arrastres y flicks). Nace en el tab inicial con `contentOffset`. Se borra antes de cerrar | `nativo/AGENTS.md` › La sonda de grabación |
+| 3 | **Se graba con simctl**, barra de estado en 9:41 y batería en `discharging` (sin rayo), Expo Go terminado y relanzado con el deep link, 25–30 s de toma | `nativo/AGENTS.md` |
+| 4 | **Se mide la toma** (diferencia entre cuadros a 60 fps): montaje, primer gesto, último gesto. Se corta 1.2 s antes del primer gesto —nada de Expo Go queda, verificado en los primeros 60 cuadros—, se normaliza a 60 fps y se clona 1.5 s de cola | `.context/recon/<pieza>/MEDICIONES.md` |
+| 5 | **El máster va a `.context/mockup/master/<slug>.mp4`**, no al vault: el vault es lo ajeno | raíz `AGENTS.md` |
+| 6 | **`pnpm assets`** copia el bisel y normaliza el clip a `public/` | `scripts/assets.mjs` |
+| 7 | **`pnpm verificar`** antes de mirar: el hueco del bisel lleno en doce estados de la cámara | `scripts/verificar.mjs` |
+| 8 | **La cámara se ajusta a la toma**: `hasta` = fin del gesto lento medido; entrada y salida son las de la referencia | `src/parametros.ts` |
+| 9 | **Se mira en Studio**, se toca lo que haga falta, y **se renderiza dos veces**: `pnpm render:ambos` → claro y oscuro | abajo |
+| 10 | **El video de la library es otro**: la grabación cruda, por `pnpm pieza:video` desde la raíz. El mockup es para X | raíz `AGENTS.md`, camino B |
+
+## Las mini-decisiones, y por qué
+
+- **Bisel: iPhone 17 Black.** La referencia es un teléfono negro de proporción 2.05; el 17 mide 2.066 y el Pro Max 2.095, y en negro sólo hay 17. La grabación del Pro Max entra escalada (misma proporción al 0.1 %), 4 px más grande que el hueco por lado, máscara de radio 186 menor que el hueco.
+- **Tamaño: 75 % del alto.** La referencia mide 95.3 %; el brief pidió más aire. Es una perilla (`altura`).
+- **Fondo: plano, #EBE6E8**, medido en la referencia. En X el fondo es plano (todo el vault menos solarn, que usa una foto desenfocada); Rotato aconseja no animar sobre fotos. Dieciséis alternativas en `fondos.ts` (`pnpm still Fondos`).
+- **Sombra: la de la referencia, medida**, contacto α .60 σ 8 (12,12) más ambiente α .20 σ 30 (70,70). Se probó más marcada (brief), sin sombra (Apple: su PSD tiene cuatro capas y ningún efecto, sus renders miden 250 a 4 px del borde, y sus guidelines prohíben agregarla a sus imágenes), y treinta y dos variantes más (`pnpm still Sombras`, `SombrasSimetricas`). El usuario eligió la medida.
+- **Cámara: tres momentos**, entra a 1.576× en 0.65 s apuntando a la fila de tabs, se queda hasta que termina el gesto lento, sale a 1.161× en 0.62 s. Bézier medidas: entrada (0.30, 0.05, 0.40, 0.90), salida (0.25, 0.25, 0.20, 0.90). Se interpola (zoom, posición del cuerpo): con (zoom, mira) el borde del teléfono dudaba siete píxeles.
+- **Cada capa a su tamaño en cada cuadro**, sin `transform: scale`; PNG entre el cuadro y el encoder; 2160² a 60 fps, h264 crf 17.
+- **La grabación: nace en el tab inicial de verdad** (`contentOffset`), arrastre lento de 1.65 s con seno in-out, toques por `alTocar`, flicks con el perfil de dedo medido en X (15 % en 110 ms, el resto en 430) cada 1.0 s, y al llegar al último tab dos de vuelta.
+- **Un bug de la pieza que la sonda destapó:** la barra tomaba "hay un toque" de `destino !== NADIE`; la condición es `movimiento === toque`. Está commiteado en la pieza.
+- **Dos fondos por video:** claro (#EBE6E8) y oscuro (#1C181A, el neutro bajado al 11 % con el mismo tinte; sin referencia medida en el vault). La sombra no cambia.
 
 ## Dónde está cada cosa
 

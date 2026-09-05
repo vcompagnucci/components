@@ -8,7 +8,9 @@
     "render": "remotion render SwipeableTabs out/swipeable-tabs.mp4",
     "still": "remotion still SwipeableTabs",
     "verificar": "node scripts/verificar.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "render:oscuro": "remotion render SwipeableTabs out/swipeable-tabs-oscuro.mp4 --props='{\"fondo\":\"#1C181A\"}'",
+    "render:ambos": "pnpm render && pnpm render:oscuro"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.520",
