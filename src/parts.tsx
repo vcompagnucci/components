@@ -81,18 +81,31 @@ export function Item({
      y por eso un lector de pantalla anunciaba "botón" y no había ninguna
      de las affordances de un link. El porqué del interceptor está arriba,
      en clicDeLink. */
+  /* EN LA LISTA EL VIDEO ARRANCA CON EL PUNTERO, como en el vault: la
+     card entera es el disparador (apuntarle sólo al video dejaría
+     media card muerta), entra con el mouse o con el foco del teclado,
+     se pausa al salir y RETOMA donde estaba, sin rebobinar. Lo que se
+     viene a mirar es cómo se mueve, y en una lista larga diez videos
+     girando a la vez son ruido y CPU. */
+  const [activo, setActivo] = useState(false)
+  const entrar = () => setActivo(true)
+  const salir = () => setActivo(false)
   return (
     <a
       className={css.streamItem}
       id={slug(piece.name)}
       href={`/${slug(piece.name)}`}
       onClick={clicDeLink(() => onOpen(piece))}
+      onMouseEnter={entrar}
+      onMouseLeave={salir}
+      onFocus={entrar}
+      onBlur={salir}
     >
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
         {piece.name}
       </div>
       <div className={css.streamPreview}>
-        <Muestra piece={piece} />
+        <Muestra piece={piece} modo="lista" activo={activo} />
       </div>
     </a>
   )
@@ -129,9 +142,30 @@ export function Item({
 const VELOCIDADES = [1, 0.5] as const
 type Velocidad = (typeof VELOCIDADES)[number]
 
-function Reproductor({ piece }: { piece: Piece }) {
+type Modo = 'lista' | 'detalle'
+
+/* El primer cuadro y nada más, como en el vault: con preload="metadata"
+   el navegador no decodifica ninguna imagen y la caja queda negra; el
+   fragmento #t= lo obliga a buscar ahí y pintar ESE cuadro. 0.1 y no 0
+   porque en 0 algunos contenedores todavía no tienen un cuadro clave. */
+const primerCuadro = (url: string) => `${url}#t=0.1`
+
+const reduceMovimiento = () =>
+  typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function Reproductor({ piece, modo, activo = false }: { piece: Piece; modo: Modo; activo?: boolean }) {
   const video = useRef<HTMLVideoElement>(null)
   const [velocidad, setVelocidad] = useState<Velocidad>(1)
+  const enLista = modo === 'lista'
+  /* Lista: reproduce mientras la card está activa (puntero o foco) y
+     pausa al salir, sin rebobinar. Con reduced-motion, no arranca:
+     igual que el vault, verificado allá. */
+  useEffect(() => {
+    const v = video.current
+    if (!v || !enLista) return
+    if (activo && !reduceMovimiento()) void v.play().catch(() => {})
+    else v.pause()
+  }, [enLista, activo])
   useEffect(() => {
     const v = video.current
     if (!v) return
@@ -152,7 +186,7 @@ function Reproductor({ piece }: { piece: Piece }) {
      lo visible tenga todo el archivo antes de arrancar. */
   useEffect(() => {
     const v = video.current
-    if (!v || typeof IntersectionObserver === 'undefined') return
+    if (!v || enLista || typeof IntersectionObserver === 'undefined') return
     const observador = new IntersectionObserver(
       ([entrada]) => {
         if (entrada.isIntersecting) void v.play().catch(() => {})
@@ -162,21 +196,34 @@ function Reproductor({ piece }: { piece: Piece }) {
     )
     observador.observe(v)
     return () => observador.disconnect()
-  }, [])
+  }, [enLista])
   const otra: Velocidad = velocidad === 1 ? 0.5 : 1
   /* Con alfa, las esquinas del cuadro son transparentes: redondearlas
      es una máscara sobre una capa de 1120² por cuadro para no cambiar
      nada. Se apaga. */
   const claseVideo = piece.videoHevc ? `${css.demo} ${css.demoAlfa}` : css.demo
+  /* En la lista: sin autoplay, el primer cuadro y los metadatos; el
+     archivo entero recién cuando arranca. En el detalle: autoplay y
+     precarga entera, es la pieza que viniste a ver. */
+  const fuente = enLista ? primerCuadro : (url: string) => url
+  const comunes = {
+    ref: video,
+    muted: true,
+    loop: true,
+    playsInline: true,
+    autoPlay: !enLista,
+    preload: enLista ? ('metadata' as const) : ('auto' as const),
+    disablePictureInPicture: true,
+  }
   return (
     <div className={css.reproductor}>
       {piece.videoHevc ? (
-        <video ref={video} className={claseVideo} autoPlay muted loop playsInline preload="auto" disablePictureInPicture>
-          <source src={piece.videoHevc} type='video/quicktime; codecs="hvc1"' />
-          <source src={piece.video} type="video/webm" />
+        <video {...comunes} className={claseVideo}>
+          <source src={fuente(piece.videoHevc)} type='video/quicktime; codecs="hvc1"' />
+          <source src={fuente(piece.video ?? '')} type="video/webm" />
         </video>
       ) : (
-        <video ref={video} className={css.demo} src={piece.video} autoPlay muted loop playsInline preload="auto" disablePictureInPicture />
+        <video {...comunes} className={css.demo} src={fuente(piece.video ?? '')} />
       )}
       <button
         type="button"
@@ -201,13 +248,13 @@ function Reproductor({ piece }: { piece: Piece }) {
   )
 }
 
-function Muestra({ piece }: { piece: Piece }) {
+function Muestra({ piece, modo, activo }: { piece: Piece; modo: Modo; activo?: boolean }) {
   /* Con alfa, el video es transparente y el fondo lo pone la card: el
      .mov (HEVC con alfa) va PRIMERO para Safari, que es el único que lo
      abre; Chrome y Firefox lo saltan por el type y toman el WebM VP9
      con alfa. Al revés, Safari tomaría el WebM y lo dibujaría sobre
      negro. Ver Reproductor. */
-  if (piece.video) return <Reproductor piece={piece} />
+  if (piece.video) return <Reproductor piece={piece} modo={modo} activo={activo} />
   if (piece.platform === 'Web') return <DemoVivo name={piece.name} />
   return null
 }
@@ -273,7 +320,7 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
           <div className={css.detailMeta}>{piece.platform}</div>
         </div>
         <div className={css.detailPreview} data-plataforma={piece.platform}>
-          <Muestra piece={piece} />
+          <Muestra piece={piece} modo="detalle" />
         </div>
         {/* La línea de PIECES es la entrada, y las notas lo que sigue.
             Son dos cosas distintas: ésta se escribe al publicar y cabe

@@ -23,53 +23,41 @@ import { Seccion } from '../notas'
    escribe ensayos largos por principios; de él se toma sólo el pie de
    un renglón bajo cada demo. La versión anterior de estas notas era
    un ensayo: el usuario pidió "bien simple y conciso, tal cual el tono
-   de josh". */
+   de josh".
+
+   TRES SECCIONES, NO MÁS: "Anatomy" (con qué está hecha y de qué
+   partes), "Performance" (por dónde corre y qué se midió) y, cuando la
+   pieza lo pide, "Use cases". Es la regla para todas las notas (pedido
+   del usuario, 2026-09-05: "mucho menos secciones"); las seis de la
+   versión anterior eran demasiadas. */
 export default function Notas() {
   return (
     <>
-      <Seccion titulo="What it does">
-        <p>
-          Swipe between feeds and the underline moves with your finger, not after it. Tap a tab and
-          the content slides one page, never four. Scroll down and the whole header folds up with
-          you, then comes back the same way.
-        </p>
-      </Seccion>
-
       <Seccion titulo="Anatomy">
         <p>
-          The bar: six tabs in a row that scrolls only when it has to. The underline: a 2 pt line
-          that stretches between two tabs while the page is in between them. The header: avatar and
-          logo above the bar, folding with the scroll. The pages: one paged list per tab.
+          Expo and Reanimated, nothing else. The pager is a paged ScrollView, one list per tab. The
+          bar reads the pager’s offset in a worklet and draws the underline and the label weights
+          from it; a tap moves the content one page, never four. The header is one block that
+          translates with the scroll and fades on the way up. Every value is measured from X: four
+          recordings at 60 fps, read frame by frame, each number next to its receipt in the code.
         </p>
       </Seccion>
 
-      <Seccion titulo="Where the numbers come from">
+      <Seccion titulo="Performance">
         <p>
-          From X, not from memory. Four screen recordings at 60 fps, read frame by frame: the six
-          rest positions of the bar, the 300 ms ease-out of a tap, the fold that travels exactly as
-          far as you scroll. Every number sits next to its receipt in the code.
+          Everything runs on the UI thread: the underline, the labels and the fold read the scroll
+          in worklets, so React never renders a frame. The bar’s state is a single derived value
+          that returns the whole thing at once, which is what keeps every frame in step. Measured:
+          the recording keeps all its frames inside every gesture, and the row only moves when the
+          tab you’re going to doesn’t fit on screen.
         </p>
       </Seccion>
 
-      <Seccion titulo="Two things I changed on purpose">
+      <Seccion titulo="Use cases">
         <p>
-          The row only moves when the tab you’re going to doesn’t fit on screen. X re-centers on
-          every change; this one stays put when it can. And the header stops with its divider under
-          the status bar instead of leaving the screen. Both are one word away from faithful.
-        </p>
-      </Seccion>
-
-      <Seccion titulo="A note on the recording">
-        <p>
-          The simulator only writes frames while something moves. Normalize to a fixed rate before
-          you step through it, or you’ll spend an afternoon on a stutter that was never on screen.
-        </p>
-      </Seccion>
-
-      <Seccion titulo="Try it in the hand">
-        <p>
-          The simulator can’t tap, and it has no haptics and no 120 Hz. The tap, the tick when the
-          tab changes and the feel of the drag are proven on a phone.
+          Any list with more first-level filters than a segmented control can hold: a profile with
+          posts, replies and media; a feed with its filters; chat folders; a catalog by category;
+          scores by league; an agenda by day.
         </p>
       </Seccion>
     </>

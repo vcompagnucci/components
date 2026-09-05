@@ -1008,3 +1008,14 @@ salen los números, lo que cambié a propósito, una nota sobre la
 grabación y probarlo en la mano. La línea del detalle: "X’s home tabs
 for Expo. Swipe between feeds, tap to jump, and the header folds away
 as you scroll."
+
+**En la lista, el video arranca con el puntero, como en el vault.** La
+card entera es el disparador —apuntarle sólo al video dejaría media
+card muerta—, entra con el mouse o con el foco del teclado, se pausa al
+salir y retoma donde estaba, sin rebobinar; con reduced-motion no
+arranca. Sin autoplay y con `preload="metadata"` más el fragmento
+`#t=0.1`, que obliga a pintar el primer cuadro (el truco del vault: en
+0 algunos contenedores todavía no tienen cuadro clave). El detalle sigue
+con autoplay y precarga entera: es la pieza que viniste a ver.
+Verificado en Chrome: pausado en 0.1 al cargar, reproduce con la card
+bajo el puntero, pausa al salir conservando el tiempo.

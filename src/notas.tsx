@@ -19,7 +19,13 @@ import { slug } from './pieces'
 
    Y son .tsx y no datos: una nota puede querer un link. Lo que NO puede
    es traerse tipografía propia — el estilo vive todo acá abajo, así que
-   un archivo de notas es prosa y nada más. */
+   un archivo de notas es prosa y nada más.
+
+   LA FORMA DE UNA NOTA: tres secciones como máximo, en el tono de josh
+   (joshpuckett.me): "Anatomy" —con qué está hecha y de qué partes—,
+   "Performance" —por dónde corre y qué se midió— y, sólo cuando la
+   pieza lo pide, "Use cases". Dos o tres oraciones por sección.
+   Decidido con la primera pieza (2026-09-05). */
 const MODULOS = import.meta.glob<{ default: ComponentType }>('./notas/*.tsx')
 
 const cache = new Map<string, ComponentType>()
