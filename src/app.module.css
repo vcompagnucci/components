@@ -553,6 +553,9 @@
   line-height: var(--type-body-lh);
   /* ink y no gris: es prosa, y la prosa va en ink. Ver DESIGN.md. */
   color: var(--ink);
+  /* Sin viudas, como .notas p: una línea de descripción es exactamente
+     el caso de `pretty` en better-typography. */
+  text-wrap: pretty;
 }
 /* Al abrir una pieza la caja crece. La relación es la de benji y no un
    número inventado: adentro de una página larga sus demos miden 260, y
@@ -609,6 +612,12 @@
   /* ink y no gris, igual que .detailDesc: es prosa, y la prosa se lee.
      El gris es para lo que anota. Ver DESIGN.md. */
   color: var(--ink);
+  /* Sin viudas: `pretty` evita que una palabra sola quede en la última
+     línea. Es la regla de better-typography para descripciones —párrafos
+     cortos, como estos— y no para texto largo. RUNTIME (2026-09-07, en
+     producción): el primer párrafo de Performance terminaba en "frame."
+     solo en su línea. */
+  text-wrap: pretty;
 }
 /* Una línea de aire entre párrafos, que es el interlineado del cuerpo.
    SIN RECIBO: no sale de ninguna referencia medida — es el default

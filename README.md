@@ -1338,3 +1338,18 @@ ejemplos, listas con más de un corte de primer nivel; y cuándo no
 condición de los labels cortos, que sale de la pieza. El usuario piensa
 sumar un video por caso: irán con pie de un renglón, como los de benji
 en /liveline, y la sección es prosa hasta entonces.
+
+**El wrap de las notas, con better-typography.** "¿Se usan buenas
+reglas de wrap?" (usuario, 2026-09-07). Medido en producción: los
+párrafos iban con `text-wrap: wrap` y el primero de Performance
+terminaba en "frame." solo en su línea; y número y unidad ("300 ms",
+"60 fps", "120 fps", "492 frames") iban con espacio normal, sin caer
+todavía en un corte pero a un cambio de texto de partirse. Arreglo:
+`text-wrap: pretty` en `.notas p` y en `.detailDesc` —la regla es para
+descripciones, no para texto largo— y espacio indivisible entre número
+y unidad en la nota. Lo que se aparta de la guía y se queda, por la
+referencia: la medida (80 a 84 caracteres por línea; la guía pide 60 a
+75, pero benji da 85 y josh 80, y la columna de 560 se eligió entre los
+dos) y la interlínea (20/14 = 1.43; la guía prefiere 1.5, y es el 14/20
+de benji, medido). Bien y sin cambio: `lang="en"`, antialiasing en la
+raíz, peso 460, apóstrofes tipográficos, rótulos con `nowrap`.
