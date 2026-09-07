@@ -1109,3 +1109,25 @@ la app— y el cierre de Anatomy dice de dónde salió y cómo se midió:
 from there: four recordings at 60 fps, read frame by frame, each number
 next to its receipt in the code." Escrito en `AGENTS.md › Cómo se
 nombra` para las piezas que vengan.
+
+**Anatomy y la línea, escritas para quien acaba de ver el video.** El
+usuario, con la versión anterior en pantalla: "decí React Native, no
+Reanimated, no se suele decir eso, y no me gusta tanto anatomy y
+descripción, no siento que sea útil" (2026-09-07). Lo inútil era el
+punto de vista: contaban la implementación —un valor derivado, el pager
+que le pasa un tramo a la barra, worklets— a alguien que vio doce
+segundos de video y quiere saber qué miró y con qué está hecho. Ahora
+la línea dice qué es y los tres detalles que hay que mirar ("Top tabs
+for React Native. The underline follows the drag, the active tab widens
+to show its symbol, and a tap moves the content one page, however far
+the tab is."), y dejó de mencionar el header que colapsa, que la
+grabación no muestra. Anatomy va de lo que se ve al cómo: el subrayado
+atado al scroll, que va con el contenido y frena con él; el toque que
+activa el tab en 300 ms, lo ensancha para su símbolo, aparta los otros
+labels y cruza una sola página; la fila que sólo se corre cuando el tab
+no entra; la háptica por cambio; con qué está hecho (SF Symbols, la
+háptica de Expo) y de dónde salió (X en iOS, cuatro grabaciones a
+60 fps). Performance dice lo mismo que antes en llano: "on the UI
+thread, not in JavaScript", sin nombrar la librería. Las tres reglas
+—desde lo que se ve, sólo la animación que da nombre, sin nombres de
+librerías— están en `notas.tsx` y en `AGENTS.md › Cómo se nombra`.

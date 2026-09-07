@@ -20,34 +20,41 @@ import { Seccion } from '../notas'
    oraciones por párrafo, verbos directos, "you" cuando te habla. Benji
    escribe ensayos largos por principios; de él se toma el pie de un
    renglón bajo cada demo y la forma de su "How it works" en /liveline:
-   prosa corrida de oraciones cortas que nombra cada parte al pasar
-   ("One <canvas>, one requestAnimationFrame loop. When a new value
-   arrives, nothing jumps."). La versión anterior de estas notas era un
-   ensayo: el usuario pidió "bien simple y conciso, tal cual el tono de
-   josh".
+   prosa corrida de oraciones cortas que conecta lo que se siente con el
+   mecanismo ("When a new value arrives, nothing jumps. […] That's why
+   it feels like one thing breathing"). La versión anterior de estas
+   notas era un ensayo: el usuario pidió "bien simple y conciso, tal
+   cual el tono de josh".
 
-   TRES SECCIONES, NO MÁS: "Anatomy" (de qué está hecha la animación y
-   de qué partes), "Performance" (por dónde corre y qué se midió) y,
-   cuando la pieza lo pide, "Use cases". Es la regla para todas las
-   notas (pedido del usuario, 2026-09-05: "mucho menos secciones"); las
-   seis de la versión anterior eran demasiadas.
+   TRES SECCIONES, NO MÁS: "Anatomy", "Performance" y, cuando la pieza
+   lo pide, "Use cases". Es la regla para todas las notas (pedido del
+   usuario, 2026-09-05: "mucho menos secciones"); las seis de la
+   versión anterior eran demasiadas.
 
-   ANATOMY HABLA SÓLO DE LA ANIMACIÓN QUE DA NOMBRE A LA PIEZA: los
-   tabs. El header que colapsa, las listas y el avatar están en la
-   grabación y en la línea de descripción, pero no acá ("en anatomy que
-   se hable solo de la animación de los tabs, no de las otras cosas",
-   2026-09-07). Y ACÁ SE NOMBRA LA REFERENCIA, no en la línea de
-   descripción: la línea dice qué es la pieza sin nombrar la app, como
-   el título; que salió de X se cuenta donde se cuenta el proceso, en
-   el cierre sobre la medición ("en la descripción principal no pongas
-   X's tabs, mencionalo explicando el proceso o en anatomy", mismo
-   día). Es prosa, sin subtítulos: se probó un h3 por parte, la
-   forma de josh en /bloom, y el usuario lo rechazó en la página ("no me
-   gusta esta estructura", mismo día). Cada parte se nombra al pasar,
-   y se dice primero qué es y después qué hace.
+   ANATOMY ES PARA QUIEN ACABA DE VER EL VIDEO: qué está mirando y con
+   qué está hecho. Habla sólo de la animación que da nombre a la pieza
+   —los tabs—; el header que colapsa, las listas y el avatar están en la
+   grabación pero no acá ("que se hable solo de la animación de los
+   tabs", 2026-09-07). Se escribe desde lo que se ve —el subrayado que
+   va con el contenido, el tab que se ensancha, el contenido que cruza
+   una sola página— y de ahí al cómo, no al revés: la versión que
+   contaba la implementación (un valor derivado, el pager que le pasa un
+   tramo a la barra) fue rechazada por inútil ("no siento que sea
+   útil", mismo día). Es prosa, sin subtítulos: se probó un h3 por
+   parte, la forma de josh en /bloom, y el usuario lo rechazó en la
+   página ("no me gusta esta estructura"). Y ACÁ SE NOMBRA LA
+   REFERENCIA, no en la línea de descripción: que salió de X se cuenta
+   donde se cuenta cómo se midió.
 
-   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab bar, underline, pager,
-   label, symbol; "select", no "jump"—, por la regla de nombres del repo
+   SE DICE "REACT NATIVE", NO EL NOMBRE DE UNA LIBRERÍA. Ni Reanimated
+   ni worklets: "no se suele decir eso" (usuario, 2026-09-07), y quien
+   lee no tiene por qué conocerlos. Lo que esas palabras querían decir
+   se dice en llano: la animación corre en el hilo de UI, no en
+   JavaScript. Las únicas marcas que quedan son las que el lector
+   reconoce: React Native, Expo, SF Symbols, iOS.
+
+   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
+   symbol, page; "select", no "jump"—, por la regla de nombres del repo
    (AGENTS.md › Método de trabajo): la palabra que iría en una
    especificación, no la graciosa. */
 export default function Notas() {
@@ -55,31 +62,30 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          Expo and Reanimated, nothing else. The tabs are a row of labels with an underline, over
-          a paged ScrollView with one page per tab. The bar keeps no state: it draws the underline,
-          the label colors and the symbols from one value the pager hands it, where the transition
-          starts, where it ends and how far along it is.
+          React Native, with Expo. The content is a paged scroll view, one page per tab, and the
+          tabs are a row of labels with an underline. The underline is tied to the scroll: it moves
+          with the content while you drag and settles with the same deceleration, so it never runs
+          ahead or lags behind.
         </p>
         <p>
-          A drag is the native scroll, so the underline moves with the content and decelerates on
-          iOS’s own curve. A tap animates the same value in 300 ms, and the content travels one
-          page even when the tab you tapped is at the other end. As the underline travels, the tab
-          it lands on grows to make room for a symbol, a chevron on the feeds and an icon on the
-          topics, and the labels around it shift away. The row scrolls only when the next tab
-          doesn’t fit, and a light haptic marks each change of tab.
+          Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
+          the other labels shift away, and the content crosses one page even if the tab was four
+          away. The row itself scrolls only when the tab you chose doesn’t fit on screen. A light
+          haptic marks each change of tab.
         </p>
         <p>
-          The reference is the home tabs of X on iOS. Every value is measured from there: four
-          recordings at 60 fps, read frame by frame, each number next to its receipt in the code.
+          The symbols are SF Symbols, all but the Stocks chip, and the haptic is Expo’s. The
+          reference is the home tabs of X on iOS, measured from four recordings at 60 fps, frame by
+          frame; every number in the code sits next to where it came from.
         </p>
       </Seccion>
 
       <Seccion titulo="Performance">
         <p>
-          Everything runs on the UI thread: the underline, the labels and the header read the
-          scroll in worklets, so React never renders a frame. The bar’s state is a single derived
-          value that returns the whole thing at once, which is what keeps every frame in step.
-          Measured: the recording keeps all its frames inside every gesture.
+          Everything that moves is computed on the UI thread, not in JavaScript, so React never
+          renders a frame during a gesture. The bar reads one value that describes the whole
+          transition at once, which is what keeps the underline, the labels and the symbols in step.
+          Measured: the recording keeps every frame inside every gesture.
         </p>
       </Seccion>
 

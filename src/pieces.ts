@@ -52,7 +52,7 @@ export const PIECES: Piece[] = [
   {
     name: 'Swipeable tabs',
     platform: 'App',
-    desc: 'A tab bar with paged content, for Expo. Swipe between tabs, tap to select one, and the header collapses as you scroll.',
+    desc: 'Top tabs for React Native. The underline follows the drag, the active tab widens to show its symbol, and a tap moves the content one page, however far the tab is.',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
   },
