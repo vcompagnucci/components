@@ -1,0 +1,1 @@
+export { PantallaSwipeableTabs } from './pantalla'

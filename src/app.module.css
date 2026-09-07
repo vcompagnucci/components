@@ -240,15 +240,105 @@
 .group[data-plataforma='App'] .streamPreview:has(.demo)::before {
   content: none;
 }
+/* Con video, la caja es el video: sin padding, sin flex. */
+.group[data-plataforma='App'] .streamPreview:has(.demo) {
+  padding: 0;
+  display: block;
+}
 .demo {
   display: block;
-  width: var(--card-app-slot-ancho);
+  /* EL VIDEO ES LA CAJA. Con la grabación transparente, el cuadrado del
+     mockup ocupa la caja entera —sin el padding de 40/60 que reservaba
+     el hueco— y así el borde del video ES el borde de la caja: cuando
+     la cámara entra (1.576×) el teléfono se corta contra el límite del
+     espacio que da la library, no contra un cuadrado invisible 60 px
+     más adentro ("que el corte al hacer zoom sea natural, con el borde
+     en el espacio que brinda la library", 2026-09-05). Y más cerca: a
+     560 de lado el teléfono al 92 % mide 515 px; antes, en el cuadrado
+     de 440 al 86 %, 378. El hueco de 228×448 sigue existiendo para la
+     card sin video (el ::before). */
+  width: 100%;
+  height: auto;
   max-width: 100%;
   /* El radio de los controles chicos, no el de la card: una grabación
      cruda tiene esquinas vivas y dentro de una superficie ya redondeada
      se leen como sin terminar. 8 es lo que ya usan los clips del
      playground y las cajas del sistema. */
   border-radius: var(--card-radio);
+}
+
+/* ─── EL REPRODUCTOR: el video y su velocidad ───
+   El botón de velocidad de benji.org (Family Values), medido en su CSS:
+   arriba a la derecha con 1rem de padding; 0.75rem/460, alto 1.25rem,
+   radio píldora, color #989897; ancho 1.75rem en 1x y 2.5rem en 0.5x;
+   los dos rótulos superpuestos (position:absolute; inset:0) y cruzados
+   por opacidad; hover: color al 60 % y fondo #f2f2f2; todo con
+   `transition: all .2s ease`. Acá los colores son los tokens que ya
+   dicen lo mismo —text-secondary y surface-hover— y la tipografía es
+   la de nav (13/460), la más chica del sistema, en vez de 12. Dónde se
+   ve: en el DETALLE siempre, como en benji; en el hub de la library
+   sólo con el mouse sobre el video —ahí es una lista, y un control
+   por card es ruido— y siempre donde no hay hover (touch). Sin cambio
+   de fondo ni de color al pasar por encima: el rótulo alcanza (pedido
+   del usuario, 2026-09-05; benji sí pinta #f2f2f2). */
+.reproductor {
+  position: relative;
+}
+/* Sin máscara de esquinas cuando el video es transparente (ver Reproductor). */
+.demoAlfa {
+  border-radius: 0;
+}
+.velocidad {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: flex-end;
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--type-nav-fs);
+  line-height: var(--type-nav-lh);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-surface) var(--ease-surface),
+    width var(--dur-surface) var(--ease-surface);
+}
+.velocidad[data-velocidad='0.5'] {
+  width: 40px;
+}
+.velocidad span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: inherit;
+}
+.velocidad span[data-activa='true'] {
+  opacity: 1;
+}
+/* En la lista, oculto hasta el hover (o el foco); en el detalle, siempre. */
+.streamPreview .velocidad {
+  opacity: 0;
+}
+.streamPreview .reproductor:hover .velocidad,
+.streamPreview .velocidad:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .streamPreview .velocidad {
+    opacity: 1;
+  }
 }
 
 /* ─── EL ESCENARIO DE UN DEMO VIVO (pieza Web) ───
@@ -443,8 +533,13 @@
    podía aplicar nunca: un número que se leía como decisión y no hacía
    nada. Si el detalle llega a querer una medida más angosta que su
    columna, es una decisión aparte y se toma con la primera pieza. */
+/* Va DEBAJO del preview (ver Detail en parts.tsx), así que estos 24 no
+   son los 8 de antes: son la misma distancia con la que el bloque de
+   arriba se despega de la caja (.detailHead margin-bottom). Un número y
+   no dos para la misma relación —texto contra la pieza—, hasta que se
+   elija con scrubber sobre la página real. */
 .detailDesc {
-  margin: 8px 0 0;
+  margin: 24px 0 0;
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
@@ -482,8 +577,41 @@
 .detailPreview[data-plataforma='App']:has(.demo)::before {
   content: none;
 }
-.detailPreview .demo {
-  width: var(--card-app-slot-detalle);
+.detailPreview[data-plataforma='App']:has(.demo) {
+  padding: 0;
+  display: block;
+}
+
+/* ─── LAS NOTAS DEL DETALLE ───
+   El texto largo bajo la pieza, partido en secciones. El separador es el
+   mismo objeto que parte la lista —.groupHead y sus dos hijos—, así que
+   acá no se declara ninguna línea: se declara sólo el ritmo alrededor.
+
+   Los dos huecos son tokens que ya existían y NO se volvieron a elegir:
+   64 arriba de cada rótulo (--section-gap, el que separa Web de App) y
+   40 de la línea al primer renglón (--section-content-gap, con su
+   corrección de media caja adentro de .groupHead). Reusarlos es tener un
+   número por relación en vez de dos; que sean los correctos PARA PROSA
+   está sin medir, y se decide con el scrubber sobre esta página. */
+.notas p {
+  margin: 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  /* ink y no gris, igual que .detailDesc: es prosa, y la prosa se lee.
+     El gris es para lo que anota. Ver DESIGN.md. */
+  color: var(--ink);
+}
+/* Una línea de aire entre párrafos, que es el interlineado del cuerpo.
+   SIN RECIBO: no sale de ninguna referencia medida — es el default
+   tipográfico de toda la vida y está acá para no inventar un número.
+   Cuando la primera nota se lea en pantalla, se elige mirando. */
+.notas p + p {
+  margin-top: var(--type-body-lh);
+}
+.notaSeccion {
+  padding-top: var(--section-gap);
 }
 
 /* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que

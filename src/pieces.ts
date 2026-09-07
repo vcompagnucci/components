@@ -21,6 +21,13 @@ export type Piece = {
      Web va viva —su archivo está en src/piezas/, resuelto por slug en
      demos.tsx— y no lo lleva. */
   video?: string
+  /* El mismo video con alfa en HEVC (.mov) para Safari, que no
+     reproduce el alfa del WebM. Una pieza App se muestra transparente
+     y sin sombra sobre la superficie de la card, como los videos de
+     Family en benji.org: el fondo lo pone la library en el tema que
+     sea, así que no hacen falta versiones por tema. Lo escribe
+     `pnpm pieza:video … --alfa`; sin esto, `video` va solo. */
+  videoHevc?: string
 }
 
 /* LA URL DE UNA PIEZA, y hay UNA sola cuenta. Vivían dos que coincidían
@@ -41,4 +48,12 @@ export const slug = (name: string) =>
    decisión. La lista se llena SÓLO con piezas construidas de verdad —
    la primera define el molde. La página, el índice y vercel.json ya
    saben vivir con cero. */
-export const PIECES: Piece[] = []
+export const PIECES: Piece[] = [
+  {
+    name: 'Swipeable tabs',
+    platform: 'App',
+    desc: 'Top tabs for React Native & Expo.',
+    video: '/piezas/swipeable-tabs.webm',
+    videoHevc: '/piezas/swipeable-tabs.mov',
+  },
+]
