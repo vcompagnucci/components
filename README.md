@@ -1196,3 +1196,20 @@ render"; la medición dicha en llano ("the recording holds 60 fps
 through every gesture"); y una frase que estaba en Anatomy y en
 Performance quedó sólo donde explica algo. La lista completa de cambios
 está arriba de `src/notas/swipeable-tabs.tsx`.
+
+**Performance, con el método de Anatomy.** Pedido del usuario
+(2026-09-07): mejorarla "siguiendo todas las mismas reglas de
+better-ui, animate-expo, interface-craft, la regla de hoy y
+better-writing". Se verificó cada afirmación en el código antes de
+escribirla y salió en tres párrafos, desde lo que se nota hacia el
+cómo: (1) todo en el hilo de UI y ninguna vuelta a JavaScript por
+cuadro —sólo al empezar o terminar una acción: bloquear y soltar el
+pager en un toque lejano, y la háptica—; (2) cero layout mientras el
+contenido se mueve —la fila no es un flex row, las posiciones y anchos
+de cada estado de reposo se calculan una vez y cada cuadro interpola
+entre dos—, más las páginas memoizadas con la medición del tirón que
+evitan; (3) un solo valor del que derivan subrayado, labels y símbolos
+en el mismo cuadro, y lo medido: 60 fps en cada gesto y una traza de
+492 cuadros sin titileo. Ningún nombre de librería; "moves as one
+object" es la regla de cohesión de better-ui dicha en llano. Los
+recibos, archivo y símbolo, están arriba de `src/notas/swipeable-tabs.tsx`.

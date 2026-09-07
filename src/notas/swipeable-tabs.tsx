@@ -89,6 +89,35 @@ import { Seccion } from '../notas'
    se desliza porque la referencia lo hace y está medido cuadro a
    cuadro; la regla apunta a los tabs de abajo con `animation: 'none'`.
 
+   PERFORMANCE SIGUE EL MISMO MÉTODO (pedido del usuario, 2026-09-07:
+   "como mejoramos tanto anatomy, hay que mejorar performance, con las
+   mismas reglas"): por dónde corre y qué se midió, desde lo que se
+   nota —nunca se traba— hacia el cómo, sin nombres de librerías. Cada
+   afirmación con su recibo:
+   · Todo en el hilo de UI y ninguna vuelta a JavaScript por cuadro:
+     el scroll escribe shared values, los estilos derivan de ahí;
+     `scheduleOnRN` sólo en la reacción del umbral (háptica) y en el
+     cierre del toque lejano (`setQuieto`, dos veces por toque, no por
+     cuadro) (animate-expo § 6; tabs-deslizables.tsx, `alScrollear`,
+     `alTocar`, `scrollEnabled={!quieto}`).
+   · Cero layout por cuadro: la fila no es un flex row; `plano`
+     precalcula x y ancho de cada tab para cada estado de reposo una
+     vez, después de medir los labels con `onLayout`, y `entre`
+     interpola entre dos estados por cuadro; cada tab es absoluto con
+     `translateX` (animate-expo § 4; barra.tsx, `plano`, `entre`,
+     `css.tab`).
+   · Las páginas memoizadas, con la medición del tirón: primer cuadro
+     quieto y el segundo saltando 0.195 donde el ease pedía 0.128 y
+     0.252 (tabs-deslizables.tsx, "LAS PÁGINAS SE MEMOIZAN").
+   · Un solo valor, `Tramo`, del que derivan subrayado, labels y
+     símbolos en el mismo cuadro (interface-craft, "stage-driven";
+     better-ui, "cohesion / single entity": "moves as one object").
+     RUNTIME: traza del propio mapper del estilo, barrido de seis
+     páginas, 492 cuadros, cero cambios de dirección espurios
+     (pantalla.tsx, "No tocar sin volver a medir").
+   · 60 fps sostenidos: completitud de cuadros ≈100 % dentro de cada
+     gesto en tres tomas (README § El video para X; mockup/AGENTS.md).
+
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
    (AGENTS.md › Método de trabajo): la palabra que iría en una
@@ -140,9 +169,25 @@ export default function Notas() {
       <Seccion titulo="Performance">
         <p>
           Everything that moves is computed on the UI thread, not in JavaScript, so React does not
-          render during a gesture. The bar reads one value that describes the whole transition at
-          once, which keeps the underline, the labels and the symbols synchronized. Measured: the
-          recording holds 60 fps through every gesture.
+          render during a gesture. The scroll position is read there, and every style that depends
+          on it is computed there, frame by frame. The UI thread calls back into JavaScript only
+          when an action starts or ends: to lock the pager for a far tap and to release it, and for
+          the haptic when the tab changes. Never per frame.
+        </p>
+        <p>
+          No layout runs while the content moves. The row is not a flex row: the position and
+          width of every tab in every resting state are computed once, after the labels are
+          measured, and each frame interpolates between two of those states. Each tab is
+          absolutely positioned and moves with a transform. The pages are memoized, so the state
+          change of a far tap does not rebuild them; without that, the recording showed the first
+          frame after a tap standing still and the second one catching up in a single jump.
+        </p>
+        <p>
+          The bar reads one value that describes the whole transition: where it starts, where it
+          ends and how far along it is. The underline, the labels and the symbols derive from it in
+          the same frame, so they are always consistent with each other and the bar moves as one
+          object. Measured: the recording holds 60 fps through every gesture, and a trace of the
+          symbols across a six-page sweep, 492 frames, shows no flicker.
         </p>
       </Seccion>
 
