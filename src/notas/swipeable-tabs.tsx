@@ -54,7 +54,10 @@ import { Seccion } from '../notas'
    JavaScript. Las únicas marcas que quedan son las que el lector
    reconoce: React Native, Expo, iOS.
 
-   LAS REGLAS QUE ENUMERA EL TERCER PÁRRAFO son las de los skills
+   LAS REGLAS QUE ENUMERAN EL TERCER Y EL CUARTO PÁRRAFO —partidas en
+   dos el 2026-09-07 porque un solo párrafo tenía siete oraciones y la
+   forma pide de dos a cuatro: lo que se anima y cómo, y lo que lo
+   acompaña— son las de los skills
    `animate-expo`, `interface-craft` y `better-ui`, y entran SÓLO las
    que el código cumple, verificadas el 2026-09-07 (pedido del usuario:
    "aclará reglas que sigan a /animate-expo y /interface-craft y
@@ -195,10 +198,12 @@ export default function Notas() {
         <p>
           Only transform and opacity animate. The one animated width, the underline, is absolutely
           positioned and has no children, so no other layout runs. A drag interrupts a tap at any
-          point, however far the tab is. The curve is an ease-out, never an ease-in. The haptic
-          fires in the frame the tab changes, once per change, and never as the only feedback.
-          Reduced motion is respected, and 120 fps is enabled on ProMotion displays. Every value
-          is a named constant with its source next to it.
+          point, however far the tab is. The curve is an ease-out, never an ease-in.
+        </p>
+        <p>
+          The haptic fires in the frame the tab changes, once per change, and never as the only
+          feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
+          Every value is a named constant with its source next to it.
         </p>
         <p>
           The reference is the home tabs of X on iOS, measured frame by frame from four recordings

@@ -1283,3 +1283,11 @@ señaló (2026-09-07): la reacción de la háptica no cambió en todo el día
 que siempre— y un gesto cruza a lo sumo un límite hacia adelante. Lo
 que sí vibra más de una vez es ir y volver sobre el mismo límite sin
 soltar, una por cruce, exactamente como cambia el label activo.
+
+**El párrafo de las reglas, partido en dos.** Tenía siete oraciones y
+la forma que fija `AGENTS.md` pide de dos a cuatro por párrafo, como
+josh, que nunca pasa de tres. Anatomy queda en cinco párrafos: qué es y
+el subrayado; el toque; lo que se anima y cómo (propiedades, subrayado,
+interrupción, curva); lo que lo acompaña (háptica, reduced motion,
+120 fps, constantes con fuente); la referencia. Pedido del usuario
+(2026-09-07), después de la auditoría final contra las skills.
