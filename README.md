@@ -1131,3 +1131,12 @@ háptica de Expo) y de dónde salió (X en iOS, cuatro grabaciones a
 thread, not in JavaScript", sin nombrar la librería. Las tres reglas
 —desde lo que se ve, sólo la animación que da nombre, sin nombres de
 librerías— están en `notas.tsx` y en `AGENTS.md › Cómo se nombra`.
+
+**La línea, muchísimo más corta.** "Muchísimo más corto esto" (usuario,
+2026-09-07) sobre la línea de tres detalles. Queda "Top tabs for React
+Native. The underline follows the drag.": qué es y el detalle que se
+ve primero; los otros dos —el tab que se ensancha, el toque que cruza
+una sola página— ya están en Anatomy y ahí se quedan. Es la medida de
+josh: una línea bajo el título ("A tiny, fully-themeable, and
+dependency-free fluid stepper component"). Regla en `AGENTS.md › Cómo
+se nombra`: qué es y un detalle, una línea.

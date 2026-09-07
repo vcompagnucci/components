@@ -172,10 +172,12 @@ siguen la regla de nombres (Método de trabajo): el término técnico y el
 verbo de especificación, sin palabras graciosas — "tap to select one",
 no "tap to jump". **La línea de descripción tampoco nombra la app**: de
 dónde salió la pieza se cuenta en las notas, en Anatomy, donde se
-cuenta cómo se midió (pedido del usuario, 2026-09-07). Y dice lo que
-se VE en la grabación —qué es y los dos o tres detalles que hay que
-mirar—, no lo que la pieza también hace fuera de cuadro; el nombre de
-la plataforma es "React Native", no el de una librería.
+cuenta cómo se midió (pedido del usuario, 2026-09-07). Y ES CORTA: qué
+es y UN detalle, el que se ve primero en la grabación —"Top tabs for
+React Native. The underline follows the drag."—; los demás detalles
+van en Anatomy ("muchísimo más corto esto", mismo día). No cuenta lo
+que la pieza hace fuera de cuadro, y el nombre de la plataforma es
+"React Native", no el de una librería.
 
 **Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
 dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo

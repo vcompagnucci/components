@@ -52,7 +52,7 @@ export const PIECES: Piece[] = [
   {
     name: 'Swipeable tabs',
     platform: 'App',
-    desc: 'Top tabs for React Native. The underline follows the drag, the active tab widens to show its symbol, and a tap moves the content one page, however far the tab is.',
+    desc: 'Top tabs for React Native. The underline follows the drag.',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
   },
