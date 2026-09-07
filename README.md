@@ -1019,3 +1019,41 @@ arranca. Sin autoplay y con `preload="metadata"` más el fragmento
 con autoplay y precarga entera: es la pieza que viniste a ver.
 Verificado en Chrome: pausado en 0.1 al cargar, reproduce con la card
 bajo el puntero, pausa al salir conservando el tiempo.
+
+**Todo nombre usa vocabulario profesional preciso.** Regla traída por
+el usuario el 2026-09-07 (de otro `CLAUDE.md`, en captura), y vale para
+el repo entero: archivos, scripts, carpetas, funciones, variables,
+clases, commits, ramas, lo que sea, con la palabra que un ingeniero de
+IBM habría escrito en una especificación en 1972 — sin jerga, sin
+abreviaturas casuales, sin nombres graciosos ni ingeniosos, sin palabras
+del chat. `deploy_dashboards.sh`, no `push_dashboards.sh`, y eso es una
+ilustración, no el alcance. Vive en `AGENTS.md › Método de trabajo` y
+como quinto punto de `CLAUDE.md`. Se aplicó primero al texto público: la
+descripción de Swipeable tabs dice "collapses" donde decía "folds away",
+y las partes de la anatomía se llaman `Header`, `Tab bar`, `Pager` y
+`Page`, no "the fold".
+
+**La anatomía, en partes con nombre, como josh en /bloom.** El párrafo
+único de "Anatomy" mezclaba cuatro cosas en seis oraciones y el usuario
+pidió explicarlo "como lo haría benji taylor o josh puckett, bien
+simple" (2026-09-07). Medido en /bloom (API Reference, sobre la página
+servida): cada parte es un `h3` con el nombre —16/500/24, la tinta del
+título— y, a 8 px, un párrafo de una o dos oraciones —16/400/24, gris—;
+las partes van a 64 una de otra ("Container — The morphing element.
+Automatically sizes to fit the trigger content, then animates to the
+menu dimensions"). En /drawesome benji hace lo mismo en prosa: lista las
+herramientas y después cuenta qué hace cada una ("Each pen behaves like
+the thing it's named after"). Acá es un componente `Parte` en
+`notas.tsx`: el nombre en `--type-h3` (14/500, el título de pieza: mismo
+rol, un nombre corto que encabeza algo), el párrafo en cuerpo y en tinta
+como toda la prosa, 8 de nombre a párrafo (`--note-part-gap`) y entre
+partes el hueco de párrafos (20; el 64 de josh es su hueco de sección y
+ese acá ya es `--section-gap`), elegido mirando. Cuatro partes de arriba
+a abajo —Header, Tab bar, Pager, Page—, cada una con qué es y después
+qué hace, en dos a cuatro oraciones y sin adjetivos; la frase de la fila
+que sólo se corre cuando el tab no entra pasó de Performance a Tab bar,
+porque es comportamiento y no rendimiento. Cada afirmación sale del
+código de la pieza y de sus recibos: el bloque que se mueve entero, la
+barra sin estado que dibuja desde un solo valor, el toque que mueve el
+contenido una sola página, la háptica por cambio de tab, el pliegue
+1:1 hasta que el divisor toca la barra de estado.

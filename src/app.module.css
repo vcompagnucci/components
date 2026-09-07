@@ -610,6 +610,33 @@
 .notas p + p {
   margin-top: var(--type-body-lh);
 }
+
+/* UNA PARTE DE LA ANATOMÍA — el nombre y su párrafo (Parte, en
+   notas.tsx). RUNTIME josh /bloom, API Reference (2026-09-07): h3
+   16/500/24 en tinta + p 16/400/24 en gris a 8 px (mt-2); partes a 64
+   (mt-16). Acá el nombre va en --type-h3 —el título de pieza: mismo rol,
+   un nombre corto que encabeza algo— y el párrafo en cuerpo y en tinta
+   como toda la prosa de las notas. Los 8 se copian (--note-part-gap).
+   Entre partes va el hueco de párrafos: el 64 de josh es su hueco de
+   sección y acá ese ya es --section-gap; adentro de una sección, una
+   parte se separa de la anterior como un párrafo. SIN RECIBO ese último,
+   como .notas p + p: elegido mirando la página. */
+.notas .notaParte + .notaParte,
+.notas p + .notaParte,
+.notas .notaParte + p {
+  margin-top: var(--type-body-lh);
+}
+.notaParteNombre {
+  margin: 0;
+  font-size: var(--type-h3-fs);
+  font-weight: var(--type-h3-fw);
+  letter-spacing: var(--type-h3-ls);
+  line-height: var(--type-h3-lh);
+  color: var(--type-h3-c);
+}
+.notaParteNombre + p {
+  margin-top: var(--note-part-gap);
+}
 .notaSeccion {
   padding-top: var(--section-gap);
 }

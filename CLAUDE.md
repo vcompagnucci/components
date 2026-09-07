@@ -29,3 +29,8 @@ Lo que no se negocia, y está desarrollado en `AGENTS.md`:
    en un solo sentido o el área privada termina en el bundle.
 4. **El porqué se escribe arriba del archivo** y en la bitácora. Un valor
    sin recibo es un valor que alguien va a cambiar sin saber qué rompe.
+5. **Todo nombre usa vocabulario profesional preciso** —archivos,
+   funciones, variables, commits, ramas, lo que sea—: la palabra que un
+   ingeniero de IBM escribiría en una especificación en 1972. Sin jerga,
+   sin nombres graciosos ni ingeniosos. `deploy_dashboards.sh`, no
+   `push_dashboards.sh`; y en las notas, `Header`, no "the fold".

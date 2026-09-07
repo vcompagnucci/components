@@ -555,6 +555,18 @@ cosa o para quién es, nunca lo bien hecha que está.
 - **Una atribución también se verifica.** El `←` de la flecha de volver
   estuvo atribuido a benji y josh en la bitácora, y los dos usan palabras
   (`Index`, `Home`): era una decisión nuestra con una cita prestada encima.
+- **Todo nombre usa vocabulario profesional preciso.** Archivos,
+  scripts, carpetas, funciones, variables, clases, commits, ramas, lo que
+  sea: la palabra que un ingeniero de IBM habría escrito en una
+  especificación en 1972. Sin jerga, sin abreviaturas casuales, sin
+  nombres graciosos ni ingeniosos, sin palabras prestadas del chat. Vale
+  para todo, no sólo para el ejemplo que sigue: un script que despliega
+  dashboards es `deploy_dashboards.sh`, no `push_dashboards.sh` — y eso
+  es una ilustración del principio, no su alcance. Vale también para el
+  texto público: en las notas, las partes de una pieza se nombran con el
+  término técnico (`Header`, `Tab bar`, `Pager`, `Page`) y el verbo de
+  especificación ("collapses", no "folds away"). Regla traída por el
+  usuario el 2026-09-07.
 
 ## Estado
 

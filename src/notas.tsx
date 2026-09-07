@@ -25,7 +25,11 @@ import { slug } from './pieces'
    (joshpuckett.me): "Anatomy" —con qué está hecha y de qué partes—,
    "Performance" —por dónde corre y qué se midió— y, sólo cuando la
    pieza lo pide, "Use cases". Dos o tres oraciones por sección.
-   Decidido con la primera pieza (2026-09-05). */
+   Decidido con la primera pieza (2026-09-05). Adentro de "Anatomy", una
+   `Parte` por pieza del mecanismo —el nombre y, debajo, qué es y qué
+   hace—, que es como josh desarma Bloom (2026-09-07, ver `Parte`). Los
+   nombres de las partes son los términos técnicos, por la regla de
+   nombres del repo (AGENTS.md › Método de trabajo). */
 const MODULOS = import.meta.glob<{ default: ComponentType }>('./notas/*.tsx')
 
 const cache = new Map<string, ComponentType>()
@@ -62,6 +66,27 @@ export function Seccion({ titulo, children }: { titulo: string; children: ReactN
       </div>
       {children}
     </section>
+  )
+}
+
+/* UNA PARTE DE LA ANATOMÍA: el nombre y lo que hace. Es la forma en que
+   josh desarma un componente en /bloom (API Reference, medido el
+   2026-09-07 sobre la página servida): un h3 con el nombre —16/500/24,
+   la tinta del título— y debajo, a 8 px, un párrafo de una o dos
+   oraciones —16/400/24, gris—; cada parte a 64 de la anterior. Acá el
+   nombre toma --type-h3 (14/500/20, el título de pieza: el mismo rol,
+   un nombre corto que encabeza algo) y el párrafo sigue siendo el
+   cuerpo en tinta, como toda la prosa de las notas; los 8 son
+   --note-part-gap y entre partes va el hueco de párrafos (el 64 de josh
+   es también su hueco de sección, y ese acá ya es --section-gap). Es
+   un <h3> y no un <strong> porque está debajo del <h2> de la sección:
+   el outline de la página dice lo mismo que la vista. */
+export function Parte({ nombre, children }: { nombre: string; children: ReactNode }) {
+  return (
+    <div className={css.notaParte}>
+      <h3 className={css.notaParteNombre}>{nombre}</h3>
+      <p>{children}</p>
+    </div>
   )
 }
 
