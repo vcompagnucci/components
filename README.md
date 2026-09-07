@@ -1181,3 +1181,18 @@ for motion"; la atribución vive en el comentario del archivo.
 rules for motion" se rechazó ("no me gusta esta frase", 2026-09-07).
 El párrafo arranca por la primera regla —"Only transform and opacity
 animate"— como el "How it works" de benji, que tampoco anuncia: dice.
+
+**Una pasada de redacción sobre el texto público, con `better-writing`
+y la regla de vocabulario.** Pedido del usuario (2026-09-07): "fijate
+que todo respete la regla del vocabulario tipo ingeniero de IBM del 73,
+y mejorá un poco la redacción como la haría benji o josh; revisá
+better-writing". Lo que cayó: los modismos ("mid-flight", "tied to",
+"runs ahead or lags behind", "in step", "cue") pasan a la palabra de
+especificación ("in progress", "bound to", "synchronized", "feedback");
+"absolute element" a "absolutely positioned"; "ProMotion screens" a
+"ProMotion displays", como lo llama Apple; "first-level filters" a
+"top-level sections"; "React never renders a frame" a "React does not
+render"; la medición dicha en llano ("the recording holds 60 fps
+through every gesture"); y una frase que estaba en Anatomy y en
+Performance quedó sólo donde explica algo. La lista completa de cambios
+está arriba de `src/notas/swipeable-tabs.tsx`.

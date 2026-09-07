@@ -92,49 +92,63 @@ import { Seccion } from '../notas'
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
    (AGENTS.md › Método de trabajo): la palabra que iría en una
-   especificación, no la graciosa. */
+   especificación, no la graciosa.
+
+   Y LA REDACCIÓN PASA POR `better-writing` (2026-09-07, pedido del
+   usuario: que todo respete la regla de vocabulario y mejorar la
+   redacción como benji o josh): palabras que un lector cansado entiende
+   a la primera, sin modismos, y cada palabra que no trabaja se borra.
+   Lo que salió en esa pasada: "mid-flight" → "in progress"; "tied to"
+   → "bound to"; "never runs ahead or lags behind" → "It is never
+   animated on its own"; "cue" → "feedback"; "in step" →
+   "synchronized"; "absolute element" → "absolutely positioned";
+   "ProMotion screens" → "ProMotion displays" (el nombre de Apple);
+   "first-level filters" → "top-level sections"; "React never renders a
+   frame" → "React does not render" (React no renderiza cuadros); y la
+   frase "one value drives the whole transition", que estaba dos veces,
+   quedó sólo en Performance. */
 export default function Notas() {
   return (
     <>
       <Seccion titulo="Anatomy">
         <p>
           React Native, with Expo. The content is a paged scroll view, one page per tab, and the
-          tabs are a row of labels with an underline. The underline is tied to the scroll: it moves
-          with the content while you drag and settles with the same deceleration, so it never runs
-          ahead or lags behind.
+          tabs are a row of labels with an underline. The underline is bound to the scroll: it
+          moves with the content while you drag and settles with the same deceleration. It is
+          never animated on its own.
         </p>
         <p>
           Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
-          the other labels shift away, and the content crosses one page even if the tab was four
-          away. The row itself scrolls only when the tab you chose doesn’t fit on screen. A light
-          haptic marks each change of tab.
+          the other labels move aside, and the content moves one page, however far away the tab
+          is. The row scrolls only when the chosen tab doesn’t fit on screen. A light haptic marks
+          each change of tab.
         </p>
         <p>
-          Only transform and opacity animate; the one animated width, the underline, is an
-          absolute element with no children, so nothing else is laid out. A drag interrupts a tap
-          mid-flight. The curve is an ease-out, never an ease-in. One haptic per action, in the
-          frame the active tab changes, and never the only cue. Reduced motion is respected, and
-          120 fps is enabled on ProMotion screens. Every value is a named constant with its source
-          beside it, and one value drives the whole transition.
+          Only transform and opacity animate. The one animated width, the underline, is absolutely
+          positioned and has no children, so no other layout runs. A drag cancels a tap animation
+          in progress. The curve is an ease-out, never an ease-in. One haptic per action, in the
+          frame the active tab changes, and never the only feedback. Reduced motion is respected,
+          and 120 fps is enabled on ProMotion displays. Every value is a named constant with its
+          source next to it.
         </p>
         <p>
-          The reference is the home tabs of X on iOS, measured from four recordings at 60 fps,
-          frame by frame.
+          The reference is the home tabs of X on iOS, measured frame by frame from four recordings
+          at 60 fps.
         </p>
       </Seccion>
 
       <Seccion titulo="Performance">
         <p>
-          Everything that moves is computed on the UI thread, not in JavaScript, so React never
-          renders a frame during a gesture. The bar reads one value that describes the whole
-          transition at once, which is what keeps the underline, the labels and the symbols in step.
-          Measured: the recording keeps every frame inside every gesture.
+          Everything that moves is computed on the UI thread, not in JavaScript, so React does not
+          render during a gesture. The bar reads one value that describes the whole transition at
+          once, which keeps the underline, the labels and the symbols synchronized. Measured: the
+          recording holds 60 fps through every gesture.
         </p>
       </Seccion>
 
       <Seccion titulo="Use cases">
         <p>
-          Any list with more first-level filters than a segmented control can hold: a profile with
+          Any list with more top-level sections than a segmented control can hold: a profile with
           posts, replies and media; a feed with its filters; chat folders; a catalog by category;
           scores by league; an agenda by day.
         </p>
