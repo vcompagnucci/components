@@ -46,6 +46,7 @@
     "telefono": "expo start --go",
     "nueva": "node scripts/nueva.mjs",
     "grabar": "node scripts/grabar.mjs",
+    "mockup": "node scripts/mockup.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint"
   },

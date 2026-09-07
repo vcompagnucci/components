@@ -133,6 +133,29 @@ Qué pasó por detrás en el paso 8: el video se copió a
 `public/piezas/<slug>.<ext>` —el vault no viaja al deploy— y entró la
 entrada en `PIECES` con `platform: 'App'` y su `video`.
 
+**Si el video llega DESPUÉS** —se hace aparte, lo hace otro, o el que
+había no era el bueno— la pieza igual puede estar publicada: sin `video`
+la card muestra el hueco del teléfono vacío. Cuando el archivo esté:
+
+```bash
+pnpm pieza:video swipeable-tabs mockup/out/library --alfa        # el par con alfa de `pnpm render:library` (webm + mov), tal cual, y completa `video` y `videoHevc`
+pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # un video opaco cualquiera: re-encodea para la web y completa `video`
+```
+
+Una pieza App se muestra **transparente y sin sombra** sobre la
+superficie de la card, como los videos de Family en benji.org: el fondo
+lo pone la library en el tema que sea, así que no hay versiones por
+tema. El porqué está en `mockup/AGENTS.md`.
+
+No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El
+porqué y las guardas están arriba de `scripts/pieza-video.mjs`.
+
+**El video para X** —el teléfono en su bisel sobre fondo neutro, con la
+cámara que entra y sale— se hace en `mockup/` (Remotion): `pnpm assets`
+→ `pnpm verificar` → `pnpm studio` → `pnpm render:ambos`. **Cada video
+sale dos veces**, sobre fondo claro y sobre fondo oscuro. El proceso
+entero y cada mini-decisión están en `mockup/AGENTS.md`.
+
 ### Lo que vale para los dos
 
 **El slug es el mismo string en todos lados.** La carpeta del taller
@@ -144,7 +167,76 @@ material.
 **Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
 HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
 salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
-dice exactamente qué vas a ver.
+dice exactamente qué vas a ver. El título y la línea de descripción
+siguen la regla de nombres (Método de trabajo): el término técnico y el
+verbo de especificación, sin palabras graciosas — "tap to select one",
+no "tap to jump". **La línea de descripción tampoco nombra la app**: de
+dónde salió la pieza se cuenta en las notas, en Anatomy, donde se
+cuenta cómo se midió (pedido del usuario, 2026-09-07). Y ES CORTA: qué
+es y para qué plataforma, nada más —"Top tabs for React Native &
+Expo."—; los detalles van en Anatomy ("muchísimo más corto esto" y
+"que sea tabs, React Native, Expo", mismo día). El nombre de la
+plataforma es "React Native", no el de una librería, y las dos van
+con "&", como las escribe el ecosistema ("React Native & Expo").
+
+**Cómo se escriben la línea y las notas** (es el paso «Escribí el
+porqué» de los dos caminos; fijado con Swipeable tabs el 2026-09-07, y
+la bitácora tiene cada vuelta y cada rechazo):
+
+1. **Para quién.** Quien acaba de ver el video o el demo: qué está
+   mirando y con qué está hecho. Se escribe desde lo que se ve hacia el
+   cómo, nunca desde la implementación (la versión que contaba "un
+   valor derivado, el pager le pasa un tramo a la barra" se rechazó
+   por inútil).
+2. **La forma.** La línea: qué es y para qué plataforma, una oración
+   ("Top tabs for React Native & Expo."), sin nombrar la app de
+   referencia. Las notas: tres secciones como máximo —`Anatomy`,
+   `Performance` y, sólo si la pieza lo pide, `Use cases`—, en prosa,
+   de dos a cuatro oraciones por párrafo, sin subtítulos adentro de
+   una sección (se probó un h3 por parte, como josh en /bloom, y se
+   rechazó en pantalla). `Anatomy` habla sólo de la animación que da
+   nombre a la pieza, no de lo que la rodea en la grabación, y nombra
+   la referencia en su cierre, junto con cómo se midió. `Performance`:
+   por dónde corre y qué se midió. Ningún párrafo que anuncie lo que
+   sigue: el párrafo arranca por el primer hecho.
+3. **El tono.** Josh Puckett (joshpuckett.me: /bloom, /pasito,
+   /melt-effect) para la línea y las secciones; benji (benji.org:
+   "How it works" de /liveline, "The tools" de /drawesome) para la
+   prosa que conecta lo que se siente con el mecanismo. Sus páginas se
+   leen servidas ese día —WebFetch o Chrome DevTools—, no de memoria,
+   y la cita va en el comentario del archivo.
+4. **El vocabulario.** La regla de nombres de *Método de trabajo*: el
+   término técnico y el verbo de especificación. "React Native", nunca
+   el nombre de una librería (Reanimated, worklets, Yoga) ni de dónde
+   salen los símbolos; lo que esas palabras dicen se dice en llano
+   ("on the UI thread, not in JavaScript").
+5. **Las reglas de motion.** Antes de escribir que la pieza cumple
+   algo, auditar el código contra los skills `animate-expo`,
+   `interface-craft` y `better-ui`. Entran sólo las reglas que cumple,
+   cada una con su recibo —archivo y símbolo— en el comentario de
+   `src/notas/<slug>.tsx`; las que no cumple a propósito, por la
+   referencia, quedan en el comentario y no en el texto. Si una se
+   rompe sin razón, se arregla el código primero (así entró la
+   interrupción del toque lejano).
+6. **La redacción.** Pasar el texto por `better-writing`: palabras que
+   un lector cansado entiende a la primera, sin modismos ("mid-flight",
+   "in step", "cue"), y cada palabra que no trabaja se borra. Y por
+   `animation-vocabulary`: los términos del glosario donde no chocan
+   con la regla de nombres (`ease-out`, "reduced motion"; "widens"
+   antes que "morph").
+7. **La veracidad.** Releer cada afirmación contra el código y las
+   tablas de medición, antes y después de escribir. Lo que no está
+   medido no se afirma; lo que es SOURCE (una configuración) se marca
+   así en el comentario; cada corrección se registra.
+8. **La verificación en pantalla.** Chrome DevTools sobre la página
+   servida: el texto exacto de cada párrafo, la cantidad de párrafos,
+   que no queden nombres de librerías ni frases viejas; claro y oscuro
+   si se tocó el CSS. Y después del merge, la misma lectura en
+   producción.
+9. **El registro.** Cada decisión y cada rechazo en `README.md` y en
+   el comentario arriba de `src/notas/<slug>.tsx`, con la cita del
+   usuario y la fecha. `pnpm typecheck && pnpm build`, un commit por
+   mini-decisión que dice qué y por qué, push, PR con squash.
 
 **Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
 dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo
@@ -424,6 +516,7 @@ de la pieza y no su componente.
 | `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
 | `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
 | `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |
+| `mockup/` | **el video para X de una pieza App**, en Remotion: bisel oficial, fondo neutro, cámara medida; se itera en Studio. Ver su `AGENTS.md` |
 | `src/parts.tsx` | masthead, ítem de lista, detalle, la muestra (video/vivo), flecha de volver, `clicDeLink` |
 | `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
 | `src/not-found.tsx` | el 404 con física |
@@ -531,6 +624,19 @@ cosa o para quién es, nunca lo bien hecha que está.
 - **Una atribución también se verifica.** El `←` de la flecha de volver
   estuvo atribuido a benji y josh en la bitácora, y los dos usan palabras
   (`Index`, `Home`): era una decisión nuestra con una cita prestada encima.
+- **Todo nombre usa vocabulario profesional preciso.** Archivos,
+  scripts, carpetas, funciones, variables, clases, commits, ramas, lo que
+  sea: la palabra que un ingeniero de IBM habría escrito en una
+  especificación en 1972. Sin jerga, sin abreviaturas casuales, sin
+  nombres graciosos ni ingeniosos, sin palabras prestadas del chat. Vale
+  para todo, no sólo para el ejemplo que sigue: un script que despliega
+  dashboards es `deploy_dashboards.sh`, no `push_dashboards.sh` — y eso
+  es una ilustración del principio, no su alcance. Vale también para el
+  texto público —el título de la pieza, su línea de descripción y las
+  notas—: las partes se nombran con el término técnico (header, tab bar,
+  pager, list) y las acciones con el verbo de especificación ("select",
+  no "jump"; "collapses", no "folds away"). Regla traída por el usuario
+  el 2026-09-07.
 
 ## Estado
 

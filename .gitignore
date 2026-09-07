@@ -7,3 +7,7 @@ dist/
 # sí se versiona: es la plantilla.
 .env.local
 .env*.local
+
+# El mockup (Remotion): los assets con licencia y los renders no viajan.
+mockup/public/
+mockup/out/

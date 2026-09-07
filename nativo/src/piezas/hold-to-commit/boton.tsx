@@ -167,7 +167,7 @@ const animar = (hasta: number, duracion: number, curva: Curva) => {
 }
 
 /* Lo que cruza a JS, con su estampa para el medidor (no-op si no mide).
-   Declaradas antes de los worklets que las llaman (trampa 13). */
+   Declaradas antes de los worklets que las llaman (trampa 14). */
 const ticJS = () => {
   marcarJS('tic-js')
   void tic()

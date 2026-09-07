@@ -85,6 +85,7 @@ qué se tomó así.
 | ↳ **con** scrollspy | La pieza que estás mirando se pinta (en **65**, ver arriba). Activa es la última cuyo borde superior ya pasó una línea a **128px** del tope, más un guarda al final del documento | es la regla de benji, sacada de su bundle: su fórmula lleva medio viewport de los dos lados y se cancela. Antes acá decía "sin scrollspy" — se revirtió |
 | Separador de sección | Rótulo 14px/600/#111 + hairline hasta el borde del riel; hueco de 8px, 64px arriba, 56px abajo | el separador de benji en /liveline y /drawesome, medido en vivo — su `<hr>` está vacío, lo que pinta es el div que React le envuelve |
 | Para qué existe el detalle | Para **las notas y el aire**: el porqué, las decisiones y los números, más la pieza sola en pantalla y más grande. La lista muestra, el detalle explica. No es sólo una pieza agrandada | con preview vivo en la lista, el detalle no aporta la pieza (ya la tenías): aporta lo que la rodea |
+| ↳ y la descripción va **debajo** de la pieza | Arriba queda `título + plataforma`; la prosa entra después del preview, a **24** | pedido de Vito el 2026-09-04, y es orden de lectura y no un valor: primero se ve la cosa, después se lee qué es. Lo que gana de paso es que arriba queda **exactamente** el par medido de benji —su `h1` con su `time` a 4px— sin un tercer renglón que él no tiene. El 24 no se eligió mirando: se reusa el `margin-bottom` del bloque de arriba para no tener dos números para la misma relación (texto contra la pieza). Queda para pasarle el scrubber |
 | Espaciado de la lista | Aire arriba/abajo **80 → 32** · masthead→sección **60** · rótulo→pieza **40** · nombre→card **12** · entre piezas **48** · entre secciones **64** · rótulo↔hairline **8** · subtítulo **4**. **Todos múltiplos de 4** | elegidos con scrubber sobre la página real. Los 40, 48 y 64 son de benji, medidos; el resto se decidió acá. Detalle en `.context/recon/NAVIGATION.md` |
 | ↳ nombres de los tokens | **Dueño → parte → propiedad**, al modo de apple: `--page-padding-top`, `--section-content-gap`, `--piece-card-gap`, `--index-group-gap`. **La escala `--space-*` se borró entera** | medido en 1.3 MB de CSS servido de apple, linear y openai. Apple: `--buystrip-content-padding`, `--media-gallery-bottom-content-padding-left`. Linear más corto: `--button-gap`, `--kbd-gap`. OpenAI intermedio: `--page-top-gap`, `--tabs-sticky-gap`. **Ninguno de los tres tiene un token nombrado por su valor** — no hay un solo `--space-4` en los tres bundles. Y los tres comparten que el nombre es el ROL y el valor es contextual: el `--button-gap` de linear vale 4, 6 u 8 según el tamaño |
 | ↳ ×4 en layout, libre en componentes | Todo espaciado de **layout** es múltiplo de 4. **Adentro de un componente no rige** | es lo que hace benji: usa 2, 3, 5, 6 y 10 —el 6px aparece 28 veces— pero **sólo** en `.Toolbar_*`, `.BarSlider_field`, `.submitButton` y variantes `[data-size=sm]`. Ni uno solo en layout de página. Misma forma que su regla de pesos: los valores sucios existen para compensación e internos, nunca para la estructura. Hoy no tenemos nada interno — la card está vacía y el único componente es la flecha del detalle, que es andamio |
@@ -157,6 +158,12 @@ Lo medido de las referencias está en `.context/recon/vault/GRILLA.md`.
 | **Sin flecha en el hover** | la superficie oscurece y nada más | la flecha era la de linear, medida — pero **su** tarjeta la necesita porque nada más le cambia al pasar el puntero: sin ella no habría señal de que es clickeable. La nuestra oscurece la superficie entera (regla de josh, ya en el sistema), así que la flecha era una segunda señal diciendo lo mismo |
 | ↳ el borde no se copia | sin anillo ni sombra | la regla de josh ya está decidida en `tokens.css`: la card se define por contraste. Se copia la geometría, se respeta lo decidido |
 | ↳ ancho explícito, siempre | el teléfono a **228**, el resto al 100% de la caja | ninguna de sus 45 cards deja que el archivo decida su tamaño. Sin esto un clip más chico que la caja se dibuja a su tamaño natural: una imagen de 1×1 daba una caja de **81px** de alto |
+| **Una card son tres capas** | el componente · **su** fondo, que viene del archivo · y `--surface` alrededor, **siempre presente** — y el hueco es **uno solo para todas las fuentes** | Vito, mirando la grilla: *"el tamaño ese de componente, más su fondo que viene del video, y después nuestro fondo siempre presente"*. Con dos reglas —web llenando la card, native con aire— la tercera capa faltaba en web (RUNTIME a 1440: `Shelf to card` pintado 442.64×424.94 en una card de 442.66×424.94, **aire 0.01 × 0**) y las bandejas no podían medir lo mismo. Hubo ida y vuelta: se unificó, se revirtió porque nadie lo había pedido y achicaba los clips de web, y volvió cuando sí se pidió |
+| ↳ **el ancho baja a 2/3** | de **78.1818%** (430/550, benji) a **66.6667%**. El alto no se toca: **84.8485%** = 448/528, suyo | el 78.18% sólo ataba cuando el archivo es más ancho que alto, y **6 de 8** clips de `nativo/` son cuadrados o casi: salían todos al mismo tope, **346.06**, con 48.3 de aire al costado contra 39.4 arriba. A 2/3 el tope es **295.11** y el aire lateral **73.78**. No hay referencia detrás del número y queda dicho: es el redondo que achica lo cuadrado y no toca lo que tiene forma de teléfono, porque a eso lo ata el alto (`Floating bar` 1320×2868 → 165.85, intacto). Verificado a 1440, 900, 700, 500 y 390 |
+| ↳ **las bandejas miden lo mismo porque los archivos son 1:1** | la regla sola no alcanza: con `contain` el tamaño lo decide la **proporción del archivo** | los clips con bandeja que no eran cuadrados se rellenaron con **su propio fondo** hasta 1:1 — `Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 → 2868×2868. El relleno no es un color pintado sino sus propias filas/columnas de borde extendidas: pintar un color caía **2 niveles** distinto por la conversión RGB→YUV y se veía la costura. Resultado: **siete bandejas a 295.11×295.11** exactos. El precio: en `Floating bar` el teléfono pasa de 166 a 136px de ancho, y `Copy text` deja de llenar la card (295×283 con superficie alrededor) |
+| ↳ una trampa de ffmpeg, anotada | `scale` **preserva el aspecto de display** y `vstack`/`hstack` heredan el SAR del primer input | estirar una tira de 2 filas a 36 (1800×2 → 1800×36) le pone **SAR 18:1**, y el archivo entero sale marcado así: el navegador lo veía como 32400×1800 y lo dibujaba de 16px de alto. `setsar=1` después del apilado, siempre |
+| ↳ lo que rompe, anotado | el diálogo de subir muestra **Native** y **Web** con las mismas clases para que elijas *cuál se ve mejor* — y ahora **se ven iguales** | `fuente` sigue decidiendo la carpeta y la solapa del filtro; lo que dejó de decidir es el encuadre, que era lo que ese diálogo ponía a la vista. Queda sin resolver a propósito: volver a diferenciar el marco, o pasar el diálogo a preguntar por la carpeta con palabras, es una decisión aparte |
+| ↳ el orden de la grilla se toca en el disco | `birthtime`, con `SetFile -d` | la grilla ordena por `creado` y la carpeta es el manifiesto, así que no hay campo de orden que agregar: se cambia la fecha del archivo. Las originales quedan anotadas en `.context/marco-vault/originales/fechas.txt`, con los archivos originales al lado de cada re-encode |
 | El hover | **la superficie oscurece y nada más**: la imagen no se mueve, no escala y no se oscurece aparte | medido en linear: en toda su tarjeta lo único que cambia es `opacity 0→1` y `translateX(−2→0)` en 100ms — una flecha. Acá esa flecha se sacó, ver arriba |
 | **Corrección: el zoom de benji no existe** | `react-medium-image-zoom` está en su CSS servido pero renderiza **0 elementos** en `/`, `/family-values`, `/liveline`, `/drawesome`, `/honkish` y `/pixelmelt` | mismo caso que las utilidades `active:scale` de josh. Tampoco hay hover con escala: el único `scale` que toca una card es **estático** (`1.06`, para que la captura sangre bajo el bisel del teléfono) |
 | ↳ lo que sí hace en cada card | un toggle de velocidad **1x / 0.5x** arriba a la derecha — 45 en family-values, 34 en honkish | 28×20, 12px/460, radio 38, `#989897`, dos `<span>` que se cruzan por opacidad, `all .2s ease`. Es evidencia directa para el reproductor |
@@ -209,6 +216,16 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
   semánticos. También sobran `--space-2`, `--space-6` y `--space-10`, que
   rompen la regla de múltiplos de 4 — los dos primeros sin uso
 - Radios, elevación, z-index — se definen desde la primera pieza construida
+- **`Swipeable tabs` está publicada sin video.** El clip final se está
+  haciendo en otra sesión; cuando esté, entra con
+  `pnpm pieza:video swipeable-tabs <archivo>`. Falta decidir QUÉ va en el
+  hueco: la grabación cruda (la silueta del teléfono, que es lo que el
+  hueco reserva) o el mockup para X (cuadrado, con bisel y fondo: en el
+  hueco se vería un teléfono chico adentro de un cuadrado)
+- **`pnpm grabar` escribe al vault por diseño**, pero la primera pieza
+  se sacó del vault a pedido: el vault es lo ajeno. Si esa regla se
+  generaliza, `grabar` debería escribir a `.context/mockup/master/` y el
+  mockup leer de ahí (hoy se le pasa con `--clip=`)
 - Primera pieza a construir dentro del stage
 - Footer / firma: el nombre "Vito Compagnucci" todavía no está en ninguna parte
 - **`Reminders App`** es el único clip que dice DÓNDE en vez de QUÉ, y repite
@@ -534,7 +551,7 @@ No está forzado por código a propósito: el nombre es el nombre del archivo
 en tu disco, y una app que te impide llamar a tus archivos como querés
 tiene la dependencia al revés.
 
-## Hold to commit — la primera pieza App
+## Hold to commit — el botón de Opal, pieza App
 
 **El 2026-09-02** entró al taller nativo la primera pieza construida
 contra un clip del vault: `nativo/src/app/hold-to-commit/` (la ruta) y
@@ -695,8 +712,8 @@ mide 24 pt de mayúscula, o sea 34 pt de fuente, el Large Title de iOS.
 | El sonido de Apple Pay al completar, bien timeado | `sonido.ts` + `media/compra.wav`: `payment_success.caf` del runtime de iOS 26.2, el sonido de éxito de Apple Pay (pagar, confirmar una compra o instalación en el App Store), a WAV 44.1 kHz mono y subido de −11 a −1 dBFS de pico; reproductor precalentado a volumen 1, disparado 60 ms antes del final del hold desde el mismo reloj que el relleno (`ADELANTO_MS`), así la primera nota cae en el cuadro de la ráfaga y la segunda, el "ding", 120 ms después mientras el pill blanquea; respeta el switch de silencio y no pausa otras apps | pedido del 2026-09-07 ("dejá el de Apple al descargar una app, bien timeado"), al final de diez vueltas: arpegio, campana, moneda, este mismo, el pajarito de Berry en tres versiones, una voz en dos, y "sacá todo tipo de sonido". RUNTIME (`.context/hold-to-commit/audio/medir-sonido.py`): re 6 (1176 Hz) 120 ms y re 7 (2352 Hz) decayendo 1.1 dB por 20 ms hasta los 700 ms. **Es un asset de Apple y no se redistribuye**: si el repo se hace público, no viaja. Lo aprendido en el camino: reusar un reproductor con `seekTo(0)` + `play()` pierde golpes; crearlo en el momento tarda, se precalienta; una modulación entre 20 y 150 Hz o dos frecuencias cercanas suenan ásperas; el nivel se mide en LUFS. `expo-audio` 57.0.4, con `require` en un try porque el dev client del simulador no lo trae |
 | ↳ `claro` sale | `material.ts` vuelve a dos materiales, `opaco` y `vidrio`; la cápsula de vidrio es siempre `regular` | pedido del 2026-09-07 ("sacá la opción de claro"), el mismo día que entró. Lo que se vio: sobre el fondo `accion`, gris y plano, `clear` casi no se distingue de `regular` y pierde el esmerilado que hace legible el label; es el estilo que Apple reserva para fotos y video. Queda en el recibo del archivo cómo volver: `glassEffectStyle="clear"` en la cápsula |
 | Modo claro de verdad, y nada pintado en el fondo del botón | el ESQUEMA lo decide la pantalla (sólo `accion` sigue al sistema; los fondos de Opal son oscuros siempre) y lo reciben el botón, los chips y la barra de estado. En claro: el pill sigue oscuro (#1E1E1E, el botón primario negro de iOS y de Robinhood) pero sin brillo de reposo ni punta velada; anillo negro al 10 % (se ve sobre el pill blanco del commit, no sobre el oscuro); ráfaga del color del pill; chips con `systemFill` y `secondaryLabel` de iOS. Recibo en `CLARO` (medidas.ts) | pedido del 2026-09-07 mirando el simulador en claro: "adaptalo bien a light mode, lo veo horrible todo, hasta el picker, y todo lo del botón" y "sacá las cosas del fondo del botón". Lo que se veía: chips blancos al 6 % sobre blanco (invisibles), texto gris de la pantalla oscura, y un pill oscuro con el brillo teal→verde de Opal como único color de una pantalla que a pedido no tiene ninguno. SUPUESTO todo (el clip es oscuro), derivado de los colores de sistema. RUNTIME (`cmp/claro-tablero.png`): reposo, mitad del hold, commit y ráfaga en claro; commit y reposo en oscuro, que no cambió (el brillo de Opal sigue ahí) |
-| Android, tal cual iOS | cuatro cosas que eran sólo iOS: (1) los colores de sistema del fondo `accion` dejan de pedirse con `PlatformColor` y se escriben con sus valores de UIKit por esquema (`PALETA`); (2) las copias borrosas del label en Android son el mismo `Text` con `filter: [{ blur: σ }]` (σ 2.5 y 1.0, las de `generar.swift`) desde la API 31, y antes se cruzan los nítidos; (3) el tilde es `check` de Material Symbols en 700 (`@expo-google-fonts/material-symbols` 0.4.44, exacta); (4) `includeFontPadding: false` en el texto y `needsOffscreenAlphaCompositing` en el relleno que se funde | pedido del 2026-09-07 ("que funcione tal cual funciona en Android e iOS"). SOURCE de cada trampa en `nativo/AGENTS.md` 21–23 y 27: `PlatformColor` con nombres de UIKit devuelve 0 = transparente en Android (`FabricUIManager.java:573`); `SymbolView` con nombre string no dibuja nada (`SymbolView.tsx:32`); el blur de `filter` es `RenderEffect` desde la API 31 (`BaseViewManager.java:558`); Android compone los hijos de una vista con opacidad uno por uno. En iOS los píxeles no cambian: los valores escritos son los que `PlatformColor` daba (barra (43,43,46) en oscuro, (228,228,230) en claro). RUNTIME en un emulador Pixel 9 / Android 16 con Expo Go 57.0.9 instalado a propósito (`cmp/android-tablero.png`): reposo, hold, commit con la copia borrosa enfocando, asentado y reinicio; y `sim/android-oscuro.png` en oscuro. Esta Mac no tenía Android: se instalaron el JDK y las command-line tools con Homebrew (cómo, en `nativo/AGENTS.md › Probar en Android`) |
-| Rendimiento: medido bajo la carga de una app real | dos herramientas nuevas, andamiaje de la pieza: `carga.tsx` (JS ocupado al 60 % parseando JSON de 40 KB cada 20 ms; la ficha re-renderizándose a 10 Hz; las dos; o JS bloqueado 150 ms por vez) y `medidor.tsx` (cuadros del hilo de UI por fase de la secuencia, demora del hilo de JS, y marcas en los dos hilos que dan la latencia real de la háptica y el sonido). Perillas en `sonda.ts` (`CARGA`, `MEDIR`, `RECEPTOR`) o por URL. Y un cambio en el botón: el REINICIO pasa del `setTimeout` de JS a un `withDelay` en UI | pedido del 2026-09-07 ("mejorá muchísimo la performance [...] simulá la carga de una app real para testear su performance"). RUNTIME, secuencia `auto` entera (press → commit → 5 s → reinicio), 60 Hz: **iOS** (simulador, bundle dev): 0 cuadros perdidos de ~416 bajo `todo` y bajo `pesada`; hold 1000–1004 ms; reinicio a los 5030 ± 4 ms del commit con JS bloqueado (antes, en JS, esperaba a que JS se liberara). **Android** (emulador, bundle de producción): 0 perdidos bajo `todo`, 1 de 416 bajo `pesada`, hold 999–1003. Lo que sí espera es lo que cruza a JS: bajo `pesada` el primer tic háptico llega 66–92 ms tarde y el sonido 50 ms (los detentes y el sonido salen del reloj de UI en el instante justo; JS los atiende cuando puede). Sin un módulo nativo eso no se puede mover en Expo Go, y ninguna carga plausible (`todo`) lo atrasa más de 12 ms. La medición destapó dos bugs propios que ya no están (AGENTS 24 y 25): el reinicio en UI capturaba una `const` de más abajo, y las marcas desde JS tiraban un error en la cola de animaciones. Y una trampa del emulador (AGENTS 26): en dev pierde 47 cuadros de 372 sin carga; en producción, 0–2 |
+| Android, tal cual iOS | cuatro cosas que eran sólo iOS: (1) los colores de sistema del fondo `accion` dejan de pedirse con `PlatformColor` y se escriben con sus valores de UIKit por esquema (`PALETA`); (2) las copias borrosas del label en Android son el mismo `Text` con `filter: [{ blur: σ }]` (σ 2.5 y 1.0, las de `generar.swift`) desde la API 31, y antes se cruzan los nítidos; (3) el tilde es `check` de Material Symbols en 700 (`@expo-google-fonts/material-symbols` 0.4.44, exacta); (4) `includeFontPadding: false` en el texto y `needsOffscreenAlphaCompositing` en el relleno que se funde | pedido del 2026-09-07 ("que funcione tal cual funciona en Android e iOS"). SOURCE de cada trampa en `nativo/AGENTS.md` 22–24 y 28: `PlatformColor` con nombres de UIKit devuelve 0 = transparente en Android (`FabricUIManager.java:573`); `SymbolView` con nombre string no dibuja nada (`SymbolView.tsx:32`); el blur de `filter` es `RenderEffect` desde la API 31 (`BaseViewManager.java:558`); Android compone los hijos de una vista con opacidad uno por uno. En iOS los píxeles no cambian: los valores escritos son los que `PlatformColor` daba (barra (43,43,46) en oscuro, (228,228,230) en claro). RUNTIME en un emulador Pixel 9 / Android 16 con Expo Go 57.0.9 instalado a propósito (`cmp/android-tablero.png`): reposo, hold, commit con la copia borrosa enfocando, asentado y reinicio; y `sim/android-oscuro.png` en oscuro. Esta Mac no tenía Android: se instalaron el JDK y las command-line tools con Homebrew (cómo, en `nativo/AGENTS.md › Probar en Android`) |
+| Rendimiento: medido bajo la carga de una app real | dos herramientas nuevas, andamiaje de la pieza: `carga.tsx` (JS ocupado al 60 % parseando JSON de 40 KB cada 20 ms; la ficha re-renderizándose a 10 Hz; las dos; o JS bloqueado 150 ms por vez) y `medidor.tsx` (cuadros del hilo de UI por fase de la secuencia, demora del hilo de JS, y marcas en los dos hilos que dan la latencia real de la háptica y el sonido). Perillas en `sonda.ts` (`CARGA`, `MEDIR`, `RECEPTOR`) o por URL. Y un cambio en el botón: el REINICIO pasa del `setTimeout` de JS a un `withDelay` en UI | pedido del 2026-09-07 ("mejorá muchísimo la performance [...] simulá la carga de una app real para testear su performance"). RUNTIME, secuencia `auto` entera (press → commit → 5 s → reinicio), 60 Hz: **iOS** (simulador, bundle dev): 0 cuadros perdidos de ~416 bajo `todo` y bajo `pesada`; hold 1000–1004 ms; reinicio a los 5030 ± 4 ms del commit con JS bloqueado (antes, en JS, esperaba a que JS se liberara). **Android** (emulador, bundle de producción): 0 perdidos bajo `todo`, 1 de 416 bajo `pesada`, hold 999–1003. Lo que sí espera es lo que cruza a JS: bajo `pesada` el primer tic háptico llega 66–92 ms tarde y el sonido 50 ms (los detentes y el sonido salen del reloj de UI en el instante justo; JS los atiende cuando puede). Sin un módulo nativo eso no se puede mover en Expo Go, y ninguna carga plausible (`todo`) lo atrasa más de 12 ms. La medición destapó dos bugs propios que ya no están (AGENTS 25 y 26): el reinicio en UI capturaba una `const` de más abajo, y las marcas desde JS tiraban un error en la cola de animaciones. Y una trampa del emulador (AGENTS 27): en dev pierde 47 cuadros de 372 sin carga; en producción, 0–2 |
 
 ## Lo que trajimos de leer otro repo
 
@@ -766,3 +783,667 @@ mismos commits que las animaciones. Medidos con `ffprobe`: h264, 30 fps,
 nombre. Nuestro `pnpm grabar` graba para **publicar**; esto sería para
 **verificar**, y es otra cosa. Queda en Pendiente, junto con los MCP que
 le dan ojos al agente.
+
+## Las notas del detalle — líneas de benji, tono de josh
+
+**El detalle existía para esto** y estaba vacío: *"la lista muestra, el
+detalle explica"*. Desde el 2026-09-04 una pieza puede traer un texto
+largo bajo su preview, partido en secciones: de dónde salió, qué se
+midió, qué peleó. Vive en `src/notas/<slug>.tsx`, con el mismo mecanismo
+que los demos —glob perezoso por slug, sin registro que mantener— y una
+pieza sin notas no dibuja nada.
+
+**La línea de `PIECES` no se tocó, y son dos cosas distintas.** Esa es la
+que se escribe al publicar y la que se lee de corrido bajo la pieza;
+las notas son lo que sigue. Meter la prosa en el inventario habría
+hinchado el archivo que leen la página, `rutas.mjs` y el puente que
+publica.
+
+**Las líneas son de benji y el tono es de josh, y conviene decir de quién
+es cada mitad** porque la mezcla es nuestra:
+
+- El separador **es el mismo objeto** que parte la lista en Web y App
+  (`.groupHead`: rótulo 14/600 + hairline hasta el borde del riel, hueco
+  de 8), que ya estaba medido de `/liveline` y `/drawesome`. No se
+  escribió una segunda línea: una sola línea en la página es una sola
+  regla.
+- **Josh no tiene ninguna**: cero `<hr>` en `/melt-effect` (SOURCE,
+  2026-09-04, sobre el HTML servido). Lo suyo son los **rótulos** —
+  cortos, en sentence case, a veces una pregunta: *"1. What's a
+  displacement map?"*, *"Shaping with frequencies"*, *"The filter"*,
+  *"Apply it"*— y la **prosa**: primera persona del plural para el
+  método, frases cortas, el mecanismo nombrado con precisión, la
+  advertencia dicha sin dramatismo (*"A note on performance. Animating
+  filter attributes re-evaluates the entire filter graph every
+  frame"*) y los errores propios admitidos. Nada de autoelogio: eso ya
+  era la regla del copy acá.
+
+**Se escribe en primera persona del singular.** *"I didn't start from a
+memory of how X feels. I started from X."* Acá adentro hay una sola
+persona y el plural sonaba a un equipo que no existe. Es además lo que
+hace josh cuando cuenta lo suyo —*"I've applied an SVG filter to it"*,
+*"I'll never forget"*— y deja el `we` para llevar al lector por un
+método. El `you` para el lector se queda, que también es suyo.
+
+**Los dos huecos son tokens que ya existían** —64 arriba de cada rótulo
+(`--section-gap`) y 40 de la línea al primer renglón
+(`--section-content-gap`)— y **no se volvieron a elegir**: se reusan para
+tener un número por relación. Que sean los correctos *para prosa* está
+**sin medir**, igual que la línea de aire entre párrafos (hoy la
+interlínea del cuerpo). Las tres se deciden con el scrubber sobre esta
+página, y están marcadas como pendientes en el CSS.
+
+## La primera pieza App: los tabs de X, medidos contra la app real
+
+**Swipeable tabs** (`nativo/src/piezas/swipeable-tabs/`) es la primera
+pieza que sale del taller nativo, y fija cómo se construye una: **nada se
+afirma sin medir**. La referencia no fue una idea de cómo se mueve X sino
+X mismo — el clip del vault y después cuatro grabaciones de la cuenta del
+usuario, en su teléfono (1320×2868, 60 fps), leídas cuadro a cuadro con
+scripts de ffmpeg y no a ojo. De ahí salieron los seis reposos de la
+barra al décimo de punto, la regla de la inclinación (`BARRA.apartar`),
+la curva del toque (easeOutCubic, 300 ms, ajustada contra tres toques),
+el pliegue de la cabecera con el scroll (traslación = scroll al décimo,
+fundido lineal) y **las dos paletas**, la oscura y la clara, con el mismo
+método. Cada número lleva su recibo arriba en `medidas.ts`, y la planilla
+entera vive en `.context/recon/swipeable-tabs/MEDICIONES.md`.
+
+**Lo que se decidió contra la referencia también quedó escrito**, con la
+prueba de que la referencia hace otra cosa: la fila de tabs sólo se corre
+cuando el tab destino no entra en pantalla (`BARRA.fila = 'visible'`),
+aunque la grabación muestra a X centrando siempre; el bloque de arriba
+frena con su divisor pegado a la barra de estado en vez de salir entero.
+Las dos son pedidos del usuario probados en el teléfono, y las variantes
+fieles están a una palabra de distancia. Y las que se probaron y se
+rechazaron —el bloque desvaneciéndose entero, el recorrido completo del
+pliegue— quedaron anotadas arriba del código para que nadie las repita.
+
+**La forma de la carpeta** es la de un componente de
+[react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations):
+una pantalla autocontenida, un `index.tsx` que la exporta, el mecanismo
+en archivos por responsabilidad, el tema y los datos al lado. La ruta en
+`src/app/` es un puntero. Su registry a mano no viajó, por lo mismo de
+siempre: el índice del taller se deriva de las carpetas.
+
+**Lo que aprendimos del método**, más que de la pieza: una sonda
+determinista es UN estado por recarga, no una línea de tiempo de timers;
+el simulador no puede recibir un tap, así que el camino del toque se
+prueba en el teléfono; y cuando el usuario dice "se siente abrupto", se
+toca una perilla o se pregunta cuál, no la geometría — la vuelta grande
+se rechazó en el acto.
+
+## El video para X, medido contra el clip de @nater02
+
+La pieza ya corría y estaba grabada; faltaba el video que se publica. El
+usuario trajo la referencia exacta —un clip de @nater02 en X: 720² a 60
+fps, 24.6 s— y cuatro palabras: el zoom al inicio, el fondo neutro, el
+teléfono tal cual ese en el medio, la fluidez. Se midió cuadro a cuadro
+antes de tocar nada, como con la pieza:
+
+| qué | medido | de dónde |
+| --- | --- | --- |
+| fondo | RGB (235, 230, 232), plano | las cuatro esquinas y los bordes, iguales en todos los cuadros |
+| teléfono | negro, cuerpo 335×686 en 720² → 95.3 % del alto, centrado | el borde del cuerpo por fila y columna en el cuadro 0 |
+| sombra | sólo a la derecha y abajo; dos capas, una apretada (α .60, σ 8, corrida 12) y una ancha (α .20, σ 30, corrida 70) | ajuste por mínimos cuadrados sobre el perfil de luma a cada 6 px, con los lados sin sombra como restricción |
+| cámara | entra a 1.576× en 0.65 s, se queda 0.18 s, sale a 1.161× en 0.62 s y no se mueve más | el ancho del cuerpo cuadro a cuadro (335 → 528 → 389) |
+| curvas | entrada bézier (0.30, 0.05, 0.40, 0.90), salida (0.25, 0.25, 0.20, 0.90) | búsqueda sobre los cuatro puntos de control, rms 0.005; ninguna curva CSS conocida baja de 0.03 |
+
+**El teléfono es el iPhone 17 en Black.** La proporción del cuerpo de la
+referencia (2.05) está más cerca del 17 (2.066) que del Pro Max (2.095),
+y el Pro Max no viene en negro. La grabación del Pro Max entra en el
+hueco del 17 escalada: la proporción es la misma al 0.1 %. Ahora hay dos
+modelos medidos en el script y la cámara mueve cada capa por cuadro desde
+su fuente, sin re-escalar el cuadro compuesto: al 1.58× el bisel se
+agranda un 20 % sobre el PNG y la grabación entra casi 1:1.
+
+**La cámara apunta a la acción de ESTA pieza, no a la de la referencia.**
+Ahí la acción está abajo (un menú que se despliega desde el teclado) y el
+zoom deja el borde de arriba cortado; acá está arriba (la fila de tabs),
+así que la entrada apunta a la fila —al 33 % del alto— y la salida deja
+el borde de arriba a 7.2 % del lienzo con el de abajo cortado. Es el
+espejo, con los mismos números.
+
+**Los bordes, y por qué ahora hay `--verificar`.** La primera versión
+tenía la pantalla 15×20 px corrida —`pant.x` estaba en coordenadas del
+PNG y se sumaba a un origen que era el cuerpo— y en la esquina de arriba
+a la izquierda asomaba el fondo por el hueco. En el cuadro entero no se
+veía; el usuario lo vio en un zoom: "tenés que ser mucho más detallista,
+mirá los bordes, no se fillean". Con capas que se posicionan por su
+cuenta y se redondean a píxel en cada cuadro, un origen mal tomado no
+falla: se ve. Así que `pnpm mockup <slug> --verificar` mete un rojo pleno
+en vez de la grabación, renderiza la cámara entera sin pérdida (RGB,
+ffv1: en yuv420p el croma se promedia de a 2 px y un rojo pegado al bisel
+deja de ser rojo sin que haya ningún hueco) y comprueba píxel por píxel
+que el hueco del bisel está lleno en doce estados de la cámara. Corre
+antes de mirar nada.
+
+**La primera pieza App entró a la library por su propio camino**: el clip
+en el vault, `Add to Library` (su endpoint, el mismo que usa la sidebar),
+la entrada en `PIECES` y `vercel.json` regenerado por el build. El vault
+guarda el máster (1320×2868, 25 MB: es lo que graba el simulador) y eso
+es lo que publicar copia tal cual; para la exposición se re-encodeó a
+720×1564 (5.6 MB), el doble del hueco de 319 del detalle. **Pendiente:**
+publicar debería transcodificar solo —el máster es para el mockup, la
+web no lo necesita— y el tiempo de la barra de estado sale "09:41" porque
+el simulador está en formato de 24 horas; la próxima grabación lo cambia
+con `AppleICUForce12HourTime` antes de grabar.
+
+**Herramientas, para la próxima.** Lo que hace este pipeline —bisel
+oficial, fondo, sombra, cámara— lo hacen también Screen Studio (graba el
+iPhone por USB con marco, pero no ve los toques: sin auto-zoom en iOS) y
+Matte (graba simulador o iPhone con marco y zoom). Lo que ninguna
+herramienta arregla es la fuente: los gestos de esta grabación son
+sintéticos, la sonda mueve el pager con curvas medidas. Un dedo real en
+el teléfono con Expo Go es la otra mitad de "la fluidez", y es una
+grabación distinta, no un ajuste del mockup.
+
+**Addendum, el mismo día.** El video que estaba en la library era el
+interino —la grabación del simulador re-encodeada— y el clip final se
+está haciendo en otra sesión. Se decidió dejar la pieza **publicada con
+el hueco vacío** (la card lo reserva sola: es el `::before` de
+`.streamPreview`) y que el video entre después con un comando,
+`pnpm pieza:video <slug> <archivo>`: re-encodea para la web al ancho
+del hueco, conserva la proporción del archivo, escribe
+`public/piezas/<slug>.mp4` y completa `video` en `PIECES`. Y la pieza
+**salió del vault**: el vault es la pared de lo ajeno, y una pieza
+propia no tiene por qué pasar por ahí para llegar a la exposición. Su
+máster quedó en `.context/mockup/master/` (gitignoreado), que es de
+donde el mockup lo toma con `--clip=`.
+
+## El mockup en Remotion: los mismos números, iterados en vivo
+
+El pipeline de ffmpeg hacía el video bien pero cada ajuste era un
+re-encode de minutos, y el brief del video pidió lo contrario: mirar el
+look en vivo y renderizar una vez. Se armó `mockup/`, una composición de
+Remotion (React) con **exactamente los números medidos** —el bisel sobre
+el alfa del PNG, el fondo, la sombra en dos capas, la cámara de tres
+momentos y sus dos bézier— como props con esquema, que Remotion Studio
+muestra como controles. Lo que cambió respecto del pipeline, y por qué:
+
+| qué | ffmpeg | Remotion |
+| --- | --- | --- |
+| las curvas | polinomio de grado 7 ajustado a la bézier (ffmpeg no evalúa bézier) | la bézier misma, por bisección |
+| la cámara | (zoom, punto de mira) | (zoom, posición del cuerpo): el borde del teléfono va en una sola dirección |
+| cada capa | escalada por cuadro con `scale … eval=frame` | dibujada a su tamaño en cada cuadro, sin `transform: scale` |
+| el intermedio | — | PNG entre el cuadro y el encoder, no JPEG: es lo que se sube |
+| la guarda | `--verificar` | `pnpm verificar`, con la misma geometría que dibuja |
+| iterar | re-encode por ajuste | Studio, en vivo; `pnpm render` al final |
+
+Lo que el brief se apartó de la referencia, a propósito y anotado al
+lado del número: el teléfono al 75 % del alto en vez del 95.3 % (más
+aire) y la sombra más marcada (α .82 σ 7 + α .32 σ 36 en px de 720; las
+corridas quedan las medidas, que son las únicas que hay). Y una
+decisión medida sobre la grabación nueva: la cámara se queda cerrada
+hasta los 3.9 s, no los 2.6 del brief, porque el arrastre a Stocks
+termina a los 3.80 y la ráfaga de tabs empieza a los 5.37: la entrada
+cubre los dos gestos lentos y la ráfaga se ve entera desde el encuadre
+final.
+
+**Verificado antes de mirar:** los doce estados de la cámara con el
+hueco lleno (0 píxeles sin rojo), y las esquinas a 3× en los cuadros
+del zoom y del encuadre final.
+
+**Segunda toma, con lo que el usuario vio.** Sobre el primer video dijo
+tres cosas: que de For you a Following "se traba", que la parte rápida
+pasa demasiado rápido, y que entre Following y Stocks tiene que ir
+lento. Medido sobre la grabación: la entrada a Following era un salto
+instantáneo (un solo cuadro), Following → Stocks era un toque de 0.27 s
+y la ráfaga eran toques cada 600 ms. La toma nueva arranca en Following,
+arrastra a Stocks en 1.65 s con un seno in-out (X, medido: 1.73), toca
+For you y hace cinco flicks de un tab cada 1.0 s con el perfil de dedo
+ajustado contra X (15 % en 110 ms, el resto en 430). Los gestos van
+por los caminos reales de la pieza, con una sonda `?demo=1` que vive en
+el árbol de trabajo y no viaja.
+
+**Y un bug de la pieza que la sonda destapó.** Al mover el pager por
+`destino` con `movimiento` en arrastre, la barra leía el tramo del
+toque —`destino !== NADIE` era su condición— y el subrayado quedaba
+clavado en For you mientras el contenido viajaba ("está bugueada toda
+la animación de las tabs… nunca está la animación a medias"). La
+condición correcta es `movimiento === toque`: para un toque real es lo
+mismo, y para cualquier otra cosa que use `destino` la barra sigue al
+contenido. Verificado en la tira de cuadros del arrastre lento: el
+subrayado viaja continuo de Following a Stocks y las tintas se cruzan.
+
+**Tercera toma: dos atrás al final, y nacer en Following de verdad.**
+Dos pedidos más sobre el video: que al llegar al último tab vuelva dos
+atrás y termine ahí, y que el primer cuadro muestre Following con el
+contenido de Following —mostraba el tab de Following con el contenido
+de For you. Lo segundo era la sonda: un `scrollTo` en el primer efecto
+no movía el pager (el contenido todavía no estaba) y sólo `scrollX`
+cambiaba, así que la barra y el contenido nacían desacordados. Ahora el
+pager nace con `contentOffset` en Following y `scrollX` nace ahí
+también. El clip queda en 12.9 s: arrastre lento a 1.20, toque a For
+you a 3.80, cinco flicks hasta Design y dos de vuelta hasta Tech, cada
+uno a 1.0 s del anterior.
+
+**Dieciséis sombras, lado a lado.** Antes de elegir la sombra del
+mockup se midió qué hacen las referencias, con el mismo método que con
+@nater02 (luma alrededor del borde del teléfono, dos gaussianas con
+corrida). Los clips del vault se parten en tres familias: **sin sombra
+o casi** (Floating bar y Photo picker: cero niveles fuera del borde;
+solarn: ocho), **una sola capa ancha y tenue apenas corrida** (Swipe to
+pay α .20 σ 60; Pill to button α .15 σ 75; Shelf to card, abajo), y
+**dos capas, contacto más ambiente, corridas a la derecha y abajo**,
+que es sólo el video de referencia. Con eso, más los sistemas de diseño
+(Material elevación 24, las capas de Comeau) y los estilos conocidos
+(larga y dura, flotante, contacto, halo, dramática), la grilla `Sombras`
+del mockup muestra dieciséis variantes del mismo cuadro con su recibo
+abajo. El modelo de sombra creció para poder dibujarlas: cada capa
+tiene corrida en x y en y, color y expansión, y la corrida diagonal
+única de antes es el caso particular.
+
+**Dos fondos por video, y el proceso escrito entero.** Regla nueva: cada
+video sale dos veces, sobre el fondo claro medido y sobre uno oscuro
+(`pnpm render:ambos`). El oscuro no tiene referencia en el vault —los
+clips que parecían oscuros, Mini player y Hold to commit, miden blanco
+en las esquinas: era el teléfono ocupando el cuadro— así que es el
+neutro bajado al 11 % con el mismo tinte, #1C181A, y la sombra queda
+igual porque negra sobre casi negro no se ve; el teléfono se separa por
+el canto del bisel. Y la línea completa —de la sonda en la pieza al
+render doble— quedó en `mockup/AGENTS.md`, con cada mini-decisión y su
+porqué, y la sonda de grabación para copiar en `nativo/AGENTS.md`.
+
+**Los dos videos entran a la library, y la card elige.** `Swipeable
+tabs` ya no tiene el hueco vacío: lleva el mockup claro en `video` y el
+oscuro en `videoOscuro`, los dos a 1080² (el doble del hueco del detalle
+y algo más) por `pnpm pieza:video … --oscuro`. La card los elige con
+`prefers-color-scheme`, que es lo único que la library sigue —no hay
+switch de tema—, con un `useSyncExternalStore` sobre el `matchMedia` y
+un `key` por src para que el `<video>` arranque de cero al cambiar. Sin
+`videoOscuro`, el claro va en los dos modos.
+
+**El mockup en la library, grande y del color de la card.** Dos quejas
+sobre la primera puesta: el teléfono se veía chico adentro del cuadrado
+y el fondo del mockup no era el de la library. Se probó dibujar el
+teléfono con CSS alrededor de la grabación cruda, como hace benji.org
+(su video es la pantalla sola y la página pone un phone.png; medido:
+marco del 4.3 % del ancho, esquina del hueco al 14.4 %) y se rechazó:
+"el mockup del iPhone debe estar como antes". Lo que quedó: la library
+lleva **su propio par de renders** del mismo mockup, con el fondo igual
+a `--surface` de la card en cada tema, el teléfono al 86 % del cuadro
+(benji: 85 %, medido en su card) y la salida de la cámara a 1× para que
+el teléfono termine entero y centrado. Y la muestra se dimensiona por
+el ALTO del hueco: una grabación cruda sigue cayendo en 228×448, y el
+cuadrado llena lo que la caja deja, 440. Medido en el navegador: en
+claro el video decodifica (248, 248, 246), la superficie exacta; en
+oscuro decodifica (14, 14, 14) contra (14, 14, 13) de la superficie —un
+nivel de azul que el 4:2:0 del h264 no puede dar (probados 10 a 14 de
+azul: ninguno cae en 13). No se ve, y no se toca el token por un códec.
+
+**Un solo fondo: el de la library.** El par con el color de la card
+horneado tampoco gustó: "que haya solo un fondo, que sea el del lugar
+que da la library, y sin sombra, como hace Family". Así que la library
+lleva **un video transparente y sin sombra** —el teléfono al 86 % del
+cuadro y la cámara terminando a 1×— y el fondo lo pone la card en el
+tema que sea; los tokens mandan, el video no trae color. Es lo que hace
+Family en benji.org: la página pone el fondo y el teléfono va limpio. El
+alfa viaja en dos archivos porque ningún códec lo lleva a todos los
+navegadores: WebM VP9 con alfa para Chrome y Firefox, y HEVC con alfa en
+.mov para Safari, que sale del máster ProRes 4444 con el encoder de
+VideoToolbox de macOS. La card los ofrece con dos `<source>`, el .mov
+primero: Safari es el único que lo abre, y al revés tomaría el WebM y lo
+dibujaría sobre negro. Con esto `videoOscuro` y el hook del esquema de
+color se fueron: no hay nada que elegir por tema.
+
+**Más cerca, y el corte del zoom en el borde de la caja.** Con el video
+transparente, el cuadrado del mockup vivía centrado en la caja de la
+card con el padding de 40/60 alrededor, y cuando la cámara entraba el
+teléfono se cortaba contra ese cuadrado invisible, 60 px adentro del
+borde de la caja: un corte que no venía de nada. Ahora el video ES la
+caja —560 de lado, sin padding— y el corte cae en el borde del espacio
+que da la library, que es donde un ojo espera un límite. Y el teléfono
+va al 92 % del cuadro, 515 px en vez de 378, porque el usuario lo pidió
+más cerca. El hueco de 228×448 sigue vivo para la card sin video.
+
+**En la library la cámara se queda.** "Que sea todo exactamente igual
+salvo que una vez que se hace zoom, se quede ahí hasta el final, así
+se ve lo que estoy mostrando, que son los tabs." Así que el render de
+la library entra a la fila de tabs y no sale: `hasta` fuera del clip.
+El video de X sigue con la salida medida en la referencia. Y un bug
+que casi viaja: el máster ProRes 4444 salía sin alfa —esquina 255,
+medido— porque Remotion necesita `--pixel-format=yuva444p10le` además
+del perfil; el .mov de Safari habría tenido fondo negro. El script lo
+mide ahora antes de seguir y corta si el alfa no es cero.
+
+**La velocidad, como en Family Values.** Al pasar el mouse por el video
+aparece arriba a la derecha un botón que alterna 1x y 0.5x y escribe
+`playbackRate`. Está medido en el código de benji.org: 1rem de padding
+desde la esquina, 0.75rem/460, alto 1.25rem, radio píldora, color
+#989897, ancho 1.75rem en 1x y 2.5rem en 0.5x, los dos rótulos
+superpuestos y cruzados por opacidad, hover con fondo #f2f2f2, todo con
+`transition: all .2s ease`. Acá los colores son los tokens que ya dicen
+lo mismo —`--text-secondary` y `--surface-hover`—, la tipografía la de
+nav (13/460, la más chica del sistema) y el movimiento `--dur-surface`
+con `--ease-surface`. Una diferencia a propósito: en benji el botón
+está siempre; acá se revela con el mouse sobre el video —lo pidió el
+usuario— y queda siempre visible donde no hay hover. La velocidad se
+vuelve a escribir en `loadedmetadata`, porque un cambio de fuente la
+devuelve a 1. Verificado en Chrome: 1 → 0.5 → 1 en `playbackRate`, el
+ancho 28 → 40, el rótulo cruzado, opacidad 0 sin el mouse y 1 con él.
+
+**Ajuste al botón de velocidad.** Siempre visible en el detalle, como en
+benji; en el hub de la library sólo con el mouse sobre el video, porque
+ahí es una lista y un control por card es ruido. Sin fondo ni cambio de
+color al pasar por encima: el rótulo alcanza. Y el rótulo es "1x", no
+"1.0x".
+
+**La calidad a 0.5×, medida antes de tocar.** "A 0.5 se ve en mala
+calidad, medio lag." En Chrome, con `getVideoPlaybackQuality`: 240
+cuadros presentados en 4 s a 1× y 119 a 0.5×, cero caídos en los dos
+casos. Es decir, el navegador no pierde nada: a 0.5× muestra 30 cuadros
+únicos por segundo porque la grabación tiene 60, y eso es un techo de
+la fuente, no del códec. Se probó levantarlo interpolando a 120 con
+`minterpolate` y se descartó con evidencia: en el arrastre lento deja
+fantasmas en los bordes del texto, y en los flicks duplica las letras
+enteras. Lo que sí mejora la calidad se hizo: el video pasa de 1280² a
+**1120², que es 1:1 con la caja de 560 en retina** —cada píxel del video
+cae en uno de la pantalla, sin re-muestreo— y decodifica un 23 % menos;
+el VP9 va a crf 18 explícito y el HEVC de Safari sube de calidad 70 a
+85 sin priorizar velocidad. Un 120 real pediría grabar a 120 Hz, y el
+simulador rinde a 60.
+
+**Los 60 fps, de punta a punta, medidos.** Tres lugares donde se
+podrían perder cuadros, y qué dio cada uno:
+
+| dónde | medida | resultado |
+| --- | --- | --- |
+| la grabación | cuadros escritos dentro de cada gesto contra la duración del gesto × 60, en tres tomas | 100.7 %, 101.1 % y 100.2 %: no falta ninguno. Los deltas de 20–30 ms entre marcas de tiempo son jitter del grabador, no cuadros perdidos (si faltaran, la completitud bajaría) |
+| el render | Remotion dibuja cada cuadro por número, no por reloj | por construcción, 776 de 776 |
+| el navegador | `getVideoPlaybackQuality` en Chrome, 4 s a 1× y 4 s a 0.5× | 240 y 119 presentados, 0 caídos |
+
+Lo que quedaba por hacer no era arreglar una pérdida sino cuidar que no
+aparezca cuando la lista crezca: un VP9 con alfa se decodifica por
+software en Chrome (no hay camino de hardware para el alfa), y son dos
+decodificaciones por cuadro. Así que **el reproductor sólo reproduce lo
+que se ve** —pausa y retoma con IntersectionObserver, como benji, que
+monta su player recién en pantalla—, precarga entero lo visible, y no
+redondea las esquinas del video transparente: era una máscara sobre una
+capa de 1120² por cuadro para no cambiar nada. Si algún día un equipo
+flojo cae cuadros, el siguiente escalón es un h264 opaco con el color
+de la card horneado, que decodifica en hardware en todos lados; se
+descartó por ahora porque el oscuro queda a un nivel de azul de la
+superficie.
+
+**Las notas de la pieza, en el tono de Josh Puckett.** Se leyeron sus
+páginas —Bloom, Pasito, Melt Effect— y las secciones de Family Values
+de benji. Josh: una línea bajo el título que dice qué es, secciones
+cortas con títulos llanos ("Anatomy", "A note on performance"), dos o
+tres oraciones cada una, "you" cuando te habla, y una parte por oración
+cuando desarma el componente. Benji escribe ensayos largos por
+principios y sólo se le toma el pie de un renglón bajo cada demo. Las
+notas de Swipeable tabs pasan de un ensayo de cinco secciones largas a
+seis secciones de 252 palabras en total: qué hace, anatomía, de dónde
+salen los números, lo que cambié a propósito, una nota sobre la
+grabación y probarlo en la mano. La línea del detalle: "X’s home tabs
+for Expo. Swipe between feeds, tap to jump, and the header folds away
+as you scroll."
+
+**En la lista, el video arranca con el puntero, como en el vault.** La
+card entera es el disparador —apuntarle sólo al video dejaría media
+card muerta—, entra con el mouse o con el foco del teclado, se pausa al
+salir y retoma donde estaba, sin rebobinar; con reduced-motion no
+arranca. Sin autoplay y con `preload="metadata"` más el fragmento
+`#t=0.1`, que obliga a pintar el primer cuadro (el truco del vault: en
+0 algunos contenedores todavía no tienen cuadro clave). El detalle sigue
+con autoplay y precarga entera: es la pieza que viniste a ver.
+Verificado en Chrome: pausado en 0.1 al cargar, reproduce con la card
+bajo el puntero, pausa al salir conservando el tiempo.
+
+**Todo nombre usa vocabulario profesional preciso.** Regla traída por
+el usuario el 2026-09-07 (de otro `CLAUDE.md`, en captura), y vale para
+el repo entero: archivos, scripts, carpetas, funciones, variables,
+clases, commits, ramas, lo que sea, con la palabra que un ingeniero de
+IBM habría escrito en una especificación en 1972 — sin jerga, sin
+abreviaturas casuales, sin nombres graciosos ni ingeniosos, sin palabras
+del chat. `deploy_dashboards.sh`, no `push_dashboards.sh`, y eso es una
+ilustración, no el alcance. Vive en `AGENTS.md › Método de trabajo` y
+como quinto punto de `CLAUDE.md`. Se aplicó primero al texto público: la
+descripción de Swipeable tabs dice "collapses" donde decía "folds away",
+y las partes de la anatomía se llaman `Header`, `Tab bar`, `Pager` y
+`Page`, no "the fold".
+
+**La anatomía, en partes con nombre, como josh en /bloom.** El párrafo
+único de "Anatomy" mezclaba cuatro cosas en seis oraciones y el usuario
+pidió explicarlo "como lo haría benji taylor o josh puckett, bien
+simple" (2026-09-07). Medido en /bloom (API Reference, sobre la página
+servida): cada parte es un `h3` con el nombre —16/500/24, la tinta del
+título— y, a 8 px, un párrafo de una o dos oraciones —16/400/24, gris—;
+las partes van a 64 una de otra ("Container — The morphing element.
+Automatically sizes to fit the trigger content, then animates to the
+menu dimensions"). En /drawesome benji hace lo mismo en prosa: lista las
+herramientas y después cuenta qué hace cada una ("Each pen behaves like
+the thing it's named after"). Acá es un componente `Parte` en
+`notas.tsx`: el nombre en `--type-h3` (14/500, el título de pieza: mismo
+rol, un nombre corto que encabeza algo), el párrafo en cuerpo y en tinta
+como toda la prosa, 8 de nombre a párrafo (`--note-part-gap`) y entre
+partes el hueco de párrafos (20; el 64 de josh es su hueco de sección y
+ese acá ya es `--section-gap`), elegido mirando. Cuatro partes de arriba
+a abajo —Header, Tab bar, Pager, Page—, cada una con qué es y después
+qué hace, en dos a cuatro oraciones y sin adjetivos; la frase de la fila
+que sólo se corre cuando el tab no entra pasó de Performance a Tab bar,
+porque es comportamiento y no rendimiento. Cada afirmación sale del
+código de la pieza y de sus recibos: el bloque que se mueve entero, la
+barra sin estado que dibuja desde un solo valor, el toque que mueve el
+contenido una sola página, la háptica por cambio de tab, el pliegue
+1:1 hasta que el divisor toca la barra de estado.
+
+**La anatomía vuelve a ser prosa: el subtítulo por parte se rechazó.**
+Con la página servida el usuario dijo "no me gusta esta estructura"
+(2026-09-07) sobre los cuatro h3 (Header, Tab bar, Pager, Page). Se
+retiraron el componente `Parte`, sus reglas de CSS y el token
+`--note-part-gap`; el contenido de esa vuelta se quedó, en tres
+párrafos que nombran cada parte al pasar —qué partes hay y cómo forman
+un bloque; cómo la barra y el pager comparten un solo valor; cómo el
+scroll de la lista colapsa el header— con el "How it works" de benji en
+/liveline como modelo de forma: prosa corrida de oraciones cortas ("One
+<canvas>, one requestAnimationFrame loop. When a new value arrives,
+nothing jumps."). Queda anotado en `notas.tsx` para que nadie vuelva a
+proponer el h3.
+
+**La línea de descripción y el título, bajo la regla de nombres.** El
+usuario pidió usar la misma regla "para la descripción y para los
+títulos" (2026-09-07). La línea pasa de "Swipe between feeds, tap to
+jump" a "Swipe between tabs, tap to select one": las páginas son tabs
+(dos feeds y cuatro temas), y "select" es el verbo de especificación
+donde "jump" era el coloquial. Auditados contra la regla y sin cambio:
+el título `Swipeable tabs` (el término de los SDK: `Swipeable` en
+gesture-handler, "swipe" en la HIG), el masthead `Library`, los rótulos
+`Web` y `App`, y los títulos de las notas `Anatomy`, `Performance` y
+`Use cases`. `AGENTS.md › Cómo se nombra` lo deja escrito para las
+piezas que vengan.
+
+**Anatomy habla sólo de la animación que da nombre a la pieza.** El
+usuario, con la prosa en pantalla: "en anatomy que se hable solo de la
+animación de los tabs, no de las otras cosas" (2026-09-07). Salieron de
+la sección el header que colapsa, las listas y el avatar —siguen en la
+grabación y en la línea de descripción— y quedaron dos párrafos sobre
+los tabs y el cierre de la medición: la fila de labels con su subrayado
+sobre un ScrollView paginado, la barra sin estado que dibuja subrayado,
+colores de label y símbolos desde un solo valor; el arrastre como scroll
+nativo con la curva de iOS, el toque en 300 ms que mueve el contenido
+una sola página, el tab que crece para su símbolo mientras los labels
+vecinos se apartan, la fila que sólo se corre cuando el próximo tab no
+entra, y la háptica por cambio. Es la regla para las notas que vengan y
+está escrita en `notas.tsx`: la sección desarma la animación, no la
+pantalla.
+
+**La línea de descripción no nombra la app; la referencia se cuenta en
+Anatomy.** "En la descripción principal no pongas X's tabs, mencionalo
+explicando el proceso o en anatomy, que la referencia fue sacada de
+ahí" (2026-09-07). La línea queda "A tab bar with paged content, for
+Expo. Swipe between tabs, tap to select one, and the header collapses
+as you scroll." —qué es y qué hace, como el título, que tampoco nombra
+la app— y el cierre de Anatomy dice de dónde salió y cómo se midió:
+"The reference is the home tabs of X on iOS. Every value is measured
+from there: four recordings at 60 fps, read frame by frame, each number
+next to its receipt in the code." Escrito en `AGENTS.md › Cómo se
+nombra` para las piezas que vengan.
+
+**Anatomy y la línea, escritas para quien acaba de ver el video.** El
+usuario, con la versión anterior en pantalla: "decí React Native, no
+Reanimated, no se suele decir eso, y no me gusta tanto anatomy y
+descripción, no siento que sea útil" (2026-09-07). Lo inútil era el
+punto de vista: contaban la implementación —un valor derivado, el pager
+que le pasa un tramo a la barra, worklets— a alguien que vio doce
+segundos de video y quiere saber qué miró y con qué está hecho. Ahora
+la línea dice qué es y los tres detalles que hay que mirar ("Top tabs
+for React Native. The underline follows the drag, the active tab widens
+to show its symbol, and a tap moves the content one page, however far
+the tab is."), y dejó de mencionar el header que colapsa, que la
+grabación no muestra. Anatomy va de lo que se ve al cómo: el subrayado
+atado al scroll, que va con el contenido y frena con él; el toque que
+activa el tab en 300 ms, lo ensancha para su símbolo, aparta los otros
+labels y cruza una sola página; la fila que sólo se corre cuando el tab
+no entra; la háptica por cambio; con qué está hecho (SF Symbols, la
+háptica de Expo) y de dónde salió (X en iOS, cuatro grabaciones a
+60 fps). Performance dice lo mismo que antes en llano: "on the UI
+thread, not in JavaScript", sin nombrar la librería. Las tres reglas
+—desde lo que se ve, sólo la animación que da nombre, sin nombres de
+librerías— están en `notas.tsx` y en `AGENTS.md › Cómo se nombra`.
+
+**La línea, muchísimo más corta.** "Muchísimo más corto esto" (usuario,
+2026-09-07) sobre la línea de tres detalles. Queda "Top tabs for React
+Native. The underline follows the drag.": qué es y el detalle que se
+ve primero; los otros dos —el tab que se ensancha, el toque que cruza
+una sola página— ya están en Anatomy y ahí se quedan. Es la medida de
+josh: una línea bajo el título ("A tiny, fully-themeable, and
+dependency-free fluid stepper component"). Regla en `AGENTS.md › Cómo
+se nombra`: qué es y un detalle, una línea.
+
+**La línea, sólo qué es y para qué plataforma.** "Que sea tabs, React
+Native, Expo, bien escrito" (usuario, 2026-09-07). Queda "Top tabs for
+React Native and Expo.": el término de React Navigation para esta
+barra, y las dos plataformas como las nombra el ecosistema ("React
+Native & Expo"). El detalle del subrayado que llevaba la versión
+anterior está en la primera oración de Anatomy y no hacía falta dos
+veces. Regla en `AGENTS.md › Cómo se nombra`.
+
+**"&" en la línea, no "and".** Pedido del usuario (2026-09-07). Queda
+"Top tabs for React Native & Expo.", que es como el ecosistema escribe
+el par. El "for" se quedó: es la preposición de las dos referencias en
+su línea bajo el título —"a drawing toolbar for React" (benji,
+/drawesome), "a real-time animated line chart component for React"
+(benji, /liveline), "An iOS inspired pull down menu for the web" (josh,
+/bloom)—, leída en sus páginas servidas el mismo día.
+
+**Anatomy enumera las reglas de motion que la pieza cumple, y sólo
+esas.** Pedido del usuario (2026-09-07): "aclará reglas que sigan a
+/animate-expo y /interface-craft y /better-ui si cumplen con el
+código", y que no se diga de dónde son los símbolos. Se auditó el
+código contra los tres skills antes de escribir una palabra; entraron
+ocho reglas con recibo en archivo y línea (el detalle está arriba de
+`src/notas/swipeable-tabs.tsx`): sólo transform y opacity, con el
+subrayado como el único ancho animado y dentro de la excepción (hijo
+absoluto sin hijos); el gesto interrumpe la animación; ease-out, nunca
+ease-in; una háptica por acción, en el cuadro del cambio y nunca como
+única señal; reduced motion en la propia animación; 120 fps habilitado
+en ProMotion (SOURCE, `app.json`); cada valor una constante con su
+fuente y un solo valor guiando la transición; el movimiento nunca como
+única señal. Quedó afuera, a propósito, la puerta "tab switches never
+slide" de animate-expo: la pieza desliza porque la referencia desliza,
+medido cuadro a cuadro, y la regla apunta a los tabs de abajo. En el
+texto público las reglas no llevan el nombre de los skills —son
+archivos locales que el lector no conoce— sino "the library's rules
+for motion"; la atribución vive en el comentario del archivo.
+
+**Las reglas, sin frase que las anuncie.** "It follows the library's
+rules for motion" se rechazó ("no me gusta esta frase", 2026-09-07).
+El párrafo arranca por la primera regla —"Only transform and opacity
+animate"— como el "How it works" de benji, que tampoco anuncia: dice.
+
+**Una pasada de redacción sobre el texto público, con `better-writing`
+y la regla de vocabulario.** Pedido del usuario (2026-09-07): "fijate
+que todo respete la regla del vocabulario tipo ingeniero de IBM del 73,
+y mejorá un poco la redacción como la haría benji o josh; revisá
+better-writing". Lo que cayó: los modismos ("mid-flight", "tied to",
+"runs ahead or lags behind", "in step", "cue") pasan a la palabra de
+especificación ("in progress", "bound to", "synchronized", "feedback");
+"absolute element" a "absolutely positioned"; "ProMotion screens" a
+"ProMotion displays", como lo llama Apple; "first-level filters" a
+"top-level sections"; "React never renders a frame" a "React does not
+render"; la medición dicha en llano ("the recording holds 60 fps
+through every gesture"); y una frase que estaba en Anatomy y en
+Performance quedó sólo donde explica algo. La lista completa de cambios
+está arriba de `src/notas/swipeable-tabs.tsx`.
+
+**Performance, con el método de Anatomy.** Pedido del usuario
+(2026-09-07): mejorarla "siguiendo todas las mismas reglas de
+better-ui, animate-expo, interface-craft, la regla de hoy y
+better-writing". Se verificó cada afirmación en el código antes de
+escribirla y salió en tres párrafos, desde lo que se nota hacia el
+cómo: (1) todo en el hilo de UI y ninguna vuelta a JavaScript por
+cuadro —sólo al empezar o terminar una acción: bloquear y soltar el
+pager en un toque lejano, y la háptica—; (2) cero layout mientras el
+contenido se mueve —la fila no es un flex row, las posiciones y anchos
+de cada estado de reposo se calculan una vez y cada cuadro interpola
+entre dos—, más las páginas memoizadas con la medición del tirón que
+evitan; (3) un solo valor del que derivan subrayado, labels y símbolos
+en el mismo cuadro, y lo medido: 60 fps en cada gesto y una traza de
+492 cuadros sin titileo. Ningún nombre de librería; "moves as one
+object" es la regla de cohesión de better-ui dicha en llano. Los
+recibos, archivo y símbolo, están arriba de `src/notas/swipeable-tabs.tsx`.
+
+**Chequeo de veracidad de Performance y Anatomy.** Pedido del usuario
+(2026-09-07): "chequeá que toda esa información sea verdadera y
+correcta". Se releyó cada afirmación contra el código y las tablas de
+medición; tres eran imprecisas y se corrigieron en el texto público:
+un arrastre sólo interrumpe un toque al tab vecino, porque el toque
+lejano bloquea el pager mientras dura; React no renderiza durante el
+ARRASTRE, pero un toque lejano renderiza dos veces y la háptica del
+arrastre cae en medio del gesto, así que la frase dice "during a drag"
+y "discrete moments"; y el tirón medido es un cuadro entero perdido,
+no un segundo cuadro que "alcanza" (saltó 0.195 donde el ease pedía
+0.252). Una cuarta se ajustó de alcance: "no layout runs" es para los
+tabs, porque el ancho del subrayado sí es layout de su propio nodo.
+Todo lo demás se confirmó con su recibo: la fila se corre desde un
+worklet, el layout precalculado depende sólo de los labels medidos, las
+páginas están memoizadas, la completitud fue 100.7 %, 101.1 % y
+100.2 %, y la traza de 492 cuadros es la que está en `pantalla.tsx`.
+
+**El dedo interrumpe también un toque lejano.** De la auditoría contra
+los skills (2026-09-07) quedó una sola regla en contra: `animate-expo`
+pone la interrupción como piso, y el pager rechazaba el dedo durante
+los 300 ms de un toque a dos o más tabs (`scrollEnabled={!quieto}`),
+por la página prestada. El usuario eligió cumplirla sin tocar la
+animación del toque, para no regrabar: la grabación tiene un solo toque
+lejano (Stocks → For you a los 4.1 s) y el gesto siguiente arranca a
+los 5.1 s, así que ningún cuadro cambia. Cómo: el préstamo sigue vivo
+mientras el dedo arrastra —la barra sigue de `desde` a `hasta` con el
+avance leído del scroll— y se devuelve sólo cuando no se ve: al llegar
+al destino, o al frenar sobre la página prestada, saltando en el mismo
+cuadro a su lugar real con la háptica de ese salto silenciada. Un toque
+nuevo sobre un préstamo sin asentar lo asienta primero. Se fue el
+estado `quieto`: el pager ya no tiene estado de React, y las páginas
+siguen memoizadas por cualquier render del padre. La esquina que queda:
+arrastrar hacia atrás más allá de la página prestada dentro de esos
+300 ms muestra el lugar vacío de donde salió; se arregla al soltar. SIN
+RECIBO en pantalla: se prueba en el teléfono tocando lejos y arrastrando
+enseguida, en las dos direcciones. Las notas públicas se actualizaron:
+"A drag interrupts a tap at any point, however far the tab is" y "React
+does not render during a gesture or a tap".
+
+**El procedimiento de la línea y las notas queda escrito.** Pedido del
+usuario (2026-09-07): guardar el proceso entero para las piezas que
+vengan. Está en `AGENTS.md › Lo que vale para los dos › Cómo se
+escriben la línea y las notas`, en nueve pasos: para quién, la forma,
+el tono, el vocabulario, las reglas de motion, la redacción, la
+veracidad, la verificación en pantalla y el registro. Cada paso sale de
+una vuelta de hoy y de lo que se rechazó en ella. En la misma pasada,
+la segunda relectura de Anatomy y Performance dejó tres precisiones: el
+subrayado en un toque sí lleva su propia animación, con la misma config
+que el contenido ("a tap moves both with the same timing"); la háptica
+es una por CRUCE de tab, no una por acción: ir y volver sobre el mismo
+límite en un gesto vibra cada vez, como cambia el label (un arrastre no
+llega a cruzar dos tabs: el segundo cruce queda a una pantalla y media
+de recorrido del dedo, y con paging el momentum sólo alcanza la página
+vecina); y "JavaScript takes part only twice" se leía como una cuenta
+("at two moments only").
+
+**Corrección de un ejemplo mío.** Al explicar lo anterior dije que "un
+arrastre de tres tabs vibra tres veces". No puede pasar, y el usuario lo
+señaló (2026-09-07): la reacción de la háptica no cambió en todo el día
+—vibra cuando `round(progreso)` cambia y no hay toque en curso, igual
+que siempre— y un gesto cruza a lo sumo un límite hacia adelante. Lo
+que sí vibra más de una vez es ir y volver sobre el mismo límite sin
+soltar, una por cruce, exactamente como cambia el label activo.

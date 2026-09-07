@@ -794,6 +794,9 @@
   --card-app-slot-ancho: 228px;
   --card-app-slot-detalle: 319px;
   --card-app-slot-ratio: 228 / 448;
+  /* los mismos huecos, por su alto: lo que mide la muestra (ver .demo) */
+  --card-app-slot-alto: 448px;
+  --card-app-slot-alto-detalle: 628px;
 }
 
 /* El escalón. El porqué de cada número está arriba, en :root. */
