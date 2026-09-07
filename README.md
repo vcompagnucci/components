@@ -1213,3 +1213,20 @@ en el mismo cuadro, y lo medido: 60 fps en cada gesto y una traza de
 492 cuadros sin titileo. Ningún nombre de librería; "moves as one
 object" es la regla de cohesión de better-ui dicha en llano. Los
 recibos, archivo y símbolo, están arriba de `src/notas/swipeable-tabs.tsx`.
+
+**Chequeo de veracidad de Performance y Anatomy.** Pedido del usuario
+(2026-09-07): "chequeá que toda esa información sea verdadera y
+correcta". Se releyó cada afirmación contra el código y las tablas de
+medición; tres eran imprecisas y se corrigieron en el texto público:
+un arrastre sólo interrumpe un toque al tab vecino, porque el toque
+lejano bloquea el pager mientras dura; React no renderiza durante el
+ARRASTRE, pero un toque lejano renderiza dos veces y la háptica del
+arrastre cae en medio del gesto, así que la frase dice "during a drag"
+y "discrete moments"; y el tirón medido es un cuadro entero perdido,
+no un segundo cuadro que "alcanza" (saltó 0.195 donde el ease pedía
+0.252). Una cuarta se ajustó de alcance: "no layout runs" es para los
+tabs, porque el ancho del subrayado sí es layout de su propio nodo.
+Todo lo demás se confirmó con su recibo: la fila se corre desde un
+worklet, el layout precalculado depende sólo de los labels medidos, las
+páginas están memoizadas, la completitud fue 100.7 %, 101.1 % y
+100.2 %, y la traza de 492 cuadros es la que está en `pantalla.tsx`.

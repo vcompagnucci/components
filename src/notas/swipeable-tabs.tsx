@@ -115,8 +115,29 @@ import { Seccion } from '../notas'
      RUNTIME: traza del propio mapper del estilo, barrido de seis
      páginas, 492 cuadros, cero cambios de dirección espurios
      (pantalla.tsx, "No tocar sin volver a medir").
-   · 60 fps sostenidos: completitud de cuadros ≈100 % dentro de cada
-     gesto en tres tomas (README § El video para X; mockup/AGENTS.md).
+   · 60 fps sostenidos: completitud de cuadros 100.7 %, 101.1 % y
+     100.2 % dentro de cada gesto en tres tomas (README § El video para
+     X, tabla de mediciones).
+
+   VERIFICACIÓN DE VERACIDAD (2026-09-07, pedido del usuario: "chequeá
+   que toda esa información sea verdadera y correcta"). Se releyó cada
+   afirmación contra el código, y tres eran imprecisas y se corrigieron:
+   · "A drag cancels a tap animation in progress" → sólo un toque al tab
+     vecino se interrumpe; un toque lejano bloquea el pager mientras
+     dura (`setQuieto(true)` si `lejano`, `scrollEnabled={!quieto}`).
+   · "React does not render during a gesture" → vale para el ARRASTRE;
+     un toque lejano renderiza dos veces (bloquear y soltar), y la
+     háptica del arrastre se dispara en el cruce, en medio del gesto.
+     El texto dice ahora "during a drag" y "discrete moments".
+   · "the second one catching up in a single jump" → el segundo cuadro
+     saltó 0.195 donde el ease pedía 0.252: no alcanzó. Lo medido es un
+     cuadro entero perdido, y eso dice el texto.
+   · "No layout runs while the content moves" → "for the tabs": el
+     ancho del subrayado es layout de su propio nodo, fuera de flujo.
+   Confirmado sin cambios: la fila se corre con `scrollTo` desde un
+   worklet (barra.tsx); `plano` depende de [labels, tabs, viewport];
+   las páginas son `hojas = useMemo(..., [tabs, pagina])`; el único
+   `width` animado entre 13 estilos animados es el del subrayado.
 
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
@@ -154,8 +175,9 @@ export default function Notas() {
         </p>
         <p>
           Only transform and opacity animate. The one animated width, the underline, is absolutely
-          positioned and has no children, so no other layout runs. A drag cancels a tap animation
-          in progress. The curve is an ease-out, never an ease-in. One haptic per action, in the
+          positioned and has no children, so no other layout runs. A drag interrupts a tap to the
+          next tab; a far tap locks the pager while it runs. The curve is an ease-out, never an
+          ease-in. One haptic per action, in the
           frame the active tab changes, and never the only feedback. Reduced motion is respected,
           and 120 fps is enabled on ProMotion displays. Every value is a named constant with its
           source next to it.
@@ -168,19 +190,19 @@ export default function Notas() {
 
       <Seccion titulo="Performance">
         <p>
-          Everything that moves is computed on the UI thread, not in JavaScript, so React does not
-          render during a gesture. The scroll position is read there, and every style that depends
-          on it is computed there, frame by frame. The UI thread calls back into JavaScript only
-          when an action starts or ends: to lock the pager for a far tap and to release it, and for
-          the haptic when the tab changes. Never per frame.
+          Everything that moves is computed on the UI thread, not in JavaScript. The scroll
+          position is read there, and every style that depends on it is computed there, frame by
+          frame, so React does not render during a drag. JavaScript takes part only at discrete
+          moments: the tap itself, the lock and release of the pager on a far tap, and the haptic
+          when the tab changes. Never per frame.
         </p>
         <p>
-          No layout runs while the content moves. The row is not a flex row: the position and
-          width of every tab in every resting state are computed once, after the labels are
-          measured, and each frame interpolates between two of those states. Each tab is
-          absolutely positioned and moves with a transform. The pages are memoized, so the state
-          change of a far tap does not rebuild them; without that, the recording showed the first
-          frame after a tap standing still and the second one catching up in a single jump.
+          No layout runs for the tabs while the content moves. The row is not a flex row: the
+          position and width of every tab in every resting state are computed once, after the
+          labels are measured, and each frame interpolates between two of those states. Each tab
+          is absolutely positioned and moves with a transform. The pages are memoized, so the two
+          renders of a far tap do not rebuild them; without that, the recording showed the first
+          frame after the tap standing still, a whole frame lost.
         </p>
         <p>
           The bar reads one value that describes the whole transition: where it starts, where it
