@@ -1148,3 +1148,11 @@ barra, y las dos plataformas como las nombra el ecosistema ("React
 Native & Expo"). El detalle del subrayado que llevaba la versión
 anterior está en la primera oración de Anatomy y no hacía falta dos
 veces. Regla en `AGENTS.md › Cómo se nombra`.
+
+**"&" en la línea, no "and".** Pedido del usuario (2026-09-07). Queda
+"Top tabs for React Native & Expo.", que es como el ecosistema escribe
+el par. El "for" se quedó: es la preposición de las dos referencias en
+su línea bajo el título —"a drawing toolbar for React" (benji,
+/drawesome), "a real-time animated line chart component for React"
+(benji, /liveline), "An iOS inspired pull down menu for the web" (josh,
+/bloom)—, leída en sus páginas servidas el mismo día.

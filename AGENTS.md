@@ -173,10 +173,11 @@ verbo de especificación, sin palabras graciosas — "tap to select one",
 no "tap to jump". **La línea de descripción tampoco nombra la app**: de
 dónde salió la pieza se cuenta en las notas, en Anatomy, donde se
 cuenta cómo se midió (pedido del usuario, 2026-09-07). Y ES CORTA: qué
-es y para qué plataforma, nada más —"Top tabs for React Native and
+es y para qué plataforma, nada más —"Top tabs for React Native &
 Expo."—; los detalles van en Anatomy ("muchísimo más corto esto" y
 "que sea tabs, React Native, Expo", mismo día). El nombre de la
-plataforma es "React Native", no el de una librería.
+plataforma es "React Native", no el de una librería, y las dos van
+con "&", como las escribe el ecosistema ("React Native & Expo").
 
 **Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
 dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo
