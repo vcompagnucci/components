@@ -52,7 +52,7 @@ export const PIECES: Piece[] = [
   {
     name: 'Swipeable tabs',
     platform: 'App',
-    desc: 'Top tabs for React Native. The underline follows the drag.',
+    desc: 'Top tabs for React Native and Expo.',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
   },

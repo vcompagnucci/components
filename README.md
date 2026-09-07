@@ -1140,3 +1140,11 @@ una sola página— ya están en Anatomy y ahí se quedan. Es la medida de
 josh: una línea bajo el título ("A tiny, fully-themeable, and
 dependency-free fluid stepper component"). Regla en `AGENTS.md › Cómo
 se nombra`: qué es y un detalle, una línea.
+
+**La línea, sólo qué es y para qué plataforma.** "Que sea tabs, React
+Native, Expo, bien escrito" (usuario, 2026-09-07). Queda "Top tabs for
+React Native and Expo.": el término de React Navigation para esta
+barra, y las dos plataformas como las nombra el ecosistema ("React
+Native & Expo"). El detalle del subrayado que llevaba la versión
+anterior está en la primera oración de Anatomy y no hacía falta dos
+veces. Regla en `AGENTS.md › Cómo se nombra`.
