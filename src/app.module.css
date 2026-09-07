@@ -368,6 +368,13 @@
   margin-bottom: calc(var(--section-content-gap) - (var(--type-h2-lh) - 1px) / 2);
 }
 .groupLabel {
+  /* Sin margen: el rótulo es un <div> en la lista y un <h2> en las notas,
+     y el h2 trae 0.83em de margen del navegador arriba y abajo (11.6 px
+     a 14 px). Sin este reset el mismo separador rendía distinto en los
+     dos lugares: 76 del preview al rótulo y 53 de la línea al primer
+     texto en las notas, donde el diseño dice 64 y 40 (medido en la
+     página servida, 2026-09-07). */
+  margin: 0;
   font-size: var(--type-h2-fs);
   font-weight: var(--type-h2-fw);
   letter-spacing: var(--type-h2-ls);
