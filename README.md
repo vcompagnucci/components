@@ -1258,3 +1258,17 @@ RECIBO en pantalla: se prueba en el teléfono tocando lejos y arrastrando
 enseguida, en las dos direcciones. Las notas públicas se actualizaron:
 "A drag interrupts a tap at any point, however far the tab is" y "React
 does not render during a gesture or a tap".
+
+**El procedimiento de la línea y las notas queda escrito.** Pedido del
+usuario (2026-09-07): guardar el proceso entero para las piezas que
+vengan. Está en `AGENTS.md › Lo que vale para los dos › Cómo se
+escriben la línea y las notas`, en nueve pasos: para quién, la forma,
+el tono, el vocabulario, las reglas de motion, la redacción, la
+veracidad, la verificación en pantalla y el registro. Cada paso sale de
+una vuelta de hoy y de lo que se rechazó en ella. En la misma pasada,
+la segunda relectura de Anatomy y Performance dejó tres precisiones: el
+subrayado en un toque sí lleva su propia animación, con la misma config
+que el contenido ("a tap moves both with the same timing"); la háptica
+es una por cambio de tab, no una por acción, porque un arrastre de tres
+tabs vibra tres veces; y "JavaScript takes part only twice" se leía
+como una cuenta ("at two moments only").
