@@ -143,6 +143,15 @@ import { Seccion } from '../notas'
    worklet (barra.tsx); `plano` depende de [labels, tabs, viewport];
    las páginas son `hojas = useMemo(..., [tabs, pagina])`; el único
    `width` animado entre 13 estilos animados es el del subrayado.
+   Segunda relectura (misma tarde, después del cambio del toque
+   lejano), tres precisiones más:
+   · "It is never animated on its own" → en un toque el subrayado SÍ
+     lleva su propia animación (`avanceToque`, misma config que el
+     contenido): ahora "a tap moves both with the same timing".
+   · "One haptic per action" → un arrastre de tres tabs vibra tres
+     veces, una por cruce: ahora "once per change".
+   · "JavaScript takes part only twice" → se leía como una cuenta:
+     ahora "at two moments only".
 
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
@@ -168,9 +177,9 @@ export default function Notas() {
       <Seccion titulo="Anatomy">
         <p>
           React Native, with Expo. The content is a paged scroll view, one page per tab, and the
-          tabs are a row of labels with an underline. The underline is bound to the scroll: it
-          moves with the content while you drag and settles with the same deceleration. It is
-          never animated on its own.
+          tabs are a row of labels with an underline. The underline is bound to the content: it
+          moves with it while you drag and settles with the same deceleration, and a tap moves
+          both with the same timing.
         </p>
         <p>
           Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
@@ -181,10 +190,10 @@ export default function Notas() {
         <p>
           Only transform and opacity animate. The one animated width, the underline, is absolutely
           positioned and has no children, so no other layout runs. A drag interrupts a tap at any
-          point, however far the tab is. The curve is an ease-out, never an ease-in. One haptic per action, in the
-          frame the active tab changes, and never the only feedback. Reduced motion is respected,
-          and 120 fps is enabled on ProMotion displays. Every value is a named constant with its
-          source next to it.
+          point, however far the tab is. The curve is an ease-out, never an ease-in. The haptic
+          fires in the frame the tab changes, once per change, and never as the only feedback.
+          Reduced motion is respected, and 120 fps is enabled on ProMotion displays. Every value
+          is a named constant with its source next to it.
         </p>
         <p>
           The reference is the home tabs of X on iOS, measured frame by frame from four recordings
@@ -196,8 +205,8 @@ export default function Notas() {
         <p>
           Everything that moves is computed on the UI thread, not in JavaScript. The scroll
           position is read there, and every style that depends on it is computed there, frame by
-          frame, so React does not render during a gesture or a tap. JavaScript takes part only
-          twice: at the tap itself, and for the haptic when the tab changes. Never per frame.
+          frame, so React does not render during a gesture or a tap. JavaScript takes part at two
+          moments only: the tap itself, and the haptic when the tab changes. Never per frame.
         </p>
         <p>
           No layout runs for the tabs while the content moves. The row is not a flex row: the
