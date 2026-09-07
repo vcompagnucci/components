@@ -1057,3 +1057,28 @@ código de la pieza y de sus recibos: el bloque que se mueve entero, la
 barra sin estado que dibuja desde un solo valor, el toque que mueve el
 contenido una sola página, la háptica por cambio de tab, el pliegue
 1:1 hasta que el divisor toca la barra de estado.
+
+**La anatomía vuelve a ser prosa: el subtítulo por parte se rechazó.**
+Con la página servida el usuario dijo "no me gusta esta estructura"
+(2026-09-07) sobre los cuatro h3 (Header, Tab bar, Pager, Page). Se
+retiraron el componente `Parte`, sus reglas de CSS y el token
+`--note-part-gap`; el contenido de esa vuelta se quedó, en tres
+párrafos que nombran cada parte al pasar —qué partes hay y cómo forman
+un bloque; cómo la barra y el pager comparten un solo valor; cómo el
+scroll de la lista colapsa el header— con el "How it works" de benji en
+/liveline como modelo de forma: prosa corrida de oraciones cortas ("One
+<canvas>, one requestAnimationFrame loop. When a new value arrives,
+nothing jumps."). Queda anotado en `notas.tsx` para que nadie vuelva a
+proponer el h3.
+
+**La línea de descripción y el título, bajo la regla de nombres.** El
+usuario pidió usar la misma regla "para la descripción y para los
+títulos" (2026-09-07). La línea pasa de "Swipe between feeds, tap to
+jump" a "Swipe between tabs, tap to select one": las páginas son tabs
+(dos feeds y cuatro temas), y "select" es el verbo de especificación
+donde "jump" era el coloquial. Auditados contra la regla y sin cambio:
+el título `Swipeable tabs` (el término de los SDK: `Swipeable` en
+gesture-handler, "swipe" en la HIG), el masthead `Library`, los rótulos
+`Web` y `App`, y los títulos de las notas `Anatomy`, `Performance` y
+`Use cases`. `AGENTS.md › Cómo se nombra` lo deja escrito para las
+piezas que vengan.

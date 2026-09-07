@@ -33,4 +33,5 @@ Lo que no se negocia, y está desarrollado en `AGENTS.md`:
    funciones, variables, commits, ramas, lo que sea—: la palabra que un
    ingeniero de IBM escribiría en una especificación en 1972. Sin jerga,
    sin nombres graciosos ni ingeniosos. `deploy_dashboards.sh`, no
-   `push_dashboards.sh`; y en las notas, `Header`, no "the fold".
+   `push_dashboards.sh`; y en el texto público —título, descripción,
+   notas—, "tap to select", no "tap to jump".

@@ -167,7 +167,10 @@ material.
 **Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
 HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
 salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
-dice exactamente qué vas a ver.
+dice exactamente qué vas a ver. El título y la línea de descripción
+siguen la regla de nombres (Método de trabajo): el término técnico y el
+verbo de especificación, sin palabras graciosas — "tap to select one",
+no "tap to jump".
 
 **Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
 dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo
@@ -563,10 +566,11 @@ cosa o para quién es, nunca lo bien hecha que está.
   para todo, no sólo para el ejemplo que sigue: un script que despliega
   dashboards es `deploy_dashboards.sh`, no `push_dashboards.sh` — y eso
   es una ilustración del principio, no su alcance. Vale también para el
-  texto público: en las notas, las partes de una pieza se nombran con el
-  término técnico (`Header`, `Tab bar`, `Pager`, `Page`) y el verbo de
-  especificación ("collapses", no "folds away"). Regla traída por el
-  usuario el 2026-09-07.
+  texto público —el título de la pieza, su línea de descripción y las
+  notas—: las partes se nombran con el término técnico (header, tab bar,
+  pager, list) y las acciones con el verbo de especificación ("select",
+  no "jump"; "collapses", no "folds away"). Regla traída por el usuario
+  el 2026-09-07.
 
 ## Estado
 

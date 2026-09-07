@@ -696,11 +696,6 @@
   /* el rótulo de sección, de su hairline. Medido de su separador. */
   --section-rule-gap: 8px;
 
-  /* el párrafo de una parte de las notas, de su nombre. Medido en josh
-     (/bloom, API Reference, 2026-09-07): mt-2 = 8 bajo un h3 de 24 de
-     interlínea. Ver Parte en notas.tsx. */
-  --note-part-gap: 8px;
-
   /* la primera pieza, del rótulo. Es el hueco que se VE, de la línea al
      primer texto, no el margin: la línea va centrada en la caja del
      rótulo y el CSS descuenta esa media caja. 40 es el número de benji

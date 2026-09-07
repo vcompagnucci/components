@@ -1,4 +1,4 @@
-import { Parte, Seccion } from '../notas'
+import { Seccion } from '../notas'
 
 /* Las notas de Swipeable tabs. Todo lo de acá está en el registro: el
    README (§ La primera pieza App), medidas.ts de la pieza y la planilla
@@ -17,11 +17,14 @@ import { Parte, Seccion } from '../notas'
    Melt Effect, 2026-09-05): una línea bajo el título que dice qué es
    ("An iOS inspired pull down menu for the web"), secciones cortas con
    títulos llanos ("Anatomy", "A note on performance"), dos o tres
-   oraciones por sección, verbos directos, "you" cuando te habla. Benji
-   escribe ensayos largos por principios; de él se toma sólo el pie de
-   un renglón bajo cada demo. La versión anterior de estas notas era
-   un ensayo: el usuario pidió "bien simple y conciso, tal cual el tono
-   de josh".
+   oraciones por párrafo, verbos directos, "you" cuando te habla. Benji
+   escribe ensayos largos por principios; de él se toma el pie de un
+   renglón bajo cada demo y la forma de su "How it works" en /liveline:
+   prosa corrida de oraciones cortas que nombra cada parte al pasar
+   ("One <canvas>, one requestAnimationFrame loop. When a new value
+   arrives, nothing jumps."). La versión anterior de estas notas era un
+   ensayo: el usuario pidió "bien simple y conciso, tal cual el tono de
+   josh".
 
    TRES SECCIONES, NO MÁS: "Anatomy" (con qué está hecha y de qué
    partes), "Performance" (por dónde corre y qué se midió) y, cuando la
@@ -29,56 +32,43 @@ import { Parte, Seccion } from '../notas'
    del usuario, 2026-09-05: "mucho menos secciones"); las seis de la
    versión anterior eran demasiadas.
 
-   LA ANATOMÍA VA EN PARTES CON NOMBRE, como josh desarma Bloom
-   (/bloom › API Reference, medido 2026-09-07): el nombre de la parte y
-   debajo qué es y qué hace, en dos o tres oraciones —"The morphing
-   element. Automatically sizes to fit the trigger content, then
-   animates to the menu dimensions". Benji hace lo mismo en prosa en
-   /drawesome: nombra las herramientas y después cuenta qué hace cada
-   una. El párrafo único anterior mezclaba las cuatro partes en seis
-   oraciones y el usuario pidió explicarlo "como lo haría benji o josh,
-   bien simple" (2026-09-07). Las partes van de arriba a abajo en la
-   pantalla, y cada una dice primero qué es y después qué hace.
+   LA ANATOMÍA ES PROSA, SIN SUBTÍTULOS. Se probó la forma de josh en
+   /bloom —un h3 por parte (Header, Tab bar, Pager, Page) con su párrafo
+   debajo— y el usuario la rechazó en la página ("no me gusta esta
+   estructura", 2026-09-07). Lo que quedó es el contenido de esa vuelta
+   en tres párrafos: qué partes hay y cómo forman un bloque; cómo la
+   barra y el pager comparten un solo valor; cómo el scroll de la lista
+   colapsa el header. Cada parte se nombra al pasar, una o dos oraciones
+   por parte, y se dice primero qué es y después qué hace.
 
-   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —Header, Tab bar, Pager, Page;
-   "collapses", no "folds away"—, por la regla de nombres del repo
-   (AGENTS.md › Método de trabajo): la palabra que iría en una
-   especificación, no la graciosa. */
+   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —header, tab bar, pager, list;
+   "collapses", no "folds away"; "select", no "jump"—, por la regla de
+   nombres del repo (AGENTS.md › Método de trabajo): la palabra que iría
+   en una especificación, no la graciosa. */
 export default function Notas() {
   return (
     <>
       <Seccion titulo="Anatomy">
-        <p>Expo and Reanimated, nothing else. Four parts, top to bottom.</p>
-
-        <Parte nombre="Header">
-          The strip above the tabs, with the avatar. It forms one block with the status bar, the
-          tab bar and the divider, and the block moves as a unit.
-        </Parte>
-
-        <Parte nombre="Tab bar">
-          The labels, the underline and a fade at each end. It keeps no state: everything it draws
-          comes from one value the pager hands it, where the transition starts, where it ends and
-          how far along it is. The active tab grows to make room for a symbol, a chevron on the
-          feeds and an icon on the topics. The row itself scrolls only when the tab you’re going to
-          doesn’t fit.
-        </Parte>
-
-        <Parte nombre="Pager">
-          A paged ScrollView, one page per tab. A drag is the native scroll, so the underline
-          decelerates on iOS’s own curve. A tap animates the same value in 300 ms, and the content
-          travels one page even when the tab you tapped is at the other end. A light haptic marks
-          each change of tab.
-        </Parte>
-
-        <Parte nombre="Page">
-          One list per tab, and each reports its scroll. That’s what collapses the header: the
-          block moves up exactly as far as the content did, until its divider meets the status
-          bar, and what’s drawn on it fades on the way. Scroll back and it returns the same way.
-        </Parte>
-
         <p>
-          Every value is measured from X: four recordings at 60 fps, read frame by frame, each
-          number next to its receipt in the code.
+          Expo and Reanimated, nothing else. Four parts, top to bottom: a header with the avatar,
+          the tab bar, a pager and one list per tab. The header, the tab bar and the divider form
+          one block with the status bar, and the block moves as a unit.
+        </p>
+        <p>
+          The tab bar keeps no state. It draws everything from one value the pager hands it: where
+          the transition starts, where it ends and how far along it is. The pager is a paged
+          ScrollView, so a drag is the native scroll and the underline decelerates on iOS’s own
+          curve. A tap animates the same value in 300 ms, and the content travels one page even
+          when the tab you tapped is at the other end. The active tab grows to make room for a
+          symbol, the row scrolls only when the next tab doesn’t fit, and a light haptic marks each
+          change of tab.
+        </p>
+        <p>
+          Each list reports its scroll, and that’s what collapses the header: the block moves up
+          exactly as far as the content did, until its divider meets the status bar, and what’s
+          drawn on it fades on the way. Scroll back and it returns the same way. Every value is
+          measured from X: four recordings at 60 fps, read frame by frame, each number next to its
+          receipt in the code.
         </p>
       </Seccion>
 
