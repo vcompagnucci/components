@@ -104,3 +104,40 @@ el tinte de encima existe **para cerrar los 11 que faltan**. No es un
 
 Es la primera de nuestras cuatro reglas, encontrada en otro repo sin
 habernos puesto de acuerdo. Buena señal para las dos partes.
+
+## Cómo lo usa el botón de hold-to-commit (2026-09-04)
+
+La variante `vidrio` (`piezas/hold-to-commit/material.ts`) es el mismo
+botón con la cápsula en `GlassView` estilo `regular`. Tres decisiones que
+salen de las trampas de arriba:
+
+- **El vidrio es el contenedor, y el hijo se recorta a sí mismo.** Las
+  texturas del relleno se recortan a la cápsula con `overflow: 'hidden'`,
+  y eso no puede envolver al vidrio. Entonces el `GlassView` es el padre,
+  `absoluteFill`, con su `borderRadius` circular (como el pill medido;
+  sin `continuous`) e `isInteractive`, y ADENTRO va la vista que recorta,
+  con fondo transparente. Un `overflow: hidden` en un hijo no toca al
+  vidrio. Primero se probó al revés —vidrio hermano detrás del recorte—
+  y funcionaba, pero el dedo caía en las texturas y no en el material,
+  que no reaccionaba.
+- **Interactivo, y sin la escala del press.** Un control de vidrio
+  responde al dedo con su propio abultado; sumarle la escala medida de
+  Opal era feedback doble. Con `vidrio`, `escalaPropia` es false.
+- **Contenido que pase por debajo.** Sobre un fondo plano el vidrio es
+  indistinguible de una cápsula pintada: el fondo scrollea debajo del
+  botón, que flota.
+- **Nada suyo se funde por opacidad.** El único ancestro animado es la
+  escala del press, que es un transform. Lo que sí se funde —el relleno,
+  el velo blanco, los labels— está encima, en vistas comunes.
+- **El módulo se pide con un `require` dentro de un `try`.** Un `import`
+  estático ejecuta `requireNativeViewManager` al cargar y, si el binario
+  no lo linkea, tira abajo la pieza entera. Sin módulo o sin iOS 26 la
+  opción cae a una cápsula translúcida plana.
+
+Y una que no está arriba: **nada de Opal encima del vidrio**. El brillo
+de reposo tiñe el material (la textura tiene alfa, 0..153, media 42) y
+en la primera versión se dejó; pero un vidrio bien lanzado no lleva
+adornos: ni brillo, ni anillo (trae su borde), ni la punta velada (es del
+color del pill opaco). Sólo el relleno blanco del hold, que es el gesto.
+En modo claro el label de reposo arranca negro (`useColorScheme`), como
+el label de todo control de vidrio.

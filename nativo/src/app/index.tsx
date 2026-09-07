@@ -1,4 +1,4 @@
-import { Link, type Href } from 'expo-router'
+import { Link, Redirect, type Href } from 'expo-router'
 import { ScrollView, StyleSheet, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -32,6 +32,20 @@ const aFrase = (s: string) => {
 }
 
 export default function Indice() {
+  /* CON UNA SOLA PIEZA NO HAY ÍNDICE: el taller abre directo en lo que
+     estás construyendo. Un menú de un ítem no es una ayuda, es un peaje
+     —y encima aparece en la pantalla que después vas a mirar mil veces.
+
+     El índice vuelve solo cuando hay dos o más y recién ahí sirve para
+     algo, que es elegir. Sale del MISMO `require.context` que la lista,
+     así que no hay ninguna lista ni ningún flag que mantener: agregás
+     una carpeta y el taller cambia de modo solo.
+
+     Va antes que cualquier hook a propósito — este componente no tiene
+     ninguno, así que el early return no puede desordenarlos. Si algún
+     día se le agrega uno, va ARRIBA de esta línea. */
+  if (PIEZAS.length === 1) return <Redirect href={`/${PIEZAS[0]}` as Href} />
+
   return (
     <SafeAreaView style={css.pantalla}>
       <ScrollView contentContainerStyle={css.columna}>

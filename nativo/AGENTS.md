@@ -255,6 +255,162 @@ cambiarla.
    desenfoque, en Android hay que caer a un color plano — y ese color
    también se mide, no se elige.
 
+### Lo que dejó la primera pieza (hold-to-commit, 2026-09-02)
+
+9. **El `size` de `SymbolView` no es el tamaño del glifo.** SOURCE:
+   `expo-symbols/ios/SymbolView.swift:127` arma la configuración con
+   `pointSize: UIFont.systemFontSize` (14) siempre, y el `contentMode`
+   escala la imagen a la CAJA de la vista. Con `resizeMode: 'center'`
+   todos los símbolos salen a 14 pt, sea cual sea `size`. La forma que
+   funciona: caja = la caja natural del símbolo al tamaño que querés
+   (`NSImage(systemSymbolName:).size` en un script Swift la imprime),
+   `scaleAspectFit` (el default) y `scale: 'large'` para que el escalado
+   sea hacia abajo.
+
+10. **La grabación de `simctl` no sirve para medir puntos chicos ni
+    tiempos.** Comprime los detalles de 1–4 pt hasta volverlos polvo gris,
+    y pone pts a 60 fps a cuadros que captura a ~33: el tiempo sale
+    comprimido ~1.8×. Para medir, captura sin pérdida con una sonda de
+    estado fijo (`sonda.ts` de la pieza), y la grabación sólo para ver
+    el orden de las cosas.
+
+11. **`CI=1` apaga el watch mode de Metro.** `CI=1 pnpm ios` arranca, pero
+    "reloads are disabled": ningún cambio llega a la app. Sin la variable.
+
+12. **Dos worktrees, dos simuladores.** El dev client está clavado a
+    `localhost:8081` (trampa 8 de la memoria del proyecto). Si el otro
+    worktree tiene el simulador, no se le saca: se crea otro iPhone del
+    mismo tipo y se le instala el mismo `Taller.app`:
+    ```bash
+    APP=$(xcrun simctl get_app_container <udid-del-otro> com.anonymous.nativo)
+    UDID=$(xcrun simctl create "Pro Max B" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max com.apple.CoreSimulator.SimRuntime.iOS-26-2)
+    xcrun simctl boot $UDID && xcrun simctl install $UDID "$APP"
+    ```
+    Y al terminar, `shutdown` + `delete`: `pnpm grabar` habla con
+    `booted` y con dos prendidos elige uno cualquiera.
+
+13. **Un worklet no captura un namespace de módulo.** Dos SIGABRT en
+    `worklets::toOptimizedObject` mientras un worklet llamaba
+    `scheduleOnRN(haptica.tic)` con `import * as haptica`. Se pasó a
+    imports con nombre y las funciones se declaran ANTES del worklet que
+    las usa. SIN RECIBO exacto (no se reprodujo aislado); queda como
+    sospecha fundada.
+
+14. **Una sonda que parquea dos valores con un parámetro miente.** Con
+    `cruce=q` (Hold a 1−q, Keep a q) las capturas mostraban los dos
+    labels superpuestos en estados que la animación nunca produce: el
+    saliente se va en 48 ms y el entrante tarda 360. La sonda va en
+    MILISEGUNDOS y pone cada shared value donde lo tendría la animación
+    a ese instante, con las mismas curvas y retardos, para compararla con
+    el cuadro del clip del mismo instante.
+
+15. **La captura espera a que la pantalla se asiente.** Un `sleep 4`
+    después de escribir `sonda.ts` sacaba la primera foto vieja tras una
+    recarga. `sondas.sh` compara el hash del tercio de abajo de la
+    pantalla (el reloj de la barra cambia solo) hasta que dos capturas
+    seguidas coincidan y difieran de la sonda anterior. Y si Metro tiró
+    un error a mitad de una edición (un `medidas.ts` a medio escribir),
+    Fast Refresh puede quedar sirviendo módulos viejos sin avisar:
+    `simctl terminate` + `launch` y a comprobar en el bundle
+    (`curl localhost:8081/...entry.bundle | grep valor`).
+
+16. **Los montajes se miran a resolución completa.** Dieciséis filas de
+    texto a 3× se muestran achicadas a la mitad y un blur de σ 1 pt
+    desaparece: se corrigió un "entrante demasiado borroso" que no
+    existía. Ocho filas por imagen, a 2×, y recién ahí se compara.
+
+17. **El simulador B se apaga solo.** Tres veces en una sesión apareció
+    `(Shutdown)` entre dos capturas (probablemente al cerrarse su
+    ventana). Antes de capturar, `simctl list devices | grep <udid>`, y
+    si hace falta `boot` + `launch` + 10 s.
+
+18. **Reanimated apaga las animaciones con Reduce Motion, y el progreso
+    también.** `withTiming`, `withDelay` y `withSequence` traen
+    `reduceMotion: System` por defecto: con Reduce Motion prendido en
+    iOS saltan al valor final en el primer cuadro (SOURCE:
+    `react-native-reanimated/src/animation/util.ts:506`), y las
+    modificadoras se lo contagian a sus hijas. Un `withTiming` que ES
+    el gesto (el relleno de 2 s del hold) o que cuenta un estado con
+    opacidad lleva `reduceMotion: ReduceMotion.Never`, y reduce motion
+    se aplica a mano: queda opacidad y color, se va escala y traslación
+    (animate-expo § 9). RUNTIME: el pill pasaba de 64 a 182 de
+    luminancia en un cuadro y se quedaba ahí los 2 s. Para probarlo en
+    el simulador: `xcrun simctl spawn <udid> defaults write
+    com.apple.Accessibility ReduceMotionEnabled -bool true` y relanzar
+    la app (`useReducedMotion` lee el valor al arrancar). Dynamic Type:
+    `xcrun simctl ui <udid> content_size
+    accessibility-extra-extra-extra-large`, y `large` para volver.
+
+19. **Una sonda deja la pieza parqueada hasta que algo la desparquee.**
+    `sonda.ts` vuelto a `undefined` no hacía nada, así que la pieza se
+    quedaba en el último estado: un `commit` dejaba `terminado` en true
+    y un `auto` posterior no apretaba (la ráfaga de capturas dio 221.5
+    plano y parecía que la receta `skill` no andaba). Ahora la sonda
+    `undefined` devuelve al reposo. Igual, una tanda de `auto` se hace
+    después de relanzar.
+
+20. **Un cambio de Dynamic Type en vivo no re-mide el `Text`.** Con la
+    app abierta, pasar a AX5 agrandó los glifos pero la caja del label
+    quedó la de 17 pt: texto recortado. El label se remonta con
+    `key={factor}` cuando cambia `useWindowDimensions().fontScale`.
+
+### Lo que dejó Android y la medición de rendimiento (2026-09-07)
+
+21. **`PlatformColor` con nombres de UIKit es TRANSPARENTE en Android,
+    sin error.** `PlatformColor('systemFillColor')` es un `resource_paths`
+    en Android, que sólo resuelve `@android:color/…` y `?attr/…`; si
+    nada resuelve, `FabricUIManager.getColor` devuelve 0 (SOURCE:
+    react-native 0.86, `FabricUIManager.java:573`). El fondo `accion`
+    salía sin fondo y sin barras. Los colores de sistema se escriben con
+    sus valores (los de la tabla de UIKit) y `useColorScheme` los cambia.
+
+22. **`SymbolView` con un nombre string no dibuja NADA en Android.**
+    SOURCE: `expo-symbols/src/SymbolView.tsx:32` — sin `props.name.android`
+    devuelve `props.fallback`. Con el nombre como objeto (`{ ios:
+    'checkmark', android: 'check' }`) dibuja el glifo de Material Symbols
+    con la fuente de `@expo-google-fonts/material-symbols`, y el peso
+    para Android es un objeto `{ name, font }` que hay que armar (los
+    de `expo-symbols/src/android/weights` no se exportan). En Android
+    `size` sí es el tamaño (es un `Text` con `fontSize`), al revés que
+    en iOS (trampa 9).
+
+23. **El blur de `filter` existe en Android desde la API 31, y en iOS
+    no.** SOURCE: `BaseViewManager.java:558` (`RenderEffect`, sólo con
+    `SDK_INT >= S`). Las copias borrosas del label son PNG de SF Pro en
+    iOS y el mismo `Text` con `filter: [{ blur: σ }]` en Android: una
+    mancha de SF sobre un nítido de Roboto se ve doble.
+
+24. **Un worklet que llama a una `const` declarada más abajo la captura
+    como `undefined`.** El callback del `withTiming` del reinicio llamaba
+    a `reiniciar`, definida después de `completar`: "undefined is not a
+    function" recién a los 5 s, en producción y en dev. Las funciones que
+    un worklet llama van ANTES del worklet (ya lo decía la 13 para el
+    caso de los namespaces).
+
+25. **`modify` de un shared value desde JS manda el modificador a UI como
+    worklet.** Un closure creado en JS no lo es: "[Worklets] Tried to
+    synchronously call a Remote Function" en la cola de animaciones, y
+    de paso rompía lo que venía después en esa cola. Si un dato se
+    escribe desde los dos hilos, un depósito por hilo: un `makeMutable`
+    que sólo toca UI (y JS lee al final con `.get()`, que es sincrónico)
+    y un objeto de JS para lo de JS.
+
+26. **En el emulador de Android el bundle de DESARROLLO pierde cuadros
+    que el de producción no.** RUNTIME (Pixel 9 / Android 16, Expo Go
+    57.0.9, `medidor.tsx`): en dev, 47 cuadros perdidos de 372 en la
+    secuencia sin ninguna carga (17 de 44 durante el hold); en
+    producción (`expo start --no-dev --minify`), 0–2. Antes de optimizar
+    una animación por lo que muestra un emulador en dev, medirla en
+    producción. Y con `--no-dev` el `console.log` de la app NO llega a
+    Metro: el medidor manda el informe por POST a `RECEPTOR`
+    (`sonda.ts`).
+
+27. **Android compone los hijos de una vista con opacidad uno por uno.**
+    Durante el fundido del reinicio, el solape de 1 px entre las dos
+    texturas del relleno se veía como una línea clara. La vista que se
+    funde lleva `needsOffscreenAlphaCompositing` (Android; iOS lo hace
+    solo con `allowsGroupOpacity`).
+
 ## El vidrio
 
 `expo-glass-effect` ya está instalado (57.0.1) y tiene trampas que no se
@@ -286,10 +442,37 @@ Las versiones van **exactas**, sin `~`, como en el repo web.
 
 ## Probar en tu iPhone de verdad
 
-**Hoy sí, con Expo Go**, y sin build: instalás Expo Go de la App Store,
-la misma red Wi-Fi que la Mac, `pnpm start` y escaneás el QR. Si la red
-no coopera (Wi-Fi de invitados, VPN), `pnpm start --tunnel`. Vale lo
-mismo que en el simulador: todo menos Skia.
+**Hoy sí, con Expo Go de la App Store**, y sin build: el 2026-09-02 la
+tienda publicó Expo Go 57.0.9 y el taller es SDK 57. Antes de mandar a
+nadie a firmar nada, medir qué versión hay, porque la tienda atrasa
+(estuvo en SDK 54 desde septiembre de 2025 hasta ese día):
+
+```bash
+curl -s "https://itunes.apple.com/lookup?id=982107779" | grep -o '"version":"[^"]*"'
+```
+
+Cuando atrasa, el plan B es <https://sign.expo.dev>: firma el Expo Go del
+SDK que le pidas con la provisioning gratis del Apple ID, desde el iPhone
+(elegir el SDK, cuenta de Expo `vito160407` por Google, Apple ID, y una
+vez Ajustes › Privacidad y seguridad › Modo de desarrollador). **Vence a
+los 7 días**: cuando iOS dice «"Expo Go" ya no está disponible», es eso,
+y se firma de nuevo. Un Apple Developer Program pago (99 USD al año) da
+perfiles de un año.
+
+Después, la misma Wi-Fi que la Mac, `pnpm telefono` (`expo start --go`)
+con `EXPO_TOKEN` de la MISMA cuenta que el Expo Go del teléfono —un Expo
+Go logueado no abre proyectos anónimos— y escanear el QR. Antes de
+arrancar, `REACT_NATIVE_PACKAGER_HOSTNAME=<ip de en0>`: si la Mac tiene
+VPN o cambió de IP (cuatro veces en una semana), el manifest apunta mal.
+El nombre Bonjour de la Mac no sirvió desde el iPhone; la IP sí. Un
+`EXPO_TOKEN` inválido no falla al arrancar: el manifest devuelve 500
+(`The bearer token is invalid`); comprobarlo antes con `curl -H
+"Authorization: Bearer $T" https://api.expo.dev/v2/auth/userInfo`. El
+`--tunnel` (`@expo/ngrok` está en el proyecto) sirve en una red normal,
+pero NO en la de la facultad: intercepta TLS y el agente ngrok lo
+rechaza (`x509: certificate signed by unknown authority`); esa red no
+aísla clientes, así que el LAN por IP alcanza. Vale lo mismo que en el
+simulador: todo menos Skia.
 
 Y vale la pena hacerlo aunque el simulador ande: **el simulador no tiene
 háptica ni pantalla de 120Hz**, que son justo dos de las cosas que este
@@ -309,6 +492,50 @@ resto del recorrido no cambia: la grilla lo levanta igual.
 
 Queda dicho para cuando moleste: si grabar desde el teléfono se vuelve
 frecuente, el paso a automatizar es ese traslado, no la grabación.
+
+## Probar en Android
+
+**Lo que hay en esta Mac desde el 2026-09-07** (instalado con Homebrew,
+sin Android Studio): `openjdk@21` (keg-only: `JAVA_HOME=$(brew --prefix
+openjdk@21)/libexec/openjdk.jdk/Contents/Home`), el cask
+`android-commandlinetools`, y con `sdkmanager --sdk_root=$HOME/Library/
+Android/sdk` los paquetes `platform-tools`, `emulator`,
+`platforms;android-36` y `system-images;android-36;google_apis;arm64-v8a`.
+Un AVD `taller` (Pixel 9). Nada de esto viaja con el repo.
+
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
+$ANDROID_HOME/emulator/emulator -avd taller -no-snapshot-load -no-boot-anim -gpu auto &
+adb() { $ANDROID_HOME/platform-tools/adb "$@"; }
+adb shell getprop sys.boot_completed        # 1 cuando arrancó (~35 s)
+```
+
+**Expo Go, no el dev client**: el dev client es iOS. La versión de Expo
+Go para el SDK sale de la API de versiones, con la URL del APK:
+
+```bash
+curl -s https://exp.host/--/api/v2/versions/latest | python3 -c \
+  "import sys,json; s=json.load(sys.stdin)['data']['sdkVersions']['57.0.0']; print(s['androidClientVersion'], s['androidClientUrl'])"
+adb install -r Expo-Go-57.0.9.apk
+adb shell am start -a android.intent.action.VIEW -d "exp://<ip de en0>:8083"
+```
+
+El server es el mismo `pnpm telefono` del iPhone (con `EXPO_TOKEN` y
+`REACT_NATIVE_PACKAGER_HOSTNAME`); el emulador llega a la Mac por la IP
+de la LAN. Un Expo Go sin sesión abre el proyecto igual: la CLI sólo
+firma el manifest cuando la app lo pide. La primera vez aparece la hoja
+del dev menu encima de la pieza: se cierra con su ✕ (y ojo con tocar a
+ciegas: un tap que cae en el menú apaga Fast Refresh).
+
+```bash
+adb shell input swipe 540 2271 540 2271 1400   # un hold de 1.4 s en el botón
+adb exec-out screencap -p > captura.png
+adb shell cmd uimode night yes                 # modo oscuro (no: claro)
+adb shell am force-stop host.exp.exponent      # relanzar limpio
+```
+
+Vale lo de siempre: todo menos Skia. Y lo que dice la trampa 26: los
+cuadros se miden con `--no-dev --minify`, no con el bundle de dev.
 
 ## El agente al lado del simulador
 
