@@ -1302,3 +1302,15 @@ preview con el aire de sección de siempre. Publicar sigue aceptando una
 descripción, pero si viene vacía no escribe el campo. Las reglas para
 cuando hay línea quedan en `AGENTS.md › Cómo se nombra`, con la nueva
 primera regla: si el título ya dice qué es, no hay línea.
+
+**El rótulo de sección de las notas rendía 12 px más abajo que el de la
+lista.** Pregunta del usuario (2026-09-07): "¿la distancia entre el
+componente y la línea de Anatomy está bien?". Medido en la página
+servida: 76 del preview al rótulo donde `--section-gap` dice 64, y 53
+de la línea al primer texto donde `--section-content-gap` dice 40. La
+causa: en la lista el rótulo es un `div`; en las notas, `Seccion` lo
+dibuja como `h2`, y el navegador le pone 0.83em de margen arriba y
+abajo que `.groupLabel` no reseteaba. Josh usa el mismo 64 de un demo
+al título siguiente (medido en /bloom el mismo día). Arreglo: `margin:
+0` en `.groupLabel`; la lista no cambia. Verificado después: 64, 40 y
+64 entre secciones.
