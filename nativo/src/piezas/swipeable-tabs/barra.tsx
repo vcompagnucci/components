@@ -231,9 +231,11 @@ type Props = {
    Lo que sí es cierto, y por eso se queda: `SymbolView` es una vista
    NATIVA, y cada render de este componente le da props nuevas a los
    siete símbolos para que iOS los reconfigure. Quien disparaba el render
-   era el pager, que bloquea su propio scroll mientras dura un toque
-   lejano: ese `useState` cambia dos veces por toque, y la barra no
-   depende de él para nada. Es trabajo que no hay razón para hacer.
+   era el pager, que hasta el 2026-09-07 bloqueaba su propio scroll
+   mientras duraba un toque lejano con un `useState` que cambiaba dos
+   veces por toque; hoy el pager no tiene estado de React, pero
+   cualquier render del padre haría lo mismo, y la barra no depende de
+   él para nada. Es trabajo que no hay razón para hacer.
 
    Para que `memo` corte de verdad, las props tienen que ser estables:
    `tabs` es constante del módulo, los shared values no cambian de

@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics'
-import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { memo, useCallback, useEffect, useMemo, type ReactNode } from 'react'
 import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import Animated, {
   Easing,
@@ -184,23 +184,6 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
      le toca comandar su fila o dejársela al usuario. */
   const movimiento = useSharedValue<number>(MOVIMIENTO.quieto)
 
-  const alScrollear = useAnimatedScrollHandler({
-    onScroll: (e) => {
-      scrollX.set(e.contentOffset.x)
-    },
-    /* Si el dedo entra en escena, corta cualquier animación de toque que
-       esté corriendo — el gesto siempre gana. */
-    onBeginDrag: () => {
-      destino.set(NADIE)
-      movimiento.set(MOVIMIENTO.arrastre)
-    },
-    /* Recién con el momentum terminado: entre soltar y frenar el
-       contenido sigue moviéndose, y la fila tiene que seguir atada a él. */
-    onMomentumEnd: () => {
-      if (destino.get() === NADIE) movimiento.set(MOVIMIENTO.quieto)
-    },
-  })
-
   const progreso = useDerivedValue(() => (width > 0 ? scrollX.get() / width : 0))
 
   /* Los extremos y el avance del toque en curso. Los escribe `alTocar`
@@ -240,6 +223,13 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
      salida, así que el orden topológico de Reanimated lo corre antes que
      todos sus lectores; un `useAnimatedReaction` no declara ninguna.
      ─────────────────────────────────────────────────────────────── */
+  /* La página que está prestada, a qué lugar, y cuál es la que vivía ahí
+     —esa se apaga mientras dure el préstamo, o las dos se dibujan una
+     encima de la otra y el texto queda pisado. Ver `alTocar`. */
+  const prestadaIndice = useSharedValue(NADIE)
+  const prestadaX = useSharedValue(0)
+  const tapadaIndice = useSharedValue(NADIE)
+
   const ultimo = tabs.length - 1
   const tramo = useDerivedValue<Tramo>(() => {
     /* El tramo del toque vale MIENTRAS HAY UN TOQUE, y el toque es
@@ -251,6 +241,16 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
     if (destino.get() !== NADIE && movimiento.get() === MOVIMIENTO.toque) {
       return { d: toqueDesde.get(), h: toqueHasta.get(), t: avanceToque.get() }
     }
+    /* El toque lejano que el dedo interrumpió: el préstamo sigue vivo,
+       así que la barra sigue yendo de `desde` a `hasta`, con el avance
+       leído del scroll entre el lugar prestado y el destino (el recibo
+       está arriba de `asentarPrestamo`). */
+    if (prestadaIndice.get() !== NADIE) {
+      const d = toqueDesde.get()
+      const h = toqueHasta.get()
+      const dir = h > d ? 1 : -1
+      return { d, h, t: Math.min(1, Math.max(0, (progreso.get() - (h - dir)) * dir)) }
+    }
     const p = progreso.get()
     const d = Math.max(0, Math.min(Math.floor(p), ultimo))
     const h = Math.min(d + 1, ultimo)
@@ -259,19 +259,104 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
     return { d, h, t: h === d ? 0 : Math.min(1, Math.max(0, p - d)) }
   })
 
-  /* La página que está prestada, a qué lugar, y cuál es la que vivía ahí
-     —esa se apaga mientras dure el préstamo, o las dos se dibujan una
-     encima de la otra y el texto queda pisado. Ver `alTocar`. */
-  const prestadaIndice = useSharedValue(NADIE)
-  const prestadaX = useSharedValue(0)
-  const tapadaIndice = useSharedValue(NADIE)
-
-  /* El pager no acepta el dedo mientras dura un toque lejano. Cambia dos
-     veces por toque lejano, no por cuadro. */
-  const [quieto, setQuieto] = useState(false)
-
   /* De quién es el toque en curso. Ver `alTocar`. */
   const generacion = useSharedValue(0)
+
+  /* El tab al que el scroll va a saltar SIN que cambie nada en pantalla
+     (ver `asentarPrestamo`): ese cruce no vibra. */
+  const silencio = useSharedValue(NADIE)
+
+  /* ═══ EL DEDO GANA, TAMBIÉN DURANTE UN TOQUE LEJANO ═══
+
+     Hasta el 2026-09-07 el pager rechazaba el dedo mientras duraba un
+     toque lejano (`scrollEnabled={!quieto}`, un estado de React que
+     cambiaba dos veces por toque), por la página prestada: devolverla
+     con media pantalla adentro se veía como un salto. Eso rompía la
+     regla que `animate-expo` pone como piso —la interrupción no es
+     pulido, es la base— y el usuario pidió cumplirla sin tocar la
+     animación del toque, para no regrabar el video.
+
+     Cómo: el préstamo SIGUE VIVO mientras el dedo arrastra. La geometría
+     que ve el usuario —la página de origen en el lugar vecino, el
+     destino al lado— se mantiene, y la barra sigue yendo de `desde` a
+     `hasta` con el avance leído del scroll (ver `tramo`). El préstamo se
+     devuelve recién cuando no se puede ver:
+       · si el contenido llega al destino, ahí mismo: el lugar prestado
+         queda fuera de pantalla;
+       · si el dedo vuelve y el pager frena sobre la página prestada, se
+         devuelve y en el MISMO cuadro el scroll salta al lugar real de
+         esa página. El contenido es idéntico antes y después, y la
+         háptica de ese salto se silencia porque no cambió nada.
+     Lo que queda mal, y es una esquina de una esquina: arrastrar hacia
+     ATRÁS más allá de la página prestada dentro de esos 300 ms muestra
+     el lugar vacío de donde salió, o una página que no es su vecina; se
+     arregla solo al soltar, por el mismo camino. No hay forma de
+     evitarlo sin mover el scroll con el dedo apoyado, y UIScrollView
+     no lo respeta. SIN RECIBO EN PANTALLA TODAVÍA: probar en el
+     teléfono tocando lejos y arrastrando enseguida, en las dos
+     direcciones. */
+  const devolver = () => {
+    'worklet'
+    prestadaIndice.set(NADIE)
+    prestadaX.set(0)
+    tapadaIndice.set(NADIE)
+  }
+  const asentarPrestamo = () => {
+    'worklet'
+    if (prestadaIndice.get() === NADIE || width <= 0) return
+    const d = toqueDesde.get()
+    const h = toqueHasta.get()
+    const vecino = h - (h > d ? 1 : -1)
+    if (Math.round(progreso.get()) === vecino) {
+      silencio.set(d)
+      scrollTo(pager, d * width, 0, false)
+      scrollX.set(d * width)
+    }
+    devolver()
+  }
+  const alScrollear = useAnimatedScrollHandler(
+    {
+      onScroll: (e) => {
+        scrollX.set(e.contentOffset.x)
+        /* Con el préstamo vivo y el dedo al mando: al llegar al destino
+           el lugar prestado ya no se ve, y se devuelve ahí mismo. */
+        if (prestadaIndice.get() !== NADIE && movimiento.get() === MOVIMIENTO.arrastre && width > 0) {
+          const h = toqueHasta.get()
+          const dir = h > toqueDesde.get() ? 1 : -1
+          if ((progreso.get() - h) * dir >= 0) devolver()
+        }
+      },
+      /* Si el dedo entra en escena, corta cualquier animación de toque que
+         esté corriendo — el gesto siempre gana. Con una página prestada el
+         turno pasa al dedo: el callback del toque, que llega cancelado, ya
+         no es de nadie y no limpia. */
+      onBeginDrag: () => {
+        if (prestadaIndice.get() !== NADIE) {
+          generacion.set(generacion.get() + 1)
+          avanceToque.set(avanceToque.get())
+        }
+        destino.set(NADIE)
+        movimiento.set(MOVIMIENTO.arrastre)
+      },
+      /* Recién con el momentum terminado: entre soltar y frenar el
+         contenido sigue moviéndose, y la fila tiene que seguir atada a él. */
+      onMomentumEnd: () => {
+        if (destino.get() !== NADIE) return
+        asentarPrestamo()
+        movimiento.set(MOVIMIENTO.quieto)
+      },
+      /* Soltar justo en un borde de página y sin velocidad no trae
+         momentum, así que `onMomentumEnd` no llega: se asienta acá. */
+      onEndDrag: (e) => {
+        if (destino.get() !== NADIE || width <= 0) return
+        const p = e.contentOffset.x / width
+        if (Math.abs(e.velocity?.x ?? 0) > 0.001 || Math.abs(p - Math.round(p)) > 0.001) return
+        asentarPrestamo()
+        movimiento.set(MOVIMIENTO.quieto)
+      },
+    },
+    [width],
+  )
 
   /* El único puente entre la animación y el ScrollView, y corre entero
      en el hilo de UI: ni un render de React por cuadro. */
@@ -311,6 +396,12 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
          medio — y la regla es una háptica por acción del usuario, no
          una por cosa que se mueve. */
       if (destino.get() !== NADIE) return
+      /* El scroll asentándose en el lugar real de la página prestada no
+         cambia lo que se ve, y no vibra (ver `asentarPrestamo`). */
+      if (tab === silencio.get()) {
+        silencio.set(NADIE)
+        return
+      }
       scheduleOnRN(golpe)
     },
   )
@@ -326,12 +417,9 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
        Y sólo si el tab cambia: vibrar sobre el tab ya activo es ruido —
        la háptica marca un cambio de selección, y ahí no hay ninguno. */
     if (Math.round(progreso.get()) !== indice) golpe()
-    /* Un toque lejano bloquea el arrastre mientras dura, y es por la
-       página prestada de abajo: si el dedo entra en el medio hay que
-       devolverla, y devolverla con media pantalla adentro se ve como un
-       salto. 333 ms de pager quieto es más barato que eso. */
-    const lejano = Math.abs(indice - Math.round(progreso.get())) > 1
-    if (lejano) setQuieto(true)
+    /* Ningún estado de React acá: un toque, lejano o no, no renderiza.
+       El pager acepta el dedo siempre, también durante un toque lejano
+       (ver `asentarPrestamo`). */
 
     /* LAS ASIGNACIONES VAN JUNTAS EN EL HILO DE UI, y no es un detalle:
        escribir un shared value desde JS se encola, así que dos
@@ -359,6 +447,11 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
           prestadaIndice.set(NADIE)
           prestadaX.set(0)
           tapadaIndice.set(NADIE)
+        } else {
+          /* Un préstamo que el dedo interrumpió y todavía no se asentó
+             (el pager sigue frenando): se asienta ahora, o el nuevo
+             toque leería una página que no es la que se ve. */
+          asentarPrestamo()
         }
 
         const d = Math.round(progreso.get())
@@ -425,7 +518,6 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
             tapadaIndice.set(NADIE)
             destino.set(NADIE)
             movimiento.set(MOVIMIENTO.quieto)
-            scheduleOnRN(setQuieto, false)
           }),
         )
       },
@@ -437,10 +529,13 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
 
   /* ═══ LAS PÁGINAS SE MEMOIZAN, Y NO ES MICRO-OPTIMIZACIÓN ═══
 
-     `quieto` y `planFila` son estado de React, así que cambiarlos
-     re-renderiza este componente. Sin esto, ese render vuelve a crear
-     los elementos de las SIETE páginas —doce filas de texto cada una— y
-     eso cae justo en el cuadro en que arranca la animación del toque.
+     Hoy este componente no tiene estado de React: ni un toque ni un
+     arrastre lo renderizan. Lo tuvo hasta el 2026-09-07 (`quieto`, el
+     bloqueo del pager durante un toque lejano), y ese render volvía a
+     crear los elementos de las SIETE páginas —doce filas de texto cada
+     una— justo en el cuadro en que arrancaba la animación del toque. El
+     memo se queda: un render del padre (el tema, por ejemplo) haría lo
+     mismo, y la medición de abajo es el recibo de lo que cuesta.
 
      Estaba medido: en la grabación a 60 fps de un toque lejano, el
      primer cuadro después del toque no se movía y el segundo saltaba
@@ -577,7 +672,6 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
           ref={pager}
           horizontal
           pagingEnabled
-          scrollEnabled={!quieto}
           showsHorizontalScrollIndicator={false}
           onScroll={alScrollear}
           scrollEventThrottle={16}
@@ -624,7 +718,7 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
    cuesta nada, y en el 1% es la que se presta.
 
    `memo` porque el contenido ya viene memoizado de arriba: sin esto, un
-   cambio de `quieto` volvería a renderizar las siete igual. */
+   render del pager volvería a renderizar las siete igual. */
 const Hoja = memo(function Hoja({
   indice,
   ancho,

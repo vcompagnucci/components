@@ -1230,3 +1230,25 @@ Todo lo demás se confirmó con su recibo: la fila se corre desde un
 worklet, el layout precalculado depende sólo de los labels medidos, las
 páginas están memoizadas, la completitud fue 100.7 %, 101.1 % y
 100.2 %, y la traza de 492 cuadros es la que está en `pantalla.tsx`.
+
+**El dedo interrumpe también un toque lejano.** De la auditoría contra
+los skills (2026-09-07) quedó una sola regla en contra: `animate-expo`
+pone la interrupción como piso, y el pager rechazaba el dedo durante
+los 300 ms de un toque a dos o más tabs (`scrollEnabled={!quieto}`),
+por la página prestada. El usuario eligió cumplirla sin tocar la
+animación del toque, para no regrabar: la grabación tiene un solo toque
+lejano (Stocks → For you a los 4.1 s) y el gesto siguiente arranca a
+los 5.1 s, así que ningún cuadro cambia. Cómo: el préstamo sigue vivo
+mientras el dedo arrastra —la barra sigue de `desde` a `hasta` con el
+avance leído del scroll— y se devuelve sólo cuando no se ve: al llegar
+al destino, o al frenar sobre la página prestada, saltando en el mismo
+cuadro a su lugar real con la háptica de ese salto silenciada. Un toque
+nuevo sobre un préstamo sin asentar lo asienta primero. Se fue el
+estado `quieto`: el pager ya no tiene estado de React, y las páginas
+siguen memoizadas por cualquier render del padre. La esquina que queda:
+arrastrar hacia atrás más allá de la página prestada dentro de esos
+300 ms muestra el lugar vacío de donde salió; se arregla al soltar. SIN
+RECIBO en pantalla: se prueba en el teléfono tocando lejos y arrastrando
+enseguida, en las dos direcciones. Las notas públicas se actualizaron:
+"A drag interrupts a tap at any point, however far the tab is" y "React
+does not render during a gesture or a tap".

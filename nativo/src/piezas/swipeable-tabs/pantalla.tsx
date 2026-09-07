@@ -129,6 +129,14 @@ const css = StyleSheet.create({
  *   empalme; ni Following ni Stocks aparecen. Acá se consigue prestando
  *   la página de origen al lugar de al lado del destino.
  *
+ * — El dedo interrumpe cualquier toque, también uno lejano. El préstamo
+ *   sigue vivo mientras se arrastra y se devuelve sólo cuando no se ve:
+ *   al llegar al destino, o al frenar sobre la página prestada saltando
+ *   en el mismo cuadro a su lugar real (con la háptica de ese salto
+ *   silenciada). Hasta el 2026-09-07 el pager rechazaba el dedo durante
+ *   el toque lejano, contra la regla de interrupción de `animate-expo`.
+ *   SIN RECIBO en pantalla todavía: se prueba en el teléfono.
+ *
  * — La curva del toque es easeOutCubic a 300 ms, y NO es la del
  *   arrastre. Son dos animaciones distintas: la del arrastre es la
  *   deceleración del UIScrollView y no la elige nadie.

@@ -65,9 +65,13 @@ import { Seccion } from '../notas'
    · Sólo transform y opacity; el único `width` animado es el
      subrayado, hijo absoluto sin hijos — la excepción que la regla
      permite (animate-expo § 4; barra.tsx, `estiloSubrayado`).
-   · El gesto interrumpe la animación: `onBeginDrag` cancela el toque
-     en vuelo (animate-expo, "interruptibility is the baseline";
-     tabs-deslizables.tsx, `alScrollear`).
+   · El gesto interrumpe la animación, también un toque lejano:
+     `onBeginDrag` cancela el toque en vuelo y, si hay página prestada,
+     el préstamo sigue vivo hasta que no se ve (animate-expo,
+     "interruptibility is the baseline"; tabs-deslizables.tsx,
+     `alScrollear`, `asentarPrestamo`). Hasta el 2026-09-07 el toque
+     lejano bloqueaba el pager; se retiró para cumplir la regla sin
+     tocar la animación ni el video. SIN RECIBO en pantalla todavía.
    · Ease-out, nunca ease-in: `Easing.out(Easing.cubic)`, 300 ms
      medidos (animate-expo § 5; tabs-deslizables.tsx, `EASE_SETTLE`).
    · Una háptica por acción, en el cuadro del cambio, nunca la única
@@ -96,10 +100,10 @@ import { Seccion } from '../notas'
    afirmación con su recibo:
    · Todo en el hilo de UI y ninguna vuelta a JavaScript por cuadro:
      el scroll escribe shared values, los estilos derivan de ahí;
-     `scheduleOnRN` sólo en la reacción del umbral (háptica) y en el
-     cierre del toque lejano (`setQuieto`, dos veces por toque, no por
-     cuadro) (animate-expo § 6; tabs-deslizables.tsx, `alScrollear`,
-     `alTocar`, `scrollEnabled={!quieto}`).
+     `scheduleOnRN` sólo en la reacción del umbral (háptica), y el
+     pager no tiene estado de React desde el 2026-09-07 (antes,
+     `setQuieto` dos veces por toque lejano) (animate-expo § 6;
+     tabs-deslizables.tsx, `alScrollear`, `alTocar`).
    · Cero layout por cuadro: la fila no es un flex row; `plano`
      precalcula x y ancho de cada tab para cada estado de reposo una
      vez, después de medir los labels con `onLayout`, y `entre`
@@ -122,13 +126,14 @@ import { Seccion } from '../notas'
    VERIFICACIÓN DE VERACIDAD (2026-09-07, pedido del usuario: "chequeá
    que toda esa información sea verdadera y correcta"). Se releyó cada
    afirmación contra el código, y tres eran imprecisas y se corrigieron:
-   · "A drag cancels a tap animation in progress" → sólo un toque al tab
-     vecino se interrumpe; un toque lejano bloquea el pager mientras
-     dura (`setQuieto(true)` si `lejano`, `scrollEnabled={!quieto}`).
-   · "React does not render during a gesture" → vale para el ARRASTRE;
-     un toque lejano renderiza dos veces (bloquear y soltar), y la
-     háptica del arrastre se dispara en el cruce, en medio del gesto.
-     El texto dice ahora "during a drag" y "discrete moments".
+   · "A drag cancels a tap animation in progress" → en ese momento sólo
+     un toque al tab vecino se interrumpía; el lejano bloqueaba el
+     pager. Esa misma tarde el bloqueo se retiró (ver arriba) y la frase
+     volvió a ser cierta para cualquier toque: "at any point, however
+     far the tab is".
+   · "React does not render during a gesture" → valía para el ARRASTRE;
+     el toque lejano renderizaba dos veces. Sin el bloqueo ya no hay
+     estado de React en el pager: "during a gesture or a tap".
    · "the second one catching up in a single jump" → el segundo cuadro
      saltó 0.195 donde el ease pedía 0.252: no alcanzó. Lo medido es un
      cuadro entero perdido, y eso dice el texto.
@@ -175,9 +180,8 @@ export default function Notas() {
         </p>
         <p>
           Only transform and opacity animate. The one animated width, the underline, is absolutely
-          positioned and has no children, so no other layout runs. A drag interrupts a tap to the
-          next tab; a far tap locks the pager while it runs. The curve is an ease-out, never an
-          ease-in. One haptic per action, in the
+          positioned and has no children, so no other layout runs. A drag interrupts a tap at any
+          point, however far the tab is. The curve is an ease-out, never an ease-in. One haptic per action, in the
           frame the active tab changes, and never the only feedback. Reduced motion is respected,
           and 120 fps is enabled on ProMotion displays. Every value is a named constant with its
           source next to it.
@@ -192,17 +196,16 @@ export default function Notas() {
         <p>
           Everything that moves is computed on the UI thread, not in JavaScript. The scroll
           position is read there, and every style that depends on it is computed there, frame by
-          frame, so React does not render during a drag. JavaScript takes part only at discrete
-          moments: the tap itself, the lock and release of the pager on a far tap, and the haptic
-          when the tab changes. Never per frame.
+          frame, so React does not render during a gesture or a tap. JavaScript takes part only
+          twice: at the tap itself, and for the haptic when the tab changes. Never per frame.
         </p>
         <p>
           No layout runs for the tabs while the content moves. The row is not a flex row: the
           position and width of every tab in every resting state are computed once, after the
           labels are measured, and each frame interpolates between two of those states. Each tab
-          is absolutely positioned and moves with a transform. The pages are memoized, so the two
-          renders of a far tap do not rebuild them; without that, the recording showed the first
-          frame after the tap standing still, a whole frame lost.
+          is absolutely positioned and moves with a transform. The pages are memoized, so a render
+          elsewhere never rebuilds them: when a tap used to trigger one, the recording showed the
+          first frame after it standing still, a whole frame lost.
         </p>
         <p>
           The bar reads one value that describes the whole transition: where it starts, where it
