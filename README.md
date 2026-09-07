@@ -1269,6 +1269,17 @@ una vuelta de hoy y de lo que se rechazó en ella. En la misma pasada,
 la segunda relectura de Anatomy y Performance dejó tres precisiones: el
 subrayado en un toque sí lleva su propia animación, con la misma config
 que el contenido ("a tap moves both with the same timing"); la háptica
-es una por cambio de tab, no una por acción, porque un arrastre de tres
-tabs vibra tres veces; y "JavaScript takes part only twice" se leía
-como una cuenta ("at two moments only").
+es una por CRUCE de tab, no una por acción: ir y volver sobre el mismo
+límite en un gesto vibra cada vez, como cambia el label (un arrastre no
+llega a cruzar dos tabs: el segundo cruce queda a una pantalla y media
+de recorrido del dedo, y con paging el momentum sólo alcanza la página
+vecina); y "JavaScript takes part only twice" se leía como una cuenta
+("at two moments only").
+
+**Corrección de un ejemplo mío.** Al explicar lo anterior dije que "un
+arrastre de tres tabs vibra tres veces". No puede pasar, y el usuario lo
+señaló (2026-09-07): la reacción de la háptica no cambió en todo el día
+—vibra cuando `round(progreso)` cambia y no hay toque en curso, igual
+que siempre— y un gesto cruza a lo sumo un límite hacia adelante. Lo
+que sí vibra más de una vez es ir y volver sobre el mismo límite sin
+soltar, una por cruce, exactamente como cambia el label activo.

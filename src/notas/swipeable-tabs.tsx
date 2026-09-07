@@ -148,8 +148,13 @@ import { Seccion } from '../notas'
    · "It is never animated on its own" → en un toque el subrayado SÍ
      lleva su propia animación (`avanceToque`, misma config que el
      contenido): ahora "a tap moves both with the same timing".
-   · "One haptic per action" → un arrastre de tres tabs vibra tres
-     veces, una por cruce: ahora "once per change".
+   · "One haptic per action" → es una por CRUCE: ir y volver sobre el
+     mismo límite en un gesto vibra cada vez, como cambia el label. Un
+     arrastre no llega a cruzar dos tabs (el segundo cruce queda a una
+     pantalla y media de recorrido del dedo; con paging el momentum
+     sólo alcanza la página vecina): "un arrastre de tres tabs vibra
+     tres veces" fue un ejemplo mal dado, corregido por el usuario.
+     Ahora "once per change".
    · "JavaScript takes part only twice" → se leía como una cuenta:
      ahora "at two moments only".
 
