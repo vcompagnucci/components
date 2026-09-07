@@ -180,6 +180,12 @@ import { Seccion } from '../notas'
    y qué cambia). Hasta que existan, la sección es prosa (pedido del
    usuario, mismo día: "pienso incluir más videos y demás").
 
+   NÚMERO Y UNIDAD VAN CON ESPACIO INDIVISIBLE (U+00A0): "300 ms",
+   "60 fps", "120 fps", "492 frames". Es la regla de better-typography
+   (`&nbsp;` para que "16 px" no se parta en un corte de línea); hoy
+   ninguno caía en un corte, pero cualquier cambio de texto o de ancho
+   los podía partir (2026-09-07).
+
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
    (AGENTS.md › Método de trabajo): la palabra que iría en una
@@ -209,7 +215,7 @@ export default function Notas() {
           both with the same timing.
         </p>
         <p>
-          Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
+          Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
           the other labels move aside, and the content moves one page, however far away the tab
           is. The row scrolls only when the chosen tab doesn’t fit on screen. A light haptic marks
           each change of tab.
@@ -221,12 +227,12 @@ export default function Notas() {
         </p>
         <p>
           The haptic fires in the frame the tab changes, once per change, and never as the only
-          feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
+          feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
           Every value is a named constant with its source next to it.
         </p>
         <p>
           The reference is the home tabs of X on iOS, measured frame by frame from four recordings
-          at 60 fps.
+          at 60 fps.
         </p>
       </Seccion>
 
@@ -249,8 +255,8 @@ export default function Notas() {
           The bar reads one value that describes the whole transition: where it starts, where it
           ends and how far along it is. The underline, the labels and the symbols derive from it in
           the same frame, so they are always consistent with each other and the bar moves as one
-          object. Measured: the recording holds 60 fps through every gesture, and a trace of the
-          symbols across a six-page sweep, 492 frames, shows no flicker.
+          object. Measured: the recording holds 60 fps through every gesture, and a trace of the
+          symbols across a six-page sweep, 492 frames, shows no flicker.
         </p>
       </Seccion>
 
