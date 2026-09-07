@@ -101,7 +101,7 @@ Las tres reglas que valen para los dos caminos, antes de empezar:
 | 4 | **Creá el boceto** | En el lienzo: `+` → **New sketch**. Escribe `src/privado/bocetos/<slug>.tsx` y lo pone en la tela |
 | 5 | **Escribí** | Editá ese archivo. Vite lo recarga en el frame **sin recargar la página**. Un boceto roto apaga sólo su frame y se recupera al guardar |
 | 6 | **Probalo** | Clic para elegir el frame → ahí el boceto recibe los clics y podés apretarle los botones. `Escape` para volver a moverlo |
-| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción → **Add** |
+| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción (opcional: vacía, no se escribe) → **Add** |
 | 8 | **Verificá** | Te deja en `/<slug>` con el componente **corriendo**. Mirá también la home: el preview vivo va en las dos vistas |
 | 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
 
@@ -170,14 +170,17 @@ salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
 dice exactamente qué vas a ver. El título y la línea de descripción
 siguen la regla de nombres (Método de trabajo): el término técnico y el
 verbo de especificación, sin palabras graciosas — "tap to select one",
-no "tap to jump". **La línea de descripción tampoco nombra la app**: de
-dónde salió la pieza se cuenta en las notas, en Anatomy, donde se
-cuenta cómo se midió (pedido del usuario, 2026-09-07). Y ES CORTA: qué
-es y para qué plataforma, nada más —"Top tabs for React Native &
-Expo."—; los detalles van en Anatomy ("muchísimo más corto esto" y
-"que sea tabs, React Native, Expo", mismo día). El nombre de la
-plataforma es "React Native", no el de una librería, y las dos van
-con "&", como las escribe el ecosistema ("React Native & Expo").
+no "tap to jump". **La línea de descripción es opcional, y la primera
+regla es no tenerla**: si el título ya dice qué es, no hay línea
+(Swipeable tabs tuvo "Top tabs for React Native & Expo." y el usuario
+la borró: "ya está la de arriba que dice swipeable tabs", 2026-09-07;
+`desc?` en `pieces.ts`, y el detalle no dibuja el párrafo). Si hay
+línea: **no nombra la app** —de dónde salió la pieza se cuenta en las
+notas, en Anatomy, donde se cuenta cómo se midió—, y ES CORTA: qué es
+y para qué plataforma, nada más; los detalles van en Anatomy
+("muchísimo más corto esto"). El nombre de la plataforma es "React
+Native", no el de una librería, y las dos van con "&", como las
+escribe el ecosistema ("React Native & Expo").
 
 **Cómo se escriben la línea y las notas** (es el paso «Escribí el
 porqué» de los dos caminos; fijado con Swipeable tabs el 2026-09-07, y
@@ -188,8 +191,9 @@ la bitácora tiene cada vuelta y cada rechazo):
    cómo, nunca desde la implementación (la versión que contaba "un
    valor derivado, el pager le pasa un tramo a la barra" se rechazó
    por inútil).
-2. **La forma.** La línea: qué es y para qué plataforma, una oración
-   ("Top tabs for React Native & Expo."), sin nombrar la app de
+2. **La forma.** La línea, primero si hace falta: si el título ya
+   dice qué es, no hay línea (Swipeable tabs no tiene). Si hay: qué es
+   y para qué plataforma, una oración, sin nombrar la app de
    referencia. Las notas: tres secciones como máximo —`Anatomy`,
    `Performance` y, sólo si la pieza lo pide, `Use cases`—, en prosa,
    de dos a cuatro oraciones por párrafo, sin subtítulos adentro de
@@ -373,8 +377,10 @@ nada genérico se confunda con una decisión. La primera define el molde.
 
 **Publicar es un gesto del tablero.** Elegís el frame y `Add to Library`
 aparece en la sidebar (el clic derecho lo repite como atajo): nombre
-(llega puesto) y una línea de descripción, que
-son literalmente los dos renglones del detalle público. **La plataforma
+(llega puesto) y una línea de descripción, opcional —vacía, no se
+escribe el campo—. Son los dos renglones del detalle público; sin
+línea, el detalle va del preview a las notas (Swipeable tabs, desde el
+2026-09-07). **La plataforma
 la dice el frame**, no un selector:
 
 - un frame **boceto** publica una pieza **Web**: su archivo se copia de

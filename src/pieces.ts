@@ -13,7 +13,13 @@ export type Platform = 'Web' | 'App'
 export type Piece = {
   name: string
   platform: Platform
-  desc: string
+  /* La línea bajo la pieza en el detalle. OPCIONAL desde el 2026-09-07:
+     cuando el título ya dice qué es, no hay línea (Swipeable tabs la
+     tuvo —"Top tabs for React Native & Expo."— y el usuario la borró:
+     "ya está la de arriba que dice swipeable tabs"). Si existe, es una
+     oración: qué es y para qué plataforma, sin nombrar la app de
+     referencia (ver AGENTS.md › Cómo se nombra). */
+  desc?: string
   /* La grabación que la demuestra, en /piezas/ dentro de public/. Lo
      escribe Add to Library —el clic derecho sobre un frame del
      playground—, que copia el archivo y agrega la entrada: ver
@@ -52,7 +58,6 @@ export const PIECES: Piece[] = [
   {
     name: 'Swipeable tabs',
     platform: 'App',
-    desc: 'Top tabs for React Native & Expo.',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
   },
