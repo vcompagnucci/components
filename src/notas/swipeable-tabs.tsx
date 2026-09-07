@@ -43,9 +43,12 @@ import { Seccion } from '../notas'
    útil", mismo día). Es prosa, sin subtítulos: se probó un h3 por
    parte, la forma de josh en /bloom, y el usuario lo rechazó en la
    página ("no me gusta esta estructura"). Y ACÁ SE NOMBRA LA
-   REFERENCIA, no en la línea de descripción: que salió de X se cuenta
-   donde se cuenta cómo se midió. NO SE DICE DE DÓNDE SON LOS SÍMBOLOS
-   ni la háptica (pedido del usuario, 2026-09-07).
+   REFERENCIA: que salió de X se cuenta donde se cuenta cómo se midió.
+   NO SE DICE DE DÓNDE SON LOS SÍMBOLOS ni la háptica (pedido del
+   usuario, 2026-09-07). LA PIEZA NO TIENE LÍNEA DE DESCRIPCIÓN: la tuvo
+   ("Top tabs for React Native & Expo.") y el usuario la borró el mismo
+   día —"ya está la de arriba que dice swipeable tabs"—; el título es la
+   entrada y estas notas lo que sigue.
 
    SE DICE "REACT NATIVE", NO EL NOMBRE DE UNA LIBRERÍA. Ni Reanimated
    ni worklets: "no se suele decir eso" (usuario, 2026-09-07), y quien

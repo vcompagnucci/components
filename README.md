@@ -1291,3 +1291,14 @@ el subrayado; el toque; lo que se anima y cómo (propiedades, subrayado,
 interrupción, curva); lo que lo acompaña (háptica, reduced motion,
 120 fps, constantes con fuente); la referencia. Pedido del usuario
 (2026-09-07), después de la auditoría final contra las skills.
+
+**Sin línea de descripción: el título alcanza.** "Borrá esta
+descripción, que no haya nada ahí, ya está la de arriba que dice
+swipeable tabs" (usuario, 2026-09-07), sobre "Top tabs for React Native
+& Expo.". La línea pasa a ser OPCIONAL en el modelo (`desc?` en
+`pieces.ts`); sin línea, el detalle no dibuja el párrafo —si lo dibujara
+vacío quedarían sus 24 px de margen— y las notas siguen directo al
+preview con el aire de sección de siempre. Publicar sigue aceptando una
+descripción, pero si viene vacía no escribe el campo. Las reglas para
+cuando hay línea quedan en `AGENTS.md › Cómo se nombra`, con la nueva
+primera regla: si el título ya dice qué es, no hay línea.
