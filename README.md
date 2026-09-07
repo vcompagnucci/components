@@ -1314,3 +1314,27 @@ abajo que `.groupLabel` no reseteaba. Josh usa el mismo 64 de un demo
 al título siguiente (medido en /bloom el mismo día). Arreglo: `margin:
 0` en `.groupLabel`; la lista no cambia. Verificado después: 64, 40 y
 64 entre secciones.
+
+**Del preview a las notas, el 112 de benji.** "¿No debería ser 40
+entonces? ¿Qué usa benji en nuestro caso?" (usuario, 2026-09-07). No es
+40, que es de la línea al primer texto, ni 64, que es de prosa a
+separador. Medido en /liveline sobre la página servida: después de un
+demo benji deja 112 hasta la línea del separador, en las diez secciones
+que terminan en demo, con pie de foto o sin él; después de prosa, 64.
+Y 112 = 48 + 64, su hueco bajo una pieza más el de sección. Acá va con
+los mismos dos tokens: `.detailPreview + .notas` suma `--piece-gap`
+(48) y la primera sección pone sus 64. Sólo cuando las notas siguen
+directo al preview: con línea de descripción es prosa lo que precede, y
+ahí quedan los 64.
+
+**Use cases, con las mismas reglas que Anatomy.** Pedido del usuario
+(2026-09-07): "falta la parte de use cases, una mejor explicación,
+siguiendo todas las reglas". Tres párrafos, en el vocabulario de la
+HIG: cuándo sí —secciones del mismo rango, cada una una lista, más de
+las que entra en un segmented control, cambiadas tan seguido que el
+swipe tiene que valer tanto como el toque, con X como modelo—; los
+ejemplos, listas con más de un corte de primer nivel; y cuándo no
+—jerarquía, dos a cuatro opciones, las secciones de la app—, más la
+condición de los labels cortos, que sale de la pieza. El usuario piensa
+sumar un video por caso: irán con pie de un renglón, como los de benji
+en /liveline, y la sección es prosa hasta entonces.

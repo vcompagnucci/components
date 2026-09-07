@@ -620,6 +620,18 @@
 .notaSeccion {
   padding-top: var(--section-gap);
 }
+/* LAS NOTAS DIRECTO DEBAJO DEL PREVIEW llevan 48 más: el preview es un
+   demo, y benji separa un demo del separador siguiente con 112, no con
+   los 64 que separan prosa de separador. RUNTIME /liveline (2026-09-07,
+   página servida): 112 en las diez secciones que terminan en demo, con
+   pie de foto (del pie a la línea) o sin él ("Just a line", del borde
+   del demo a la línea); 64 en las que terminan en prosa. 112 = 48 + 64:
+   su hueco bajo una pieza (--piece-gap, ya medido) más el de sección.
+   Sólo cuando no hay línea de descripción: con línea, es prosa lo que
+   precede al separador, y ahí van los 64 de siempre. */
+.detailPreview + .notas {
+  padding-top: var(--piece-gap);
+}
 
 /* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que
    pisa. Vivía acá, sobre .page, cuando .page era el único marco que

@@ -164,6 +164,22 @@ import { Seccion } from '../notas'
    · "JavaScript takes part only twice" → se leía como una cuenta:
      ahora "at two moments only".
 
+   USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, con los nombres de la HIG:
+   secciones del mismo rango, cada una una lista, más de las que entra
+   en un segmented control, y cambiadas tan seguido que el swipe tiene
+   que valer tanto como el toque; los ejemplos son listas con más de un
+   corte de primer nivel; y el cuándo no —jerarquía (necesita botón de
+   volver), dos a cuatro opciones (segmented control), las secciones de
+   la app (tab bar de abajo)— más la condición de los labels cortos, que
+   sale de la propia pieza (el tab activo se ensancha, la fila sólo se
+   corre cuando un tab no entra). Reescrita el 2026-09-07 con las
+   mismas reglas que Anatomy: better-writing, vocabulario de
+   especificación, cada afirmación cierta. VA A LLEVAR VIDEO: un video
+   por caso con un pie de un renglón como los de benji en /liveline
+   ("Resting heart rate. Custom formatter, exaggerated Y-axis.": qué es
+   y qué cambia). Hasta que existan, la sección es prosa (pedido del
+   usuario, mismo día: "pienso incluir más videos y demás").
+
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
    (AGENTS.md › Método de trabajo): la palabra que iría en una
@@ -240,9 +256,21 @@ export default function Notas() {
 
       <Seccion titulo="Use cases">
         <p>
-          Any list with more top-level sections than a segmented control can hold: a profile with
-          posts, replies and media; a feed with its filters; chat folders; a catalog by category;
-          scores by league; an agenda by day.
+          Top tabs fit a screen whose content splits into sections of the same rank, each one a
+          list, with more of them than a segmented control can hold and switched often enough that
+          a swipe has to work as well as a tap. X’s home is the model: two feeds and four topics in
+          one row.
+        </p>
+        <p>
+          The same shape appears wherever a list has more than one top-level division: a profile
+          with posts, replies and media; a chat list with folders; a catalog by category; scores by
+          league; an agenda by day.
+        </p>
+        <p>
+          It is the wrong tool for a hierarchy, which needs a back button; for two to four options,
+          which fit a segmented control; and for the app’s own sections, which belong in the tab
+          bar at the bottom. Labels have to stay short: the active tab widens for its symbol, and
+          the row scrolls only when a tab does not fit.
         </p>
       </Seccion>
     </>
