@@ -52,7 +52,7 @@ export const PIECES: Piece[] = [
   {
     name: 'Swipeable tabs',
     platform: 'App',
-    desc: 'X’s home tabs for Expo. Swipe between tabs, tap to select one, and the header collapses as you scroll.',
+    desc: 'A tab bar with paged content, for Expo. Swipe between tabs, tap to select one, and the header collapses as you scroll.',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
   },

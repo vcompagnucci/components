@@ -170,7 +170,9 @@ salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
 dice exactamente qué vas a ver. El título y la línea de descripción
 siguen la regla de nombres (Método de trabajo): el término técnico y el
 verbo de especificación, sin palabras graciosas — "tap to select one",
-no "tap to jump".
+no "tap to jump". **La línea de descripción tampoco nombra la app**: de
+dónde salió la pieza se cuenta en las notas, en Anatomy, donde se
+cuenta cómo se midió (pedido del usuario, 2026-09-07).
 
 **Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
 dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo

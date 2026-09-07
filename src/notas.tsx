@@ -22,9 +22,11 @@ import { slug } from './pieces'
    un archivo de notas es prosa y nada más.
 
    LA FORMA DE UNA NOTA: tres secciones como máximo, en el tono de josh
-   (joshpuckett.me): "Anatomy" —con qué está hecha y de qué partes—,
-   "Performance" —por dónde corre y qué se midió— y, sólo cuando la
-   pieza lo pide, "Use cases". Dos o tres oraciones por sección.
+   (joshpuckett.me): "Anatomy" —de qué está hecha LA ANIMACIÓN que da
+   nombre a la pieza y de qué partes; lo que la rodea en la grabación
+   no va ahí (pedido del usuario, 2026-09-07)—, "Performance" —por
+   dónde corre y qué se midió— y, sólo cuando la pieza lo pide, "Use
+   cases". Dos o tres oraciones por párrafo.
    Decidido con la primera pieza (2026-09-05). Y ES PROSA: se probó un
    subtítulo por parte adentro de "Anatomy" —un h3 con el nombre y su
    párrafo debajo, la forma de josh en /bloom— y el usuario lo rechazó

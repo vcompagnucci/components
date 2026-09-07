@@ -26,49 +26,51 @@ import { Seccion } from '../notas'
    ensayo: el usuario pidió "bien simple y conciso, tal cual el tono de
    josh".
 
-   TRES SECCIONES, NO MÁS: "Anatomy" (con qué está hecha y de qué
-   partes), "Performance" (por dónde corre y qué se midió) y, cuando la
-   pieza lo pide, "Use cases". Es la regla para todas las notas (pedido
-   del usuario, 2026-09-05: "mucho menos secciones"); las seis de la
-   versión anterior eran demasiadas.
+   TRES SECCIONES, NO MÁS: "Anatomy" (de qué está hecha la animación y
+   de qué partes), "Performance" (por dónde corre y qué se midió) y,
+   cuando la pieza lo pide, "Use cases". Es la regla para todas las
+   notas (pedido del usuario, 2026-09-05: "mucho menos secciones"); las
+   seis de la versión anterior eran demasiadas.
 
-   LA ANATOMÍA ES PROSA, SIN SUBTÍTULOS. Se probó la forma de josh en
-   /bloom —un h3 por parte (Header, Tab bar, Pager, Page) con su párrafo
-   debajo— y el usuario la rechazó en la página ("no me gusta esta
-   estructura", 2026-09-07). Lo que quedó es el contenido de esa vuelta
-   en tres párrafos: qué partes hay y cómo forman un bloque; cómo la
-   barra y el pager comparten un solo valor; cómo el scroll de la lista
-   colapsa el header. Cada parte se nombra al pasar, una o dos oraciones
-   por parte, y se dice primero qué es y después qué hace.
+   ANATOMY HABLA SÓLO DE LA ANIMACIÓN QUE DA NOMBRE A LA PIEZA: los
+   tabs. El header que colapsa, las listas y el avatar están en la
+   grabación y en la línea de descripción, pero no acá ("en anatomy que
+   se hable solo de la animación de los tabs, no de las otras cosas",
+   2026-09-07). Y ACÁ SE NOMBRA LA REFERENCIA, no en la línea de
+   descripción: la línea dice qué es la pieza sin nombrar la app, como
+   el título; que salió de X se cuenta donde se cuenta el proceso, en
+   el cierre sobre la medición ("en la descripción principal no pongas
+   X's tabs, mencionalo explicando el proceso o en anatomy", mismo
+   día). Es prosa, sin subtítulos: se probó un h3 por parte, la
+   forma de josh en /bloom, y el usuario lo rechazó en la página ("no me
+   gusta esta estructura", mismo día). Cada parte se nombra al pasar,
+   y se dice primero qué es y después qué hace.
 
-   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —header, tab bar, pager, list;
-   "collapses", no "folds away"; "select", no "jump"—, por la regla de
-   nombres del repo (AGENTS.md › Método de trabajo): la palabra que iría
-   en una especificación, no la graciosa. */
+   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab bar, underline, pager,
+   label, symbol; "select", no "jump"—, por la regla de nombres del repo
+   (AGENTS.md › Método de trabajo): la palabra que iría en una
+   especificación, no la graciosa. */
 export default function Notas() {
   return (
     <>
       <Seccion titulo="Anatomy">
         <p>
-          Expo and Reanimated, nothing else. Four parts, top to bottom: a header with the avatar,
-          the tab bar, a pager and one list per tab. The header, the tab bar and the divider form
-          one block with the status bar, and the block moves as a unit.
+          Expo and Reanimated, nothing else. The tabs are a row of labels with an underline, over
+          a paged ScrollView with one page per tab. The bar keeps no state: it draws the underline,
+          the label colors and the symbols from one value the pager hands it, where the transition
+          starts, where it ends and how far along it is.
         </p>
         <p>
-          The tab bar keeps no state. It draws everything from one value the pager hands it: where
-          the transition starts, where it ends and how far along it is. The pager is a paged
-          ScrollView, so a drag is the native scroll and the underline decelerates on iOS’s own
-          curve. A tap animates the same value in 300 ms, and the content travels one page even
-          when the tab you tapped is at the other end. The active tab grows to make room for a
-          symbol, the row scrolls only when the next tab doesn’t fit, and a light haptic marks each
-          change of tab.
+          A drag is the native scroll, so the underline moves with the content and decelerates on
+          iOS’s own curve. A tap animates the same value in 300 ms, and the content travels one
+          page even when the tab you tapped is at the other end. As the underline travels, the tab
+          it lands on grows to make room for a symbol, a chevron on the feeds and an icon on the
+          topics, and the labels around it shift away. The row scrolls only when the next tab
+          doesn’t fit, and a light haptic marks each change of tab.
         </p>
         <p>
-          Each list reports its scroll, and that’s what collapses the header: the block moves up
-          exactly as far as the content did, until its divider meets the status bar, and what’s
-          drawn on it fades on the way. Scroll back and it returns the same way. Every value is
-          measured from X: four recordings at 60 fps, read frame by frame, each number next to its
-          receipt in the code.
+          The reference is the home tabs of X on iOS. Every value is measured from there: four
+          recordings at 60 fps, read frame by frame, each number next to its receipt in the code.
         </p>
       </Seccion>
 

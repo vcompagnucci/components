@@ -1082,3 +1082,30 @@ gesture-handler, "swipe" en la HIG), el masthead `Library`, los rótulos
 `Web` y `App`, y los títulos de las notas `Anatomy`, `Performance` y
 `Use cases`. `AGENTS.md › Cómo se nombra` lo deja escrito para las
 piezas que vengan.
+
+**Anatomy habla sólo de la animación que da nombre a la pieza.** El
+usuario, con la prosa en pantalla: "en anatomy que se hable solo de la
+animación de los tabs, no de las otras cosas" (2026-09-07). Salieron de
+la sección el header que colapsa, las listas y el avatar —siguen en la
+grabación y en la línea de descripción— y quedaron dos párrafos sobre
+los tabs y el cierre de la medición: la fila de labels con su subrayado
+sobre un ScrollView paginado, la barra sin estado que dibuja subrayado,
+colores de label y símbolos desde un solo valor; el arrastre como scroll
+nativo con la curva de iOS, el toque en 300 ms que mueve el contenido
+una sola página, el tab que crece para su símbolo mientras los labels
+vecinos se apartan, la fila que sólo se corre cuando el próximo tab no
+entra, y la háptica por cambio. Es la regla para las notas que vengan y
+está escrita en `notas.tsx`: la sección desarma la animación, no la
+pantalla.
+
+**La línea de descripción no nombra la app; la referencia se cuenta en
+Anatomy.** "En la descripción principal no pongas X's tabs, mencionalo
+explicando el proceso o en anatomy, que la referencia fue sacada de
+ahí" (2026-09-07). La línea queda "A tab bar with paged content, for
+Expo. Swipe between tabs, tap to select one, and the header collapses
+as you scroll." —qué es y qué hace, como el título, que tampoco nombra
+la app— y el cierre de Anatomy dice de dónde salió y cómo se midió:
+"The reference is the home tabs of X on iOS. Every value is measured
+from there: four recordings at 60 fps, read frame by frame, each number
+next to its receipt in the code." Escrito en `AGENTS.md › Cómo se
+nombra` para las piezas que vengan.
