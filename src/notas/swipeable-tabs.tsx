@@ -44,14 +44,47 @@ import { Seccion } from '../notas'
    parte, la forma de josh en /bloom, y el usuario lo rechazó en la
    página ("no me gusta esta estructura"). Y ACÁ SE NOMBRA LA
    REFERENCIA, no en la línea de descripción: que salió de X se cuenta
-   donde se cuenta cómo se midió.
+   donde se cuenta cómo se midió. NO SE DICE DE DÓNDE SON LOS SÍMBOLOS
+   ni la háptica (pedido del usuario, 2026-09-07).
 
    SE DICE "REACT NATIVE", NO EL NOMBRE DE UNA LIBRERÍA. Ni Reanimated
    ni worklets: "no se suele decir eso" (usuario, 2026-09-07), y quien
    lee no tiene por qué conocerlos. Lo que esas palabras querían decir
    se dice en llano: la animación corre en el hilo de UI, no en
    JavaScript. Las únicas marcas que quedan son las que el lector
-   reconoce: React Native, Expo, SF Symbols, iOS.
+   reconoce: React Native, Expo, iOS.
+
+   LAS REGLAS QUE ENUMERA EL TERCER PÁRRAFO son las de los skills
+   `animate-expo`, `interface-craft` y `better-ui`, y entran SÓLO las
+   que el código cumple, verificadas el 2026-09-07 (pedido del usuario:
+   "aclará reglas que sigan a /animate-expo y /interface-craft y
+   /better-ui si cumplen con el código"). Cada una con su recibo:
+   · Sólo transform y opacity; el único `width` animado es el
+     subrayado, hijo absoluto sin hijos — la excepción que la regla
+     permite (animate-expo § 4; barra.tsx, `estiloSubrayado`).
+   · El gesto interrumpe la animación: `onBeginDrag` cancela el toque
+     en vuelo (animate-expo, "interruptibility is the baseline";
+     tabs-deslizables.tsx, `alScrollear`).
+   · Ease-out, nunca ease-in: `Easing.out(Easing.cubic)`, 300 ms
+     medidos (animate-expo § 5; tabs-deslizables.tsx, `EASE_SETTLE`).
+   · Una háptica por acción, en el cuadro del cambio, nunca la única
+     señal: `useAnimatedReaction` en el umbral y `scheduleOnRN` sólo
+     ahí (animate-expo § 8; tabs-deslizables.tsx).
+   · Reduced motion en la propia animación: `ReduceMotion.System` en
+     la config del toque (animate-expo § 9; tabs-deslizables.tsx, `CFG`).
+   · 120 fps habilitado en ProMotion: `CADisableMinimumFrameDurationOnPhone`
+     (animate-expo § 120fps; nativo/app.json). SOURCE, no medido en
+     pantalla: la grabación es a 60.
+   · Cada valor es una constante con nombre y con su fuente al lado
+     (interface-craft, "tunable by default"; medidas.ts), y un solo
+     valor guía toda la transición (interface-craft, "stage-driven";
+     `Tramo` en tabs-deslizables.tsx).
+   · El movimiento nunca es la única señal: label blanco, subrayado,
+     símbolo (better-ui, "motion restraint"; barra.tsx).
+   LA QUE NO CUMPLE, A PROPÓSITO, y por eso no está en el texto: la
+   puerta de animate-expo "tab switches never slide". Acá el contenido
+   se desliza porque la referencia lo hace y está medido cuadro a
+   cuadro; la regla apunta a los tabs de abajo con `animation: 'none'`.
 
    LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
    symbol, page; "select", no "jump"—, por la regla de nombres del repo
@@ -74,9 +107,17 @@ export default function Notas() {
           haptic marks each change of tab.
         </p>
         <p>
-          The symbols are SF Symbols, all but the Stocks chip, and the haptic is Expo’s. The
-          reference is the home tabs of X on iOS, measured from four recordings at 60 fps, frame by
-          frame; every number in the code sits next to where it came from.
+          It follows the library’s rules for motion. Only transform and opacity animate; the one
+          animated width, the underline, is an absolute element with no children, so nothing else
+          is laid out. A drag interrupts a tap mid-flight. The curve is an ease-out, never an
+          ease-in. One haptic per action, in the frame the active tab changes, and never the only
+          cue. Reduced motion is respected, and 120 fps is enabled on ProMotion screens. Every
+          value is a named constant with its source beside it, and one value drives the whole
+          transition.
+        </p>
+        <p>
+          The reference is the home tabs of X on iOS, measured from four recordings at 60 fps,
+          frame by frame.
         </p>
       </Seccion>
 

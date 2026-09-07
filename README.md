@@ -1156,3 +1156,23 @@ su línea bajo el título —"a drawing toolbar for React" (benji,
 /drawesome), "a real-time animated line chart component for React"
 (benji, /liveline), "An iOS inspired pull down menu for the web" (josh,
 /bloom)—, leída en sus páginas servidas el mismo día.
+
+**Anatomy enumera las reglas de motion que la pieza cumple, y sólo
+esas.** Pedido del usuario (2026-09-07): "aclará reglas que sigan a
+/animate-expo y /interface-craft y /better-ui si cumplen con el
+código", y que no se diga de dónde son los símbolos. Se auditó el
+código contra los tres skills antes de escribir una palabra; entraron
+ocho reglas con recibo en archivo y línea (el detalle está arriba de
+`src/notas/swipeable-tabs.tsx`): sólo transform y opacity, con el
+subrayado como el único ancho animado y dentro de la excepción (hijo
+absoluto sin hijos); el gesto interrumpe la animación; ease-out, nunca
+ease-in; una háptica por acción, en el cuadro del cambio y nunca como
+única señal; reduced motion en la propia animación; 120 fps habilitado
+en ProMotion (SOURCE, `app.json`); cada valor una constante con su
+fuente y un solo valor guiando la transición; el movimiento nunca como
+única señal. Quedó afuera, a propósito, la puerta "tab switches never
+slide" de animate-expo: la pieza desliza porque la referencia desliza,
+medido cuadro a cuadro, y la regla apunta a los tabs de abajo. En el
+texto público las reglas no llevan el nombre de los skills —son
+archivos locales que el lector no conoce— sino "the library's rules
+for motion"; la atribución vive en el comentario del archivo.
