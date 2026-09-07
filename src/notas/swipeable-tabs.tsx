@@ -58,7 +58,10 @@ import { Seccion } from '../notas'
    `animate-expo`, `interface-craft` y `better-ui`, y entran SÓLO las
    que el código cumple, verificadas el 2026-09-07 (pedido del usuario:
    "aclará reglas que sigan a /animate-expo y /interface-craft y
-   /better-ui si cumplen con el código"). Cada una con su recibo:
+   /better-ui si cumplen con el código"). Sin frase que las anuncie:
+   el párrafo arranca por la primera regla, como el "How it works" de
+   benji ("It follows the library's rules for motion" se rechazó: "no
+   me gusta esta frase", mismo día). Cada una con su recibo:
    · Sólo transform y opacity; el único `width` animado es el
      subrayado, hijo absoluto sin hijos — la excepción que la regla
      permite (animate-expo § 4; barra.tsx, `estiloSubrayado`).
@@ -107,13 +110,12 @@ export default function Notas() {
           haptic marks each change of tab.
         </p>
         <p>
-          It follows the library’s rules for motion. Only transform and opacity animate; the one
-          animated width, the underline, is an absolute element with no children, so nothing else
-          is laid out. A drag interrupts a tap mid-flight. The curve is an ease-out, never an
-          ease-in. One haptic per action, in the frame the active tab changes, and never the only
-          cue. Reduced motion is respected, and 120 fps is enabled on ProMotion screens. Every
-          value is a named constant with its source beside it, and one value drives the whole
-          transition.
+          Only transform and opacity animate; the one animated width, the underline, is an
+          absolute element with no children, so nothing else is laid out. A drag interrupts a tap
+          mid-flight. The curve is an ease-out, never an ease-in. One haptic per action, in the
+          frame the active tab changes, and never the only cue. Reduced motion is respected, and
+          120 fps is enabled on ProMotion screens. Every value is a named constant with its source
+          beside it, and one value drives the whole transition.
         </p>
         <p>
           The reference is the home tabs of X on iOS, measured from four recordings at 60 fps,

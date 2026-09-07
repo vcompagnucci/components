@@ -1176,3 +1176,8 @@ medido cuadro a cuadro, y la regla apunta a los tabs de abajo. En el
 texto público las reglas no llevan el nombre de los skills —son
 archivos locales que el lector no conoce— sino "the library's rules
 for motion"; la atribución vive en el comentario del archivo.
+
+**Las reglas, sin frase que las anuncie.** "It follows the library's
+rules for motion" se rechazó ("no me gusta esta frase", 2026-09-07).
+El párrafo arranca por la primera regla —"Only transform and opacity
+animate"— como el "How it works" de benji, que tampoco anuncia: dice.
