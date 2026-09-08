@@ -225,7 +225,7 @@ día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
 
 ## Lo que ya sabemos que muerde
 
-Veintiocho cosas que no son obvias y cuestan una tarde cada una. Las
+Treinta cosas que no son obvias y cuestan una tarde cada una. Las
 ocho primeras salieron de leer `SchroederNathan/react-native-motion` el
 2026-08-28 — allá están escritas como reglas de una pieza puntual, pero
 ninguna lo es. La novena salió de medirla acá, en swipeable-tabs; las
@@ -478,6 +478,19 @@ cambiarla.
     `completar`, "[Worklets] Tried to synchronously call a Remote
     Function. Called 'tiempo' on the UI Runtime". El typecheck no lo ve
     y en el hilo de JS anda: se ve en el log de Metro, no en pantalla.
+
+30. **La tinta medida no es la opacidad si la cosa además escala.** Para
+    comparar si dos elementos entran juntos se mide la TINTA —Σ (255 −
+    luminancia) sobre el fondo claro, que el blur conserva porque sólo
+    la desparrama—, pero un elemento que crece aporta tinta proporcional
+    a su ÁREA: el factor es escala², no escala. El tilde contextual de
+    hold-to-commit, con la misma opacidad que el texto, mide 34 % contra
+    74 % a q = .30 sólo por estar al 63 % de su tamaño (0.63² = 0.40).
+    Antes de leer un retraso en la diferencia, dividir por escala². Y la
+    banda que se integra tiene que sobrar 3σ del blur más ancho por cada
+    lado: con menos, la tinta desparramada cae afuera y todos los
+    estados intermedios miden de menos. `tilde.py` de la pieza hace las
+    dos cosas.
 
 ## El vidrio
 

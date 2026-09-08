@@ -219,9 +219,15 @@ export default function HoldToCommit() {
  *   en la retirada, tilde contextual— sigue entera con `?receta=skill`.
  *
  * — El tilde de "Order Placed" entra con opacidad 0 → 1, escala .25 → 1
- *   y blur 4 → 0 en un spring de 300 ms, rebote 0 (better-ui, ícono
- *   contextual); en `clip`, pegado al texto. RUNTIME:
- *   `cmp/tilde-contextual-tablero.png`.
+ *   y blur 4 → 0 (better-ui, ícono contextual); en `clip`, pegado al
+ *   texto. NO TIENE RELOJ PROPIO: lee `pListo`, la presencia del texto,
+ *   y sus dos capas llevan la misma partición de la escalera que el
+ *   texto (nítida `nitido`, borrosa `ancho + angosto`), así el ícono y
+ *   "Order Placed" no pueden separarse en ninguna receta (pedido del
+ *   2026-09-07). Lo único que los distingue es la escala prescripta.
+ *   RUNTIME: `cmp/tilde-de-la-mano.png` y `tilde.py` — en `clip` las dos
+ *   tintas van a ±1.5 puntos porcentuales en cada q; en `skill` la
+ *   diferencia que queda es exactamente el área del tilde a esa escala.
  *
  * — Un solo estado, `etapa` (entero): reposo, hold, sonando, commit,
  *   reinicio. El storyboard arriba de `boton.tsx` lee como la secuencia

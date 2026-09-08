@@ -66,17 +66,25 @@ import { COLOR, COMMIT, LABEL, SIMBOLO, TEXTO } from './medidas'
    EL TILDE, según la receta (`tildeContextual`). Con la del clip entra
    pegado al texto: las PNG borrosas son de la fila entera. Con la receta
    `skill` (2026-09-07, "usá la técnica de ícono contextual de better-ui")
-   entra SOLO, con las tres cosas que better-ui prescribe —"scale 0.25 to
-   1, opacity 0 to 1, blur 4px to 0px"— sobre un reloj q (0..1) que el
-   botón anima con el spring de la receta (300 ms, rebote 0). El blur
-   4 → 0 son dos capas, la PNG a σ 4 pt (o el `filter` en Android) y la
-   nítida, con la opacidad repartida q(1−q) y q²: suman q, y a mitad de
-   camino el tilde es mitad mancha, mitad trazo. Para que el tilde caiga
-   exactamente donde lo pone la fila nítida, su capa es la MISMA fila
-   con el texto invisible, y las filas del texto llevan una caja vacía
-   del tamaño del tilde. Las PNG traen un margen (3σ, lo imprime
-   `generar.swift`) que se descuenta con márgenes negativos para que su
-   caja de layout sea la del contenido.
+   entra con sus propias capas y las tres cosas que better-ui prescribe
+   —"scale 0.25 to 1, opacity 0 to 1, blur 4px to 0px"— pero SOBRE EL
+   MISMO RELOJ Y LA MISMA ESCALERA QUE EL TEXTO. Vito (2026-09-07): "¿el
+   ícono y el Order Placed van de la mano al mismo tiempo? Aseguralo".
+   Hubo dos formas de separarse y las dos están cerradas: (1) el tilde
+   tenía un spring propio de 300 ms mientras el texto tardaba 450 desde
+   los 210 de retardo, así que llegaba primero — ahora su reloj es
+   `pListo`, la presencia del texto; (2) con el mismo reloj pero opacidad
+   q, el texto llegaba a plena tinta en q = .4 (la escalera sube rápido)
+   y el tilde recién en q = 1 — ahora su capa nítida lleva `nitido` y su
+   copia borrosa `ancho + angosto`, o sea la MISMA partición: la tinta
+   total y la fracción enfocada son las del texto en cada cuadro, y la
+   escala .25 → 1 sigue el mismo ease-out. El blur 4 → 0 son esas dos
+   capas, la PNG a σ 4 pt (o el `filter` en Android) y la nítida. Para
+   que el tilde caiga exactamente donde lo pone la fila nítida, su capa
+   es la MISMA fila con el texto invisible, y las filas del texto llevan
+   una caja vacía del tamaño del tilde. Las PNG traen un margen (3σ, lo
+   imprime `generar.swift`) que se descuenta con márgenes negativos para
+   que su caja de layout sea la del contenido.
 
    EL LABEL SIGUE A DYNAMIC TYPE hasta `TEXTO.escalaMaxima` (×1.786, la
    primera talla de accesibilidad; recibo en medidas.ts): más grande no
@@ -170,13 +178,11 @@ type Props = {
   sinBlur: boolean
   /** Desde qué escala entra "✓ Order Placed" (viene de la receta). */
   escalaEntrada?: number
-  /** El reloj de entrada del tilde contextual, 0..1 (lo anima el botón). */
-  tilde: SharedValue<number>
-  /** Si el tilde entra solo (better-ui) o pegado al texto (clip). */
+  /** Si el tilde entra con sus capas contextuales (better-ui) o pegado al texto (clip). */
   tildeContextual: boolean
 }
 
-export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur, escalaEntrada = COMMIT.escalaEntrada, tilde: qTilde, tildeContextual }: Props) {
+export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur, escalaEntrada = COMMIT.escalaEntrada, tildeContextual }: Props) {
   const [pHold, pKeep, pListo] = presencia
   /* Sin blur si lo pide reduce motion, o si la plataforma no puede hacerlo. */
   const sinBlur = pedidoSinBlur || (!PNG && !BLUR_NATIVO)
@@ -212,20 +218,20 @@ export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur
     const eo = 1 - (1 - q) * (1 - q)
     return { transform: [{ scale: sinBlur ? 1 : escalaEntrada + (1 - escalaEntrada) * eo }] }
   })
-  /* El tilde contextual: escala .25 → 1 sobre q, y la opacidad repartida
-     entre la copia borrosa (q(1−q)) y la nítida (q²). Con reduce motion,
-     sólo opacidad. */
+  /* El tilde contextual, sobre la MISMA presencia y la MISMA escalera que
+     el texto: su capa nítida lleva la opacidad del nítido del texto y su
+     copia borrosa, la suma de las dos borrosas. Así la tinta total y la
+     fracción enfocada son las del texto en todo instante, y la escala
+     .25 → 1 sigue el mismo ease-out. Con reduce motion, sólo opacidad. */
   const tildeMarco = useAnimatedStyle(() => {
-    const q = qTilde.get()
-    return { transform: [{ scale: sinBlur ? 1 : TILDE_CONTEXTUAL.escalaDesde + (1 - TILDE_CONTEXTUAL.escalaDesde) * q }] }
+    const q = pListo.get()
+    const eo = 1 - (1 - q) * (1 - q)
+    return { transform: [{ scale: sinBlur ? 1 : TILDE_CONTEXTUAL.escalaDesde + (1 - TILDE_CONTEXTUAL.escalaDesde) * eo }] }
   })
-  const tildeNitido = useAnimatedStyle(() => {
-    const q = qTilde.get()
-    return { opacity: sinBlur ? q : q * q }
-  })
+  const tildeNitido = useAnimatedStyle(() => ({ opacity: capas(pListo.get(), sinBlur).nitido }))
   const tildeBorroso = useAnimatedStyle(() => {
-    const q = qTilde.get()
-    return { opacity: q * (1 - q) }
+    const c = capas(pListo.get(), sinBlur)
+    return { opacity: c.ancho + c.angosto }
   })
 
   const texto = (s: string, color: string) => (

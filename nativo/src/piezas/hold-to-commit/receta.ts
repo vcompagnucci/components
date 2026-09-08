@@ -25,7 +25,9 @@ import { COMMIT, CRUCE, HOLD, PRESS, REINICIO } from './medidas'
  *            Lo que no tiene dedo (un label que cruza, el velo que
  *            blanquea, el fundido del reinicio) sigue por tiempo con los
  *            beziers de la tabla. Y el tilde de "Order Placed" entra
- *            aparte, con la técnica de ícono contextual de better-ui.
+ *            con sus propias capas, con la técnica de ícono contextual
+ *            de better-ui, sobre el mismo reloj y la misma escalera de
+ *            opacidad que el texto: van de la mano en cada cuadro.
  *
  * Lo que NO cambia entre recetas: el relleno lineal (es el gesto, no una
  * animación: "constant motion → linear" en las dos), el color del label
@@ -120,10 +122,9 @@ export type Cinematica = {
   /** desde qué escala entra "✓ Order Placed" */
   escalaEntrada: number
   /** el tilde: 'medido' entra pegado al texto (blur-replace, como en el clip);
-      'contextual' entra solo, con opacidad, escala y blur (better-ui) */
+      'contextual' entra con sus capas, opacidad, escala y blur (better-ui),
+      sobre la misma presencia y la misma escalera que el texto */
   tilde: 'medido' | 'contextual'
-  /** la entrada del tilde contextual */
-  tildeEntrada: Movimiento
 }
 
 export type Receta = 'clip' | 'skill'
@@ -155,7 +156,6 @@ const CLIP: Cinematica = {
   reinicio: tiempo(REINICIO.fundido, OUT_QUAD),
   escalaEntrada: COMMIT.escalaEntrada,
   tilde: 'medido',
-  tildeEntrada: tiempo(CRUCE.commit.entrada, Easing.linear),
 }
 
 /* LOS TIEMPOS DEL TEXTO Y DEL FINAL SON LOS MEDIDOS, no los de la tabla.
@@ -201,10 +201,11 @@ const SKILL: Cinematica = {
   reinicio: tiempo(REINICIO.fundido, OUT_QUAD),
   escalaEntrada: COMMIT.escalaEntrada,
   /* SOURCE · better-ui "Contextual icon animations": "scale 0.25 to 1,
-     opacity 0 to 1, blur 4px to 0px" con "spring, duration 0.3, bounce 0".
-     Las tres cosas en `etiqueta.tsx`; el reloj es este spring. */
+     opacity 0 to 1, blur 4px to 0px". Las tres cosas en `etiqueta.tsx`,
+     sobre la presencia del texto y su misma escalera de opacidad, no
+     sobre un spring propio de 300 ms ni sobre una rampa distinta: el
+     tilde y "Order Placed" van de la mano (Vito, 2026-09-07). */
   tilde: 'contextual',
-  tildeEntrada: spring(300, 0),
 }
 
 export const CINEMATICA: Record<Receta, Cinematica> = { clip: CLIP, skill: SKILL }

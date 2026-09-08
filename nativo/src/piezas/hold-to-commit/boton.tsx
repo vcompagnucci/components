@@ -54,7 +54,7 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
  *      0ms   háptica de éxito · ráfaga de 46 puntos, 700 linear
  *      0ms   pill scale → 1, salto 25 % + 220 ease-out      [spring 400 rebote 0]
  *      0ms   velo blanco opacity 0 → .75, 330 ease-out
- *      0ms   tilde pegado al texto                          [solo: opacity 0 → 1, scale .25 → 1, blur 4 → 0, spring 300 rebote 0]
+ *      0ms   tilde pegado al texto                          [con sus capas: opacity 0 → 1, scale .25 → 1, blur 4 → 0, sobre la misma presencia y escalera]
  *     40ms   "Keep Holding..." sale 280
  *    210ms   "Order Placed" entra 450, lineal, scale .9 → 1
  *    250ms   frente 94 % → 101 %, 400 ease-out
@@ -247,8 +247,8 @@ type Props = {
       hold; `parcar=commit`, terminado; `parcar=auto`, apreta solo;
       `parcar=cruce=120`, el press a los 120 ms; `parcar=cruce-commit=300`,
       300 ms después de la ráfaga; `parcar=cruce-suelta=150`, 150 ms
-      después de soltar; `parcar=tilde=0.5`, el tilde contextual a mitad
-      de su entrada. Reproducen las curvas de la receta `clip`. */
+      después de soltar; `parcar=tilde=0.5`, "✓ Order Placed" a mitad de
+      su presencia. Reproducen las curvas de la receta `clip`. */
   sonda?: string
 }
 
@@ -276,7 +276,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
   const pHold = useSharedValue(1)        // presencia de cada label (ver etiqueta.tsx)
   const pKeep = useSharedValue(0)
   const pListo = useSharedValue(0)
-  const tilde = useSharedValue(0)        // la entrada del tilde contextual
   const estallido = useSharedValue(0)    // la ráfaga, 0→1
   const espera = useSharedValue(0)       // el reloj del reinicio, en UI
 
@@ -334,11 +333,9 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
     cancelAnimation(blob)
     cancelAnimation(blanco)
     cancelAnimation(pListo)
-    cancelAnimation(tilde)
     escala.set(1)
     estallido.set(0)
     pListo.set(mover(0, tiempo(R.cruce.reinicio.salida, R.easeOut)))
-    tilde.set(mover(0, R.reinicio))
     blanco.set(mover(0, R.reinicio))
     blob.set(
       mover(0, R.reinicio, (termino) => {
@@ -412,8 +409,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
     }
     blanco.set(mover(COMMIT.veloBlanco, R.blanqueo))
     cruzar(L_LISTO, R.cruce.commit)
-    /* El tilde contextual arranca con el label; el medido va adentro del label. */
-    tilde.set(R.tilde === 'contextual' ? mover(1, R.tildeEntrada) : 1)
     marcarUI('commit-ui')
     scheduleOnRN(alCompletarJS)
     /* EL REINICIO ES DEL TALLER, no de la referencia: el clip termina en
@@ -486,7 +481,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       pHold.set(hold)
       pKeep.set(keep)
       pListo.set(listo)
-      tilde.set(listo >= 1 ? 1 : 0)
     }
     if (!sonda) {
       /* Sin sonda, el reposo: así `sonda.ts` vuelto a `undefined` al final
@@ -494,7 +488,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
          (trampa 20). */
       scheduleOnUI(() => {
         'worklet'
-        const todos = [progreso, blob, escala, blanco, estallido, pHold, pKeep, pListo, tilde, espera]
+        const todos = [progreso, blob, escala, blanco, estallido, pHold, pKeep, pListo, espera]
         for (let k = 0; k < todos.length; k++) cancelAnimation(todos[k]!)
         etapa.set(ETAPA.reposo)
         progreso.set(0)
@@ -546,7 +540,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
           blanco.set(COMMIT.veloBlanco * tramo(ms, 0, COMMIT.blanqueo))
           estallido.set(Math.min(0.999, ms / PARTICULAS.duracionVida))
           parquear(0, 1 - tramo(ms, c.retardoSalida, c.salida), tramo(ms, c.retardoEntrada, c.entrada, c.entradaLineal))
-          tilde.set(tramo(ms, c.retardoEntrada, c.entrada, true))
         } else if (alSoltar) {
           /* `cruce-suelta=150`: 150 ms después de soltar con el frente al
              10 % (donde lo suelta el clip: en f13 el 50 % del frente está
@@ -575,8 +568,9 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       return
     }
     if (sonda.startsWith('tilde')) {
-      /* `tilde=0.5`: el commit ya asentado con el tilde contextual a esa
-         fracción de su entrada (opacidad, escala y blur a medio camino). */
+      /* `tilde=0.5`: el commit ya asentado con "✓ Order Placed" a esa
+         fracción de su presencia: el texto en su escalera y el tilde
+         contextual con opacidad, escala y blur a medio camino, juntos. */
       const q = Number(sonda.split('=')[1] ?? 0.5)
       scheduleOnUI(() => {
         'worklet'
@@ -586,8 +580,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
         escala.set(1)
         blanco.set(COMMIT.veloBlanco)
         estallido.set(0)
-        parquear(0, 0, 1)
-        tilde.set(q)
+        parquear(0, 0, q)
       })
       return
     }
@@ -706,7 +699,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
             presencia={[pHold, pKeep, pListo]}
             sinBlur={reducido}
             escalaEntrada={R.escalaEntrada}
-            tilde={tilde}
             tildeContextual={R.tilde === 'contextual'}
           />
         </Animated.View>
