@@ -323,90 +323,120 @@ import { Seccion } from '../notas'
    usa la HIG, y acá el lector es quien construye) y "you" sólo cuando
    se le habla a él ("Use them when…"); la primera oración esquiva las
    dos ("what happens in one"). Anatomy sigue con "you" porque ahí el
-   lector ES quien toca la pieza del video. */
+   lector ES quien toca la pieza del video.
+
+   PASADA DE CONCISIÓN, 2026-09-08 ("ya teniendo todo, usando buenas
+   prácticas, dejá todo mucho más conciso"). 703 → 583 palabras, 17 %
+   menos, MISMAS doce párrafos y MISMAS afirmaciones: es la regla de
+   `better-writing` "delete every word that does no work", aplicada
+   palabra por palabra, no recorte de contenido. Lo que se cortó, por
+   tipo:
+   · REDUNDANCIA INTERNA. "one value that describes the whole
+     transition […] It is one derived value" decía lo mismo dos veces:
+     ahora "one derived value" y basta. "not the JavaScript thread […]
+     is involved at two moments only […] Never per frame" eran tres
+     formas de una idea: quedó una. "always agree, and the row moves as
+     one object" también: quedó "move as one object", que es la frase
+     de better-ui que el usuario aprobó.
+   · REDUNDANCIA ENTRE SECCIONES. "the row scrolls only when a tab does
+     not fit" estaba en Anatomy Y en Use cases; queda en Anatomy. Y
+     "however far the tab is" estaba en dos párrafos de Anatomy; queda
+     en el que lo necesita, el del contenido que cruza una sola página.
+     El otro era el del arrastre que interrumpe, y "at any point" ya lo
+     dice sin la distancia.
+   · PERÍFRASIS POR EL VERBO. "Tap a tab and it becomes the active one"
+     → "A tap makes a tab active". "When one did, the recording showed
+     the first frame after a tap standing still" → "Unmemoized, the
+     first frame after a tap stood still". "several lists of equal
+     standing" → "several peer lists" ("peers, not a hierarchy" es el
+     término de animate-expo, y engancha con la jerarquía del párrafo
+     siguiente). "so the drag and its deceleration run natively" → "the
+     system runs the drag and its deceleration", que además dice QUIÉN.
+   · LO QUE SE PERDIÓ A PROPÓSITO, y hay que saberlo: el cierre de
+     Anatomy decía "from four recordings at 60 fps" y ahora dice sólo
+     "at 60 fps". El número se fue con el recorte y está bien que se
+     haya ido: el registro dice el clip del vault Y DESPUÉS cuatro
+     grabaciones del usuario, o sea cinco, así que "four" contaba de
+     menos (hallazgo del 2026-09-08, ver README).
+   LO QUE SIGUE SIENDO CANDIDATO A CORTE, si algún día se pide otra
+   vuelta: "Every value is a named constant with its source" es la
+   única oración de Anatomy que habla del código fuente y no de lo que
+   se ve. Está porque el usuario pidió las reglas de interface-craft en
+   el texto; sale el día que eso cambie. */
 export default function Notas() {
   return (
     <>
       <Seccion titulo="Anatomy">
         <p>
-          React Native, with Expo. The content is a paged scroll view, one page per tab, and the
-          tabs are a row of labels with an underline. The underline is bound to the content: it
-          moves with it while you drag and settles with the same deceleration, and a tap moves
-          both with the same timing.
+          React Native, with Expo. The content is a paged scroll view, one page per tab; above it,
+          a row of labels with an underline. The underline is bound to the content: it follows a
+          drag and its deceleration, and a tap moves both on one timing.
         </p>
         <p>
-          Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
-          the other labels move aside, and the content moves one page, however far away the tab
-          is. The row scrolls only when the active tab does not fit on screen. A light haptic marks
-          each change of tab.
+          A tap makes a tab active in 300 ms: it widens for its symbol, the other labels move
+          aside, and the content crosses one page, however far the tab is. The row scrolls only
+          when the active tab does not fit. A light haptic marks each change.
         </p>
         <p>
           Only transform, opacity and the label color animate. The one animated width, the
-          underline, is absolutely positioned and has no children, so no other layout runs. A drag
-          interrupts a tap at any point, however far the tab is. The curve is an ease-out, never an
-          ease-in.
+          underline, is absolutely positioned with no children, so no other layout runs. A drag
+          interrupts a tap at any point. The curve is an ease-out, never an ease-in.
         </p>
         <p>
-          The haptic fires in the frame the tab changes, once per change, and never as the only
+          The haptic fires in the frame the tab changes, once per change, never as the only
           feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
-          Every value is a named constant with its source next to it.
+          Every value is a named constant with its source.
         </p>
         <p>
-          The reference is the home tabs of X on iOS, measured frame by frame from four recordings
-          at 60 fps.
+          The reference is the home tabs of X on iOS, measured frame by frame at 60 fps.
         </p>
       </Seccion>
 
       <Seccion titulo="Performance">
         <p>
-          Everything that moves is computed on the UI thread, not the JavaScript thread. The
-          content is a native scroll view, so the drag and its deceleration run natively; the
-          scroll offset is read on the UI thread, and every style that depends on it is computed there,
-          frame by frame, so React does not render during a gesture or a tap. The JavaScript thread
-          is involved at two moments only: the tap handler, and the haptic when the tab changes.
-          Never per frame.
+          Everything that moves is computed on the UI thread. The content is a native scroll view:
+          the system runs the drag and its deceleration, and the scroll offset and every style
+          derived from it are computed frame by frame. React does not render during a gesture or a
+          tap — the JavaScript thread takes part only at the tap and at the haptic.
         </p>
         <p>
-          No layout runs for the tabs while the content moves. The row is not a flex row: the
-          position and width of every tab in every resting state are computed once, after the
-          labels are measured, and each frame interpolates between two of those states with a
-          transform. All six pages are mounted from the start, so a swipe never mounts a list
-          during the gesture, and they are memoized: a render of the screen must not rebuild six
-          lists of twelve rows. When one did, the recording showed the first frame after a tap
-          standing still, a whole frame lost.
+          No layout runs for the tabs while the content moves. The row is not a flex row: every
+          tab’s position and width in each resting state are computed once, after the labels are
+          measured, and each frame interpolates between two of them with a transform. All six
+          pages are mounted and memoized, so a swipe never mounts a list and no render rebuilds
+          six lists of twelve rows. Unmemoized, the first frame after a tap stood still — a whole
+          frame lost.
         </p>
         <p>
-          The row reads one value that describes the whole transition: where it starts, where it
-          ends and how far along it is. It is one derived value, so no style can read part of the
-          transition from the previous frame; the underline, the labels and the symbols always
-          agree, and the row moves as one object. Measured on the phone: 60 fps through every
+          The row reads one derived value: where the transition starts, where it ends and how far
+          along it is. No style can read part of it from the previous frame, so the underline, the
+          labels and the symbols move as one object. Measured on the phone: 60 fps through every
           gesture. A trace of the symbols across a six-page sweep, 492 frames, shows no flicker.
         </p>
       </Seccion>
 
       <Seccion titulo="Use cases">
         <p>
-          Swipeable tabs fit one screen whose content splits into closely related lists: what
-          happens in one does not change what the others show. Use them when there are more lists
-          than a segmented control should hold, and when people switch between them often enough
-          that a swipe has to work as well as a tap. X’s home is the model: two feeds and four
-          topics in one row.
+          Swipeable tabs fit one screen whose content splits into closely related lists that do
+          not affect each other. Use them when there are more lists than a segmented control
+          should hold and people switch often enough that a swipe must work as well as a tap. X’s
+          home is the model: two feeds and four topics in one row.
         </p>
         <p>
-          The same shape appears wherever one section of an app holds several lists of equal
-          standing: a profile with posts, replies and media; a chat list with folders; a catalog by
-          category; scores by league; an agenda by day.
+          The same shape fits any section of an app that holds several peer lists: a profile with
+          posts, replies and media; a chat list with folders; a catalog by category; scores by
+          league; an agenda by day.
         </p>
         <p>
-          A hierarchy needs a back button, not a row of tabs. About five lists or fewer belong in a
-          segmented control, and the top-level sections of an app belong in the tab bar at the
-          bottom. Both of those ask for short labels, and here there is a second reason: the active
-          tab widens for its symbol, and the row scrolls only when a tab does not fit.
+          A hierarchy needs a back button, not a row of tabs. About five lists or fewer belong in
+          a segmented control; the top-level sections of an app belong in the tab bar at the
+          bottom. Both ask for short labels, and so do these: the active tab widens for its
+          symbol.
         </p>
         <p>
           On the Mac, Apple’s guidelines call this a tab view: mutually exclusive panes of content
-          in one area, switched with a row of tabs. There is no tab view on iPhone, and for the
-          same job the guidelines point to a segmented control.
+          in one area, switched with a row of tabs. There is no tab view on iPhone; for the same
+          job the guidelines point to a segmented control.
         </p>
       </Seccion>
     </>
