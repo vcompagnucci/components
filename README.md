@@ -1353,3 +1353,11 @@ referencia: la medida (80 a 84 caracteres por línea; la guía pide 60 a
 dos) y la interlínea (20/14 = 1.43; la guía prefiere 1.5, y es el 14/20
 de benji, medido). Bien y sin cambio: `lang="en"`, antialiasing en la
 raíz, peso 460, apóstrofes tipográficos, rótulos con `nowrap`.
+
+**"Two to five", no "two to four".** Al releer Use cases con la HIG a
+la vista (2026-09-07, pregunta del usuario: "¿quedó bien y real?"):
+Apple dice "no more than about five segments on iPhone" para un
+segmented control, así que el texto decía uno de menos. Corregido, y
+la cita quedó en el comentario de la nota junto con la de tab bars ("A
+tab bar lets people navigate between top-level sections of your app"),
+que sostiene la otra mitad del párrafo.
