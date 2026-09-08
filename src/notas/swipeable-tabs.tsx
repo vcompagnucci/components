@@ -164,7 +164,15 @@ import { Seccion } from '../notas'
    · "JavaScript takes part only twice" → se leía como una cuenta:
      ahora "at two moments only".
 
-   USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, con los nombres de la HIG:
+   USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, con los nombres de la HIG y
+   sus números. SOURCE (HIG, página servida, 2026-09-07): segmented
+   controls, "Aim for no more than about five to seven segments in a
+   wide interface and no more than about five segments on iPhone" —por
+   eso "two to five options" y "more of them than a segmented control
+   can hold" para los seis de X—; tab bars, "A tab bar lets people
+   navigate between top-level sections of your app" —por eso "the
+   app's own sections, which belong in the tab bar at the bottom"—.
+   Decía "two to four": corregido al releer con la guía a la vista.
    secciones del mismo rango, cada una una lista, más de las que entra
    en un segmented control, y cambiadas tan seguido que el swipe tiene
    que valer tanto como el toque; los ejemplos son listas con más de un
@@ -273,7 +281,7 @@ export default function Notas() {
           league; an agenda by day.
         </p>
         <p>
-          It is the wrong tool for a hierarchy, which needs a back button; for two to four options,
+          It is the wrong tool for a hierarchy, which needs a back button; for two to five options,
           which fit a segmented control; and for the app’s own sections, which belong in the tab
           bar at the bottom. Labels have to stay short: the active tab widens for its symbol, and
           the row scrolls only when a tab does not fit.
