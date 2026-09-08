@@ -1499,3 +1499,16 @@ ahora dice "at 60 fps". El registro dice el clip del vault **y después**
 cuatro grabaciones del usuario —cinco—, así que "four" contaba de menos.
 Sigue abierta la otra, "The row scrolls only when the active tab does not
 fit on screen", que omite que la fila se arrastra con el dedo.
+
+**Sin raya en el texto público.** Pedido del usuario (2026-09-08): "no
+uses –". La pasada de concisión había metido dos em dash, las dos en
+Performance, y las dos salieron sin perder nada. "React does not render
+during a gesture or a tap [raya] the JavaScript thread takes part only at
+the tap and at the haptic" se partió en dos oraciones, que es más llano y
+además una palabra más corto; y "stood still [raya] a whole frame lost"
+pasa a dos puntos, que es el signo que ya hace ese trabajo en los otros
+once párrafos. Los guiones de palabra compuesta se quedan (ease-out,
+ease-in, six-page, top-level). La regla quedó en `AGENTS.md › Cómo se
+escriben la línea y las notas`, paso 6, para todas las piezas; vale para
+el texto público y no para los comentarios en castellano, donde la raya
+es puntuación normal.

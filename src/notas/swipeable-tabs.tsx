@@ -362,7 +362,19 @@ import { Seccion } from '../notas'
    vuelta: "Every value is a named constant with its source" es la
    única oración de Anatomy que habla del código fuente y no de lo que
    se ve. Está porque el usuario pidió las reglas de interface-craft en
-   el texto; sale el día que eso cambie. */
+   el texto; sale el día que eso cambie.
+
+   SIN RAYA, NI EM DASH NI EN DASH, EN EL TEXTO PÚBLICO. Pedido del
+   usuario, 2026-09-08: "no uses –". La pasada de concisión había
+   metido dos, las dos en Performance, y las dos salieron sin perder
+   nada: "React does not render during a gesture or a tap — the
+   JavaScript thread…" se partió en dos oraciones, que es más llano y
+   más corto; y "stood still — a whole frame lost" pasa a dos puntos,
+   que es el signo que ya hace ese trabajo en los otros once párrafos.
+   Los guiones de palabra compuesta se quedan: ease-out, ease-in,
+   six-page, top-level. La regla vale para el texto público, no para
+   estos comentarios, donde la raya es puntuación normal del español.
+   Está en AGENTS.md › Cómo se escriben la línea y las notas. */
 export default function Notas() {
   return (
     <>
@@ -397,14 +409,14 @@ export default function Notas() {
           Everything that moves is computed on the UI thread. The content is a native scroll view:
           the system runs the drag and its deceleration, and the scroll offset and every style
           derived from it are computed frame by frame. React does not render during a gesture or a
-          tap — the JavaScript thread takes part only at the tap and at the haptic.
+          tap. The JavaScript thread takes part only at the tap and at the haptic.
         </p>
         <p>
           No layout runs for the tabs while the content moves. The row is not a flex row: every
           tab’s position and width in each resting state are computed once, after the labels are
           measured, and each frame interpolates between two of them with a transform. All six
           pages are mounted and memoized, so a swipe never mounts a list and no render rebuilds
-          six lists of twelve rows. Unmemoized, the first frame after a tap stood still — a whole
+          six lists of twelve rows. Unmemoized, the first frame after a tap stood still: a whole
           frame lost.
         </p>
         <p>
