@@ -1512,3 +1512,34 @@ ease-in, six-page, top-level). La regla quedó en `AGENTS.md › Cómo se
 escriben la línea y las notas`, paso 6, para todas las piezas; vale para
 el texto público y no para los comentarios en castellano, donde la raya
 es puntuación normal.
+
+**La HIG explica, no autoriza, y no se la nombra.** Pedido del usuario
+(2026-09-08), después de leer el cierre de Use cases: "no menciones Apple
+guidelines y está mal esa parte, usalas pero para explicar algo mejor, no
+para decir algo que no es". El cuarto párrafo se borró entero. Decía: "On
+the Mac, Apple's guidelines call this a tab view: mutually exclusive
+panes of content in one area, switched with a row of tabs. There is no
+tab view on iPhone; for the same job the guidelines point to a segmented
+control." Vivió unas horas, y estaba mal de dos formas.
+
+**"There is no tab view on iPhone" es falso para quien programa.** El
+"Not supported in iOS" de la HIG habla del componente de diseño de macOS,
+la caja con solapas arriba; pero `TabView` existe en SwiftUI en iOS, es
+el contenedor del tab bar, y con `.tabViewStyle(.page)` es literalmente
+un pager que se desliza, o sea lo más parecido del sistema a esta pieza.
+
+**Y "for the same job the guidelines point to a segmented control"
+contradecía al párrafo de arriba**, que dice que un segmented control es
+para cinco listas o menos. Los dos juntos afirmaban que esta pieza
+tendría que ser un segmented control, que es lo contrario de lo que
+argumenta la sección entera.
+
+Lo que el párrafo quería aportar, que el patrón vive entre un segmented
+control y un tab bar, ya lo dice el tercer párrafo sin nombrar a nadie.
+Los conceptos y los números de la guía se quedan donde sirven, dichos en
+llano como propios, con la cita en el comentario del archivo: "closely
+related", los paneles autocontenidos, "about five", "top-level sections",
+los labels cortos. La palabra "Apple" ya no aparece en el texto público.
+La regla quedó en `AGENTS.md`, paso 4: si una oración necesita el nombre
+de quien escribió la guía para sostenerse, la afirmación no se sostiene
+sola.

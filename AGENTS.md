@@ -221,9 +221,15 @@ la bitácora tiene cada vuelta y cada rechazo):
    página HTML de la HIG se arma con JavaScript, así que `curl` y
    WebFetch devuelven sólo el título; el texto sale de la API de
    documentación, `developer.apple.com/tutorials/data/design/
-   human-interface-guidelines/<slug>.json`. Y si la guía nombra al
-   control en una plataforma y no en la otra, eso se dice: es la razón
-   por la que la pieza existe.
+   human-interface-guidelines/<slug>.json`. **Pero la guía entra como
+   explicación, nunca como autoridad, y no se la nombra** (pedido del
+   usuario, 2026-09-08: "no menciones Apple guidelines… usalas pero
+   para explicar algo mejor, no para decir algo que no es"). Se toman
+   sus conceptos y sus números y se dicen en llano como propios, con la
+   cita en el comentario del archivo. Si una oración necesita el nombre
+   de quien escribió la guía para sostenerse, la afirmación no se
+   sostiene sola: en Swipeable tabs, el párrafo que la citaba afirmaba
+   además dos cosas falsas y se borró entero.
 5. **Las reglas de motion.** Antes de escribir que la pieza cumple
    algo, auditar el código contra los skills `animate-expo`,
    `interface-craft` y `better-ui`. Entran sólo las reglas que cumple,
