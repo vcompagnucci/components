@@ -90,7 +90,33 @@ const TOQUE = 300
 
 /* Las tres cosas que se mueven en un toque —el contenido, el avance de la
    barra y el scroll de la fila— comparten la misma config, que es la
-   única forma de garantizar que salgan y lleguen juntas. */
+   única forma de garantizar que salgan y lleguen juntas.
+
+   `ReduceMotion.System` SALTA TODO AL FINAL, y se queda así. Lo estudié
+   el 2026-09-08 porque `animate-expo` § 9 pide "fewer and gentler, not
+   zero: keep opacity and color changes that explain a state change, drop
+   translation", y acá se va también el fundido. La conclusión es que la
+   regla no aplica a esta pieza, por dos razones:
+
+   · CUMPLIRLA ROMPERÍA LO QUE EVITA EL TITILEO. Todo deriva de UN valor,
+     `Tramo`: la posición del subrayado y el color del label salen del
+     mismo `t`. Animar el color y saltar la posición pide DOS avances que
+     bajo motion normal tienen que ser idénticos — que es exactamente la
+     trampa que está documentada como la novena cosa que muerde en
+     `nativo/AGENTS.md` ("si dos valores tienen que ser ciertos AL MISMO
+     TIEMPO, son un valor, no dos") y la causa medida del titileo de los
+     símbolos. Y dejaría de ser cierta la frase de Performance.
+   · Y NO HAY NADA QUE EXPLICAR. La regla existe para cuando sacar el
+     movimiento deja el cambio de estado sin explicación —algo que
+     aparece de la nada—. Acá el estado lo dicen propiedades estáticas:
+     el label activo en blanco, el subrayado debajo, la página nueva en
+     pantalla. Saltando se ve todo eso, instantáneo y completo.
+
+   O sea que un cambio de tab instantáneo bajo reduced motion es el
+   comportamiento correcto, no una deuda. El texto público dice "Reduced
+   motion is respected", que es cierto en las dos lecturas. Si algún día
+   se revisa: el cambio real es partir `Tramo` en dos, y hay que medirlo
+   en el teléfono con el ajuste prendido, no razonarlo. */
 const CFG = { duration: TOQUE, easing: EASE_SETTLE, reduceMotion: ReduceMotion.System }
 
 /* LA HÁPTICA DEL CAMBIO DE TAB, en un solo lugar porque es la perilla
@@ -264,7 +290,7 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
 
   /* El tab al que el scroll va a saltar SIN que cambie nada en pantalla
      (ver `asentarPrestamo`): ese cruce no vibra. */
-  const silencio = useSharedValue(NADIE)
+  const hapticaSuprimida = useSharedValue(NADIE)
 
   /* ═══ EL DEDO GANA, TAMBIÉN DURANTE UN TOQUE LEJANO ═══
 
@@ -308,7 +334,7 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
     const h = toqueHasta.get()
     const vecino = h - (h > d ? 1 : -1)
     if (Math.round(progreso.get()) === vecino) {
-      silencio.set(d)
+      hapticaSuprimida.set(d)
       scrollTo(pager, d * width, 0, false)
       scrollX.set(d * width)
     }
@@ -398,8 +424,8 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
       if (destino.get() !== NADIE) return
       /* El scroll asentándose en el lugar real de la página prestada no
          cambia lo que se ve, y no vibra (ver `asentarPrestamo`). */
-      if (tab === silencio.get()) {
-        silencio.set(NADIE)
+      if (tab === hapticaSuprimida.get()) {
+        hapticaSuprimida.set(NADIE)
         return
       }
       scheduleOnRN(golpe)

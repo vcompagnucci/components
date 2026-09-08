@@ -1574,3 +1574,37 @@ se confirmó: el recibo de cada número vive también al lado del número en
 `medidas.ts`, y las conclusiones de cada recon viven en el `AGENTS.md`
 que corresponde. Un agente que clona el repo tiene los porqués, no los
 píxeles crudos.
+
+**Los pendientes cerrados, y uno cerrado diciendo que no.** Pedido del
+usuario (2026-09-08): "arreglá todo así te archivo".
+
+- **`silencio` pasa a `hapticaSuprimida`** (`tabs-deslizables.tsx`,
+  cuatro usos). Era la única palabra del código nuevo que no pasaba la
+  regla de nombres del repo: metáfora en vez de especificación.
+- **"The row scrolls only when the active tab does not fit" pasa a "The
+  row moves on its own only when the active tab does not fit."** Era
+  cierto de lo que hace la pieza sola, pero la fila es un `ScrollView` y
+  se arrastra con el dedo: el código se lo devuelve al usuario
+  explícitamente (`onBeginDrag`, "el dedo en la fila siempre gana"). El
+  "only" excluía algo que existe. Una palabra más, y deja de decir de
+  más.
+- **La planilla queda anotada**: las dos tablas medidas con siete tabs
+  llevan ahora la nota de que hoy son seis y por qué salió "Sports". No
+  se tocaron los números, que son el registro de lo que se midió ese día.
+
+**Y el reduce motion NO se cambió, que era lo que yo mismo había
+propuesto.** Al estudiarlo en serio, la regla de `animate-expo` § 9
+("fewer and gentler, not zero: keep opacity and color changes… drop
+translation") no aplica acá, por dos razones. Cumplirla pide DOS avances
+—uno que salta la posición y otro que anima el color— que bajo motion
+normal tienen que ser idénticos, y eso es exactamente la trampa
+documentada como la novena cosa que muerde en `nativo/AGENTS.md` y la
+causa medida del titileo de los símbolos; además dejaría de ser cierta la
+frase de Performance. Y no hay nada que explicar: la regla existe para
+cuando sacar el movimiento deja un cambio de estado sin explicación, y
+acá el estado lo dicen propiedades estáticas —el label blanco, el
+subrayado debajo, la página nueva—, todas visibles en el salto. Un cambio
+de tab instantáneo bajo reduced motion es el comportamiento correcto, no
+una deuda. El razonamiento entero quedó arriba de `CFG`, con la salida
+por si algún día se revisa: partir `Tramo` en dos, y medirlo en el
+teléfono con el ajuste prendido, no razonarlo.
