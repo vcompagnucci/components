@@ -410,8 +410,8 @@ export default function Notas() {
         </p>
         <p>
           A tap makes a tab active in 300 ms: it widens for its symbol, the other labels move
-          aside, and the content crosses one page, however far the tab is. The row scrolls only
-          when the active tab does not fit. A light haptic marks each change.
+          aside, and the content crosses one page, however far the tab is. The row moves on its own
+          only when the active tab does not fit. A light haptic marks each change.
         </p>
         <p>
           Only transform, opacity and the label color animate. The one animated width, the
