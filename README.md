@@ -1375,3 +1375,56 @@ teléfono, 60 fps en cada gesto, medido por el usuario; la completitud
 de la grabación del simulador queda como recibo de la toma. El
 comentario de la pieza decía "siete páginas" de cuando había un tab
 más: seis.
+
+**Use cases dicho con las palabras de Apple.** Pedido del usuario
+(2026-09-08): "en use cases usá lo que pondría Apple resources". Las
+tres páginas de la HIG se leyeron servidas ese día por la API de
+documentación —`developer.apple.com/tutorials/data/design/human-interface-guidelines/<slug>.json`,
+porque la página HTML se arma con JavaScript y `curl` y WebFetch sólo
+devuelven el título—, y cada frase del texto quedó atada a su cita en
+el comentario de la nota. Lo que cambió: "sections of the same rank"
+pasa a "closely related lists", que es la palabra de Apple; entra la
+regla que faltaba, "Panes are mutually exclusive, so ensure they're
+fully self-contained", dicha en llano ("what happens in one does not
+change what the others show"); "two to five options" pasa a "About
+five lists or fewer", conservando el "about" de Apple, que no es un
+tope duro; y "labels have to stay short" deja de apoyarse sólo en la
+pieza, porque un tab bar ("Use single words whenever possible") y un
+segmented control ("Use nouns or noun phrases") piden lo mismo.
+
+Se arregló además una colisión de vocabulario que estaba desde el
+principio: el segundo párrafo decía "more than one top-level division"
+y el tercero mandaba "the app's own sections" al tab bar. Apple reserva
+"top-level" para el tab bar, así que el segundo párrafo ahora dice
+"wherever one section of an app holds several lists of equal standing"
+— que además es más cierto, porque en X estos tabs viven adentro de una
+sección, no en el nivel de arriba.
+
+Y un cuarto párrafo al cierre, corto como el de la referencia en
+Anatomy: "On the Mac, Apple's guidelines call this a tab view […].
+There is no tab view on iPhone, and for the same job the guidelines
+point to a segmented control." Corrige lo que le dije al usuario el
+2026-09-07 ("en el vocabulario de Apple lo nuestro es un tab view"):
+vale para macOS, que era la captura que él mandó, pero la propia página
+de tab views dice "Not supported in iOS, iPadOS, tvOS, or visionOS" y
+manda a un segmented control, que topa en cinco. Ese hueco es la razón
+de la pieza. No se citó "Avoid providing more than six tabs in a tab
+view", aunque X tenga seis: es guía de macOS y usarla para iPhone sería
+estirarla.
+
+**Segunda pasada de `better-writing`, sobre las tres secciones.** Mismo
+pedido (2026-09-08): "fijate que todo cumpla /better-writing". La regla
+que encontró todo fue "one voice": un solo nombre por cosa en toda la
+página. "The bar" pasa a "the row" en Performance —la fila era "row" en
+Anatomy y en Use cases, y "bar" sólo ahí, el nombre interno del archivo
+(`barra.tsx`) filtrándose al texto público—; "the chosen tab doesn't
+fit" pasa a "the active tab does not fit", que arregla dos cosas a la
+vez, "chosen" y "active" para la misma cosa en el mismo párrafo y la
+única contracción de la página; y "its offset is read" pasa a "the
+scroll offset is read", porque el "its" más cercano apuntaba a
+"deceleration". Revisado y no cambiado: "however far the tab is" se
+repite a dos párrafos en Anatomy, pero las dos cláusulas dicen cosas
+distintas y borrar cualquiera pierde una afirmación que costó un cambio
+de código. Verificado sobre la página servida: doce párrafos, ninguno
+termina con menos de tres palabras en su última línea, y la medida
+sigue entre 77 y 86 caracteres.
