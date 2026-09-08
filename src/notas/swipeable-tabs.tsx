@@ -174,29 +174,70 @@ import { Seccion } from '../notas'
    · "JavaScript takes part only twice" → se leía como una cuenta:
      ahora "at two moments only".
 
-   USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, con los nombres de la HIG y
-   sus números. SOURCE (HIG, página servida, 2026-09-07): segmented
-   controls, "Aim for no more than about five to seven segments in a
-   wide interface and no more than about five segments on iPhone" —por
-   eso "two to five options" y "more of them than a segmented control
-   can hold" para los seis de X—; tab bars, "A tab bar lets people
-   navigate between top-level sections of your app" —por eso "the
-   app's own sections, which belong in the tab bar at the bottom"—.
-   Decía "two to four": corregido al releer con la guía a la vista.
-   secciones del mismo rango, cada una una lista, más de las que entra
-   en un segmented control, y cambiadas tan seguido que el swipe tiene
-   que valer tanto como el toque; los ejemplos son listas con más de un
-   corte de primer nivel; y el cuándo no —jerarquía (necesita botón de
-   volver), dos a cuatro opciones (segmented control), las secciones de
-   la app (tab bar de abajo)— más la condición de los labels cortos, que
-   sale de la propia pieza (el tab activo se ensancha, la fila sólo se
-   corre cuando un tab no entra). Reescrita el 2026-09-07 con las
-   mismas reglas que Anatomy: better-writing, vocabulario de
-   especificación, cada afirmación cierta. VA A LLEVAR VIDEO: un video
-   por caso con un pie de un renglón como los de benji en /liveline
-   ("Resting heart rate. Custom formatter, exaggerated Y-axis.": qué es
-   y qué cambia). Hasta que existan, la sección es prosa (pedido del
-   usuario, mismo día: "pienso incluir más videos y demás").
+   USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, Y LO DICE CON LAS PALABRAS DE
+   APPLE (pedido del usuario, 2026-09-08: "en use cases usá lo que
+   pondría Apple resources"). Cuatro párrafos: cuándo sí, los ejemplos,
+   cuándo no, y dónde cae la pieza en el vocabulario de Apple.
+
+   SOURCE — las tres páginas de la HIG, servidas el 2026-09-08 y leídas
+   por la API de documentación de Apple, `developer.apple.com/tutorials/
+   data/design/human-interface-guidelines/<slug>.json` (la página HTML
+   se arma con JavaScript y no se puede leer con `curl`; WebFetch
+   devuelve sólo el título). Cada frase del texto con su cita:
+   · "closely related lists" ← segmented controls › iOS, iPadOS:
+     "Consider a segmented control to switch between closely related
+     subviews"; tab views: "Use a tab view to present closely related
+     areas of content".
+   · "what happens in one does not change what the others show" ←
+     tab views: "Make sure the controls within a pane affect content
+     only in the same pane. Panes are mutually exclusive, so ensure
+     they're fully self-contained."
+   · "more lists than a segmented control should hold" y "About five
+     lists or fewer belong in a segmented control" ← segmented
+     controls: "Limit the number of segments in a control. […] Aim for
+     no more than about five to seven segments in a wide interface and
+     no more than about five segments on iPhone." El "about" es de
+     Apple y se conserva: no es un tope duro.
+   · "a hierarchy" ← es la palabra de Apple para esto (aparece cuatro
+     veces en tab bars, ninguna vez "drill" ni "back button" en las
+     tres páginas): "As a representation of your app's hierarchy".
+   · "the top-level sections of an app belong in the tab bar at the
+     bottom" ← tab bars: "A tab bar lets people navigate between
+     top-level sections of your app" + iOS: "A tab bar floats above
+     content at the bottom of the screen".
+   · "Both of those ask for short labels" ← tab bars: "Include tab
+     labels to help with navigation. […] Use single words whenever
+     possible"; segmented controls: "Use nouns or noun phrases for
+     segment labels" y "As much as possible, use content with a similar
+     size in each segment".
+   · El cierre ← tab views, resumen: "A tab view presents multiple
+     mutually exclusive panes of content in the same area, which people
+     can switch between using a tabbed control"; "Not supported in iOS,
+     iPadOS, tvOS, or visionOS"; y su nota de iOS, iPadOS: "For similar
+     functionality, consider using a segmented control instead."
+   CORRIGE LO QUE LE DIJE AL USUARIO EL 2026-09-07 ("en el vocabulario
+   de Apple lo nuestro es un tab view"): eso vale para macOS, que era
+   la captura que él mandó. En iOS el tab view NO EXISTE, y la guía
+   manda a un segmented control — que topa en cinco. Ese hueco es la
+   razón de la pieza, y por eso el cierre lo dice en vez de callarlo.
+   NO se cita "Avoid providing more than six tabs in a tab view" (tab
+   views), aunque X tenga seis: es guía de macOS y usarla para iPhone
+   sería estirarla.
+   LO QUE NO SALE DE APPLE, y es de la pieza, verificado en el código:
+   el tab activo se ensancha para su símbolo y la fila sólo se corre
+   cuando un tab no entra (`BARRA.fila = 'visible'`, barra.tsx); y
+   "two feeds and four topics in one row" son los seis de `TABS` en
+   pantalla.tsx (For you, Following · Stocks, Tech, AI, Design).
+   VA A LLEVAR VIDEO: un video por caso con un pie de un renglón como
+   los de benji en /liveline ("Resting heart rate. Custom formatter,
+   exaggerated Y-axis.": qué es y qué cambia). Hasta que existan, la
+   sección es prosa (pedido del usuario, 2026-09-07: "pienso incluir
+   más videos y demás").
+   LO QUE NO SE HIZO, y espera decisión: la sección "Resources" con la
+   que Apple cierra cada página de la HIG (Related · Developer
+   documentation · Videos). "Apple resources" también se puede leer
+   así, pero meter un bloque de links cambia la forma de las notas de
+   TODAS las piezas, y eso es otra mini-decisión.
 
    NÚMERO Y UNIDAD VAN CON ESPACIO INDIVISIBLE (U+00A0): "300 ms",
    "60 fps", "120 fps", "492 frames". Es la regla de better-typography
@@ -221,7 +262,35 @@ import { Seccion } from '../notas'
    "first-level filters" → "top-level sections"; "React never renders a
    frame" → "React does not render" (React no renderiza cuadros); y la
    frase "one value drives the whole transition", que estaba dos veces,
-   quedó sólo en Performance. */
+   quedó sólo en Performance.
+
+   SEGUNDA PASADA DE `better-writing`, sobre las TRES secciones (pedido
+   del usuario, 2026-09-08: "fijate que todo cumpla /better-writing").
+   La regla que las encontró es "one voice, flexible tone": un solo
+   nombre por cosa en toda la página. Tres cambios, y todos son de
+   consistencia, no de gusto:
+   · "the bar" → "the row" (Performance, dos veces). La fila se llamaba
+     "row" en Anatomy y en Use cases, y "bar" sólo acá — era el nombre
+     interno del archivo (`barra.tsx`) filtrándose al texto público.
+   · "the chosen tab doesn't fit" → "the active tab does not fit"
+     (Anatomy). Dos cosas: "chosen" y "active" eran la misma cosa con
+     dos nombres en el mismo párrafo ("it becomes the active one"), y
+     "doesn't" era la ÚNICA contracción de la página, contra "does not
+     render", "is not a flex row", "must not rebuild".
+   · "its offset is read" → "the scroll offset is read" (Performance).
+     El "its" más cercano apuntaba a "deceleration", no al scroll view.
+   REVISADO Y NO CAMBIADO: "however far away the tab is" (Anatomy § 2) y
+   "however far the tab is" (§ 3) se repiten a dos párrafos. El eco es
+   real, pero las dos cláusulas dicen cosas distintas —el contenido
+   cruza UNA página cualquiera sea la distancia; y el arrastre
+   interrumpe el toque también cuando el tab está lejos, que es lo que
+   se ganó al sacar el bloqueo del pager— y borrar cualquiera de las
+   dos pierde una afirmación que costó un cambio de código.
+   Y EN USE CASES: "people" para quien usa la app del lector (es lo que
+   usa la HIG, y acá el lector es quien construye) y "you" sólo cuando
+   se le habla a él ("Use them when…"); la primera oración esquiva las
+   dos ("what happens in one"). Anatomy sigue con "you" porque ahí el
+   lector ES quien toca la pieza del video. */
 export default function Notas() {
   return (
     <>
@@ -235,7 +304,7 @@ export default function Notas() {
         <p>
           Tap a tab and it becomes the active one in 300 ms. It widens to make room for its symbol,
           the other labels move aside, and the content moves one page, however far away the tab
-          is. The row scrolls only when the chosen tab doesn’t fit on screen. A light haptic marks
+          is. The row scrolls only when the active tab does not fit on screen. A light haptic marks
           each change of tab.
         </p>
         <p>
@@ -257,8 +326,8 @@ export default function Notas() {
       <Seccion titulo="Performance">
         <p>
           Everything that moves is computed on the UI thread, not the JavaScript thread. The
-          content is a native scroll view, so the drag and its deceleration run natively; its
-          offset is read on the UI thread, and every style that depends on it is computed there,
+          content is a native scroll view, so the drag and its deceleration run natively; the
+          scroll offset is read on the UI thread, and every style that depends on it is computed there,
           frame by frame, so React does not render during a gesture or a tap. The JavaScript thread
           is involved at two moments only: the tap handler, and the haptic when the tab changes.
           Never per frame.
@@ -273,31 +342,37 @@ export default function Notas() {
           standing still, a whole frame lost.
         </p>
         <p>
-          The bar reads one value that describes the whole transition: where it starts, where it
+          The row reads one value that describes the whole transition: where it starts, where it
           ends and how far along it is. It is one derived value, so no style can read part of the
           transition from the previous frame; the underline, the labels and the symbols always
-          agree, and the bar moves as one object. Measured on the phone: 60 fps through every
+          agree, and the row moves as one object. Measured on the phone: 60 fps through every
           gesture. A trace of the symbols across a six-page sweep, 492 frames, shows no flicker.
         </p>
       </Seccion>
 
       <Seccion titulo="Use cases">
         <p>
-          Top tabs fit a screen whose content splits into sections of the same rank, each one a
-          list, with more of them than a segmented control can hold and switched often enough that
-          a swipe has to work as well as a tap. X’s home is the model: two feeds and four topics in
-          one row.
+          Swipeable tabs fit one screen whose content splits into closely related lists: what
+          happens in one does not change what the others show. Use them when there are more lists
+          than a segmented control should hold, and when people switch between them often enough
+          that a swipe has to work as well as a tap. X’s home is the model: two feeds and four
+          topics in one row.
         </p>
         <p>
-          The same shape appears wherever a list has more than one top-level division: a profile
-          with posts, replies and media; a chat list with folders; a catalog by category; scores by
-          league; an agenda by day.
+          The same shape appears wherever one section of an app holds several lists of equal
+          standing: a profile with posts, replies and media; a chat list with folders; a catalog by
+          category; scores by league; an agenda by day.
         </p>
         <p>
-          It is the wrong tool for a hierarchy, which needs a back button; for two to five options,
-          which fit a segmented control; and for the app’s own sections, which belong in the tab
-          bar at the bottom. Labels have to stay short: the active tab widens for its symbol, and
-          the row scrolls only when a tab does not fit.
+          A hierarchy needs a back button, not a row of tabs. About five lists or fewer belong in a
+          segmented control, and the top-level sections of an app belong in the tab bar at the
+          bottom. Both of those ask for short labels, and here there is a second reason: the active
+          tab widens for its symbol, and the row scrolls only when a tab does not fit.
+        </p>
+        <p>
+          On the Mac, Apple’s guidelines call this a tab view: mutually exclusive panes of content
+          in one area, switched with a row of tabs. There is no tab view on iPhone, and for the
+          same job the guidelines point to a segmented control.
         </p>
       </Seccion>
     </>

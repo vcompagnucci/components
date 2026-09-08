@@ -213,7 +213,17 @@ la bitácora tiene cada vuelta y cada rechazo):
    término técnico y el verbo de especificación. "React Native", nunca
    el nombre de una librería (Reanimated, worklets, Yoga) ni de dónde
    salen los símbolos; lo que esas palabras dicen se dice en llano
-   ("on the UI thread, not in JavaScript").
+   ("on the UI thread, not in JavaScript"). **En `Use cases`, el
+   vocabulario es el de la HIG de Apple**, con la cita servida ese día
+   y no de memoria (pedido del usuario, 2026-09-08: "usá lo que pondría
+   Apple resources"): sus nombres para los controles vecinos, sus
+   números —con el "about" cuando Apple lo pone— y sus reglas. La
+   página HTML de la HIG se arma con JavaScript, así que `curl` y
+   WebFetch devuelven sólo el título; el texto sale de la API de
+   documentación, `developer.apple.com/tutorials/data/design/
+   human-interface-guidelines/<slug>.json`. Y si la guía nombra al
+   control en una plataforma y no en la otra, eso se dice: es la razón
+   por la que la pieza existe.
 5. **Las reglas de motion.** Antes de escribir que la pieza cumple
    algo, auditar el código contra los skills `animate-expo`,
    `interface-craft` y `better-ui`. Entran sólo las reglas que cumple,
