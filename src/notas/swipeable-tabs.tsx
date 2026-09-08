@@ -125,9 +125,19 @@ import { Seccion } from '../notas'
      RUNTIME: traza del propio mapper del estilo, barrido de seis
      páginas, 492 cuadros, cero cambios de dirección espurios
      (pantalla.tsx, "No tocar sin volver a medir").
-   · 60 fps sostenidos: completitud de cuadros 100.7 %, 101.1 % y
-     100.2 % dentro de cada gesto en tres tomas (README § El video para
-     X, tabla de mediciones).
+   · 60 fps sostenidos: en el teléfono, medición del usuario ("lo medí
+     en el teléfono real y está en 60 fps siempre", 2026-09-07); la
+     completitud de cuadros de la grabación del simulador —100.7 %,
+     101.1 % y 100.2 % dentro de cada gesto en tres tomas (README § El
+     video para X)— es el recibo de la toma, no del teléfono.
+   · Revisión "como un buen ingeniero" (2026-09-07): "not in
+     JavaScript" → "not the JavaScript thread" (los worklets también son
+     JavaScript, corren en el runtime de UI); el scroll es nativo y se
+     dice; las seis páginas van montadas desde el principio (`hojas`,
+     todas en el ScrollView) y memoizadas por el costo de reconstruir
+     seis listas de doce filas (`RENGLONES` en pagina.tsx); y el
+     mecanismo del "one derived value": ningún estilo puede leer parte
+     de la transición del cuadro anterior.
 
    VERIFICACIÓN DE VERACIDAD (2026-09-07, pedido del usuario: "chequeá
    que toda esa información sea verdadera y correcta"). Se releyó cada
@@ -246,25 +256,28 @@ export default function Notas() {
 
       <Seccion titulo="Performance">
         <p>
-          Everything that moves is computed on the UI thread, not in JavaScript. The scroll
-          position is read there, and every style that depends on it is computed there, frame by
-          frame, so React does not render during a gesture or a tap. JavaScript takes part at two
-          moments only: the tap itself, and the haptic when the tab changes. Never per frame.
+          Everything that moves is computed on the UI thread, not the JavaScript thread. The
+          content is a native scroll view, so the drag and its deceleration run natively; its
+          offset is read on the UI thread, and every style that depends on it is computed there,
+          frame by frame, so React does not render during a gesture or a tap. The JavaScript thread
+          is involved at two moments only: the tap handler, and the haptic when the tab changes.
+          Never per frame.
         </p>
         <p>
           No layout runs for the tabs while the content moves. The row is not a flex row: the
           position and width of every tab in every resting state are computed once, after the
-          labels are measured, and each frame interpolates between two of those states. Each tab
-          is absolutely positioned and moves with a transform. The pages are memoized, so a render
-          elsewhere never rebuilds them: when a tap used to trigger one, the recording showed the
-          first frame after it standing still, a whole frame lost.
+          labels are measured, and each frame interpolates between two of those states with a
+          transform. All six pages are mounted from the start, so a swipe never mounts a list
+          during the gesture, and they are memoized: a render of the screen must not rebuild six
+          lists of twelve rows. When one did, the recording showed the first frame after a tap
+          standing still, a whole frame lost.
         </p>
         <p>
           The bar reads one value that describes the whole transition: where it starts, where it
-          ends and how far along it is. The underline, the labels and the symbols derive from it in
-          the same frame, so they are always consistent with each other and the bar moves as one
-          object. Measured: the recording holds 60 fps through every gesture, and a trace of the
-          symbols across a six-page sweep, 492 frames, shows no flicker.
+          ends and how far along it is. It is one derived value, so no style can read part of the
+          transition from the previous frame; the underline, the labels and the symbols always
+          agree, and the bar moves as one object. Measured on the phone: 60 fps through every
+          gesture. A trace of the symbols across a six-page sweep, 492 frames, shows no flicker.
         </p>
       </Seccion>
 

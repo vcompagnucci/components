@@ -532,7 +532,7 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
      Hoy este componente no tiene estado de React: ni un toque ni un
      arrastre lo renderizan. Lo tuvo hasta el 2026-09-07 (`quieto`, el
      bloqueo del pager durante un toque lejano), y ese render volvía a
-     crear los elementos de las SIETE páginas —doce filas de texto cada
+     crear los elementos de las SEIS páginas —doce filas de texto cada
      una— justo en el cuadro en que arrancaba la animación del toque. El
      memo se queda: un render del padre (el tema, por ejemplo) haría lo
      mismo, y la medición de abajo es el recibo de lo que cuesta.
@@ -718,7 +718,7 @@ export function TabsDeslizables({ tabs, pagina, cabecera, arriba, demo = false }
    cuesta nada, y en el 1% es la que se presta.
 
    `memo` porque el contenido ya viene memoizado de arriba: sin esto, un
-   render del pager volvería a renderizar las siete igual. */
+   render del pager volvería a renderizar las seis igual. */
 const Hoja = memo(function Hoja({
   indice,
   ancho,
