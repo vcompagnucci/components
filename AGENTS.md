@@ -250,10 +250,48 @@ la bitácora tiene cada vuelta y cada rechazo):
    compuesta se quedan (`ease-out`, `top-level`). La regla es del
    texto público; en los comentarios en castellano la raya es
    puntuación normal.
+
+   **Un solo nombre por cosa, en TODA la página, no por sección.** Es
+   la regla de `better-writing` que más encuentra acá, y ninguna de sus
+   fallas se ve leyendo una sección sola: en Swipeable tabs la fila era
+   "row" en dos secciones y "bar" en la tercera —el nombre interno del
+   archivo, `barra.tsx`, filtrándose al texto público—, el mismo tab
+   era "chosen" y "active" en un mismo párrafo, y había una sola
+   contracción en once párrafos. Buscar sinónimos del mismo objeto,
+   contracciones sueltas, pronombres cuyo antecedente más cercano es el
+   sustantivo equivocado, y nombres de archivos del repo que se hayan
+   colado. Y decidir quién es "you": si el lector es quien toca la
+   pieza, "you"; si el lector construye para otros, "people" es quien
+   usa su app.
+
+   **Y una pasada de concisión al final**, cuando el contenido ya está
+   cerrado y verificado (pedido del usuario, 2026-09-08: "ya teniendo
+   todo… dejá todo mucho más conciso"). Da entre 15 y 20 % sin tocar
+   una sola afirmación, y encuentra siempre lo mismo, en este orden:
+   redundancia interna (la misma idea dos o tres veces en un párrafo),
+   redundancia ENTRE secciones (sólo aparece leyendo la página entera)
+   y perífrasis donde va un verbo ("Tap a tab and it becomes the active
+   one" → "A tap makes a tab active"). Medir en palabras antes y
+   después, y decir el número. Después de esta pasada se vuelve a
+   correr el paso 8, porque el wrap cambió.
 7. **La veracidad.** Releer cada afirmación contra el código y las
    tablas de medición, antes y después de escribir. Lo que no está
    medido no se afirma; lo que es SOURCE (una configuración) se marca
    así en el comentario; cada corrección se registra.
+
+   **`Performance` se relee además "como un ingeniero senior"** antes
+   de cerrar, y esa lectura encuentra otra clase de error que la
+   veracidad literal deja pasar: la imprecisión técnica. Las cuatro de
+   Swipeable tabs valen de plantilla. Decir "not the JavaScript
+   thread", nunca "not in JavaScript" (los worklets también son
+   JavaScript, corren en el runtime de UI). Decir qué hace el sistema y
+   qué hacemos nosotros: si el scroll es nativo, eso es la razón
+   principal de que el gesto no cueste, y callarlo es esconder el
+   mecanismo. Contar una optimización por su COSTO —cuántas listas,
+   cuántas filas, montadas desde cuándo— y no como anécdota. Y decir
+   DÓNDE se midió: `animate-expo` sólo cuenta un release build en el
+   dispositivo más lento, y una grabación del simulador es recibo de la
+   toma, no del teléfono.
 8. **La verificación en pantalla.** Chrome DevTools sobre la página
    servida: el texto exacto de cada párrafo, la cantidad de párrafos,
    que no queden nombres de librerías ni frases viejas; claro y oscuro

@@ -1543,3 +1543,34 @@ los labels cortos. La palabra "Apple" ya no aparece en el texto público.
 La regla quedó en `AGENTS.md`, paso 4: si una oración necesita el nombre
 de quien escribió la guía para sostenerse, la afirmación no se sostiene
 sola.
+
+**Auditoría de qué viaja con el repo.** Pregunta del usuario
+(2026-09-08), al cerrar Swipeable tabs: "¿queda todo el proceso
+documentado para futuros agentes con otros componentes?". Se cruzó lo
+que se aprendió con esta pieza contra lo que está escrito en archivos
+versionados, y aparecieron cuatro huecos, todos de cosas que vivían sólo
+en la bitácora o en la memoria del agente, que es de esta máquina y no
+viaja. Los cuatro quedaron cerrados:
+
+- **`AGENTS.md`, paso 6**, la regla de `better-writing` que más encuentra
+  acá y que ninguna lectura por sección detecta: **un solo nombre por
+  cosa en toda la página**. Con las tres fallas concretas de esta pieza
+  como ejemplo, más cómo decidir quién es "you".
+- **`AGENTS.md`, paso 6**, la **pasada de concisión al final**: cuándo se
+  hace, qué encuentra siempre y en qué orden, y que hay que volver a
+  correr la verificación en pantalla porque el wrap cambió.
+- **`AGENTS.md`, paso 7**, la relectura de `Performance` **"como un
+  ingeniero senior"**, con las cuatro imprecisiones típicas de plantilla:
+  el hilo de JavaScript, decir qué hace el sistema, contar una
+  optimización por su costo, y decir dónde se midió.
+- **`nativo/AGENTS.md`**, décima cosa que muerde: **el `size` de
+  `SymbolView` no es un `pointSize`**. Estaba en tres comentarios de
+  `barra.tsx` y en ningún lado donde lo encuentre alguien que empieza una
+  pieza distinta.
+
+**Lo que sigue sin viajar, y es a propósito:** las planillas de
+`.context/recon/` están gitignoreadas. La mitigación ya estaba escrita y
+se confirmó: el recibo de cada número vive también al lado del número en
+`medidas.ts`, y las conclusiones de cada recon viven en el `AGENTS.md`
+que corresponde. Un agente que clona el repo tiene los porqués, no los
+píxeles crudos.
