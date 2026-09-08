@@ -237,7 +237,13 @@ la bitácora tiene cada vuelta y cada rechazo):
    "in step", "cue"), y cada palabra que no trabaja se borra. Y por
    `animation-vocabulary`: los términos del glosario donde no chocan
    con la regla de nombres (`ease-out`, "reduced motion"; "widens"
-   antes que "morph").
+   antes que "morph"). **Sin raya en el texto público**, ni em dash ni
+   en dash (pedido del usuario, 2026-09-08: "no uses –"): donde
+   aparezca una, o son dos oraciones o son dos puntos, y las dos
+   salidas son más llanas que la raya. Los guiones de palabra
+   compuesta se quedan (`ease-out`, `top-level`). La regla es del
+   texto público; en los comentarios en castellano la raya es
+   puntuación normal.
 7. **La veracidad.** Releer cada afirmación contra el código y las
    tablas de medición, antes y después de escribir. Lo que no está
    medido no se afirma; lo que es SOURCE (una configuración) se marca
