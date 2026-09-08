@@ -68,9 +68,42 @@ import { Seccion } from '../notas'
    el párrafo arranca por la primera regla, como el "How it works" de
    benji ("It follows the library's rules for motion" se rechazó: "no
    me gusta esta frase", mismo día). Cada una con su recibo:
-   · Sólo transform y opacity; el único `width` animado es el
-     subrayado, hijo absoluto sin hijos — la excepción que la regla
-     permite (animate-expo § 4; barra.tsx, `estiloSubrayado`).
+   · Transform, opacity y EL COLOR DEL LABEL; el único `width` animado
+     es el subrayado, hijo absoluto sin hijos — la excepción que la
+     regla permite (animate-expo § 4; barra.tsx, `estiloSubrayado`).
+     El inventario de los trece estilos animados de la pieza, contado
+     el 2026-09-08 recorriendo cada `useAnimatedStyle`: transform ×6,
+     opacity ×5, width ×1 (el subrayado), color ×1 (`estiloLabel`,
+     barra.tsx, aplicado al label). Hasta ese día el texto decía "Only
+     transform and opacity animate", que era FALSO, y falso justo
+     sobre el hallazgo de la pieza: el label activo no es más grueso,
+     es más blanco (142 → 255, interpolado en sRGB crudo; el asta de
+     la misma letra mide 5.03 px en los dos estados).
+     EL CÓDIGO NO CAMBIA, y la pregunta la hizo el usuario en serio
+     ("¿pero es una buena práctica el color?", 2026-09-08):
+     · `animate-expo` NO pide "sólo transform y opacity". Su § 4 y la
+       tabla *Never Ship* enumeran propiedades de LAYOUT —width,
+       height, margin, padding, flex, top, gap, las que re-corren
+       Yoga—, y `color` no está en ninguna de las dos. Está, en
+       cambio, como caso de uso en § 3 ("press, toggle, color, a value
+       flipping") y en § 9 como lo que hay que CONSERVAR bajo reduced
+       motion ("keep opacity and color changes that explain a state
+       change").
+     · El color igual no es gratis: transform y opacity son
+       composición y el color es pintura —el nodo se redibuja, y con
+       texto se re-rasterizan los glifos—. Un escalón más caro que
+       transform, varios más barato que layout.
+     · La salida estándar para una propiedad de pintura cara es la que
+       el propio skill receta para las sombras de Android y el blur:
+       apilar dos capas estáticas y cruzar opacidades — acá, un label
+       gris y uno blanco. NO SE HACE: dos textos antialiaseados
+       superpuestos suman cobertura en el borde de cada glifo y se
+       leen más gruesos en el medio del cruce, que es exactamente lo
+       que la medición dice que X no hace. Cambiaría un costo que no
+       se nota por un artefacto que sí.
+     · Y el costo está acotado: seis labels cortos, sólo mientras dura
+       una transición, con 60 fps medidos en el teléfono y la traza de
+       492 cuadros sin titileo.
    · El gesto interrumpe la animación, también un toque lejano:
      `onBeginDrag` cancela el toque en vuelo y, si hay página prestada,
      el préstamo sigue vivo hasta que no se ve (animate-expo,
@@ -308,9 +341,10 @@ export default function Notas() {
           each change of tab.
         </p>
         <p>
-          Only transform and opacity animate. The one animated width, the underline, is absolutely
-          positioned and has no children, so no other layout runs. A drag interrupts a tap at any
-          point, however far the tab is. The curve is an ease-out, never an ease-in.
+          Only transform, opacity and the label color animate. The one animated width, the
+          underline, is absolutely positioned and has no children, so no other layout runs. A drag
+          interrupts a tap at any point, however far the tab is. The curve is an ease-out, never an
+          ease-in.
         </p>
         <p>
           The haptic fires in the frame the tab changes, once per change, and never as the only

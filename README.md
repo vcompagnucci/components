@@ -1428,3 +1428,43 @@ distintas y borrar cualquiera pierde una afirmación que costó un cambio
 de código. Verificado sobre la página servida: doce párrafos, ninguno
 termina con menos de tres palabras en su última línea, y la medida
 sigue entre 77 y 86 caracteres.
+
+**El color del label también se anima, y el texto lo negaba.** Al releer
+las tres secciones contra el código a pedido del usuario (2026-09-08:
+"¿están todas las descripciones bien?"), el inventario de los trece
+`useAnimatedStyle` de la pieza dio transform ×6, opacity ×5, width ×1
+(el subrayado) y **color ×1** (`estiloLabel` en `barra.tsx`, aplicado al
+label). O sea que "Only transform and opacity animate" era falso, y
+falso justo sobre el hallazgo de la pieza: el label activo no es más
+grueso, es más blanco. Ahora dice "Only transform, opacity and the label
+color animate".
+
+**El código no cambia, y la pregunta se contestó midiendo el skill, no
+de memoria.** El usuario preguntó primero por sacar el color ("que se
+anime sólo transform and opacity, que es lo que recomienda /animate-expo
+creo, chequealo") y después por el fondo ("¿pero es una buena práctica el
+color?"). `animate-expo` no pide eso: su § 4 y la tabla *Never Ship*
+enumeran propiedades de **layout** —width, height, margin, padding,
+flex, top, gap, las que re-corren Yoga— y `color` no está en ninguna de
+las dos; sí está como caso de uso en § 3 ("press, toggle, color, a value
+flipping") y en § 9 como lo que hay que **conservar** bajo reduced motion
+("keep opacity and color changes that explain a state change"). El color
+igual no es gratis —transform y opacity son composición, el color es
+pintura y con texto re-rasteriza los glifos—, pero la salida estándar
+para eso, la que el propio skill receta para las sombras de Android y el
+blur, es apilar dos capas estáticas y cruzar opacidades: acá, un label
+gris y uno blanco. Eso rompería la medición, porque dos textos
+antialiaseados superpuestos suman cobertura en el borde de cada glifo y
+se leen más gruesos en el medio del cruce, justo lo que X no hace (el
+asta de la misma letra mide 5.03 px en los dos estados). Se cambiaría un
+costo que no se nota por un artefacto que sí. Y el costo está acotado:
+seis labels cortos, sólo mientras dura una transición, 60 fps medidos en
+el teléfono y la traza de 492 cuadros sin titileo.
+
+Quedaron sin corregir, por decisión del usuario, las otras dos que
+encontró la misma relectura: "four recordings at 60 fps" cuenta de menos
+(el registro dice el clip del vault **y después** cuatro grabaciones de
+su cuenta: son cinco), y "The row scrolls only when the active tab does
+not fit on screen" es cierto de lo que hace la pieza sola pero omite que
+la fila es un `ScrollView` que se arrastra con el dedo (`onBeginDrag` se
+lo devuelve al usuario: "el dedo en la fila siempre gana").
