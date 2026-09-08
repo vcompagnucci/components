@@ -219,10 +219,10 @@ día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
 
 ## Lo que ya sabemos que muerde
 
-Nueve cosas que no son obvias y cuestan una tarde cada una. Las ocho
+Diez cosas que no son obvias y cuestan una tarde cada una. Las ocho
 primeras salieron de leer `SchroederNathan/react-native-motion` el
 2026-08-28 — allá están escritas como reglas de una pieza puntual, pero
-ninguna lo es. La novena salió de medirla acá.
+ninguna lo es. La novena y la décima salieron de medirlas acá.
 
 Vienen de un repo donde las constantes se sacan cuadro a cuadro de la
 referencia y cada decisión tiene su comentario arriba. **Tratalas como
@@ -308,6 +308,25 @@ cambiarla.
    cuadro. Ojo también con `simctl recordVideo`, que escribe a **tasa
    variable**: pasarlo por `fps=60` antes de mirarlo cuadro a cuadro
    inventa cuadros y fabrica glitches que no existen.
+
+**Símbolos**
+
+10. **El `size` de `SymbolView` no es un `pointSize`.** `expo-symbols`
+    rasteriza el glifo a un tamaño fijo y después lo escala a la caja
+    que le des, así que el número que le pasás NO es el que usarías en
+    una fuente y no hay forma de acertarle de memoria. El único camino
+    es medir la tinta: en swipeable-tabs, `size: 17` pinta 13.0 pt de
+    tinta, que es exactamente lo que mide el `+` de la referencia
+    (`BORDE.simboloMas` en `medidas.ts`, con su recibo). Dimensioná por
+    la tinta medida contra la referencia, nunca por el tamaño del label
+    que tiene al lado.
+
+    Y `SymbolView` es una **vista nativa**: iOS la reconfigura cuando
+    le cambian las props, así que reservale su caja con un ancho fijo
+    y animá la caja, no el símbolo (`css.ranuraChevron` y
+    `estiloSimbolo` en `barra.tsx`). Un símbolo que aparece y
+    desaparece cambiando el layout de la fila es el camino corto al
+    titileo.
 
 ## El vidrio
 
