@@ -166,12 +166,29 @@ export const PARAMETROS: Parametros = {
    0.58 deja 7.5 % de aire y es el que más ficha muestra encima de la
    píldora, que es el contexto que hace entender qué se está comprando.
 
-   `hasta` es el final de la historia: en el máster (cortado 1.2 s antes
-   del gesto) el hold arranca a 1.47 s, la ráfaga cae a 2.20 y el fundido
-   del reinicio termina a 4.65. La salida arranca ahí, así el último
-   segundo se ve el teléfono entero. Antes eran 6.35, con un hold
-   abandonado abriendo la toma; se sacó el 2026-09-08 a pedido de Vito
-   ("que en la grabación se ejecute todo de una"). */
+   `hasta` es el final de la historia, y EL VIDEO TERMINA CUANDO TERMINA
+   LA ANIMACIÓN. En el máster (cortado 1.2 s antes del gesto) el hold
+   arranca a 1.47 s y la ráfaga cae a 2.20. RUNTIME: midiendo la
+   diferencia entre cuadros consecutivos en la banda del pill y su
+   entorno, las dos apariencias se quedan quietas a los 3.00 s, cuando
+   "✓ Order Placed" terminó de enfocar y la ráfaga se apagó, y siguen
+   quietas hasta los 4.33, que es cuando el reinicio empieza a moverse.
+   El clip se corta a 4.10: 1.10 s con el resultado en pantalla, y 0.23
+   de margen contra el reinicio. La salida de la cámara arranca a 3.00,
+   o sea en el cuadro en que la animación termina, y llega abierta a
+   3.62: el final se ve con el teléfono entero.
+
+   EL AIRE DEL FINAL ES UN PEDIDO, no una medida. Primero se cortó a
+   3.25, con 0.25 s, y Vito (2026-09-08): "que haya más tiempo luego que
+   termine". Lo que la medición fija es el techo, no el gusto: más de
+   4.33 y entra el reinicio.
+
+   NO SE ESPERA AL REINICIO. Vito, 2026-09-08: "hacé que el video se
+   corte antes, o sea cuando termina la animación y listo, bien natural,
+   que no se espere a volver". El fundido de vuelta al reposo sigue en la
+   pieza; en el video, dos segundos y medio esperando que el botón se
+   destrabe no son la pieza. Antes eran 6.35 con un hold abandonado
+   abriendo la toma, y 4.65 sin él. */
 export const HOLD_TO_COMMIT: Parametros = {
   ...PARAMETROS,
   clip: 'hold-to-commit-oscuro.mp4',
@@ -179,7 +196,7 @@ export const HOLD_TO_COMMIT: Parametros = {
     ...PARAMETROS.camara,
     foco: 0.9105,
     focoEnLienzo: 0.58,
-    hasta: 4.65,
+    hasta: 3.0,
   },
 }
 
