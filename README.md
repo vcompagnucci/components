@@ -1468,3 +1468,34 @@ su cuenta: son cinco), y "The row scrolls only when the active tab does
 not fit on screen" es cierto de lo que hace la pieza sola pero omite que
 la fila es un `ScrollView` que se arrastra con el dedo (`onBeginDrag` se
 lo devuelve al usuario: "el dedo en la fila siempre gana").
+
+**Las tres secciones, 17 % más cortas, con las mismas afirmaciones.**
+Pedido del usuario (2026-09-08): "ya teniendo todo, usando buenas
+prácticas, dejá todo mucho más conciso, seguí respetando lo del lenguaje
+de engineer de IBM del 73 y /better-writing". De 703 a 583 palabras, los
+mismos doce párrafos, ni una afirmación de menos: es la regla de
+`better-writing` "delete every word that does no work" aplicada palabra
+por palabra, no un recorte de contenido.
+
+Tres tipos de corte. **Redundancia interna**: "one value that describes
+the whole transition […] It is one derived value" decía lo mismo dos
+veces; "not the JavaScript thread […] at two moments only […] Never per
+frame" eran tres formas de una idea; "always agree, and the row moves as
+one object", dos. **Redundancia entre secciones**: "the row scrolls only
+when a tab does not fit" estaba en Anatomy y en Use cases, y queda en
+Anatomy; "however far the tab is" estaba en dos párrafos de Anatomy y
+queda en el que lo necesita. **Perífrasis por el verbo**: "Tap a tab and
+it becomes the active one" → "A tap makes a tab active"; "When one did,
+the recording showed the first frame after a tap standing still" →
+"Unmemoized, the first frame after a tap stood still"; "several lists of
+equal standing" → "several peer lists", que es el término de
+`animate-expo` ("peers, not a hierarchy") y engancha con la jerarquía
+del párrafo siguiente; "so the drag and its deceleration run natively" →
+"the system runs the drag and its deceleration", que además dice quién.
+
+Y el recorte arregló solo una de las dos imprecisiones que habían quedado
+abiertas: el cierre de Anatomy decía "from four recordings at 60 fps" y
+ahora dice "at 60 fps". El registro dice el clip del vault **y después**
+cuatro grabaciones del usuario —cinco—, así que "four" contaba de menos.
+Sigue abierta la otra, "The row scrolls only when the active tab does not
+fit on screen", que omite que la fila se arrastra con el dedo.
