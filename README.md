@@ -1361,3 +1361,17 @@ segmented control, así que el texto decía uno de menos. Corregido, y
 la cita quedó en el comentario de la nota junto con la de tab bars ("A
 tab bar lets people navigate between top-level sections of your app"),
 que sostiene la otra mitad del párrafo.
+
+**Performance, releída como la leería un ingeniero senior.** Pedido del
+usuario (2026-09-07). Cuatro precisiones: "not in JavaScript" pasa a
+"not the JavaScript thread", porque los worklets también son
+JavaScript; se dice que el scroll es nativo, que es la razón principal
+de que el gesto no cueste; la memoización se cuenta por su costo —seis
+listas de doce filas, montadas desde el principio para que un swipe
+nunca monte una lista en medio del gesto— y no como historia; y el
+"one derived value" con su mecanismo: ningún estilo puede leer parte de
+la transición del cuadro anterior. La medición dice dónde: en el
+teléfono, 60 fps en cada gesto, medido por el usuario; la completitud
+de la grabación del simulador queda como recibo de la toma. El
+comentario de la pieza decía "siete páginas" de cuando había un tab
+más: seis.
