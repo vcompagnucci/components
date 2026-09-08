@@ -333,6 +333,11 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
     cancelAnimation(blob)
     cancelAnimation(blanco)
     cancelAnimation(pListo)
+    /* Y el reloj de los 5 s, que es quien normalmente llama acá: si el
+       reinicio se dispara antes (la sonda `demo` lo adelanta para el
+       video), sin esto el `withDelay` que dejó `completar` vuelve a
+       llamar a `reiniciar` sobre un botón que ya está en reposo. */
+    cancelAnimation(espera)
     escala.set(1)
     estallido.set(0)
     pListo.set(mover(0, tiempo(R.cruce.reinicio.salida, R.easeOut)))
@@ -594,6 +599,49 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
         clearTimeout(t1)
         clearTimeout(t2)
       }
+    }
+    if (sonda === 'demo') {
+      /* LA COREOGRAFÍA DE LA GRABACIÓN. No hay forma de mandarle un dedo
+         al simulador, así que la toma se maneja desde adentro llamando a
+         los MISMOS worklets que llama el gesto (`apretar`, `soltar`,
+         `completar`): las curvas, los tiempos, la háptica y el sonido son
+         los del camino real, no una imitación.
+
+         UN SOLO GESTO, DE PUNTA A PUNTA. La primera versión abría con un
+         hold abandonado —apretar, soltar a los 700 ms, mostrar la
+         retirada— y recién después el que completa. Vito, 2026-09-08:
+         "que en la grabación se ejecute todo de una, sacá esa parte del
+         principio que se aprieta el botón y se corta en la mitad". La
+         retirada sigue existiendo en la pieza y está contada en las
+         notas; en el video, cortarse a la mitad antes de haber mostrado
+         una vez qué pasa al final se lee como un error, no como una
+         opción.
+
+             3000   apretar          reposo largo antes del gesto, para
+                                     cortar 1.2 s antes (AGENTS del
+                                     taller) con margen de sobra: el
+                                     arranque de la app tarda distinto
+                                     cada vez, y en la toma en claro los
+                                     1800 ms de la primera versión
+                                     dejaban el corte 0.2 s ANTES de que
+                                     la pieza terminara de montarse
+             4000   (solo)           el LongPress cumple: ráfaga, "✓ Order
+                                     Placed", háptica de éxito y sonido
+             6000   reiniciar        el fundido de vuelta al reposo
+
+         EL REINICIO LLEGA A LOS 2 s Y NO A LOS 5. Los 5 s son del taller
+         —para poder probar el botón seguido sin salir de la pieza— y en
+         un video son tres segundos de nada. El fundido que se ve es el
+         mismo código y la misma curva; sólo se adelanta el disparo.
+         `reiniciar` cancela `espera`, así que el reloj de los 5 s que
+         dejó `completar` no vuelve a disparar sobre el reposo. */
+      const en = (ms: number, w: () => void) => setTimeout(() => scheduleOnUI(w), ms)
+      const t = [
+        en(3000, apretar),
+        en(3000 + HOLD.duracion, completar),
+        en(3000 + HOLD.duracion + 2000, reiniciar),
+      ]
+      return () => t.forEach(clearTimeout)
     }
     const p = Number(sonda)
     if (Number.isFinite(p)) {

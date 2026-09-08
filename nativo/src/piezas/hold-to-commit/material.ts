@@ -33,4 +33,4 @@
  */
 export type Material = 'opaco' | 'vidrio'
 export const MATERIALES: readonly Material[] = ['opaco', 'vidrio']
-export const MATERIAL: Material | 'elegir' = 'elegir'
+export const MATERIAL: Material | 'elegir' = 'opaco'

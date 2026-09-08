@@ -225,7 +225,7 @@ día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
 
 ## Lo que ya sabemos que muerde
 
-Treinta cosas que no son obvias y cuestan una tarde cada una. Las
+Treinta y una cosas que no son obvias y cuestan una tarde cada una. Las
 ocho primeras salieron de leer `SchroederNathan/react-native-motion` el
 2026-08-28 — allá están escritas como reglas de una pieza puntual, pero
 ninguna lo es. La novena salió de medirla acá, en swipeable-tabs, y la
@@ -511,6 +511,17 @@ cambiarla.
     estados intermedios miden de menos. `tilde.py` de la pieza hace las
     dos cosas.
 
+31. **Para medir un estado del botón, la ventana va ADENTRO del
+    control, no alrededor.** Para alinear dos tomas de la misma
+    coreografía se promediaba una banda de 1080×200 px alrededor del
+    pill. En modo oscuro anduvo; en claro, la ficha blanca que rodea al
+    botón domina el promedio y el evento se detecta 200 ms corrido. Las
+    dos tomas salieron desfasadas y en el video de X cada apariencia
+    mostraba un instante distinto. Con la ventana adentro del control
+    (800×70 px, que es todo pill en los dos modos) coinciden en 33 ms.
+    Y el síntoma no apareció en ningún número: se vio poniendo los
+    cuatro cuadros del mismo instante uno al lado del otro.
+
 ## El vidrio
 
 `expo-glass-effect` ya está instalado (57.0.1) y tiene trampas que no se
@@ -706,6 +717,23 @@ xcrun simctl spawn booted defaults write host.exp.Exponent EXDevMenuShowFloating
 ```
 
 y relanzar Expo Go. Queda apagada para ese simulador.
+
+**La sonda de grabación de hold-to-commit** vive en su `boton.tsx`,
+rama `sonda === 'demo'`, con su timeline arriba. Llama a los MISMOS
+worklets que llama el dedo (`apretar`, `completar`, `reiniciar`), así
+que curvas, tiempos, háptica y sonido son los del camino real. Dos
+cosas que costaron una vuelta cada una: el reposo inicial tiene que
+sobrar (con 1800 ms, la toma en claro cargó más lento y el corte de 1.2
+s antes del gesto caía ANTES de que la pieza terminara de montarse), y
+el reinicio se adelanta a los 2 s porque los 5 s del taller son tres
+segundos de nada en un video; para que el reloj de los 5 s no dispare
+después sobre el reposo, `reiniciar` cancela `espera`.
+
+**Y si la pieza se ve distinta en claro y en oscuro, son DOS tomas**, la
+misma sonda con `simctl ui <udid> appearance light|dark`. Se cortan
+alineadas por el mismo evento —el commit, no el primer gesto— o los dos
+videos muestran instantes distintos de la coreografía. Ojo con dónde se
+mide para encontrar ese evento: ver la trampa 31.
 
 **La sonda de grabación (`?demo=1`), para copiar.** Es lo que grabó
 el video de swipeable-tabs y no viaja con la pieza; queda acá para la

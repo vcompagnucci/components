@@ -17,6 +17,10 @@ import type { Carga } from './carga'
  *   'cruce-suelta=150'    150 ms después de soltar a un tercio del hold
  *   'auto'                aprieta solo a los 700 ms y sostiene hasta el final
  *   'auto-suelta'         aprieta solo y suelta a los 400 ms
+ *   'demo'                la coreografía de la GRABACIÓN: reposo, un hold
+ *                         abandonado, un hold completo y el reinicio
+ *                         adelantado a los 2 s (la timeline está arriba
+ *                         de su rama en `boton.tsx`)
  *   'tilde=0.5'           el commit con "✓ Order Placed" a mitad de su presencia
  *
  * Reproducen las curvas y los tiempos de la receta 'clip' (`receta.ts`):

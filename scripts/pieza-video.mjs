@@ -107,17 +107,21 @@ if (alfa) {
       process.exit(1)
     }
   }
+  /* `--oscuro` escribe el par de la apariencia oscura de la pieza, en
+     `videoOscuro` y `videoHevcOscuro`: la card sirve el que corresponde
+     al tema del lector (ver Piece en pieces.ts). Sin el flag va el par
+     de siempre, que es el que ve un lector en claro. */
   fs.mkdirSync(PIEZAS_DIR, { recursive: true })
-  fs.copyFileSync(par.webm, path.join(PIEZAS_DIR, `${slug}.webm`))
-  fs.copyFileSync(par.mov, path.join(PIEZAS_DIR, `${slug}.mov`))
+  fs.copyFileSync(par.webm, path.join(PIEZAS_DIR, `${slug}${sufijo}.webm`))
+  fs.copyFileSync(par.mov, path.join(PIEZAS_DIR, `${slug}${sufijo}.mov`))
   let src = fs.readFileSync(PIEZAS_TS, 'utf8')
-  src = ponerCampo(src, 'video', `/piezas/${slug}.webm`)
-  src = ponerCampo(src, 'videoHevc', `/piezas/${slug}.mov`)
+  src = ponerCampo(src, oscuro ? 'videoOscuro' : 'video', `/piezas/${slug}${sufijo}.webm`)
+  src = ponerCampo(src, oscuro ? 'videoHevcOscuro' : 'videoHevc', `/piezas/${slug}${sufijo}.mov`)
   const temporalTs = PIEZAS_TS + '.tmp'
   fs.writeFileSync(temporalTs, src)
   fs.renameSync(temporalTs, PIEZAS_TS)
   const mb = (f) => (fs.statSync(f).size / 1024 / 1024).toFixed(1)
-  console.log(`listo — ${slug}.webm ${mb(par.webm)} MB y ${slug}.mov ${mb(par.mov)} MB. pieces.ts tiene video y videoHevc. Mirala en /${slug}`)
+  console.log(`listo — ${slug}${sufijo}.webm ${mb(par.webm)} MB y ${slug}${sufijo}.mov ${mb(par.mov)} MB. pieces.ts tiene ${oscuro ? 'videoOscuro y videoHevcOscuro' : 'video y videoHevc'}. Mirala en /${slug}`)
   process.exit(0)
 }
 

@@ -5,6 +5,12 @@
 
      pnpm assets                                   # el máster de swipeable-tabs
      pnpm assets --clip=/ruta/a/otra-grabacion.mp4
+     pnpm assets --clip=… --salida=hold-to-commit-oscuro.mp4
+
+   `--salida` existe desde la segunda pieza: una pieza que se muestra en
+   claro y en oscuro tiene DOS grabaciones, y las dos tienen que estar en
+   public/ al mismo tiempo para que un solo render las alcance por props.
+   Sin él, la segunda pisaba a la primera.
 
    POR QUÉ SE NORMALIZA: simctl graba a tasa variable —60 cuadros por
    segundo mientras algo se mueve y ninguno con la pantalla quieta— y
@@ -39,11 +45,11 @@ for (const [que, archivo] of [['la grabación', clip], ['el bisel', bisel]]) {
 fs.mkdirSync(PUBLIC, { recursive: true })
 fs.copyFileSync(bisel, path.join(PUBLIC, 'bisel.png'))
 console.log(`bisel   → public/bisel.png`)
-const destino = path.join(PUBLIC, 'clip.mp4')
+const destino = path.join(PUBLIC, opciones.salida ?? 'clip.mp4')
 execFileSync(
   'ffmpeg',
   ['-v', 'error', '-y', '-i', clip, '-vf', 'fps=60', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '12', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', destino],
   { stdio: 'inherit' },
 )
 const datos = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,nb_frames,duration', '-of', 'csv=p=0', destino]).toString().trim()
-console.log(`clip    → public/clip.mp4 (${datos.replace(/,/g, ' × ').replace(' × ', '×')})\nlisto`)
+console.log(`clip    → public/${path.basename(destino)} (${datos.replace(/,/g, ' × ').replace(' × ', '×')})\nlisto`)
