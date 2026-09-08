@@ -207,6 +207,26 @@ export default function HoldToCommit() {
  *   un callback (un worklet captura `undefined` si la const viene
  *   después). RUNTIME: `medidor.tsx` bajo `carga.tsx` (`pesada`).
  *
+ * — Sólo transform y opacity: el color del label son tres tandas del
+ *   texto en sus tres tintas con la partición del progreso como
+ *   opacidad (`tinta`); ninguna vista anima `color` ni `tintColor`.
+ *
+ * — La receta activa es `clip` (`RECETA`), la medida: Vito la pidió de
+ *   vuelta el 2026-09-07 al ver la `skill` ("diferente, sobre todo el
+ *   final"). RUNTIME: reposo, 0.5, commit y cruce-commit=150 dan PSNR
+ *   infinito contra las capturas anteriores a la reescritura. La `skill`
+ *   —springs con duración y rebote 0 donde hubo dedo, `overshootClamping`
+ *   en la retirada, tilde contextual— sigue entera con `?receta=skill`.
+ *
+ * — El tilde de "Order Placed" entra con opacidad 0 → 1, escala .25 → 1
+ *   y blur 4 → 0 en un spring de 300 ms, rebote 0 (better-ui, ícono
+ *   contextual); en `clip`, pegado al texto. RUNTIME:
+ *   `cmp/tilde-contextual-tablero.png`.
+ *
+ * — Un solo estado, `etapa` (entero): reposo, hold, sonando, commit,
+ *   reinicio. El storyboard arriba de `boton.tsx` lee como la secuencia
+ *   y no tiene números propios: todos viven en `receta.ts` y `medidas.ts`.
+ *
  * — Nada visible depende de JS: 0 cuadros perdidos en la secuencia
  *   bajo `todo` y `pesada` (iOS dev, Android producción). Lo que cruza
  *   a JS —háptica y sonido— espera lo que JS tarde: hasta ~90 ms bajo

@@ -271,8 +271,9 @@ import AppKit
 import CoreImage
 
 let NIVELES_BLUR: [(String, Double)] = [("a", 2.5), ("b", 1.0)]   // sufijo, σ en pt
-let SIGMA_MAX = NIVELES_BLUR.map { $0.1 }.max()! * ESCALA
-let PAD = Int((SIGMA_MAX * 3).rounded(.up))   // margen para que el halo no se corte; igual en todos los niveles
+/// Margen en px para que el halo no se corte: 3σ del σ mayor de la tanda,
+/// igual en todos los niveles de un mismo label (así se apilan centrados).
+func margen(_ niveles: [(String, Double)]) -> Int { Int((niveles.map { $0.1 }.max()! * ESCALA * 3).rounded(.up)) }
 
 func fuente(_ peso: NSFont.Weight) -> NSFont { NSFont.systemFont(ofSize: 17, weight: peso) }
 
@@ -302,7 +303,8 @@ for (s, ref) in [("No unblocks allowed", 151.0), ("10:00 PM", 62.4), ("Everyday"
 /// Rasteriza en blanco sobre transparente, a 3x, y escribe una copia por
 /// nivel de blur: `<nombre>-a@3x.png` (ancho) y `<nombre>-b@3x.png` (angosto).
 /// Todas miden lo mismo (el margen es el del σ mayor), así se apilan centradas.
-func labelBorroso(_ nombre: String, dibujar: (CGContext, Double, Double) -> Void, anchoPt: Double, altoPt: Double) {
+func labelBorroso(_ nombre: String, niveles: [(String, Double)] = NIVELES_BLUR, dibujar: (CGContext, Double, Double) -> Void, anchoPt: Double, altoPt: Double) {
+    let PAD = margen(niveles)
     let w = Int((anchoPt * ESCALA).rounded(.up)) + 2 * PAD, h = Int((altoPt * ESCALA).rounded(.up)) + 2 * PAD
     let cs = CGColorSpaceCreateDeviceRGB()
     let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4, space: cs, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
@@ -313,12 +315,12 @@ func labelBorroso(_ nombre: String, dibujar: (CGContext, Double, Double) -> Void
     NSGraphicsContext.restoreGraphicsState()
     let nitido = ctx.makeImage()!
     let ci = CIImage(cgImage: nitido)
-    for (sufijo, sigmaPt) in NIVELES_BLUR {
+    for (sufijo, sigmaPt) in niveles {
         let filtro = CIFilter(name: "CIGaussianBlur")!
         filtro.setValue(ci, forKey: kCIInputImageKey); filtro.setValue(sigmaPt * ESCALA, forKey: kCIInputRadiusKey)
         let salida = filtro.outputImage!.cropped(to: ci.extent)
         let cg = CIContext(options: [.workingColorSpace: cs, .outputColorSpace: cs]).createCGImage(salida, from: ci.extent)!
-        let archivo = "\(nombre)-\(sufijo)@3x.png"
+        let archivo = sufijo.isEmpty ? "\(nombre)@3x.png" : "\(nombre)-\(sufijo)@3x.png"
         let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(archivo)
         let dest = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)!
         CGImageDestinationAddImage(dest, cg, nil); CGImageDestinationFinalize(dest)
@@ -363,6 +365,25 @@ labelBorroso("committed-borroso", dibujar: { ctx, ox, oy in
     tinte.draw(in: r)
     commitTexto.draw(at: NSPoint(x: ox + tildeTam.ancho + TILDE_HUECO, y: oy + (filaAlto - commitTam.alto) / 2))
 }, anchoPt: filaAncho, altoPt: filaAlto)
+
+// LA RECETA `skill` (2026-09-07) separa el tilde del texto: "Order Placed"
+// entra con el blur-replace de siempre y el tilde entra aparte con la
+// técnica de ícono contextual de better-ui —"scale 0.25 to 1, opacity 0
+// to 1, blur 4px to 0px"—. Así que hacen falta el texto solo, en los dos
+// niveles de siempre, y el tilde solo desenfocado a σ 4 pt (un nivel).
+// El margen de cada PNG es 3σ del σ mayor de su tanda: 23 px (7.67 pt)
+// para los textos y 36 px (12 pt) para el tilde; `etiqueta.tsx` los
+// descuenta con márgenes negativos para que la caja de layout de la
+// copia borrosa sea la del contenido.
+labelBorroso("placed-borroso", dibujar: { _, ox, oy in
+    commitTexto.draw(at: NSPoint(x: ox, y: oy))
+}, anchoPt: commitTam.ancho, altoPt: commitTam.alto)
+labelBorroso("tilde-borroso", niveles: [("", 4.0)], dibujar: { _, ox, oy in
+    let tinte = NSImage(size: NSSize(width: tildeTam.ancho, height: tildeTam.alto), flipped: false) { rect in
+        simbolo.draw(in: rect); NSColor.white.set(); rect.fill(using: .sourceAtop); return true
+    }
+    tinte.draw(in: NSRect(x: ox, y: oy, width: tildeTam.ancho, height: tildeTam.alto))
+}, anchoPt: tildeTam.ancho, altoPt: tildeTam.alto)
 
 
 // ═══ 6. LA CHISPA — el punto de luz que viaja adentro del pill ═══════

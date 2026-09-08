@@ -143,6 +143,12 @@ escribió el clip en el vault, y `scripts/cuadros.mjs` del repo web lo
 parseó (tasa fija, 40 unidades por cuadro) — o sea que el reproductor
 puede ir cuadro a cuadro sobre lo que sale de acá.
 
+**Con dos piezas o más hay índice, y para medir eso estorba.** Las
+sondas de una pieza y `pnpm grabar` necesitan que la app arranque en la
+pieza; `simctl openurl` con el esquema del dev client pide confirmación
+en iOS 26. `src/piezas/abrir.ts` es la perilla: el slug ahí y el índice
+redirige. Queda `undefined` en el repo (el otro worktree tiene su pieza).
+
 **Sin header, y se graba así.** Una pieza ocupa la pantalla entera: todo
 lo que no sea la pieza terminaría adentro del video. Para volver al
 índice, **swipe desde el borde izquierdo** — el gesto nativo del stack,
@@ -465,6 +471,13 @@ cambiarla.
     texturas del relleno se veía como una línea clara. La vista que se
     funde lleva `needsOffscreenAlphaCompositing` (Android; iOS lo hace
     solo con `allowsGroupOpacity`).
+
+29. **Una función que un worklet llama lleva `'worklet'` aunque sólo
+    construya un objeto.** `tiempo()` y `spring()` (`receta.ts`) armaban
+    el `Movimiento` que `mover()` consume; llamadas desde `apretar` o
+    `completar`, "[Worklets] Tried to synchronously call a Remote
+    Function. Called 'tiempo' on the UI Runtime". El typecheck no lo ve
+    y en el hilo de JS anda: se ve en el log de Metro, no en pantalla.
 
 ## El vidrio
 

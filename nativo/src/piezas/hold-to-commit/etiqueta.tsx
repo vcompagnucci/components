@@ -1,7 +1,7 @@
 import { MaterialSymbols_700Bold } from '@expo-google-fonts/material-symbols/700Bold'
 import { SymbolView, type SymbolViewProps } from 'expo-symbols'
 import { type ReactNode } from 'react'
-import { Image, Platform, StyleSheet, useWindowDimensions, View } from 'react-native'
+import { Image, Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
 
 import { COLOR, COMMIT, LABEL, SIMBOLO, TEXTO } from './medidas'
@@ -29,39 +29,63 @@ import { COLOR, COMMIT, LABEL, SIMBOLO, TEXTO } from './medidas'
    comparar capturas con sonda en ms contra el cuadro del clip del mismo
    instante (`cmp-press-t.png`): con el pase en [.45, .75] el entrante
    seguía borroso a los 140 ms donde el clip ya está nítido. Así en
-   ningún momento hay más
-   tinta que la del texto nítido: un blur de verdad conserva la masa y
-   sólo la desparrama, y con dos copias borrosas prendidas a la vez el
-   label se veía más gordo y más brillante que en el clip (probado en
-   captura: cruce=0.35 daba un texto blanco engordado donde el clip pierde
-   tinta). Entrando (q sube) aparece como mancha ancha, se aprieta en la
-   angosta, emerge el nítido y queda una cola tenue de halo: un ENFOQUE
-   continuo, no un salto. Saliendo (q baja) es el mismo camino al revés,
-   más rápido. Por qué presencia y no un solo "mezcla" de A a B: un cruce
-   interrumpido —soltar mientras todavía aparece "Keep Holding..."—
-   retoma cada label desde donde está, sin necesitar que las curvas de
-   ida y vuelta sean espejo.
+   ningún momento hay más tinta que la del texto nítido: un blur de
+   verdad conserva la masa y sólo la desparrama, y con dos copias
+   borrosas prendidas a la vez el label se veía más gordo y más brillante
+   que en el clip (probado en captura: cruce=0.35 daba un texto blanco
+   engordado donde el clip pierde tinta). Entrando (q sube) aparece como
+   mancha ancha, se aprieta en la angosta, emerge el nítido y queda una
+   cola tenue de halo: un ENFOQUE continuo, no un salto. Saliendo (q
+   baja) es el mismo camino al revés, más rápido. Por qué presencia y no
+   un solo "mezcla" de A a B: un cruce interrumpido —soltar mientras
+   todavía aparece "Keep Holding..."— retoma cada label desde donde
+   está, sin necesitar que las curvas de ida y vuelta sean espejo.
 
-   "✓ Committed" además ENTRA CRECIENDO desde `escalaEntrada` (pedido del
-   2026-09-03; el clip no escala) — la escala sigue a su presencia por un
-   ease-out: rápido al principio, se asienta despacio. Con reduce motion
-   no hay copias borrosas ni escala: los nítidos se cruzan solos por
-   opacidad (animate-expo § 9: queda la opacidad, se va la escala).
+   EL COLOR TAMBIÉN ES OPACIDAD (2026-09-07, "¿hay chance de lograr lo
+   mismo animando sólo transform y opacity?"). Antes el botón animaba
+   `color` en el `Text` y `tintColor` en las copias: un prop que no es
+   transform ni opacity, que la plataforma re-rasteriza. Ahora "Hold to
+   Buy" y "Keep Holding..." existen TRES VECES, en las tres tintas
+   medidas —la de reposo (blanco; negro sobre vidrio en claro), el gris
+   verdoso (#202B24) y el negro—, cada tanda con su color FIJO y adentro
+   de una capa cuya opacidad es la partición que el botón deriva del
+   progreso (blanco 1−t₁, oscuro t₁(1−t₂), negro t₂; recibo en HOLD). Dos
+   textos idénticos apilados y cruzados por opacidad dan exactamente la
+   interpolación del color: en los píxeles cubiertos el resultado es
+   blanco·(1−t) + oscuro·t. Cada tanda lleva `needsOffscreenAlphaCompositing`
+   porque Android compone los hijos uno por uno y una tanda a media
+   opacidad con sus tres capas superpuestas saldría más clara que la
+   mezcla (trampa 28). "Order Placed" es negro siempre: una sola tanda.
 
-   El color del texto viaja en `tinta`, que el botón deriva del progreso
-   (blanco → gris verdoso al 55 % → negro al 96.5 %; recibo en HOLD).
-   "Committed" es negro siempre.
+   "✓ Order Placed" además ENTRA CRECIENDO desde `escalaEntrada` (pedido
+   del 2026-09-03; el clip no escala) — la escala sigue a su presencia
+   por un ease-out: rápido al principio, se asienta despacio. Con reduce
+   motion no hay copias borrosas ni escala: los nítidos se cruzan solos
+   por opacidad (animate-expo § 9: queda la opacidad, se va la escala).
+
+   EL TILDE, según la receta (`tildeContextual`). Con la del clip entra
+   pegado al texto: las PNG borrosas son de la fila entera. Con la receta
+   `skill` (2026-09-07, "usá la técnica de ícono contextual de better-ui")
+   entra SOLO, con las tres cosas que better-ui prescribe —"scale 0.25 to
+   1, opacity 0 to 1, blur 4px to 0px"— sobre un reloj q (0..1) que el
+   botón anima con el spring de la receta (300 ms, rebote 0). El blur
+   4 → 0 son dos capas, la PNG a σ 4 pt (o el `filter` en Android) y la
+   nítida, con la opacidad repartida q(1−q) y q²: suman q, y a mitad de
+   camino el tilde es mitad mancha, mitad trazo. Para que el tilde caiga
+   exactamente donde lo pone la fila nítida, su capa es la MISMA fila
+   con el texto invisible, y las filas del texto llevan una caja vacía
+   del tamaño del tilde. Las PNG traen un margen (3σ, lo imprime
+   `generar.swift`) que se descuenta con márgenes negativos para que su
+   caja de layout sea la del contenido.
 
    EL LABEL SIGUE A DYNAMIC TYPE hasta `TEXTO.escalaMaxima` (×1.786, la
    primera talla de accesibilidad; recibo en medidas.ts): más grande no
    entra en un pill de 52 pt que no crece. `maxFontSizeMultiplier` pone
-   ese techo en los tres textos, y las copias borrosas, el tilde y su
-   hueco se escalan con el mismo factor (`useWindowDimensions().fontScale`,
+   ese techo en los textos, y las copias borrosas, el tilde y su hueco se
+   escalan con el mismo factor (`useWindowDimensions().fontScale`,
    acotado) para que el cruce siga calzando. Con el tamaño de texto por
-   defecto el factor es 1 y nada cambia: las capturas contra el clip se
-   hacen con el simulador en `content_size large`, que es el default.
-   Antes (2026-09-02) era `allowFontScaling={false}` por la
-   comparabilidad de las tomas; animate-expo § 9 lo prohíbe y el techo
+   defecto el factor es 1 y nada cambia. Antes (2026-09-02) era
+   `allowFontScaling={false}`; animate-expo § 9 lo prohíbe y el techo
    resuelve lo mismo.
 
    EN ANDROID (2026-09-07, "que funcione tal cual en Android e iOS") las
@@ -71,19 +95,23 @@ import { COLOR, COMMIT, LABEL, SIMBOLO, TEXTO } from './medidas'
    copias son el MISMO `Text` con `filter: [{ blur }]`, que React Native
    aplica en Android con `RenderEffect` desde la API 31 (SOURCE:
    react-native 0.86, `BaseViewManager.java:558`; en iOS el `filter`
-   con blur no está). Las σ son las mismas de `generar.swift` (2.5 y
-   1.0 pt), la escalera es la misma, y el texto es el de la plataforma.
-   Antes de la API 31 no hay blur: se cruzan los nítidos, como con
-   reduce motion. El tilde tampoco es SF: `expo-symbols` dibuja en
-   Android el `check` de Material Symbols en 700 (recibo en `SIMBOLO`).
-   `includeFontPadding: false` saca el relleno vertical que Android
-   agrega a la caja del texto (iOS lo ignora): centrado igual.
+   con blur no está). Las σ son las mismas, la escalera es la misma, y
+   el texto es el de la plataforma. Antes de la API 31 no hay blur: se
+   cruzan los nítidos, como con reduce motion. El tilde tampoco es SF:
+   `expo-symbols` dibuja en Android el `check` de Material Symbols en 700
+   (recibo en `SIMBOLO`). `includeFontPadding: false` saca el relleno
+   vertical que Android agrega a la caja del texto (iOS lo ignora).
    ═══════════════════════════════════════════════════════════════ */
 
 export const HOLD = 0, KEEP = 1, LISTO = 2
 
 /* Las dos σ de las copias borrosas, en pt: las de `generar.swift`. */
 const SIGMA = { ancha: 2.5, angosta: 1.0 }
+/* SOURCE · better-ui "Contextual icon animations": scale 0.25 → 1, blur 4px → 0. */
+const TILDE_CONTEXTUAL = { escalaDesde: 0.25, sigma: 4 }
+/* El margen de cada PNG en pt: 3σ del σ mayor de su tanda, a 3x (23 px
+   para los textos, 36 para el tilde; lo imprime `generar.swift`). */
+const MARGEN_PNG = { texto: 23 / 3, tilde: 36 / 3 }
 /* Android dibuja las copias con `filter: blur` desde la API 31; iOS, con las PNG. */
 const BLUR_NATIVO = Platform.OS === 'android' && Number(Platform.Version) >= 31
 const PNG = Platform.OS === 'ios'
@@ -95,15 +123,20 @@ const PESO_ANDROID: PesoAndroid = { name: 'MaterialSymbols_700Bold', font: Mater
 const BORROSO = {
   hold: { a: require('./media/hold-borroso-a.png'), b: require('./media/hold-borroso-b.png') },
   keep: { a: require('./media/keep-borroso-a.png'), b: require('./media/keep-borroso-b.png') },
+  /* la fila entera, tilde incluido: la receta del clip */
   listo: { a: require('./media/committed-borroso-a.png'), b: require('./media/committed-borroso-b.png') },
+  /* el texto solo y el tilde solo: la receta con el tilde contextual */
+  placed: { a: require('./media/placed-borroso-a.png'), b: require('./media/placed-borroso-b.png') },
+  tilde: require('./media/tilde-borroso.png'),
 }
-const tam = (src: number) => {
+type Tam = { width: number; height: number }
+const tam = (src: number): Tam => {
   const { width, height } = Image.resolveAssetSource(src)
   return { width, height }
 }
 /* Los dos niveles de un label miden lo mismo (generar.swift usa el margen
    del σ mayor para todos), así que una caja por label alcanza. */
-const TAM = { hold: tam(BORROSO.hold.a), keep: tam(BORROSO.keep.a), listo: tam(BORROSO.listo.a) }
+const TAM = { hold: tam(BORROSO.hold.a), keep: tam(BORROSO.keep.a), listo: tam(BORROSO.listo.a), placed: tam(BORROSO.placed.a), tilde: tam(BORROSO.tilde) }
 
 /* smoothstep entre a y b: suaviza los bordes de cada tramo. */
 const suave = (v: number, a: number, b: number) => {
@@ -124,31 +157,44 @@ const capas = (q: number, sinBlur: boolean) => {
 }
 
 export type Presencia = readonly [SharedValue<number>, SharedValue<number>, SharedValue<number>]
+/** La partición del color del label entre sus tres tintas: suma 1. */
+export type Tinta = { blanco: number; oscuro: number; negro: number }
 
 type Props = {
-  tinta: SharedValue<string>
+  tinta: SharedValue<Tinta>
+  /** El color de reposo: blanco sobre el pill opaco, negro sobre vidrio en claro. */
+  colorReposo: string
   /** La presencia de cada label, indexada por HOLD / KEEP / LISTO. */
   presencia: Presencia
   /** Con reduce motion no hay copias borrosas ni escala: sólo se cruzan los nítidos. */
   sinBlur: boolean
-  /** Desde qué escala entra "✓ Committed" (viene de la receta). */
+  /** Desde qué escala entra "✓ Order Placed" (viene de la receta). */
   escalaEntrada?: number
+  /** El reloj de entrada del tilde contextual, 0..1 (lo anima el botón). */
+  tilde: SharedValue<number>
+  /** Si el tilde entra solo (better-ui) o pegado al texto (clip). */
+  tildeContextual: boolean
 }
 
-export function Etiqueta({ tinta, presencia, sinBlur: pedidoSinBlur, escalaEntrada = COMMIT.escalaEntrada }: Props) {
+export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur, escalaEntrada = COMMIT.escalaEntrada, tilde: qTilde, tildeContextual }: Props) {
   const [pHold, pKeep, pListo] = presencia
   /* Sin blur si lo pide reduce motion, o si la plataforma no puede hacerlo. */
   const sinBlur = pedidoSinBlur || (!PNG && !BLUR_NATIVO)
   /* El factor de Dynamic Type, acotado: el mismo techo que
      `maxFontSizeMultiplier` le pone al texto nítido. */
   const tipo = Math.min(useWindowDimensions().fontScale, TEXTO.escalaMaxima)
-  const caja = (t: { width: number; height: number }) => ({ width: t.width * tipo, height: t.height * tipo })
-  const tilde = { width: SIMBOLO.tilde.caja.ancho * tipo, height: SIMBOLO.tilde.caja.alto * tipo }
+  const caja = (t: Tam) => ({ width: t.width * tipo, height: t.height * tipo })
+  /* Una PNG con su margen descontado: su caja de layout es la del contenido. */
+  const cajaRecortada = (t: Tam, margenPt: number) => ({ ...caja(t), margin: -margenPt * tipo })
+  const tildeCaja = { width: SIMBOLO.tilde.caja.ancho * tipo, height: SIMBOLO.tilde.caja.alto * tipo }
   const hueco = { gap: LABEL.tildeATexto * tipo }
 
-  const color = useAnimatedStyle(() => ({ color: tinta.get() }))
-  const tinte = useAnimatedStyle(() => ({ tintColor: tinta.get() }))
+  /* Las tres tintas: una capa por color, con la partición como opacidad. */
+  const tBlanco = useAnimatedStyle(() => ({ opacity: tinta.get().blanco }))
+  const tOscuro = useAnimatedStyle(() => ({ opacity: tinta.get().oscuro }))
+  const tNegro = useAnimatedStyle(() => ({ opacity: tinta.get().negro }))
 
+  /* La escalera de cada label; un mismo estilo animado sirve a las tres tintas. */
   const holdNitido = useAnimatedStyle(() => ({ opacity: capas(pHold.get(), sinBlur).nitido }))
   const holdAncho = useAnimatedStyle(() => ({ opacity: capas(pHold.get(), sinBlur).ancho }))
   const holdAngosto = useAnimatedStyle(() => ({ opacity: capas(pHold.get(), sinBlur).angosto }))
@@ -158,7 +204,7 @@ export function Etiqueta({ tinta, presencia, sinBlur: pedidoSinBlur, escalaEntra
   const listoNitido = useAnimatedStyle(() => ({ opacity: capas(pListo.get(), sinBlur).nitido }))
   const listoAncho = useAnimatedStyle(() => ({ opacity: capas(pListo.get(), sinBlur).ancho }))
   const listoAngosto = useAnimatedStyle(() => ({ opacity: capas(pListo.get(), sinBlur).angosto }))
-  /* La escala de "✓ Committed" sigue a su presencia con un ease-out (la
+  /* La escala de "✓ Order Placed" sigue a su presencia con un ease-out (la
      presencia del commit entra lineal en la receta del clip): crece
      rápido y se asienta despacio. Con reduce motion, ninguna. */
   const listoEscala = useAnimatedStyle(() => {
@@ -166,57 +212,133 @@ export function Etiqueta({ tinta, presencia, sinBlur: pedidoSinBlur, escalaEntra
     const eo = 1 - (1 - q) * (1 - q)
     return { transform: [{ scale: sinBlur ? 1 : escalaEntrada + (1 - escalaEntrada) * eo }] }
   })
+  /* El tilde contextual: escala .25 → 1 sobre q, y la opacidad repartida
+     entre la copia borrosa (q(1−q)) y la nítida (q²). Con reduce motion,
+     sólo opacidad. */
+  const tildeMarco = useAnimatedStyle(() => {
+    const q = qTilde.get()
+    return { transform: [{ scale: sinBlur ? 1 : TILDE_CONTEXTUAL.escalaDesde + (1 - TILDE_CONTEXTUAL.escalaDesde) * q }] }
+  })
+  const tildeNitido = useAnimatedStyle(() => {
+    const q = qTilde.get()
+    return { opacity: sinBlur ? q : q * q }
+  })
+  const tildeBorroso = useAnimatedStyle(() => {
+    const q = qTilde.get()
+    return { opacity: q * (1 - q) }
+  })
 
-  /* Los tres textos nítidos; en Android también son las copias borrosas. */
-  const holdTexto = (
-    <Animated.Text maxFontSizeMultiplier={TEXTO.escalaMaxima} style={[css.texto, color]}>
-      {LABEL.reposo}
-    </Animated.Text>
-  )
-  const keepTexto = (
-    <Animated.Text maxFontSizeMultiplier={TEXTO.escalaMaxima} style={[css.texto, color]}>
-      {LABEL.sosteniendo}
-    </Animated.Text>
-  )
-  const listoFila = (
-    <View style={[css.fila, hueco]}>
-      <SymbolView
-        name={{ ios: SIMBOLO.tilde.nombre, android: SIMBOLO.tilde.android }}
-        scale="large"
-        weight={{ ios: SIMBOLO.tilde.peso, android: PESO_ANDROID }}
-        tintColor={COLOR.tintaNegra}
-        size={PNG ? undefined : tilde.height}
-        style={tilde}
-      />
-      <Animated.Text maxFontSizeMultiplier={TEXTO.escalaMaxima} style={[css.texto, css.listo]}>
-        {LABEL.listo}
-      </Animated.Text>
-    </View>
+  const texto = (s: string, color: string) => (
+    <Text maxFontSizeMultiplier={TEXTO.escalaMaxima} style={[css.texto, { color }]}>
+      {s}
+    </Text>
   )
   /* Una copia borrosa: en iOS la PNG teñida; en Android el contenido con `filter`. */
-  const borrosa = (png: number, tam: { width: number; height: number }, negra: boolean, sigma: number, contenido: ReactNode) =>
-    PNG ? <Animated.Image source={png} style={[caja(tam), negra ? css.negro : tinte]} /> : <View style={{ filter: [{ blur: sigma }] }}>{contenido}</View>
+  const borrosa = (png: number, t: Tam, color: string, sigma: number, contenido: ReactNode, margenPt?: number) =>
+    PNG ? (
+      <Image source={png} style={[margenPt === undefined ? caja(t) : cajaRecortada(t, margenPt), { tintColor: color }]} />
+    ) : (
+      <View style={{ filter: [{ blur: sigma }] }}>{contenido}</View>
+    )
+  /* "Hold to Buy" y "Keep Holding..." en una tinta: las seis capas. */
+  const escalera = (color: string) => (
+    <>
+      {!sinBlur && <Animated.View style={[css.capa, holdAncho]}>{borrosa(BORROSO.hold.a, TAM.hold, color, SIGMA.ancha, texto(LABEL.reposo, color))}</Animated.View>}
+      {!sinBlur && <Animated.View style={[css.capa, holdAngosto]}>{borrosa(BORROSO.hold.b, TAM.hold, color, SIGMA.angosta, texto(LABEL.reposo, color))}</Animated.View>}
+      <Animated.View style={[css.capa, holdNitido]}>{texto(LABEL.reposo, color)}</Animated.View>
+      {!sinBlur && <Animated.View style={[css.capa, keepAncho]}>{borrosa(BORROSO.keep.a, TAM.keep, color, SIGMA.ancha, texto(LABEL.sosteniendo, color))}</Animated.View>}
+      {!sinBlur && <Animated.View style={[css.capa, keepAngosto]}>{borrosa(BORROSO.keep.b, TAM.keep, color, SIGMA.angosta, texto(LABEL.sosteniendo, color))}</Animated.View>}
+      <Animated.View style={[css.capa, keepNitido]}>{texto(LABEL.sosteniendo, color)}</Animated.View>
+    </>
+  )
+
+  const simbolo = (
+    <SymbolView
+      name={{ ios: SIMBOLO.tilde.nombre, android: SIMBOLO.tilde.android }}
+      scale="large"
+      weight={{ ios: SIMBOLO.tilde.peso, android: PESO_ANDROID }}
+      tintColor={COLOR.tintaNegra}
+      size={PNG ? undefined : tildeCaja.height}
+      style={tildeCaja}
+    />
+  )
+  /* "Order Placed" con su peso medido (semibold, como los otros dos; el recibo está en TEXTO). */
+  const textoListo = (
+    <Text maxFontSizeMultiplier={TEXTO.escalaMaxima} style={[css.texto, { fontWeight: TEXTO.pesoCommitted, color: COLOR.tintaNegra }]}>
+      {LABEL.listo}
+    </Text>
+  )
+  /* La fila medida: tilde y texto juntos, y las PNG de la fila entera. */
+  const filaMedida = (
+    <View style={[css.fila, hueco]}>
+      {simbolo}
+      {textoListo}
+    </View>
+  )
+  /* La fila con el tilde contextual: el texto con una caja vacía donde va
+     el tilde, y el tilde en su propia capa con el texto invisible. */
+  const filaTexto = (contenido: ReactNode) => (
+    <View style={[css.fila, hueco]}>
+      <View style={tildeCaja} />
+      {contenido}
+    </View>
+  )
+  const filaTilde = (
+    <View style={[css.fila, hueco]}>
+      <Animated.View style={[tildeCaja, tildeMarco]}>
+        {!sinBlur && (
+          <Animated.View style={[StyleSheet.absoluteFill, tildeBorroso]}>
+            {borrosa(BORROSO.tilde, TAM.tilde, COLOR.tintaNegra, TILDE_CONTEXTUAL.sigma, simbolo, MARGEN_PNG.tilde)}
+          </Animated.View>
+        )}
+        <Animated.View style={[StyleSheet.absoluteFill, tildeNitido]}>{simbolo}</Animated.View>
+      </Animated.View>
+      <Text maxFontSizeMultiplier={TEXTO.escalaMaxima} style={[css.texto, { fontWeight: TEXTO.pesoCommitted }, css.invisible]}>
+        {LABEL.listo}
+      </Text>
+    </View>
+  )
 
   return (
     /* `key={tipo}`: un cambio de Dynamic Type en vivo agranda los glifos
        pero no re-mide la caja del `Text` (RUNTIME: a AX5 el label quedó
        recortado en la caja de 17 pt); remontar el label lo mide de nuevo. */
     <View key={tipo} pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {/* Hold to Commit */}
-      {!sinBlur && <Animated.View style={[css.capa, holdAncho]}>{borrosa(BORROSO.hold.a, TAM.hold, false, SIGMA.ancha, holdTexto)}</Animated.View>}
-      {!sinBlur && <Animated.View style={[css.capa, holdAngosto]}>{borrosa(BORROSO.hold.b, TAM.hold, false, SIGMA.angosta, holdTexto)}</Animated.View>}
-      <Animated.View style={[css.capa, holdNitido]}>{holdTexto}</Animated.View>
+      {/* Hold to Buy y Keep Holding..., en sus tres tintas */}
+      <Animated.View needsOffscreenAlphaCompositing style={[css.capa, tBlanco]}>
+        {escalera(colorReposo)}
+      </Animated.View>
+      <Animated.View needsOffscreenAlphaCompositing style={[css.capa, tOscuro]}>
+        {escalera(COLOR.tintaOscura)}
+      </Animated.View>
+      <Animated.View needsOffscreenAlphaCompositing style={[css.capa, tNegro]}>
+        {escalera(COLOR.tintaNegra)}
+      </Animated.View>
 
-      {/* Keep Holding... */}
-      {!sinBlur && <Animated.View style={[css.capa, keepAncho]}>{borrosa(BORROSO.keep.a, TAM.keep, false, SIGMA.ancha, keepTexto)}</Animated.View>}
-      {!sinBlur && <Animated.View style={[css.capa, keepAngosto]}>{borrosa(BORROSO.keep.b, TAM.keep, false, SIGMA.angosta, keepTexto)}</Animated.View>}
-      <Animated.View style={[css.capa, keepNitido]}>{keepTexto}</Animated.View>
-
-      {/* ✓ Committed — las tres capas adentro de la vista que escala */}
+      {/* ✓ Order Placed — las capas adentro de la vista que escala */}
       <Animated.View style={[css.capa, listoEscala]}>
-        {!sinBlur && <Animated.View style={[css.capa, listoAncho]}>{borrosa(BORROSO.listo.a, TAM.listo, true, SIGMA.ancha, listoFila)}</Animated.View>}
-        {!sinBlur && <Animated.View style={[css.capa, listoAngosto]}>{borrosa(BORROSO.listo.b, TAM.listo, true, SIGMA.angosta, listoFila)}</Animated.View>}
-        <Animated.View style={[css.capa, listoNitido]}>{listoFila}</Animated.View>
+        {tildeContextual ? (
+          <>
+            {!sinBlur && (
+              <Animated.View style={[css.capa, listoAncho]}>
+                {filaTexto(borrosa(BORROSO.placed.a, TAM.placed, COLOR.tintaNegra, SIGMA.ancha, textoListo, MARGEN_PNG.texto))}
+              </Animated.View>
+            )}
+            {!sinBlur && (
+              <Animated.View style={[css.capa, listoAngosto]}>
+                {filaTexto(borrosa(BORROSO.placed.b, TAM.placed, COLOR.tintaNegra, SIGMA.angosta, textoListo, MARGEN_PNG.texto))}
+              </Animated.View>
+            )}
+            <Animated.View style={[css.capa, listoNitido]}>{filaTexto(textoListo)}</Animated.View>
+            <View style={css.capa}>{filaTilde}</View>
+          </>
+        ) : (
+          <>
+            {!sinBlur && <Animated.View style={[css.capa, listoAncho]}>{borrosa(BORROSO.listo.a, TAM.listo, COLOR.tintaNegra, SIGMA.ancha, filaMedida)}</Animated.View>}
+            {!sinBlur && <Animated.View style={[css.capa, listoAngosto]}>{borrosa(BORROSO.listo.b, TAM.listo, COLOR.tintaNegra, SIGMA.angosta, filaMedida)}</Animated.View>}
+            <Animated.View style={[css.capa, listoNitido]}>{filaMedida}</Animated.View>
+          </>
+        )}
       </Animated.View>
     </View>
   )
@@ -224,8 +346,7 @@ export function Etiqueta({ tinta, presencia, sinBlur: pedidoSinBlur, escalaEntra
 
 const css = StyleSheet.create({
   capa: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  texto: { fontSize: TEXTO.cuerpo, fontWeight: TEXTO.pesoBoton, color: COLOR.texto, includeFontPadding: false },
-  listo: { fontWeight: TEXTO.pesoCommitted, color: COLOR.tintaNegra },
-  negro: { tintColor: COLOR.tintaNegra },
+  texto: { fontSize: TEXTO.cuerpo, fontWeight: TEXTO.pesoBoton, includeFontPadding: false },
+  invisible: { opacity: 0 },
   fila: { flexDirection: 'row', alignItems: 'center' },
 })

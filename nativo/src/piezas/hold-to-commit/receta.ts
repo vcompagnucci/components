@@ -1,4 +1,4 @@
-import { Easing, type EasingFunction, type EasingFunctionFactory } from 'react-native-reanimated'
+import { Easing, type EasingFunction, type EasingFunctionFactory, ReduceMotion, withSpring, withTiming } from 'react-native-reanimated'
 
 import { COMMIT, CRUCE, HOLD, PRESS, REINICIO } from './medidas'
 
@@ -8,29 +8,80 @@ import { COMMIT, CRUCE, HOLD, PRESS, REINICIO } from './medidas'
  * `animate-expo` SIN perder lo medido. Así que, como el fondo, la
  * cinemática es una VARIANTE: con `'elegir'` la pieza muestra un
  * selector para pasar de una a otra en vivo, en el simulador y en el
- * teléfono. Cuando haya ganadora se escribe acá y el selector se va.
+ * teléfono.
  *
  *   'clip'   lo medido cuadro a cuadro en el clip de Opal; cada valor
- *            con su recibo en `medidas.ts`. Es la versión fiel.
- *   'skill'  las tablas de animate-expo a la letra: los dos beziers,
- *            press de .97 en 120 ms, todo bajo 300 ms, entradas y
- *            salidas con ease-out, sin retardos ni saltos. Cada valor
- *            cita la sección del skill de la que sale.
+ *            con su recibo en `medidas.ts`. Es la versión fiel. Todo por
+ *            tiempo y curva: Opal no rebota.
+ *   'skill'  las tablas de animate-expo a la letra, y desde el 2026-09-07
+ *            SPRINGS donde hubo un dedo (§ 5: "If a finger was involved,
+ *            use a spring"), con los DOS PARÁMETROS DE APPLE —duración
+ *            perceptual y rebote— que son los de `Spring(duration:bounce:)`
+ *            de SwiftUI (WWDC23 "Animate with springs") y los que
+ *            Reanimated toma como `duration` + `dampingRatio`
+ *            (dampingRatio = 1 − rebote). Rebote 0 en todas: es el
+ *            `.smooth` de Apple, y el skill lo dice igual, "bounce only
+ *            when the gesture carried momentum"; un hold no lo tiene.
+ *            Lo que no tiene dedo (un label que cruza, el velo que
+ *            blanquea, el fundido del reinicio) sigue por tiempo con los
+ *            beziers de la tabla. Y el tilde de "Order Placed" entra
+ *            aparte, con la técnica de ícono contextual de better-ui.
  *
- * Lo que NO cambia entre recetas: el relleno lineal de 2 s (es el
- * gesto, no una animación: "constant motion → linear" en las dos), el
- * color del label por progreso, la geometría del frente, la háptica, y
- * las chispas y la ráfaga (son el presupuesto de deleite del skill y
- * están medidas del clip).
+ * Lo que NO cambia entre recetas: el relleno lineal (es el gesto, no una
+ * animación: "constant motion → linear" en las dos), el color del label
+ * por progreso, la geometría del frente, la háptica, y las chispas y la
+ * ráfaga (son el presupuesto de deleite del skill y están medidas del
+ * clip).
  *
- * Las sondas (`sonda.ts`) reproducen las curvas de 'clip': con 'skill'
- * puesta no miden nada.
+ * Las sondas de estado fijo (`sonda.ts`) reproducen las curvas de 'clip';
+ * `auto` anda con cualquiera.
  *
- * El selector está APAGADO desde el 2026-09-04 (`'clip'`): Vito lo sacó
- * de la pantalla al verla en el teléfono. Para probar `skill`, poner
- * `'elegir'` acá, o abrir la pieza con `?receta=skill`.
+ * `RECETA` volvió a 'clip' el 2026-09-07, el mismo día en que pasó a
+ * 'skill' ("cumplir todo lo que está en amarillo"): con los springs
+ * puesta, Vito la vio distinta "sobre todo el final" —el pill vuelve con
+ * un spring de 400 ms en vez del salto medido y el tilde entra solo— y
+ * pidió dejarla como antes. RUNTIME: con 'clip' activa, las cuatro sondas
+ * de estado (reposo, 0.5, commit, cruce-commit=150) dan PSNR infinito
+ * contra las capturas de esa mañana, anteriores a la reescritura:
+ * píxel por píxel lo mismo. La 'skill' queda entera a un `?receta=skill`;
+ * el selector sigue apagado desde el 2026-09-04.
  */
 export type Curva = EasingFunction | EasingFunctionFactory
+
+/* UN MOVIMIENTO es por tiempo con curva, o un spring con duración y rebote. */
+export type Movimiento =
+  | { tipo: 'tiempo'; duracion: number; curva: Curva }
+  | { tipo: 'spring'; duracion: number; rebote: number; sinSobrepaso?: boolean }
+
+/* Los dos constructores llevan 'worklet': el botón los llama desde el hilo
+   de UI (RUNTIME, 2026-09-07: "Tried to synchronously call a Remote
+   Function. Called 'tiempo' on the UI Runtime" sin la directiva). */
+export const tiempo = (duracion: number, curva: Curva): Movimiento => {
+  'worklet'
+  return { tipo: 'tiempo', duracion, curva }
+}
+export const spring = (duracion: number, rebote: number, sinSobrepaso = false): Movimiento => {
+  'worklet'
+  return { tipo: 'spring', duracion, rebote, sinSobrepaso }
+}
+
+type AlTerminar = (terminado?: boolean) => void
+
+/* TODO MOVIMIENTO DEL BOTÓN PASA POR ACÁ, con `ReduceMotion.Never`:
+   Reanimated 4.5 trae `reduceMotion: System` por defecto y con Reduce
+   Motion prendido salta al final en el primer cuadro (trampa 19 del
+   AGENTS); reduce motion se aplica a mano en el botón. */
+export const mover = (hasta: number, m: Movimiento, alTerminar?: AlTerminar) => {
+  'worklet'
+  if (m.tipo === 'spring') {
+    return withSpring(
+      hasta,
+      { duration: m.duracion, dampingRatio: 1 - m.rebote, overshootClamping: m.sinSobrepaso, reduceMotion: ReduceMotion.Never },
+      alTerminar,
+    )
+  }
+  return withTiming(hasta, { duration: m.duracion, easing: m.curva, reduceMotion: ReduceMotion.Never }, alTerminar)
+}
 
 export type Tiempos = {
   entrada: number
@@ -42,28 +93,41 @@ export type Tiempos = {
 }
 
 export type Cinematica = {
-  /** la curva de todo lo que entra o sale */
+  /** la curva de los cruces del label (siempre por tiempo: no hay dedo en un texto) */
   easeOut: Curva
-  /** la curva de lo que cambia estando en pantalla */
-  easeInOut: Curva
-  press: { escala: number; duracion: number; duracionCommit: number; saltoCommit: number }
+  press: {
+    escala: number
+    /** el pill achicándose bajo el dedo */
+    entrada: Movimiento
+    /** volviendo al soltar */
+    salida: Movimiento
+    /** volviendo al completar */
+    commit: Movimiento
+    /** cuánto de la vuelta al completar pasa en el primer cuadro (lectura del clip) */
+    saltoCommit: number
+  }
   /** el relleno prendiéndose al apretar */
-  encendido: { duracion: number; curva: Curva }
-  /** al soltar: el frente retrocede (`duracion`) y el relleno se apaga (`fundido`) */
-  retirada: { duracion: number; fundido: number; curvaFundido: Curva }
+  encendido: Movimiento
+  /** al soltar: el frente retrocede (`progreso`) y el relleno se apaga (`fundido`) */
+  retirada: { progreso: Movimiento; fundido: Movimiento }
   cruce: { press: Tiempos; suelta: Tiempos; commit: Tiempos; reinicio: Tiempos }
   /** el frente terminando de llegar a la punta derecha después de la ráfaga */
-  desliz: { retardo: number; duracion: number }
+  desliz: { retardo: number; movimiento: Movimiento }
   /** el velo blanco del commit */
-  blanqueo: number
+  blanqueo: Movimiento
   /** el fundido del reinicio del taller */
-  reinicio: number
-  /** desde qué escala entra "✓ Committed" */
+  reinicio: Movimiento
+  /** desde qué escala entra "✓ Order Placed" */
   escalaEntrada: number
+  /** el tilde: 'medido' entra pegado al texto (blur-replace, como en el clip);
+      'contextual' entra solo, con opacidad, escala y blur (better-ui) */
+  tilde: 'medido' | 'contextual'
+  /** la entrada del tilde contextual */
+  tildeEntrada: Movimiento
 }
 
 export type Receta = 'clip' | 'skill'
-export const RECETAS: readonly Receta[] = ['clip', 'skill']
+export const RECETAS: readonly Receta[] = ['skill', 'clip']
 export const RECETA: Receta | 'elegir' = 'clip'
 
 /* RUNTIME · LA CURVA DE LA ESCALA ES UN EASE-OUT CUADRÁTICO, no el bezier
@@ -71,51 +135,76 @@ export const RECETA: Receta | 'elegir' = 'clip'
    1 cuadro, 52 % a 4, 80 % a 8, 96 % a 13 de 14 — easeOutQuad sobre
    250 ms da 47 / 78 / 98 en esos puntos. Con bezier(.23,1,.32,1) la
    grabación del taller cerraba el 92 % en 100 ms, el doble de rápido. */
+const OUT_QUAD = Easing.out(Easing.quad)
 const CLIP: Cinematica = {
-  easeOut: Easing.out(Easing.quad),
-  easeInOut: Easing.inOut(Easing.quad),
-  press: PRESS,
+  easeOut: OUT_QUAD,
+  press: {
+    escala: PRESS.escala,
+    entrada: tiempo(PRESS.duracion, OUT_QUAD),
+    salida: tiempo(PRESS.duracion, OUT_QUAD),
+    commit: tiempo(PRESS.duracionCommit, OUT_QUAD),
+    saltoCommit: PRESS.saltoCommit,
+  },
   /* RUNTIME · el encendido arranca lento (recibo en HOLD.encendido). */
-  encendido: { duracion: HOLD.encendido, curva: Easing.inOut(Easing.quad) },
+  encendido: tiempo(HOLD.encendido, Easing.inOut(Easing.quad)),
   /* RUNTIME · 1 − 2^(−10t): el apagado exponencial de la retirada, τ = duración/6.93 (recibo en HOLD). */
-  retirada: { duracion: HOLD.retirada, fundido: HOLD.fundidoRetirada, curvaFundido: Easing.out(Easing.exp) },
+  retirada: { progreso: tiempo(HOLD.retirada, OUT_QUAD), fundido: tiempo(HOLD.fundidoRetirada, Easing.out(Easing.exp)) },
   cruce: CRUCE,
-  desliz: { retardo: COMMIT.deslizRetardo, duracion: COMMIT.deslizDuracion },
-  blanqueo: COMMIT.blanqueo,
-  reinicio: REINICIO.fundido,
+  desliz: { retardo: COMMIT.deslizRetardo, movimiento: tiempo(COMMIT.deslizDuracion, OUT_QUAD) },
+  blanqueo: tiempo(COMMIT.blanqueo, OUT_QUAD),
+  reinicio: tiempo(REINICIO.fundido, OUT_QUAD),
   escalaEntrada: COMMIT.escalaEntrada,
+  tilde: 'medido',
+  tildeEntrada: tiempo(CRUCE.commit.entrada, Easing.linear),
 }
 
-/* SOURCE · animate-expo § 5 "Timing or spring": `Easing.bezier(0.23, 1,
-   0.32, 1)` es el "strong ease-out for UI" y `bezier(0.77, 0, 0.175, 1)`
-   el de "on-screen movement". */
-const SKILL_OUT = Easing.bezier(0.23, 1, 0.32, 1)
-const SKILL_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1)
-/* SOURCE · § 5, tabla de duración: "Toggle, chip, small state change:
-   150–200ms". Un cambio de label o el relleno prendiéndose son eso: la
-   entrada al techo (200) y la salida al piso (150), para que los dos
-   textos se pisen lo menos posible. Sin retardos: el skill no los tiene. */
-const SKILL_CRUCE: Tiempos = { entrada: 200, salida: 150, retardoEntrada: 0, retardoSalida: 0 }
+/* LOS TIEMPOS DEL TEXTO Y DEL FINAL SON LOS MEDIDOS, no los de la tabla.
+   La primera versión de esta receta (2026-09-04) tomaba § 5 a la letra:
+   cruces de 200/150 ms sin retardos, blanqueo 250, desliz 200, fundido
+   200. Puesta como receta activa, Vito (2026-09-07): "el texto cambia
+   muy abrupto y la animación del final es muy rápida". La referencia es
+   piso: los cruces del label, el velo blanco, el deslizamiento del
+   frente y el fundido del reinicio vuelven a los valores del clip
+   (`CRUCE`, `COMMIT`, `REINICIO`), que son los que se habían aprobado.
+   Lo que esta receta agrega es lo que sí pidió: springs donde hay dedo y
+   el tilde contextual. Los de § 5 quedan acá por si vuelven a probarse:
+   { entrada: 200, salida: 150, retardoEntrada: 0, retardoSalida: 0 }. */
 
+/* SOURCE · § 5, tabla de springs: "Default settle, no overshoot:
+   { duration: 400, dampingRatio: 1 }"; "Press feedback: 100–150ms" (§ 5,
+   duraciones) con "`scale: 0.97`" (§ 7). Rebote 0 = dampingRatio 1 = el
+   `.smooth` de Apple. `sinSobrepaso` donde el valor no puede pasarse de
+   un borde (§ 5: "Must not pass a hard edge → overshootClamping"): el
+   progreso del relleno no puede bajar de 0. */
 const SKILL: Cinematica = {
-  easeOut: SKILL_OUT,
-  easeInOut: SKILL_IN_OUT,
-  /* SOURCE · § 7 "Press, not hover": "`scale: 0.97` in 100–150ms";
-     RECIPES § Press feedback: "120ms and a 3% scale is the ceiling".
-     Al completar vuelve igual y sin salto: el salto del 25 % es una
-     lectura del clip, no está en ninguna tabla. */
-  press: { escala: 0.97, duracion: 120, duracionCommit: 120, saltoCommit: 0 },
-  /* SOURCE · § 5: "Entering or exiting → ease-out". */
-  encendido: { duracion: 200, curva: SKILL_OUT },
-  retirada: { duracion: 200, fundido: 200, curvaFundido: SKILL_OUT },
-  cruce: { press: SKILL_CRUCE, suelta: SKILL_CRUCE, commit: SKILL_CRUCE, reinicio: SKILL_CRUCE },
-  /* SOURCE · § 5: "Mobile UI animations stay under 300ms" — el
-     deslizamiento del frente y el blanqueo, sin retardo. */
-  desliz: { retardo: 0, duracion: 200 },
-  blanqueo: 250,
-  reinicio: 200,
-  /* SOURCE · § 4 y "Never Ship": "`scale(0.95)` + `opacity: 0`". */
-  escalaEntrada: 0.95,
+  /* la curva de los cruces del label: la medida (con el bezier fuerte del
+     skill el entrante cerraba el doble de rápido) */
+  easeOut: OUT_QUAD,
+  press: {
+    escala: 0.97,
+    entrada: spring(150, 0),
+    salida: spring(400, 0),
+    /* Al completar vuelve igual y sin salto: el salto del 25 % es una
+       lectura del clip, no está en ninguna tabla. */
+    commit: spring(400, 0),
+    saltoCommit: 0,
+  },
+  /* El relleno prendiéndose es una opacidad, no un dedo: por tiempo, con
+     el encendido medido (recibo en HOLD.encendido). */
+  encendido: tiempo(HOLD.encendido, Easing.inOut(Easing.quad)),
+  /* Al soltar, el frente vuelve con el spring de "snap back" (§ 5), clavado
+     en 0; el relleno se apaga por tiempo con la exponencial medida. */
+  retirada: { progreso: spring(400, 0, true), fundido: tiempo(HOLD.fundidoRetirada, Easing.out(Easing.exp)) },
+  cruce: CRUCE,
+  desliz: { retardo: COMMIT.deslizRetardo, movimiento: tiempo(COMMIT.deslizDuracion, OUT_QUAD) },
+  blanqueo: tiempo(COMMIT.blanqueo, OUT_QUAD),
+  reinicio: tiempo(REINICIO.fundido, OUT_QUAD),
+  escalaEntrada: COMMIT.escalaEntrada,
+  /* SOURCE · better-ui "Contextual icon animations": "scale 0.25 to 1,
+     opacity 0 to 1, blur 4px to 0px" con "spring, duration 0.3, bounce 0".
+     Las tres cosas en `etiqueta.tsx`; el reloj es este spring. */
+  tilde: 'contextual',
+  tildeEntrada: spring(300, 0),
 }
 
 export const CINEMATICA: Record<Receta, Cinematica> = { clip: CLIP, skill: SKILL }

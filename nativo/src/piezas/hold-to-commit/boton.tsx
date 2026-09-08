@@ -5,7 +5,6 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   cancelAnimation,
   Easing,
-  interpolateColor,
   ReduceMotion,
   useAnimatedReaction,
   useAnimatedStyle,
@@ -14,26 +13,68 @@ import Animated, {
   useSharedValue,
   withDelay,
   withSequence,
-  withTiming,
 } from 'react-native-reanimated'
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets'
 
 import { Chispas } from './chispas'
-import { Etiqueta, HOLD as L_HOLD, KEEP as L_KEEP, LISTO as L_LISTO } from './etiqueta'
+import { Etiqueta, HOLD as L_HOLD, KEEP as L_KEEP, LISTO as L_LISTO, type Tinta } from './etiqueta'
 import { alCompletar, DETENTES, tic } from './haptica'
 import type { Material } from './material'
 import { CLARO, COLOR, COMMIT, CRUCE, DERRAME, FRENTE, frenteEn, HOLD, LABEL, PARTICULAS, PILL, PRESS, REINICIO, VELO } from './medidas'
 import { marcarJS, marcarUI } from './medidor'
 import { Particulas } from './particulas'
-import { CINEMATICA, type Curva, type Receta, type Tiempos } from './receta'
+import { CINEMATICA, mover, type Receta, tiempo, type Tiempos } from './receta'
 import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
+
+/* ─────────────────────────────────────────────────────────────────
+ * ANIMATION STORYBOARD — hold to commit
+ *
+ * Se lee de arriba abajo. Los ms son desde el evento de cada bloque, en
+ * la receta activa, `clip` (los tiempos medidos de Opal); entre
+ * corchetes, lo que cambia con `skill` (springs donde hay dedo, tilde
+ * contextual). Cada número vive en `receta.ts` o en `medidas.ts`, con su
+ * recibo; acá sólo se leen.
+ *
+ * PRESS — el dedo baja
+ *      0ms   pill scale 1 → .953, 250 ease-out              [.97, spring 150 rebote 0]
+ *      0ms   relleno opacity 0 → 1, 330 ease-in-out
+ *      0ms   frente translateX 3 % → 94 % del ancho, linear 1000: es el gesto
+ *      0ms   "Hold to Buy" sale 48 · "Keep Holding..." entra 360, blur-replace
+ *    150ms   primer tic háptico (doce en total, cada vez más seguidos)
+ *    550ms   label blanco → gris verdoso, por progreso, hasta 700
+ *    940ms   sonido de Apple Pay, 60 ms antes del final
+ *    965ms   label → negro
+ * RELEASE antes del final — el dedo sube
+ *      0ms   frente vuelve a 0, 400 ease-out                [spring 400 rebote 0, clavado en 0]
+ *      0ms   relleno opacity → 0, 420 exponencial
+ *      0ms   pill scale → 1, 250 ease-out                   [spring 400 rebote 0]
+ *     80ms   "Keep Holding..." sale 250
+ *    150ms   "Hold to Buy" entra 600, lineal
+ * COMMIT — 1000 ms de hold
+ *      0ms   háptica de éxito · ráfaga de 46 puntos, 700 linear
+ *      0ms   pill scale → 1, salto 25 % + 220 ease-out      [spring 400 rebote 0]
+ *      0ms   velo blanco opacity 0 → .75, 330 ease-out
+ *      0ms   tilde pegado al texto                          [solo: opacity 0 → 1, scale .25 → 1, blur 4 → 0, spring 300 rebote 0]
+ *     40ms   "Keep Holding..." sale 280
+ *    210ms   "Order Placed" entra 450, lineal, scale .9 → 1
+ *    250ms   frente 94 % → 101 %, 400 ease-out
+ *   5000ms   REINICIO: velo y relleno opacity → 0, 400 ease-out · "Order Placed" sale 250
+ *   5400ms   geometría al reposo, invisible · "Hold to Buy" entra 300
+ * ───────────────────────────────────────────────────────────────── */
 
 /* ═══════════════════════════════════════════════════════════════
    HOLD TO COMMIT — el botón. Apretás, se llena de izquierda a derecha en
    `HOLD.duracion` (1 s a pedido; el clip mide 2), y si lo sostenés
-   hasta el final queda blanco con un
-   "✓ Committed". Si soltás antes, el brillo retrocede y vuelve a decir
-   "Hold to Commit". No hay barra de progreso: el brillo ES el progreso.
+   hasta el final queda blanco con un "✓ Order Placed". Si soltás antes,
+   el brillo retrocede y vuelve a decir "Hold to Buy". No hay barra de
+   progreso: el brillo ES el progreso.
+
+   UNA SOLA ETAPA MANDA (interface-craft: "a single integer state drives
+   the entire sequence; no scattered boolean flags"). `etapa` es un
+   entero —reposo, hold, sonando, commit, reinicio— y cada worklet lo lee
+   para saber si le toca: apretar sólo en reposo o soltando, soltar sólo
+   con el dedo abajo, completar una vez, el sonido una vez por hold. Antes
+   eran dos banderas (`terminado`, `sono`).
 
    TODO CORRE EN EL HILO DE UI. El gesto es un LongPress de Gesture
    Handler cuyo `minDuration` es el MISMO número que la duración del
@@ -41,12 +82,19 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
    cuándo se completó, y el `withTiming` lineal del progreso llega a 1 en
    el mismo instante. Es la regla 3 del AGENTS del taller —dos gestos que
    tienen que coincidir salen de una sola constante—. Al hilo de JS sólo
-   se le pide la háptica (`scheduleOnRN`), y nunca por cuadro: en los
-   detentes del progreso (`useAnimatedReaction`) y al completar.
+   se le pide la háptica y el sonido (`scheduleOnRN`), y nunca por
+   cuadro: en los detentes del progreso (`useAnimatedReaction`) y al
+   completar.
+
+   SÓLO TRANSFORM Y OPACITY (2026-09-07). Cada cosa que se mueve es un
+   translate, una escala o una opacidad; el color del label también es
+   opacidad: tres tandas del texto en sus tres tintas y una partición
+   derivada del progreso (`tinta`, ver etiqueta.tsx).
 
    LAS CURVAS Y LOS TIEMPOS VIENEN DE LA RECETA (`receta.ts`): la fiel al
-   clip o la de las tablas del skill animate-expo. El botón no sabe cuál
-   está puesta: recibe `receta`, lee `R`, y lo demás es geometría medida.
+   clip, por tiempo, o la de las tablas del skill, con springs donde
+   hubo un dedo. El botón no sabe cuál está puesta: recibe `receta`, lee
+   `R`, y todo movimiento pasa por `mover(hasta, R.x)`.
 
    EL RELLENO SON CUATRO TEXTURAS, no vistas con degradé (que en RN
    necesitarían un módulo nativo — ver `media/generar.swift`):
@@ -62,13 +110,12 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
 
    `cuerpo` y `frente` viajan juntos en UN translateX: el borde
    geométrico del relleno —donde el frente está al 50 %— va del 3 % al
-   94 % del ancho en los 2 s (`frenteEn`; el clip no llega a la punta
+   94 % del ancho en el hold (`frenteEn`; el clip no llega a la punta
    derecha, el blanqueo la cubre). Además el frente se ensancha un 25 %
    a lo largo del hold y la punta izquierda se oscurece y se ensancha a
    medida que el frente se aleja: las dos cosas son un `scaleX` sobre la
-   textura, con el pivote donde corresponde. Todo transforms por cuadro,
-   lo más barato que el compositor puede hacer. Delante del frente
-   viajan las CHISPAS (`chispas.tsx`), función del mismo progreso.
+   textura, con el pivote donde corresponde. Delante del frente viajan
+   las CHISPAS (`chispas.tsx`), función del mismo progreso.
 
    CON REDUCE MOTION (animate-expo § 9: queda lo que cuenta el estado
    —opacidad y color— y se va lo que se mueve) no hay barrido ni escala:
@@ -81,8 +128,8 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
    su duración y su retardo (`R.cruce`): el saliente se va rápido, el
    entrante enfoca con cola. La escalera de blur está en `etiqueta.tsx`.
 
-   El pill se ACHICA al apretar (escala .953 en la receta del clip) y
-   vuelve al soltar o al completar — está medido y es la mitad del feel.
+   El pill se ACHICA al apretar y vuelve al soltar o al completar — está
+   medido y es la mitad del feel.
 
    EN MODO CLARO (`esquema`, lo decide la pantalla; recibo en `CLARO`)
    el pill sigue oscuro pero sin nada pintado en su fondo: ni brillo de
@@ -107,6 +154,9 @@ const TEXTURA = {
 }
 const FRENTE_ANCHO = FRENTE.antes + FRENTE.despues
 const VELO_ANCHO = Image.resolveAssetSource(TEXTURA.velo).width
+
+/* LA ETAPA: el único estado del botón, un entero. */
+const ETAPA = { reposo: 0, hold: 1, sonando: 2, commit: 3, reinicio: 4 } as const
 
 /* EL VIDRIO, si está. `expo-glass-effect` es un módulo nativo: si el
    binario no lo linkea (un Expo Go de otra versión, un dev client viejo)
@@ -148,24 +198,6 @@ const VIDRIO: { GlassView: Vidrio; disponible: boolean } | null = (() => {
   }
 })()
 
-/* TODO `withTiming` DEL BOTÓN PASA POR ACÁ, con `ReduceMotion.Never`.
-   Reanimated 4.5 trae `reduceMotion: System` por defecto, y con Reduce
-   Motion prendido en iOS eso SALTA AL FINAL en el primer cuadro (SOURCE:
-   `react-native-reanimated/src/animation/util.ts:506`, `current =
-   toValue` y `onFrame = () => true`); `withDelay` y `withSequence` se lo
-   contagian a sus hijas y el delay se saltea. RUNTIME (simulador B con
-   `com.apple.Accessibility ReduceMotionEnabled`, 2026-09-04, `lum.py`
-   sobre 24 capturas de `auto`): el interior del pill pasaba de 64.2 a
-   182.0 de luminancia media —el relleno ENTERO— en el cuadro del press
-   y se quedaba clavado ahí los 2 s del hold; y los doce detentes
-   hápticos disparaban juntos en ese cuadro. El progreso es el gesto, no
-   un adorno: tiene que correr siempre. Reduce motion se aplica a mano,
-   más abajo, sobre lo que sí es movimiento. */
-const animar = (hasta: number, duracion: number, curva: Curva) => {
-  'worklet'
-  return withTiming(hasta, { duration: duracion, easing: curva, reduceMotion: ReduceMotion.Never })
-}
-
 /* Lo que cruza a JS, con su estampa para el medidor (no-op si no mide).
    Declaradas antes de los worklets que las llaman (trampa 14). */
 const ticJS = () => {
@@ -194,6 +226,8 @@ const easeInOutQuad = (t: number) => {
   const u = Math.min(1, Math.max(0, t))
   return u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u)
 }
+/* El reloj del reinicio: un tiempo de 1 ms al final del `withDelay`. */
+const UN_CUADRO = tiempo(1, Easing.linear)
 
 export type Esquema = 'light' | 'dark'
 
@@ -213,7 +247,8 @@ type Props = {
       hold; `parcar=commit`, terminado; `parcar=auto`, apreta solo;
       `parcar=cruce=120`, el press a los 120 ms; `parcar=cruce-commit=300`,
       300 ms después de la ráfaga; `parcar=cruce-suelta=150`, 150 ms
-      después de soltar. Reproducen las curvas de la receta `clip`. */
+      después de soltar; `parcar=tilde=0.5`, el tilde contextual a mitad
+      de su entrada. Reproducen las curvas de la receta `clip`. */
   sonda?: string
 }
 
@@ -233,6 +268,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
   const escalaPropia = !reducido && !esVidrio
   const R = CINEMATICA[receta]
 
+  const etapa = useSharedValue<number>(ETAPA.reposo)
   const progreso = useSharedValue(0)     // 0..1, el frente geométrico del relleno
   const blob = useSharedValue(0)         // opacidad del relleno (nace apagado)
   const escala = useSharedValue(1)
@@ -240,19 +276,19 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
   const pHold = useSharedValue(1)        // presencia de cada label (ver etiqueta.tsx)
   const pKeep = useSharedValue(0)
   const pListo = useSharedValue(0)
+  const tilde = useSharedValue(0)        // la entrada del tilde contextual
   const estallido = useSharedValue(0)    // la ráfaga, 0→1
-  const terminado = useSharedValue(false)
-  const sono = useSharedValue(false)     // el sonido ya salió en este hold
   const espera = useSharedValue(0)       // el reloj del reinicio, en UI
 
   /* El color del label sale del PROGRESO y no de un evento: así soltar a
-     mitad del oscurecimiento lo revierte por la misma curva, sin estados. */
-  const tinta = useDerivedValue(() => {
+     mitad del oscurecimiento lo revierte por la misma curva, sin estados.
+     Es una PARTICIÓN entre las tres tintas (suma 1), que el label usa
+     como opacidad de cada tanda: el color también es opacidad. */
+  const tinta = useDerivedValue<Tinta>(() => {
     const p = progreso.get()
     const t1 = easeOutQuad((p - HOLD.tintaDesde) / (HOLD.tintaHasta - HOLD.tintaDesde))
-    const oscuro = interpolateColor(t1, [0, 1], [tintaReposo, COLOR.tintaOscura])
     const t2 = Math.min(1, Math.max(0, (p - HOLD.negroEn) / 0.012))
-    return t2 <= 0 ? oscuro : interpolateColor(t2, [0, 1], [oscuro, COLOR.tintaNegra])
+    return { blanco: 1 - t1, oscuro: t1 * (1 - t2), negro: t2 }
   })
 
   /* El sonido del commit se precalienta al montar, para salir en el cuadro. */
@@ -261,7 +297,8 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
   /* Cruza el label hacia `destino`: su presencia sube a 1 y la de los
      otros baja a 0, cada una desde donde esté y con la duración
      proporcional a lo que le falta — un cruce interrumpido (soltar
-     mientras todavía aparece "Keep Holding...") sigue sin saltos. */
+     mientras todavía aparece "Keep Holding...") sigue sin saltos. Un
+     texto no tiene dedo: siempre por tiempo. */
   const cruzar = (destino: number, t: Tiempos) => {
     'worklet'
     const todas = [pHold, pKeep, pListo]
@@ -270,77 +307,77 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       cancelAnimation(q)
       const v = q.get()
       if (k === destino) {
-        if (v < 1) q.set(withDelay(t.retardoEntrada, animar(1, t.entrada * (1 - v), t.entradaLineal ? Easing.linear : R.easeOut), ReduceMotion.Never))
+        if (v < 1) q.set(withDelay(t.retardoEntrada, mover(1, tiempo(t.entrada * (1 - v), t.entradaLineal ? Easing.linear : R.easeOut)), ReduceMotion.Never))
       } else if (v > 0) {
-        q.set(withDelay(t.retardoSalida, animar(0, t.salida * v, R.easeOut), ReduceMotion.Never))
+        q.set(withDelay(t.retardoSalida, mover(0, tiempo(t.salida * v, R.easeOut)), ReduceMotion.Never))
       }
     }
   }
 
   /* `reiniciar` va ANTES de `completar`, que lo llama desde el callback
-     de su `withTiming`: un worklet captura su closure al crearse, y una
-     `const` de más abajo todavía no existe en ese momento (RUNTIME,
-     2026-09-07: "undefined is not a function" en el reinicio, con el
-     bloque en el orden inverso). */
-  /* EL REINICIO ES UN FUNDIDO, NO UN BARRIDO (Vito, 2026-09-04: "que
+     de su movimiento: un worklet captura su closure al crearse, y una
+     `const` de más abajo todavía no existe en ese momento (trampa 25).
+
+     EL REINICIO ES UN FUNDIDO, NO UN BARRIDO (Vito, 2026-09-04: "que
      cuando vuelve al estado inicial la transición sea clean, hoy es
-     malísima"). Antes el progreso volvía a 0 en 300 ms: el relleno se
-     veía retroceder entero mientras el velo blanco se apagaba y el label
-     cruzaba, todo junto. Ahora, como con reduce motion, sólo cambia la
-     opacidad, en dos fases: (1) el velo blanco y el relleno se apagan y
-     "✓ Order Placed" se va; (2) con el relleno ya invisible, la
-     geometría vuelve al reposo de golpe (no se ve) y "Hold to Buy"
-     entra blanco, porque el color del label sale del progreso y el
-     progreso ya está en 0. `terminado` se suelta recién en la fase 2:
-     un toque durante el fundido no hace nada. */
+     malísima"). Sólo cambia la opacidad, en dos fases: (1) el velo blanco
+     y el relleno se apagan y "✓ Order Placed" se va con su tilde; (2) con
+     el relleno ya invisible, la geometría vuelve al reposo de golpe (no
+     se ve) y "Hold to Buy" entra blanco, porque el color del label sale
+     del progreso y el progreso ya está en 0. La etapa vuelve a reposo
+     recién en la fase 2: un toque durante el fundido no hace nada. */
   const reiniciar = () => {
     'worklet'
     marcarUI('reinicio-ui')
+    etapa.set(ETAPA.reinicio)
     cancelAnimation(progreso)
     cancelAnimation(blob)
     cancelAnimation(blanco)
     cancelAnimation(pListo)
+    cancelAnimation(tilde)
     escala.set(1)
     estallido.set(0)
-    pListo.set(animar(0, R.cruce.reinicio.salida, R.easeOut))
-    blanco.set(animar(0, R.reinicio, R.easeOut))
+    pListo.set(mover(0, tiempo(R.cruce.reinicio.salida, R.easeOut)))
+    tilde.set(mover(0, R.reinicio))
+    blanco.set(mover(0, R.reinicio))
     blob.set(
-      withTiming(0, { duration: R.reinicio, easing: R.easeOut, reduceMotion: ReduceMotion.Never }, (termino) => {
+      mover(0, R.reinicio, (termino) => {
         'worklet'
         if (!termino) return
         progreso.set(0)
-        terminado.set(false)
+        etapa.set(ETAPA.reposo)
         cruzar(L_HOLD, R.cruce.reinicio)
       }),
     )
   }
   const apretar = () => {
     'worklet'
-    if (terminado.get()) return
+    if (etapa.get() >= ETAPA.commit) return
+    etapa.set(ETAPA.hold)
     cancelAnimation(progreso)
     cancelAnimation(blob)
     cancelAnimation(escala)
     /* Desde donde esté: si se vuelve a apretar durante la retirada, el
        relleno sigue desde ahí y llega a 1 justo cuando el LongPress
        cumple su `minDuration` — un solo reloj para las dos cosas. */
-    sono.set(false)
     marcarUI('press-ui')
-    progreso.set(animar(1, HOLD.duracion, Easing.linear))
-    blob.set(animar(1, R.encendido.duracion, R.encendido.curva))
+    progreso.set(mover(1, tiempo(HOLD.duracion, Easing.linear)))
+    blob.set(mover(1, R.encendido))
     /* Con reduce motion el pill no se achica: la escala es movimiento. */
-    if (escalaPropia) escala.set(animar(R.press.escala, R.press.duracion, R.easeOut))
+    if (escalaPropia) escala.set(mover(R.press.escala, R.press.entrada))
     cruzar(L_KEEP, R.cruce.press)
   }
 
   const soltar = () => {
     'worklet'
-    if (terminado.get()) return
+    if (etapa.get() >= ETAPA.commit) return
+    etapa.set(ETAPA.reposo)
     cancelAnimation(progreso)
     cancelAnimation(blob)
     cancelAnimation(escala)
-    progreso.set(animar(0, R.retirada.duracion, R.easeOut))
-    blob.set(animar(0, R.retirada.fundido, R.retirada.curvaFundido))
-    if (escalaPropia) escala.set(animar(1, R.press.duracion, R.easeOut))
+    progreso.set(mover(0, R.retirada.progreso))
+    blob.set(mover(0, R.retirada.fundido))
+    if (escalaPropia) escala.set(mover(1, R.press.salida))
     /* El label vuelve DESPUÉS de que el brillo empezó a retirarse: los
        retardos están medidos (release en f13, saliente desde f17–18,
        entrante desde f22). */
@@ -349,8 +386,8 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
 
   const completar = () => {
     'worklet'
-    if (terminado.get()) return
-    terminado.set(true)
+    if (etapa.get() >= ETAPA.commit) return
+    etapa.set(ETAPA.commit)
     cancelAnimation(progreso)
     cancelAnimation(escala)
     progreso.set(1)
@@ -358,23 +395,25 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
     if (!reducido) {
       /* El frente termina de llegar a la punta derecha mientras blanquea
          (COMMIT.desliz): el progreso pasa de 1 y `frenteEn` lo lleva al 101 %. */
-      progreso.set(withDelay(R.desliz.retardo, animar(1 + COMMIT.desliz, R.desliz.duracion, R.easeOut), ReduceMotion.Never))
-      /* Un salto (`saltoCommit`) en un cuadro y el resto con ease-out. */
+      progreso.set(withDelay(R.desliz.retardo, mover(1 + COMMIT.desliz, R.desliz.movimiento), ReduceMotion.Never))
+      /* Un salto (`saltoCommit`) en un cuadro y el resto con la curva. */
       if (escalaPropia)
         escala.set(
           R.press.saltoCommit > 0
             ? withSequence(
                 ReduceMotion.Never,
-                animar(R.press.escala + (1 - R.press.escala) * R.press.saltoCommit, 16, Easing.linear),
-                animar(1, R.press.duracionCommit, R.easeOut),
+                mover(R.press.escala + (1 - R.press.escala) * R.press.saltoCommit, tiempo(16, Easing.linear)),
+                mover(1, R.press.commit),
               )
-            : animar(1, R.press.duracionCommit, R.easeOut),
+            : mover(1, R.press.commit),
         )
       estallido.set(0)
-      estallido.set(animar(1, PARTICULAS.duracionVida, Easing.linear))
+      estallido.set(mover(1, tiempo(PARTICULAS.duracionVida, Easing.linear)))
     }
-    blanco.set(animar(COMMIT.veloBlanco, R.blanqueo, R.easeOut))
+    blanco.set(mover(COMMIT.veloBlanco, R.blanqueo))
     cruzar(L_LISTO, R.cruce.commit)
+    /* El tilde contextual arranca con el label; el medido va adentro del label. */
+    tilde.set(R.tilde === 'contextual' ? mover(1, R.tildeEntrada) : 1)
     marcarUI('commit-ui')
     scheduleOnRN(alCompletarJS)
     /* EL REINICIO ES DEL TALLER, no de la referencia: el clip termina en
@@ -390,7 +429,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
     espera.set(
       withDelay(
         REINICIO.espera,
-        withTiming(1, { duration: 1, reduceMotion: ReduceMotion.Never }, (fin) => {
+        mover(1, UN_CUADRO, (fin) => {
           'worklet'
           if (fin) reiniciar()
         }),
@@ -414,9 +453,9 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
         }
       }
       /* El sonido, ADELANTO_MS antes del final: sale del mismo reloj que
-         el relleno, una sola vez por hold (ver sonido.ts). */
-      if (!sono.get() && p >= 1 - ADELANTO_MS / HOLD.duracion) {
-        sono.set(true)
+         el relleno, una sola vez por hold (la etapa pasa a `sonando`). */
+      if (etapa.get() === ETAPA.hold && p >= 1 - ADELANTO_MS / HOLD.duracion) {
+        etapa.set(ETAPA.sonando)
         marcarUI('sonido-ui')
         scheduleOnRN(sonarJS)
       }
@@ -447,17 +486,17 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       pHold.set(hold)
       pKeep.set(keep)
       pListo.set(listo)
+      tilde.set(listo >= 1 ? 1 : 0)
     }
     if (!sonda) {
       /* Sin sonda, el reposo: así `sonda.ts` vuelto a `undefined` al final
-         de una tanda de capturas deja la pieza limpia sin relanzar. Antes
-         quedaba parqueada en la última sonda: un `commit` dejaba
-         `terminado` en true y un `auto` posterior no apretaba. */
+         de una tanda de capturas deja la pieza limpia sin relanzar
+         (trampa 20). */
       scheduleOnUI(() => {
         'worklet'
-        const todos = [progreso, blob, escala, blanco, estallido, pHold, pKeep, pListo, espera]
+        const todos = [progreso, blob, escala, blanco, estallido, pHold, pKeep, pListo, tilde, espera]
         for (let k = 0; k < todos.length; k++) cancelAnimation(todos[k]!)
-        terminado.set(false)
+        etapa.set(ETAPA.reposo)
         progreso.set(0)
         blob.set(0)
         escala.set(1)
@@ -472,7 +511,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       const t = sonda === 'commit' ? 1 : Number(sonda.split('=')[1] ?? 0.1)
       scheduleOnUI(() => {
         'worklet'
-        terminado.set(true)
+        etapa.set(ETAPA.commit)
         progreso.set(sonda === 'commit' ? 1 + COMMIT.desliz : 1)
         blob.set(1)
         escala.set(1)
@@ -498,7 +537,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       }
       scheduleOnUI(() => {
         'worklet'
-        terminado.set(alCommit)
+        etapa.set(alCommit ? ETAPA.commit : ETAPA.hold)
         if (alCommit) {
           const c = CRUCE.commit
           progreso.set(1 + COMMIT.desliz * tramo(ms, COMMIT.deslizRetardo, COMMIT.deslizDuracion))
@@ -507,6 +546,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
           blanco.set(COMMIT.veloBlanco * tramo(ms, 0, COMMIT.blanqueo))
           estallido.set(Math.min(0.999, ms / PARTICULAS.duracionVida))
           parquear(0, 1 - tramo(ms, c.retardoSalida, c.salida), tramo(ms, c.retardoEntrada, c.entrada, c.entradaLineal))
+          tilde.set(tramo(ms, c.retardoEntrada, c.entrada, true))
         } else if (alSoltar) {
           /* `cruce-suelta=150`: 150 ms después de soltar con el frente al
              10 % (donde lo suelta el clip: en f13 el 50 % del frente está
@@ -534,6 +574,23 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
       })
       return
     }
+    if (sonda.startsWith('tilde')) {
+      /* `tilde=0.5`: el commit ya asentado con el tilde contextual a esa
+         fracción de su entrada (opacidad, escala y blur a medio camino). */
+      const q = Number(sonda.split('=')[1] ?? 0.5)
+      scheduleOnUI(() => {
+        'worklet'
+        etapa.set(ETAPA.commit)
+        progreso.set(1 + COMMIT.desliz)
+        blob.set(1)
+        escala.set(1)
+        blanco.set(COMMIT.veloBlanco)
+        estallido.set(0)
+        parquear(0, 0, 1)
+        tilde.set(q)
+      })
+      return
+    }
     if (sonda === 'auto' || sonda === 'auto-suelta') {
       const t1 = setTimeout(() => scheduleOnUI(apretar), 700)
       const t2 = setTimeout(
@@ -549,7 +606,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
     if (Number.isFinite(p)) {
       scheduleOnUI(() => {
         'worklet'
-        terminado.set(false)
+        etapa.set(p > 0 ? ETAPA.hold : ETAPA.reposo)
         blanco.set(0)
         estallido.set(0)
         progreso.set(p)
@@ -609,7 +666,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
           accessible
           accessibilityRole="button"
           accessibilityLabel={LABEL.reposo}
-          accessibilityHint="Hold for two seconds to place the order"
+          accessibilityHint={`Hold for ${HOLD.duracion === 1000 ? 'one second' : `${HOLD.duracion / 1000} seconds`} to place the order`}
           style={[css.pill, estiloEscala]}
         >
           {/* El derrame: la luz que se escapa por DEBAJO del pill en la
@@ -643,7 +700,15 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
             <Animated.View style={[css.lleno, css.blanco, estiloBlanco]} />
             {material === 'opaco' && <View pointerEvents="none" style={[css.lleno, css.anillo, claro && css.anilloClaro]} />}
           </Capsula>
-          <Etiqueta tinta={tinta} presencia={[pHold, pKeep, pListo]} sinBlur={reducido} escalaEntrada={R.escalaEntrada} />
+          <Etiqueta
+            tinta={tinta}
+            colorReposo={tintaReposo}
+            presencia={[pHold, pKeep, pListo]}
+            sinBlur={reducido}
+            escalaEntrada={R.escalaEntrada}
+            tilde={tilde}
+            tildeContextual={R.tilde === 'contextual'}
+          />
         </Animated.View>
       </GestureDetector>
       {!reducido && <Particulas ancho={ancho} estallido={estallido} color={claro ? CLARO.particula : undefined} />}
