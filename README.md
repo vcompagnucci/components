@@ -1454,3 +1454,328 @@ señaló (2026-09-07): la reacción de la háptica no cambió en todo el día
 que siempre— y un gesto cruza a lo sumo un límite hacia adelante. Lo
 que sí vibra más de una vez es ir y volver sobre el mismo límite sin
 soltar, una por cruce, exactamente como cambia el label activo.
+
+**El párrafo de las reglas, partido en dos.** Tenía siete oraciones y
+la forma que fija `AGENTS.md` pide de dos a cuatro por párrafo, como
+josh, que nunca pasa de tres. Anatomy queda en cinco párrafos: qué es y
+el subrayado; el toque; lo que se anima y cómo (propiedades, subrayado,
+interrupción, curva); lo que lo acompaña (háptica, reduced motion,
+120 fps, constantes con fuente); la referencia. Pedido del usuario
+(2026-09-07), después de la auditoría final contra las skills.
+
+**Sin línea de descripción: el título alcanza.** "Borrá esta
+descripción, que no haya nada ahí, ya está la de arriba que dice
+swipeable tabs" (usuario, 2026-09-07), sobre "Top tabs for React Native
+& Expo.". La línea pasa a ser OPCIONAL en el modelo (`desc?` en
+`pieces.ts`); sin línea, el detalle no dibuja el párrafo —si lo dibujara
+vacío quedarían sus 24 px de margen— y las notas siguen directo al
+preview con el aire de sección de siempre. Publicar sigue aceptando una
+descripción, pero si viene vacía no escribe el campo. Las reglas para
+cuando hay línea quedan en `AGENTS.md › Cómo se nombra`, con la nueva
+primera regla: si el título ya dice qué es, no hay línea.
+
+**El rótulo de sección de las notas rendía 12 px más abajo que el de la
+lista.** Pregunta del usuario (2026-09-07): "¿la distancia entre el
+componente y la línea de Anatomy está bien?". Medido en la página
+servida: 76 del preview al rótulo donde `--section-gap` dice 64, y 53
+de la línea al primer texto donde `--section-content-gap` dice 40. La
+causa: en la lista el rótulo es un `div`; en las notas, `Seccion` lo
+dibuja como `h2`, y el navegador le pone 0.83em de margen arriba y
+abajo que `.groupLabel` no reseteaba. Josh usa el mismo 64 de un demo
+al título siguiente (medido en /bloom el mismo día). Arreglo: `margin:
+0` en `.groupLabel`; la lista no cambia. Verificado después: 64, 40 y
+64 entre secciones.
+
+**Del preview a las notas, el 112 de benji.** "¿No debería ser 40
+entonces? ¿Qué usa benji en nuestro caso?" (usuario, 2026-09-07). No es
+40, que es de la línea al primer texto, ni 64, que es de prosa a
+separador. Medido en /liveline sobre la página servida: después de un
+demo benji deja 112 hasta la línea del separador, en las diez secciones
+que terminan en demo, con pie de foto o sin él; después de prosa, 64.
+Y 112 = 48 + 64, su hueco bajo una pieza más el de sección. Acá va con
+los mismos dos tokens: `.detailPreview + .notas` suma `--piece-gap`
+(48) y la primera sección pone sus 64. Sólo cuando las notas siguen
+directo al preview: con línea de descripción es prosa lo que precede, y
+ahí quedan los 64.
+
+**Use cases, con las mismas reglas que Anatomy.** Pedido del usuario
+(2026-09-07): "falta la parte de use cases, una mejor explicación,
+siguiendo todas las reglas". Tres párrafos, en el vocabulario de la
+HIG: cuándo sí —secciones del mismo rango, cada una una lista, más de
+las que entra en un segmented control, cambiadas tan seguido que el
+swipe tiene que valer tanto como el toque, con X como modelo—; los
+ejemplos, listas con más de un corte de primer nivel; y cuándo no
+—jerarquía, dos a cuatro opciones, las secciones de la app—, más la
+condición de los labels cortos, que sale de la pieza. El usuario piensa
+sumar un video por caso: irán con pie de un renglón, como los de benji
+en /liveline, y la sección es prosa hasta entonces.
+
+**El wrap de las notas, con better-typography.** "¿Se usan buenas
+reglas de wrap?" (usuario, 2026-09-07). Medido en producción: los
+párrafos iban con `text-wrap: wrap` y el primero de Performance
+terminaba en "frame." solo en su línea; y número y unidad ("300 ms",
+"60 fps", "120 fps", "492 frames") iban con espacio normal, sin caer
+todavía en un corte pero a un cambio de texto de partirse. Arreglo:
+`text-wrap: pretty` en `.notas p` y en `.detailDesc` —la regla es para
+descripciones, no para texto largo— y espacio indivisible entre número
+y unidad en la nota. Lo que se aparta de la guía y se queda, por la
+referencia: la medida (80 a 84 caracteres por línea; la guía pide 60 a
+75, pero benji da 85 y josh 80, y la columna de 560 se eligió entre los
+dos) y la interlínea (20/14 = 1.43; la guía prefiere 1.5, y es el 14/20
+de benji, medido). Bien y sin cambio: `lang="en"`, antialiasing en la
+raíz, peso 460, apóstrofes tipográficos, rótulos con `nowrap`.
+
+**"Two to five", no "two to four".** Al releer Use cases con la HIG a
+la vista (2026-09-07, pregunta del usuario: "¿quedó bien y real?"):
+Apple dice "no more than about five segments on iPhone" para un
+segmented control, así que el texto decía uno de menos. Corregido, y
+la cita quedó en el comentario de la nota junto con la de tab bars ("A
+tab bar lets people navigate between top-level sections of your app"),
+que sostiene la otra mitad del párrafo.
+
+**Performance, releída como la leería un ingeniero senior.** Pedido del
+usuario (2026-09-07). Cuatro precisiones: "not in JavaScript" pasa a
+"not the JavaScript thread", porque los worklets también son
+JavaScript; se dice que el scroll es nativo, que es la razón principal
+de que el gesto no cueste; la memoización se cuenta por su costo —seis
+listas de doce filas, montadas desde el principio para que un swipe
+nunca monte una lista en medio del gesto— y no como historia; y el
+"one derived value" con su mecanismo: ningún estilo puede leer parte de
+la transición del cuadro anterior. La medición dice dónde: en el
+teléfono, 60 fps en cada gesto, medido por el usuario; la completitud
+de la grabación del simulador queda como recibo de la toma. El
+comentario de la pieza decía "siete páginas" de cuando había un tab
+más: seis.
+
+**Use cases dicho con las palabras de Apple.** Pedido del usuario
+(2026-09-08): "en use cases usá lo que pondría Apple resources". Las
+tres páginas de la HIG se leyeron servidas ese día por la API de
+documentación —`developer.apple.com/tutorials/data/design/human-interface-guidelines/<slug>.json`,
+porque la página HTML se arma con JavaScript y `curl` y WebFetch sólo
+devuelven el título—, y cada frase del texto quedó atada a su cita en
+el comentario de la nota. Lo que cambió: "sections of the same rank"
+pasa a "closely related lists", que es la palabra de Apple; entra la
+regla que faltaba, "Panes are mutually exclusive, so ensure they're
+fully self-contained", dicha en llano ("what happens in one does not
+change what the others show"); "two to five options" pasa a "About
+five lists or fewer", conservando el "about" de Apple, que no es un
+tope duro; y "labels have to stay short" deja de apoyarse sólo en la
+pieza, porque un tab bar ("Use single words whenever possible") y un
+segmented control ("Use nouns or noun phrases") piden lo mismo.
+
+Se arregló además una colisión de vocabulario que estaba desde el
+principio: el segundo párrafo decía "more than one top-level division"
+y el tercero mandaba "the app's own sections" al tab bar. Apple reserva
+"top-level" para el tab bar, así que el segundo párrafo ahora dice
+"wherever one section of an app holds several lists of equal standing"
+— que además es más cierto, porque en X estos tabs viven adentro de una
+sección, no en el nivel de arriba.
+
+Y un cuarto párrafo al cierre, corto como el de la referencia en
+Anatomy: "On the Mac, Apple's guidelines call this a tab view […].
+There is no tab view on iPhone, and for the same job the guidelines
+point to a segmented control." Corrige lo que le dije al usuario el
+2026-09-07 ("en el vocabulario de Apple lo nuestro es un tab view"):
+vale para macOS, que era la captura que él mandó, pero la propia página
+de tab views dice "Not supported in iOS, iPadOS, tvOS, or visionOS" y
+manda a un segmented control, que topa en cinco. Ese hueco es la razón
+de la pieza. No se citó "Avoid providing more than six tabs in a tab
+view", aunque X tenga seis: es guía de macOS y usarla para iPhone sería
+estirarla.
+
+**Segunda pasada de `better-writing`, sobre las tres secciones.** Mismo
+pedido (2026-09-08): "fijate que todo cumpla /better-writing". La regla
+que encontró todo fue "one voice": un solo nombre por cosa en toda la
+página. "The bar" pasa a "the row" en Performance —la fila era "row" en
+Anatomy y en Use cases, y "bar" sólo ahí, el nombre interno del archivo
+(`barra.tsx`) filtrándose al texto público—; "the chosen tab doesn't
+fit" pasa a "the active tab does not fit", que arregla dos cosas a la
+vez, "chosen" y "active" para la misma cosa en el mismo párrafo y la
+única contracción de la página; y "its offset is read" pasa a "the
+scroll offset is read", porque el "its" más cercano apuntaba a
+"deceleration". Revisado y no cambiado: "however far the tab is" se
+repite a dos párrafos en Anatomy, pero las dos cláusulas dicen cosas
+distintas y borrar cualquiera pierde una afirmación que costó un cambio
+de código. Verificado sobre la página servida: doce párrafos, ninguno
+termina con menos de tres palabras en su última línea, y la medida
+sigue entre 77 y 86 caracteres.
+
+**El color del label también se anima, y el texto lo negaba.** Al releer
+las tres secciones contra el código a pedido del usuario (2026-09-08:
+"¿están todas las descripciones bien?"), el inventario de los trece
+`useAnimatedStyle` de la pieza dio transform ×6, opacity ×5, width ×1
+(el subrayado) y **color ×1** (`estiloLabel` en `barra.tsx`, aplicado al
+label). O sea que "Only transform and opacity animate" era falso, y
+falso justo sobre el hallazgo de la pieza: el label activo no es más
+grueso, es más blanco. Ahora dice "Only transform, opacity and the label
+color animate".
+
+**El código no cambia, y la pregunta se contestó midiendo el skill, no
+de memoria.** El usuario preguntó primero por sacar el color ("que se
+anime sólo transform and opacity, que es lo que recomienda /animate-expo
+creo, chequealo") y después por el fondo ("¿pero es una buena práctica el
+color?"). `animate-expo` no pide eso: su § 4 y la tabla *Never Ship*
+enumeran propiedades de **layout** —width, height, margin, padding,
+flex, top, gap, las que re-corren Yoga— y `color` no está en ninguna de
+las dos; sí está como caso de uso en § 3 ("press, toggle, color, a value
+flipping") y en § 9 como lo que hay que **conservar** bajo reduced motion
+("keep opacity and color changes that explain a state change"). El color
+igual no es gratis —transform y opacity son composición, el color es
+pintura y con texto re-rasteriza los glifos—, pero la salida estándar
+para eso, la que el propio skill receta para las sombras de Android y el
+blur, es apilar dos capas estáticas y cruzar opacidades: acá, un label
+gris y uno blanco. Eso rompería la medición, porque dos textos
+antialiaseados superpuestos suman cobertura en el borde de cada glifo y
+se leen más gruesos en el medio del cruce, justo lo que X no hace (el
+asta de la misma letra mide 5.03 px en los dos estados). Se cambiaría un
+costo que no se nota por un artefacto que sí. Y el costo está acotado:
+seis labels cortos, sólo mientras dura una transición, 60 fps medidos en
+el teléfono y la traza de 492 cuadros sin titileo.
+
+Quedaron sin corregir, por decisión del usuario, las otras dos que
+encontró la misma relectura: "four recordings at 60 fps" cuenta de menos
+(el registro dice el clip del vault **y después** cuatro grabaciones de
+su cuenta: son cinco), y "The row scrolls only when the active tab does
+not fit on screen" es cierto de lo que hace la pieza sola pero omite que
+la fila es un `ScrollView` que se arrastra con el dedo (`onBeginDrag` se
+lo devuelve al usuario: "el dedo en la fila siempre gana").
+
+**Las tres secciones, 17 % más cortas, con las mismas afirmaciones.**
+Pedido del usuario (2026-09-08): "ya teniendo todo, usando buenas
+prácticas, dejá todo mucho más conciso, seguí respetando lo del lenguaje
+de engineer de IBM del 73 y /better-writing". De 703 a 583 palabras, los
+mismos doce párrafos, ni una afirmación de menos: es la regla de
+`better-writing` "delete every word that does no work" aplicada palabra
+por palabra, no un recorte de contenido.
+
+Tres tipos de corte. **Redundancia interna**: "one value that describes
+the whole transition […] It is one derived value" decía lo mismo dos
+veces; "not the JavaScript thread […] at two moments only […] Never per
+frame" eran tres formas de una idea; "always agree, and the row moves as
+one object", dos. **Redundancia entre secciones**: "the row scrolls only
+when a tab does not fit" estaba en Anatomy y en Use cases, y queda en
+Anatomy; "however far the tab is" estaba en dos párrafos de Anatomy y
+queda en el que lo necesita. **Perífrasis por el verbo**: "Tap a tab and
+it becomes the active one" → "A tap makes a tab active"; "When one did,
+the recording showed the first frame after a tap standing still" →
+"Unmemoized, the first frame after a tap stood still"; "several lists of
+equal standing" → "several peer lists", que es el término de
+`animate-expo` ("peers, not a hierarchy") y engancha con la jerarquía
+del párrafo siguiente; "so the drag and its deceleration run natively" →
+"the system runs the drag and its deceleration", que además dice quién.
+
+Y el recorte arregló solo una de las dos imprecisiones que habían quedado
+abiertas: el cierre de Anatomy decía "from four recordings at 60 fps" y
+ahora dice "at 60 fps". El registro dice el clip del vault **y después**
+cuatro grabaciones del usuario —cinco—, así que "four" contaba de menos.
+Sigue abierta la otra, "The row scrolls only when the active tab does not
+fit on screen", que omite que la fila se arrastra con el dedo.
+
+**Sin raya en el texto público.** Pedido del usuario (2026-09-08): "no
+uses –". La pasada de concisión había metido dos em dash, las dos en
+Performance, y las dos salieron sin perder nada. "React does not render
+during a gesture or a tap [raya] the JavaScript thread takes part only at
+the tap and at the haptic" se partió en dos oraciones, que es más llano y
+además una palabra más corto; y "stood still [raya] a whole frame lost"
+pasa a dos puntos, que es el signo que ya hace ese trabajo en los otros
+once párrafos. Los guiones de palabra compuesta se quedan (ease-out,
+ease-in, six-page, top-level). La regla quedó en `AGENTS.md › Cómo se
+escriben la línea y las notas`, paso 6, para todas las piezas; vale para
+el texto público y no para los comentarios en castellano, donde la raya
+es puntuación normal.
+
+**La HIG explica, no autoriza, y no se la nombra.** Pedido del usuario
+(2026-09-08), después de leer el cierre de Use cases: "no menciones Apple
+guidelines y está mal esa parte, usalas pero para explicar algo mejor, no
+para decir algo que no es". El cuarto párrafo se borró entero. Decía: "On
+the Mac, Apple's guidelines call this a tab view: mutually exclusive
+panes of content in one area, switched with a row of tabs. There is no
+tab view on iPhone; for the same job the guidelines point to a segmented
+control." Vivió unas horas, y estaba mal de dos formas.
+
+**"There is no tab view on iPhone" es falso para quien programa.** El
+"Not supported in iOS" de la HIG habla del componente de diseño de macOS,
+la caja con solapas arriba; pero `TabView` existe en SwiftUI en iOS, es
+el contenedor del tab bar, y con `.tabViewStyle(.page)` es literalmente
+un pager que se desliza, o sea lo más parecido del sistema a esta pieza.
+
+**Y "for the same job the guidelines point to a segmented control"
+contradecía al párrafo de arriba**, que dice que un segmented control es
+para cinco listas o menos. Los dos juntos afirmaban que esta pieza
+tendría que ser un segmented control, que es lo contrario de lo que
+argumenta la sección entera.
+
+Lo que el párrafo quería aportar, que el patrón vive entre un segmented
+control y un tab bar, ya lo dice el tercer párrafo sin nombrar a nadie.
+Los conceptos y los números de la guía se quedan donde sirven, dichos en
+llano como propios, con la cita en el comentario del archivo: "closely
+related", los paneles autocontenidos, "about five", "top-level sections",
+los labels cortos. La palabra "Apple" ya no aparece en el texto público.
+La regla quedó en `AGENTS.md`, paso 4: si una oración necesita el nombre
+de quien escribió la guía para sostenerse, la afirmación no se sostiene
+sola.
+
+**Auditoría de qué viaja con el repo.** Pregunta del usuario
+(2026-09-08), al cerrar Swipeable tabs: "¿queda todo el proceso
+documentado para futuros agentes con otros componentes?". Se cruzó lo
+que se aprendió con esta pieza contra lo que está escrito en archivos
+versionados, y aparecieron cuatro huecos, todos de cosas que vivían sólo
+en la bitácora o en la memoria del agente, que es de esta máquina y no
+viaja. Los cuatro quedaron cerrados:
+
+- **`AGENTS.md`, paso 6**, la regla de `better-writing` que más encuentra
+  acá y que ninguna lectura por sección detecta: **un solo nombre por
+  cosa en toda la página**. Con las tres fallas concretas de esta pieza
+  como ejemplo, más cómo decidir quién es "you".
+- **`AGENTS.md`, paso 6**, la **pasada de concisión al final**: cuándo se
+  hace, qué encuentra siempre y en qué orden, y que hay que volver a
+  correr la verificación en pantalla porque el wrap cambió.
+- **`AGENTS.md`, paso 7**, la relectura de `Performance` **"como un
+  ingeniero senior"**, con las cuatro imprecisiones típicas de plantilla:
+  el hilo de JavaScript, decir qué hace el sistema, contar una
+  optimización por su costo, y decir dónde se midió.
+- **`nativo/AGENTS.md`**, décima cosa que muerde: **el `size` de
+  `SymbolView` no es un `pointSize`**. Estaba en tres comentarios de
+  `barra.tsx` y en ningún lado donde lo encuentre alguien que empieza una
+  pieza distinta.
+
+**Lo que sigue sin viajar, y es a propósito:** las planillas de
+`.context/recon/` están gitignoreadas. La mitigación ya estaba escrita y
+se confirmó: el recibo de cada número vive también al lado del número en
+`medidas.ts`, y las conclusiones de cada recon viven en el `AGENTS.md`
+que corresponde. Un agente que clona el repo tiene los porqués, no los
+píxeles crudos.
+
+**Los pendientes cerrados, y uno cerrado diciendo que no.** Pedido del
+usuario (2026-09-08): "arreglá todo así te archivo".
+
+- **`silencio` pasa a `hapticaSuprimida`** (`tabs-deslizables.tsx`,
+  cuatro usos). Era la única palabra del código nuevo que no pasaba la
+  regla de nombres del repo: metáfora en vez de especificación.
+- **"The row scrolls only when the active tab does not fit" pasa a "The
+  row moves on its own only when the active tab does not fit."** Era
+  cierto de lo que hace la pieza sola, pero la fila es un `ScrollView` y
+  se arrastra con el dedo: el código se lo devuelve al usuario
+  explícitamente (`onBeginDrag`, "el dedo en la fila siempre gana"). El
+  "only" excluía algo que existe. Una palabra más, y deja de decir de
+  más.
+- **La planilla queda anotada**: las dos tablas medidas con siete tabs
+  llevan ahora la nota de que hoy son seis y por qué salió "Sports". No
+  se tocaron los números, que son el registro de lo que se midió ese día.
+
+**Y el reduce motion NO se cambió, que era lo que yo mismo había
+propuesto.** Al estudiarlo en serio, la regla de `animate-expo` § 9
+("fewer and gentler, not zero: keep opacity and color changes… drop
+translation") no aplica acá, por dos razones. Cumplirla pide DOS avances
+—uno que salta la posición y otro que anima el color— que bajo motion
+normal tienen que ser idénticos, y eso es exactamente la trampa
+documentada como la novena cosa que muerde en `nativo/AGENTS.md` y la
+causa medida del titileo de los símbolos; además dejaría de ser cierta la
+frase de Performance. Y no hay nada que explicar: la regla existe para
+cuando sacar el movimiento deja un cambio de estado sin explicación, y
+acá el estado lo dicen propiedades estáticas —el label blanco, el
+subrayado debajo, la página nueva—, todas visibles en el salto. Un cambio
+de tab instantáneo bajo reduced motion es el comportamiento correcto, no
+una deuda. El razonamiento entero quedó arriba de `CFG`, con la salida
+por si algún día se revisa: partir `Tramo` en dos, y medirlo en el
+teléfono con el ajuste prendido, no razonarlo.

@@ -368,6 +368,13 @@
   margin-bottom: calc(var(--section-content-gap) - (var(--type-h2-lh) - 1px) / 2);
 }
 .groupLabel {
+  /* Sin margen: el rótulo es un <div> en la lista y un <h2> en las notas,
+     y el h2 trae 0.83em de margen del navegador arriba y abajo (11.6 px
+     a 14 px). Sin este reset el mismo separador rendía distinto en los
+     dos lugares: 76 del preview al rótulo y 53 de la línea al primer
+     texto en las notas, donde el diseño dice 64 y 40 (medido en la
+     página servida, 2026-09-07). */
+  margin: 0;
   font-size: var(--type-h2-fs);
   font-weight: var(--type-h2-fw);
   letter-spacing: var(--type-h2-ls);
@@ -546,6 +553,9 @@
   line-height: var(--type-body-lh);
   /* ink y no gris: es prosa, y la prosa va en ink. Ver DESIGN.md. */
   color: var(--ink);
+  /* Sin viudas, como .notas p: una línea de descripción es exactamente
+     el caso de `pretty` en better-typography. */
+  text-wrap: pretty;
 }
 /* Al abrir una pieza la caja crece. La relación es la de benji y no un
    número inventado: adentro de una página larga sus demos miden 260, y
@@ -602,6 +612,12 @@
   /* ink y no gris, igual que .detailDesc: es prosa, y la prosa se lee.
      El gris es para lo que anota. Ver DESIGN.md. */
   color: var(--ink);
+  /* Sin viudas: `pretty` evita que una palabra sola quede en la última
+     línea. Es la regla de better-typography para descripciones —párrafos
+     cortos, como estos— y no para texto largo. RUNTIME (2026-09-07, en
+     producción): el primer párrafo de Performance terminaba en "frame."
+     solo en su línea. */
+  text-wrap: pretty;
 }
 /* Una línea de aire entre párrafos, que es el interlineado del cuerpo.
    SIN RECIBO: no sale de ninguna referencia medida — es el default
@@ -612,6 +628,18 @@
 }
 .notaSeccion {
   padding-top: var(--section-gap);
+}
+/* LAS NOTAS DIRECTO DEBAJO DEL PREVIEW llevan 48 más: el preview es un
+   demo, y benji separa un demo del separador siguiente con 112, no con
+   los 64 que separan prosa de separador. RUNTIME /liveline (2026-09-07,
+   página servida): 112 en las diez secciones que terminan en demo, con
+   pie de foto (del pie a la línea) o sin él ("Just a line", del borde
+   del demo a la línea); 64 en las que terminan en prosa. 112 = 48 + 64:
+   su hueco bajo una pieza (--piece-gap, ya medido) más el de sección.
+   Sólo cuando no hay línea de descripción: con línea, es prosa lo que
+   precede al separador, y ahí van los 64 de siempre. */
+.detailPreview + .notas {
+  padding-top: var(--piece-gap);
 }
 
 /* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que

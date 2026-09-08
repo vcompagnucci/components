@@ -324,9 +324,11 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
         </div>
         {/* La línea de PIECES es la entrada, y las notas lo que sigue.
             Son dos cosas distintas: ésta se escribe al publicar y cabe
-            en un renglón; aquéllas viven en src/notas/<slug>.tsx y una
-            pieza puede no tenerlas. */}
-        <p className={css.detailDesc}>{piece.desc}</p>
+            en un renglón; aquéllas viven en src/notas/<slug>.tsx. Una
+            pieza puede no tener ninguna de las dos: sin línea no se
+            dibuja el párrafo, o dejaría sus 24 px de margen vacíos
+            (Swipeable tabs, 2026-09-07: el título ya dice qué es). */}
+        {piece.desc ? <p className={css.detailDesc}>{piece.desc}</p> : null}
         <Notas name={piece.name} />
       </div>
     </div>

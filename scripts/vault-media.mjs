@@ -497,7 +497,9 @@ function agregarPieza(nombre, desc, plataforma, video) {
     '  {',
     `    name: '${aLiteral(nombre)}',`,
     `    platform: '${plataforma}',`,
-    `    desc: '${aLiteral(desc)}',`,
+    /* La línea es opcional (2026-09-07): vacía, no se escribe el campo,
+       y el detalle no dibuja el párrafo. */
+    ...(desc ? [`    desc: '${aLiteral(desc)}',`] : []),
     /* Una pieza Web no lleva video: su demo es el archivo en
        src/piezas/, que se resuelve por slug — ver demos.tsx. */
     ...(video ? [`    video: '${video}',`] : []),

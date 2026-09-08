@@ -228,8 +228,10 @@ día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
 Treinta cosas que no son obvias y cuestan una tarde cada una. Las
 ocho primeras salieron de leer `SchroederNathan/react-native-motion` el
 2026-08-28 — allá están escritas como reglas de una pieza puntual, pero
-ninguna lo es. La novena salió de medirla acá, en swipeable-tabs; las
-demás las dejaron hold-to-commit, Android y la medición de rendimiento.
+ninguna lo es. La novena salió de medirla acá, en swipeable-tabs, y la
+décima la escribieron las dos piezas por separado, cada una con su
+recibo; las demás las dejaron hold-to-commit, Android y la medición de
+rendimiento.
 
 Vienen de un repo donde las constantes se sacan cuadro a cuadro de la
 referencia y cada decisión tiene su comentario arriba. **Tratalas como
@@ -316,17 +318,34 @@ cambiarla.
    variable**: pasarlo por `fps=60` antes de mirarlo cuadro a cuadro
    inventa cuadros y fabrica glitches que no existen.
 
-### Lo que dejó hold-to-commit (2026-09-02)
+**Símbolos**
 
-10. **El `size` de `SymbolView` no es el tamaño del glifo.** SOURCE:
-   `expo-symbols/ios/SymbolView.swift:127` arma la configuración con
-   `pointSize: UIFont.systemFontSize` (14) siempre, y el `contentMode`
-   escala la imagen a la CAJA de la vista. Con `resizeMode: 'center'`
-   todos los símbolos salen a 14 pt, sea cual sea `size`. La forma que
-   funciona: caja = la caja natural del símbolo al tamaño que querés
-   (`NSImage(systemSymbolName:).size` en un script Swift la imprime),
-   `scaleAspectFit` (el default) y `scale: 'large'` para que el escalado
-   sea hacia abajo.
+10. **El `size` de `SymbolView` no es el tamaño del glifo.** Las dos
+    piezas chocaron con esto por su cuenta, así que va con los dos
+    recibos. SOURCE: `expo-symbols/ios/SymbolView.swift:127` arma la
+    configuración con `pointSize: UIFont.systemFontSize` (14) SIEMPRE, y
+    el `contentMode` escala la imagen a la CAJA de la vista; con
+    `resizeMode: 'center'` todos los símbolos salen a 14 pt, sea cual
+    sea `size`. O sea que el número que le pasás no es el que usarías en
+    una fuente y no hay forma de acertarle de memoria.
+
+    Dos maneras de dimensionarlo bien, y las dos son medir. En
+    hold-to-commit: caja = la caja natural del símbolo al tamaño que
+    querés (`NSImage(systemSymbolName:).size` en un script Swift la
+    imprime), `scaleAspectFit` (el default) y `scale: 'large'` para que
+    el escalado sea hacia abajo. En swipeable-tabs: medir la TINTA
+    contra la referencia — `size: 17` pinta 13.0 pt de tinta, que es
+    exactamente lo que mide el `+` del original (`BORDE.simboloMas` en
+    su `medidas.ts`). Nunca por el tamaño del label que tiene al lado.
+
+    Y `SymbolView` es una **vista nativa**: iOS la reconfigura cuando le
+    cambian las props, así que reservale su caja con un ancho fijo y
+    animá la caja, no el símbolo (`css.ranuraChevron` y `estiloSimbolo`
+    en el `barra.tsx` de swipeable-tabs). Un símbolo que aparece y
+    desaparece cambiando el layout de la fila es el camino corto al
+    titileo.
+
+### Lo que dejó hold-to-commit (2026-09-02)
 
 11. **La grabación de `simctl` no sirve para medir puntos chicos ni
     tiempos.** Comprime los detalles de 1–4 pt hasta volverlos polvo gris,

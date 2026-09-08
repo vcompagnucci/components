@@ -101,7 +101,7 @@ Las tres reglas que valen para los dos caminos, antes de empezar:
 | 4 | **Creá el boceto** | En el lienzo: `+` → **New sketch**. Escribe `src/privado/bocetos/<slug>.tsx` y lo pone en la tela |
 | 5 | **Escribí** | Editá ese archivo. Vite lo recarga en el frame **sin recargar la página**. Un boceto roto apaga sólo su frame y se recupera al guardar |
 | 6 | **Probalo** | Clic para elegir el frame → ahí el boceto recibe los clics y podés apretarle los botones. `Escape` para volver a moverlo |
-| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción → **Add** |
+| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción (opcional: vacía, no se escribe) → **Add** |
 | 8 | **Verificá** | Te deja en `/<slug>` con el componente **corriendo**. Mirá también la home: el preview vivo va en las dos vistas |
 | 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
 
@@ -170,14 +170,17 @@ salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
 dice exactamente qué vas a ver. El título y la línea de descripción
 siguen la regla de nombres (Método de trabajo): el término técnico y el
 verbo de especificación, sin palabras graciosas — "tap to select one",
-no "tap to jump". **La línea de descripción tampoco nombra la app**: de
-dónde salió la pieza se cuenta en las notas, en Anatomy, donde se
-cuenta cómo se midió (pedido del usuario, 2026-09-07). Y ES CORTA: qué
-es y para qué plataforma, nada más —"Top tabs for React Native &
-Expo."—; los detalles van en Anatomy ("muchísimo más corto esto" y
-"que sea tabs, React Native, Expo", mismo día). El nombre de la
-plataforma es "React Native", no el de una librería, y las dos van
-con "&", como las escribe el ecosistema ("React Native & Expo").
+no "tap to jump". **La línea de descripción es opcional, y la primera
+regla es no tenerla**: si el título ya dice qué es, no hay línea
+(Swipeable tabs tuvo "Top tabs for React Native & Expo." y el usuario
+la borró: "ya está la de arriba que dice swipeable tabs", 2026-09-07;
+`desc?` en `pieces.ts`, y el detalle no dibuja el párrafo). Si hay
+línea: **no nombra la app** —de dónde salió la pieza se cuenta en las
+notas, en Anatomy, donde se cuenta cómo se midió—, y ES CORTA: qué es
+y para qué plataforma, nada más; los detalles van en Anatomy
+("muchísimo más corto esto"). El nombre de la plataforma es "React
+Native", no el de una librería, y las dos van con "&", como las
+escribe el ecosistema ("React Native & Expo").
 
 **Cómo se escriben la línea y las notas** (es el paso «Escribí el
 porqué» de los dos caminos; fijado con Swipeable tabs el 2026-09-07, y
@@ -188,8 +191,9 @@ la bitácora tiene cada vuelta y cada rechazo):
    cómo, nunca desde la implementación (la versión que contaba "un
    valor derivado, el pager le pasa un tramo a la barra" se rechazó
    por inútil).
-2. **La forma.** La línea: qué es y para qué plataforma, una oración
-   ("Top tabs for React Native & Expo."), sin nombrar la app de
+2. **La forma.** La línea, primero si hace falta: si el título ya
+   dice qué es, no hay línea (Swipeable tabs no tiene). Si hay: qué es
+   y para qué plataforma, una oración, sin nombrar la app de
    referencia. Las notas: tres secciones como máximo —`Anatomy`,
    `Performance` y, sólo si la pieza lo pide, `Use cases`—, en prosa,
    de dos a cuatro oraciones por párrafo, sin subtítulos adentro de
@@ -209,7 +213,23 @@ la bitácora tiene cada vuelta y cada rechazo):
    término técnico y el verbo de especificación. "React Native", nunca
    el nombre de una librería (Reanimated, worklets, Yoga) ni de dónde
    salen los símbolos; lo que esas palabras dicen se dice en llano
-   ("on the UI thread, not in JavaScript").
+   ("on the UI thread, not in JavaScript"). **En `Use cases`, el
+   vocabulario es el de la HIG de Apple**, con la cita servida ese día
+   y no de memoria (pedido del usuario, 2026-09-08: "usá lo que pondría
+   Apple resources"): sus nombres para los controles vecinos, sus
+   números —con el "about" cuando Apple lo pone— y sus reglas. La
+   página HTML de la HIG se arma con JavaScript, así que `curl` y
+   WebFetch devuelven sólo el título; el texto sale de la API de
+   documentación, `developer.apple.com/tutorials/data/design/
+   human-interface-guidelines/<slug>.json`. **Pero la guía entra como
+   explicación, nunca como autoridad, y no se la nombra** (pedido del
+   usuario, 2026-09-08: "no menciones Apple guidelines… usalas pero
+   para explicar algo mejor, no para decir algo que no es"). Se toman
+   sus conceptos y sus números y se dicen en llano como propios, con la
+   cita en el comentario del archivo. Si una oración necesita el nombre
+   de quien escribió la guía para sostenerse, la afirmación no se
+   sostiene sola: en Swipeable tabs, el párrafo que la citaba afirmaba
+   además dos cosas falsas y se borró entero.
 5. **Las reglas de motion.** Antes de escribir que la pieza cumple
    algo, auditar el código contra los skills `animate-expo`,
    `interface-craft` y `better-ui`. Entran sólo las reglas que cumple,
@@ -223,11 +243,55 @@ la bitácora tiene cada vuelta y cada rechazo):
    "in step", "cue"), y cada palabra que no trabaja se borra. Y por
    `animation-vocabulary`: los términos del glosario donde no chocan
    con la regla de nombres (`ease-out`, "reduced motion"; "widens"
-   antes que "morph").
+   antes que "morph"). **Sin raya en el texto público**, ni em dash ni
+   en dash (pedido del usuario, 2026-09-08: "no uses –"): donde
+   aparezca una, o son dos oraciones o son dos puntos, y las dos
+   salidas son más llanas que la raya. Los guiones de palabra
+   compuesta se quedan (`ease-out`, `top-level`). La regla es del
+   texto público; en los comentarios en castellano la raya es
+   puntuación normal.
+
+   **Un solo nombre por cosa, en TODA la página, no por sección.** Es
+   la regla de `better-writing` que más encuentra acá, y ninguna de sus
+   fallas se ve leyendo una sección sola: en Swipeable tabs la fila era
+   "row" en dos secciones y "bar" en la tercera —el nombre interno del
+   archivo, `barra.tsx`, filtrándose al texto público—, el mismo tab
+   era "chosen" y "active" en un mismo párrafo, y había una sola
+   contracción en once párrafos. Buscar sinónimos del mismo objeto,
+   contracciones sueltas, pronombres cuyo antecedente más cercano es el
+   sustantivo equivocado, y nombres de archivos del repo que se hayan
+   colado. Y decidir quién es "you": si el lector es quien toca la
+   pieza, "you"; si el lector construye para otros, "people" es quien
+   usa su app.
+
+   **Y una pasada de concisión al final**, cuando el contenido ya está
+   cerrado y verificado (pedido del usuario, 2026-09-08: "ya teniendo
+   todo… dejá todo mucho más conciso"). Da entre 15 y 20 % sin tocar
+   una sola afirmación, y encuentra siempre lo mismo, en este orden:
+   redundancia interna (la misma idea dos o tres veces en un párrafo),
+   redundancia ENTRE secciones (sólo aparece leyendo la página entera)
+   y perífrasis donde va un verbo ("Tap a tab and it becomes the active
+   one" → "A tap makes a tab active"). Medir en palabras antes y
+   después, y decir el número. Después de esta pasada se vuelve a
+   correr el paso 8, porque el wrap cambió.
 7. **La veracidad.** Releer cada afirmación contra el código y las
    tablas de medición, antes y después de escribir. Lo que no está
    medido no se afirma; lo que es SOURCE (una configuración) se marca
    así en el comentario; cada corrección se registra.
+
+   **`Performance` se relee además "como un ingeniero senior"** antes
+   de cerrar, y esa lectura encuentra otra clase de error que la
+   veracidad literal deja pasar: la imprecisión técnica. Las cuatro de
+   Swipeable tabs valen de plantilla. Decir "not the JavaScript
+   thread", nunca "not in JavaScript" (los worklets también son
+   JavaScript, corren en el runtime de UI). Decir qué hace el sistema y
+   qué hacemos nosotros: si el scroll es nativo, eso es la razón
+   principal de que el gesto no cueste, y callarlo es esconder el
+   mecanismo. Contar una optimización por su COSTO —cuántas listas,
+   cuántas filas, montadas desde cuándo— y no como anécdota. Y decir
+   DÓNDE se midió: `animate-expo` sólo cuenta un release build en el
+   dispositivo más lento, y una grabación del simulador es recibo de la
+   toma, no del teléfono.
 8. **La verificación en pantalla.** Chrome DevTools sobre la página
    servida: el texto exacto de cada párrafo, la cantidad de párrafos,
    que no queden nombres de librerías ni frases viejas; claro y oscuro
@@ -373,8 +437,10 @@ nada genérico se confunda con una decisión. La primera define el molde.
 
 **Publicar es un gesto del tablero.** Elegís el frame y `Add to Library`
 aparece en la sidebar (el clic derecho lo repite como atajo): nombre
-(llega puesto) y una línea de descripción, que
-son literalmente los dos renglones del detalle público. **La plataforma
+(llega puesto) y una línea de descripción, opcional —vacía, no se
+escribe el campo—. Son los dos renglones del detalle público; sin
+línea, el detalle va del preview a las notas (Swipeable tabs, desde el
+2026-09-07). **La plataforma
 la dice el frame**, no un selector:
 
 - un frame **boceto** publica una pieza **Web**: su archivo se copia de
