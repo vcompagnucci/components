@@ -209,8 +209,18 @@ import { Seccion } from '../notas'
 
    USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, Y LO DICE CON LAS PALABRAS DE
    APPLE (pedido del usuario, 2026-09-08: "en use cases usá lo que
-   pondría Apple resources"). Cuatro párrafos: cuándo sí, los ejemplos,
-   cuándo no, y dónde cae la pieza en el vocabulario de Apple.
+   pondría Apple resources"). Tres párrafos: cuándo sí, los ejemplos,
+   cuándo no.
+
+   LA HIG ENTRA COMO EXPLICACIÓN, NUNCA COMO AUTORIDAD, y NO SE LA
+   NOMBRA. Regla del usuario, el mismo día, después de leer el cierre
+   que sí la nombraba: "no menciones Apple guidelines […] usalas pero
+   para explicar algo mejor, no para decir algo que no es". O sea que
+   de la guía se toman los conceptos y los números —"closely related",
+   la regla de los paneles autocontenidos, "about five", "top-level
+   sections", los labels cortos— y se dicen en llano como propios, con
+   la cita en este comentario. La palabra "Apple" no aparece en el
+   texto público.
 
    SOURCE — las tres páginas de la HIG, servidas el 2026-09-08 y leídas
    por la API de documentación de Apple, `developer.apple.com/tutorials/
@@ -243,19 +253,33 @@ import { Seccion } from '../notas'
      possible"; segmented controls: "Use nouns or noun phrases for
      segment labels" y "As much as possible, use content with a similar
      size in each segment".
-   · El cierre ← tab views, resumen: "A tab view presents multiple
-     mutually exclusive panes of content in the same area, which people
-     can switch between using a tabbed control"; "Not supported in iOS,
-     iPadOS, tvOS, or visionOS"; y su nota de iOS, iPadOS: "For similar
-     functionality, consider using a segmented control instead."
-   CORRIGE LO QUE LE DIJE AL USUARIO EL 2026-09-07 ("en el vocabulario
-   de Apple lo nuestro es un tab view"): eso vale para macOS, que era
-   la captura que él mandó. En iOS el tab view NO EXISTE, y la guía
-   manda a un segmented control — que topa en cinco. Ese hueco es la
-   razón de la pieza, y por eso el cierre lo dice en vez de callarlo.
-   NO se cita "Avoid providing more than six tabs in a tab view" (tab
-   views), aunque X tenga seis: es guía de macOS y usarla para iPhone
-   sería estirarla.
+   EL CUARTO PÁRRAFO SE BORRÓ, Y ESTABA MAL DE DOS FORMAS. Decía: "On
+   the Mac, Apple's guidelines call this a tab view: mutually exclusive
+   panes of content in one area, switched with a row of tabs. There is
+   no tab view on iPhone; for the same job the guidelines point to a
+   segmented control." Vivió unas horas el 2026-09-08 y lo bajó el
+   usuario ("está mal esa parte"). Tenía razón:
+   · "There is no tab view on iPhone" es FALSO para quien programa. El
+     "Not supported in iOS" de la HIG habla del componente de DISEÑO de
+     macOS, la caja con solapas arriba; pero `TabView` existe en
+     SwiftUI en iOS, es el contenedor del tab bar, y con
+     `.tabViewStyle(.page)` es literalmente un pager que se desliza,
+     o sea lo más parecido del sistema a esta pieza. Escribir que no
+     existe es exactamente "decir algo que no es".
+   · "For the same job the guidelines point to a segmented control"
+     CONTRADICE al párrafo de arriba, que dice que un segmented control
+     es para cinco listas o menos. Los dos juntos afirmaban que esta
+     pieza tendría que ser un segmented control, que es lo contrario de
+     todo lo que argumenta la sección.
+   Lo que el párrafo quería aportar —que el patrón vive entre un
+   segmented control y un tab bar— ya lo dice el tercer párrafo sin
+   nombrar a nadie y sin afirmar de más. La lección para las próximas
+   piezas: una guía sirve para afilar una explicación, no para pedirle
+   permiso; en el momento en que el texto necesita el nombre de quien
+   la escribió para sostenerse, la afirmación no se sostiene sola.
+   TAMPOCO se cita "Avoid providing more than six tabs in a tab view"
+   (tab views), aunque X tenga seis: es guía de macOS y usarla para
+   iPhone sería estirarla.
    LO QUE NO SALE DE APPLE, y es de la pieza, verificado en el código:
    el tab activo se ensancha para su símbolo y la fila sólo se corre
    cuando un tab no entra (`BARRA.fila = 'visible'`, barra.tsx); y
@@ -444,11 +468,6 @@ export default function Notas() {
           a segmented control; the top-level sections of an app belong in the tab bar at the
           bottom. Both ask for short labels, and so do these: the active tab widens for its
           symbol.
-        </p>
-        <p>
-          On the Mac, Apple’s guidelines call this a tab view: mutually exclusive panes of content
-          in one area, switched with a row of tabs. There is no tab view on iPhone; for the same
-          job the guidelines point to a segmented control.
         </p>
       </Seccion>
     </>
