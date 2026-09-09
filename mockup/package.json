@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "render:oscuro": "remotion render SwipeableTabs out/swipeable-tabs-oscuro.mp4 --crf=17 --props='{\"fondo\":\"#1C181A\"}'",
     "render:ambos": "pnpm render && pnpm render:oscuro",
-    "render:library": "node scripts/library.mjs"
+    "render:exhibition": "node scripts/exhibition.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.520",

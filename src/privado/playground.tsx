@@ -1263,7 +1263,7 @@ function Lienzo({
      diferencia no la decidió nadie. */
   const [borrando, setBorrando] = useState(false)
   /* ─── EL CLIC DERECHO SOBRE UN FRAME: PUBLICAR ───
-     Acá vive Add to Library, y no en el vault, porque acá está TU
+     Acá vive Add to Exhibition, y no en el vault, porque acá está TU
      trabajo: el vault es lo externo. Qué pieza sale lo dice el frame —
      un boceto publica Web viva, una grabación publica App— así que el
      diálogo no pregunta plataforma. Una capa para el tablero entero,
@@ -1803,7 +1803,7 @@ function Lienzo({
               clic derecho sigue ofreciéndola, como atajo. */}
           {frameElegido && frameElegido.tipo !== 'pieza' && (
             <button className={css.publicar} onClick={() => setPublicando(frameElegido)}>
-              Add to Library
+              Add to Exhibition
             </button>
           )}
         </div>
@@ -1888,7 +1888,7 @@ function Lienzo({
               /* Sólo lo publicable: un boceto o un clip. Un frame de
                  pieza ya está publicado — su menú no ofrece nada aún. */
               ...(framePub.tipo !== 'pieza'
-                ? [{ texto: 'Add to Library', hacer: () => setPublicando(framePub) }]
+                ? [{ texto: 'Add to Exhibition', hacer: () => setPublicando(framePub) }]
                 : []),
             ]}
           />

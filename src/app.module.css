@@ -251,7 +251,7 @@
      mockup ocupa la caja entera —sin el padding de 40/60 que reservaba
      el hueco— y así el borde del video ES el borde de la caja: cuando
      la cámara entra (1.576×) el teléfono se corta contra el límite del
-     espacio que da la library, no contra un cuadrado invisible 60 px
+     espacio que da la exhibition, no contra un cuadrado invisible 60 px
      más adentro ("que el corte al hacer zoom sea natural, con el borde
      en el espacio que brinda la library", 2026-09-05). Y más cerca: a
      560 de lado el teléfono al 92 % mide 515 px; antes, en el cuadrado
@@ -276,7 +276,7 @@
    `transition: all .2s ease`. Acá los colores son los tokens que ya
    dicen lo mismo —text-secondary y surface-hover— y la tipografía es
    la de nav (13/460), la más chica del sistema, en vez de 12. Dónde se
-   ve: en el DETALLE siempre, como en benji; en el hub de la library
+   ve: en el DETALLE siempre, como en benji; en el hub de la exhibition
    sólo con el mouse sobre el video —ahí es una lista, y un control
    por card es ruido— y siempre donde no hay hover (touch). Sin cambio
    de fondo ni de color al pasar por encima: el rótulo alcanza (pedido

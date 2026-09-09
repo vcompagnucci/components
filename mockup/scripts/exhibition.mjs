@@ -2,8 +2,8 @@
    en los dos formatos que hacen falta para que el alfa llegue a todos
    los navegadores.
 
-     pnpm render:library                                 → swipeable-tabs
-     node scripts/library.mjs HoldToCommit hold-to-commit-oscuro
+     pnpm render:exhibition                                 → swipeable-tabs
+     node scripts/exhibition.mjs HoldToCommit hold-to-commit-oscuro
 
    → out/<salida>.webm  (VP9 con alfa, Chrome y Firefox)
    → out/<salida>.mov   (HEVC con alfa, Safari)
@@ -31,14 +31,14 @@ const AQUI = fileURLToPath(new URL('../', import.meta.url))
 const OUT = path.join(AQUI, 'out')
 fs.mkdirSync(OUT, { recursive: true })
 
-const [composicion = 'SwipeableTabsLibrary', salida = 'library'] = process.argv.slice(2)
+const [composicion = 'SwipeableTabsExhibition', salida = 'exhibition'] = process.argv.slice(2)
 /* El clip: cada composición trae el suyo; una pieza con dos apariencias
    nombra cuál por argumento (hold-to-commit-oscuro, -claro). */
-const clip = salida === 'library' ? null : `${salida}.mp4`
+const clip = salida === 'exhibition' ? null : `${salida}.mp4`
 
 /* TODO LO DEMÁS —transparente, sin sombra, teléfono al 92 %, la cámara
-   que entra y se queda— vive en la composición `…Library` de cada pieza
-   (`paraLibrary` en parametros.ts). Acá sólo se pisa el clip, que es de
+   que entra y se queda— vive en la composición `…Exhibition` de cada pieza
+   (`paraExhibition` en parametros.ts). Acá sólo se pisa el clip, que es de
    primer nivel: Remotion mezcla las input props con las defaultProps
    sólo en el primer nivel, así que un `camara` parcial borraría el foco
    y las curvas de la pieza. */

@@ -308,14 +308,20 @@ export function App() {
   /* Las rutas privadas llevan su propio nombre y no el del producto: no
      son el producto, y con dos pestañas abiertas el nombre es lo único
      que las distingue. El resto —la lista y la ruta que no existe— sigue
-     diciendo "Library", igual que antes. */
+     diciendo el nombre del producto, igual que antes.
+
+     Y va el nombre COMPLETO, no el "Exhibition" del H1: el título del
+     documento se lee fuera de la página —en la pestaña, en el historial,
+     en un favorito— y ahí no hay contexto que diga de qué es la
+     exhibición. Arriba del masthead sí lo hay, y por eso ahí alcanza con
+     una palabra. */
   useEffect(() => {
-    if (vista.tipo === 'pieza') document.title = `${vista.piece.name} — Library`
+    if (vista.tipo === 'pieza') document.title = `${vista.piece.name} — Interface exhibition`
     /* El DEV delante pliega el literal 'privado' fuera del bundle — ver
        el tercer pliegue en desdeUrl. En producción esta rama es
        inalcanzable igual (desdeUrl nunca devuelve ese tipo). */
     else if (import.meta.env.DEV && vista.tipo === 'privado') document.title = vista.privada.nombre
-    else document.title = 'Library'
+    else document.title = 'Interface exhibition'
   }, [vista])
 
   /* Volver a la lista devuelve el scroll donde estabas. Sin esto la

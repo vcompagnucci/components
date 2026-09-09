@@ -57,7 +57,7 @@ export function baseDeTexto(el: HTMLElement) {
 export function Masthead() {
   return (
     <header className={css.mast}>
-      <h1 className={css.mastTitle}>Library</h1>
+      <h1 className={css.mastTitle}>Exhibition</h1>
       <div className={css.mastSub}>Components for web and native apps that feel right.</div>
     </header>
   )

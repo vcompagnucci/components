@@ -357,7 +357,7 @@ export function MenuClip({
      siempre último y lejos del cursor cuando el menú se abre hacia
      abajo. La hairline que lo separa la pone el Menu, por la bandera.
 
-     ADD TO LIBRARY NO ESTÁ, y estuvo: publicar vivió un día en este
+     ADD TO EXHIBITION NO ESTÁ, y estuvo: publicar vivió un día en este
      menú y se movió al tablero. El vault es lo EXTERNO —referencias que
      mirás— y publicar es el final del taller, así que el gesto vive
      donde está tu trabajo: el clic derecho sobre un frame del
@@ -522,7 +522,7 @@ export function DialogoRenombrar({
 
    Vive en el TABLERO, no en el vault: el vault es lo externo —lo que
    mirás— y lo que se publica es lo tuyo, que es lo que está en el
-   playground. El clic derecho sobre un frame ofrece Add to Library, y
+   playground. El clic derecho sobre un frame ofrece Add to Exhibition, y
    qué pieza sale lo dice el frame: un boceto publica Web viva, una
    grabación publica App. Por eso NO hay selector de plataforma.
 
@@ -533,7 +533,7 @@ export function DialogoRenombrar({
    sí mismo.
 
    AL TERMINAR TE LLEVA A LA PIEZA. No hay toast en este sistema; la
-   confirmación es la página real de la library con el demo andando.
+   confirmación es la página real de la exhibition con el demo andando.
    Navegación dura a propósito: pieces.ts acaba de cambiar en el disco
    y recargar es la forma de que TODOS los módulos la vean, sin
    depender de en qué orden llegue el hot update.
@@ -583,7 +583,7 @@ export function DialogoPublicar({
 
   return (
     <Dialogo abierto={abierto} onCerrar={onCerrar}>
-      <h2 className={css.titulo}>Add to Library</h2>
+      <h2 className={css.titulo}>Add to Exhibition</h2>
       <p className={css.dice}>{dice}</p>
       <input
         className={css.campo}

@@ -86,7 +86,7 @@ export type Parametros = z.infer<typeof esquema>
 export const FONDO_OSCURO = '#1C181A'
 
 /* LA LIBRARY LLEVA UN SOLO RENDER, TRANSPARENTE Y SIN SOMBRA
-   (pnpm render:library → scripts/library.mjs): el fondo lo pone la
+   (pnpm render:exhibition → scripts/exhibition.mjs): el fondo lo pone la
    card de la library en el tema que sea, y el teléfono va sin sombra,
    como los videos de Family en benji.org. Teléfono al 92 % del cuadro —el
    video es la caja entera de la card y el usuario lo quiso más cerca;
@@ -207,7 +207,7 @@ export const HOLD_TO_COMMIT: Parametros = {
    —el foco, el zoom, las curvas— y el esquema de zod lo rechaza. Con
    una composición por pieza, el script de render sólo pisa el clip,
    que es de primer nivel. */
-export const paraLibrary = (p: Parametros, focoEnLienzo = p.camara.focoEnLienzo): Parametros => ({
+export const paraExhibition = (p: Parametros, focoEnLienzo = p.camara.focoEnLienzo): Parametros => ({
   ...p,
   fondo: 'transparent',
   sombra: [],

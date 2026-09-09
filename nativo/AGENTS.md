@@ -1,7 +1,7 @@
 # El taller nativo
 
 **Leé primero el [`AGENTS.md` de la raíz](../AGENTS.md)** — el recorrido
-completo (vault → playground → library), la regla de evidencia y el
+completo (vault → playground → exhibition), la regla de evidencia y el
 método de trabajo están ahí. Esto es sólo el taller donde se construyen
 las piezas **App**.
 
@@ -103,7 +103,7 @@ de `simctl` es **HEVC**, y un HEVC puede no reproducirse en el `<video>`
 de la exposición — es la trampa más cara del camino porque no falla al
 grabar, falla en la pieza ya publicada), y escribe **directo a
 `VAULT_DIR/native/`**. Parás la grabación y el clip ya está en la grilla
-de `/vault`: de ahí, Open in Playground → Add to Library.
+de `/vault`: de ahí, Open in Playground → Add to Exhibition.
 
 ## La forma de una pieza
 
@@ -796,8 +796,8 @@ sonda se borra antes de cerrar, como todas.
 **El máster de una pieza no tiene por qué estar en el vault.** El vault
 es lo ajeno; `swipeable-tabs` se sacó de ahí a pedido y su máster vive
 en `.context/mockup/master/<slug>.mp4` (gitignoreado). Al mockup se le
-pasa con `--clip=…`. Y el video que va a la library entra con
-`pnpm pieza:video <slug> <archivo>` desde la raíz, no con Add to Library
+pasa con `--clip=…`. Y el video que va a la exhibition entra con
+`pnpm pieza:video <slug> <archivo>` desde la raíz, no con Add to Exhibition
 (ver el AGENTS.md de la raíz, camino B).
 
 **El video se arma en `mockup/` (Remotion), no acá.** Los mismos

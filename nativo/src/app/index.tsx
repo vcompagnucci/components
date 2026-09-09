@@ -16,7 +16,7 @@ import { ABRIR } from '@/piezas/abrir'
    mismo mecanismo sobre el que está construido Expo Router. El patrón
    sólo matchea `<slug>/index.tsx` en minúsculas y guiones, que es
    exactamente la forma que tiene que tener una pieza: su carpeta se
-   llama como su slug, y ese slug es el que va a llevar en la library.
+   llama como su slug, y ese slug es el que va a llevar en la exhibition.
    ═══════════════════════════════════════════════════════════════ */
 const CONTEXTO = require.context('./', true, /^\.\/[a-z0-9-]+\/index\.tsx$/)
 

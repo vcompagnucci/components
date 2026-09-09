@@ -447,7 +447,7 @@ const identificadorDe = (ref) => {
    ejemplo que después hay que borrar. El div al 100% existe porque el
    frame ya tiene el tamaño; sin eso el primer boceto nace de 0 de alto y
    parece que no funcionó. */
-/* ═══════════ PUBLICAR — del playground a la library ═══════════
+/* ═══════════ PUBLICAR — del playground a la exhibition ═══════════
    El segundo endpoint que escribe adentro del repo, con el mismo
    permiso que __boceto: lo que produce es producto, no un medio del
    vault. Se publica DESDE EL TABLERO —el clic derecho sobre un frame—
