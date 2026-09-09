@@ -34,11 +34,17 @@
 
    LA VERIFICACIÓN. Con la pieza corriendo se muestreó cuadro a cuadro el
    borde derecho del conjunto y se comparó contra la misma traza de la
-   grabación: 2.35 pt de error cuadrático medio y 10.7 de máximo sobre el
-   primer segundo, descontando 7 ms de latencia del puntero (5.20 pt sin
-   descontarla). El máximo cae justo en el mínimo de la curva, que es
-   donde la medición del video es menos confiable porque el goo ensancha
-   la silueta. La sonda está en .context/buttons-separate/.
+   grabación: 4.95 pt de error cuadrático medio y 18.7 de máximo sobre el
+   primer segundo, sin latencia que descontar (el mejor desfase da −2 ms).
+   El máximo cae justo en el mínimo de la curva, donde la medición del
+   video es menos confiable porque el goo ensancha la silueta.
+
+   CORRECCIÓN, 2026-09-09: acá decía 2.35 pt. Ese número salía de una
+   sonda que modelaba el borde del botón en r = 19.58 —el radio
+   compensado que tenía el goo— cuando lo que se dibuja mide 19. Con las
+   formas nítidas encima, el modelo y lo dibujado coinciden, y el número
+   honesto es 4.95. Lo que se mueve no cambió: cambió la sonda.
+   La sonda está en .context/buttons-separate/.
 
    EL CAMPO NO ES UN <input>. En la lista, el preview vive adentro del
    <a> de la card: un campo de texto ahí adentro es un link que contiene
@@ -127,6 +133,34 @@ const RETRASO = 0.042 //                             s, medido
    arranca a los 158 después del abanico llega lleno a los ~460. */
 const ICONO = { duracion: 0.3, rebote: 0 }
 const RETRASO_ICONO = 0.158
+
+/* LA SALIDA NO ES LA ENTRADA AL REVÉS, y por tres razones que se ven
+   posando el cierre cuadro a cuadro (Vito, 2026-09-09: "la salida sobre
+   todo, no me convence"):
+
+   1. LOS ICONOS QUEDABAN DE FANTASMA. Los botones se tocan cuando el
+      paso baja de 38 —el diámetro—, a los ~55 ms, y con el tramo de 300
+      los glifos todavía valían 0.28 a los 120: cuatro iconos apilados
+      encima del campo. Se van en 110 ms, antes de que las formas se
+      pisen.
+   2. EL CAMPO SE PASABA 14 px de su largo de reposo a los 300 ms. Ese
+      rebote está MEDIDO, pero en la contracción de la apertura: al
+      cerrar no hay nada que lo justifique y se lee como un temblor. Al
+      cerrar, sin rebote.
+   3. ERA TAN LARGA COMO LA ENTRADA. El que se va ya decidió irse. Un
+      cuarto más corta, que es la regla.
+
+   La entrada se queda EXACTA como la referencia: lo de acá es sólo el
+   cierre, que la grabación no muestra. */
+const CAMPO_SALIDA = { duracion: 0.28, rebote: 0 }
+const ABANICO_SALIDA = { duracion: 0.4, rebote: 0.1 }
+const ICONO_SALIDA = { duracion: 0.11, rebote: 0 }
+
+/* EL PRESS. Achica el círculo del vidrio, no el glifo: antes escalaba
+   sólo el <svg> y se leía "se achicó el ícono", no "se hundió el botón".
+   0.96 y no menos, que abajo de 0.95 se ve exagerado. */
+const PRESION = { duracion: 0.16, rebote: 0 }
+const PRESION_ESCALA = 0.96
 
 /* Con movimiento reducido no se apaga la separación —es el contenido de
    la pieza, no un adorno— pero sí el rebote y el retraso: un solo tramo
@@ -271,14 +305,16 @@ export default function ButtonsSeparate() {
   const [abierto, setAbierto] = useState(sinHover)
   const reducido = useMovimientoReducido()
 
-  /* Los dos resortes viven en un ref y no en estado: los toca el lazo de
+  /* LOS RESORTES VIVEN EN UN REF y no en estado: los toca el lazo de
      cuadro, y un estado por cuadro volvería a renderizar la pieza
-     sesenta veces por segundo para mover cuatro números. */
+     sesenta veces por segundo para mover un puñado de números. */
   const resortes = useRef({
     campo: nace(abierto ? 1 : 0, CAMPO),
     abanico: nace(abierto ? 1 : 0, ABANICO),
     icono: nace(abierto ? 1 : 0, ICONO),
+    presion: BOTONES.map(() => nace(0, PRESION)),
   })
+  const todos = (r: typeof resortes.current) => [r.campo, r.abanico, r.icono, ...r.presion]
 
   /* DÓNDE CAE LA BARRA DENTRO DE LA ESCENA. Las máscaras se dibujan en
      el espacio de la escena, así que el origen y la escala tienen que
@@ -306,24 +342,51 @@ export default function ButtonsSeparate() {
     return () => observador.disconnect()
   }, [])
 
-  /* EL LAZO DE CUADRO, FUERA DE REACT. Escribe atributos y transforms
-     directo en el DOM y sólo mientras algo se mueve: en reposo no hay
-     cuadro pedido, que es lo que hace que ocho de estas piezas en una
-     lista no cuesten nada. */
+  /* EL LAZO DE CUADRO, FUERA DE REACT. Escribe atributos y estilos
+     directo en el DOM. La opacidad va en cada botón y no en una
+     variable CSS del padre: una variable obliga a recalcular el estilo
+     de todo el subárbol por cuadro, y esto son cuatro escrituras. */
   const pintar = useCallback(() => {
-    const { campo: rc, abanico: ra, icono: ri } = resortes.current
+    const { campo: rc, abanico: ra, icono: ri, presion } = resortes.current
     campo.current?.setAttribute('width', String(TOTAL + (G.campo - TOTAL) * rc.x))
     const paso = PASO * ra.x
-    for (let i = 1; i < BOTONES.length; i++) {
+    const visible = String(Math.max(0, Math.min(1, ri.x)))
+    for (let i = 0; i < BOTONES.length; i++) {
+      const encogido = 1 - (1 - PRESION_ESCALA) * presion[i].x
       circulos.current[i]?.setAttribute('cx', String(RANURA + paso * i))
+      circulos.current[i]?.setAttribute('r', String((G.boton / 2) * encogido))
       const boton = botones.current[i]
-      if (boton) boton.style.transform = `translateX(${paso * i}px)`
+      if (boton) {
+        boton.style.transform = `translateX(${paso * i}px) scale(${encogido})`
+        boton.style.opacity = visible
+      }
     }
-    contenido.current?.style.setProperty('--icono', String(Math.max(0, Math.min(1, ri.x))))
   }, [])
   useLayoutEffect(() => {
     pintar()
   }, [pintar, caja])
+
+  /* UN SOLO LAZO PARA TODO, y sólo mientras algo se mueve: en reposo no
+     hay cuadro pedido, que es lo que hace que ocho de estas piezas en
+     una lista no cuesten nada (medido: ocho montadas, scrolleando a 20×
+     de CPU, cero cuadros perdidos). */
+  const cuadro = useRef(0)
+  const reloj = useRef(0)
+  const animar = useCallback(() => {
+    if (cuadro.current) return
+    reloj.current = performance.now() / 1000
+    const paso = (ms: number) => {
+      const t = ms / 1000
+      const dt = t - reloj.current
+      reloj.current = t
+      let vivo = false
+      for (const r of todos(resortes.current)) vivo = avanzar(r, t, dt) || vivo
+      pintar()
+      cuadro.current = vivo ? requestAnimationFrame(paso) : 0
+    }
+    cuadro.current = requestAnimationFrame(paso)
+  }, [pintar])
+  useEffect(() => () => cancelAnimationFrame(cuadro.current), [])
 
   /* EL RETRASO CAMBIA DE LADO. Al abrir, el campo va primero y los
      botones lo siguen; al cerrar, primero se juntan los botones y
@@ -335,9 +398,10 @@ export default function ButtonsSeparate() {
      sobre una separación de 730. */
   useLayoutEffect(() => {
     const { campo: rc, abanico: ra, icono: ri } = resortes.current
-    afinar(rc, reducido ? SIN_REBOTE : CAMPO)
-    afinar(ra, reducido ? SIN_REBOTE : ABANICO)
-    afinar(ri, reducido ? SIN_REBOTE : ICONO)
+    const salida = !abierto
+    afinar(rc, reducido ? SIN_REBOTE : salida ? CAMPO_SALIDA : CAMPO)
+    afinar(ra, reducido ? SIN_REBOTE : salida ? ABANICO_SALIDA : ABANICO)
+    afinar(ri, reducido ? SIN_REBOTE : salida ? ICONO_SALIDA : ICONO)
 
     /* Al montar, el destino ya es el que hay: no hay nada que integrar y
        pedir cuadros sería tenerlos girando por el retraso. */
@@ -348,26 +412,19 @@ export default function ButtonsSeparate() {
     rc.destino = ra.destino = ri.destino = destino
     /* Al abrir sigue el abanico; al cerrar, el campo. Los iconos entran
        tarde y se van enseguida: al cerrar no hay nada que esperar. */
-    const sigue = abierto ? ra : rc
-    rc.desde = ra.desde = ahora
-    sigue.desde = ahora + (reducido ? 0 : RETRASO)
-    ri.desde = abierto && !reducido ? ahora + RETRASO + RETRASO_ICONO : ahora
+    rc.desde = ra.desde = ri.desde = ahora
+    ;(abierto ? ra : rc).desde = ahora + (reducido ? 0 : RETRASO)
+    if (abierto && !reducido) ri.desde = ahora + RETRASO + RETRASO_ICONO
+    animar()
+  }, [abierto, reducido, animar])
 
-    let cuadro = 0
-    let anterior = ahora
-    const paso = (ms: number) => {
-      const t = ms / 1000
-      const dt = t - anterior
-      anterior = t
-      const a = avanzar(rc, t, dt)
-      const b = avanzar(ra, t, dt)
-      const c = avanzar(ri, t, dt)
-      pintar()
-      if (a || b || c) cuadro = requestAnimationFrame(paso)
-    }
-    cuadro = requestAnimationFrame(paso)
-    return () => cancelAnimationFrame(cuadro)
-  }, [abierto, reducido, pintar])
+  const apretar = (i: number, hundido: boolean) => {
+    const r = resortes.current.presion[i]
+    afinar(r, reducido ? SIN_REBOTE : PRESION)
+    r.destino = hundido ? 1 : 0
+    r.desde = performance.now() / 1000
+    animar()
+  }
 
   const asiento = `translate(${caja.x}px, ${caja.y}px) scale(${caja.escala})`
   const mascara = (cual: 'relleno' | 'halo' | 'anillo') => {
@@ -515,6 +572,10 @@ export default function ButtonsSeparate() {
               className="boton"
               style={{ left: RANURA - G.boton / 2 }}
               aria-label={b.nombre}
+              onPointerDown={() => apretar(i, true)}
+              onPointerUp={() => apretar(i, false)}
+              onPointerCancel={() => apretar(i, false)}
+              onPointerLeave={() => apretar(i, false)}
               onClick={(e) => {
                 /* El mismo freno que el botón de velocidad del
                    reproductor: en la lista este demo vive adentro del
@@ -720,7 +781,10 @@ const HOJA = `
   border-radius: 50%;
   background: transparent;
   color: var(--tinta);
-  opacity: var(--icono, 0);
+  /* La escribe el lazo de cuadro. Acá va el valor de arranque para que
+     el primer pintado no muestre los cuatro apilados. */
+  opacity: 0;
+  transform-origin: 50% 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -743,15 +807,13 @@ const HOJA = `
   position: relative;
   width: ${G.icono}px;
   height: ${G.icono}px;
-  transition-property: scale;
-  transition-duration: 150ms;
-  transition-timing-function: ease-out;
 }
 /* EL HOVER ENCIENDE EL VIDRIO, no el glifo. El relleno del botón lo
    dibuja la capa enmascarada, que es una sola para las cinco formas: un
    velo redondo del tamaño exacto del círculo, encima, es la única forma
-   de aclarar UNO. El press achica el glifo y no el botón, porque
-   achicar el botón dejaría un anillo de vidrio sin velo. */
+   de aclarar UNO. El press ya no vive acá: achica el CÍRCULO de la
+   máscara, en el lazo de cuadro, así que se hunde el botón entero y no
+   sólo el glifo. */
 [data-pieza='buttons-separate'] .boton::after {
   content: '';
   position: absolute;
@@ -763,11 +825,16 @@ const HOJA = `
   transition-duration: 150ms;
   transition-timing-function: ease-out;
 }
-[data-pieza='buttons-separate'] .boton:hover::after {
-  opacity: 1;
+/* Un dedo dispara :hover al tocar y lo deja pegado. */
+@media (hover: hover) and (pointer: fine) {
+  [data-pieza='buttons-separate'] .boton:hover::after {
+    opacity: 1;
+  }
 }
-[data-pieza='buttons-separate'] .boton:active svg {
-  scale: 0.94;
+@media (prefers-reduced-motion: reduce) {
+  [data-pieza='buttons-separate'] .boton::after {
+    transition-duration: 0s;
+  }
 }
 [data-pieza='buttons-separate'] .boton:focus-visible {
   outline: var(--focus-outline, 2px solid #005fcc);

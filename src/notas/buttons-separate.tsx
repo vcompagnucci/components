@@ -47,16 +47,27 @@ import { Seccion } from '../notas'
        cuadrados sobre la grabación con 1.57 y 1.42 pt de error en 64
        cuadros. Están en `CAMPO` y `ABANICO`.
      · 42 ms es el retraso entre los dos, medido. Está en `RETRASO`.
-     · 62 cuadros, mediana 16.7 ms, ninguno arriba de 20: medido en
-       Chrome con el procesador cuatro veces más lento y dos copias de
-       la pieza en la página, el 2026-09-09.
+     · Los cuadros, medidos en Chrome el 2026-09-09 con el procesador
+       VEINTE veces más lento y OCHO copias de la pieza en la página:
+       scrolleando se pierde 1 de 59, y con una abriéndose y las otras
+       siete en reposo se pierden 2 de 54. A 4× no se pierde ninguno.
+       El peor caso sintético —las ocho animando a la vez a 20×— cae a
+       30 cuadros, y no puede pasar: hay un solo puntero.
+
+   LA SALIDA NO ES LA ENTRADA AL REVÉS, y el texto lo dice porque se
+   ve. Los tres arreglos, con su porqué, están arriba de CAMPO_SALIDA en
+   la pieza: los iconos se iban en 300 ms y quedaban cuatro fantasmas
+   apilados encima del campo; el campo se pasaba 14 px de su largo de
+   reposo; y duraba lo mismo que la entrada. La entrada sigue exacta
+   como la referencia: esto es sólo el cierre, que la grabación no
+   muestra.
 
    LO QUE NO SE AFIRMA. No se dice cuánto tarda todo en asentarse:
    el conjunto se queda quieto alrededor de los 730 ms, pero ese número
    sale de mirar dónde la traza deja de moverse y no de un umbral
    definido, así que no entra al texto. Tampoco se dice que la pieza
-   siga la grabación con tal error: la comparación dio 1.7 px de error
-   cuadrático medio y 7.7 px de máximo sobre el primer segundo, y un
+   siga la grabación con tal error: la comparación dio 3.5 px de error
+   cuadrático medio y 13.4 px de máximo sobre el primer segundo, y un
    solo número de esos leído solo miente en una dirección o en la otra.
    Lo que sí se afirma es que se midió contra ella.
 
@@ -93,6 +104,10 @@ export default function Notas() {
           snaps. The icons arrive last, once the buttons are nearly in place.
         </p>
         <p>
+          The way back is shorter. The four gather first and the field grows over them, and the
+          icons are gone before the shapes touch.
+        </p>
+        <p>
           With reduced motion the four still separate, in one short step and without the overshoot.
           Where the pointer cannot hover, on a phone, the buttons stay out; moving keyboard focus
           into the group opens them.
@@ -106,8 +121,9 @@ export default function Notas() {
 
       <Seccion titulo="Performance">
         <p>
-          Nothing re-renders while it moves. The two springs write the field width, the three button
-          positions and one opacity straight into the document, and React sees none of it.
+          Nothing re-renders while it moves. The springs write the field width, the button
+          positions, their radius and their opacity straight into the document, and React sees none
+          of it.
         </p>
         <p>
           The glass is not a live blur of the page behind it. It is a second copy of the same
@@ -116,8 +132,9 @@ export default function Notas() {
           is also what fuses the shapes while they are close.
         </p>
         <p>
-          Measured in Chrome with the processor slowed four times and two copies of the piece on the
-          page: 62 frames, median 16.7 ms, none over 20.
+          Measured in Chrome with the processor slowed twenty times and eight copies of the piece on
+          the page: scrolling drops 1 frame in 59, and one copy opening while the other seven rest
+          drops 2 in 54.
         </p>
       </Seccion>
 

@@ -1876,15 +1876,55 @@ siendo las que había.
 
 **Verificado contra la referencia con la pieza corriendo.** Se muestreó
 cuadro a cuadro el borde derecho del conjunto y se comparó contra la
-misma traza del video: **2.35 pt de error cuadrático medio y 10.7 de
-máximo sobre el primer segundo**, descontando 7 ms de latencia del
-puntero (5.20 sin descontarla). El máximo cae en el mínimo de la curva,
-que es donde la medición del video es menos confiable porque ahí el goo
-ensancha la silueta.
+misma traza del video: **4.95 pt de error cuadrático medio y 18.7 de
+máximo sobre el primer segundo**, sin latencia que descontar. El máximo
+cae en el mínimo de la curva, que es donde la medición del video es
+menos confiable porque ahí el goo ensancha la silueta.
+
+**Corrección del 2026-09-09.** Este párrafo decía 2.35 pt. La sonda
+modelaba el borde del botón en r = 19.58 —el radio compensado que tenía
+el goo— cuando lo dibujado mide 19; con las formas nítidas encima el
+modelo y lo dibujado coinciden y el número honesto es 4.95. Lo que se
+mueve no cambió: cambió la sonda.
 
 **Cuadros:** 62 en un segundo, mediana 16.7 ms, ninguno arriba de 20,
 con el procesador cuatro veces más lento y dos copias de la pieza en la
 página (Chrome, 2026-09-09).
+
+**La salida no es la entrada al revés** (2026-09-09, Vito: "la salida
+sobre todo, no me convence"). Posando el cierre cuadro a cuadro en siete
+instancias a la vez se ven las tres fallas, y ninguna se ve razonándola:
+los botones se tocan cuando el paso baja de 38 —el diámetro—, a los
+~55 ms, y con el tramo de 300 ms los iconos todavía valían **0.28 a los
+120**, o sea cuatro glifos apilados encima del campo; el campo se pasaba
+**14 px** de su largo de reposo a los 300 ms, un rebote que está medido
+pero en la CONTRACCIÓN de la apertura y que al cerrar no tiene causa; y
+duraba lo mismo que la entrada, contra la regla de que la salida va un
+cuarto más corta. Ahora el cierre tiene su propio juego: campo 280 ms
+sin rebote, abanico 400 con 0.1, iconos 110. Termina en ~300 ms. **La
+entrada no se tocó**: sigue siendo la medida.
+
+**El press ahora presiona.** Escalaba sólo el `<svg>` a 0.94 y se leía
+"se achicó el ícono". Ahora achica el **círculo de la máscara** en el
+mismo lazo de cuadro, con un resorte propio por botón, así que se hunde
+el vidrio entero; y a 0.96, que abajo de 0.95 se ve exagerado. Verificado
+leyendo el atributo: el radio va de 19 a 18.24 y vuelve.
+
+**Los cuadros, medidos con el peor caso que puede pasar de verdad.** En
+Chrome, con el procesador **veinte veces** más lento y **ocho copias** de
+la pieza en la página: scrolleando se pierde 1 de 59, y con una
+abriéndose y las otras siete en reposo se pierden 2 de 54. A 4× no se
+pierde ninguno. Las ocho animando a la vez sí caen a 30 cuadros, y no
+puede pasar: hay un solo puntero. Lo que hace que las que están quietas
+no cuesten nada es que el lazo **no pide cuadro en reposo**.
+
+**Y tres detalles que sólo aparecen midiendo.** La opacidad de los
+iconos iba en una variable CSS del padre, que obliga a recalcular el
+estilo de todo el subárbol por cuadro: ahora son cuatro escrituras
+directas. El `:hover` del realce no estaba detrás de
+`(hover: hover) and (pointer: fine)`, así que un dedo lo dejaba pegado
+al tocar. Y con movimiento reducido las transiciones de CSS seguían
+corriendo.
 
 **Los baches del camino A, que era la primera vez.** El alto pide `100%`
 Y `min-height: inherit`: en la card lo pone un min-height heredado y el
