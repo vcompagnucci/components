@@ -80,7 +80,7 @@ export const COLOR = {
   tintaNegra: '#000000',
 
   /* RUNTIME · el pill terminado: 254 en el centro. Con el rim verde del
-     blob asomando al 25 % arriba (ver `VELO_BLANCO`). */
+     blob asomando al 25 % arriba (ver `COMMIT.veloBlanco`). */
   committed: '#FFFFFF',
   /* Los chips del selector (andamiaje): blanco al 6 % y al 18 % sobre el
      fondo oscuro. SIN RECIBO: no son de la pieza. */

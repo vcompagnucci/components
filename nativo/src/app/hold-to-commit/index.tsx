@@ -250,7 +250,8 @@ export default function HoldToCommit() {
  *   anulado (verificado en −0.06).
  *
  *   Hubo un rato en que las dos versiones convivían detrás de un chip
- *   (`acabado.ts`, valores `referencia` y `revisado`). El chip se sacó
+ *   (el archivo acabado.ts, con los valores referencia y revisado). El
+ *   chip se sacó
  *   cuando la exploración terminó y el archivo entero se borró después:
  *   una perilla con una sola posición no es una perilla, y el registro
  *   de lo que hace el clip no vive en una rama muerta del código sino en

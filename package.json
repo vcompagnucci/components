@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "rutas": "node scripts/rutas.mjs",
+    "referencias": "node scripts/referencias.mjs",
     "pieza:video": "node scripts/pieza-video.mjs",
     "prebuild": "node scripts/rutas.mjs"
   },

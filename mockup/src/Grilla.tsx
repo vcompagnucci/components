@@ -11,9 +11,10 @@ import { SOMBRAS, SOMBRAS_SIMETRICAS, type Variante } from './sombras'
 const TILE = 1080
 const COLUMNAS = 4
 
-/* Vive en `Grilla.tsx` y no en `Sombras.tsx`: en un disco que no
-   distingue mayúsculas, `./Sombras` resolvía a `sombras.ts` (las
-   variantes) y la composición recibía `undefined`. */
+/* Este archivo se llama `Grilla.tsx` y no Sombras.tsx, que sería el
+   nombre obvio: en un disco que no distingue mayúsculas, `./Sombras`
+   resolvía a `sombras.ts` (las variantes) y la composición recibía
+   `undefined`. */
 type Celda = { nombre: string; nota: string; props: Partial<typeof PARAMETROS> }
 
 export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas' | 'fondos' }> = ({ conjunto = 'referencias' }) => {
