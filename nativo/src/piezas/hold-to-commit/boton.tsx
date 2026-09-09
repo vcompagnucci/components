@@ -19,7 +19,6 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets'
 import { Chispas } from './chispas'
 import { Etiqueta, HOLD as L_HOLD, KEEP as L_KEEP, LISTO as L_LISTO, type Tinta } from './etiqueta'
 import { alCompletar, DETENTES, tic } from './haptica'
-import { TRATAMIENTOS, type Acabado } from './acabado'
 import type { Material } from './material'
 import { CLARO, COLOR, COMMIT, CRUCE, DERRAME, FRENTE, frenteEn, HOLD, LABEL, PARTICULAS, PILL, PRESS, REINICIO, VELO } from './medidas'
 import { marcarJS, marcarUI } from './medidor'
@@ -252,12 +251,9 @@ type Props = {
       después de soltar; `parcar=tilde=0.5`, "✓ Order Placed" a mitad de
       su presencia. Reproducen las curvas de la receta `clip`. */
   sonda?: string
-  /** el acabado: 'referencia' al clip, o 'revisado' según las guías de interfaz (ver `acabado.ts`) */
-  acabado?: Acabado
 }
 
-export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'opaco', esquema = 'dark', acabado = 'referencia' }: Props) {
-  const T = TRATAMIENTOS[acabado]
+export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'opaco', esquema = 'dark' }: Props) {
   const reducido = useReducedMotion()
   /* El label de reposo es blanco sobre el pill opaco (RUNTIME, moda 255)
      en cualquier modo: el pill es oscuro siempre. Sobre vidrio sigue al
@@ -716,7 +712,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
           /* La sombra va ACÁ, en la vista de afuera: la cápsula recorta
              con `overflow: hidden` y una sombra dibujada adentro no
              saldría. */
-          style={[css.pill, T.sombra && css.sombra, estiloEscala]}
+          style={[css.pill, css.sombra, estiloEscala]}
         >
           {/* El derrame: la luz que se escapa por DEBAJO del pill en la
               pantalla de Opal, una franja que asoma 18 pt con su sombra
@@ -747,12 +743,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
                 completar, el blanco las tapa. */}
             {!reducido && <Chispas ancho={ancho} progreso={progreso} blob={blob} />}
             <Animated.View style={[css.lleno, css.blanco, estiloBlanco]} />
-            {/* EL ANILLO SÓLO EN EL ACABADO `referencia`: es lo medido
-                del clip, y en `revisado` lo reemplaza la sombra (el
-                recibo, medido, está en `acabado.ts`). */}
-            {material === 'opaco' && T.anillo && (
-              <View pointerEvents="none" style={[css.lleno, css.anillo, claro && css.anilloClaro]} />
-            )}
           </Capsula>
           <Etiqueta
             tinta={tinta}
@@ -761,7 +751,6 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
             sinBlur={reducido}
             escalaEntrada={R.escalaEntrada}
             tildeContextual={R.tilde === 'contextual'}
-            correccionOptica={T.correccionOptica}
           />
         </Animated.View>
       </GestureDetector>
@@ -804,7 +793,6 @@ const css = StyleSheet.create({
   relleno: { position: 'absolute', top: 0, left: 0, height: PILL.alto, flexDirection: 'row' },
   velo: { position: 'absolute', top: 0, left: 0, width: VELO_ANCHO, height: PILL.alto },
   blanco: { backgroundColor: COLOR.committed },
-  anillo: { borderRadius: PILL.alto / 2, borderWidth: PILL.anillo, borderColor: COLOR.anillo },
   /* SUPUESTO · no está medido en ninguna referencia: es la receta de
      better-ui ("layered transparent box-shadow values"), dos capas, una
      de contacto y una de ambiente. Sobre el fondo negro del modo oscuro
@@ -819,7 +807,6 @@ const css = StyleSheet.create({
     borderRadius: PILL.alto / 2,
     boxShadow: '0 1px 2px rgba(0,0,0,0.14), 0 6px 16px rgba(0,0,0,0.18)',
   },
-  anilloClaro: { borderColor: CLARO.anillo },
   derrame: {
     position: 'absolute',
     left: '50%',

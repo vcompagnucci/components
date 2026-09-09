@@ -68,7 +68,8 @@ import { Seccion } from '../notas'
      · `better-ui`: interrumpible (volver a apretar durante la retirada
        retoma desde donde está, `boton.tsx:apretar`); alineación óptica
        ("the checkmark and the words are centered by eye, not by box",
-       la corrección medida de −6.6 pt en `acabado.ts`); y sombras para
+       la corrección medida de −6.6 pt, `LABEL.correccionOptica` en
+       `medidas.ts`); y sombras para
        elevación en vez de un borde que sólo daba profundidad, que es
        también lo que contesta la lente de crítica de `interface-craft`
        ("do outlines add structure or noise?").

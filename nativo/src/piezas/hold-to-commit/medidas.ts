@@ -36,10 +36,14 @@ export const COLOR = {
      llega: (30,30,30). */
   pill: '#1E1E1E',
 
-  /* RUNTIME · un anillo de ~1 pt más claro alrededor del pill: 48–54 de
-     luminancia sobre 30 de interior. Blanco al 10 % daba 60 en pantalla
-     (el anillo pisa el brillo, que ya tiñe el interior); al 8 % da 54. */
-  anillo: 'rgba(255,255,255,0.08)',
+  /* EL ANILLO NO SE DIBUJA, y por eso acá no hay constante. Se midió
+     (RUNTIME · un anillo de ~1 pt más claro alrededor del pill: 48–54 de
+     luminancia sobre 30 de interior; blanco al 8 % lo reproducía) y
+     después se midió otra vez, mejor: nuestro anillo se despegaba +54.5
+     de lo que tiene a 2 pt afuera y el de Opal +4, o sea que en el clip
+     el borde es una rampa y el nuestro era un contorno dibujado. Lo
+     reemplaza la sombra de `css.sombra` en `boton.tsx`. El recibo entero
+     está en el README, § Hold to commit. */
 
   /* RUNTIME · texto primario: moda 255. */
   texto: '#FFFFFF',
@@ -95,15 +99,17 @@ export const COLOR = {
        relleno blanco del hold contrasta igual. Lo que se va es lo
        pintado en su fondo: el brillo teal→verde de reposo, que sobre
        una pantalla blanca era el único color de la pantalla.
-     · el anillo pasa de blanco al 8 % a negro al 10 %: sobre el pill
-       oscuro no se ve (como antes) y sobre el pill blanco del commit
-       lo separa del fondo blanco.
+     · lo que separa al pill de la página en claro es la SOMBRA
+       (`css.sombra` en `boton.tsx`), no un anillo. Hubo uno —blanco al
+       8 % en oscuro, negro al 10 % en claro— y salió: ver el bloque del
+       anillo arriba, en COLOR. Que el pill blanco del commit no se
+       perdiera contra la página no se arregló en el botón sino
+       moviéndola a `systemGroupedBackground` (`fondo-accion.tsx`).
      · la ráfaga es del color del pill: puntos blancos sobre fondo
        blanco no existen.
      · los chips del selector: `systemFill` y `secondaryLabel` de iOS
        en claro. */
 export const CLARO = {
-  anillo: 'rgba(0,0,0,0.10)',
   particula: '#1E1E1E',
   chip: 'rgba(120,120,128,0.2)',
   chipActivo: 'rgba(120,120,128,0.4)',
@@ -444,7 +450,6 @@ export const PILL = {
      EXACTO en un círculo de radio = alto/2: es una cápsula circular, no
      continua. */
   alto: 52,
-  anillo: 1,
   /* DERIVADO · el borde inferior del pill queda 112 px = 41.4 pt arriba
      del borde de la pantalla, que se ubicó por la esquina del bisel
      (cae en y≈1465 del recorte con la esquina de 62 pt del 17 Pro Max).
@@ -466,6 +471,22 @@ export const LABEL = {
      de bearing: 12 − 1.7 − 1 ≈ 9. `media/generar.swift` usa el MISMO
      hueco para la copia borrosa. */
   tildeATexto: 9,
+  /* RUNTIME · CUÁNTO SE CORRE "✓ Order Placed" PARA QUE EL OJO LO VEA
+     CENTRADO, en pt. Con la fila centrada como caja, medido sobre el
+     cuadro del commit (tinta por columna sobre el pill blanco, Δ contra
+     el centro del pill): la caja cae en +0.83, pero el TEXTO queda en
+     +13.67 y el centroide de tinta en +6.60. La corrección es ese Δ del
+     centroide anulado, y con ella el centro de masa cae en el centro
+     (verificado: Δ −0.06). Se probó también centrar el texto (−13.7,
+     Δ 0.00) y se descartó: el tilde queda colgando al margen.
+
+     Lo pide better-ui ("when geometric centering looks off, align
+     optically; buttons with icons need a manual nudge"), y NO lo hace la
+     referencia: en el clip los mismos tres números dan +0.74 / +13.84 /
+     +8.35, o sea que Opal tampoco lo corrige y lo reprodujimos con 0.2
+     pt de diferencia. Sólo mueve al label que tiene tilde: los otros dos
+     no tienen ícono y ya están centrados. `optico.py`. */
+  correccionOptica: -6.6,
 } as const
 
 /* ═══ EL GESTO Y EL RELLENO — el corazón de la pieza ═══ */

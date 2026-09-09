@@ -9,7 +9,6 @@ import { FONDOS, type Fondo } from './fondo'
 import { FondoAccion, paleta } from './fondo-accion'
 import { FondoBloques } from './fondo-bloques'
 import { FondoOpal } from './fondo-opal'
-import { ACABADOS, type Acabado } from './acabado'
 import { MATERIALES, type Material } from './material'
 import { Medidor } from './medidor'
 import { CLARO, COLOR, PANTALLA, PILL, SECCION } from './medidas'
@@ -42,7 +41,6 @@ import { RECETAS, type Receta } from './receta'
 
 type Props = {
   sonda?: string
-  acabado: Acabado | 'elegir'
   fondo: Fondo | 'elegir'
   receta: Receta | 'elegir'
   material: Material | 'elegir'
@@ -56,18 +54,16 @@ type Props = {
    1 s de hold, la ráfaga, 5 s hasta el reinicio y el fundido. */
 const VENTANA_MEDIDOR = 9000
 
-export function Pantalla({ sonda, fondo: pedido, receta: pedida, material: pedidoMaterial, acabado: pedidoAcabado, carga, medir = false, receptor }: Props) {
+export function Pantalla({ sonda, fondo: pedido, receta: pedida, material: pedidoMaterial, carga, medir = false, receptor }: Props) {
   const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const sistema = useColorScheme()
   const [elegido, setElegido] = useState<Fondo>(pedido === 'elegir' ? FONDOS[0]! : pedido)
   const [elegida, setElegida] = useState<Receta>(pedida === 'elegir' ? RECETAS[0]! : pedida)
   const [elegidoMaterial, setElegidoMaterial] = useState<Material>(pedidoMaterial === 'elegir' ? MATERIALES[0]! : pedidoMaterial)
-  const [elegidoAcabado, setElegidoAcabado] = useState<Acabado>(pedidoAcabado === 'elegir' ? ACABADOS[0]! : pedidoAcabado)
   const fondo = pedido === 'elegir' ? elegido : pedido
   const receta = pedida === 'elegir' ? elegida : pedida
   const material = pedidoMaterial === 'elegir' ? elegidoMaterial : pedidoMaterial
-  const acabado = pedidoAcabado === 'elegir' ? elegidoAcabado : pedidoAcabado
   const esquema: Esquema = fondo === 'accion' && sistema === 'light' ? 'light' : 'dark'
   const anchoPill = width - 2 * PANTALLA.margenPill
   const pillArriba = insets.bottom + PILL.sobreSafeArea + PILL.alto
@@ -93,16 +89,15 @@ export function Pantalla({ sonda, fondo: pedido, receta: pedida, material: pedid
           fondo === 'accion' ? [css.flotante, { bottom: insets.bottom + PILL.sobreSafeArea }] : { marginBottom: fondo === 'centrado' ? 0 : insets.bottom + PILL.sobreSafeArea },
         ]}
       >
-        <BotonHold ancho={anchoPill} receta={receta} sonda={sonda} derrame={fondo === 'opal'} material={material} esquema={esquema} acabado={acabado} />
+        <BotonHold ancho={anchoPill} receta={receta} sonda={sonda} derrame={fondo === 'opal'} material={material} esquema={esquema} />
       </View>
       {fondo === 'centrado' && <View style={css.estirar} />}
 
-      {(pedido === 'elegir' || pedida === 'elegir' || pedidoMaterial === 'elegir' || pedidoAcabado === 'elegir') && (
+      {(pedido === 'elegir' || pedida === 'elegir' || pedidoMaterial === 'elegir') && (
         <View pointerEvents="box-none" style={[css.selector, { top: insets.top + 8 }]}>
           {pedido === 'elegir' && <Selector opciones={FONDOS} activa={fondo} elegir={setElegido} esquema={esquema} />}
           {pedida === 'elegir' && <Selector opciones={RECETAS} activa={receta} elegir={setElegida} esquema={esquema} />}
           {pedidoMaterial === 'elegir' && <Selector opciones={MATERIALES} activa={material} elegir={setElegidoMaterial} esquema={esquema} />}
-          {pedidoAcabado === 'elegir' && <Selector opciones={ACABADOS} activa={acabado} elegir={setElegidoAcabado} esquema={esquema} />}
         </View>
       )}
 
