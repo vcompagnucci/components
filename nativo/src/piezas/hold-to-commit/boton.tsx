@@ -19,6 +19,7 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets'
 import { Chispas } from './chispas'
 import { Etiqueta, HOLD as L_HOLD, KEEP as L_KEEP, LISTO as L_LISTO, type Tinta } from './etiqueta'
 import { alCompletar, DETENTES, tic } from './haptica'
+import { TRATAMIENTOS, type Acabado } from './acabado'
 import type { Material } from './material'
 import { CLARO, COLOR, COMMIT, CRUCE, DERRAME, FRENTE, frenteEn, HOLD, LABEL, PARTICULAS, PILL, PRESS, REINICIO, VELO } from './medidas'
 import { marcarJS, marcarUI } from './medidor'
@@ -38,7 +39,7 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
  * PRESS — el dedo baja
  *      0ms   pill scale 1 → .953, 250 ease-out              [.97, spring 150 rebote 0]
  *      0ms   relleno opacity 0 → 1, 330 ease-in-out
- *      0ms   frente translateX 3 % → 94 % del ancho, linear 1000: es el gesto
+ *      0ms   frente translateX 4.5 % → 95.5 % del ancho, linear 1000: es el gesto
  *      0ms   "Hold to Buy" sale 48 · "Keep Holding..." entra 360, blur-replace
  *    150ms   primer tic háptico (doce en total, cada vez más seguidos)
  *    550ms   label blanco → gris verdoso, por progreso, hasta 700
@@ -57,7 +58,7 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
  *      0ms   tilde pegado al texto                          [con sus capas: opacity 0 → 1, scale .25 → 1, blur 4 → 0, sobre la misma presencia y escalera]
  *     40ms   "Keep Holding..." sale 280
  *    210ms   "Order Placed" entra 450, lineal, scale .9 → 1
- *    250ms   frente 94 % → 101 %, 400 ease-out
+ *    250ms   frente 95.5 % → 101 %, 400 ease-out
  *   5000ms   REINICIO: velo y relleno opacity → 0, 400 ease-out · "Order Placed" sale 250
  *   5400ms   geometría al reposo, invisible · "Hold to Buy" entra 300
  * ───────────────────────────────────────────────────────────────── */
@@ -109,8 +110,9 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
               color del pill sobre el cuerpo, prendido junto con él
 
    `cuerpo` y `frente` viajan juntos en UN translateX: el borde
-   geométrico del relleno —donde el frente está al 50 %— va del 3 % al
-   94 % del ancho en el hold (`frenteEn`; el clip no llega a la punta
+   geométrico del relleno —donde el frente está al 50 %— va del 4.5 % al
+   95.5 % del ancho en el hold (`frenteEn`, o sea `arranque` .045 más
+   `recorrido` .91 de `medidas.ts`; el clip no llega a la punta
    derecha, el blanqueo la cubre). Además el frente se ensancha un 25 %
    a lo largo del hold y la punta izquierda se oscurece y se ensancha a
    medida que el frente se aleja: las dos cosas son un `scaleX` sobre la
@@ -250,9 +252,12 @@ type Props = {
       después de soltar; `parcar=tilde=0.5`, "✓ Order Placed" a mitad de
       su presencia. Reproducen las curvas de la receta `clip`. */
   sonda?: string
+  /** el acabado: 'referencia' al clip, o 'revisado' según las guías de interfaz (ver `acabado.ts`) */
+  acabado?: Acabado
 }
 
-export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'opaco', esquema = 'dark' }: Props) {
+export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'opaco', esquema = 'dark', acabado = 'referencia' }: Props) {
+  const T = TRATAMIENTOS[acabado]
   const reducido = useReducedMotion()
   /* El label de reposo es blanco sobre el pill opaco (RUNTIME, moda 255)
      en cualquier modo: el pill es oscuro siempre. Sobre vidrio sigue al
@@ -708,7 +713,10 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
           accessibilityRole="button"
           accessibilityLabel={LABEL.reposo}
           accessibilityHint={`Hold for ${HOLD.duracion === 1000 ? 'one second' : `${HOLD.duracion / 1000} seconds`} to place the order`}
-          style={[css.pill, estiloEscala]}
+          /* La sombra va ACÁ, en la vista de afuera: la cápsula recorta
+             con `overflow: hidden` y una sombra dibujada adentro no
+             saldría. */
+          style={[css.pill, T.sombra && css.sombra, estiloEscala]}
         >
           {/* El derrame: la luz que se escapa por DEBAJO del pill en la
               pantalla de Opal, una franja que asoma 18 pt con su sombra
@@ -739,7 +747,12 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
                 completar, el blanco las tapa. */}
             {!reducido && <Chispas ancho={ancho} progreso={progreso} blob={blob} />}
             <Animated.View style={[css.lleno, css.blanco, estiloBlanco]} />
-            {material === 'opaco' && <View pointerEvents="none" style={[css.lleno, css.anillo, claro && css.anilloClaro]} />}
+            {/* EL ANILLO SÓLO EN EL ACABADO `referencia`: es lo medido
+                del clip, y en `revisado` lo reemplaza la sombra (el
+                recibo, medido, está en `acabado.ts`). */}
+            {material === 'opaco' && T.anillo && (
+              <View pointerEvents="none" style={[css.lleno, css.anillo, claro && css.anilloClaro]} />
+            )}
           </Capsula>
           <Etiqueta
             tinta={tinta}
@@ -748,6 +761,7 @@ export function BotonHold({ ancho, receta, sonda, derrame = false, material = 'o
             sinBlur={reducido}
             escalaEntrada={R.escalaEntrada}
             tildeContextual={R.tilde === 'contextual'}
+            correccionOptica={T.correccionOptica}
           />
         </Animated.View>
       </GestureDetector>
@@ -791,6 +805,20 @@ const css = StyleSheet.create({
   velo: { position: 'absolute', top: 0, left: 0, width: VELO_ANCHO, height: PILL.alto },
   blanco: { backgroundColor: COLOR.committed },
   anillo: { borderRadius: PILL.alto / 2, borderWidth: PILL.anillo, borderColor: COLOR.anillo },
+  /* SUPUESTO · no está medido en ninguna referencia: es la receta de
+     better-ui ("layered transparent box-shadow values"), dos capas, una
+     de contacto y una de ambiente. Sobre el fondo negro del modo oscuro
+     no se ve, y está bien: ahí no hay profundidad que comunicar.
+
+     EL RADIO NO ES DECORACIÓN ACÁ. `boxShadow` sigue la forma de la
+     vista, y esta vista es un rectángulo: sin el radio, la sombra
+     dibujaba una CAJA con esquinas vivas alrededor de la cápsula
+     (Vito, 2026-09-08: "se nota todo el box del componente, muy feo").
+     Con el radio de la cápsula, la sombra la calca. */
+  sombra: {
+    borderRadius: PILL.alto / 2,
+    boxShadow: '0 1px 2px rgba(0,0,0,0.14), 0 6px 16px rgba(0,0,0,0.18)',
+  },
   anilloClaro: { borderColor: CLARO.anillo },
   derrame: {
     position: 'absolute',

@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from 'expo-router'
 
 import { FONDO, type Fondo } from '@/piezas/hold-to-commit/fondo'
+import { ACABADO, type Acabado } from '@/piezas/hold-to-commit/acabado'
 import { MATERIAL, type Material } from '@/piezas/hold-to-commit/material'
 import { Pantalla } from '@/piezas/hold-to-commit/pantalla'
 import { RECETA, type Receta } from '@/piezas/hold-to-commit/receta'
@@ -33,11 +34,12 @@ import { CARGA, MEDIR, RECEPTOR, SONDA } from '@/piezas/hold-to-commit/sonda'
    Cuando esté lista:  pnpm grabar hold-to-commit
    ═══════════════════════════════════════════════════════════════ */
 export default function HoldToCommit() {
-  const { parcar, fondo, receta, material, carga, medir } = useLocalSearchParams<{
+  const { parcar, fondo, receta, material, acabado, carga, medir } = useLocalSearchParams<{
     parcar?: string
     fondo?: Fondo
     receta?: Receta
     material?: Material
+    acabado?: Acabado
     carga?: Carga
     medir?: string
   }>()
@@ -47,6 +49,7 @@ export default function HoldToCommit() {
       fondo={fondo ?? FONDO}
       receta={receta ?? RECETA}
       material={material ?? MATERIAL}
+      acabado={acabado ?? ACABADO}
       carga={CARGA ?? carga}
       medir={MEDIR || medir === '1'}
       receptor={RECEPTOR}
@@ -239,4 +242,30 @@ export default function HoldToCommit() {
  *   `pesada`, ≤ 12 ms bajo `todo`. Sin módulo nativo no hay más que
  *   eso en Expo Go. Perillas: `CARGA`, `MEDIR`, `RECEPTOR` en
  *   `sonda.ts` (o `?carga=`, `?medir=1`).
+ *
+ * — El acabado del botón es `revisado` (`acabado.ts`), no la copia
+ *   literal del clip. Tres cosas cambian, y las tres tienen su medición
+ *   en la bitácora: el anillo de 1 pt sale y en su lugar va una sombra
+ *   de dos capas; "✓ Order Placed" se corre 6.6 pt a la izquierda; y en
+ *   claro la página es el gris agrupado de iOS y no blanco puro.
+ *   RUNTIME: el anillo se despegaba +54.5 de lo que tenía a 2 pt afuera
+ *   contra +4 del clip; el texto del label caía +13.67 pt a la derecha
+ *   del centro y el centroide +6.60, y la corrección es ese Δ anulado
+ *   (verificado en −0.06). `referencia` sigue disponible y es lo medido.
+ *
+ * — La sombra lleva `borderRadius` y no es decoración: `boxShadow` sigue
+ *   la forma de la VISTA, y sin el radio dibuja una caja de esquinas
+ *   vivas alrededor de la cápsula.
+ *
+ * — El botón llega a BLANCO PLENO en los dos temas, como la referencia.
+ *   Que en claro no se perdiera contra la página no se arregló
+ *   atenuando el relleno —se probó y se descartó— sino moviendo el
+ *   fondo. El protagonista no se ensucia para arreglar el escenario.
+ *
+ * — El fondo `accion` termina ARRIBA del botón: el `paddingBottom` acota
+ *   el viewport del `ScrollView`, no el contenido. Un `paddingBottom` en
+ *   el contenido sólo agrega aire al final y las filas se siguen
+ *   dibujando detrás del pill. Y el contenido termina antes de ese
+ *   borde: cortado al ras se lee como un error de layout.
+ *   RUNTIME: 742 pt de contenido contra un borde en 831.
  */

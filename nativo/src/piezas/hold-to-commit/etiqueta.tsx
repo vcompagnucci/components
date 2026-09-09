@@ -180,9 +180,11 @@ type Props = {
   escalaEntrada?: number
   /** Si el tilde entra con sus capas contextuales (better-ui) o pegado al texto (clip). */
   tildeContextual: boolean
+  /** La corrección óptica de "✓ Order Placed", en pt (ver `acabado.ts`). */
+  correccionOptica?: number
 }
 
-export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur, escalaEntrada = COMMIT.escalaEntrada, tildeContextual }: Props) {
+export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur, escalaEntrada = COMMIT.escalaEntrada, tildeContextual, correccionOptica = 0 }: Props) {
   const [pHold, pKeep, pListo] = presencia
   /* Sin blur si lo pide reduce motion, o si la plataforma no puede hacerlo. */
   const sinBlur = pedidoSinBlur || (!PNG && !BLUR_NATIVO)
@@ -216,7 +218,17 @@ export function Etiqueta({ tinta, colorReposo, presencia, sinBlur: pedidoSinBlur
   const listoEscala = useAnimatedStyle(() => {
     const q = pListo.get()
     const eo = 1 - (1 - q) * (1 - q)
-    return { transform: [{ scale: sinBlur ? 1 : escalaEntrada + (1 - escalaEntrada) * eo }] }
+    /* La corrección óptica va PRIMERO y en pt fijos: es una corrección de
+       posición, no parte del movimiento, así que no escala con la
+       entrada (translate antes que scale, que además es la regla del
+       taller para el orden del array). Con `correccionOptica` en 0 la
+       fila queda donde la deja el centrado geométrico. */
+    return {
+      transform: [
+        { translateX: correccionOptica * tipo },
+        { scale: sinBlur ? 1 : escalaEntrada + (1 - escalaEntrada) * eo },
+      ],
+    }
   })
   /* El tilde contextual, sobre la MISMA presencia y la MISMA escalera que
      el texto: su capa nítida lleva la opacidad del nítido del texto y su

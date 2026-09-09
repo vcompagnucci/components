@@ -57,8 +57,8 @@ import { useTick } from './carga'
    `ScrollView` a pantalla completa, más largo que la pantalla, con un
    `paddingBottom` del alto de la zona del botón para que la última fila
    pueda subir por encima de él. Lo de abajo del rango son SUPUESTOS que
-   llenan la lista: dos cabeceras con grillas y párrafos, y una lista de
-   filas con miniatura.
+   llenan la ficha: dos cabeceras con sus grillas y un párrafo. Terminan
+   ARRIBA del botón, no por debajo (ver el comentario del `ScrollView`).
 
    EL GRÁFICO SON SEGMENTOS: React Native no dibuja líneas y el taller no
    agrega Skia ni SVG (Expo Go). Una Catmull-Rom por ocho puntos de
@@ -80,8 +80,18 @@ export const PALETA: Record<'dark' | 'light', Paleta> = {
     hairline: 'rgba(84,84,88,0.6)',
   },
   light: {
-    /* SOURCE · `systemBackground` en claro: blanco. */
-    fondo: '#FFFFFF',
+    /* SOURCE · `systemGroupedBackground` en claro, (242,242,247), y NO
+       `systemBackground` (blanco puro), que es lo que había.
+       Vito, 2026-09-08: "no me gusta cómo resolviste lo del color, de
+       última cambiá un poco el color del fondo, ya que no es lo
+       principal acá". Tenía razón en las dos mitades. La primera
+       versión atenuaba el RELLENO del botón para que no desapareciera
+       contra una página blanca: ensuciaba al protagonista para arreglar
+       el escenario. Y el escenario acá es esqueleto, no es la pieza.
+       Es además el color que iOS usa justamente para esto: la página
+       sobre la que se apoyan superficies claras. El botón vuelve a
+       llegar a blanco pleno, como en la referencia. */
+    fondo: '#F2F2F7',
     /* SOURCE · `systemFill` en claro: (120,120,128) al 20 % = (228,228,230) sobre blanco (RUNTIME: igual). */
     barra: 'rgba(120,120,128,0.2)',
     /* SOURCE · `separator` en claro: (60,60,67) al 29 %. */
@@ -131,9 +141,6 @@ export const ACCION = {
   datos: { antes: 12, filas: 3, fila: 44, etiqueta: 58, valor: 46, alto: 12, columna: 28 },
   /* SUPUESTO · tres líneas de texto corrido, como fracción del ancho útil. */
   parrafo: [1, 0.94, 0.58],
-  /* SUPUESTO · filas con miniatura (56 pt, radio 12) y dos líneas de texto
-     (72 % y 46 % del ancho que queda), de 76 pt con hairline al margen. */
-  lista: { filas: 4, fila: 76, miniatura: 56, radio: 12, hueco: 14, lineas: [0.72, 0.46], entreLineas: 8, alto: 12 },
 } as const
 
 /* La curva del gráfico: ocho puntos de control (u = 0..1 a lo largo,
@@ -227,20 +234,6 @@ function Parrafo({ util }: { util: number }) {
     </View>
   ))
 }
-function Lista({ util, barra, hairline }: { util: number; barra: ColorValue; hairline: ColorValue }) {
-  return Array.from({ length: ACCION.lista.filas }, (_, f) => (
-    <View key={f} style={css.margen}>
-      <View style={[css.listaFila, { borderBottomColor: hairline }]}>
-        <View style={[css.miniatura, { backgroundColor: barra }]} />
-        <View style={{ gap: ACCION.lista.entreLineas }}>
-          {ACCION.lista.lineas.map((fraccion, i) => (
-            <Barra key={i} ancho={(util - ACCION.lista.miniatura - ACCION.lista.hueco) * fraccion} alto={ACCION.lista.alto} />
-          ))}
-        </View>
-      </View>
-    </View>
-  ))
-}
 
 export function FondoAccion({ paddingTop, paddingBottom, enVivo = false }: { paddingTop: number; paddingBottom: number; enVivo?: boolean }) {
   const { width } = useWindowDimensions()
@@ -248,9 +241,32 @@ export function FondoAccion({ paddingTop, paddingBottom, enVivo = false }: { pad
   const util = width - 2 * ACCION.margen
   const tick = useTick(enVivo ? 100 : 0)
   return (
+    /* EL FONDO TERMINA ARRIBA DEL BOTÓN, no por debajo. `paddingBottom`
+       estaba puesto en el contenido, que sólo agrega aire AL FINAL: con
+       la lista en el tope del scroll, las filas se seguían dibujando
+       detrás del pill, y la miniatura de una de ellas asomaba por abajo
+       pegada a su borde. Vito, 2026-09-08: "justo la parte de abajo del
+       botón coincide con algo de abajo, aparentando que es más grande el
+       botón". Acotando el VIEWPORT, la banda del botón queda vacía y el
+       pill se lee de su tamaño. Es además lo que ya hacía el fondo
+       `bloques`, con la misma distancia medida del clip entre la última
+       card y el pill (`SECCION.alPill`).
+
+       Y EL CONTENIDO TERMINA ANTES DE ESE BORDE, en vez de quedar
+       cortado por él. Un scroll cortado a media fila se lee como un
+       error de layout, no como una lista que sigue. Salieron la lista
+       con miniaturas y la última grilla con su cabecera: RUNTIME, el
+       contenido terminaba en 830.7 pt con el borde en 831, o sea
+       exactamente encima; sin ellas termina en 742 y sobran 89 pt. Son
+       bloques SUPUESTOS —la captura de referencia termina en el selector
+       de rango— así que sacarlos no pierde nada medido.
+
+       Queda un respiro grande entre el último párrafo y el pill, 121 pt.
+       Es a propósito: la alternativa medida era una fila cortada al ras
+       del borde, y una fila entera no entra. */
     <ScrollView
-      style={StyleSheet.absoluteFill}
-      contentContainerStyle={{ paddingTop: paddingTop + ACCION.arriba, paddingBottom }}
+      style={[StyleSheet.absoluteFill, { bottom: paddingBottom }]}
+      contentContainerStyle={{ paddingTop: paddingTop + ACCION.arriba }}
       contentInsetAdjustmentBehavior="never"
       showsVerticalScrollIndicator={false}
     >
@@ -284,15 +300,11 @@ export function FondoAccion({ paddingTop, paddingBottom, enVivo = false }: { pad
         )}
       </View>
 
-      {/* SUPUESTO: lo que sigue llena la lista hasta pasar por debajo del botón. */}
+      {/* SUPUESTO: lo que sigue llena la ficha hasta el borde de arriba del botón. */}
       <Cabecera />
       <Grilla tick={tick} hairline={p.hairline} />
       <Cabecera />
       <Parrafo util={util} />
-      <Cabecera />
-      <Lista util={util} barra={p.barra} hairline={p.hairline} />
-      <Cabecera />
-      <Grilla tick={tick} hairline={p.hairline} />
     </ScrollView>
   )
 }
@@ -332,6 +344,4 @@ const css = StyleSheet.create({
   },
   datosFila: { height: ACCION.datos.fila, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth },
   celda: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  listaFila: { height: ACCION.lista.fila, flexDirection: 'row', alignItems: 'center', gap: ACCION.lista.hueco, borderBottomWidth: StyleSheet.hairlineWidth },
-  miniatura: { width: ACCION.lista.miniatura, height: ACCION.lista.miniatura, borderRadius: ACCION.lista.radio },
 })

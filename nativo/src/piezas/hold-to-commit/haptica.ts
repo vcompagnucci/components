@@ -33,9 +33,16 @@ export const alCompletar = () => Haptics.notificationAsync(Haptics.NotificationF
 
 /* LOS DETENTES, en progreso 0..1 (o sea en fracción de `HOLD.duracion`).
    Con el hold de 2 s los intervalos iban 300, 300, 240, 220, 180, 160,
-   140, 120, 100, 80, 70, 60 ms; con 1 s, la mitad de eso: la aceleración es lo que cuenta "falta poco" — con un solo tipo
-   de tic, la cadencia es la única perilla que queda. El último cae
-   justo antes del salto a negro del label (0.965). SIN RECIBO. */
+   140, 120, 100, 80, 70, 60 ms; con 1 s, la mitad de eso. La
+   aceleración es lo que cuenta "falta poco": con un solo tipo de tic,
+   la cadencia es la única perilla que queda.
+
+   DÓNDE CAEN LOS DOS ÚLTIMOS. El anteúltimo (0.955) cae justo antes del
+   salto a negro del label, que arranca en `HOLD.negroEn` 0.965 y
+   termina en 0.977 (`boton.tsx`, sobre el MISMO `progreso` lineal). El
+   último (0.985) cae en el último cuadro del hold, pegado al patrón de
+   éxito del commit. Acá decía que el último caía antes del salto a
+   negro: el que cae ahí es el anteúltimo. SIN RECIBO. */
 export const DETENTES = [0.15, 0.3, 0.42, 0.53, 0.62, 0.7, 0.77, 0.83, 0.88, 0.92, 0.955, 0.985] as const
 
 /* Un detente: `selectionAsync`, el de "a value ticks past a step". */
