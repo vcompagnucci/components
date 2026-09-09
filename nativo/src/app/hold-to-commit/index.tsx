@@ -184,14 +184,14 @@ export default function HoldToCommit() {
  *   el pill medido; `vidrio` es Liquid Glass nativo, `regular` sin tinte
  *   e interactivo, como CONTENEDOR del pill (VIDRIO.md: no se recorta ni
  *   va bajo opacidad animada; el hijo se recorta a sí mismo), sin
- *   brillo, velo, anillo ni escala del press. El fondo `accion` scrollea
+ *   brillo, velo ni escala del press. El fondo `accion` scrollea
  *   por debajo del botón, que flota: sin contenido detrás, el vidrio no
  *   se lee.
  *
  * — El ESQUEMA lo decide la pantalla (`esquema` del botón): sólo con
  *   `accion` sigue al sistema; los fondos de Opal son oscuros siempre.
- *   En claro el pill opaco sigue oscuro pero sin brillo ni velo, con
- *   anillo negro al 10 % y ráfaga del color del pill; los chips usan
+ *   En claro el pill opaco sigue oscuro pero sin brillo ni velo, y la
+ *   ráfaga es del color del pill; los chips usan
  *   los grises de sistema (`CLARO`, SUPUESTO). RUNTIME:
  *   `cmp/claro-tablero.png`.
  *

@@ -226,7 +226,7 @@ export const TEXTO = {
      la primera talla de accesibilidad, el multiplicador que RN le asigna
      en `RCTAccessibilityManager.mm:267`— da 36.3 pt y quedan 7.9 pt de
      aire arriba y abajo; a ×2.143 (AccessibilityLarge) quedan 4.2 y el
-     texto toca el anillo. "Keep Holding..." a ×1.786 son 212 pt de
+     texto toca el borde de la cápsula. "Keep Holding..." a ×1.786 son 212 pt de
      tinta en un pill de 382. Pedido del 2026-09-04 (animate-expo § 9:
      el texto escala). */
   escalaMaxima: 1.786,

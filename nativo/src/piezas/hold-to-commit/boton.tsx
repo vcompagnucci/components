@@ -134,8 +134,9 @@ import { ADELANTO_MS, prepararSonido, sonar } from './sonido'
 
    EN MODO CLARO (`esquema`, lo decide la pantalla; recibo en `CLARO`)
    el pill sigue oscuro pero sin nada pintado en su fondo: ni brillo de
-   reposo ni punta velada; el anillo es negro al 10 % y la ráfaga, del
-   color del pill. Pedido del 2026-09-07, mirando el simulador en claro.
+   reposo ni punta velada, y la ráfaga es del color del pill. Pedido del
+   2026-09-07, mirando el simulador en claro. Lo que lo separa de la
+   página es la sombra de `css.sombra`, en los dos temas.
 
    RENDIMIENTO (2026-09-07, medido con `medidor.tsx` bajo `carga.tsx`):
    nada de lo que se ve depende del hilo de JS. El gesto, el relleno,
@@ -177,8 +178,8 @@ const ETAPA = { reposo: 0, hold: 1, sonando: 2, commit: 3, reinicio: 4 } as cons
      3. Contenido que pasa por DEBAJO: el vidrio sólo se lee cuando hay
         algo detrás que refractar. El fondo `accion` scrollea debajo del
         botón, que flota (ver pantalla.tsx).
-     4. Nada encima que no sea contenido: el brillo de reposo de Opal, la
-        punta velada y el anillo son del pill opaco y acá no van. El
+     4. Nada encima que no sea contenido: el brillo de reposo de Opal y
+        la punta velada son del pill opaco y acá no van. El
         relleno blanco del hold barre encima como siempre: es el gesto.
      5. El label sigue al esquema como todo control de vidrio: negro en
         claro, blanco en oscuro.
