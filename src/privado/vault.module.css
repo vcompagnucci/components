@@ -171,6 +171,16 @@
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
 }
+/* PROBADO Y CONFIRMADO (2026-09-03): sólo contraste, sin segunda señal.
+   Se puso en la página real con `prototype` contra cuatro alternativas
+   —peso 600 en el activo (HIG sidebar), subrayado de 1px (Vercel/Stripe),
+   pastilla (Apple.com/Dribbble) y la lógica invertida— y Vito eligió
+   ésta. Queda medido lo que cuesta, para quien vuelva: en claro el
+   inactivo (negro al 34.4%) está a 2.39:1 del fondo, bajo el 4.5:1 de
+   texto; en oscuro los dos estados están a 2.62:1 entre sí, bajo el 3:1
+   que WCAG pide para distinguir estados sin otra señal. Es la misma
+   apuesta que Linear (nav y filtros, sólo contraste) y se acepta a
+   sabiendas. */
 .filtro[data-activo] {
   color: var(--activo-c);
 }
@@ -388,14 +398,40 @@
    alrededor; y el diálogo de subir muestra Native y Web iguales, porque
    ya no hay nada visual que los distinga. Los valores están abajo, con
    su recibo. */
+/* ─── LA CAJA MIDE LO QUE SE PINTA, y por eso puede llevar radio ───
+   Antes la caja era fija —66.6667% × 84.8485%— y `contain` centraba la
+   imagen adentro: para un archivo 1:1 la caja medía 295×360 y la bandeja
+   pintada 295×295, con 32px de caja vacía arriba y abajo. Un
+   `border-radius` ahí redondea la CAJA, o sea nada visible.
+
+   Ahora width/height van en `auto` y los dos números pasan a ser TOPES.
+   Un elemento reemplazado con tamaño auto usa su tamaño intrínseco —eso
+   es lo que falló en el intento anotado más abajo, que no tenía topes—
+   y con max-width/max-height lo escala proporcional hasta que entra. La
+   caja queda EXACTAMENTE del tamaño de la imagen, `inset: 0` + `margin:
+   auto` la centra, y el centro es el mismo de antes: 16.6667 + 33.3333
+   = 50 y 7.5758 + 42.4242 = 50. Medido en runtime: ninguna bandeja se
+   movió un décimo de píxel.
+
+   EL RADIO ES EL DEL SISTEMA, 8, y es una decisión de /better-ui, no un
+   gusto: "outer = inner + padding" vale para capas pegadas; pasados los
+   24px de aire las dos son superficies independientes y cada una toma su
+   token. Acá el aire es de 64.9 a 73.8, así que la bandeja es una
+   superficie aparte, y la única que hay es --card-radio. Es exactamente
+   lo que ya hace la grabación en la card del producto (app.module.css,
+   .demo): una grabación cruda tiene esquinas vivas y dentro de una
+   superficie ya redondeada se lee como sin terminar. */
 .media > * {
   display: block;
   position: absolute;
-  top: 7.5758%; /* 40 / 528, benji */
-  left: 16.6667%; /* (100 − 66.6667) / 2 */
-  width: 66.6667%;
-  height: 84.8485%; /* 448 / 528, benji */
+  inset: 0;
+  margin: auto;
+  width: auto;
+  height: auto;
+  max-width: 66.6667%;
+  max-height: 84.8485%; /* 448 / 528, benji */
   object-fit: contain;
+  border-radius: var(--card-radio);
 }
 /* EL TOPE DE 228 DEL TELÉFONO SE FUE. Existía para que un clip vertical
    no se comiera la pantalla cuando la caja medía 574 de alto. Ahora la
