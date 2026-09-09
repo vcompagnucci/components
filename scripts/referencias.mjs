@@ -28,9 +28,14 @@
  *    preguntarle a git nombre por nombre con `-G` tardaba 31 s CADA UNO.
  * 2. EL PARECIDO. Un nombre que nunca existió pero que, bajado a
  *    minúsculas y sin guiones bajos, coincide con uno que sí existe hoy,
- *    es una referencia mal escrita y no algo ajeno: `VELO_BLANCO` por
- *    `COMMIT.veloBlanco`. Sin esta regla, un nombre que SIEMPRE estuvo
- *    mal no lo encuentra nadie.
+ *    es una referencia mal escrita y no algo ajeno: decía VELO_BLANCO
+ *    donde el nombre vivo es `COMMIT.veloBlanco`. Sin esta regla, un
+ *    nombre que SIEMPRE estuvo mal no lo encuentra nadie.
+ *
+ *    (Y ese ejemplo va sin backticks a propósito: la convención que este
+ *    script impone es que un backtick PROMETE que la cosa existe. Nombrar
+ *    algo muerto se hace en prosa. Sin eso, el script se marcaba a sí
+ *    mismo por citar el error que encontró.)
  *
  * ─── QUÉ ATRAPA, PROBADO ───
  * Con tres referencias muertas inyectadas a propósito encuentra dos:
