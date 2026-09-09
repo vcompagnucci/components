@@ -310,11 +310,11 @@ export function App() {
      que las distingue. El resto —la lista y la ruta que no existe— sigue
      diciendo el nombre del producto, igual que antes.
 
-     Y va el nombre COMPLETO, no el "Exhibition" del H1: el título del
-     documento se lee fuera de la página —en la pestaña, en el historial,
-     en un favorito— y ahí no hay contexto que diga de qué es la
-     exhibición. Arriba del masthead sí lo hay, y por eso ahí alcanza con
-     una palabra. */
+     Y es el MISMO string que el H1 del masthead, entero: el nombre no se
+     acorta en ningún lado. Se probó dejar "Exhibition" acá arriba y el
+     completo en el título, apoyándose en que el subtítulo dice de qué es
+     la exhibición; se descartó, porque el nombre de un producto que
+     cambia de largo según dónde se lee es dos nombres. */
   useEffect(() => {
     if (vista.tipo === 'pieza') document.title = `${vista.piece.name} — Interface exhibition`
     /* El DEV delante pliega el literal 'privado' fuera del bundle — ver

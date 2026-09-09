@@ -148,7 +148,7 @@ Tres es donde está el consenso de sistemas de diseño
 
 **Dos costos aceptados, escritos y no escondidos:**
 
-1. `--type-h1-fw` y `--type-h3-fw` **empatan en 500**. A "Exhibition" y al
+1. `--type-h1-fw` y `--type-h3-fw` **empatan en 500**. A "Interface exhibition" y al
    nombre de pieza los distingue la posición y el contexto, no el peso.
 2. La palabra **"Web" aparece dos veces**: 600 en el separador y 460 al
    40% en el índice. Estuvo abierto y se cerró aceptándolo. No son dos
