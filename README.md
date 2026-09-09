@@ -1,4 +1,4 @@
-# Exposición
+# Interface exhibition — bitácora
 
 Playground/exposición de componentes estilo design-engineer: piezas web,
 web-mobile y nativas, cada una perteneciente a UNA plataforma, mostradas

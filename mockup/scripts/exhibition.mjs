@@ -1,4 +1,4 @@
-/* EL RENDER PARA LA LIBRARY: un solo video, transparente y sin sombra,
+/* EL RENDER PARA LA EXHIBITION: un solo video, transparente y sin sombra,
    en los dos formatos que hacen falta para que el alfa llegue a todos
    los navegadores.
 
