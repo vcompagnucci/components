@@ -35,7 +35,7 @@ import {
    etiqueta es lo que se lee. Separados porque no tienen por qué
    coincidir, y de hecho no coinciden: el filtro "all" no es una
    carpeta. */
-/* "App" Y NO "Native". El corte es el mismo que el de la library —¿corre
+/* "App" Y NO "Native". El corte es el mismo que el de la exhibition —¿corre
    en un navegador o en una app instalada?— y ahí ya se llama App, con su
    razón escrita en pieces.ts: bajo App conviven SwiftUI y Expo. "Native"
    es la palabra del developer; "App" la del que mira. El VALOR sigue
