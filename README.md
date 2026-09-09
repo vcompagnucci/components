@@ -1807,3 +1807,88 @@ de tab instantáneo bajo reduced motion es el comportamiento correcto, no
 una deuda. El razonamiento entero quedó arriba de `CFG`, con la salida
 por si algún día se revisa: partir `Tramo` en dos, y medirlo en el
 teléfono con el ajuste prendido, no razonarlo.
+
+## Buttons separate — el Spotlight de macOS Tahoe, la primera pieza Web
+
+**El 2026-09-09** entró la primera pieza que corre viva en el navegador:
+`src/piezas/buttons-separate.tsx`, sin `desc` y sin video. La referencia
+es `VAULT_DIR/web/Buttons separate.mp4` —el Spotlight de **macOS 26
+Tahoe**, grabación de pantalla propia— y se midió sobre el original de
+3420×2214 a 60 fps, leyendo píxeles crudos (ffmpeg → rgb24 → Python).
+Los scripts y la tabla entera están en `.context/buttons-separate/`, que
+no viaja; las conclusiones están acá y arriba del archivo.
+
+**La escala de la referencia: 2 px físicos por punto.** El panel lógico
+es 1710×1107. Verificado con la barra de menú: el ascendente del tipo de
+13 pt mide 20 px, y para SF Pro eso son 2.05 px/pt. Sin este número
+ninguna de las medidas de abajo quiere decir nada.
+
+**Y la grabación es VFR.** El contenedor declara 60 fps y trae 535
+cuadros para 9.61 s; 22 pasos son de 33 ms y uno de 350. Decodificada a
+60 constantes da 577 y el índice ES el tiempo. La trampa: el `select` de
+ffmpeg cuenta cuadros del ORIGEN, así que un `eq(n,120)` no cae en el
+mismo lugar que el índice 120 del array — hay que transcodificar a CFR
+antes de sacar tiras.
+
+| Decisión | Valor | Fuente |
+| --- | --- | --- |
+| **Fundido es UNA píldora**, no cuatro círculos pegados | una cápsula de 640 × 56 | RUNTIME: el perfil de altura da 56.0 constante de x=880 a x=1140, sin una sola hondonada entre botones. Con círculos fundidos por un goo habría festón |
+| **El primer botón no se mueve** | los cuatro salen en abanico desde la primera ranura; lo que se abre es el PASO, de 0 a 64 | RUNTIME: el borde izquierdo del primero está en 929 desde el cuadro 92 y sigue ahí en reposo. Y con los cuatro quietos en su ranura el extremo derecho no podría bajar de 1175, y baja hasta 1010 |
+| **Son dos resortes** | campo 365 ms / rebote 0.38; abanico 532 ms / rebote 0.32, 42 ms más tarde | RUNTIME: mínimos cuadrados sobre la respuesta al escalón de un oscilador de segundo orden, 1.57 y 1.42 pt de error en 64 cuadros. Los dos ciclos limpios del video dan lo mismo por separado |
+| ↳ 365 y no 395 | el ajuste con desfase libre da 395 ms y 0.58 pt | ese ajuste se come un t0 de −8 ms: el cuadro 80 es el primero donde el borde YA se movió, no el instante en que arrancó. En la pieza el resorte arranca cuando entra el puntero, así que hay que ajustar con ese modelo puesto |
+| La geometría | campo 384 × 56 (radio 28), botón 54, hueco 10, paso 64, conjunto 640 × 56 | RUNTIME con subpíxel sobre el cuadro 150: el campo mide 55.93 y los botones 53.95, los cinco centrados en y = 292.76 |
+| ↳ en pantalla, por 5/7 | alto 40, campo 276, botón 38, hueco 7, paso 45, total 456 | 640 crudos no entran en la card de 544, y encoger sólo a lo ancho rompe la proporción que hace que esto se lea como un control |
+| **El goo** | desenfoque σ = 4.7 px y umbral en alfa 0.5 | RUNTIME: dos centros a 61 pt de distancia dan un cuello de 25 pt de alto, y con el modelo de desenfoque + umbral —cuello = 2√((r+0.674σ)² − d²/4)— eso es σ ≈ 6.6 pt de la referencia. El puente se corta en un hueco de ~9 y en reposo el hueco es 10 |
+| ↳ por qué no un filete de radio constante | para dar ese cuello necesita k ≈ 9, y con ese k el puente aguantaría hasta un hueco de 16 | la referencia lo corta en 9 |
+| El material | relleno que sube el fondo ~120 niveles, anillo de **1 pt** a +40 y sombra de contacto de ~3 pt, simétrica | RUNTIME, muestras radiales sobre el cuarto botón: relleno rgb(178,197,230) casi constante, borde rgb(218,241,255) igual en las cuatro orientaciones, y afuera el fondo por 0.62 a 0.9 |
+| ↳ el desenfoque es GRANDE | sobre la nube clara el vidrio da casi neutro | rgb(186,152,137) detrás → rgb(219,217,228) delante: el vidrio no muestra lo que tiene justo atrás sino el promedio de un vecindario del ancho de la nube |
+| Una tinta sola para texto, lupa y glifos | rgb(46,68,97) | RUNTIME: placeholder (47,69,99), lupa (48,69,97), glifo (44,65,95). No hay un gris de marcador aparte |
+| El disparo es el **hover** | pedido del usuario, 2026-09-09 | y la grabación no dice otra cosa: el puntero nunca sube a la barra —se para 200 pt abajo— y las tres esperas entre abrir y separar son 733, 217 y 933 ms. No hay retardo fijo que copiar |
+
+**El vidrio no es un `backdrop-filter`.** Es una segunda copia del mismo
+fondo, desenfocada una vez, con la máscara del goo encima. Tres razones:
+el desenfoque de la referencia es enorme y `backdrop-filter` con máscara
+SVG no está garantizado en todos los motores; el fondo acá es nuestro,
+así que copiarlo es exacto; y sale más barato, porque la capa
+desenfocada no cambia nunca y lo único que se mueve es la máscara. Las
+dos copias se dibujan sobre la MISMA caja agrandada 96 px por lado: un
+desenfoque se come el borde de su propia capa, y si terminaran donde
+termina la escena, la mitad izquierda del vidrio mostraría el
+desvanecido en vez del fondo.
+
+**Un `<mask>` y un `<filter>` con el mismo id son un id duplicado.**
+Costó una hora: `url(#halo-…)` resolvía al filtro y la capa entera salía
+en blanco, sin un error en ningún lado. Las máscaras llevan prefijo
+`mascara-`. Y una máscara referenciada desde CSS necesita `x`, `y`,
+`width` y `height` explícitos: los valores por defecto se resuelven
+contra el `<svg>` de las definiciones, que mide cero, y la máscara sale
+vacía.
+
+**`motion` se fue del bundle.** La pieza usaba `useSpring` y traía 14 kB
+comprimidos de librería para mover dos números; en producción era su
+único lector (el otro está en `src/privado/`, que no llega al build). En
+su lugar hay un integrador de Euler semi-implícito con sub-paso fijo de
+1/240 s, 40 líneas, con el tope de 50 ms para cuando la pestaña vuelve
+de segundo plano. El chunk pasó de 36.8 kB a 13.6 (13.95 → 5.26
+comprimidos), y la interrupción sale gratis: entrar y salir rápido con
+el puntero sólo cambia el destino, y la posición y la velocidad siguen
+siendo las que había.
+
+**Verificado contra la referencia con la pieza corriendo.** Se muestreó
+cuadro a cuadro el borde derecho del conjunto y se comparó contra la
+misma traza del video: **2.35 pt de error cuadrático medio y 10.7 de
+máximo sobre el primer segundo**, descontando 7 ms de latencia del
+puntero (5.20 sin descontarla). El máximo cae en el mínimo de la curva,
+que es donde la medición del video es menos confiable porque ahí el goo
+ensancha la silueta.
+
+**Cuadros:** 62 en un segundo, mediana 16.7 ms, ninguno arriba de 20,
+con el procesador cuatro veces más lento y dos copias de la pieza en la
+página (Chrome, 2026-09-09).
+
+**Los baches del camino A, que era la primera vez.** El alto pide `100%`
+Y `min-height: inherit`: en la card lo pone un min-height heredado y el
+100 % no resuelve; en el lienzo del playground el frame tiene alto fijo
+y el que no resuelve es el min-height. Y el `<style href>` de React 19
+se iza **una sola vez**: al editar el CSS de una pieza, Vite recarga el
+módulo pero la hoja vieja se queda, así que hay que recargar la página.
