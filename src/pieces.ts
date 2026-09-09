@@ -83,4 +83,12 @@ export const PIECES: Piece[] = [
     videoOscuro: '/piezas/hold-to-commit-oscuro.webm',
     videoHevcOscuro: '/piezas/hold-to-commit-oscuro.mov',
   },
+  /* La primera pieza Web, y por eso la primera sin `video`: corre viva
+     en la lista y en el detalle, resuelta por slug en demos.tsx. Sin
+     `desc` por la misma regla que Swipeable tabs — el título ya dice
+     cuál es el gesto. */
+  {
+    name: 'Buttons separate',
+    platform: 'Web',
+  },
 ]

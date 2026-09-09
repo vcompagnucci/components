@@ -11,3 +11,6 @@ dist/
 # El mockup (Remotion): los assets con licencia y los renders no viajan.
 mockup/public/
 mockup/out/
+
+# El taller de una pieza: harness de desarrollo, fuera del build.
+proto/
