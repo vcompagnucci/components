@@ -2,6 +2,8 @@ import { Link, Redirect, type Href } from 'expo-router'
 import { ScrollView, StyleSheet, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { ABRIR } from '@/piezas/abrir'
+
 /* ═══════════════════════════════════════════════════════════════
    EL ÍNDICE DEL TALLER — se deriva de las carpetas, no se mantiene.
 
@@ -45,6 +47,8 @@ export default function Indice() {
      ninguno, así que el early return no puede desordenarlos. Si algún
      día se le agrega uno, va ARRIBA de esta línea. */
   if (PIEZAS.length === 1) return <Redirect href={`/${PIEZAS[0]}` as Href} />
+  /* Y con la perilla de desarrollo puesta (`piezas/abrir.ts`), en esa. */
+  if (ABRIR && PIEZAS.includes(ABRIR)) return <Redirect href={`/${ABRIR}` as Href} />
 
   return (
     <SafeAreaView style={css.pantalla}>

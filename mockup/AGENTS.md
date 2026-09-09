@@ -19,9 +19,39 @@ pnpm still SombrasSimetricas out/sombras-simetricas.png   # dieciséis más, sin
 pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco, malla, grano, trama, piso, imagen, la app desenfocada
 ```
 
-`pnpm assets --clip=/ruta/otra.mp4` para otra grabación. El máster de
-swipeable-tabs vive en `.context/mockup/master/` (no en el vault: el
-vault es lo ajeno).
+`pnpm assets --clip=/ruta/otra.mp4` para otra grabación, y `--salida=`
+para el nombre en `public/` cuando hay más de una a la vez. Los másters
+viven en `.context/mockup/master/` (no en el vault: el vault es lo
+ajeno).
+
+## Con más de una pieza (2026-09-08)
+
+Hold to commit obligó a que esto deje de ser de una sola pieza. Lo que
+cambió, y lo que NO:
+
+- **Una composición por pieza, y una más para su versión de library.**
+  `HoldToCommit` y `HoldToCommitLibrary` al lado de `SwipeableTabs` y
+  `SwipeableTabsLibrary`. Lo único que las separa es la CÁMARA: dónde
+  vive el gesto de cada una. Son composiciones y no props porque
+  **Remotion mezcla las input props con las defaultProps sólo en el
+  primer nivel**: pasarle un `camara` parcial borra el foco y las
+  curvas, y el esquema de zod lo rechaza (que es lo que uno quiere: se
+  entera al toque).
+- **Los renders se piden por script, no por `pnpm render`.**
+  `node scripts/render.mjs <Composicion> <slug> [--modos=oscuro,claro]`
+  saca los videos de X, y `node scripts/library.mjs <Composicion>Library
+  <clip>` el par con alfa. `--modos` existe porque una pieza puede tener
+  una grabación POR APARIENCIA de la app: entonces son cuatro archivos,
+  `<slug>-<apariencia>-<fondo>.mp4`, porque apariencia y fondo se eligen
+  por separado.
+- **El encuadre de la library no es el de X.** El video de X deja el
+  canto y la sombra adentro del cuadro; el de la library ES la caja de
+  la card y el teléfono tiene que llenarla. Para un gesto que vive
+  abajo, el mismo `focoEnLienzo` deja un tercio de card vacío: cada
+  pieza pasa el suyo a `paraLibrary`.
+- **Lo que no cambió:** bisel, tamaño, sombra, fondos, zooms y curvas.
+  Todo eso está medido en la referencia de @nater02 y no se toca por
+  pieza.
 
 ## El proceso, de punta a punta
 

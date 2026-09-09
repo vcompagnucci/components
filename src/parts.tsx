@@ -153,6 +153,25 @@ const primerCuadro = (url: string) => `${url}#t=0.1`
 const reduceMovimiento = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/* EL TEMA DEL LECTOR, para las piezas que tienen una grabación por
+   apariencia. El sitio entero sigue a `prefers-color-scheme` desde el
+   CSS (tokens.css) y no tiene interruptor propio, así que la fuente de
+   verdad es la misma consulta, escuchada para que un cambio del sistema
+   se vea sin recargar. */
+function useEsquemaOscuro() {
+  const [oscuro, setOscuro] = useState(
+    () => typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches,
+  )
+  useEffect(() => {
+    if (typeof matchMedia !== 'function') return
+    const consulta = matchMedia('(prefers-color-scheme: dark)')
+    const alCambiar = (e: MediaQueryListEvent) => setOscuro(e.matches)
+    consulta.addEventListener('change', alCambiar)
+    return () => consulta.removeEventListener('change', alCambiar)
+  }, [])
+  return oscuro
+}
+
 function Reproductor({ piece, modo, activo = false }: { piece: Piece; modo: Modo; activo?: boolean }) {
   const video = useRef<HTMLVideoElement>(null)
   const [velocidad, setVelocidad] = useState<Velocidad>(1)
@@ -198,10 +217,20 @@ function Reproductor({ piece, modo, activo = false }: { piece: Piece; modo: Modo
     return () => observador.disconnect()
   }, [enLista])
   const otra: Velocidad = velocidad === 1 ? 0.5 : 1
+  /* LA GRABACIÓN DEL TEMA DEL LECTOR, si la pieza tiene dos. El `key`
+     sobre el <video> es lo que hace el cambio: mover el `src` de un
+     <source> ya montado no vuelve a cargar nada sin un `load()`, y
+     remontar el elemento arranca limpio y vuelve a pedir la velocidad
+     en `loadedmetadata`. Una pieza con una sola grabación no tiene
+     `videoOscuro` y esto no hace nada. */
+  const oscuro = useEsquemaOscuro()
+  const porTema = oscuro && piece.videoOscuro
+  const webm = (porTema ? piece.videoOscuro : piece.video) ?? ''
+  const hevc = porTema ? piece.videoHevcOscuro : piece.videoHevc
   /* Con alfa, las esquinas del cuadro son transparentes: redondearlas
      es una máscara sobre una capa de 1120² por cuadro para no cambiar
      nada. Se apaga. */
-  const claseVideo = piece.videoHevc ? `${css.demo} ${css.demoAlfa}` : css.demo
+  const claseVideo = hevc ? `${css.demo} ${css.demoAlfa}` : css.demo
   /* En la lista: sin autoplay, el primer cuadro y los metadatos; el
      archivo entero recién cuando arranca. En el detalle: autoplay y
      precarga entera, es la pieza que viniste a ver. */
@@ -217,13 +246,13 @@ function Reproductor({ piece, modo, activo = false }: { piece: Piece; modo: Modo
   }
   return (
     <div className={css.reproductor}>
-      {piece.videoHevc ? (
-        <video {...comunes} className={claseVideo}>
-          <source src={fuente(piece.videoHevc)} type='video/quicktime; codecs="hvc1"' />
-          <source src={fuente(piece.video ?? '')} type="video/webm" />
+      {hevc ? (
+        <video key={hevc} {...comunes} className={claseVideo}>
+          <source src={fuente(hevc)} type='video/quicktime; codecs="hvc1"' />
+          <source src={fuente(webm)} type="video/webm" />
         </video>
       ) : (
-        <video {...comunes} className={css.demo} src={fuente(piece.video ?? '')} />
+        <video key={webm} {...comunes} className={css.demo} src={fuente(webm)} />
       )}
       <button
         type="button"

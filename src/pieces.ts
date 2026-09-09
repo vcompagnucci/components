@@ -30,10 +30,22 @@ export type Piece = {
   /* El mismo video con alfa en HEVC (.mov) para Safari, que no
      reproduce el alfa del WebM. Una pieza App se muestra transparente
      y sin sombra sobre la superficie de la card, como los videos de
-     Family en benji.org: el fondo lo pone la library en el tema que
-     sea, así que no hacen falta versiones por tema. Lo escribe
+     Family en benji.org: el FONDO lo pone la library en el tema que
+     sea, así que el fondo no se hornea por tema. Lo escribe
      `pnpm pieza:video … --alfa`; sin esto, `video` va solo. */
   videoHevc?: string
+  /* LA MISMA PIEZA GRABADA EN MODO OSCURO, para las piezas cuyo
+     CONTENIDO cambia con la apariencia del sistema. No contradice lo de
+     arriba: aquello es sobre el fondo de la card, que sigue siendo uno
+     solo; esto es sobre lo que se ve adentro del teléfono. Hold to
+     commit es la primera así, y la diferencia no es cosmética: en claro
+     la píldora pierde el brillo que la llena en oscuro, que es
+     justamente lo que la pieza muestra. Con estos campos, la card sirve
+     la grabación que corresponde al tema del lector y la cambia si el
+     sistema cambia; sin ellos, `video` va para los dos (swipeable-tabs
+     se grabó en una sola apariencia). */
+  videoOscuro?: string
+  videoHevcOscuro?: string
 }
 
 /* LA URL DE UNA PIEZA, y hay UNA sola cuenta. Vivían dos que coincidían
@@ -60,5 +72,15 @@ export const PIECES: Piece[] = [
     platform: 'App',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
+  },
+  /* Sin `desc`: el título ya dice qué es el gesto, que es la primera
+     regla de AGENTS.md › Cómo se nombra. Catorce caracteres. */
+  {
+    name: 'Hold to commit',
+    platform: 'App',
+    video: '/piezas/hold-to-commit.webm',
+    videoHevc: '/piezas/hold-to-commit.mov',
+    videoOscuro: '/piezas/hold-to-commit-oscuro.webm',
+    videoHevcOscuro: '/piezas/hold-to-commit-oscuro.mov',
   },
 ]

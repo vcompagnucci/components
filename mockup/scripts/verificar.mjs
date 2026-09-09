@@ -25,8 +25,13 @@ const SALIDA = path.join(AQUI, 'out/verificacion')
 fs.mkdirSync(SALIDA, { recursive: true })
 
 const serveUrl = await bundle({ entryPoint: path.join(AQUI, 'src/index.ts') })
+/* La composición se pasa por argumento desde la segunda pieza: cada una
+   tiene su cámara, y la guarda de los bordes sólo vale si comprueba la
+   cámara que se va a renderizar.  node scripts/verificar.mjs HoldToCommit */
+const id = process.argv[2] ?? 'SwipeableTabs'
 const inputProps = { pantalla: 'roja' }
-const composicion = await selectComposition({ serveUrl, id: 'SwipeableTabs', inputProps })
+const composicion = await selectComposition({ serveUrl, id, inputProps })
+console.log(`composición: ${id}`)
 const props = composicion.props
 const L = composicion.width
 
