@@ -24,6 +24,21 @@ para el nombre en `public/` cuando hay más de una a la vez. Los másters
 viven en `.context/mockup/master/` (no en el vault: el vault es lo
 ajeno).
 
+**`--duracion=4.10` corta la ENTREGA, y se corta UNA sola vez.** El
+máster se guarda entero porque es el registro de la toma; lo que se
+entrega puede terminar antes. El corte va acá, en el clip, y de ahí
+salen todos los renders de esa pieza — los de X y los de la library.
+Antes se rendía entero y se recortaba cada salida con `-c copy`, que
+sólo puede cortar en un cuadro clave: dejaba el WebM en 4.121 contra
+4.100 del `.mov`, o sea dos formatos del mismo video con largo
+distinto. Cortando el clip los dos dan 246 cuadros exactos y se rinde un
+25 % menos.
+
+Y ojo con la palabra: `--duracion` es cuánto dura el video entregado, y
+no tiene nada que ver con el `hasta` de `parametros.ts`, que es el
+instante en que la cámara EMPIEZA A SALIR (y `9999` significa "no
+sale"). Se llamó `--hasta` un rato y se renombró por eso.
+
 ## Con más de una pieza (2026-09-08)
 
 Hold to commit obligó a que esto deje de ser de una sola pieza. Lo que
@@ -71,6 +86,7 @@ se nombra.
 | 8 | **La cámara se ajusta a la toma**: `hasta` = fin del gesto lento medido; entrada y salida son las de la referencia | `src/parametros.ts` |
 | 9 | **Se mira en Studio**, se toca lo que haga falta, y **se renderiza dos veces**: `pnpm render:ambos` → claro y oscuro | abajo |
 | 10 | **La library lleva UN solo render, transparente y sin sombra**, como los videos de Family en benji.org: `pnpm render:library` saca `out/library.webm` (VP9 con alfa, Chrome y Firefox) y `out/library.mov` (HEVC con alfa por VideoToolbox, Safari), 1120² (1:1 con la caja de 560 en retina), teléfono al 92 %, y la cámara entra a los tabs y SE QUEDA hasta el final: lo que se muestra son los tabs. El video es la caja entera de la card, así el corte del zoom cae en su borde; el fondo lo pone la card en el tema que sea. Entra por `pnpm pieza:video <slug> mockup/out/library --alfa` desde la raíz. El de X es el par con fondo | raíz `AGENTS.md`, camino B |
+| 10b | **Y si la pieza se dibuja distinto en claro y en oscuro, son DOS pares**, uno por apariencia de la app: `node scripts/library.mjs <Composicion>Library <slug>-claro` y lo mismo con `-oscuro`, y entran con `pnpm pieza:video <slug> mockup/out/<slug>-claro --alfa` y `… <slug>-oscuro --alfa --oscuro`. El par SIN sufijo es la app en claro, que es lo que ve un lector con el sistema en claro. Esto no contradice lo de arriba: el FONDO de la card sigue siendo uno solo, lo que cambia es lo que se ve adentro del teléfono | raíz `AGENTS.md`, camino B |
 
 ## Las mini-decisiones, y por qué
 

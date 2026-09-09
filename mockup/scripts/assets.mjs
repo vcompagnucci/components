@@ -6,14 +6,14 @@
      pnpm assets                                   # el máster de swipeable-tabs
      pnpm assets --clip=/ruta/a/otra-grabacion.mp4
      pnpm assets --clip=… --salida=hold-to-commit-oscuro.mp4
-     pnpm assets --clip=… --salida=… --hasta=4.10
+     pnpm assets --clip=… --salida=… --duracion=4.10
 
    `--salida` existe desde la segunda pieza: una pieza que se muestra en
    claro y en oscuro tiene DOS grabaciones, y las dos tienen que estar en
    public/ al mismo tiempo para que un solo render las alcance por props.
    Sin él, la segunda pisaba a la primera.
 
-   `--hasta` CORTA LA ENTREGA, NO EL MÁSTER. El máster de una toma se
+   `--duracion` CORTA LA ENTREGA, NO EL MÁSTER. El máster de una toma se
    guarda entero porque es el registro de lo que pasó; lo que se entrega
    puede terminar antes. Hold to commit corta a los 4.10 s, cuando la
    animación ya terminó y el reinicio todavía no empezó (el recibo, con
@@ -22,6 +22,14 @@
    mismo: cortar un WebM ya rendido con `-c copy` sólo puede cortar en un
    cuadro clave, y dejaba el WebM en 4.121 contra 4.100 del .mov. De paso
    se rinde un 25 % menos de cuadros.
+
+   Y SE LLAMA `--duracion` Y NO `--hasta`, que era su primer nombre. En
+   este mismo camino `hasta` ya nombra otra cosa: en `parametros.ts` es
+   el instante en que la cámara EMPIEZA A SALIR (3.00 para hold to
+   commit, y 9999 para decir "no sale"), y `pnpm mockup --hasta` del
+   taller nombra una tercera. Tres instantes distintos con una palabra
+   es exactamente lo que la regla de nombres del repo prohíbe. Esto es
+   una duración —va derecho al `-t` de ffmpeg— así que se llama así.
 
    POR QUÉ SE NORMALIZA: simctl graba a tasa variable —60 cuadros por
    segundo mientras algo se mueve y ninguno con la pantalla quieta— y
@@ -60,7 +68,7 @@ const destino = path.join(PUBLIC, opciones.salida ?? 'clip.mp4')
 /* `-t` va como opción de SALIDA, después del filtro: corta por tiempo del
    clip normalizado, así el número que se pasa es el mismo que se lee en
    una medición a 60 fps. */
-const recorte = opciones.hasta ? ['-t', String(Number(opciones.hasta))] : []
+const recorte = opciones.duracion ? ['-t', String(Number(opciones.duracion))] : []
 execFileSync(
   'ffmpeg',
   ['-v', 'error', '-y', '-i', clip, '-vf', 'fps=60', ...recorte, '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '12', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', destino],

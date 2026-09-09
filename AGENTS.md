@@ -144,8 +144,31 @@ pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # un video opac
 
 Una pieza App se muestra **transparente y sin sombra** sobre la
 superficie de la card, como los videos de Family en benji.org: el fondo
-lo pone la library en el tema que sea, así que no hay versiones por
-tema. El porqué está en `mockup/AGENTS.md`.
+lo pone la library, en el tema que sea. El porqué está en
+`mockup/AGENTS.md`.
+
+**Eso es el FONDO. La GRABACIÓN sí puede ser dos**, y son dos cosas
+distintas que conviene no mezclar. El fondo de la card es uno solo y no
+se hornea ningún tema adentro del video; lo que puede cambiar con el
+tema del lector es lo que se ve ADENTRO del teléfono, cuando la pieza en
+sí se dibuja distinto en claro y en oscuro. Hold to commit es el primer
+caso: en claro la píldora pierde el brillo teal que tiene en oscuro, y
+la ficha de atrás cambia de color. Ahí van **dos tomas y dos pares con
+alfa**, y la card sirve el que corresponde (`videoOscuro` y
+`videoHevcOscuro` en `PIECES`, elegidos con `prefers-color-scheme` en
+`parts.tsx`, que además remonta el `<video>` con `key` al cambiar de
+tema). Si la pieza se ve igual en los dos, una sola toma y listo — es lo
+que hace swipeable-tabs.
+
+```bash
+pnpm pieza:video hold-to-commit mockup/out/hold-to-commit-claro --alfa             # el par que ve un lector en CLARO → video / videoHevc
+pnpm pieza:video hold-to-commit mockup/out/hold-to-commit-oscuro --alfa --oscuro   # el par que ve un lector en OSCURO → videoOscuro / videoHevcOscuro
+```
+
+Ojo con cuál es cuál: el par **sin** sufijo es la app en claro, que es
+lo que ve alguien con el sistema en claro. El nombre del archivo dice la
+apariencia de la APP, no el tema del lector, y son la misma cosa sólo
+porque la card los aparea así.
 
 No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El
 porqué y las guardas están arriba de `scripts/pieza-video.mjs`.

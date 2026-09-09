@@ -735,6 +735,15 @@ alineadas por el mismo evento —el commit, no el primer gesto— o los dos
 videos muestran instantes distintos de la coreografía. Ojo con dónde se
 mide para encontrar ese evento: ver la trampa 31.
 
+**Mirá la barra de estado ANTES de gastar las tomas.** `status_bar
+override` clava la hora, la señal y la batería, pero no toca la
+miga de pan que iOS deja arriba a la izquierda —«◀ Safari»— después de
+abrir la app desde un link. Aparece sola, no la pone el script, y una
+toma con eso adentro se nota en el video de X, donde la cámara abre y
+muestra el teléfono entero. Se va con un `terminate` + `launch` de más.
+Cuesta quince segundos comprobarlo (`simctl io <udid> screenshot` y
+mirar los primeros 180 px) y dos tomas arreglarlo después.
+
 **La sonda de grabación (`?demo=1`), para copiar.** Es lo que grabó
 el video de swipeable-tabs y no viaja con la pieza; queda acá para la
 próxima. Tres reglas que salieron de tres tomas fallidas:
