@@ -57,7 +57,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
  *    42ms   los botones empiezan a abrirse en abanico, paso 0 → 45
  *   ~90ms   el campo pasa por su ancho final y sigue de largo
  *   ~140ms  asoma el cuarto botón por el extremo derecho
- *   ~200ms  empiezan a aparecer los iconos
+ *   ~200ms  empiezan a aparecer los iconos, y terminan a los ~460
  *   ~400ms  el paso pasa por 45 y rebota un 6 %
  *   ~730ms  todo quieto
  *
@@ -75,9 +75,15 @@ const G = {
   campo: 276, //       384 pt        = 274.3, redondeado para cerrar en 456
   boton: 38, //         54 pt        = 38.6
   hueco: 7, //          10 pt        =  7.1
-  lupa: 16, //          22.5 pt      = 16.1
-  lupaSangria: 14, //   20.5 pt      = 14.6, del borde del campo al glifo
-  lupaTexto: 13, //     18.5 pt      = 13.2, del glifo a la primera letra
+  /* LA CAJA de la lupa, no el glifo. El glifo ocupa 14.5 de las 16
+     unidades del viewBox, o sea 0.906 de la caja: 18 × 0.906 = 16.3 px,
+     que son los 23 pt medidos en la referencia por 5/7 (16.4). Estaba
+     en 16 con un glifo que llenaba 0.71 y salía de 11.35 px, la mitad
+     del que hay que copiar. */
+  lupa: 18, //          23 pt de glifo = 16.4 px; la caja, 18
+  lupaSangria: 14, //   20.5 pt = 14.6 del borde del campo al glifo, y el
+  //                    glifo entra 0.86 en su caja
+  lupaTexto: 12, //     18 pt = 12.9 del glifo a la primera letra
   texto: 18, //         26 pt        = 18.6, sacado de la altura de x (13.5 pt)
   icono: 22, //         22 pt de 54 = 0.407 del diámetro; acá 15.1 de 38 = 0.398
   //                     (los cuatro glifos ocupan 11 de la caja de 16, o sea 0.6875)
@@ -112,6 +118,15 @@ const AIRE = 44
 const CAMPO = { duracion: 0.365, rebote: 0.38 } //   365 ms, rms 1.57 pt
 const ABANICO = { duracion: 0.532, rebote: 0.32 } // 532 ms, rms 1.42 pt
 const RETRASO = 0.042 //                             s, medido
+
+/* LOS ICONOS TIENEN SU PROPIO TRAMO, y no una ventana sobre el abanico.
+   En la grabación el primer glifo se distingue a los 200 ms y termina de
+   aparecer a los 500. El abanico ya vale ~1 a los 300, así que colgado de
+   él el tramo no puede durar 300 ms: terminaba a los 307 y entraba un
+   40 % más rápido que la referencia. Un resorte sin rebote de 300 ms que
+   arranca a los 158 después del abanico llega lleno a los ~460. */
+const ICONO = { duracion: 0.3, rebote: 0 }
+const RETRASO_ICONO = 0.158
 
 /* Con movimiento reducido no se apaga la separación —es el contenido de
    la pieza, no un adorno— pero sí el rebote y el retraso: un solo tramo
@@ -178,11 +193,20 @@ function avanzar(r: Resorte, ahora: number, dt: number) {
 }
 
 /* EL GOO. σ = 6.6 pt medido · 5/7 = 4.7 px. El umbral del feColorMatrix
-   está en alfa 0.5, que es donde vale la cuenta del cuello. Un umbral
-   así encoge lo curvo en σ²/2R —0.58 px en un círculo de 19— y por eso
-   el radio se dibuja compensado; lo recto no se mueve. */
+   está en alfa 0.5, que es donde vale la cuenta del cuello.
+
+   EL GOO SÓLO PONE LOS CUELLOS. El borde de cada forma lo pone la forma
+   misma, dibujada otra vez encima y sin filtro. No es cinturón y
+   tirantes: la especificación de SVG deja implementar feGaussianBlur
+   como TRES desenfoques de caja, y Chrome lo hace; con un umbral duro
+   detrás, las curvas de nivel de esa aproximación se ven, y un círculo
+   de 38 sale como un polígono redondeado. Se veía al 4× (Vito,
+   2026-09-09: "que terminen redondos bien, al 100").
+
+   El umbral encoge lo curvo en σ²/2R —0.58 px en un círculo de 19—, así
+   que la capa del goo queda ADENTRO de la nítida y no asoma ninguna
+   faceta. Por eso el radio ya no se compensa. */
 const SIGMA = 4.7
-const RADIO_BOTON = G.boton / 2 + (SIGMA * SIGMA) / G.boton
 
 /* LOS CUATRO BOTONES. Iconos de trazo, 16×16: son ámbitos de búsqueda,
    que es lo que son los cuatro de la referencia. */
@@ -204,7 +228,7 @@ const BOTONES = [
   {
     nombre: 'Messages',
     trazo:
-      'M13.5 7.9c0 2.9-2.5 5.3-5.5 5.3a6 6 0 0 1-1.8-.27L2.9 14l.9-2.7A5.1 5.1 0 0 1 2.5 7.9C2.5 5 5 2.6 8 2.6s5.5 2.4 5.5 5.3',
+      'M12.9 8.05c0 2.6-2.2 4.75-4.9 4.75a5.4 5.4 0 0 1-1.6-.24l-3.1 1.24.8-2.42A4.55 4.55 0 0 1 3.1 8.05c0-2.6 2.2-4.75 4.9-4.75s4.9 2.15 4.9 4.75',
   },
 ] as const
 
@@ -253,6 +277,7 @@ export default function ButtonsSeparate() {
   const resortes = useRef({
     campo: nace(abierto ? 1 : 0, CAMPO),
     abanico: nace(abierto ? 1 : 0, ABANICO),
+    icono: nace(abierto ? 1 : 0, ICONO),
   })
 
   /* DÓNDE CAE LA BARRA DENTRO DE LA ESCENA. Las máscaras se dibujan en
@@ -286,7 +311,7 @@ export default function ButtonsSeparate() {
      cuadro pedido, que es lo que hace que ocho de estas piezas en una
      lista no cuesten nada. */
   const pintar = useCallback(() => {
-    const { campo: rc, abanico: ra } = resortes.current
+    const { campo: rc, abanico: ra, icono: ri } = resortes.current
     campo.current?.setAttribute('width', String(TOTAL + (G.campo - TOTAL) * rc.x))
     const paso = PASO * ra.x
     for (let i = 1; i < BOTONES.length; i++) {
@@ -294,12 +319,7 @@ export default function ButtonsSeparate() {
       const boton = botones.current[i]
       if (boton) boton.style.transform = `translateX(${paso * i}px)`
     }
-    /* LOS ICONOS ENTRAN AL FINAL. En la grabación el primer glifo se
-       distingue recién en el cuadro 92 —200 ms después del disparo, con
-       el abanico ya en 0.69— y termina de aparecer en el 110, con el
-       abanico en 1. Ese es el tramo. */
-    const visible = Math.max(0, Math.min(1, (ra.x - 0.68) / 0.32))
-    contenido.current?.style.setProperty('--icono', String(visible))
+    contenido.current?.style.setProperty('--icono', String(Math.max(0, Math.min(1, ri.x))))
   }, [])
   useLayoutEffect(() => {
     pintar()
@@ -314,21 +334,24 @@ export default function ButtonsSeparate() {
      primer cuadro del resorte cae después de pintar, y eso son 16 ms
      sobre una separación de 730. */
   useLayoutEffect(() => {
-    const { campo: rc, abanico: ra } = resortes.current
+    const { campo: rc, abanico: ra, icono: ri } = resortes.current
     afinar(rc, reducido ? SIN_REBOTE : CAMPO)
     afinar(ra, reducido ? SIN_REBOTE : ABANICO)
+    afinar(ri, reducido ? SIN_REBOTE : ICONO)
 
     /* Al montar, el destino ya es el que hay: no hay nada que integrar y
        pedir cuadros sería tenerlos girando por el retraso. */
     const destino = abierto ? 1 : 0
-    if (rc.x === destino && ra.x === destino) return
+    if (rc.x === destino && ra.x === destino && ri.x === destino) return
 
     const ahora = performance.now() / 1000
-    rc.destino = ra.destino = destino
-    /* Al abrir sigue el abanico; al cerrar, el campo. */
+    rc.destino = ra.destino = ri.destino = destino
+    /* Al abrir sigue el abanico; al cerrar, el campo. Los iconos entran
+       tarde y se van enseguida: al cerrar no hay nada que esperar. */
     const sigue = abierto ? ra : rc
     rc.desde = ra.desde = ahora
     sigue.desde = ahora + (reducido ? 0 : RETRASO)
+    ri.desde = abierto && !reducido ? ahora + RETRASO + RETRASO_ICONO : ahora
 
     let cuadro = 0
     let anterior = ahora
@@ -338,8 +361,9 @@ export default function ButtonsSeparate() {
       anterior = t
       const a = avanzar(rc, t, dt)
       const b = avanzar(ra, t, dt)
+      const c = avanzar(ri, t, dt)
       pintar()
-      if (a || b) cuadro = requestAnimationFrame(paso)
+      if (a || b || c) cuadro = requestAnimationFrame(paso)
     }
     cuadro = requestAnimationFrame(paso)
     return () => cancelAnimationFrame(cuadro)
@@ -412,12 +436,15 @@ export default function ButtonsSeparate() {
                   }}
                   cx={RANURA}
                   cy={G.alto / 2}
-                  r={RADIO_BOTON}
+                  r={G.boton / 2}
                   fill="#fff"
                 />
               ))}
             </g>
-            <g id={`silueta-${id}`} filter={`url(#goo-${id})`}>
+            <g id={`silueta-${id}`}>
+              <g filter={`url(#goo-${id})`}>
+                <use href={`#formas-${id}`} />
+              </g>
               <use href={`#formas-${id}`} />
             </g>
 
@@ -465,9 +492,16 @@ export default function ButtonsSeparate() {
           }}
         >
           <div className="campo" aria-hidden="true">
+            {/* El glifo llena la caja de 0.75 a 15.25; el trazo de 1.27
+                da los 2 pt medidos en la referencia (1.43 px). */}
             <svg className="lupa" viewBox="0 0 16 16" fill="none">
-              <circle cx="7.2" cy="7.2" r="4.6" stroke="currentColor" strokeWidth="1.5" />
-              <path d="m10.6 10.6 2.6 2.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="6.4" cy="6.4" r="5" stroke="currentColor" strokeWidth="1.27" />
+              <path
+                d="M9.95 9.95 14.8 14.8"
+                stroke="currentColor"
+                strokeWidth="1.27"
+                strokeLinecap="round"
+              />
             </svg>
             <span className="marcador">Search</span>
           </div>
@@ -540,7 +574,19 @@ const HOJA = `
   --fondo:
     radial-gradient(118% 150% at 20% 8%, #f2f5fa 0%, #cdd6e5 38%, #9aa7bd 76%, #8492aa 100%),
     linear-gradient(160deg, #e8edf5 0%, #7f8da5 100%);
-  --velo: rgba(255, 255, 255, 0.42);
+  /* EL VELO Y EL DESENFOQUE SALEN DEL MATERIAL NATIVO, medidos en esta
+     misma Mac con una sonda de SwiftUI: .glassEffect() sobre tres rampas
+     de valor conocido, capturado con screencapture y ajustado por
+     mínimos cuadrados. La ley es LINEAL en sRGB:
+
+       claro   salida = 0.325 · fondo + 159   (rms 4.5 niveles)
+       oscuro  salida = 0.444 · fondo +  31   (rms 10.4)
+
+     Y eso es exactamente un velo: 1 − ganancia es el alfa, y el offset
+     dividido por el alfa es el color. Nada de saturate ni de brightness:
+     el ajuste con un saturate libre no mejora. Ver
+     .context/buttons-separate/vidrio/. */
+  --velo: rgba(235, 235, 235, 0.675);
   /* EL ANILLO, medido en la referencia: sube el relleno 40 niveles y no
      más —de rgb(178,197,230) a rgb(218,241,255)—, y es un blanco FRÍO,
      no blanco puro. Con el relleno de acá, 40 niveles son 0.42 de alfa. */
@@ -562,7 +608,14 @@ const HOJA = `
     /* Más velo que en claro: el vidrio de la referencia sube el fondo
        unos 120 niveles en los tres canales, y sobre un fondo oscuro eso
        pide más blanco para llegar al mismo lugar. */
-    --velo: rgba(255, 255, 255, 0.52);
+    /* EL VELO NO CAMBIA CON EL TEMA. La ley oscura del nativo también
+       está medida —salida = 0.444 · fondo + 31, o sea un velo de
+       rgb(55,55,55) al 55.6 %— y da un vidrio MÁS OSCURO que el fondo,
+       que es lo que hace macOS en oscuro. Acá no se usa: la referencia
+       es la apariencia clara, un vidrio claro sobre un cielo oscuro, y
+       eso es exactamente lo que pasa en el tema oscuro de la pieza
+       cuando la escena baja y el velo se queda. Poner la ley oscura deja
+       forma oscura sobre fondo oscuro y la tinta ilegible; probado. */
     --anillo: rgba(226, 246, 255, 0.42);
     --sombra: 0.42;
     --realce: rgba(255, 255, 255, 0.2);
@@ -601,8 +654,14 @@ const HOJA = `
   inset: 0;
   pointer-events: none;
 }
+/* σ = 4.0 pt, medido sobre un borde duro de negro a blanco bajo el
+   vidrio nativo: el 10 al 90 % cruza en 10.2 pt, y para una gaussiana
+   eso es 2.563 σ. Por 5/7 son 2.9 px. Estaba en 20, siete veces de más:
+   el error venía de leer el desenfoque en el video, donde el vidrio
+   sobre la nube da casi neutro — pero eso no es desenfoque, es que la
+   ley del material comprime el rango. */
 [data-pieza='buttons-separate'] .refraccion {
-  filter: blur(20px) saturate(1.45) brightness(1.26);
+  filter: blur(2.9px);
 }
 [data-pieza='buttons-separate'] .velo {
   position: absolute;
@@ -650,10 +709,6 @@ const HOJA = `
   line-height: 1;
   letter-spacing: -0.01em;
   color: var(--tinta);
-  /* El texto de la referencia está centrado por la ALTURA DE MAYÚSCULA
-     y no por la caja: su base cae 9 pt debajo del centro del campo, que
-     es exactamente donde la deja centrar la mayúscula. */
-  transform: translateY(0.055em);
 }
 [data-pieza='buttons-separate'] .boton {
   position: absolute;
