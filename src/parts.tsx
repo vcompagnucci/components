@@ -134,6 +134,13 @@ export function Item({
   const entrar = () => setActivo(true)
   const salir = () => setActivo(false)
   return (
+    /* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions --
+       el camino de teclado NO falta, está en el `<a href>` de adentro:
+       ese link lleva el mismo `onOpen` y además el `onFocus`/`onBlur`
+       que prende y apaga el video. El `onClick` del article es sólo la
+       comodidad de que toda la card sea clickeable con el mouse, y
+       duplicar el handler acá arriba con `onKeyDown` daría DOS
+       activaciones por Enter sobre el link. */
     <article
       className={css.streamItem}
       id={slug(piece.name)}

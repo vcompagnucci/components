@@ -472,6 +472,10 @@ export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } =
   })
 
   return (
+    /* oxlint-disable-next-line jsx-a11y/no-static-element-interactions --
+       esta raíz no es un control: sólo DELEGA el teclado (Escape y las
+       flechas) a los controles de adentro, que sí tienen su rol. Darle
+       un `role` acá anunciaría un widget que no existe. */
     <div
       className="ss"
       ref={raiz}
@@ -513,6 +517,11 @@ export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } =
         </span>
       </button>
 
+      {/* oxlint-disable-next-line jsx-a11y/interactive-supports-focus --
+          en un menú el foco vive en los ITEMS, no en el contenedor (ARIA
+          APG), y acá los items son `<button>` nativos, ya focusables.
+          Ponerle `tabIndex={-1}` al contenedor haría que un clic lo
+          enfoque y le robe el foco al botón. */}
       <div
           className="ss-popover"
           data-abierto={abierto ? '' : undefined}

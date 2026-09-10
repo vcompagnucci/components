@@ -137,7 +137,7 @@ const existeArchivo = (ref, desdeDir) => {
    punto se mira SÓLO el primero: el segundo casi siempre es de otro. */
 const primerSegmento = (r) => r.replace(/\(\)$/, '').split('.')[0]
 const esNombreNuestro = (r) =>
-  !/\(\)$/.test(r) && /^[A-Z][A-Z0-9_]{2,}$/.test(primerSegmento(r)) && !primerSegmento(r).endsWith('_')
+  !r.endsWith('()') && /^[A-Z][A-Z0-9_]{2,}$/.test(primerSegmento(r)) && !primerSegmento(r).endsWith('_')
 
 const muertos = []
 const ajenos = []

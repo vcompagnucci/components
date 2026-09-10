@@ -85,7 +85,12 @@ function leerStts(buf, ini, fin) {
   if (!cuenta.size) return null
   let mejor = 0
   let mejorN = 0
-  for (const [delta, m] of cuenta) if (m > mejorN) ((mejorN = m), (mejor = delta))
+  for (const [delta, m] of cuenta) {
+    if (m > mejorN) {
+      mejorN = m
+      mejor = delta
+    }
+  }
   return { delta: mejor, muestras: total, variable: cuenta.size > 1 }
 }
 

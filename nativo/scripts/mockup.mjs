@@ -256,13 +256,13 @@ if (T3 < T2) {
   console.error(`--hasta (${T3}) tiene que ser mayor que el final de la entrada (${T2.toFixed(2)})`)
   process.exit(1)
 }
-const cx1 = bx0 + bw0 / 2
+const _cx1 = bx0 + bw0 / 2
 const cy1 = by0 + (foco + (0.5 - 0.33) * (L / (bh0 * K1))) * bh0
-const cy2 = by0 + ((0.5 - 0.072) * L) / K2
+const _cy2 = by0 + ((0.5 - 0.072) * L) / K2
 
 /* Una bézier cúbica de easing, y su polinomio de grado 5 (mínimos
    cuadrados sobre 200 muestras) para que ffmpeg lo evalúe. */
-const bezier = (x1, y1, x2, y2) => (x) => {
+const _bezier = (x1, y1, x2, y2) => (x) => {
   let lo = 0
   let hi = 1
   let t = x
@@ -471,7 +471,7 @@ if (!verificar) {
   }
   const cuadros = [6, 24, 36, 48, 54, 57, 120, 160, 170, 180, 190, 200]
   const rgb = execFileSync('ffmpeg', [
-    '-v', 'error', '-i', salida, '-vf', `select='${cuadros.map((n) => `eq(n\,${n})`).join('+')}'`,
+    '-v', 'error', '-i', salida, '-vf', `select='${cuadros.map((n) => `eq(n,${n})`).join('+')}'`,
     '-fps_mode', 'passthrough', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-',
   ], { maxBuffer: 1 << 30 })
   const alfaPng = execFileSync('ffmpeg', ['-v', 'error', '-i', bisel, '-f', 'rawvideo', '-pix_fmt', 'gray', '-vf', 'alphaextract', '-'], { maxBuffer: 1 << 28 })

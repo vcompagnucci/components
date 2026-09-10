@@ -81,6 +81,11 @@ export function Notas({ name }: { name: string }) {
   return (
     <div className={css.notas}>
       <Suspense fallback={null}>
+        {/* oxlint-disable-next-line react/static-components -- `C` no se
+            crea en cada render: `componenteDe` cachea el `lazy()` en un Map
+            de nivel de módulo y devuelve la misma referencia por clave. El
+            bug que la regla busca —perder el estado en cada render— acá no
+            puede pasar. */}
         <C />
       </Suspense>
     </div>

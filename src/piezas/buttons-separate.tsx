@@ -591,6 +591,10 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
     const r = resortes.current.presion[i]
     afinar(r, reducido ? SIN_REBOTE : PRESION)
     r.destino = hundido ? 1 : 0
+    /* oxlint-disable-next-line react/purity -- `performance.now()` no
+       corre en render: `apretar` es un manejador de evento y su cuerpo
+       sólo se ejecuta cuando el usuario aprieta. La regla lo marca por
+       estar léxicamente dentro del componente. */
     r.desde = performance.now() / 1000
     animar()
   }
