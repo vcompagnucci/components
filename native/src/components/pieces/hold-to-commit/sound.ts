@@ -1,7 +1,7 @@
 import type { AudioPlayer } from 'expo-audio'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE COMMIT SOUND — on completion, if the iPhone is not on silent,
+   THE COMMIT SOUND: on completion, if the iPhone is not on silent,
    Apple Pay's success sound: the one that plays when you pay and when
    you confirm a purchase or an install in the App Store. Vito asked for
    it (2026-09-07, "use Apple's one from downloading an app, timed

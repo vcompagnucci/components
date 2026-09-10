@@ -1,4 +1,4 @@
-// THE PILL'S HIGHLIGHTS, GENERATED — not drawn by hand.
+// THE PILL'S HIGHLIGHTS, GENERATED: not drawn by hand.
 //
 //   swift generate.swift       (from this folder; it writes the @3x files next to it)
 //
@@ -97,7 +97,7 @@ func envelopeAt(_ x: Double, d: Double) -> Double {
     lerp(envelope(x), interpolate(TOP_ENVELOPE, x), smooth((d - 8) / 32))
 }
 
-// ── 1. sheen.png — the ambient sheen at rest ────────────────────────
+// ── 1. sheen.png: the ambient sheen at rest ────────────────────────
 // A teal→green blob hugging the pill's BOTTOM edge. Two vertical gaussians
 // (one narrow and bright, one wide and faint) because a single one does not
 // fit the measured profile; one horizontal gaussian of σ=100 pt.
@@ -110,7 +110,7 @@ func envelopeAt(_ x: Double, d: Double) -> Double {
 //   capture, at the same distance in pt from the top edge): .42·g(13) +
 //   .18·g(28) gave an rms of 4.9 of luminance and the 18–34 pt band came
 //   out 5–12 dark; the grid-search fit gives .32·g(12) + .28·g(26),
-//   rms 4.4 — the wide gaussian weighs more and the narrow one less.
+//   rms 4.4: the wide gaussian weighs more and the narrow one less.
 //   RUNTIME (y=1340, horizontally from the center, alpha relative to the peak):
 //     0: 1.0  ±74: .80  ±120: .57  ±144: .36  ±170: .14
 //   It is NOT a gaussian and not a plateau: it rises fast on the left, has a
@@ -138,14 +138,14 @@ write("sheen@3x.png", width: Int(PILL_WIDTH * SCALE), height: Int(PILL_HEIGHT * 
     return (c.0, c.1, c.2, vertical * horizontal)
 }
 
-// ── 2. body.png — the body of the fill, vertical profile only ───────
+// ── 2. body.png: the body of the fill, vertical profile only ───────
 // 3 px wide; React Native stretches it across the width (resizeMode 'stretch').
 // Opaque, with the pale green rim from `rimColor`.
 write("body@3x.png", width: 3, height: Int(PILL_HEIGHT * SCALE)) { _, y in
     let c = rimColor(y); return (c.0, c.1, c.2, 1)
 }
 
-// ── 3. front.png — the leading edge of the fill ──────────────────────
+// ── 3. front.png: the leading edge of the fill ──────────────────────
 // The front's falloff is an erfc of σ=19 pt CENTERED ON THE GEOMETRIC EDGE
 // (the body's right edge), and it is shaped like a capsule: in the rows
 // near the top and bottom edges the front recedes like the pill's round
@@ -167,7 +167,7 @@ let FRONT_AFTER = 3 * FRONT_SIGMA                     // 57
 /// How far a round tip of radius r recedes in row y, and with what σ it
 /// blurs there. RUNTIME (f151, left tip): at 10 pt from the top edge the
 /// ramp is ~1.5× wider than at half height (0.80 of coverage at +36 pt
-/// against 0.96) — the blur of a curved edge widens towards the corners.
+/// against 0.96). The blur of a curved edge widens toward the corners.
 /// σ = σ0 + 8·√(recede / r) reproduces it.
 func tip(_ y: Double, _ sigma0: Double) -> (recede: Double, sigma: Double) {
     let r = PILL_HEIGHT / 2
@@ -184,7 +184,7 @@ write("front@3x.png", width: Int(FRONT_WIDTH * SCALE), height: Int(PILL_HEIGHT *
     return (lerp(PALE_GREEN.0, rim.0, t), lerp(PALE_GREEN.1, rim.1, t), lerp(PALE_GREEN.2, rim.2, t), a)
 }
 
-// ── 4. veil.png — the blob's left tip ───────────────────────────────────
+// ── 4. veil.png: the blob's left tip ───────────────────────────────────
 // The blob is ONE blurred capsule whose left end stays inside the pill's
 // tip and whose right end is the front. The white body cannot have that
 // end (it travels with the front), so the tip is made with a VEIL the
@@ -209,7 +209,7 @@ write("front@3x.png", width: Int(FRONT_WIDTH * SCALE), height: Int(PILL_HEIGHT *
 // erfc centered at 15 pt with σ 20; at 10 pt from the edge .44 / .68 / .86
 // / .96 at 19 / 38 / 57 / 76 → centered at 24 with σ 30. Which means that
 // at 10 pt from the edge the tip recedes 9 pt more and widens 10 more than
-// at half height — more than the pill's round tip of radius 26 (5.5 and
+// at half height, more than the pill's round tip of radius 26 (5.5 and
 // 3.7): the blob is more "pointed" than the pill. `veilTip` models it with
 // a recede of 42 pt at the corner (against 26) and a spread of
 // 10·√(recede/9). Verified backwards against f151 at half height with
@@ -246,7 +246,7 @@ write("veil@3x.png", width: Int(VEIL_WIDTH * SCALE), height: Int(PILL_HEIGHT * S
     return (below.0 - d.0 / alpha, below.1 - d.1 / alpha, below.2 - d.2 / alpha, alpha)
 }
 
-// ═══ 5. THE BLURRED LABELS — for the `.blurReplace` crossfade ════════
+// ═══ 5. THE BLURRED LABELS: for the `.blurReplace` crossfade ════════
 //
 // React Native 0.86 ships `filter: blur()` on iOS, but behind the native
 // flag `enableSwiftUIBasedFilters` (SOURCE: `ReactNativeFeatureFlagsDefaults.h`,
@@ -261,8 +261,8 @@ write("veil@3x.png", width: Int(VEIL_WIDTH * SCALE), height: Int(PILL_HEIGHT * S
 // TWO BLUR LEVELS PER LABEL, not one. With a single copy (σ 2.5) the
 // crossfade was "sharp → ghost → sharp": a jump of focus, not a focusing.
 // With two (σ 2.5 wide and σ 1.0 narrow) the incoming label runs
-// wide → narrow → sharp and the eye reads it as a continuous focusing —
-// the opacity staircase is in `label.tsx`. RUNTIME (clip, the stem of the
+// wide → narrow → sharp and the eye reads it as a continuous focusing.
+// The opacity staircase is in `label.tsx`. RUNTIME (clip, the stem of the
 // "i" in Holding): the incoming one appears blurred 33 ms after the press,
 // legible at 67, at 90 % by 133, and the peak keeps rising to ~380 ms: the
 // focusing has a long tail. The maximum σ, 2.5 pt, is the one from the
@@ -288,7 +288,7 @@ func measure(_ s: String, _ f: NSFont) -> (width: Double, height: Double) {
 
 // The check of weight and size against the clip, BEFORE deciding anything:
 // the ink width measured in the clip (px/2.709) against the one SF gives here.
-print("— ink widths in pt (clip → SF) —")
+print("ink widths in pt (clip → SF)")
 for (s, ref) in [("Hold to Commit", 121.1), ("Keep Holding...", 104.2), ("Keep Holding…", 104.2), ("Committed", 86.7)] {
     let sb = measure(s, font(.semibold)), b = measure(s, font(.bold)), m = measure(s, font(.medium))
     print(String(format: "  %@: clip %.1f · medium %.1f · semibold %.1f · bold %.1f", s, ref, m.width, sb.width, b.width))
@@ -371,7 +371,7 @@ blurredLabel("committed-blurred", draw: { ctx, ox, oy in
 
 // THE `skill` RECIPE (2026-09-07) separates the checkmark from the text:
 // "Order Placed" comes in with the usual blur-replace and the checkmark
-// comes in separately with better-ui's contextual icon technique — "scale
+// comes in separately with better-ui's contextual icon technique: "scale
 // 0.25 to 1, opacity 0 to 1, blur 4px to 0px". So the text alone is needed,
 // at the usual two levels, and the checkmark alone blurred at σ 4 pt (one
 // level). Each PNG's margin is 3σ of the largest σ in its batch: 23 px
@@ -389,11 +389,11 @@ blurredLabel("checkmark-blurred", levels: [("", 4.0)], draw: { _, ox, oy in
 }, widthPt: checkmarkSize.width, heightPt: checkmarkSize.height)
 
 
-// ═══ 6. THE SPARK — the dot of light that travels inside the pill ════
+// ═══ 6. THE SPARK: the dot of light that travels inside the pill ════
 //
 // RUNTIME (clip, f64–f182, `chispas.py`/`chispas2.py`): dots of 1.5–2 pt of
 // ink (area 8–24 px² at 2.709 px/pt) and +18..+59 of luminance over
-// backgrounds of 60–110 — white at 25–45 % opacity, with no hard edge. A
+// backgrounds of 60–110, white at 25–45 % opacity, with no hard edge. A
 // sharp circle of 1.5 pt at 3x is 4.5 px with a step in it; a small
 // gaussian looks like it does in the clip. Box of 8 pt, σ = 1.4 pt: at the
 // edge it comes to exp(−4.1) ≈ 2 %, so the texture does not get cut off.

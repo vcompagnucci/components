@@ -2,7 +2,7 @@ import { Easing, type EasingFunction, type EasingFunctionFactory, ReduceMotion, 
 
 import { COMMIT, CROSSFADE, HOLD, PRESS, RESET } from './measurements'
 
-/* THE RECIPE — the button's curves and timings, in two versions.
+/* THE RECIPE: the button's curves and timings, in two versions.
  *
  * Vito asked (2026-09-04) to try the button following the tables in the
  * `animate-expo` skill WITHOUT losing what was measured. So, like the

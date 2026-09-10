@@ -17,7 +17,7 @@ import { RECIPE, RECIPES, type Recipe } from './recipe'
 import { LOAD, MEASURE, RECEIVER, PROBE } from './probe'
 
 /* ═══════════════════════════════════════════════════════════════
-   HOLD TO COMMIT — the screen, self-contained: the button, and behind it
+   HOLD TO COMMIT: the screen, self-contained: the button, and behind it
    whatever `background` says. The route (`src/app/[slug].tsx`) finds it
    in the registry by its slug and mounts it; here the knobs get read and
    everything gets composed. In the exhibition the piece is called `Hold
@@ -217,7 +217,7 @@ const css = StyleSheet.create({
 /*
  * Do not touch without measuring again
  *
- * — The hold lasts `HOLD.duration` and the LongPress fires on the SAME
+ * - The hold lasts `HOLD.duration` and the LongPress fires on the SAME
  *   number on purpose. If they are separated, the fill arrives before or
  *   after the gesture completes. It has been 1000 ms since 2026-09-07
  *   (asked for, first 1500 and then 1000); what was measured in the clip
@@ -226,7 +226,7 @@ const css = StyleSheet.create({
  *   RUNTIME: 121 frames from the press to the burst; linear front at 7.75
  *   px/frame. SOURCE: both read HOLD.duration.
  *
- * — The front is an erfc of σ = 19 pt CENTERED on the geometric edge and
+ * - The front is an erfc of σ = 19 pt CENTERED on the geometric edge and
  *   shaped like a capsule, SCALED in x around that edge (.66 + .36·p:
  *   narrower at the start). And the geometric edge goes from 4.5 % to
  *   95.5 % of the width in the 2 s, not tip to tip; on completion it
@@ -235,25 +235,25 @@ const css = StyleSheet.create({
  *   f181); width 90→10 % 51→64 pt over the course of the hold; verified in
  *   a capture to ±5 at p .23 / .5 / .74 / .99.
  *
- * — The blob's left tip DARKENS and WIDENS as the front moves away: the
+ * - The blob's left tip DARKENS and WIDENS as the front moves away: the
  *   veil's texture is the one from the end (f181) and it gets scaled in x
  *   from the tip, s = .25 + .75·p; it is inverted PER CHANNEL against the
  *   target color (pale green). A gray veil cannot give (150,172,156), and
  *   a fixed one cannot give 249 → 183 at 38 pt.
  *   RUNTIME: f88…f181 every 6 frames; verified exactly at four progresses.
  *
- * — The fill TURNS ON in 330 ms with ease-in-out (it starts slow), and on
+ * - The fill TURNS ON in 330 ms with ease-in-out (it starts slow), and on
  *   release it goes out with an exponential of τ = 60 ms while the front
  *   retreats slowly (400 ms ease-out).
  *   RUNTIME: peak 10 pt from the edge f63…f80 and f13…f20; capture to ±7.
  *
- * — The pill scales to .953 on press, with a QUADRATIC ease-out of 250 ms.
+ * - The pill scales to .953 on press, with a QUADRATIC ease-out of 250 ms.
  *   With bezier(.23,1,.32,1) it closes twice as fast. On completion it
  *   comes back with a 25 % jump in one frame and 220 ms of ease-out.
  *   RUNTIME: edges 157→182 / 1194→1169; 16/52/80/96 % at 1/4/8/13 frames;
  *   width 364→369→374→378→380→382 in f182…f195, capture to ±1.3 pt.
  *
- * — The label is semibold 17 in all three states. "Committed" only looks
+ * - The label is semibold 17 in all three states. "Committed" only looks
  *   bold because "Keep Holding..." is shrunk by the press.
  *   RUNTIME: ink widths 121.1 / 118.9 / 86.7 pt against SF measured on
  *   macOS: medium and bold land 2–4 % away. The texts have been "Hold to
@@ -262,13 +262,13 @@ const css = StyleSheet.create({
  *   holds just the same. The blurred copies are regenerated with
  *   `media/generate.swift`.
  *
- * — The label's color comes out of the PROGRESS: white → greenish gray
+ * - The label's color comes out of the PROGRESS: white → greenish gray
  *   (#202B24) between .55 and .70 with ease-out, and a step to black at
  *   .965.
  *   RUNTIME: luminance minimum in "Ke": 253 in f128 → 47 in f146 →
  *   plateau until f177 → 26 in f178.
  *
- * — The label crossfades are blur-replace with TWO blurred copies per text
+ * - The label crossfades are blur-replace with TWO blurred copies per text
  *   (σ 2.5 and 1.0, rasterized in Swift, tinted with tintColor) and a
  *   staircase that is a partition of the opacity; each label has its own
  *   presence. They are asymmetric: press 360 ease-out / 48; release 600
@@ -278,27 +278,27 @@ const css = StyleSheet.create({
  *   (f61–f95, f10–f44, f184–f220); verified with probes in ms against the
  *   clip frame from the same instant.
  *
- * — The sparks inside the pill are a function of the progress: they are
+ * - The sparks inside the pill are a function of the progress: they are
  *   born 8–100 pt ahead of the front, travel right at 50–75 % of its speed
  *   and live 250–450 ms. 12 views × 3 lives.
  *   RUNTIME: 24 tracks linked in f64–f182 (chispas2.py).
  *
- * — The burst OPENS from the center: final dx = 0.075 × (x₀ − center),
+ * - The burst OPENS from the center: final dx = 0.075 × (x₀ − center),
  *   plus the travel along the normal (2–17 pt, median 7), tips included.
  *   Without that correlation the cloud shakes and looks dirty.
  *   RUNTIME: 58 tracks linked (rastro.py), −18.7 / +14.3 at the tips.
  *
- * — The particles are measured in a CAPTURE, never in the simctl
+ * - The particles are measured in a CAPTURE, never in the simctl
  *   recording: the video compresses them until they are dust and it
  *   fooled us twice.
  *   RUNTIME: median peak 175/125/81 at 36/204/516 ms against 189/127/84 in
  *   the clip; median diameter 2.7 against 2.7.
  *
- * — SF Symbols carry their natural box and scaleAspectFit: SymbolView's
+ * - SF Symbols carry their natural box and scaleAspectFit: SymbolView's
  *   `size` is not the pointSize (it always rasterizes at 14).
  *   SOURCE: expo-symbols/ios/SymbolView.swift:127.
  *
- * — On completion Apple Pay's success sound plays (`sound.ts`,
+ * - On completion Apple Pay's success sound plays (`sound.ts`,
  *   `media/purchase.wav` = iOS's `payment_success.caf`; AN APPLE ASSET,
  *   not redistributed), fired 60 ms before the end of the hold from the
  *   same clock as the fill, only if the iPhone is not on silent and
@@ -306,13 +306,13 @@ const css = StyleSheet.create({
  *   `seekTo` + `play` dropped hits, and creating it on the spot took too
  *   long. Expo Go ships `expo-audio`; the dev client does not.
  *
- * — The haptics follow the animate-expo § 8 table: `selectionAsync` at
+ * - The haptics follow the animate-expo § 8 table: `selectionAsync` at
  *   each of the twelve detents (accelerating from 300 to 60 ms) and
  *   Success on completion; pressing and releasing do not vibrate. It has
  *   no receipt: the clip is video. It gets tuned with the phone in hand,
  *   in `haptics.ts` and nowhere else.
  *
- * — EVERY `withTiming` in the button carries `reduceMotion: Never`, and
+ * - EVERY `withTiming` in the button carries `reduceMotion: Never`, and
  *   reduce motion is applied by hand: no scale, no sweep (the whole fill
  *   with the progress as its opacity), no sparks, no burst and no blurred
  *   copies; opacity and color are left. With Reanimated's default
@@ -320,17 +320,17 @@ const css = StyleSheet.create({
  *   RUNTIME: mean luminance of the pill 64.2 → 182.0 in one frame and
  *   pinned there for the 2 s, simulator B with Reduce Motion (2026-09-04).
  *
- * — The label follows Dynamic Type up to ×1.786 (`TEXT.maxScale`, the
+ * - The label follows Dynamic Type up to ×1.786 (`TEXT.maxScale`, the
  *   first accessibility size); the blurred copies and the checkmark scale
  *   by the same factor. Any bigger does not fit in a 52 pt pill.
  *   SOURCE: RCTAccessibilityManager.mm:267; line box 20.3 × 1.786.
  *
- * — The curves and the timings are a RECIPE (`recipe.ts`): `clip` is what
+ * - The curves and the timings are a RECIPE (`recipe.ts`): `clip` is what
  *   was measured; `skill` is the animate-expo tables to the letter, so
  *   they can be compared live without losing the faithful one. The probes
  *   measure `clip`.
  *
- * — The reset at 5 s is a workshop ASSUMPTION (the clip does not show it)
+ * - The reset at 5 s is a workshop ASSUMPTION (the clip does not show it)
  *   and it is a FADE in two phases, never a sweep: first the white veil
  *   and the fill go out along with the outgoing label, and only with the
  *   fill invisible does the progress go back to 0 and the resting label
@@ -339,14 +339,14 @@ const css = StyleSheet.create({
  *   RUNTIME: the inside of the pill 217 → 177 → 141 → 104 → 74 → 58,
  *   evenly.
  *
- * — The backgrounds are variants (`background.ts`): `stock`, the chosen
+ * - The backgrounds are variants (`background.ts`): `stock`, the chosen
  *   one, is an asset's detail page measured from Robinhood's official
  *   screenshot, in a single gray; `opal` is the clip's screen and the only
  *   one with a spill. `stock` follows light/dark mode with system colors
  *   (`PlatformColor`): nothing to maintain. RUNTIME: bar (43,43,46) in
  *   dark and (228,228,230) in light.
  *
- * — The button's material is a variant (`material.ts`): `opaque` is the
+ * - The button's material is a variant (`material.ts`): `opaque` is the
  *   measured pill; `glass` is native Liquid Glass, `regular` with no tint
  *   and interactive, as the CONTAINER of the pill (GLASS.md: it does not
  *   get clipped and does not go under an animated opacity; the child clips
@@ -354,31 +354,31 @@ const css = StyleSheet.create({
  *   background scrolls under the button, which floats: with no content
  *   behind it, the glass does not read.
  *
- * — The COLOR SCHEME is decided by the screen (the button's `scheme`):
+ * - The COLOR SCHEME is decided by the screen (the button's `scheme`):
  *   only with `stock` does it follow the system; the Opal backgrounds are
  *   always dark. In light mode the opaque pill stays dark but with no
  *   sheen and no veil, and the burst is the color of the pill; the chips
  *   use the system grays (`LIGHT`, ASSUMED). RUNTIME:
  *   `cmp/claro-tablero.png`.
  *
- * — Android draws the same thing as iOS: system colors written out
+ * - Android draws the same thing as iOS: system colors written out
  *   (`PALETTE`, not `PlatformColor`: on Android it gives transparent),
  *   blurred copies with `filter: blur` from API 31 on instead of SF's
  *   PNGs, `check` checkmark from Material Symbols at 700,
  *   `includeFontPadding: false`. RUNTIME: `cmp/android-tablero.png`
  *   (Pixel 9 emulator).
  *
- * — The reset runs on UI (`withDelay` over `wait`), not in a
+ * - The reset runs on UI (`withDelay` over `wait`), not in a
  *   `setTimeout`: it arrives 5030 ms after the commit with JS blocked.
  *   `reset` is declared BEFORE `complete`, which calls it from a callback
  *   (a worklet captures `undefined` if the const comes later). RUNTIME:
  *   `meter.tsx` under `load.tsx` (`heavy`).
  *
- * — Only transform and opacity: the label's color is three sets of the
+ * - Only transform and opacity: the label's color is three sets of the
  *   text in its three inks with the partition of the progress as their
  *   opacity (`ink`); no view animates `color` or `tintColor`.
  *
- * — The active recipe is `clip` (`RECIPE`), the measured one: Vito asked
+ * - The active recipe is `clip` (`RECIPE`), the measured one: Vito asked
  *   for it back on 2026-09-07 after seeing the `skill` one ("different,
  *   especially the ending"). RUNTIME: rest, 0.5, commit and
  *   crossfade-commit=150 give infinite PSNR against the captures from
@@ -387,7 +387,7 @@ const css = StyleSheet.create({
  *   `overshootClamping` on the retreat, contextual checkmark, with
  *   `?recipe=skill`.
  *
- * — The checkmark in "Order Placed" comes in with opacity 0 → 1, scale
+ * - The checkmark in "Order Placed" comes in with opacity 0 → 1, scale
  *   .25 → 1 and blur 4 → 0 (better-ui, contextual icon); in `clip`, glued
  *   to the text. IT HAS NO CLOCK OF ITS OWN: it reads `pPlaced`, the
  *   text's presence, and its two layers carry the same partition of the
@@ -395,23 +395,23 @@ const css = StyleSheet.create({
  *   icon and "Order Placed" cannot come apart in any recipe (asked for on
  *   2026-09-07). The only thing that tells them apart is the prescribed
  *   scale.
- *   RUNTIME: `cmp/tilde-de-la-mano.png` and `tilde.py` — in `clip` the two
+ *   RUNTIME: `cmp/tilde-de-la-mano.png` and `tilde.py`. In `clip` the two
  *   inks stay within ±1.5 percentage points at every q; in `skill` the
  *   difference left is exactly the area of the checkmark at that scale.
  *
- * — One single state, `stage` (an integer): rest, hold, sounding, commit,
+ * - One single state, `stage` (an integer): rest, hold, sounding, commit,
  *   reset. The storyboard at the top of `hold-to-commit.tsx` reads like
  *   the sequence and has no numbers of its own: they all live in
  *   `recipe.ts` and `measurements.ts`.
  *
- * — Nothing visible depends on JS: 0 frames dropped in the sequence under
+ * - Nothing visible depends on JS: 0 frames dropped in the sequence under
  *   `all` and `heavy` (iOS dev, Android production). What crosses to JS,
  *   the haptics and the sound, waits however long JS takes: up to ~90 ms
  *   under `heavy`, ≤ 12 ms under `all`. Without the native module there is
  *   no more than that in Expo Go. Knobs: `LOAD`, `MEASURE`, `RECEIVER` in
  *   `probe.ts` (or `?load=`, `?measure=1`).
  *
- * — THE BUTTON IS NOT A LITERAL COPY OF THE CLIP, and in three things it
+ * - THE BUTTON IS NOT A LITERAL COPY OF THE CLIP, and in three things it
  *   departs from it on purpose: the 1 pt ring is not drawn and a two-layer
  *   shadow goes in its place; "✓ Order Placed" is moved 6.6 pt to the
  *   left; and in light mode the page is iOS's grouped gray and not pure
@@ -427,16 +427,16 @@ const css = StyleSheet.create({
  *   the clip does does not live in a dead branch of the code but in the
  *   README and in the receipts in `measurements.ts`.
  *
- * — The shadow carries a `borderRadius` and it is not decoration:
+ * - The shadow carries a `borderRadius` and it is not decoration:
  *   `boxShadow` follows the shape of the VIEW, and without the radius it
  *   draws a box with sharp corners around the capsule.
  *
- * — The button reaches FULL WHITE in both themes, like the reference. That
+ * - The button reaches FULL WHITE in both themes, like the reference. That
  *   it did not get lost against the page in light mode was not fixed by
  *   dimming the fill (that was tried and discarded) but by moving the
  *   background. The protagonist does not get dirtied to fix the set.
  *
- * — The `stock` background ends ABOVE the button: the `paddingBottom`
+ * - The `stock` background ends ABOVE the button: the `paddingBottom`
  *   bounds the `ScrollView`'s viewport, not the content. A `paddingBottom`
  *   on the content only adds air at the end and the rows keep on drawing
  *   behind the pill. And the content ends before that edge: cut flush it

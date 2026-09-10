@@ -85,7 +85,7 @@
   width: auto;
   max-width: 100%;
   max-height: 100%;
-  /* min-width:0 — a flex item does not shrink below its content by
+  /* min-width:0, because a flex item does not shrink below its content by
      default, and the content here is a video whose natural width can be
      1920. Without this the player overflowed the stage by 80px on each
      side, measured. */
@@ -157,14 +157,14 @@
 /* ─── THE BAR ───
    A row below the video, over the page background. */
 .controls {
-  /* flex:none — the bar never gives up its height. What shrinks when
+  /* flex:none, so the bar never gives up its height. What shrinks when
      there is not enough room is the video, not the controls. */
   flex: none;
   display: flex;
   align-items: center;
   gap: var(--player-gap);
   margin-top: 12px;
-  /* width:0 + min-width:100% — THE BAR HAS NO OPINION ON THE WIDTH.
+  /* width:0 + min-width:100%: THE BAR HAS NO OPINION ON THE WIDTH.
      The scrubber's track wants to stretch, so its contribution to the
      max-content made the player measure the whole page: the video ended
      up stuck to the left and the bar crossed from side to side. With
@@ -324,7 +324,7 @@
   color: var(--text-secondary);
 }
 
-/* ─── THE TRACK — NO REFERENCE, IT IS OURS ───
+/* ─── THE TRACK: NO REFERENCE, IT IS OURS ───
    The rail uses --hairline and the fill --ink: they are the two tokens
    the system already has for "faint structure" and "what you read".
    There is no new color. */

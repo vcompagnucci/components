@@ -8,7 +8,7 @@ import { usePalette } from './theme'
 const PROFILE = require('./media/profile.jpg')
 
 /* ═══════════════════════════════════════════════════════════════
-   THE HEADER — the strip that goes above the tabs.
+   THE HEADER: the strip that goes above the tabs.
 
    In the reference it has the profile photo on the left and X's logo in
    the middle. Here it carries only the photo: the logo is theirs, and a

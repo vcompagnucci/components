@@ -3,7 +3,7 @@ import css from './playground.module.css'
 import { nameOfPath } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE SKETCHES — writing a component from scratch, inside the canvas.
+   THE SKETCHES: writing a component from scratch, inside the canvas.
 
    A sketch is A REAL FILE in src/private/sketches/, exporting a default
    component. The frame draws it, Vite reloads it when you save, and the

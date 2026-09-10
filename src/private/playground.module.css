@@ -10,7 +10,7 @@
    out of the same tokens as the product.
    ═══════════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════
-   THE LIST OF VIEWS — the vault's grid, with other content inside.
+   THE LIST OF VIEWS: the vault's grid, with other content inside.
 
    THE GRID IS NOT NEW: it is openai.com/news's, measured whole with
    /web-clone and already baked into vault.module.css. Three columns
@@ -290,7 +290,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE CANVAS — ONE SIDEBAR AND EVERYTHING ELSE IS BOARD
+   THE CANVAS: ONE SIDEBAR AND EVERYTHING ELSE IS BOARD
 
    It is the project's only full-bleed screen: no 1440 rail, no tab bar
    (private.tsx turns it off on this route) and none of the frame's
@@ -329,7 +329,7 @@
   --panel-text: 176px;
   --panel-width: calc(var(--panel-text) + var(--private-inline) * 2);
 
-  /* ─── THE COLLAPSE — 300ms with the system's curve ───
+  /* ─── THE COLLAPSE: 300ms with the system's curve ───
      300 does not come from nowhere: it is the translation into CSS of
      the spring the vault's details panel opens and closes with (SPRING
      in details.tsx, 0.35s, bounce 0). A side panel that leaves takes
@@ -529,7 +529,7 @@
   gap: var(--index-item-gap);
 }
 
-/* ─── THE HEADER'S EDGE — chosen in a prototype (round 2) ───
+/* ─── THE HEADER'S EDGE: chosen in a prototype (round 2) ───
    The label and the +, on a nav line, with ONE hairline underneath at
    the column's width: the label has a shelf. Said honestly: the two
    measured references put their lines BETWEEN ZONES, full bleed (Paper:

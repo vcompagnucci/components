@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   WHAT YOU CAN DO WITH A CLIP — the right-click menu.
+   WHAT YOU CAN DO WITH A CLIP: the right-click menu.
 
    Renaming and moving to the trash lived outside the app: you had to go
    to the Finder. Now they are where the clip is.
@@ -88,7 +88,7 @@
   }
 }
 
-/* ─── THE TRIGGER — the three dots in the detail's bar ───
+/* ─── THE TRIGGER: the three dots in the detail's bar ───
    It is the SAME box as the inspector toggle: 32×32 over a 16 drawing,
    with no background. That is why it does not write it again, it
    composes it.

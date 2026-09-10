@@ -11,7 +11,7 @@ import { SwipeableTabs } from './swipeable-tabs'
 import { Theme } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   SWIPEABLE TABS — the screen, self-contained. It assembles the data,
+   SWIPEABLE TABS: the screen, self-contained. It assembles the data,
    picks the palette and mounts the piece. The route
    (`src/app/[slug].tsx`) finds it in the registry by its slug and
    mounts it. In the exhibition the piece is called `Swipe between
@@ -104,7 +104,7 @@ const css = StyleSheet.create({
  * each one in `measurements.ts`. Only the ones that are not a number go
  * here: the rules that the piece feeling like the reference depends on.
  *
- * — `d`, `h` and `t` are ONE shared value (`Segment`), not three.
+ * - `d`, `h` and `t` are ONE shared value (`Segment`), not three.
  *   Splitting them brings the icons' flicker back: the styles read a
  *   trio that never existed and the incoming icon lights up all the way
  *   for a frame.
@@ -115,7 +115,7 @@ const css = StyleSheet.create({
  *   list of outputs, so Reanimated's topological order cannot put it
  *   before whoever reads what it writes.
  *
- * — The row moves with the same progress as the content, tapping AND
+ * - The row moves with the same progress as the content, tapping AND
  *   dragging, and `TAB_BAR.row` (measurements.ts) picks the rule:
  *   'visible', today's one, stays where it was and only shifts as much
  *   as it takes for the active one to fit whole; 'center' centers the
@@ -129,12 +129,12 @@ const css = StyleSheet.create({
  *   a covered tab. A conscious decision about the reference; going back
  *   is one word.
  *
- * — A far tap moves the content ONE single page, not four.
+ * - A far tap moves the content ONE single page, not four.
  *   RUNTIME: in the For you → Tech tap of the X video there is a single
  *   splice; neither Following nor Stocks appears. Here it is achieved
  *   by lending the origin page to the slot next to the destination.
  *
- * — The finger interrupts any tap, including a far one. The loan stays
+ * - The finger interrupts any tap, including a far one. The loan stays
  *   alive while you drag and it is given back only when it cannot be
  *   seen: on reaching the destination, or on stopping over the lent
  *   page, jumping in the same frame to its real slot (with the haptic
@@ -143,7 +143,7 @@ const css = StyleSheet.create({
  *   rule.
  *   NO RECEIPT on screen yet: it gets tested on the phone.
  *
- * — The tap's curve is easeOutCubic at 300 ms, and it is NOT the drag's
+ * - The tap's curve is easeOutCubic at 300 ms, and it is NOT the drag's
  *   curve. They are two different animations: the drag's is the
  *   UIScrollView's deceleration and nobody chooses it.
  *   RUNTIME: fitted against the THREE taps of the user's new recordings
@@ -151,13 +151,13 @@ const css = StyleSheet.create({
  *   0.0153/0.0068/0.0250 and felt abrupt. The whole story is above
  *   `EASE_SETTLE`).
  *
- * — The symbol's glyph OVERFLOWS its slot: it draws 16 pt in a place
+ * - The symbol's glyph OVERFLOWS its slot: it draws 16 pt in a place
  *   that occupies 11. Making them equal fattens the active tab by ~5 pt
  *   and it shows in the width of the underline.
  *   RUNTIME: the reference's underline measures 90.7 / 77.7 / 58.7 on
  *   Stocks / Tech / AI.
  *
- * — The symbol hides BEHIND the word, like X: it is born ~1-2 pt
+ * - The symbol hides BEHIND the word, like X: it is born ~1-2 pt
  *   covered, travels WHOLE (never clipped) the measured 13/12 pt, and
  *   the label's zIndex exists for that.
  *   RUNTIME: the receipt for `slide` is in `measurements.ts`, with TWO
@@ -168,7 +168,7 @@ const css = StyleSheet.create({
  *   receipt). Do not touch it again without reading that story in
  *   `measurements.ts` and MEDICIONES.md.
  *
- * — The symbol's fade has TWO curves: the white icon goes with r^1.5
+ * - The symbol's fade has TWO curves: the white icon goes with r^1.5
  *   STARTING at `ICON.floor` and the gray chevron goes linear. And the
  *   label interpolates color with `gamma: 1` (raw sRGB), not in linear
  *   space. Matching the curves brings back the "it appears all at
@@ -180,7 +180,7 @@ const css = StyleSheet.create({
  *   gives 43/181/91 against X's 55/180/93, and in exchange at r<0.15
  *   not even the ghost is left (luma ≤ 8).
  *
- * — The occlusion is REAL: the label carries its own background in the
+ * - The occlusion is REAL: the label carries its own background in the
  *   palette's color (a clearance of 4 pt compensated with a negative
  *   margin, and `measure` subtracts it from the onLayout), and the
  *   symbol emerges through a clean edge flush with the word. Two things
@@ -190,7 +190,7 @@ const css = StyleSheet.create({
  *   RUNTIME: rest states intact to the tenth with the background in
  *   place; the solid channel of 4 pt is measured at r=0.5.
  *
- * — EVERY inactive word LEANS `TAB_BAR.lean` = 4.7 pt away from the
+ * - EVERY inactive word LEANS `TAB_BAR.lean` = 4.7 pt away from the
  *   active tab: labels, veils and symbols, NEVER the boxes or the
  *   underline. It is what makes "For you" shift when it loses the
  *   chevron and what makes the dying word travel slot+lean (~26 pt,
@@ -199,7 +199,7 @@ const css = StyleSheet.create({
  *   `lean` in `measurements.ts`; verified on screen with parked states
  *   (For you −2.4 at t=0.5, exactly half of −4.7).
  *
- * — The occlusion edge is NOT a hard edge: it carries a veil of
+ * - The occlusion edge is NOT a hard edge: it carries a veil of
  *   `feather` = 2.5 pt of gradient. Its ceiling is an inequality, not a
  *   matter of taste: clearance + feather + bearing ≤ 7.5 (the rest gap
  *   of the 17 pt icon), or the veil would touch the symbol at rest.
@@ -210,18 +210,18 @@ const css = StyleSheet.create({
  *   the hit area's padding is added by hand or the veil lands 12 pt
  *   off.
  *
- * — The Stocks symbol is a composed CHIP (outline + five rotated bars),
+ * - The Stocks symbol is a composed CHIP (outline + five rotated bars),
  *   not an SF Symbol. The zigzag's vertices are measured off the pixel;
  *   the whole receipt is above `CHIP` in `measurements.ts`.
  *   RUNTIME: profile row by row against frame 107 of the clip. Identical
  *   box and the mountain to ±2 px.
  *
- * — The row's content carries the `+`'s width as a tail. Without that
+ * - The row's content carries the `+`'s width as a tail. Without that
  *   the ScrollView does not reach the limit and the last tab ends up
  *   44 pt short.
  *   RUNTIME: Design's underline stopped at 272.3 instead of 223.3.
  *
- * — The row has TWO ramps, and they are the same idea at both ends: the
+ * - The row has TWO ramps, and they are the same idea at both ends: the
  *   right one comes in when there is scroll left ahead, the left one
  *   when there is content hidden behind (`row > 0`). The same width
  *   (`EDGE.ramp`) on purpose. It is not a blur: in the reference the
@@ -230,12 +230,12 @@ const css = StyleSheet.create({
  *   gives 20→125 and full ink at 23. Off at rest with no scroll: the F
  *   in For you starts at a full 255.
  *
- * — The labels do NOT scale with Dynamic Type (`allowFontScaling:
+ * - The labels do NOT scale with Dynamic Type (`allowFontScaling:
  *   false`).
  *   RUNTIME: on the same phone at the same moment, X measured 62.3 pt
  *   of width and 10.00 of cap while the system was at extra-small.
  *
- * — The haptic is `impactAsync(Light)` in `onTap` (onPress), NEVER in
+ * - The haptic is `impactAsync(Light)` in `onTap` (onPress), NEVER in
  *   onPressIn: there it fired when you started dragging the row,
  *   because the finger rests on a tab ("take the haptic out",
  *   2026-09-01). The scroll cancels the press, so the drag goes mute on
@@ -243,7 +243,7 @@ const css = StyleSheet.create({
  *   NO RECEIPT for the intensity: the clip is video and has no haptic
  *   track. It was tuned by hand with the phone.
  *
- * — LIGHT mode comes out of `useColorScheme` (the X app follows the
+ * - LIGHT mode comes out of `useColorScheme` (the X app follows the
  *   system) and the palette travels through the `Theme` context. BOTH
  *   palettes are measured with the same method: the dark one in the
  *   vault clip and the light one in the collapse recording
@@ -251,7 +251,7 @@ const css = StyleSheet.create({
  *   #0F1419; the light divider is #C9CBCB, not #EFF3F4. Receipt above
  *   `LIGHT` in `measurements.ts`.
  *
- * — THE BLOCK AT THE TOP COLLAPSES with the content's scroll: status
+ * - THE BLOCK AT THE TOP COLLAPSES with the content's scroll: status
  *   bar + header + tabs + divider translate 1:1 with the scroll delta
  *   (no threshold, no snap, no animation of their own) until the
  *   divider is flush against the edge of the status bar. The block's
@@ -270,7 +270,7 @@ const css = StyleSheet.create({
  *   how it was"). No receipt: on changing tabs the block does not end
  *   up more collapsed than the scroll of the arriving page.
  *
- * — `EDGE.slack` is 4 and it has TWO readings that do not agree: 3.6 pt
+ * - `EDGE.slack` is 4 and it has TWO readings that do not agree: 3.6 pt
  *   in the vault clip and 0.0 in the new recording.
  *   NO SINGLE RECEIPT: the old value was kept because it has one of its
  *   own, but one of the two measurements is wrong and nobody knows

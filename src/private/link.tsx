@@ -146,7 +146,7 @@ export function NoteLink({ url }: { url: string }) {
           that does not say where it leads. The site gets added here and
           not in the visible text, which is exactly what is being
           shortened. */}
-      <span className={css.hidden}> — {hostOf(destination)}</span>
+      <span className={css.hidden}>, {hostOf(destination)}</span>
     </a>
   );
 }

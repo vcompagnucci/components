@@ -17,10 +17,10 @@
    against the clip afterwards anyway.
 
    Three grades, like in the rest of the repo:
-   · RUNTIME    — read off the clip's pixels.
-   · DERIVED    — arithmetic on top of a RUNTIME, with the arithmetic
+   · RUNTIME: read off the clip's pixels.
+   · DERIVED: arithmetic on top of a RUNTIME, with the arithmetic
                   written out.
-   · ASSUMED    — what the clip does NOT show (the top of the screen, the
+   · ASSUMED: what the clip does NOT show (the top of the screen, the
                   haptics). It is stated as such.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -91,7 +91,7 @@ export const COLOR = {
   chipActive: 'rgba(255,255,255,0.18)',
 } as const
 
-/* LIGHT MODE — it is not in the clip: Opal is dark. What changes when
+/* LIGHT MODE: it is not in the clip: Opal is dark. What changes when
    the screen is light (asked for on 2026-09-07, looking at the simulator
    in light mode: "adapt it properly to light mode, it all looks awful to
    me, even the picker, and everything about the button", and "take the
@@ -500,7 +500,7 @@ export const LABEL = {
   opticalCorrection: -6.6,
 } as const
 
-/* ═══ THE GESTURE AND THE FILL — the heart of the piece ═══ */
+/* ═══ THE GESTURE AND THE FILL: the heart of the piece ═══ */
 export const HOLD = {
   /* RUNTIME · the blob's front advances LINEARLY: 7.75 px/frame from f75
      to f181 (8.15 → 7.7 → 7.5 across three stretches: a deceleration of
@@ -535,7 +535,7 @@ export const HOLD = {
      100 / 125 ms → τ = 60 ms (with a quadratic ease-out of 220 the
      capture gave .72 / .59 / .49 / .43 / .36 / .27: a long tail).
      `Easing.out(Easing.exp)` is 1 − 2^(−10t): with 420 ms it is exactly
-     e^(−t/60) — .75 / .58 / .43 / .33 / .25 / .19 / .12. The old reading
+     e^(−t/60): .75 / .58 / .43 / .33 / .25 / .19 / .12. The old reading
      ("30 px/frame, 4× the way in") was following a fixed luminance
      threshold, which runs fast when what is falling is the peak. */
   retreat: 400,
@@ -546,7 +546,7 @@ export const HOLD = {
   turnOn: 330,
   /* RUNTIME · and it starts SLOW: the peak 10 pt from the edge, over a
      background of 45, goes 0 → 2 → 15 → 31 → 48 → 118 → 182 at
-     42 / 58 / 75 / 108 / 142 / 208 / 308 ms (f64…f80) — 8 / 17 / 26 / 65
+     42 / 58 / 75 / 108 / 142 / 208 / 308 ms (f64…f80), that is 8 / 17 / 26 / 65
      / 100 % at 75 / 108 / 142 / 208 / 308 ms. An ease-out over 300 gave
      44 / 60 / 73 / 91 / 100 and in the capture the peak came out 50 %
      stronger at 75 ms and 25 % weaker at 300; a quadratic ease-in-out
@@ -600,7 +600,7 @@ export const CROSSFADE = {
 
      RUNTIME · press (f62): the integral of the stem of the "i" in Commit
      (the outgoing one) drops 2255 → 1503 → 818 → 370 → 66 → 0 from f61 to
-     f66: it goes in 4 frames (67 ms), 67 / 36 / 16 / 3 % — an ease-out.
+     f66: it goes in 4 frames (67 ms), 67 / 36 / 16 / 3 %, an ease-out.
      The "i" in Holding (the incoming one) is already there at 33 ms,
      blurred; legible at 67; at 90 % by 133; and its peak keeps rising to
      ~f85 (380 ms): the focusing has a tail. The 48 of exit (against the
@@ -661,7 +661,7 @@ export const COMMIT = {
   /* RUNTIME · the finished pill is NOT evenly white: the top rows give
      (245,250,248) and the middle 254. With the white veil at 75 % over
      the blob (which has a pale green rim), the middle ends at 255 and the
-     rim at (218×.25 + 255×.75) = 246 — both readings at once. */
+     rim at (218×.25 + 255×.75) = 246, both readings at once. */
   whiteVeil: 0.75,
   /* RUNTIME · after the burst the front KEEPS GOING to the right tip
      while the pill whitens: the front's 50 % point (row 10 pt in) goes
@@ -676,7 +676,7 @@ export const COMMIT = {
   slideDelay: 250,
   slideDuration: 400,
   /* ASSUMED · Vito asked for it (2026-09-03): "✓ Committed" appears
-     smaller, from the back, and grows to its size while it focuses — the
+     smaller, from the back, and grows to its size while it focuses, the
      `.blurReplace(.downUp)` of SwiftUI, what a serious brand would do.
      The clip does NOT do it (measured: centered, no scale); with 1 here
      the faithful version comes back. The scale follows the label's
@@ -707,7 +707,7 @@ export const PARTICLES = {
   fromEdge: 2.2,
   /* RUNTIME · the outward travel (Δdist at the end of each track): p10
      1.5–2.3 pt, median 7.6–8.7, p90 14–17. It is not even: most stay
-     close and a few go far — a uniform raised to 1.5 between 2 and 17
+     close and a few go far. A uniform raised to 1.5 between 2 and 17
      gives median 7.3, p10 2.5, p90 14.8. */
   travel: { min: 2, max: 17, bias: 1.5 },
   /* RUNTIME · THE CLOUD INFLATES FROM THE CENTER, it does not shake: each
@@ -730,7 +730,7 @@ export const PARTICLES = {
      τ ≈ 330 ms at the start and slower after that; in the clip they live
      ~1.2 s.
      ASSUMED · Vito (2026-09-03): "make them disappear a touch earlier"
-     than the "✓ Committed" — they live 700 ms with τ 260 and a soft fade
+     than the "✓ Committed". They live 700 ms with τ 260 and a soft fade
      from 40 % of their life (280 ms), so that when the sharp text emerges
      (~370 ms after the burst) they are at 30 %, and at 500 ms at 10 %. */
   lifetime: 700,
@@ -751,7 +751,7 @@ export const PARTICLES = {
      1.5–4 even, a lossless capture from the workshop gives median 2.8 and
      maximum 4.0, measured with the same threshold as the clip (2.7 / 4.0).
      CAREFUL: the simctl recording showed them as gray dust and led to
-     enlarging them to 2–4.5 biased towards the big ones — that gave a
+     enlarging them to 2–4.5 biased toward the big ones, and that gave a
      median of 4.2 and four times as many white pixels as the clip. Video
      compresses small dots; the measurement only holds on a capture. */
   diameter: { min: 1.5, max: 4, bias: 1.4 },
@@ -766,7 +766,7 @@ export const PARTICLES = {
   to: 1,
 } as const
 
-/* THE SPARKS — the dots of light that travel INSIDE the pill during the
+/* THE SPARKS: the dots of light that travel INSIDE the pill during the
    hold, ahead of the front. RUNTIME (clip f64–f182, `chispas.py` and
    `chispas2.py`: 24 tracks of ≥3 frames, with the text excluded from the
    detection, so there are fewer than there really are): */

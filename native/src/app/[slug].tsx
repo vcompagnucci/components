@@ -3,7 +3,7 @@ import { Redirect, useLocalSearchParams } from 'expo-router'
 import { PIECES } from '@/components/pieces/registry'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE ROUTE OF A PIECE — one route for all of them, like
+   THE ROUTE OF A PIECE: one route for all of them, like
    `app/animations/[slug].tsx` in react-native-motion: it looks the
    screen up in the registry and mounts it. Nothing else.
 

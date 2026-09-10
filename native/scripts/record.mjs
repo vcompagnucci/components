@@ -1,4 +1,4 @@
-/* RECORD — the last step of the native workshop, and the first of the
+/* RECORD: the last step of the native workshop, and the first of the
  * vault.
  *
  *   pnpm record swipe-to-pay          → the clip lands in VAULT_DIR/native/

@@ -4,7 +4,7 @@ import { useAnimatedScrollHandler, useSharedValue, type SharedValue } from 'reac
 import { COLLAPSE } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE COLLAPSE — the whole header rises with the content's scroll.
+   THE COLLAPSE: the whole header rises with the content's scroll.
 
    It is what X does: as you scroll the feed down, the block at the top
    (status bar included, header, tabs and divider) translates upward

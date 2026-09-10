@@ -23,7 +23,7 @@ import {
 } from './sketches'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE PLAYGROUND — where things get built.
+   THE PLAYGROUND: where things get built.
 
    IT IS SEVERAL VIEWS, like walking into different designs in Figma.
    This one here is the list of all of them; each one is a canvas.
@@ -218,7 +218,7 @@ export function Playground({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE BOARD — THE RULES OF THE CANVAS
+   THE BOARD: THE RULES OF THE CANVAS
 
    It is a STUDY BOARD and not a document: things are where you left
    them, and moving them is grabbing them. From that come the three
@@ -950,7 +950,7 @@ function Plus() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   WHAT YOU CAN DO WITH A VIEW — the right click on its card.
+   WHAT YOU CAN DO WITH A VIEW: the right click on its card.
 
    It is the same menu and the same dialogs as the vault's, and that is
    NOT a resemblance: they are literally Menu and Dialog from
@@ -1075,7 +1075,7 @@ function DeleteViewDialog({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   A VIEW'S CARD — the playground's list.
+   A VIEW'S CARD: the playground's list.
 
    THE GRID IS THE VAULT'S, which is openai.com/news's measured whole
    with /web-clone: 1440 max and a 32 rail (the frame sets those), a 24
@@ -1223,7 +1223,7 @@ function Card({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   A VIEW'S CANVAS — the sidebar and the board.
+   A VIEW'S CANVAS: the sidebar and the board.
 
    IT IS THE ONLY FULL-BLEED SCREEN IN THE WHOLE APP. It does not carry
    the 1440 rail, or the tab bar, or the 80 of air on top: a canvas is

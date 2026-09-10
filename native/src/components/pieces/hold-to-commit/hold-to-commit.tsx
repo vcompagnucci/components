@@ -27,7 +27,7 @@ import { KINEMATICS, move, type Recipe, timing, type Timings } from './recipe'
 import { LEAD_MS, prepareSound, playSound } from './sound'
 
 /* ─────────────────────────────────────────────────────────────────
- * ANIMATION STORYBOARD — hold to commit
+ * ANIMATION STORYBOARD: hold to commit
  *
  * Read it top to bottom. The ms are counted from each block's event, in
  * the active recipe, `clip` (Opal's measured timings); in brackets, what
@@ -35,7 +35,7 @@ import { LEAD_MS, prepareSound, playSound } from './sound'
  * checkmark). Every number lives in `recipe.ts` or in `measurements.ts`,
  * with its receipt; here they are only read.
  *
- * PRESS — the finger comes down
+ * PRESS: the finger comes down
  *      0ms   pill scale 1 → .953, 250 ease-out              [.97, spring 150 bounce 0]
  *      0ms   fill opacity 0 → 1, 330 ease-in-out
  *      0ms   front translateX 4.5 % → 95.5 % of the width, linear 1000: it is the gesture
@@ -44,13 +44,13 @@ import { LEAD_MS, prepareSound, playSound } from './sound'
  *    550ms   label white → greenish gray, by progress, until 700
  *    940ms   Apple Pay sound, 60 ms before the end
  *    965ms   label → black
- * RELEASE before the end — the finger comes up
+ * RELEASE before the end: the finger comes up
  *      0ms   front back to 0, 400 ease-out                  [spring 400 bounce 0, clamped at 0]
  *      0ms   fill opacity → 0, 420 exponential
  *      0ms   pill scale → 1, 250 ease-out                   [spring 400 bounce 0]
  *     80ms   "Keep Holding..." exits 250
  *    150ms   "Hold to Buy" enters 600, linear
- * COMMIT — 1000 ms of hold
+ * COMMIT: 1000 ms of hold
  *      0ms   success haptic · burst of 46 dots, 700 linear
  *      0ms   pill scale → 1, 25 % jump + 220 ease-out       [spring 400 bounce 0]
  *      0ms   white veil opacity 0 → .75, 330 ease-out
@@ -63,7 +63,7 @@ import { LEAD_MS, prepareSound, playSound } from './sound'
  * ───────────────────────────────────────────────────────────────── */
 
 /* ═══════════════════════════════════════════════════════════════
-   HOLD TO COMMIT — the button. You press, it fills from left to right in
+   HOLD TO COMMIT: the button. You press, it fills from left to right in
    `HOLD.duration` (1 s on request; the clip measures 2), and if you hold
    it to the end it stays white with a "✓ Order Placed". If you let go
    earlier, the light retreats and it goes back to saying "Hold to Buy".
@@ -97,7 +97,7 @@ import { LEAD_MS, prepareSound, playSound } from './sound'
    `move(to, R.x)`.
 
    THE FILL IS FOUR TEXTURES, not views with a gradient (which in RN would
-   need a native module — see `media/generate.swift`):
+   need a native module, see `media/generate.swift`):
 
      sheen  the resting teal→green, hugging the bottom edge, fixed
      body   a 1 px column stretched across the width, white with the pale
@@ -371,7 +371,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
     cancelAnimation(scale)
     /* From wherever it is: if you press again during the retreat, the fill
        carries on from there and reaches 1 exactly when the LongPress
-       fulfils its `minDuration` — one single clock for both things. */
+       fulfills its `minDuration`, one single clock for both things. */
     markUI('press-ui')
     progress.set(move(1, timing(HOLD.duration, Easing.linear)))
     blob.set(move(1, R.turnOn))
@@ -532,7 +532,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
       return
     }
     if (probe.startsWith('crossfade')) {
-      /* `crossfade=120`: the press, 120 ms after the touch — every value
+      /* `crossfade=120`: the press, 120 ms after the touch, every value
          where the real animation would have it (same curves and delays as
          `press`); `crossfade-commit=300`: 300 ms after the burst, with the
          label, the whitening and the particles where they belong. It is
@@ -677,7 +677,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
 
      WITH REDUCE MOTION THERE IS NO SWEEP: the fill stays whole (the
      geometric edge where it ends on completion, 101 %) and its OPACITY is
-     the progress — the same clock, counted with light instead of with
+     the progress. The same clock, counted with light instead of with
      position. */
   const fillStyle = useAnimatedStyle(() => {
     const p = progress.get()

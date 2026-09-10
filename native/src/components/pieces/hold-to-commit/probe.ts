@@ -1,6 +1,6 @@
 import type { Load } from './load'
 
-/* THE DEVELOPMENT PROBE — one fixed state per reload.
+/* THE DEVELOPMENT PROBE: one fixed state per reload.
  *
  * `xcrun simctl openurl` with `?park=` asks for confirmation ("Open in
  * Workshop?") on iOS 26 and there is no way to tap it from the terminal;

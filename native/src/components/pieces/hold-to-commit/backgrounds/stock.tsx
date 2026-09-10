@@ -3,7 +3,7 @@ import { type ColorValue, ScrollView, StyleSheet, useColorScheme, useWindowDimen
 import { useTick } from '../load'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE "STOCK" BACKGROUND — an asset's detail page in a finance app, as a
+   THE "STOCK" BACKGROUND: an asset's detail page in a finance app, as a
    skeleton. Vito asked for it (2026-09-04): "make it look like it is from
    a finance app, Robinhood style, and make the button at the bottom a buy
    button"; then "without much detail though, all skeletons"; and then
@@ -28,8 +28,8 @@ import { useTick } from '../load'
    button.
 
    LIGHT AND DARK MODE (asked for on 2026-09-04): the three colors are
-   iOS's SYSTEM COLORS — `systemBackground` (white / black), `systemFill`
-   (the bar) and `separator` (the hairline) — written out with their
+   iOS's SYSTEM COLORS: `systemBackground` (white / black), `systemFill`
+   (the bar) and `separator` (the hairline), written out with their
    values. SOURCE: UIKit's system color table (HIG › Color): systemFill is
    (120,120,128) at 20 % in light and at 36 % in dark; separator,
    (60,60,67) at 29 % and (84,84,88) at 60 %. Over black, systemFill gives

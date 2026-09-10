@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { SLUGS } from './pieces/registry'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE LIST OF PIECES — the index of the workshop, drawn.
+   THE LIST OF PIECES: the index of the workshop, drawn.
 
    It is react-native-motion's `animation-list.tsx`: the index route
    (`src/app/index.tsx`) decides whether there is a list and this draws

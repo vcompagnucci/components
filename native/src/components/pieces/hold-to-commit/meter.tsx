@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { makeMutable, useFrameCallback, useSharedValue } from 'react-native-reanimated'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE METER — what the piece costs each thread, in numbers.
+   THE METER: what the piece costs each thread, in numbers.
 
    Vito asked for it (2026-09-07): "improve this button's performance a
    lot [...] simulate the load of a real app to test its performance". A

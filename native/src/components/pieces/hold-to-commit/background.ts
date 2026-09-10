@@ -1,4 +1,4 @@
-/* THE BACKGROUND — what is behind the button.
+/* THE BACKGROUND: what is behind the button.
  *
  * The button is the piece; what is behind it is context. On 2026-09-03
  * Vito asked to drop the Opal screen and leave a plain, neutral

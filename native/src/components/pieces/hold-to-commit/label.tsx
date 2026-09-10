@@ -7,14 +7,14 @@ import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reani
 import { COLOR, COMMIT, LABEL, SYMBOL, TEXT } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE LABEL — three texts, each with its own PRESENCE, and iOS's
+   THE LABEL: three texts, each with its own PRESENCE, and iOS's
    `.blurReplace` built out of a staircase of blurred copies.
 
    In the reference the text that leaves BLURS as it fades out and the one
    that arrives focuses as it fades in, centered, with no scale and no
    displacement (magnified strips in `.context/hold-to-commit/cruces`).
    React Native does not blur views in the installed Workshop.app (RN
-   0.86's `filter: blur` sits behind a native flag that is off — see
+   0.86's `filter: blur` sits behind a native flag that is off, see
    `media/generate.swift`), so each label has THREE copies: the sharp
    `Text` and two images of the same text already blurred with the same
    SF Pro, one wide (σ 2.5 pt) and one narrow (σ 1.0), tinted with
@@ -60,7 +60,7 @@ import { COLOR, COMMIT, LABEL, SYMBOL, TEXT } from './measurements'
    always black: a single set.
 
    "✓ Order Placed" also COMES IN GROWING from `enterScale` (asked for on
-   2026-09-03; the clip does not scale) — the scale follows its presence
+   2026-09-03; the clip does not scale). The scale follows its presence
    through an ease-out: fast at first, settling slowly. With reduce motion
    there are no blurred copies and no scale: the sharp ones crossfade on
    their own by opacity (animate-expo § 9: the opacity stays, the scale
@@ -76,9 +76,9 @@ import { COLOR, COMMIT, LABEL, SYMBOL, TEXT } from './measurements'
    at the same time? Make sure of it". There were two ways for them to
    come apart and both are closed off: (1) the checkmark had a 300 ms
    spring of its own while the text took 450 from a delay of 210, so it
-   arrived first — now its clock is `pPlaced`, the text's presence; (2)
+   arrived first, and now its clock is `pPlaced`, the text's presence; (2)
    with the same clock but opacity q, the text reached full ink at q = .4
-   (the staircase rises fast) and the checkmark only at q = 1 — now its
+   (the staircase rises fast) and the checkmark only at q = 1. Now its
    sharp layer carries `sharp` and its blurred copy `wide + narrow`, which
    is the SAME partition: the total ink and the focused fraction are the
    text's in every frame, and the .25 → 1 scale follows the same ease-out.
@@ -347,7 +347,7 @@ export function Label({ ink, restColor, presence, noBlur: requestedNoBlur, enter
         {inkLayers(COLOR.blackInk)}
       </Animated.View>
 
-      {/* ✓ Order Placed — the layers inside the view that scales */}
+      {/* ✓ Order Placed: the layers inside the view that scales */}
       <Animated.View style={[css.layer, placedScale]}>
         {contextualCheckmark ? (
           <>

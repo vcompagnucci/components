@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE REGISTRY OF PIECES — slug → screen, derived from the folders.
+   THE REGISTRY OF PIECES: slug → screen, derived from the folders.
 
    It is react-native-motion's `registry.tsx` (components/animations/),
    with one difference that matters here: over there the map is written

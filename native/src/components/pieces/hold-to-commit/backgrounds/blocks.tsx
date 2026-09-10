@@ -3,7 +3,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { CARD, COLOR, DAYS, GAP, SCREEN, SECTION, TOGGLE } from '../measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE "BLOCKS" BACKGROUND — the Opal screen as a skeleton: the same grid,
+   THE "BLOCKS" BACKGROUND: the Opal screen as a skeleton: the same grid,
    the same measured heights and paddings, with no text, no color and no
    blotches. Each text is a gray bar, each control is its silhouette. That
    way the button has context (it is at the foot of a form) without

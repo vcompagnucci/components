@@ -1,4 +1,4 @@
-/* NEW PIECE — the native equivalent of the playground's "New sketch".
+/* NEW PIECE: the native equivalent of the playground's "New sketch".
  *
  *   pnpm new "Swipe to pay"
  *
@@ -69,7 +69,7 @@ const Id = toIdentifier(s)
    header, it is going to be recorded like that. */
 const screen = `import { StyleSheet, View } from 'react-native'
 
-/* ${Id} — a piece of the workshop.
+/* ${Id}: a piece of the workshop.
  *
  * It takes the whole screen and has no header, because that is how it
  * gets recorded. To go back to the index, swipe from the left edge.

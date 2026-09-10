@@ -6,7 +6,7 @@ import { ProBadge, SectionHeader, Card, DayCircles, ValueAndSymbol, TimeRow, Lab
 import { TOP, CARD, COLOR, GAP, SCREEN, SECTION, SYMBOL } from '../measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE "OPAL" BACKGROUND — the clip's screen, measured, with the button at
+   THE "OPAL" BACKGROUND: the clip's screen, measured, with the button at
    the foot.
 
    THE MEASURED BLOCK IS ANCHORED TO THE BOTTOM. The clip shows the bottom

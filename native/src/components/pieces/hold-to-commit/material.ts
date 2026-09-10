@@ -1,4 +1,4 @@
-/* THE BUTTON'S MATERIAL — what the pill is made of.
+/* THE BUTTON'S MATERIAL: what the pill is made of.
  *
  * Vito asked (2026-09-04) to "see an option for how this would look with
  * a liquid glass button". Like the background and the recipe, it is a

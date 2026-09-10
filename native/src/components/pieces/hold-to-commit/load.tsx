@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE LOAD — what a real app does to both threads while the button has
+   THE LOAD: what a real app does to both threads while the button has
    to answer just the same.
 
    Vito asked for it (2026-09-07): "simulate the load of a real app to

@@ -684,7 +684,7 @@
   --details-gap: 32px;
 
   /* ═══════════════════════════════════════════════════════════════
-     THE STAGE'S VERTICAL AIR — 44 above, 52 below.
+     THE STAGE'S VERTICAL AIR: 44 above, 52 below.
 
      THE TWO NUMBERS DO TWO DIFFERENT JOBS and that is why they are not
      one:
@@ -778,7 +778,7 @@
   }
 }
 /* ═══════════════════════════════════════════════════════════════
-   THE DETAIL'S HEADER — ONE ROW: arrow · title · inspector.
+   THE DETAIL'S HEADER: ONE ROW: arrow · title · inspector.
 
    It is the order Apple's HIG describes in Toolbars › Item groupings,
    and not a reading of ours: on the leading edge go the elements that
@@ -833,7 +833,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE TRAILING EDGE — the ··· and the inspector toggle.
+   THE TRAILING EDGE: the ··· and the inspector toggle.
 
    It is a GROUP and not two loose controls, and that is why the
    `margin-left: auto` is here and no longer on the toggle: when the
@@ -866,7 +866,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE AIR UNDER THE CLIP — 56px, and the clip does NOT fill its box.
+   THE AIR UNDER THE CLIP: 56px, and the clip does NOT fill its box.
 
    The stage hands out what is left over: with `align-items: flex-start`
    the remaining air collects at the bottom, and the clip is sized from
@@ -910,7 +910,7 @@
   padding-block: var(--stage-top) var(--stage-bottom);
 }
 /* ═══════════════════════════════════════════════════════════════
-   THE TITLE — it is now the trigger of the document's menu.
+   THE TITLE: it is now the trigger of the document's menu.
 
    It was an <input> you edited by touching it. The why of the change is
    in TitleMenu, in vault.tsx.
@@ -1081,7 +1081,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   WHERE THE CLIP GOES — the dialog
+   WHERE THE CLIP GOES: the dialog
 
    Two things happened here before this one, and both left: a panel that
    split the screen down the middle, and a menu hanging off the +.

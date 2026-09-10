@@ -17,7 +17,7 @@ import {
 } from "./actions";
 
 /* ═══════════════════════════════════════════════════════════════
-   THE VAULT — the wall of references.
+   THE VAULT: the wall of references.
 
    The card is benji's from family-values, measured and baked. The why
    of every number is in vault.module.css and what was measured in
@@ -601,7 +601,7 @@ export function Vault({
       try {
         await uploadClip(files[i], source);
       } catch (err) {
-        setUploading(`${files[i].name} — ${String((err as Error).message)}`);
+        setUploading(`${files[i].name}: ${String((err as Error).message)}`);
         await new Promise((r) => setTimeout(r, 2500));
       }
     }
@@ -736,7 +736,7 @@ export function Vault({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   WHERE THE CLIP GOES — the dialog.
+   WHERE THE CLIP GOES: the dialog.
 
    It is a native <dialog> opened with showModal(), not a div with
    position:fixed. That brings four things free and done right that come

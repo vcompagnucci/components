@@ -32,7 +32,7 @@ import { usePalette } from './theme'
    rest state is measured at 1. It was tried and taken out.
 
    WHERE EACH MEASUREMENT COMES FROM:
-   · avatar 40 pt — MEASURED in the clip: 123 px at 3x = 41 pt, the
+   · avatar 40 pt, MEASURED in the clip: 123 px at 3x = 41 pt, the
      extra point being the softened edges. 40 is the clean value.
    · each photo's ratio travels measured in `media.ts` and here it is
      CLAMPED to [3:4, 16:9], which is our decision, NO RECEIPT: X's real

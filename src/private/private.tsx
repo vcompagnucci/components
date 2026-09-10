@@ -11,7 +11,7 @@ import { Playground } from './playground'
    the page of the product and it carries no development chrome. */
 
 /* ═══════════════════════════════════════════════════════════════
-   THE PRIVATE AREA — the vault and the playground.
+   THE PRIVATE AREA: the vault and the playground.
 
    EVERYTHING THAT HANGS OFF THIS FOLDER EXISTS ONLY IN DEVELOPMENT. The
    door is in app.tsx, in a single line:
@@ -50,7 +50,7 @@ export default function PrivateArea({
   rest: string
   go: (path: string) => void
 }) {
-  /* ⌘Z UNDOES THE LAST NAVIGATION — AND IT IS THE LAST LINK, NOT THE
+  /* ⌘Z UNDOES THE LAST NAVIGATION: AND IT IS THE LAST LINK, NOT THE
      ONLY ONE.
 
      It is the same as the trackpad's back gesture, but with the

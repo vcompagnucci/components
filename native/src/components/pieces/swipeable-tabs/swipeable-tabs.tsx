@@ -23,7 +23,7 @@ import { CollapseContext, collapsedOpacity, type Collapse } from './collapse'
 import { usePalette } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE MECHANISM — the pager, and the `Segment` it hands to the bar.
+   THE MECHANISM: the pager, and the `Segment` it hands to the bar.
 
    Where the transition comes from, where it goes and how far it has got
    (0..1), in a single value. The bar has no state of its own and draws
@@ -192,7 +192,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
   const { width } = useWindowDimensions()
   const palette = usePalette()
 
-  /* ═══ THE COLLAPSE — the block at the top rises with the page's
+  /* ═══ THE COLLAPSE: the block at the top rises with the page's
      scroll. The mechanism and its receipt are in `collapse.tsx`. The
      state lives here because here is where it is known which page is
      active. */
@@ -621,7 +621,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
   )
 
 
-  /* ═══ RECORDING PROBE (?demo=1) — not part of the piece ═══
+  /* ═══ RECORDING PROBE (?demo=1): not part of the piece ═══
      A one-shot choreography for recording the video, with synthetic
      gestures that go down the piece's real paths: the drags move the
      pager's offset frame by frame with `motion` set to `drag` (the bar

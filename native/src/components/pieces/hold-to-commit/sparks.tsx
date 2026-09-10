@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reani
 import { FRONT, frontAt, HOLD, SPARKS } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE SPARKS — the dots of light that travel INSIDE the pill during the
+   THE SPARKS: the dots of light that travel INSIDE the pill during the
    hold, ahead of the fill's front (magnifications in
    `.context/hold-to-commit/dentro`, tracks in `chispas2.py`).
 
@@ -23,7 +23,7 @@ import { FRONT, frontAt, HOLD, SPARKS } from './measurements'
    (`media/spark@3x.png`); each life scales it and dims it to its own
    values. They live below the commit's white veil and below the label:
    on completion, the veil covers them; over an already white fill, white
-   at 30 % is invisible — the same absorption as in the clip.
+   at 30 % is invisible, the same absorption as in the clip.
 
    The whole receipt is in `SPARKS`.
    ═══════════════════════════════════════════════════════════════ */

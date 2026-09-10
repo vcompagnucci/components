@@ -18,7 +18,7 @@ import { TAB_BAR, EDGE, CHIP, ICON, LABEL, UNDERLINE, tabExtra } from './measure
 import { usePalette } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE BAR — the row of tabs, the underline, the gradient and the `+`.
+   THE BAR: the row of tabs, the underline, the gradient and the `+`.
 
    It has no selection state and does not know which tab is chosen: it
    receives a `Segment` (`d`, `h` and `t`, 0..1) and EVERYTHING it draws
@@ -478,16 +478,16 @@ export const TabBar = memo(function TabBar({ tabs, segment, motion, viewport, on
      WHERE THE ROW WANTS TO GO, frame by frame. `TAB_BAR.row` picks the
      rule (each one's receipt is in measurements.ts):
 
-     · 'visible' — it stays where it was when the content started
+     · 'visible': it stays where it was when the content started
                    (`origin`), clamped to the range in which the active
                    tab fits whole, interpolated with the same progress
                    as everything else. It only shifts when it has to,
                    and only as much as it has to. Tapping and dragging
                    alike.
-     · 'center'  — it follows `targets` (what X does, measured) with the
+     · 'center':  it follows `targets` (what X does, measured) with the
                    same progress; dragging, it adds the DEVIATION the
                    user left by hand and clamps so the active one fits.
-     · STILL     — does not exist: with the content still the row
+     · STILL: does not exist: with the content still the row
                    belongs to the user's finger and this does not touch
                    it (see the reaction).
      ─────────────────────────────────────────────────────────────── */
@@ -535,7 +535,7 @@ export const TabBar = memo(function TabBar({ tabs, segment, motion, viewport, on
      standing. With the last tab active it gives 0 and the gradient
      disappears: a gradient that promises content that does not exist is
      a lie, and in the reference it is indeed not there. */
-  /* THE LEFT RAMP — the mirror of the `+`'s, and with the same meaning:
+  /* THE LEFT RAMP: the mirror of the `+`'s, and with the same meaning:
      it says "there is content hidden this way". It only appears once
      the row is scrolled (`row > 0`) and it comes in over the same
      `fade` window as the right one. Without it, the word leaving the

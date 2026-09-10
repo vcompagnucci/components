@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE HAPTIC TRACK — in one place, because it is the only thing in the
+   THE HAPTIC TRACK: in one place, because it is the only thing in the
    piece that CANNOT be measured: the clip is video and has no haptic
    track. Everything here is NO RECEIPT and gets tuned with the phone in
    hand (the simulator does not vibrate).

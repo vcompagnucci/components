@@ -1,4 +1,4 @@
-/* OPEN STRAIGHT INTO A PIECE — a development knob of the workshop.
+/* OPEN STRAIGHT INTO A PIECE: a development knob of the workshop.
  *
  * With a single piece the index does not exist: the workshop opens into
  * it. With two or more the list shows up, and that is the right thing

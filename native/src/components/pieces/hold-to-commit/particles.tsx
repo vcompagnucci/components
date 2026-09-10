@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reani
 import { PARTICLES, PILL } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE BURST — 46 dots that come out of the pill's perimeter on
+   THE BURST: 46 dots that come out of the pill's perimeter on
    completion.
 
    EVERY PARTICLE IS MOUNTED FROM THE START, invisible, and they all move
@@ -26,7 +26,7 @@ import { PARTICLES, PILL } from './measurements'
 
    THE TABLE IS DETERMINISTIC: a congruential generator with a fixed
    seed, so that two recordings of the piece have the same burst and can
-   be compared frame by frame — the same reason the labels do not scale
+   be compared frame by frame, the same reason the labels do not scale
    with Dynamic Type.
 
    The values (count, travel, sizes, colors, timings) are measured frame

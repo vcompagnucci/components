@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   THE MOCK'S IMAGES — assigned by hand by the user (2026-09-01), one
+   THE MOCK'S IMAGES: assigned by hand by the user (2026-09-01), one
    list per tab, IN ITS ORDER. There is nothing to derive here: it is
    editorial content, not mechanism.
 

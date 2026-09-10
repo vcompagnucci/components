@@ -10,8 +10,8 @@
    number's receipt is also here.
 
    Two grades, as in the web repo:
-   · RUNTIME — read off the clip's pixels.
-   · DERIVED — arithmetic on top of a RUNTIME, with the arithmetic
+   · RUNTIME: read off the clip's pixels.
+   · DERIVED: arithmetic on top of a RUNTIME, with the arithmetic
      written out.
 
    A value without a receipt is a value someone will change without
@@ -59,7 +59,7 @@ export const COLOR = {
 
 export type Palette = Record<keyof typeof COLOR, string>
 
-/* ═══ THE LIGHT PALETTE — measured in the light recording of 2026-09-02 ═══
+/* ═══ THE LIGHT PALETTE: measured in the light recording of 2026-09-02 ═══
 
    Until that day there was not a single light frame and the palette was
    put together with x.com's public tokens (#0F1419 / #536471 / #EFF3F4)
@@ -183,7 +183,7 @@ export const TAB_BAR = {
   /* WHEN THE ROW MOVES. Two rules, and both stay because each one has a
      receipt that contradicts the other:
 
-     · 'center' — WHAT X DOES, MEASURED: the row centers the active tab
+     · 'center': WHAT X DOES, MEASURED: the row centers the active tab
        in the whole screen (440) and runs into the limit, interpolated
        with the content's progress, both tapping and dragging. Seven
        transitions in the user's recordings (2026-09-01) and all seven
@@ -192,7 +192,7 @@ export const TAB_BAR = {
        finger, "For you" leaves and "Design" comes in (v1, frames
        203-221, row = 44.5·t, linear with the content).
 
-     · 'visible' — WHAT THE USER ASKED FOR (2026-09-02): "it only
+     · 'visible': WHAT THE USER ASKED FOR (2026-09-02): "it only
        changes once I go to a tab that is not visible in the viewport".
        The row stays where it was when the content started moving and
        shifts only as much as it takes for the active tab to fit whole
@@ -360,7 +360,7 @@ export const ICON = {
   floor: 0.06,
 } as const
 
-/* THE STOCKS CHIP — the only symbol that is not a bare SF Symbol.
+/* THE STOCKS CHIP: the only symbol that is not a bare SF Symbol.
 
    The reference does not use a line glyph for Stocks: it uses an
    OUTLINE of a rounded square with the chart's zigzag inside. It is
@@ -541,7 +541,7 @@ export const UNDERLINE = {
      Row 450 is already the divider. */
   height: 2,
 
-  /* THE ENDS ARE ROUND — a capsule, not a rectangle.
+  /* THE ENDS ARE ROUND: a capsule, not a rectangle.
 
      RUNTIME · ink mass per row of the run, in FOUR rest states of the
      user's recordings (For you, Tech, AI and Design active): the border

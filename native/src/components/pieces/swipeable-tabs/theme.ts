@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react'
 import { COLOR, type Palette } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE THEME — a context with the palette in force, and nothing else.
+   THE THEME: a context with the palette in force, and nothing else.
 
    The piece was measured entirely in dark, so `COLOR` (the dark
    palette, with a receipt per value) is the default: with no provider,

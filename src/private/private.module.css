@@ -160,7 +160,7 @@
   }
 }
 
-/* THE BAR — vault and playground.
+/* THE BAR: vault and playground.
 
    It weighs the same as the side index and uses its same set of tokens:
    13px/460 in the nav gray, and the active one goes up to --active-c.
@@ -199,7 +199,7 @@
   align-items: baseline;
 }
 
-/* THE ACTIONS SLOT — the other end of the row.
+/* THE ACTIONS SLOT: the other end of the row.
    The control of whichever view is open mounts here, by portal: the
    vault's filter. `margin-left:auto` pushes it to the end without
    needing justify-content, which would affect the tabs too.
@@ -245,7 +245,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   A GLYPH IN THE BAR — 32×32 of padding around a 16 drawing.
+   A GLYPH IN THE BAR: 32×32 of padding around a 16 drawing.
 
    The arithmetic is the one from the grid's + and from the details
    toggle: the drawing is 16 and the click area 32, so neither ends up

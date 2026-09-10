@@ -5,7 +5,7 @@ import { OPEN_IN } from '@/components/pieces/open'
 import { SLUGS } from '@/components/pieces/registry'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE INDEX OF THE WORKSHOP — the route. It decides whether there is
+   THE INDEX OF THE WORKSHOP: the route. It decides whether there is
    an index; `components/piece-list.tsx` draws the list, and the pieces
    come out of the registry, derived from the folders of
    `components/pieces/` (see its `registry.ts`): a list written by hand

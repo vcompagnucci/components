@@ -142,7 +142,7 @@ function useSavedDetails(
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE NOTE — you read it with the links drawn, you edit it in plain
+   THE NOTE: you read it with the links drawn, you edit it in plain
    text.
 
    ─── WHY THERE ARE TWO VIEWS AND NOT A RICH EDITOR ───
@@ -281,7 +281,7 @@ function Note({
            always. */
         tabIndex={0}
         role="group"
-        aria-label="Notes — press Enter to edit"
+        aria-label="Notes, press Enter to edit"
         onClick={(e) => {
           /* Dragging to select and copy does NOT open the editor: if
              something is selected, the gesture was another one. Without

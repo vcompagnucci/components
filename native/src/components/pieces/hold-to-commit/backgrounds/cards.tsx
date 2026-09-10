@@ -5,7 +5,7 @@ import { StyleSheet, Text, View, type ViewStyle } from 'react-native'
 import { BADGE, CARD, COLOR, DAYS, GAP, TIMELINE, SYMBOL, TEXT, TOGGLE } from '../measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   THE SCREEN'S PARTS — everything that surrounds the button.
+   THE SCREEN'S PARTS: everything that surrounds the button.
 
    None of this animates or responds: in the clip the only gesture is the
    button's, and these cards exist so that the button is in its place. The

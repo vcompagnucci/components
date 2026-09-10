@@ -1,4 +1,4 @@
-/* MOCKUP — the raw recording from the vault inside an iPhone, with a
+/* MOCKUP: the raw recording from the vault inside an iPhone, with a
  * camera that comes in and goes out, over a neutral background (or an
  * image), ready for X.
  *

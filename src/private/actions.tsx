@@ -15,7 +15,7 @@ import { trashClip, renameClip, type Clip } from "./clips";
    ═══════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════
-   WHERE A MENU COMES FROM — the two forms, and why they are two.
+   WHERE A MENU COMES FROM: the two forms, and why they are two.
 
    The right click opens it at a POINT: the menu appears where you
    pressed and there is nothing else to hook onto.
@@ -275,7 +275,7 @@ export function Menu({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE ↗ IN THE BAR — the only clip action promoted to an icon.
+   THE ↗ IN THE BAR: the only clip action promoted to an icon.
 
    The three things you can do with a clip lived only in the right
    click, that is, they did not exist: a context menu announces nothing,
@@ -525,7 +525,7 @@ export function RenameDialog({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PUBLISH — the "this one is done" part of the path.
+   PUBLISH: the "this one is done" part of the path.
 
    It lives on the BOARD, not in the vault: the vault is what is
    external (what you look at) and what gets published is yours, which
@@ -628,7 +628,7 @@ export function PublishDialog({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MOVE TO THE TRASH — WITHOUT ASKING.
+   MOVE TO THE TRASH: WITHOUT ASKING.
 
    ─── THERE WAS A CONFIRMATION HERE AND IT WAS WITHDRAWN ───
    It was a <dialog> with "Move «X» to Trash?" and its two buttons. What
