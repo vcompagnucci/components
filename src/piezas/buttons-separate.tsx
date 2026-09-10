@@ -11,6 +11,11 @@
    altura da 56.0 pt de un extremo al otro, sin una hondonada. Por eso
    las cinco formas van bajo UN goo y no se dibujan pegadas.
 
+   Y ESE GOO SE ENSANCHA CON EL MOVIMIENTO. La referencia está fundida
+   con 12.9 pt de hueco y separada con 9.9: un hueco más grande no puede
+   estar más fundido, así que σ no es constante. Está arriba de
+   SIGMA_MOVIMIENTO.
+
    LA PIEZA CONTRA LA GRABACIÓN, con la pieza corriendo: 4.95 pt de error
    cuadrático medio en el borde del conjunto sobre el primer segundo, y
    0.039 / 0.228 pt en la opacidad y el desenfoque de los glifos. Acá
@@ -251,6 +256,46 @@ function avanzar(r: Resorte, ahora: number, dt: number) {
    faceta. Por eso el radio ya no se compensa. */
 const SIGMA = 4.7
 
+/* σ NO ES CONSTANTE EN LA REFERENCIA: se ensancha mientras las formas se
+   están moviendo. Está probado con dos cuadros del mismo ciclo, y no
+   hace falta ningún modelo para leerlo —sólo mirar si hay puente en el
+   punto medio, sobre el perfil ya calibrado—:
+
+     a los 360 ms  hueco 12.9 pt  →  cuello de 17 pt   FUNDIDO
+     a los 700 ms  hueco  9.9 pt  →  sin cuello        separado
+
+   Un hueco MÁS GRANDE no puede estar más fundido. Con un σ fijo el
+   puente se corta a un hueco y listo, así que el de la referencia tiene
+   que crecer con algo, y lo único que cambia entre esos dos cuadros es
+   que en el primero los botones se mueven y en el segundo están
+   quietos.
+
+   Se veía antes de medirlo, en el montaje contra la grabación: a los
+   300 ms la referencia todavía tiene tres botones en un solo bulto y
+   acá ya eran cuatro círculos limpios.
+
+   EL VALOR SE AJUSTÓ CONTRA EL CUELLO, no contra la cuenta. Chrome
+   implementa feGaussianBlur como TRES desenfoques de caja y entrega el
+   ~83 % del σ que se le pide, así que el número pedido y el que se ve no
+   son el mismo. Medido en la pieza corriendo, con el mismo estimador que
+   la grabación y en puntos de la referencia:
+
+     hueco  9.3 pt  →  con 6.3 px pedidos, cuello 8.4    (la refe: 16.0)
+     hueco  9.3 pt  →  con 7.7 px pedidos, cuello 15.9
+
+   El de reposo NO se toca: con 4.7 pedidos el puente muere a los 7.3 pt
+   de hueco y en reposo el hueco es 10, que es justamente por qué las
+   formas se separan del todo. Y un σ más grande ENCOGE más la capa del
+   goo (σ²/2R), así que se mete más adentro de la forma nítida: no hay
+   riesgo de que asome una faceta.
+
+   EL DISPARADOR es la VELOCIDAD del abanico, saturada: cualquier
+   movimiento real pone σ arriba, y sólo al frenar vuelve a 4.7. El
+   umbral de 0.6 (en x por segundo, sobre un pico de 3.1) suelta a los
+   ~350 ms, que es donde la referencia corta el puente. */
+const SIGMA_MOVIMIENTO = 3.0
+const VELOCIDAD_GOO = 0.6
+
 /* LOS CUATRO BOTONES. Iconos de trazo, 16×16: son ámbitos de búsqueda,
    que es lo que son los cuatro de la referencia. */
 const BOTONES = [
@@ -334,6 +379,13 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
   /* El desenfoque va en el GLIFO y no en el botón: el botón también
      lleva el velo del hover, y ese no se enfoca. */
   const glifos = useRef<(SVGSVGElement | null)[]>([])
+  /* El goo se ensancha con el movimiento (ver SIGMA_MOVIMIENTO), así que
+     su desenfoque se escribe por cuadro como todo lo demás. */
+  const difuso = useRef<SVGFEGaussianBlurElement>(null)
+  /* La escala de la escena la lee el lazo de cuadro, y `pintar` es un
+     useCallback sin dependencias: leerla del estado ahí adentro daría
+     siempre la del primer render. */
+  const escala = useRef(1)
 
   /* Se decide ANTES del primer render y no en un efecto: con un efecto,
      un teléfono pintaría un cuadro con la forma cerrada y la abriría
@@ -448,6 +500,8 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
        no se ve: por debajo de 0.5 Chrome ya redondea a cero. */
     const radio = DESENFOQUE * (1 - rf.x)
     const foco = opaco > 0.001 && radio > 0.4 ? `blur(${radio.toFixed(2)}px)` : ''
+    const goo = SIGMA + SIGMA_MOVIMIENTO * Math.min(1, Math.abs(ra.v) / VELOCIDAD_GOO)
+    difuso.current?.setAttribute('stdDeviation', String(goo * escala.current))
     for (let i = 0; i < BOTONES.length; i++) {
       const encogido = 1 - (1 - PRESION_ESCALA) * presion[i].x
       circulos.current[i]?.setAttribute('cx', String(RANURA + paso * i))
@@ -462,6 +516,7 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
     }
   }, [])
   useLayoutEffect(() => {
+    escala.current = caja.escala
     pintar()
   }, [pintar, caja])
 
@@ -579,7 +634,7 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
                 cuenta del cuello. sRGB explícito: por defecto un filtro
                 SVG trabaja en linearRGB y el umbral se corre. */}
             <filter id={`goo-${id}`} {...REGION} colorInterpolationFilters="sRGB">
-              <feGaussianBlur stdDeviation={SIGMA * caja.escala} result="difuso" />
+              <feGaussianBlur ref={difuso} stdDeviation={SIGMA * caja.escala} result="difuso" />
               <feColorMatrix in="difuso" type="matrix" values={UMBRAL} />
             </filter>
             {/* LA SOMBRA DE CONTACTO: la silueta ablandada MENOS la

@@ -2567,3 +2567,59 @@ decir nada, y la salida sale opaca aunque uno pida `yuva420p`. Lo
 delató la verificación —esquina 255 en vez de 0— que corre sobre los
 seis archivos antes de reemplazarlos. La prueba que NO alcanza es mirar
 el `color_type` del PNG: da 6 (RGBA) igual, con el alfa en 255.
+
+### El goo se ensancha con el movimiento
+
+**Comparando cuadro a cuadro contra la grabación, a la misma escala.**
+Es lo que dijo Vito el 2026-09-10: "corregí para igualar aún más a la
+referencia, ya teniendo estas imágenes". Las imágenes están en
+`.context/buttons-separate/`: `montaje.png` (la barra entera en diez
+instantes) y `montaje-cuellos.png` (el extremo de los botones).
+
+**Desde los 430 ms los dos lados son la misma cosa.** La píldora, los
+cuatro círculos, sus tamaños y su separación se superponen. Lo que no
+coincidía estaba antes.
+
+**A los 300 ms la referencia todavía tiene tres botones en un solo bulto
+y la pieza ya tenía cuatro círculos limpios.** Mi goo se cortaba
+demasiado pronto, y eso obliga a corregir lo que este mismo README decía
+ayer —que la grabación no podía responder por el cuello—. No podía
+responder por los CENTROS, que es otra cosa. Por el cuello responde, y
+alcanzan dos cuadros del mismo ciclo, sin ningún modelo de por medio:
+
+| | hueco | cuello |
+| --- | --- | --- |
+| a los 360 ms | **12.9 pt** | 17.0 → **fundido** |
+| a los 700 ms | **9.9 pt** | 0.0 → separado |
+
+**Un hueco más grande no puede estar más fundido.** Con σ fijo el puente
+se corta a un hueco y listo. Lo único que cambia entre esos dos cuadros
+es que en el primero los botones se mueven y en el segundo están quietos,
+así que **σ crece con el movimiento**. Despejándolo cuadro a cuadro sobre
+la grabación, va de 6.87 a 8.90 pt mientras se abren.
+
+**El disparador es la velocidad del abanico, saturada**, y el valor se
+ajustó contra el CUELLO y no contra la cuenta. Chrome implementa
+`feGaussianBlur` como tres desenfoques de caja y entrega el ~83 % del σ
+que se le pide, así que lo pedido y lo que se ve no son lo mismo. Medido
+en la pieza corriendo, con el mismo estimador que la grabación y en
+puntos de la referencia:
+
+| hueco | la referencia | 6.3 px pedidos | 7.7 px pedidos |
+| --- | --- | --- | --- |
+| 8.4–8.8 | 20.0 | 8.4 | **21.1** |
+| 11.3–11.5 | 8.0 | 0 | **5.6** |
+
+El de reposo **no se toca**: con 4.7 el puente muere a los 7.3 pt de
+hueco y en reposo el hueco es 10, que es justamente por qué las formas
+se separan del todo. Y un σ más grande ENCOGE más la capa del goo
+(σ²/2R), así que se mete más adentro de la forma nítida: no hay riesgo
+de que vuelva a asomar una faceta.
+
+**No cuesta cuadros.** El σ se escribe por cuadro como todo lo demás, y a
+20× con ocho copias no se pierde ninguno; a 40×, 15 de 55, el mismo
+número que antes de este cambio.
+
+**Lo que sigue sin poder medirse** es lo otro: si los cuatro botones
+abren con un solo paso. Para eso hacen falta los centros uno por uno, y
+la ventana donde podrían diferir cae entera adentro del estado fundido.
