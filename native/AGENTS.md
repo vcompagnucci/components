@@ -591,3 +591,368 @@ system's 24h cooldown blocked it on purpose. 57.0.1 was installed. When
 the window passes, `npx expo install --fix` bumps it.
 
 The versions go in **exact**, with no `~`, the same as in the web repo.
+
+## Testing on your real iPhone
+
+**Today it works, with the Expo Go from the App Store**, and with no
+build: on 2026-09-02 the store published Expo Go 57.0.9 and the workshop
+is SDK 57. Before you send anyone off to sign anything, measure which
+version is up there, because the store lags behind (it sat on SDK 54 from
+September 2025 until that day):
+
+```bash
+curl -s "https://itunes.apple.com/lookup?id=982107779" | grep -o '"version":"[^"]*"'
+```
+
+### When the store lags behind: sign.expo.dev
+
+This happened from September 2025 until 2026-09-02, and it can happen
+again. **The App Store's Expo Go was version 54.0.2, published on
+2025-09-23**, verified on 2026-08-27 in the App Store listing and in four
+stores, with this workshop on **SDK 57** and the manifest Metro serves
+asking for `runtimeVersion: exposdk:57.0.0`. Expo Go on iOS implements
+**one SDK at a time**, so the SDK 54 one does not open an SDK 57 project,
+and updating was not a matter of pressing a button.
+
+What happened: **Apple did not approve Expo Go for SDK 55 onwards** for
+months, and the store stayed nailed to 54. Expo tells it in
+`expo.dev/changelog/expo-go-and-app-store-may-2026`. The phone said *"you
+need a newer version"* and it was right. The update button did not exist,
+because nothing newer had been published there.
+
+**The way out is <https://sign.expo.dev>**, which is Expo's own: it signs
+the Expo Go of whatever version you ask for with **your free Apple ID**
+and installs it on the phone. Expo's docs say it in so many words, in
+`troubleshooting/expo-go-version-mismatch`:
+
+> "This installer uses your Apple ID's free developer provisioning, so it
+> does not require a paid Apple Developer Program membership. The
+> certificate is valid for about seven days."
+
+The binary exists and it is public: Expo's API
+(`api.expo.dev/v2/versions/latest`) gives client **57.0.9** for SDK 57, in
+`github.com/expo/expo-go-releases`.
+
+**The procedure, once:**
+
+1. At <https://sign.expo.dev>: pick SDK **57**, sign in with your Expo
+   account, pick the device and enter your Apple ID. (Expo says it uses
+   those credentials as a session proxy and does not store them.)
+2. On the iPhone: **Settings › Privacy & Security › Developer Mode**, turn
+   it on and restart. Without that, iOS does not run an app signed for
+   development.
+3. Here: `pnpm phone`, which is `expo start --go`, and scan the QR. Same
+   Wi-Fi as the Mac. If the network does not cooperate (guest Wi-Fi, VPN),
+   `pnpm phone --tunnel`.
+
+**It expires after 7 days.** When iOS says that "Expo Go" is no longer
+available, that is what happened, and you go back to step 1. Nothing in
+the project has to be redone: the app gets re-signed and that is all.
+
+**And watch what Expo Go does not carry.** It is Expo's runtime, not this
+workshop's dev client: if a piece uses `@shopify/react-native-skia` it
+will not run there, and it will fail on the phone even though it runs in
+the simulator. Everything else is there: reanimated, gesture-handler,
+expo-symbols, expo-haptics.
+
+**The alternatives with no expiry cost money.** `eas go` compiles your own
+Expo Go and uploads it to YOUR TestFlight, and EAS Build does the same
+with the app: both need the **paid Apple Developer Program**, because iOS
+ad hoc distribution demands a profile that lists the UDID of every phone.
+It is in `build/internal-distribution` of Expo's docs. And one detail that
+bites: a phone just registered with `eas device:create` takes **24 to 72
+hours** to process on Apple's side.
+
+With either Expo Go: the same Wi-Fi as the Mac, `pnpm phone` (`expo start
+--go`) with an `EXPO_TOKEN` from the SAME account as the phone's Expo Go,
+because a logged-in Expo Go does not open anonymous projects, and scan the
+QR. Before starting, `REACT_NATIVE_PACKAGER_HOSTNAME=<en0's ip>`: if the
+Mac has a VPN or changed IP (four times in one week), the manifest points
+at the wrong place. The Mac's Bonjour name did not work from the iPhone;
+the IP did. An invalid `EXPO_TOKEN` does not fail at startup: the manifest
+returns 500 (`The bearer token is invalid`), so check it first with `curl
+-H "Authorization: Bearer $T" https://api.expo.dev/v2/auth/userInfo`. The
+`--tunnel` (`@expo/ngrok` is in the project) works on a normal network,
+but NOT on the university's: it intercepts TLS and the ngrok agent rejects
+it (`x509: certificate signed by unknown authority`). That network does
+not isolate clients, so the LAN by IP is enough. The same holds as in the
+simulator: everything except Skia.
+
+It is worth it even when the simulator works: **the simulator has no
+haptics and no 120Hz screen**, which are exactly two of the things this
+vault studies. A gesture that feels good in the simulator can feel wrong
+in the hand.
+
+**Recording from the phone is different** from recording from the
+simulator (see "Recording the piece", further down). `pnpm record` uses
+`simctl`, which only talks to simulators: against a real iPhone it is no
+use. There you record with iOS's screen recording (Control Center) and
+move the file to `VAULT_DIR/native/` by hand, over AirDrop or by cable
+with QuickTime. The rest of the path does not change: the grid picks it up
+the same way.
+
+Written down for when it starts to hurt: if recording from the phone
+becomes frequent, the step to automate is that transfer, not the
+recording.
+
+## Testing on Android
+
+**What is on this Mac since 2026-09-07** (installed with Homebrew, no
+Android Studio): `openjdk@21` (keg-only: `JAVA_HOME=$(brew --prefix
+openjdk@21)/libexec/openjdk.jdk/Contents/Home`), the cask
+`android-commandlinetools`, and with `sdkmanager --sdk_root=$HOME/Library/
+Android/sdk` the packages `platform-tools`, `emulator`,
+`platforms;android-36` and `system-images;android-36;google_apis;arm64-v8a`.
+An AVD called `taller` (Pixel 9). None of this travels with the repo.
+
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
+$ANDROID_HOME/emulator/emulator -avd taller -no-snapshot-load -no-boot-anim -gpu auto &
+adb() { $ANDROID_HOME/platform-tools/adb "$@"; }
+adb shell getprop sys.boot_completed        # 1 once it has booted (~35 s)
+```
+
+**Expo Go, not the dev client**: the dev client is iOS. The Expo Go
+version for the SDK comes out of the versions API, with the APK's URL:
+
+```bash
+curl -s https://exp.host/--/api/v2/versions/latest | python3 -c \
+  "import sys,json; s=json.load(sys.stdin)['data']['sdkVersions']['57.0.0']; print(s['androidClientVersion'], s['androidClientUrl'])"
+adb install -r Expo-Go-57.0.9.apk
+adb shell am start -a android.intent.action.VIEW -d "exp://<en0's ip>:8083"
+```
+
+The server is the same `pnpm phone` as the iPhone's (with `EXPO_TOKEN` and
+`REACT_NATIVE_PACKAGER_HOSTNAME`); the emulator reaches the Mac over the
+LAN's IP. An Expo Go with no session opens the project all the same: the
+CLI only signs the manifest when the app asks it to. The first time, the
+dev menu's sheet shows up on top of the piece, and it closes with its ✕.
+Watch out for tapping blind: a tap that lands in the menu turns Fast
+Refresh off.
+
+```bash
+adb shell input swipe 540 2271 540 2271 1400   # a 1.4 s hold on the button
+adb exec-out screencap -p > capture.png
+adb shell cmd uimode night yes                 # dark mode (no: light)
+adb shell am force-stop host.exp.exponent      # relaunch clean
+```
+
+The usual holds: everything except Skia. And so does trap 27: the frames
+get measured with `--no-dev --minify`, not with the dev bundle.
+
+## Recording the piece, and the mockup for X
+
+What recording the first piece taught (2026-09-03), in the order in which
+it bites:
+
+**`simctl` records at a variable rate.** While something moves it writes
+60 frames per second (deltas of 17 ms, measured); with the screen still it
+writes none. The `<video>` plays it back fine, but **normalize with
+`fps=60` BEFORE trimming**: a `-ss` over the raw file lands on the first
+frame written after the cut point and the opening rest disappears
+entirely. The right order is `fps=60,trim=start=…,setpts=PTS-STARTPTS`,
+plus `tpad` to hold the last frame, which was not recorded either.
+
+**The blue nut is Expo Go**, the floating button of its development menu.
+On the phone it does not appear, and the dev client does not have it. In
+the simulator it goes away with an Expo Go preference, without killing
+anything:
+
+```bash
+xcrun simctl spawn booted defaults write host.exp.Exponent EXDevMenuShowFloatingActionButton -bool false
+```
+
+and relaunch Expo Go. It stays off for that simulator.
+
+**hold-to-commit's recording probe** lives in its `hold-to-commit.tsx`,
+branch `probe === 'demo'`, with its timeline above it. It calls the SAME
+worklets the finger calls (`press`, `complete`, `reset`), so the curves,
+the timings, the haptics and the sound are the ones of the real path. Two
+things cost a round each: the opening rest has to be generous (at 1800 ms
+the light take loaded more slowly and the 1.2 s cut before the gesture
+landed BEFORE the piece had finished mounting), and the reset is brought
+forward to 2 s because the workshop's 5 s are three seconds of nothing in
+a video. So that the 5 s clock does not fire afterwards over the rest,
+`reset` cancels `wait`.
+
+**And if the piece looks different in light and in dark, that is TWO
+takes**, the same probe with `simctl ui <udid> appearance light|dark`.
+They get cut aligned by the same event, the commit and not the first
+gesture, or the two videos show different instants of the choreography.
+Watch where you measure to find that event: see trap 31.
+
+**Look at the status bar BEFORE you spend the takes.** `status_bar
+override` nails the time, the signal and the battery, but it does not
+touch the breadcrumb iOS leaves at the top left, "◀ Safari", after opening
+the app from a link. It shows up on its own, the script does not put it
+there, and a take with that in it shows in the video for X, where the
+camera opens and shows the whole phone. An extra `terminate` plus `launch`
+gets rid of it. Checking costs fifteen seconds (`simctl io <udid>
+screenshot` and look at the first 180 px) and fixing it afterwards costs
+two takes.
+
+**The recording probe (`?demo=1`), to copy.** This is what recorded
+swipeable-tabs' video and it does not travel with the piece. It stays here
+for the next one. Three rules that came out of three failed takes:
+
+1. **Be born on the real starting tab:** `contentOffset={{ x: width, y: 0 }}`
+   on the pager and `scrollX` born at `width`. A `scrollTo` in the first
+   effect does not reach the pager and leaves the bar on one tab with
+   another tab's content.
+2. **The drags go through the bridge that already exists** (`target`,
+   whose reaction does a `scrollTo` per frame and whose `onScroll` feeds
+   `scrollX`), with `motion` set to `drag` and `target` back to `NONE`
+   when it ends. A reaction of its own over another shared value jumped
+   instead of dragging.
+3. **The taps are `onTap`.** And the bar has to take "there is a tap" from
+   `motion === tap`, not from `target !== NONE`, or it reads the tap's
+   segment during a synthetic drag.
+
+```tsx
+const drag = (a: number, b: number, slow: boolean) =>
+  scheduleOnUI((a: number, b: number, width: number, slow: boolean) => {
+    'worklet'
+    motion.set(MOTION.drag)
+    target.set(a * width)
+    const done = (t?: boolean) => { 'worklet'; if (t) { target.set(NONE); motion.set(MOTION.still) } }
+    target.set(slow
+      ? withTiming(b * width, { duration: 1700, easing: Easing.inOut(Easing.sin) }, done)
+      : withSequence(
+          withTiming((a + (b - a) * 0.15) * width, { duration: 110, easing: Easing.in(Easing.quad) }),
+          withTiming(b * width, { duration: 430, easing: Easing.out(Easing.cubic) }, done)))
+  }, a, b, width, slow)
+// wait 1500 · drag(1, 2, true) · wait 2600 · onTap(0) · wait 1000
+// · flicks 0→5 every 1000 · two back every 1000
+```
+
+The take: `status_bar override --time 9:41 … --batteryState discharging
+--batteryLevel 100`, `terminate host.exp.Exponent`, `recordVideo --codec
+h264`, `openurl exp://127.0.0.1:8082/--/<slug>?demo=1`, 25 to 30 s; measure
+the gestures with the difference between frames at 60 fps and cut 1.2 s
+before the first one. The master goes to `.context/mockup/master/`.
+
+**The agent can record on its own.** There is no way to send a finger to
+the simulator, but the piece drives itself from the inside with a
+temporary probe: the taps are `onTap(i)`, the real path; the drags get
+synthesized by moving the pager's offset frame by frame with
+`withSequence(withTiming(15 % of the trip, 110 ms, easeInQuad), withTiming(target, 430 ms, easeOutCubic))`,
+a finger that speeds up and lets go, fitted by eye against X's measured
+drags, with `motion` set by hand to `drag` and `still`. The probe gets
+deleted before closing, like all of them.
+
+**A piece's master does not have to be in the vault.** The vault is what
+belongs to other people. `swipeable-tabs` was taken out of there on
+request and its master lives in `.context/mockup/master/<slug>.mp4`
+(gitignored). It gets handed to the mockup with `--clip=…`. And the video
+that goes to the exhibition comes in with `pnpm piece:video <slug> <file>`
+from the root, not with Add to Exhibition (see the root `AGENTS.md`, path
+B).
+
+**The video gets built in `mockup/` (Remotion), not here.** The same
+numbers, the measured bezel, the background, the shadow, the camera and
+the curves, live in `mockup/src/parameters.ts` as Remotion Studio
+controls: they get iterated live and it renders once (2160² at 60 fps in a
+couple of minutes). The ffmpeg script below stays as the receipt for how
+each number was measured, and as a path with no Chrome. Asking it for
+iterations means re-encoding for every adjustment. See `mockup/AGENTS.md`.
+
+**`pnpm mockup <slug>`** puts the vault's recording inside Apple's
+official bezel, over a neutral background, with a camera that comes in and
+goes out, at 2160² and 60 fps. **The reference is @nater02's clip**
+(x.com/nater02/status/2092952884987957708) and it is measured frame by
+frame: flat RGB (235, 230, 232) background; black phone at 95.3 % of the
+height, centered; shadow only to the right and below, two layers (one
+tight and one wide) fitted against the luma profile; the camera comes in
+to 1.576× over 0.65 s, stays, and goes out to 1.161× over 0.62 s, with
+both curves fitted to a cubic bézier (rms 0.005). The phone is the
+**iPhone 17 in Black**, the reference's one by proportion and color, since
+the Pro Max does not come in black, and the Pro Max recording goes into
+its slot scaled (same proportion to 0.1 %). The receipts, one per number,
+are at the top of `scripts/mockup.mjs`.
+
+Knobs: `--wait` (seconds with the whole phone before coming in), `--until`
+(when to go out: the end of the first gesture), `--focus` (where the
+entrance points, as a fraction of the body's height; 0.145 is this piece's
+row of tabs), `--camera=still`, `--model`, `--color`, `--background`,
+`--side`. With an image (`pnpm mockup <slug> <image>`) the canvas comes out
+of the image, the largest whole multiple that fits, with nearest neighbor,
+pixel by pixel, and the camera stays still unless you ask for it
+(`--blur`, `--light` and `--canvas` are still there).
+
+**Before you look at the result, `pnpm mockup <slug> --verify`.** It puts
+a solid red in instead of the recording, renders the whole camera with no
+loss and checks pixel by pixel that the bezel's slot is full in twelve
+states of the camera. It exists because the first version of the camera
+sat the screen 15×20 px off, and the background showed through at the top
+left corner. In the whole frame you could not see it; in the user's zoom
+you could ("look at the edges, they are not filled", 2026-09-04). Each
+layer positions itself on its own and rounds to the pixel per frame: an
+origin taken wrong does not fail, it shows. The bezel's PNGs live in
+`.context/mockup/`, gitignored: Apple's license allows using them for
+mockups of interfaces on their platforms and not redistributing them. They
+get downloaded from <https://developer.apple.com/design/resources/>
+(Bezel-iPhone-17.dmg).
+
+**What this pipeline does not give, and what would give it.** The gestures
+are synthetic, the probe moves the pager with measured curves, not a
+finger. If you want the feel of a real finger, the recording gets done on
+the phone with Expo Go and a tool that records over USB with a frame:
+Screen Studio does it but with no auto-zoom on iOS (it does not see the
+taps); Matte records simulator or iPhone with a frame and zoom. The rest,
+background, camera and shadow, is already here, measured, and free.
+
+## The agent beside the simulator
+
+The MCPs that give it eyes, `expo-mcp` for screenshots and simulator
+automation and XcodeBuildMCP for the Xcode side, are surveyed in the recon
+and **are not connected here yet**. In the meantime the agent writes the
+files and you watch the simulator, which is the mode that already works:
+Metro hot reloads and the piece updates without losing its state.
+
+## What does not travel
+
+`node_modules/`, `.expo/`, `/ios` and `/android` are gitignored. What
+travels is **the pieces' code**, which is the point of having it inside
+the repo: a new worktree runs `pnpm install` and has the whole workshop.
+
+**The dev client gets built once per machine, not per worktree.** The
+native dependencies live in the app installed on the simulator, so as long
+as a piece is only TypeScript, the normal case, any worktree feeds it from
+its own Metro. Only when a new native dependency comes in do you have to
+rebuild.
+
+## One worktree at a time against the simulator
+
+But **one at a time**: two worktrees cannot use the simulator at once, and
+the way it fails is treacherous.
+
+The dev client is compiled with `expo run:ios`, and that build **does not
+include `expo-dev-client`**. It is not in `package.json`, and it is
+verified: inside `Workshop.app` there is no `EXDevLauncher` and nothing
+else of the launcher. With no launcher there is no screen for picking a
+server, so the app asks for the bundle **always at `localhost:8081`**, the
+port `expo run:ios` baked into it.
+
+So the second `pnpm ios` finds 8081 taken and offers 8082, and in
+non-interactive mode not even that, it stops. If you bring it up anyway,
+the app keeps reading from the first one. Nobody warns you, because on
+your side everything compiles. **The symptom is the worst possible one:
+the workshop's index shows up without your piece**, as if
+`require.context` had not found it.
+
+Ten seconds rule it out:
+
+```bash
+lsof -nP -iTCP:8081 -sTCP:LISTEN     # whose port is it?
+```
+
+If that pid is not your Metro, it is another worktree's, and the only way
+out is to kill it and bring yours up on 8081. There is no shortcut. The
+two that looked obvious were both tried and neither works: `simctl
+openurl` with the dev client's scheme (the app does not understand that
+URL, it has no launcher) and forcing `RCT_jsLocation` in the app's plist
+(Expo overwrites it with the build's port on every start).
+
+If this starts to hurt often, what has to get added is `expo-dev-client`.
+It is a native dependency: it forces `pnpm ios:build` again, and that is
+why it is a decision and not a fix in passing.
