@@ -32,7 +32,8 @@
 
      geometría   0.45 s · rebote 0.30   la fila, el rótulo, la tapa
      tarjeta     0.50 s · rebote 0      crece del botón que la abrió
-     glifo       0.30 s · rebote 0      el pin que se clava
+     glifo       0.30 s · rebote 0      el corazón que se cruza
+     like        0.35 s · rebote 0.30   y el pop de encenderlo
 
    La DURACIÓN de la primera está medida sobre la grabación; el REBOTE
    no es el medido. El ajuste libre da 0.385 y la referencia usa 0.40,
@@ -125,9 +126,29 @@ const RESORTE = { type: 'spring', duration: 0.45, bounce: 0.3 } as const
    más tiempo para lo más grande. Es además el valor por omisión que esa
    misma regla propone cuando no hay nada medido. */
 const MORFEO = { type: 'spring', duration: 0.5, bounce: 0 } as const
-/* EL DEL GLIFO DEL PIN. Corto, porque es un dibujo de 20 px y no una
-   geometría de 420. */
+/* EL DEL GLIFO. Corto, porque es un dibujo de 16 px y no una geometría
+   de 420. */
 const GLIFO = { type: 'spring', duration: 0.3, bounce: 0 } as const
+/* EL POP DEL LIKE. Es el único sobrepaso de la pieza, y el único tramo
+   que NO es un resorte — por eso está escrito con sus cuadros a la
+   vista.
+
+   La regla de motion parte los dos casos: estado interactivo va con
+   transición o resorte, porque tiene que poder retomarse a mitad de
+   camino; un disparo va con cuadros clave, porque siempre corre entero.
+   Encender un like es un disparo.
+
+   Y ADEMÁS UN RESORTE NO ALCANZABA, medido. Con `spring 0.35 / rebote
+   0.30` de 0.6 a 1 el pico da 1.018 a los 224 ms: un 1.8 % de la escala
+   final, que sobre un glifo de 16 px son 0.29 px. No se ve. La razón es
+   que un resorte sobrepasa sobre el RECORRIDO —0.4 acá— y no sobre el
+   destino, así que para que se note habría que empezar mucho más chico
+   y ahí el corazón aparecería de la nada.
+
+   Con cuadros clave el pico es el que uno elige: 1.18 son 2.9 px sobre
+   16, y eso sí se lee como un latido. */
+const POP = { duration: 0.35, times: [0, 0.45, 1], ease: 'easeOut' as const }
+const POP_ESCALA = [0.6, 1.18, 1]
 /* CON MOVIMIENTO REDUCIDO no queda un resorte más corto: no queda
    ninguno. La regla es que el cambio se siga entendiendo, y lo que lo
    cuenta es el cruce de contenido, no el viaje. */
@@ -212,7 +233,7 @@ const VIAJE = Math.round(0.867 * PASO) //  38
  * texto de peso 460— y de ahí salen su proporción y su grosor:
  *
  *            ancho×alto   ancho/alto   trazo/alto
- *   pin        242×364      0.665        0.069
+ *   heart      310×286      1.084        0.091
  *   share      277×351      0.789        0.071
  *   link       331×332      0.997        0.081
  *   xmark      249×248      1.004         —  (diagonal)
@@ -233,8 +254,10 @@ const VIAJE = Math.round(0.867 * PASO) //  38
  * de `Volver`: se toma la forma estándar y se traza acá, con las
  * medidas al lado. El arte de Apple no viaja en el bundle.
  * ───────────────────────────────────────────────────────── */
-const PIN =
-  'M6.08 2.24h3.84M6.88 2.24v3.12c0 0.48-0.24 0.96-0.64 1.2L4.64 7.68a0.88 0.88 0 0 0 0.56 1.6h5.6a0.88 0.88 0 0 0 0.56-1.6l-1.6-1.12a1.52 1.52 0 0 1-0.64-1.2V2.24M8 9.28v4.48'
+/* EL CORAZÓN, en dos lóbulos y una punta. Medido del sistema: 310×286,
+   o sea 1.084 de ancho sobre alto. Éste da 12.2 × 11.2 = 1.089. */
+const CORAZON =
+  'M8 13.6C8 13.6 1.9 9.5 1.9 5.8 1.9 3.6 3.6 2.4 5.3 2.4 6.6 2.4 7.6 3.1 8 4.1 8.4 3.1 9.4 2.4 10.7 2.4 12.4 2.4 14.1 3.6 14.1 5.8 14.1 9.5 8 13.6 8 13.6Z'
 const COMPARTIR =
   'M8 10.08V2.4M8 2.4 5.52 4.88M8 2.4l2.48 2.48M5.28 6.88H4.32a1.52 1.52 0 0 0-1.52 1.52v4.48a1.52 1.52 0 0 0 1.52 1.52h7.36a1.52 1.52 0 0 0 1.52-1.52v-4.48a1.52 1.52 0 0 0-1.52-1.52h-0.96'
 const CERRAR = 'M3.92 3.92 12.08 12.08M12.08 3.92 3.92 12.08'
@@ -249,7 +272,7 @@ const PUNTOS = 'M3.76 8h0.01M8 8h0.01M12.24 8h0.01'
    veces en el mismo punto de la pantalla, que es lo que hace que abrir y
    cerrar sean el mismo gesto. */
 const ACCIONES = [
-  { id: 'pin', nombre: 'Pin', trazo: PIN },
+  { id: 'like', nombre: 'Like', trazo: CORAZON },
   { id: 'share', nombre: 'Share', trazo: COMPARTIR },
   { id: 'close', nombre: 'Close', trazo: CERRAR },
 ] as const
@@ -351,7 +374,7 @@ function Control({
 }
 
 /* Un glifo. `relleno` dibuja el MISMO trazado también relleno, que es
-   cómo se enciende el pin: la silueta no cambia, se llena. */
+   cómo se enciende el like: la silueta no cambia, se llena. */
 function Glifo({
   d,
   relleno,
@@ -377,10 +400,10 @@ function Glifo({
 
 export default function TitleToActions() {
   /* TRES ESTADOS, y cada uno es una cosa que el que mira puede hacer:
-     cambiar el rótulo por las acciones, fijar el ítem, y abrir la
+     cambiar el rótulo por las acciones, marcar el ítem, y abrir la
      tarjeta de compartir. Ninguno es un modo del otro. */
   const [acciones, setAcciones] = useState(false)
-  const [fijado, setFijado] = useState(false)
+  const [gustado, setGustado] = useState(false)
   const [compartir, setCompartir] = useState(false)
   const [copiado, setCopiado] = useState(false)
   const reducido = useReducedMotion()
@@ -398,6 +421,7 @@ export default function TitleToActions() {
   const resorte = reducido ? QUIETO : RESORTE
   const morfeo = reducido ? QUIETO : MORFEO
   const glifo = reducido ? QUIETO : GLIFO
+  const pop = reducido ? QUIETO : POP
 
   /* SE CIERRA CON ESCAPE Y TOCANDO AFUERA, que es lo que hace cualquier
      cosa que flota sobre lo demás. Los dos escuchas se ponen SÓLO
@@ -595,13 +619,13 @@ export default function TitleToActions() {
                      anunciándose: `inert` lo saca de los dos. */
                     inert={!acciones}
                     label={a.nombre}
-                    pressed={a.id === 'pin' ? fijado : undefined}
+                    pressed={a.id === 'like' ? gustado : undefined}
                     expanded={a.id === 'share' ? compartir : undefined}
                     aria-haspopup={a.id === 'share' ? 'dialog' : undefined}
                     onClick={(e) => {
                       frenar(e)
-                      if (a.id === 'pin') {
-                        setFijado((v) => !v)
+                      if (a.id === 'like') {
+                        setGustado((v) => !v)
                         return
                       }
                       if (a.id === 'share') {
@@ -617,22 +641,51 @@ export default function TitleToActions() {
                       setAcciones(false)
                     }}
                   >
-                    {/* EL PIN SE CLAVA. Un pin se levanta antes de
-                      clavarse y queda torcido después, así que lo que
-                      anima es el GLIFO y no el botón: si se moviera el
-                      botón, su propia área de hover se correría bajo el
-                      puntero y el estado titilaría.
+                    {/* EL LIKE HACE UN POP, y es el único sobrepaso de
+                      la pieza. Antes acá había un pin que se clavaba
+                      —bajaba y quedaba torcido 12°— y el sobrepaso se
+                      había sacado porque no se veía: medido cuadro a
+                      cuadro daba 0.63° sobre 12, o sea un 5.3 %.
 
-                      El par es el MISMO trazado con y sin relleno, así
-                      que al cruzarse no cambia la silueta: se llena. */}
-                    {a.id === 'pin' ? (
+                      Un corazón es otra cosa: el recorrido es una
+                      ESCALA y no un ángulo, y encenderlo es un disparo
+                      y no un estado que se pueda retomar a mitad de
+                      camino. Por eso va con cuadros clave y no con un
+                      resorte — el porqué, con el número que lo decidió,
+                      está arriba de POP.
+
+                      Lo que anima es el GLIFO y no el botón: si se
+                      moviera el botón, su propia área de hover se
+                      correría bajo el puntero y el estado titilaría. */}
+                    {a.id === 'like' ? (
                       <m.span
-                        className="pinIcono"
-                        animate={{ y: fijado ? 1 : 0, rotate: fijado ? 12 : 0 }}
+                        className="likeIcono"
+                        animate={{ scale: gustado ? 1 : 1 }}
                         transition={glifo}
                       >
-                        <Glifo d={a.trazo} />
-                        <Glifo d={a.trazo} relleno className="encendido" />
+                        {/* EL PAR ES EL MISMO TRAZADO con y sin
+                            relleno, así que al cruzarse no cambia la
+                            silueta: se llena. Y el que llega entra con
+                            el pop —de 0.6 a 1 con rebote—, que es la
+                            variante Down-Up del reemplazo de símbolos:
+                            el que sale se achica, el que entra crece. */}
+                        <m.span
+                          className="capa"
+                          animate={{ scale: gustado ? 0.6 : 1, opacity: gustado ? 0 : 1 }}
+                          transition={glifo}
+                        >
+                          <Glifo d={a.trazo} />
+                        </m.span>
+                        <m.span
+                          className="capa"
+                          animate={{
+                            scale: gustado ? (reducido ? 1 : POP_ESCALA) : 0.6,
+                            opacity: gustado ? 1 : 0,
+                          }}
+                          transition={{ scale: pop, opacity: { duration: reducido ? 0 : 0.12 } }}
+                        >
+                          <Glifo d={a.trazo} relleno />
+                        </m.span>
                       </m.span>
                     ) : (
                       <Glifo d={a.trazo} />
@@ -1013,18 +1066,31 @@ const HOJA = `
 [data-pieza='title-to-actions'][data-abierto] .accion { pointer-events: auto; }
 [data-pieza='title-to-actions'][data-abierto] .puntos { pointer-events: none; }
 
-/* ─── EL PIN, ENCENDIDO ───
+/* ─── EL LIKE, ENCENDIDO ───
    Un control elegido se llena, no cambia de color ni gana otra caja: es
    el mismo trazado con relleno cruzándose con el de trazo, así que
-   comparten silueta y lo único que se ve es que se llena. */
-[data-pieza='title-to-actions'] .pinIcono {
+   comparten silueta y lo único que se ve es que se llena.
+
+   NO SE PONE ROJO, y vale decir por qué: el sistema no tiene un color
+   de acento, y el único que existe, --destructivo, significa
+   exactamente eso, destructivo. Un like en rojo tomaría prestado un
+   token que dice otra cosa. Lo que marca el estado es el relleno más el
+   pop, y el nombre accesible lo dice para quien no lo ve. */
+[data-pieza='title-to-actions'] .likeIcono {
   position: relative;
   width: 16px;
   height: 16px;
   display: grid;
   place-items: center;
 }
-[data-pieza='title-to-actions'] .pinIcono svg { grid-area: 1 / 1; }
+[data-pieza='title-to-actions'] .likeIcono svg { display: block; }
+/* Las dos capas del cruce, apiladas en la misma celda: cada una lleva
+   su propia escala, así que no pueden compartir el transform. */
+[data-pieza='title-to-actions'] .likeIcono .capa {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+}
 [data-pieza='title-to-actions'] .control .encendido {
   position: absolute;
   opacity: 0;

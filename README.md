@@ -1973,26 +1973,41 @@ Se dibujan, no se incrustan, que es lo mismo que ya hizo el chevron de
 `Volver`: se toma la forma estándar y se traza acá, con las medidas al
 lado. El arte de Apple no viaja en el bundle.
 
-### El pin se clava, y no sobrepasa
+### El like hace un pop, y ahí el sobrepaso sí se ve
 
-Un pin se levanta antes de clavarse y queda torcido después, así que el
-glifo hace las dos cosas: sube 2 al pasar el puntero, vuelve a cero al
-apretarlo, y fijado baja 1 y queda inclinado 12° mientras el trazado se
-llena. Lo que anima es el hijo y no el botón, porque un botón que se
-mueve corre su propia área de hover bajo el puntero y el estado titila.
+**Primero fue un pin**, y se clavaba: bajaba 1 y quedaba inclinado 12°
+mientras el trazado se llenaba. El usuario lo cambió por un like
+(2026-09-10, "en vez del pin que sea un like"), y el gesto cambió con
+él, porque un corazón no se clava.
 
-**Estuvo con una curva de rebote y se sacó, con el número.** La regla de
-motion permite rebote para una interacción física como clavar algo, así
-que se probó y se midió el transform computado cuadro a cuadro: el pico
-da 12.63° sobre 12°, o sea 0.63 grados —un 5.3 %— a los 164 ms. Menos de
-un grado en un glifo de 20 px no se ve, y subirlo hasta que se vea se
-sale de la regla. El sobrepaso es la herramienta equivocada para un
-recorrido tan corto.
+El camino hasta el gesto correcto está medido de punta a punta, y las
+dos mediciones que fallaron valen más que la que salió.
 
-Lo que sí cambió es la curva: el resto de la pieza usa la del sistema
-para lo que *aparece*, y el pin no aparece, ya está en pantalla y se
-mueve. Es la tercera familia de curvas, y el sistema no la tiene porque
-el chrome de la página no tiene un solo objeto que se desplace.
+**El pin con rebote: 0.63° sobre 12°.** La regla de motion permite
+rebote para una interacción física como clavar algo, así que se probó y
+se midió el transform computado cuadro a cuadro. El pico da 12.63° a los
+164 ms, o sea un 5.3 %. Menos de un grado en un glifo de 16 px no se ve,
+y subirlo hasta que se vea se sale de la regla.
+
+**El corazón con un resorte: 1.8 % de la escala.** Con el pin afuera, el
+recorrido pasó a ser una escala y no un ángulo, que es donde un
+sobrepaso sí puede leerse. Con `spring 0.35 / rebote 0.30` de 0.6 a 1 el
+pico da 1.018 a los 224 ms: 0.29 px sobre 16. Tampoco. **Y ahí está la
+razón de fondo**: un resorte sobrepasa sobre el *recorrido*, no sobre el
+destino, así que para que se note habría que arrancar mucho más chico —
+y ahí el corazón aparecería de la nada, que es lo que la regla prohíbe.
+
+**Con cuadros clave: 17.9 %.** Un pico de 1.18 son 2.9 px sobre 16, y
+eso se lee como un latido. Y no es una excepción a la regla sino la otra
+mitad de la misma: estado interactivo va con resorte porque tiene que
+poder retomarse a mitad de camino, un disparo va con cuadros clave
+porque siempre corre entero. Encender un like es un disparo.
+
+**El corazón no se pone rojo.** El sistema no tiene color de acento, y
+el único que existe significa exactamente "destructivo". Un like en rojo
+tomaría prestado un token que dice otra cosa; lo que marca el estado es
+el relleno más el pop, y el nombre accesible lo dice para quien no lo
+ve.
 
 ### Tres fallas que sólo aparecieron midiendo
 
