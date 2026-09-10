@@ -198,7 +198,7 @@ import { Section } from '../../../notes'
    THE CURVE IS ONE OF HIS, and by accident: the best fit of 14 curves
    × 39 durations over 18 samples of the reference gave
    cubic-bezier(.19, 1, .22, 1), which is exactly the --ease-out-expo
-   of his catalogue, "strong ease-out". It came out of measuring a
+   of his catalog, "strong ease-out". It came out of measuring a
    video, not out of copying his list.
 
    WHAT DOES NOT GO INTO THE TEXT EVEN THOUGH IT IS TECHNICAL: that the

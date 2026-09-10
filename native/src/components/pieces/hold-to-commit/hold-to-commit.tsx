@@ -636,7 +636,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
                                      the 1800 ms of the first version left
                                      the cut 0.2 s BEFORE the piece had
                                      finished mounting
-             4000   (on its own)     the LongPress fulfils: burst, "✓ Order
+             4000   (on its own)     the LongPress fulfills: burst, "✓ Order
                                      Placed", success haptic and sound
              6000   reset            the fade back to rest
 

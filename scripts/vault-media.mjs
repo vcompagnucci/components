@@ -12,7 +12,7 @@
 
    THE FOLDER COMES FROM .env.local, in VAULT_DIR. Without the VITE_
    prefix on purpose: with that prefix Vite would bake it into the
-   client bundle, and the path on your disk has no business travelling
+   client bundle, and the path on your disk has no business traveling
    anywhere. Here only Node reads it.
 
    ─── THE THREE GUARDS ───

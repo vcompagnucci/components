@@ -28,7 +28,7 @@ import { COLLAPSE } from './measurements'
    2026-09-02). In X that line does not exist during the collapse: in
    the recording, with the block halfway (D = 38..55), the row at 62 pt
    is pure white (255, not one pixel off). And the line you see
-   travelling with the tabs is TWO rows: the bottom edge of the block,
+   traveling with the tabs is TWO rows: the bottom edge of the block,
    which goes out (208 → 233), and the content's top separator, right
    underneath, which does not (205, constant). Here the background is
    opaque and the divider stays opaque with it: it is the line that

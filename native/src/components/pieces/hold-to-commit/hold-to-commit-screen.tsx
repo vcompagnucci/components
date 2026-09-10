@@ -26,7 +26,7 @@ import { LOAD, MEASURE, RECEIVER, PROBE } from './probe'
 
    The reference is `VAULT_DIR/nativo/Hold to commit.mp4`: the **Opal**
    button (Screen Time Control, Apple Design Award 2025), published by
-   @60fpsdesign on X and catalogued on 60fps.design as "Opal Hold to
+   @60fpsdesign on X and cataloged on 60fps.design as "Opal Hold to
    Commit Button Interaction"; 60 fps. Measured frame by frame: every
    value's receipt is in `measurements.ts` and the measuring scripts are
    in `.context/hold-to-commit/`.
@@ -418,7 +418,7 @@ const css = StyleSheet.create({
  *   white. RUNTIME: the ring pulled +54.5 away from what it had 2 pt
  *   outside against +4 in the clip; the label's text fell +13.67 pt to the
  *   right of the center and the centroid +6.60, and the correction is that
- *   Δ cancelled out (verified at −0.06).
+ *   Δ canceled out (verified at −0.06).
  *
  *   For a while both versions coexisted behind a chip (the file
  *   acabado.ts, with the reference values and reviewed). The chip came out

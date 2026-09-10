@@ -838,7 +838,7 @@
    It is a GROUP and not two loose controls, and that is why the
    `margin-left: auto` is here and no longer on the toggle: when the
    toggle was the only one at the end it pushed itself, but with a
-   neighbour that auto would push only it and leave the ··· stuck to the
+   neighbor that auto would push only it and leave the ··· stuck to the
    title.
 
    ─── THE GAP IS 8, THE SAME AS THE ROW'S ───

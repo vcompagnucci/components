@@ -485,7 +485,7 @@ export const LABEL = {
      in pt. With the row centered as a box, measured over the commit frame
      (ink per column over the white pill, Δ against the center of the
      pill): the box lands at +0.83, but the TEXT lands at +13.67 and the
-     ink centroid at +6.60. The correction is that centroid Δ cancelled
+     ink centroid at +6.60. The correction is that centroid Δ canceled
      out, and with it the center of mass falls on the center (verified:
      Δ −0.06). Centering the text was tried too (−13.7, Δ 0.00) and
      discarded: the checkmark ends up hanging off to the side.
@@ -517,7 +517,7 @@ export const HOLD = {
      faithful one: 2000. */
   duration: 1000,
 
-  /* ASSUMED · how far the finger can move without cancelling. 10 is
+  /* ASSUMED · how far the finger can move without canceling. 10 is
      LongPress's default and it feels strict on a 52 pt button. */
   maxDistance: 24,
 

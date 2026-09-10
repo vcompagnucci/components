@@ -121,7 +121,7 @@ const fromUrl = (): View => {
      THE THIRD FOLD: the whole block goes behind import.meta.env.DEV even
      though the find is already a dead branch with the list empty. What
      the minifier cannot prove dead is the LITERAL 'private' in the
-     return. Measured: it travelled to the bundle as a loose word, the
+     return. Measured: it traveled to the bundle as a loose word, the
      only one from the area in dist. With the constant if, Rollup throws
      out the whole block, literal included. (The render gate below gets
      this for free with its `&& PrivateArea`, which is already null in

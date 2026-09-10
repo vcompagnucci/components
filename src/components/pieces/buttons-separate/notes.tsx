@@ -137,7 +137,7 @@ import { Section } from '../../../notes'
        "365 ms for the field" now, which is what the number is.
      · 42 ms is the delay between the two, measured. It is in `DELAY`.
      · 38 and 44 px are the drawn button and its touch area, with 1 px
-       clear of the neighbour's (`.button` and its ::before). The text
+       clear of the neighbor's (`.button` and its ::before). The text
        does NOT promise 44 px on screen: below 544 px of width the group
        shrinks as a block and the area shrinks with it. At 372 px of
        scene the scale is 0.623 and 27.4 px are left, which passes the
@@ -289,7 +289,7 @@ export default function Notes() {
         <p>
           Hover cannot be the only way in. A pointer that cannot hover never gets the opening, so the
           buttons have to be out from the start, and keyboard focus has to open them too. Each button
-          is 38 pixels wide and its hit area is 44. That leaves one pixel between neighbours. Once
+          is 38 pixels wide and its hit area is 44. That leaves one pixel between neighbors. Once
           this area drops below 544 pixels the whole group scales down, and the hit areas shrink with
           it.
         </p>

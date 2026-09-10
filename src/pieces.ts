@@ -135,7 +135,7 @@ export const slug = (name: string) =>
                          approved on 2026-09-07 ("Swipe between tabs, tap
                          to select one"), with the HIG's term.
    · Hold to buy         was Hold to commit, the name from the
-                         60fps.design catalogue. The label of the button
+                         60fps.design catalog. The label of the button
                          at rest says "Hold to Buy" since Vito asked for
                          it as a buy button (2026-09-04); the title says
                          the same.

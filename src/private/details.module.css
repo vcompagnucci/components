@@ -53,7 +53,7 @@
      the page's margin, like every other padding box.
 
      `margin-left: auto` LEFT here: it pushed the toggle when it was the
-     only one at the end, and since it has a neighbour (the ···) what
+     only one at the end, and since it has a neighbor (the ···) what
      gets pushed is the group. That auto now lives in .detailActions, in
      vault.module.css. */
   margin-right: -32px;

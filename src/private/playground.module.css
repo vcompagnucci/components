@@ -482,7 +482,7 @@
    switch-off written further up turned nothing off.
    Measured: with the system in `reduce`, `.canvas` gave 1e-05s and
    `.panel` still gave 0.3s. You could see it: the gap closed at once
-   and the column left travelling anyway. */
+   and the column left traveling anyway. */
 @media (prefers-reduced-motion: reduce) {
   .panel {
     transition-duration: 0.01ms;
@@ -1102,7 +1102,7 @@
    Everything else you write.
 
    `overflow: hidden` because a half-finished sketch can overflow, and
-   what leaves a frame is drawn on top of its neighbours: the clip is
+   what leaves a frame is drawn on top of its neighbors: the clip is
    what keeps a mistake of yours from reading as a mistake of the
    board's.
 

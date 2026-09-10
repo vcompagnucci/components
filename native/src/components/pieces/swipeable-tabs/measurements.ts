@@ -270,7 +270,7 @@ export const ICON = {
 
      THE TRAVEL IS X'S, MEASURED TWICE. There was a DEEP CRADLE here
      (slide 4/7: the symbol was born with more than half of it tucked
-     under the word and travelled 17 pt). It was a request from the
+     under the word and traveled 17 pt). It was a request from the
      morning of 2026-09-01, and that same afternoon three recordings of
      the real X account arrived with the verdict: "we do it differently,
      do it like they do". In those recordings the AI sparkles travels

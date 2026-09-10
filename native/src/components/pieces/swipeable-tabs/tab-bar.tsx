@@ -50,7 +50,7 @@ import { usePalette } from './theme'
    layout per frame.
 
    Interpolating between TWO and not over the n only matters when those
-   two are not neighbours, that is, on TAPPING a far tab. The first
+   two are not neighbors, that is, on TAPPING a far tab. The first
    version interpolated over every state and a tap from 2 to 6 went
    through 3, 4 and 5: each one opened its icon and went white on the
    way past, and then went back. With two ends, the layout goes from 2
@@ -382,7 +382,7 @@ export const TabBar = memo(function TabBar({ tabs, segment, motion, viewport, on
        ─── AND ONLY ON TAP ───
        The row moves when you TAP a tab. Dragging it stays still, and
        that is measured too: the vault clip has four transitions, all
-       between neighbours, and the row does not shift in any of them,
+       between neighbors, and the row does not shift in any of them,
        not even with Tech active, where the centering would ask for
        45 pt. That they are drags and not taps shows when you normalize
        the four curves to the same time: at step 4/24 they give 0.071,
@@ -403,7 +403,7 @@ export const TabBar = memo(function TabBar({ tabs, segment, motion, viewport, on
        guarantees the active one fits whole anyway.
 
        ─── STOCKS→TECH, THE BIG CASE (v1, frames 203-221) ───
-       It is the only transition between neighbours where the centering
+       It is the only transition between neighbors where the centering
        asks for a whole jump (0 → 45.6), and X gives it: dragging with
        the finger, the word "AI", inactive and on the same side in both
        states, so a clean witness for the row, goes 342.3 → 296.7 while
@@ -672,7 +672,7 @@ const TabItem = memo(function TabItem({
      which is exactly what this fixed: tapping from 2 to 6, the ones in
      the middle opened their icon and went white on the way past.
 
-     Dragging, `from` and `to` are neighbours and together they add up
+     Dragging, `from` and `to` are neighbors and together they add up
      to 1 in the middle of the gesture, which is what the clip does:
      during the drag you see both chevrons at once. */
   const revealed = (d: number, h: number, t: number) => {

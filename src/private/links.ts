@@ -291,7 +291,7 @@ export function labelOf(url: string, title?: string): string {
      redirect over HTTP, it does it with JavaScript, so the fetch stops
      there, and the only thing it brings back is a <title> that says
      "https://twitter.com/nater02/status/…". Without this branch, a
-     link copied from X would be labelled with that whole URL: the
+     link copied from X would be labeled with that whole URL: the
      original defect, back through the side door.
 
      It gets promoted to URL and the count is redone with it. The

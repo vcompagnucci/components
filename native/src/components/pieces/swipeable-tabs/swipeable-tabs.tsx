@@ -233,7 +233,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
      ── What `d` and `h` are ──
      The bar does not interpolate over the n states: it interpolates
      between TWO, the one it comes from and the one it goes to. The
-     difference only shows when those two are not neighbours.
+     difference only shows when those two are not neighbors.
 
      Dragging they always are, `floor(p)` and the next one.
 
@@ -245,7 +245,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
      move, and the only two icons that move are the ones at the ends.
 
      ── What `t` is, and why looking at the scroll is not enough ──
-     Dragging it is enough: the two ends are neighbours and the progress
+     Dragging it is enough: the two ends are neighbors and the progress
      is the fractional part of the page. But a FAR TAP moves the content
      A SINGLE PAGE even if the jump is four tabs wide (see `onTap`), so
      there the scroll covers 1/4 of what the bar covers. That is why the
@@ -273,7 +273,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
        `motion === tap`, not `target !== NONE`: anything else that moves
        the pager through `target` (a recording probe, 2026-09-04) left
        the bar reading a stale `tapFrom`/`tapTo` and the underline stuck
-       on For you while the content travelled. */
+       on For you while the content traveled. */
     if (target.get() !== NONE && motion.get() === MOTION.tap) {
       return { d: tapFrom.get(), h: tapTo.get(), t: tapProgress.get() }
     }
@@ -315,7 +315,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
      re-recording.
 
      How: the loan STAYS ALIVE while the finger drags. The geometry the
-     user sees, the origin page in the neighbouring slot and the
+     user sees, the origin page in the neighboring slot and the
      destination next to it, is kept, and the bar keeps going from
      `from` to `to` with the progress read off the scroll (see
      `segment`). The loan is given back only when it cannot be seen:
@@ -328,7 +328,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
          changed.
      What is left wrong, and it is a corner of a corner: dragging
      BACKWARD past the lent page inside those 300 ms shows the empty
-     slot it came out of, or a page that is not its neighbour; it fixes
+     slot it came out of, or a page that is not its neighbor; it fixes
      itself on release, along the same path. There is no way to avoid it
      without moving the scroll with the finger down, and UIScrollView
      does not honour that. NO RECEIPT ON SCREEN YET: test on the phone
@@ -344,8 +344,8 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
     if (lentIndex.get() === NONE || width <= 0) return
     const d = tapFrom.get()
     const h = tapTo.get()
-    const neighbour = h - (h > d ? 1 : -1)
-    if (Math.round(progress.get()) === neighbour) {
+    const neighbor = h - (h > d ? 1 : -1)
+    if (Math.round(progress.get()) === neighbor) {
       hapticSuppressed.set(d)
       scrollTo(pager, d * width, 0, false)
       scrollX.set(d * width)
@@ -368,7 +368,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
       /* If the finger comes on stage, it cuts off any tap animation
          that is running. The gesture always wins. With a page on loan
          the turn passes to the finger: the tap's callback, which
-         arrives cancelled, belongs to nobody and does not clean up. */
+         arrives canceled, belongs to nobody and does not clean up. */
       onBeginDrag: () => {
         if (lentIndex.get() !== NONE) {
           generation.set(generation.get() + 1)
@@ -500,7 +500,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
         const dir = i > d ? 1 : -1
 
         /* This tap's turn. The `withTiming` callback fires even when it
-           is cancelled, so without this the old tap's cleanup would
+           is canceled, so without this the old tap's cleanup would
            wipe the new one's page on loan. */
         const turn = generation.get() + 1
         generation.set(turn)
@@ -524,21 +524,21 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
            The order matters. `target` is set FIRST to shut the door on
            the haptic tick and on the `from`/`to` arithmetic, which
            would otherwise read the scroll's jump as a tab change. */
-        const neighbour = i - dir
-        target.set(neighbour * pageWidth)
+        const neighbor = i - dir
+        target.set(neighbor * pageWidth)
         motion.set(MOTION.tap)
         tapFrom.set(d)
         tapTo.set(i)
 
-        if (neighbour !== d) {
+        if (neighbor !== d) {
           lentIndex.set(d)
-          lentX.set((neighbour - d) * pageWidth)
-          coveredIndex.set(neighbour)
-          scrollTo(pager, neighbour * pageWidth, 0, false)
+          lentX.set((neighbor - d) * pageWidth)
+          coveredIndex.set(neighbor)
+          scrollTo(pager, neighbor * pageWidth, 0, false)
           /* By hand and not waiting for the scroll event: `progress`
              has to be at the new place NOW, or the next frame reads it
              stale. */
-          scrollX.set(neighbour * pageWidth)
+          scrollX.set(neighbor * pageWidth)
         }
 
         /* The bar covers `from` to `to` in full even though the content
@@ -553,7 +553,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
                belongs to someone else. */
             if (generation.get() !== turn) return
             /* And if not, it cleans up without checking whether the
-               animation finished or was cancelled: in both cases the
+               animation finished or was canceled: in both cases the
                page on loan has to be given back and the sentinel
                released, or the drag's tick goes mute forever. */
             lentIndex.set(NONE)

@@ -635,7 +635,7 @@ export function Vault({
   const chosen = (list: FileList | null) => {
     setPending(Array.from(list ?? []));
     /* The input is emptied so that choosing THE SAME file TWICE fires
-       the change again. Without this, cancelling an upload and retrying
+       the change again. Without this, canceling an upload and retrying
        with the same file does nothing. */
     if (input.current) input.current.value = "";
   };

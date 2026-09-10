@@ -12,7 +12,7 @@ import { FRONT, frontAt, HOLD, SPARKS } from './measurements'
    THEY ARE A FUNCTION OF THE PROGRESS, not of a clock: each spark has a
    birth progress p₀ and lives `length` ms of progress; its position is
    where the front was when it was born, plus how far ahead it started,
-   plus how far it has travelled since, at a fraction of the front's
+   plus how far it has traveled since, at a fraction of the front's
    speed. That way, with the button parked at a progress (probe) the
    sparks are where they should be, and on release they leave with the
    fill (`blob`) instead of floating over a dark pill.

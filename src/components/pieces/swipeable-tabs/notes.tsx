@@ -181,7 +181,7 @@ import { Section } from '../../../notes'
    that information is true and correct"). Every claim was reread
    against the code, and three were imprecise and got fixed:
    · "A drag cancels a tap animation in progress" → at that moment only
-     a tap on a neighbouring tab was interrupted; the far one blocked
+     a tap on a neighboring tab was interrupted; the far one blocked
      the pager. That same afternoon the block was withdrawn (see above)
      and the sentence became true again for any tap: "at any point,
      however far the tab is".
@@ -207,7 +207,7 @@ import { Section } from '../../../notes'
      forth over the same boundary in one gesture buzzes every time, the
      way the label changes. A drag does not get to cross two tabs (the
      second crossing is a screen and a half of finger travel away; with
-     paging the momentum only reaches the neighbouring page): "a drag
+     paging the momentum only reaches the neighboring page): "a drag
      across three tabs buzzes three times" was a badly chosen example,
      corrected by the user. Now "once per change".
    · "JavaScript takes part only twice" → it read like a count: now "at

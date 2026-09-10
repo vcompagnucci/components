@@ -17,7 +17,7 @@
    root mean square error on the edge of the group over the first
    second, and 0.039 / 0.228 pt on the opacity and the blur of the
    glyphs. This used to say 2.35 pt: that number came out of a probe
-   that modelled the edge of the button at r = 19.58, and what is drawn
+   that modeled the edge of the button at r = 19.58, and what is drawn
    measures 19. Do not go back to 2.35.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -909,7 +909,7 @@ const STYLESHEET = `
 /* THE GLASS IS A SECOND COPY OF THE BACKGROUND, blurred and lightened,
    not a backdrop-filter. Two reasons and both matter: the blur of the
    reference is enormous, over the light cloud the glass comes out
-   almost neutral, which means it averages a neighbourhood the width of
+   almost neutral, which means it averages a neighborhood the width of
    the cloud, and a backdrop-filter clipped by an SVG mask is not
    guaranteed in every engine. Here the background is ours, so copying
    it is exact, and it also comes out cheaper: the blurred layer never
@@ -1080,7 +1080,7 @@ const STYLESHEET = `
   pointer-events: none;
   cursor: inherit;
 }
-/* The touch area reaches 44 without touching the neighbour's: the gap
+/* The touch area reaches 44 without touching the neighbor's: the gap
    is 7, and 3 on each side leave 1 between the two.
 
    WITH THE BAR CLOSED, THESE BUTTONS ARE FOCUSABLE AND WORTH ZERO

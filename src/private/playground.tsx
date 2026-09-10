@@ -974,7 +974,7 @@ function RenameViewDialog({
   onRename: (n: string) => void
 }) {
   const [name, setName] = useState(view.name)
-  /* The draft starts from zero every time it opens: if you cancelled
+  /* The draft starts from zero every time it opens: if you canceled
      and come back in, what you see is the name there is, not what you
      had typed last time. */
   useEffect(() => {

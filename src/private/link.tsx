@@ -78,7 +78,7 @@ export function NoteLink({ url }: { url: string }) {
      not the one written in the note. The difference is the whole point
      of shorteners: a link copied from X is a t.co/xxxx, and `t.co` as a
      label says neither what it is nor where it came from. With the
-     final one, that same link gets labelled with the site and the title
+     final one, that same link gets labeled with the site and the title
      of where it leads.
 
      TO NAVIGATE we still use the written one. They are two different

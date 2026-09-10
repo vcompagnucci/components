@@ -78,7 +78,7 @@
      With 8 they would touch, and a click right in the middle would land
      in either one with no way to know which.
 
-     Above and below there is no neighbour, so the 8 comes free.
+     Above and below there is no neighbor, so the 8 comes free.
 
      It lives here and not in each file because two rows read it (the
      tabs and the filter) and they live in different modules. Two names
