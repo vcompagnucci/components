@@ -912,7 +912,7 @@ html {
    gives ~1.5× of ΔL, so the card IS somewhat more noticeable in dark.
    But keeping the exact ΔL would leave it at +3 and it disappears, and
    the two references with a scale of their own enlarge much more (emil
-   ×3.00, linear ×4.48) for robustness across screens, not for
+   ×3.00, linear ×4.48) for how they hold up across screens and not for
    appearance: near black OLED and IPS diverge, there is ambient light
    and there is 8 bit banding. This one sits in the middle and it is
    stated in one sentence. APCA cannot arbitrate it: it returns 0.0 for
