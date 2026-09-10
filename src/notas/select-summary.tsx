@@ -10,10 +10,10 @@ import { Seccion } from '../notas'
    notas, el que fijó Swipeable tabs. Lo que sigue son los recibos de
    ESTA página, uno por decisión.
 
-   CON LÍNEA, al revés que Hold to commit. "Select summary" nombra el
-   control pero no dice qué hace el botón con lo elegido, que es lo único
-   que hay que mirar; la línea gasta sus palabras ahí. Está en
-   `pieces.ts`, con su porqué.
+   SIN LÍNEA, como las otras tres. La tuvo un día —"The button shows who
+   you selected: a name for one person, a count for more"— y se borró el
+   2026-09-10: el título ya dice qué es, que es la primera regla de
+   AGENTS.md › Cómo se nombra.
 
    EL TONO, medido servido el 2026-09-10, no de memoria. Tres páginas,
    leídas con el navegador y contadas:
@@ -45,9 +45,29 @@ import { Seccion } from '../notas'
    ANATOMY HABLA SÓLO DEL RESUMEN, que es lo que da nombre a la pieza: el
    racimo y el rótulo del botón. Cómo se elige —las filas, las casillas,
    el hover— es el mecanismo alrededor y no entra, que es lo mismo que se
-   decidió con los tabs y con el botón. La referencia se nombra en el
-   cierre, junto con cómo se midió: x.com/abjt14/status/2097316524436627688,
-   la ficha del vault.
+   decidió con los tabs y con el botón.
+
+   Y NO CIERRA CON LA REFERENCIA, al revés que las otras dos (pedido del
+   usuario, 2026-09-10: "saca lo de la referencia"). Es una diferencia
+   con AGENTS.md › Cómo se escriben la línea y las notas, que la pide en
+   el cierre junto con cómo se midió, y hay que decir qué cuesta: la
+   atribución sale de la página. Sigue en dos lados —la ficha del vault
+   (x.com/abjt14/status/2097316524436627688) y el encabezado de
+   `select-summary.tsx`—, así que no se pierde, pero deja de leerse.
+
+   LA VOZ. El texto tiene por primera vez una opinión y una admisión:
+   "deciding what not to move took longer than building what does" y "a
+   control you use all day should sit still". Es la mitad de
+   `emil-unslop-writing` que hasta acá no se aplicaba —«voiceless but
+   correct is exactly what a model on its best behavior produces»— y que
+   entra por pedido explícito ("mucho más humana"). Sigue sin "I" ni
+   "we", que es la decisión que fijó Hold to commit.
+
+   Y LA PRIMERA DE LAS DOS ES CIERTA, que es lo que la hace decible: el
+   ancho animado (370 ms ajustados sobre 18 muestras), el fundido del
+   rótulo token por token, el scale del press afinado en píxeles y el
+   guion de la lista se construyeron los cuatro, se midieron, y los
+   cuatro se sacaron después.
 
    LO QUE SE MENCIONA DE LOS SKILLS, Y LO QUE NO. Entra sólo lo que un
    lector puede VER, con su recibo. `animate-expo` no aplica: es de
@@ -161,11 +181,11 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          The summary is in the button. Select someone and the cluster of photos rearranges, and
-          nothing else does. An animation that answers no question is not here.
+          Select someone and the cluster of photos rearranges. That is the only animation here, and
+          deciding what not to move took longer than building what does.
         </p>
         <p>
-          The reference is a select posted on X by @abjt14, measured frame by frame at 60 fps.
+          The label changes in one frame. The button never resizes. Pressing it moves nothing at all.
         </p>
       </Seccion>
 
@@ -175,8 +195,7 @@ export default function Notas() {
           nothing forces the page to lay out again.
         </p>
         <p>
-          The label changes in one frame, the button holds one width, and the press moves nothing. In
-          every state, nothing drifts by a pixel.
+          In every state, nothing drifts by a pixel. A control you use all day should sit still.
         </p>
       </Seccion>
 
@@ -187,7 +206,7 @@ export default function Notas() {
         </p>
         <p>
           The last row is a checkbox and not a command, because it reports a state. Selecting nobody
-          and selecting everybody are the same state.
+          and selecting everybody are the same state, and neither one filters.
         </p>
       </Seccion>
     </>

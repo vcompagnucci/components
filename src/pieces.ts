@@ -70,12 +70,10 @@ export const PIECES: Piece[] = [
   {
     name: 'Select summary',
     platform: 'Web',
-    /* La línea dice lo que el título NO dice. "Select summary" ya nombra
-       el control, así que gasta sus palabras en lo único que hay que
-       ver: qué pone el botón adentro según cuántos elegiste. Y no
-       repite la plataforma —la card del detalle ya escribe "Web"
-       arriba—, que es por lo que se borró la de Swipeable tabs. */
-    desc: 'The button shows who you selected: a name for one person, a count for more.',
+    /* Sin `desc`: el título ya dice qué es, que es la primera regla de
+       AGENTS.md › Cómo se nombra, y es lo que hacen las otras tres
+       piezas. La tuvo un día y se borró por lo mismo que la de Swipeable
+       tabs. */
   },
   {
     name: 'Swipeable tabs',
