@@ -1884,13 +1884,13 @@ function Lienzo({
             donde={menuFrame?.donde ?? null}
             etiqueta={framePub.tipo === 'pieza' ? framePub.ref : nombreDeRuta(framePub.ref)}
             onCerrar={() => setMenuFrame(null)}
-            items={[
-              /* Sólo lo publicable: un boceto o un clip. Un frame de
-                 pieza ya está publicado — su menú no ofrece nada aún. */
-              ...(framePub.tipo !== 'pieza'
-                ? [{ texto: 'Add to Exhibition', hacer: () => setPublicando(framePub) }]
-                : []),
-            ]}
+            /* Sólo lo publicable: un boceto o un clip. Un frame de
+               pieza ya está publicado — su menú no ofrece nada aún. */
+            items={
+              framePub.tipo === 'pieza'
+                ? []
+                : [{ texto: 'Add to Exhibition', hacer: () => setPublicando(framePub) }]
+            }
           />
           <DialogoPublicar
             abierto={publicando?.id === framePub.id}
@@ -1931,7 +1931,8 @@ function Lienzo({
         onCerrar={() => setBorrando(false)}
         onBorrar={() => {
           borrar(vista.id)
-          history.length > 1 ? history.back() : ir('/playground')
+          if (history.length > 1) history.back()
+          else ir('/playground')
         }}
       />
     </div>

@@ -64,6 +64,11 @@ export function DemoVivo({ name, modo }: { name: string; modo: Montaje }) {
   return (
     <div className={css.demoVivo}>
       <Suspense fallback={null}>
+        {/* oxlint-disable-next-line react/static-components -- `C` no se
+            crea en cada render: `componenteDe` cachea el `lazy()` en un Map
+            de nivel de módulo y devuelve la misma referencia por clave. El
+            bug que la regla busca —perder el estado en cada render— acá no
+            puede pasar. */}
         <C modo={modo} />
       </Suspense>
     </div>

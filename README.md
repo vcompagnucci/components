@@ -2640,3 +2640,60 @@ nueva ni una vuelta atrás entera.
 **Lo que sigue sin poder medirse** es lo otro: si los cuatro botones
 abren con un solo paso. Para eso hacen falta los centros uno por uno, y
 la ventana donde podrían diferir cae entera adentro del estado fundido.
+
+## Oxlint: la config es la mitad del trabajo
+
+**2026-09-10.** El linter entró con 39 errores sobre el código de hoy, y
+apagar el linter o apagar el código eran las dos respuestas fáciles. La
+regla que se siguió es la del propio criterio: *un linter que grita por
+todo se ignora*, así que primero se afinó la config y después se
+arregló lo que quedaba.
+
+**Por qué importaba que quedara en cero.** El hook de `PostToolUse`
+corre oxlint sobre cada archivo editado y hace `exit 2`: con un solo
+error presente, **ese archivo no se puede editar**. Con 39 errores
+repartidos entre `parts.tsx`, las dos piezas Web y casi todo
+`src/privado/`, prender el linter equivalía a trabar el repo. Pasó de
+verdad en el medio de este trabajo: el hook bloqueó una edición mía.
+
+**Lo que se apagó, y por qué es apagarlo y no arreglarlo.**
+
+| regla | n | motivo |
+| --- | --- | --- |
+| `jsx-a11y/prefer-tag-over-role` | 7 | pide cambiar `role="listbox"` por `<select>`, `role="slider"` por `<input>`. Acá el producto ES construir controles a medida: el rol ARIA es la forma correcta, no el error |
+| `jsx-a11y/media-has-caption` | 2 | los videos son demos decorativos y MUDOS. Un `<track>` con los subtítulos de nada no es accesibilidad |
+| tres de `jsx-a11y` en `src/privado/**` | 4 | el área privada sólo existe en desarrollo y no llega al bundle (0 apariciones en `dist/`). Nadie que no sea nosotros la ve |
+
+**Lo que se arregló de verdad**: tres variables muertas y un escape
+inútil en `mockup.mjs`, una expresión-coma usada como sentencia en
+`cuadros.mjs`, un regex con `$` que era un `endsWith`, un ternario como
+sentencia y un spread sobre un array que contenía sólo ese spread —
+`[...(c ? [x] : [])]` es `c ? [x] : []`.
+
+**Lo que se silenció EN EL SITIO, con el porqué al lado**, porque la
+regla es buena y el caso es un falso positivo:
+
+- `react/static-components` en los tres `<C />` de carga diferida. El
+  `lazy()` está cacheado en un Map de nivel de módulo, así que la
+  referencia es estable; la regla no ve a través del cache. El
+  comentario que ya estaba en `bocetos.tsx` decía que el cache existe
+  justo para no tirar el estado.
+- `react/purity` en `buttons-separate`: el `performance.now()` vive
+  dentro de un manejador de evento, no del render.
+- Los dos de `parts.tsx`: el camino de teclado no falta, está en el
+  `<a href>` de adentro, que lleva el mismo handler. Duplicarlo arriba
+  daría dos activaciones por Enter.
+- Los dos de `select-summary`: la raíz sólo DELEGA el teclado, y en un
+  menú el foco vive en los items (ARIA APG), que acá son `<button>`
+  nativos. Ponerle `tabIndex` al contenedor haría que un clic le robe
+  el foco al botón.
+
+**Lo que queda pendiente y está anotado como tal.** Seis
+`set-state-in-effect` y dos `refs` en `src/privado/`. Son hallazgos
+reales —`set-state-in-effect` es literalmente la regla por la que
+oxlint está en este proyecto— pero piden refactor, no una línea, y
+viven en el taller. Quedan en `warn` **sólo dentro de
+`src/privado/**`**: siguen saliendo en `pnpm lint` y no traban a nadie.
+En todo lo que se publica siguen en `error`.
+
+Estado final: **0 errores, 59 warnings**.
