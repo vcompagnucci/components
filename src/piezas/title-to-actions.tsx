@@ -168,8 +168,14 @@ const TIMING = {
  * Todo sale de dos números del sistema: el texto es 14/20 y el área de
  * toque mínima en escritorio es 40.
  *
- *   alto 48      dos renglones de 20 más 4 de aire arriba y abajo
- *   control 40   48 − 2×4, y el mínimo de área de toque
+ *   alto 56      dos renglones de 20 más 8 de aire arriba y abajo
+ *   control 40   56 − 2×8, y el mínimo de área de toque
+ *
+ * EL AIRE SUBIÓ DE 4 A 8 y el alto con él, a pedido (2026-09-10: "dale
+ * más espacio en general al componente"). Los dos renglones de texto no
+ * se mueven —son los 40 del sistema— así que lo que crece es lo que los
+ * rodea, y el control se queda en 40 porque es el mínimo de área de
+ * toque en escritorio y bajarlo no es una opción.
  *
  * ─── EL RADIO: LA BARRA ES UNA PÍLDORA, LOS CONTROLES CÍRCULOS ───
  * Primero fue `--card-radio`, 8, que es el de la card. Está mal por lo
@@ -185,25 +191,26 @@ const TIMING = {
  * Y con la píldora la regla del radio concéntrico cierra EXACTA, que es
  * la prueba de que el número es el correcto y no una preferencia:
  *
- *     radio de la barra    48 / 2 = 24
- *     menos el padding          − 4
+ *     radio de la barra    56 / 2 = 28
+ *     menos el padding          − 8
  *     radio del control        = 20 = 40 / 2, o sea un círculo
  * ───────────────────────────────────────────────────────── */
-const ALTO = 48
-const PADDING = 4
+const ALTO = 56
+const PADDING = 8
 const CONTROL = ALTO - 2 * PADDING //  40
-const RADIO_BARRA = ALTO / 2 //        24, la píldora
-const RADIO_CONTROL = CONTROL / 2 //   20 = 24 − 4, concéntrico
+const RADIO_BARRA = ALTO / 2 //        28, la píldora
+const RADIO_CONTROL = CONTROL / 2 //   20 = 28 − 8, concéntrico
 /* La tapa NO es concéntrica, y es la única que se aparta: una portada es
    contenido y no un control, así que se queda cuadrada con el radio que
    las dos referencias usan en cosas chicas. Un disco redondo sería otra
    cosa. */
 const RADIO_TAPA = 6
 /* El aire entre dos controles vecinos. Adentro de un componente la regla
-   de ×4 no rige (DESIGN.md § 2), y 4 deja los glifos de 20 a 24 px uno
-   de otro: se leen como tres botones y no como una fila continua. */
-const AIRE = 4
-const PASO = CONTROL + AIRE //  44
+   de ×4 no rige (DESIGN.md § 2). Subió de 4 a 6 con el resto del aire:
+   con los rellenos puestos, cuatro píxeles entre dos círculos los dejan
+   casi tocándose. */
+const AIRE = 6
+const PASO = CONTROL + AIRE //  46
 
 /* CUÁNTO VIAJAN LA TAPA Y EL RÓTULO. En la grabación la portada viaja
    55.5 pt mientras el abanico abre su paso de 64, o sea 0.867 del paso.
@@ -253,6 +260,19 @@ const VIAJE = Math.round(0.867 * PASO) //  38
  * SE DIBUJAN, NO SE INCRUSTAN, que es lo mismo que ya hizo el chevron
  * de `Volver`: se toma la forma estándar y se traza acá, con las
  * medidas al lado. El arte de Apple no viaja en el bundle.
+ *
+ * ─── Y VAN CENTRADOS POR CAJA, SIN CORRECCIÓN ÓPTICA ───
+ * Estuvieron corridos: el centroide de la tinta del corazón cae 6.5 %
+ * del alto por encima del centro de su caja —la masa está en los
+ * lóbulos y la punta de abajo es fina— y el de compartir 5.3 % por
+ * debajo, así que se les aplicó ese desplazamiento para "equilibrar el
+ * peso". En pantalla se ve peor, y el usuario lo marcó dos veces: el
+ * corazón se leía saliéndose de su casillero.
+ *
+ * La razón es que el ojo no centra el centro de masa de un ícono, centra
+ * su silueta; y la silueta de un corazón es simétrica arriba y abajo
+ * aunque su tinta no lo sea. Los 0.7 px que sobraban se sacaron y quedan
+ * anotados para que no vuelvan.
  * ───────────────────────────────────────────────────────── */
 /* EL CORAZÓN, en dos lóbulos y una punta. Medido del sistema: 310×286,
    o sea 1.084 de ancho sobre alto. Éste da 12.2 × 11.2 = 1.089. */
@@ -265,7 +285,16 @@ const ENLACE =
   'M6.88 9.12a2.64 2.64 0 0 0 3.76 0l1.68-1.68a2.64 2.64 0 0 0-3.76-3.76l-0.96 0.96M9.12 6.88a2.64 2.64 0 0 0-3.76 0l-1.68 1.68a2.64 2.64 0 0 0 3.76 3.76l0.96-0.96'
 const MARCA = 'M3.52 8.48 6.64 11.68 12.48 3.84'
 const CHEVRON = 'M10 3.2 5.2 8l4.8 4.8'
-const PUNTOS = 'M3.76 8h0.01M8 8h0.01M12.24 8h0.01'
+const PUNTOS = 'M3.79 8h0.01M8 8h0.01M12.21 8h0.01'
+/* EL TRAZO. 1.5 sobre la caja de 16 es el peso del producto, contado en
+   los nueve glifos que ya dibuja. */
+const TRAZO = 1.5
+/* SALVO EN LOS PUNTOS SUSPENSIVOS, donde el punto ES el trazo y por eso
+   1.5 los dejaba diminutos al lado de los demás. Medido del sistema:
+   `ellipsis` da 292×59, o sea 4.949 de ancho sobre alto — el ancho
+   entero son cinco diámetros. Con los otros glifos ocupando unos 12 de
+   ancho, el punto es 12 / 4.949 = 2.42. */
+const TRAZO_PUNTO = 2.4
 
 /* LAS TRES ACCIONES, en el orden de la fila. El de cerrar va último
    porque comparte lugar con el de puntos suspensivos: se aprieta dos
@@ -281,6 +310,15 @@ const ULTIMO = ACCIONES.length - 1
    mano: si mañana entra una acción antes, el que la abre sigue siendo
    éste. */
 const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === 'share')
+/* EL ANCHO DE LA BARRA NO CAMBIA NUNCA, y eso es una decisión y no una
+   omisión. Estuvo encogiéndose al abrir —anclada a la derecha, para no
+   mover la ranura— y el usuario lo frenó (2026-09-10: "cambiaste mucho
+   que cambia el tamaño del componente en general al clickear los
+   puntos, revertí eso"). Una barra que cambia de tamaño al apretarla
+   mueve todo lo que tiene alrededor; el hueco que queda adentro cuando
+   el rótulo se va es el precio, y es el que la referencia medida también
+   paga. */
+const ANCHO = 460
 
 /* ─────────────────────────────────────────────────────────
  * LA TARJETA DE COMPARTIR
@@ -378,10 +416,12 @@ function Control({
 function Glifo({
   d,
   relleno,
+  trazo = TRAZO,
   className,
 }: {
   d: string
   relleno?: boolean
+  trazo?: number
   className?: string
 }) {
   return (
@@ -390,7 +430,7 @@ function Glifo({
         d={d}
         fill={relleno ? 'currentColor' : 'none'}
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth={trazo}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -534,114 +574,119 @@ export default function TitleToActions() {
         </style>
 
         <div className="escena">
-          <div className="barra">
-            {/* EL CHEVRON NO VIAJA, SÓLO SE APAGA, y eso está medido: yendo
+          {/* EL RIEL da el ancho máximo y no se mueve. La barra vive
+              pegada a su borde derecho, así que puede encogerse sin que
+              ese borde —el de la ranura, el punto que apretás dos
+              veces— se corra un píxel. */}
+          <div className="riel">
+            <div className="barra">
+              {/* EL CHEVRON NO VIAJA, SÓLO SE APAGA, y eso está medido: yendo
               adentro del grupo terminaba en x 206 con la barra
               empezando en 240, o sea 34 px AFUERA de la píldora. Con
               opacidad cero no se ve, pero durante el fundido sí — en los
               cuadros del medio asomaba medio chevron por el borde
               izquierdo. Quieto no puede salirse, y la tapa le pasa por
               encima cuando él ya casi no está. */}
-            <m.div
-              className="chevronCaja"
-              animate={{ opacity: acciones ? 0 : 1 }}
-              transition={fundido}
-            >
-              <Control label="Back" inert={acciones} onClick={frenar}>
-                <Glifo d={CHEVRON} />
-              </Control>
-            </m.div>
-
-            {/* LA TAPA Y EL RÓTULO VIAJAN JUNTOS, que es lo medido: en la
-              grabación las dos partes arrancan en el mismo cuadro y con
-              el mismo resorte. Por eso van en un solo grupo y no en dos
-              elementos con la misma animación repetida. */}
-            <m.div
-              className="grupo"
-              animate={{ x: acciones ? -VIAJE : 0 }}
-              transition={resorte}
-            >
-              {/* aria-hidden: el título y el autor están al lado, y un alt
-                que los repita hace que un lector de pantalla los diga
-                dos veces. */}
-              <img
-                className="tapa"
-                src={TAPA}
-                alt=""
-                width={CONTROL}
-                height={CONTROL}
-                /* Con `width` y `height` la caja está reservada antes de
-                 que la imagen llegue, así que la barra no salta. El
-                 decodificado va fuera del hilo principal: son 600 px de
-                 lado para una caja de 40. */
-                decoding="async"
-                aria-hidden="true"
-              />
-
               <m.div
-                className="rotulo"
-                inert={acciones}
+                className="chevronCaja"
                 animate={{ opacity: acciones ? 0 : 1 }}
                 transition={fundido}
               >
-                <p className="titulo">{ITEM.titulo}</p>
-                <p className="autor">{ITEM.autor}</p>
+                <Control label="Back" inert={acciones} onClick={frenar}>
+                  <Glifo d={CHEVRON} />
+                </Control>
               </m.div>
-            </m.div>
 
-            {/* LA RANURA DE LA DERECHA. Los cuatro botones viven acá: los
+              {/* LA TAPA Y EL RÓTULO VIAJAN JUNTOS, que es lo medido: en la
+              grabación las dos partes arrancan en el mismo cuadro y con
+              el mismo resorte. Por eso van en un solo grupo y no en dos
+              elementos con la misma animación repetida. */}
+              <m.div
+                className="grupo"
+                animate={{ x: acciones ? -VIAJE : 0 }}
+                transition={resorte}
+              >
+                {/* aria-hidden: el título y el autor están al lado, y un alt
+                que los repita hace que un lector de pantalla los diga
+                dos veces. */}
+                <img
+                  className="tapa"
+                  src={TAPA}
+                  alt=""
+                  width={CONTROL}
+                  height={CONTROL}
+                  /* Con `width` y `height` la caja está reservada antes de
+                 que la imagen llegue, así que la barra no salta. El
+                 decodificado va fuera del hilo principal: son 600 px de
+                 lado para una caja de 40. */
+                  decoding="async"
+                  aria-hidden="true"
+                />
+
+                <m.div
+                  className="rotulo"
+                  inert={acciones}
+                  animate={{ opacity: acciones ? 0 : 1 }}
+                  transition={fundido}
+                >
+                  <p className="titulo">{ITEM.titulo}</p>
+                  <p className="autor">{ITEM.autor}</p>
+                </m.div>
+              </m.div>
+
+              {/* LA RANURA DE LA DERECHA. Los cuatro botones viven acá: los
               tres de acción arrancan apilados en el lugar del de puntos
               suspensivos y se abren hacia la izquierda, que es de dónde
               sale el nombre de la pieza. */}
-            <div className="ranura">
-              {ACCIONES.map((a, i) => (
-                <m.div
-                  key={a.id}
-                  className="accion"
-                  /* DE DÓNDE SALE. Cerrado los tres están APILADOS en la
+              <div className="ranura">
+                {ACCIONES.map((a, i) => (
+                  <m.div
+                    key={a.id}
+                    className="accion"
+                    /* DE DÓNDE SALE. Cerrado los tres están APILADOS en la
                    ranura del botón de puntos, o sea en cero; abierto,
                    cada uno se corre a la izquierda lo que le toca. El de
                    cerrar no viaja: comparte esa ranura, y por eso la
                    fila se puede abrir y cerrar apretando dos veces en el
                    mismo punto de la pantalla. */
-                  animate={{
-                    x: acciones ? -(ULTIMO - i) * PASO : 0,
-                    opacity: acciones ? 1 : 0,
-                  }}
-                  transition={{ ...resorte, opacity: fundido }}
-                >
-                  <Control
-                    ref={(el) => {
-                      botones.current[i] = el
+                    animate={{
+                      x: acciones ? -(ULTIMO - i) * PASO : 0,
+                      opacity: acciones ? 1 : 0,
                     }}
-                    /* Un botón transparente y con los clics apagados sigue
+                    transition={{ ...resorte, opacity: fundido }}
+                  >
+                    <Control
+                      ref={(el) => {
+                        botones.current[i] = el
+                      }}
+                      /* Un botón transparente y con los clics apagados sigue
                      estando en el orden de tabulación y sigue
                      anunciándose: `inert` lo saca de los dos. */
-                    inert={!acciones}
-                    label={a.nombre}
-                    pressed={a.id === 'like' ? gustado : undefined}
-                    expanded={a.id === 'share' ? compartir : undefined}
-                    aria-haspopup={a.id === 'share' ? 'dialog' : undefined}
-                    onClick={(e) => {
-                      frenar(e)
-                      if (a.id === 'like') {
-                        setGustado((v) => !v)
-                        return
-                      }
-                      if (a.id === 'share') {
-                        conTecladoTarjeta.current = e.detail === 0
-                        setCompartir((v) => !v)
-                        return
-                      }
-                      conTeclado.current = e.detail === 0
-                      /* Cerrar la fila cierra también lo que la fila
+                      inert={!acciones}
+                      label={a.nombre}
+                      pressed={a.id === 'like' ? gustado : undefined}
+                      expanded={a.id === 'share' ? compartir : undefined}
+                      aria-haspopup={a.id === 'share' ? 'dialog' : undefined}
+                      onClick={(e) => {
+                        frenar(e)
+                        if (a.id === 'like') {
+                          setGustado((v) => !v)
+                          return
+                        }
+                        if (a.id === 'share') {
+                          conTecladoTarjeta.current = e.detail === 0
+                          setCompartir((v) => !v)
+                          return
+                        }
+                        conTeclado.current = e.detail === 0
+                        /* Cerrar la fila cierra también lo que la fila
                        abrió: si la tarjeta quedara flotando sin su
                        botón, no habría con qué cerrarla salvo Escape. */
-                      setCompartir(false)
-                      setAcciones(false)
-                    }}
-                  >
-                    {/* EL LIKE HACE UN POP, y es el único sobrepaso de
+                        setCompartir(false)
+                        setAcciones(false)
+                      }}
+                    >
+                      {/* EL LIKE HACE UN POP, y es el único sobrepaso de
                       la pieza. Antes acá había un pin que se clavaba
                       —bajaba y quedaba torcido 12°— y el sobrepaso se
                       había sacado porque no se veía: medido cuadro a
@@ -657,71 +702,84 @@ export default function TitleToActions() {
                       Lo que anima es el GLIFO y no el botón: si se
                       moviera el botón, su propia área de hover se
                       correría bajo el puntero y el estado titilaría. */}
-                    {a.id === 'like' ? (
-                      <m.span
-                        className="likeIcono"
-                        animate={{ scale: gustado ? 1 : 1 }}
-                        transition={glifo}
-                      >
-                        {/* EL PAR ES EL MISMO TRAZADO con y sin
+                      {a.id === 'like' ? (
+                        <m.span
+                          className="likeIcono"
+                          animate={{ scale: gustado ? 1 : 1 }}
+                          transition={glifo}
+                        >
+                          {/* EL PAR ES EL MISMO TRAZADO con y sin
                             relleno, así que al cruzarse no cambia la
                             silueta: se llena. Y el que llega entra con
                             el pop —de 0.6 a 1 con rebote—, que es la
                             variante Down-Up del reemplazo de símbolos:
                             el que sale se achica, el que entra crece. */}
-                        <m.span
-                          className="capa"
-                          animate={{ scale: gustado ? 0.6 : 1, opacity: gustado ? 0 : 1 }}
-                          transition={glifo}
-                        >
-                          <Glifo d={a.trazo} />
+                          <m.span
+                            className="capa"
+                            animate={{
+                              scale: gustado ? 0.6 : 1,
+                              opacity: gustado ? 0 : 1,
+                            }}
+                            transition={glifo}
+                          >
+                            <Glifo d={a.trazo} />
+                          </m.span>
+                          <m.span
+                            className="capa"
+                            animate={{
+                              scale: gustado ? (reducido ? 1 : POP_ESCALA) : 0.6,
+                              opacity: gustado ? 1 : 0,
+                            }}
+                            transition={{
+                              scale: pop,
+                              opacity: { duration: reducido ? 0 : 0.12 },
+                            }}
+                          >
+                            <Glifo d={a.trazo} relleno />
+                          </m.span>
                         </m.span>
-                        <m.span
-                          className="capa"
-                          animate={{
-                            scale: gustado ? (reducido ? 1 : POP_ESCALA) : 0.6,
-                            opacity: gustado ? 1 : 0,
-                          }}
-                          transition={{ scale: pop, opacity: { duration: reducido ? 0 : 0.12 } }}
-                        >
-                          <Glifo d={a.trazo} relleno />
-                        </m.span>
-                      </m.span>
-                    ) : (
-                      <Glifo d={a.trazo} />
-                    )}
-                  </Control>
-                </m.div>
-              ))}
+                      ) : (
+                        <Glifo d={a.trazo} />
+                      )}
+                    </Control>
+                  </m.div>
+                ))}
 
-              <m.div
-                className="puntos"
-                animate={{ opacity: acciones ? 0 : 1 }}
-                transition={fundido}
-              >
-                <Control
-                  ref={puntosBoton}
-                  label="More actions"
-                  expanded={acciones}
-                  inert={acciones}
-                  onClick={(e) => {
-                    frenar(e)
-                    /* Un clic disparado con Enter o con la barra llega con
+                <m.div
+                  className="puntos"
+                  animate={{ opacity: acciones ? 0 : 1 }}
+                  transition={fundido}
+                >
+                  <Control
+                    ref={puntosBoton}
+                    label="More actions"
+                    expanded={acciones}
+                    inert={acciones}
+                    onClick={(e) => {
+                      frenar(e)
+                      /* Un clic disparado con Enter o con la barra llega con
                      detail 0; uno del puntero, con 1. Sirve para
                      devolver el foco sólo a quien lo estaba usando. */
-                    conTeclado.current = e.detail === 0
-                    setAcciones(true)
-                  }}
-                >
-                  <Glifo d={PUNTOS} />
-                </Control>
-              </m.div>
+                      conTeclado.current = e.detail === 0
+                      setAcciones(true)
+                    }}
+                  >
+                    <Glifo d={PUNTOS} trazo={TRAZO_PUNTO} />
+                  </Control>
+                </m.div>
+              </div>
             </div>
 
-            {/* LA TARJETA DE COMPARTIR. Está siempre en el documento —así
-              la salida se puede animar sin desmontarla— y lo que la
-              apaga es el tamaño del botón más `inert`, que la saca del
-              orden de tabulación, de los lectores y del puntero. */}
+            {/* LA TARJETA VIVE AFUERA DE LA BARRA, y tiene que ser así:
+                la barra recorta lo que le sobra cuando se encoge, y una
+                tarjeta adentro se recortaría con el resto. Afuera se
+                ancla al riel, cuyo borde derecho es el mismo que el de
+                la barra y tampoco se mueve.
+
+                Está siempre en el documento —así la salida se puede
+                animar sin desmontarla— y lo que la apaga es el tamaño
+                del botón más `inert`, que la saca del orden de
+                tabulación, de los lectores y del puntero. */}
             <m.div
               className="tarjeta"
               ref={tarjeta}
@@ -868,7 +926,6 @@ const HOJA = `
 
   position: relative;
   width: 100%;
-  max-width: 420px;
   height: ${ALTO}px;
   padding: ${PADDING}px;
   border-radius: ${RADIO_BARRA}px;
@@ -877,7 +934,10 @@ const HOJA = `
   box-shadow: inset 0 0 0 1px var(--hairline, rgba(0, 0, 0, 0.051));
   display: flex;
   align-items: center;
-  gap: 8px;
+  /* El aire entre las partes de la fila, del mismo tamaño que el que
+     las separa del borde: así el padding y el gap son un solo número y
+     la barra no tiene dos ritmos. */
+  gap: ${PADDING}px;
 }
 @media (prefers-color-scheme: dark) {
   [data-pieza='title-to-actions'] .barra {
@@ -901,14 +961,29 @@ const HOJA = `
   }
 }
 
+/* ─── EL RIEL ───
+   Da el ancho máximo y no se mueve nunca. La barra se ancla a su borde
+   derecho, con margin-left auto, así que puede encogerse sin correr ese
+   borde, que es el de la ranura: el punto de la pantalla que se aprieta
+   dos veces. La tarjeta se ancla al mismo borde y por eso tampoco se
+   entera de que la barra cambia de ancho. */
+[data-pieza='title-to-actions'] .riel {
+  position: relative;
+  width: 100%;
+  max-width: ${ANCHO}px;
+}
+
 /* La tapa y el rótulo viajan juntos, así que son un grupo y no dos
    elementos con la misma animación repetida. */
 [data-pieza='title-to-actions'] .grupo {
   flex: 1;
+  /* Lo que sobra hasta la ranura, que está absoluta contra el borde
+     derecho: sin esto el rótulo se le metería debajo. */
+  margin-right: ${CONTROL + PADDING}px;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: ${PADDING}px;
 }
 /* El chevron se apaga en su lugar y su caja se queda en el flujo: si
    saliera, la tapa daría un salto de 48 px justo cuando empieza a
@@ -1048,8 +1123,15 @@ const HOJA = `
    Reservando los tres quedaban 88 px de hueco en reposo y la barra se
    leía rota por la mitad. */
 [data-pieza='title-to-actions'] .ranura {
-  position: relative;
-  flex: none;
+  /* ABSOLUTA Y PEGADA AL BORDE DERECHO, y no en el flujo: la barra se
+     encoge desde la izquierda, así que su borde izquierdo se mueve y el
+     derecho no. En el flujo, la ranura arrancaba desde el borde que se
+     mueve y quedaba fuera del recorte apenas la barra se cerraba — los
+     tres botones desaparecían. Anclada al borde que no se mueve, se
+     queda donde está. */
+  position: absolute;
+  top: ${PADDING}px;
+  right: ${PADDING}px;
   width: ${CONTROL}px;
   height: ${CONTROL}px;
 }
@@ -1130,7 +1212,7 @@ const HOJA = `
 [data-pieza='title-to-actions'] .tarjeta {
   position: absolute;
   right: ${TARJETA_DERECHA}px;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + ${PADDING + 4}px);
   padding: ${PADDING}px;
   background: var(--canvas, #fdfdfc);
   box-shadow:
@@ -1159,7 +1241,7 @@ const HOJA = `
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: ${PADDING}px;
 }
 [data-pieza='title-to-actions'] .rotuloTarjeta {
   flex: 1;

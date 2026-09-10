@@ -1915,6 +1915,39 @@ salida por si algún día el peso importa más: la versión de vidrio traía
 su propio integrador, son cuarenta líneas y está verificado contra la
 documentación de Apple hasta el sexto decimal.
 
+### Cuatro correcciones sobre las capturas
+
+Cuatro cosas que sólo se vieron mirando la pieza corriendo, con la
+captura de cada una al lado.
+
+**El peso de los puntos suspensivos.** El punto de un `ellipsis` ES el
+trazo, así que 1.5 —el peso del repo— los dejaba diminutos al lado de
+los otros glifos. Medido del sistema: `ellipsis` da 292×59, o sea 4.949
+de ancho sobre alto, y el ancho entero son cinco diámetros. Con los
+demás glifos ocupando unos 12 de ancho, el punto es 12 / 4.949 = 2.4. Es
+el único glifo con trazo propio, y por eso `Glifo` lo acepta como prop.
+
+**Más espacio.** El alto pasó de 48 a 56 y el aire de 4 a 8. Los dos
+renglones de texto no se movieron —son los 40 del sistema— así que lo
+que creció es lo que los rodea. El control se queda en 40 porque es el
+mínimo de área de toque, y el radio concéntrico vuelve a cerrar exacto:
+28 menos 8 son 20, la mitad del control.
+
+**El corazón se salía de su casillero, y era una corrección mía.** El
+centroide de la tinta de un corazón cae 6.5 % del alto por encima del
+centro de su caja, porque la masa está en los lóbulos y la punta de
+abajo es fina; con ese número se le aplicó un desplazamiento de 0.7 px
+para "equilibrar el peso". En pantalla se ve peor. La razón es que el
+ojo no centra el centro de masa de un ícono sino su silueta, y la
+silueta de un corazón es simétrica arriba y abajo aunque su tinta no lo
+sea. Se sacó, y queda anotado para que no vuelva.
+
+**El ancho de la barra no cambia.** Estuvo encogiéndose al abrir
+—anclada a la derecha, para no mover la ranura— y se revirtió a pedido:
+una barra que cambia de tamaño al apretarla mueve todo lo que tiene
+alrededor. El hueco que queda adentro cuando el rótulo se va es el
+precio, y es el mismo que paga la referencia medida.
+
 ### La forma: una píldora, y los controles círculos
 
 Primero fue `--card-radio`, 8, que es el de la card. Está mal por lo
