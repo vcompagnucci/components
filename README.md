@@ -121,7 +121,7 @@ and why it was taken the way it was.
 | ↳ the index at 1080 | It hides below **1080**, not below 1200 | 1080 is benji's (`@media(max-width:1080px){…{display:none}}`), and his index is fixed at 80/80, which is where ours came from. The previous 1200 did not come from either reference: it was ours and nobody had decided it |
 | Top air | 80px, and **32 below 768px** | benji.org's CSS (`padding: 5rem`). Measured to the pixel: at 769 it is 80, at 768 it is 32. Before it sat at 640, inherited from Carousels' DESIGN.md |
 | Masthead | "Interface exhibition" (600) + a gray line below. The subtitle does not change size: only weight and color | benji (`h1` 500 ink / `time` 460 at 40%) and josh (name and description at the same size, only the color changes) |
-| The subtitle's copy | *Components for web and native apps that feel right.* "Feel right" is the quality standard Emil uses (animations.dev's h1: *"How do you craft animations that feel right?"*) and Josh too (*"Software that feels right"*). Neither of them uses "crafted" as an adjective: for them *craft* is a verb or a noun, and they name the quality with *feel right*, *care* or *taste*. It states the result, not the effort | copy measured from animations.dev and interfacecraft.dev |
+| The subtitle's copy | *Components that feel right, for web and native apps.* "Feel right" is the quality standard Emil uses (animations.dev's h1: *"How do you craft animations that feel right?"*) and Josh too (*"Software that feels right"*). Neither of them uses "crafted" as an adjective: for them *craft* is a verb or a noun, and they name the quality with *feel right*, *care* or *taste*. It states the result, not the effort. **The word order was wrong until 2026-09-10** and Vito caught it: it read *Components for web and native apps that feel right*, where the relative clause lands on the nearest noun, so what felt right were the apps. The components are the subject of this page | copy measured from animations.dev and interfacecraft.dev |
 | Rail | **592** = exactly 37rem. With the margin of 16, the column comes out at **560** = 35rem | chosen with the scrubber on the real page, between benji's (582, his 36.375rem) and josh's (672, 42rem). Both numbers land on whole rems, which did not happen with either extreme. The previous one was 832, from Carousels' DESIGN.md, and it had never been looked at against this page |
 | Bottom air | **80**, the same number as the top. It **does not step** at 768 the way the top one does | it does not come from the references: both of them close short (benji 40, josh 64) because they have a footer down there and we are not going to have one, so that air is the end of the page and not a separation. It does not step on purpose: the 80 at the top gets trimmed because on a phone it is dead screen before you read anything, and the one at the bottom is only seen if you scrolled to the very end. Benji does the same, he steps the top one and leaves the bottom one alone |
 | Colors/spacing | Tokens inherited from Carousels' DESIGN.md (typography, colors and sizes only) | `src/tokens.css` |
@@ -3036,8 +3036,8 @@ identifiers, the string literals, the console messages, the commit messages.
 About forty thousand lines of Spanish written over three weeks.
 
 **It has two halves and only the first one is mechanical.** The files and the
-folders moved with `git mv` in one commit, `src/privado/` to `src/private/`,
-`ficha.tsx` to `details.tsx`, `nativo/` to `native/`, and that half is safe:
+folders moved with `git mv` in one commit, src/privado/ to `src/private/`,
+ficha.tsx to `details.tsx`, nativo/ to `native/`, and that half is safe:
 the compiler catches every import you forget. The second half is the CONTENT,
 and there is no compiler for prose. It went to subagents, a disjoint set of
 files each, all reading the same brief in `.context/i18n/PREAMBLE.md`: the
