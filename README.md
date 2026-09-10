@@ -2698,3 +2698,128 @@ viven en el taller. Quedan en `warn` **sólo dentro de
 En todo lo que se publica siguen en `error`.
 
 Estado final: **0 errores, 59 warnings**.
+
+## La descripción tiene que cumplirse, y ahora hay una sonda que lo dice
+
+**2026-09-10.** *"Asegurate que la descripción cumpla todo lo que dice el
+componente, y ponelo por encima de Select summary."* Dos pedidos, y el
+primero destapó un problema de método: **estas notas se escribían contra
+el código leído, y leer no es medir.** La regla número uno del repo vale
+igual para la prosa.
+
+### Una sonda por oración
+
+`.context/buttons-separate/sonda/texto.cjs` tiene un `ok` por afirmación
+del texto público. Si la pieza deja de cumplir una, falla. Veintisiete
+comprobaciones; la primera corrida encontró **dos oraciones que no se
+sostenían**.
+
+**"A search field, and beside it a single shape of glass" describía dos
+formas y en reposo hay una.** Los cuatro círculos están en la misma
+ranura —cx 302, medido— y esa ranura cae *adentro* del campo, que mide
+456. Lo que se ve al llegar es una píldora sola: los botones salen de
+adentro del campo cuando el campo se acorta a 276. La captura lo cerró en
+un segundo, después de dos meses de texto escrito de memoria.
+
+**"The field settles in 365 ms" era falso.** `duración`, en la
+parametrización de Apple, fija la frecuencia (ω = 2π/duración), no el
+momento en que la cosa se queda quieta. Integrando el resorte de la pieza:
+
+| | 90 % del viaje | sobrepaso | por debajo de ½ px |
+| --- | --- | --- | --- |
+| campo (365 ms) | 138 ms | **7.6 %** a los 229 | 537 ms |
+| abanico (532 ms) | 217 ms | 4.9 % a los 358 | 625 ms |
+
+Ninguna columna es 365. El texto dice ahora *"365 ms for the field"*, que
+es lo que el número es. Es la misma trampa que este README ya se había
+puesto con el asentamiento del conjunto, y volvió a entrar por otra
+puerta.
+
+### Lo que faltaba: cuatro cosas que se ven y el texto no decía
+
+La regla vieja era *Anatomy habla sólo de la separación*. Con ella se
+quedaron afuera el realce del hover, el hundido del press, que el foco en
+el campo mantiene la barra abierta con el puntero afuera, y que el fondo
+sale de los tokens de la página y sigue al tema. **Ninguna es
+implementación: las cuatro se miran.** La regla nueva es la del pedido de
+hoy — lo que se ve, se dice.
+
+Y entró el **cierre**, que faltaba a propósito y estaba mal que faltara.
+No porque no se vea, sino porque el párrafo de al lado afirma que la
+apertura se midió contra la grabación, y sin la aclaración esa afirmación
+se derramaba sobre un cierre que la grabación **no muestra**. Anatomy
+queda en tres párrafos, uno por asunto: el gesto, lo medido, lo decidido.
+
+### El cierre, medido con la pieza corriendo
+
+`sonda/salida.cjs`, que tampoco existía:
+
+| | |
+| --- | --- |
+| el abanico arranca | primer cuadro |
+| el campo arranca | **49 ms** (el retraso cambió de lado) |
+| las formas se vuelven a tocar | 49 ms, con los glifos en **0.25** |
+| los glifos llegan a 0.02 | 115 ms |
+| el campo vuelve a 456 | sin pasarse ni una vez |
+
+Y con eso, **una afirmación de la pieza que era falsa**: arriba de
+`CAMPO_SALIDA` decía que los iconos *"se van en 110 ms, antes de que las
+formas se pisen"*. No: cuando las formas se tocan los glifos todavía
+valen 0.25. Lo cierto es lo otro, y alcanza — se van **antes que todo lo
+demás**, y por eso no quedan cuatro apilados sobre el campo, que es lo
+que pasaba con el tramo de 300 (0.28 a los 120).
+
+### El 44 no se promete
+
+Cada botón dibuja 38 px y responde 44, con 1 px libre contra el vecino.
+Pero por debajo de **544 px de escena** —no de ventana: la escala es
+`min(1, (ancho − 88) / 456)`— el conjunto se achica en bloque y el área
+se achica con él. A 372 px la escala es 0.623 y quedan **27.4 px**: pasa
+el mínimo de la WCAG 2.5.8 AA (24) y no llega a los 44 de Apple. Por eso
+la última oración de Use cases existe. Sin ella, el 44 se leería como una
+garantía que la pieza no da.
+
+### La forma, después de los hechos
+
+Con el texto ya cierto vino una pasada de `emil-unslop-writing`, que es
+otro problema: no *qué* dice sino si suena a que lo escribió una máquina.
+Encontró tres cosas, las tres en los párrafos nuevos.
+
+**Amontonamientos de subordinadas, uno por párrafo.** El peor abría
+Anatomy con 34 palabras y tres cláusulas colgadas de dos "and" y un punto
+y coma. Partidas en oraciones cortas siguen el orden de la interacción:
+*"Move the pointer over this area."* y recién después qué pasa.
+
+**Una pasiva con el actor escondido** —"The background under all of it is
+mixed from…"— y de yapa un sinónimo suelto, "all of it", para algo que ya
+tenía nombre. Y **"come out of the end it leaves behind"**, que pedía
+reconstruir una geometría para entender una frase: salen del campo, y eso
+es lo que dice ahora.
+
+**El largo de las oraciones se mira, y no es una manía.** Una página
+entera de oraciones de quince palabras es de las cosas que más delatan un
+texto generado. Ésta va de 3 a 40: *"Nothing is hidden"* al lado del
+párrafo de la medición.
+
+No se tocaron tres que una lectura rápida marca igual: la oración de 40
+palabras de Performance —lleva la medición entera y su dos-puntos
+trabaja—, la de 27 de Use cases, y el *"same glass, same place, same
+size"*, que es un tres de verdad y no un relleno rítmico: son tres hechos
+distintos y cada uno se puede negar por separado.
+
+El texto quedó en 517 palabras contra 341. Es más largo, y es la primera
+versión que se puede verificar entera.
+
+### El orden de la lista es editorial
+
+Buttons separate arriba de Select summary, por pedido. **El orden de
+`PIECES` no se ordenaba solo**: Select summary abría la muestra por el
+accidente de haberse mergeado primero (PR #26 contra #27), no por una
+decisión. Ahora la primera de la lista es la que abre la muestra y la
+elige Vito, y eso está escrito arriba del arreglo.
+
+De regalo, medido A/B con el mismo Chrome y el mismo viewport:
+**CLS 0.0092 → 0.0029**. La card de Select summary es la más alta de las
+cuatro y su preview llegaba tarde; abajo, lo que empuja pesa menos. Los
+dos números están lejísimos del 0.1, así que no es la razón del cambio.
+Es sólo lo que pasó.

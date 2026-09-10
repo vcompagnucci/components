@@ -147,11 +147,16 @@ const DESENFOQUE = 2.14 // px
    posando el cierre cuadro a cuadro (Vito, 2026-09-09: "la salida sobre
    todo, no me convence"):
 
-   1. LOS ICONOS QUEDABAN DE FANTASMA. Los botones se tocan cuando el
-      paso baja de 38 —el diámetro—, a los ~55 ms, y con el tramo de 300
-      los glifos todavía valían 0.28 a los 120: cuatro iconos apilados
-      encima del campo. Se van en 110 ms, antes de que las formas se
-      pisen.
+   1. LOS ICONOS QUEDABAN DE FANTASMA. Con el tramo de 300 los glifos
+      todavía valían 0.28 a los 120 ms: cuatro iconos apilados encima del
+      campo. Con 110 se van ANTES QUE TODO LO DEMÁS, que es lo que hacía
+      falta.
+
+      ACÁ DECÍA "antes de que las formas se pisen" Y NO ES CIERTO. Medido
+      con la pieza corriendo (`sonda/salida.cjs`): las formas se vuelven
+      a tocar —paso por debajo de 38, el diámetro— a los 49 ms, y ahí los
+      glifos valen 0.25. Recién a los 115 llegan a 0.02. Lo que se
+      arregló es el orden, no que lleguen a cero primero.
    2. EL CAMPO SE PASABA 14 px de su largo de reposo a los 300 ms. Ese
       rebote está MEDIDO, pero en la contracción de la apertura: al
       cerrar no hay nada que lo justifique y se lee como un temblor. Al

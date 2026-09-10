@@ -66,7 +66,24 @@ export const slug = (name: string) =>
    decisión. La lista se llena SÓLO con piezas construidas de verdad —
    la primera define el molde. La página, el índice y vercel.json ya
    saben vivir con cero. */
+/* EL ORDEN DE ESTE ARREGLO ES EL ORDEN DE LA EXHIBICIÓN, y es editorial:
+   no es cronológico, no es alfabético y no se ordena solo. Manda dentro
+   de cada plataforma —app.tsx agrupa por `platform`, Web y después App—
+   y lo leen el índice, las secciones del cuerpo y el scrollspy.
+
+   La primera de la lista es la que abre la muestra, así que la elige
+   Vito. Hoy es Buttons separate, por pedido del 2026-09-10; antes
+   ocupaba ese lugar Select summary, por el accidente de haberse
+   mergeado primero (PR #26 contra PR #27) y no por una decisión. */
 export const PIECES: Piece[] = [
+  /* La primera pieza Web que se construyó, y por eso la primera sin
+     `video`: corre viva en la lista y en el detalle, resuelta por slug
+     en demos.tsx. Sin `desc` por la misma regla que Swipeable tabs — el
+     título ya dice cuál es el gesto. */
+  {
+    name: 'Buttons separate',
+    platform: 'Web',
+  },
   {
     name: 'Select summary',
     platform: 'Web',
@@ -90,13 +107,5 @@ export const PIECES: Piece[] = [
     videoHevc: '/piezas/hold-to-commit.mov',
     videoOscuro: '/piezas/hold-to-commit-oscuro.webm',
     videoHevcOscuro: '/piezas/hold-to-commit-oscuro.mov',
-  },
-  /* La primera pieza Web, y por eso la primera sin `video`: corre viva
-     en la lista y en el detalle, resuelta por slug en demos.tsx. Sin
-     `desc` por la misma regla que Swipeable tabs — el título ya dice
-     cuál es el gesto. */
-  {
-    name: 'Buttons separate',
-    platform: 'Web',
   },
 ]
