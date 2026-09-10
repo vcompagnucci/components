@@ -46,16 +46,16 @@ import { Seccion } from '../notas'
    el gesto que da nombre a la pieza. La referencia se nombra en el
    cierre, junto con cómo se midió.
 
-   LOS GLIFOS TIENEN PÁRRAFO PROPIO, y no una frase colgada del de los
-   resortes. Es el único punto de la pieza donde lo que se mueve no es
-   una posición, y decirlo en una subordinada lo escondía. La frase que
-   carga el peso es "They do not fade in": el lector ya vio cien cosas
-   aparecer con opacidad y hay que sacarle esa lectura de encima antes de
-   contarle cuál es.
+   DE LOS GLIFOS, LA FRASE QUE CARGA EL PESO ES "They do not fade in":
+   el lector ya vio cien cosas aparecer con opacidad y hay que sacarle
+   esa lectura de encima antes de contarle cuál es. Sus números NO van en
+   el texto —están en la pieza, arriba de ICONO—: lo que se ve es que el
+   glifo se enfoca, no cuántos milisegundos tarda.
 
-   LA FORMA es la de Hold to commit y Swipeable tabs: Anatomy en tres
-   párrafos más el de la referencia, Performance en dos, Use cases en
-   dos. Acortar es CORTAR HECHOS, no apretar frases, y los números no se
+   LA FORMA: Anatomy en DOS párrafos —uno para el gesto, otro para el
+   mecanismo, con la referencia cerrando el segundo—, Performance en dos
+   y Use cases en dos. Es más corta que Hold to commit y que Swipeable
+   tabs, que abren Anatomy en cuatro y cinco. Acortar es CORTAR HECHOS, no apretar frases, y los números no se
    tocan: un texto más corto que además redondea es un texto menos
    cierto.
 
@@ -63,9 +63,10 @@ import { Seccion } from '../notas'
      · LA SALIDA ("The way back is shorter…"). Falta a propósito: se ve
        al sacar el puntero y no hace falta anunciarla. Su porqué está en
        la pieza, arriba de CAMPO_SALIDA.
-     · MOVIMIENTO REDUCIDO y el camino del teclado no tienen párrafo
-       propio: son dos oraciones adentro del de los glifos, que es lo
-       que hace Hold to commit con lo mismo.
+     · EL CAMINO DEL TECLADO no está en Anatomy: la regla vive en Use
+       cases ("keyboard focus has to open them too") y decirla dos veces
+       era decirla una de más. Movimiento reducido sí está, en una
+       oración.
      · Del vidrio, la segunda mitad —el umbral, la tira—: es cómo está
        hecha la máscara, no algo que se vea.
 
@@ -90,11 +91,10 @@ import { Seccion } from '../notas'
        la grabación: la eligió Vito el 2026-09-09 sobre un picker de tres
        disparos. Por eso el texto NO dice que sea lo que hace la
        referencia — la grabación no muestra qué la dispara.
-     · 290 ms y 640 son el principio y el final del desenfoque de los
-       glifos: el tramo medido arranca a los 290 y dura 350. La opacidad
-       es otro tramo, más corto (270 y 260), y NO se nombra: que sean dos
-       resortes es una decisión de implementación, y el lector ve un solo
-       hecho, que el glifo se enfoca en vez de fundirse.
+     · Del desenfoque de los glifos no va ningún número al texto. Los dos
+       tramos —290 y 350 el desenfoque, 270 y 260 la opacidad— están
+       arriba de ICONO. Que sean dos resortes es implementación, y el
+       lector ve un solo hecho: que el glifo se enfoca en vez de fundirse.
      · Los cuadros, remedidos el 2026-09-10 en un Chrome de verdad, con
        GPU, y sobre CINCO corridas: a 20× y con ocho copias montadas,
        scrolleando no se pierde ninguno, y con una abriéndose y las otras
@@ -141,28 +141,19 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          A search field, and beside it a single shape of glass. Move the pointer anywhere over this
-          area and the shape opens into four round buttons; take the pointer away and they close
-          back into one. Twenty pixels of travel are enough. The pointer never has to reach the
-          group. The field takes text and does nothing with it.
+          A search field, and beside it a single shape of glass. Move the pointer over this area and
+          the shape opens into four round buttons; take the pointer away and they close back into
+          one. Twenty pixels of travel are enough, so the pointer never has to reach the group. The
+          field takes text and does nothing with it.
         </p>
         <p>
-          The field carries the opening. It shortens from the full width of the group to its own,
-          and the four buttons fan out from where the first one sits. The first button never moves;
-          what opens is the spacing. Two springs run it. The field settles in 365 ms. The spacing
-          starts 42 ms later and settles in 532. While the shapes are still close the glass joins
-          them with a neck that thins and snaps.
-        </p>
-        <p>
-          The icons arrive last and out of focus. They do not fade in: a blur opens over them at
-          290 ms and closes to nothing by 640. With reduced motion they come in sharp and the four
-          separate in one short step. Where the pointer cannot hover, the buttons stay out, and
-          keyboard focus opens them.
-        </p>
-        <p>
-          The reference is Spotlight in macOS Tahoe, measured frame by frame at 60 fps. Both springs
-          come from a least squares fit to that recording, and the piece was measured back against
-          it.
+          The field carries the opening. It shortens from the group's full width to its own, and the
+          four buttons fan out from where the first one sits. The first button never moves; what
+          opens is the spacing. Two springs run it. The field settles in 365 ms. The spacing starts
+          42 ms later and settles in 532. While the shapes are still close the glass joins them with
+          a neck that thins and snaps. The icons arrive last and out of focus, and they do not fade
+          in. With reduced motion they come in sharp. The reference is Spotlight in macOS Tahoe,
+          measured frame by frame at 60 fps, and the piece was measured back against it.
         </p>
       </Seccion>
 
