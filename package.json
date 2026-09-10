@@ -11,6 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "rutas": "node scripts/rutas.mjs",
     "referencias": "node scripts/referencias.mjs",
     "pieza:video": "node scripts/pieza-video.mjs",
@@ -25,6 +27,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",
+    "oxlint": "1.82.0",
     "typescript": "7.0.2",
     "vite": "8.2.1"
   }
