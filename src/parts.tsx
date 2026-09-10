@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import type { Piece } from './pieces'
+import { SITE } from './site'
 import { LiveDemo } from './demos'
 import { Notes } from './notes'
 
@@ -87,8 +88,8 @@ export function textBaseline(el: HTMLElement) {
 export function Masthead() {
   return (
     <header className={css.mast}>
-      <h1 className={css.mastTitle}>Interface exhibition</h1>
-      <div className={css.mastSub}>Components that feel right, for web and native apps.</div>
+      <h1 className={css.mastTitle}>{SITE.name}</h1>
+      <div className={css.mastSub}>{SITE.description}</div>
     </header>
   )
 }
