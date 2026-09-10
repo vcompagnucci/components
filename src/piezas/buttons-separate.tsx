@@ -274,26 +274,33 @@ const SIGMA = 4.7
    300 ms la referencia todavía tiene tres botones en un solo bulto y
    acá ya eran cuatro círculos limpios.
 
-   EL VALOR SE AJUSTÓ CONTRA EL CUELLO, no contra la cuenta. Chrome
-   implementa feGaussianBlur como TRES desenfoques de caja y entrega el
-   ~83 % del σ que se le pide, así que el número pedido y el que se ve no
-   son el mismo. Medido en la pieza corriendo, con el mismo estimador que
-   la grabación y en puntos de la referencia:
+   EL VALOR NO ES EL DE LA REFERENCIA, Y ES A PROPÓSITO. Con 3.0 los
+   cuellos quedan como los suyos —21.1 pt con 8.8 de hueco, contra sus
+   20.0— y Vito lo miró y prefirió lo que había antes, que era sin
+   cuellos: "me gustaba más como antes". Después pidió un intermedio.
 
-     hueco  9.3 pt  →  con 6.3 px pedidos, cuello 8.4    (la refe: 16.0)
-     hueco  9.3 pt  →  con 7.7 px pedidos, cuello 15.9
+   Se armó una escalera con 0, 1.0, 1.6, 2.2 y 3.0, capturada en el mismo
+   instante y a la misma escala que la grabación
+   (.context/buttons-separate/escalera.png). En 1.0 las formas apenas se
+   pellizcan y se lee como un defecto de dibujo; en 1.6 el cuello ya es
+   una forma, y los cuatro círculos se siguen leyendo como cuatro. Ése es
+   el que quedó.
 
-   El de reposo NO se toca: con 4.7 pedidos el puente muere a los 7.3 pt
-   de hueco y en reposo el hueco es 10, que es justamente por qué las
-   formas se separan del todo. Y un σ más grande ENCOGE más la capa del
-   goo (σ²/2R), así que se mete más adentro de la forma nítida: no hay
-   riesgo de que asome una faceta.
+   O sea que 1.6 es una elección de cómo se ve, no una medida. Lo medido
+   es que σ crece con el movimiento y que el valor de la referencia
+   está cerca de 3.0.
 
-   EL DISPARADOR es la VELOCIDAD del abanico, saturada: cualquier
-   movimiento real pone σ arriba, y sólo al frenar vuelve a 4.7. El
-   umbral de 0.6 (en x por segundo, sobre un pico de 3.1) suelta a los
-   ~350 ms, que es donde la referencia corta el puente. */
-const SIGMA_MOVIMIENTO = 3.0
+   Chrome implementa feGaussianBlur como TRES desenfoques de caja y
+   entrega el ~83 % del σ que se le pide, así que el número pedido y el
+   que se ve no son el mismo: por eso los valores se compararon contra el
+   CUELLO medido y no contra la cuenta.
+
+   El de reposo NO se toca: con 4.7 el puente muere a los 7.3 pt de hueco
+   y en reposo el hueco es 10, que es justamente por qué las formas se
+   separan del todo. Y un σ más grande ENCOGE más la capa del goo
+   (σ²/2R), así que se mete más adentro de la forma nítida: no hay riesgo
+   de que asome una faceta. */
+const SIGMA_MOVIMIENTO = 1.6
 const VELOCIDAD_GOO = 0.6
 
 /* LOS CUATRO BOTONES. Iconos de trazo, 16×16: son ámbitos de búsqueda,

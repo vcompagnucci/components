@@ -2620,6 +2620,23 @@ de que vuelva a asomar una faceta.
 20× con ocho copias no se pierde ninguno; a 40×, 15 de 55, el mismo
 número que antes de este cambio.
 
+**Y el valor final NO es el de la referencia, a propósito.** Con 3.0 los
+cuellos quedaban como los suyos y Vito lo miró: *"me gustaba más como
+antes"*, que era sin cuellos. Después pidió un intermedio.
+
+Se armó una escalera con 0, 1.0, 1.6, 2.2 y 3.0, capturada en el mismo
+instante y a la misma escala que la grabación
+(`.context/buttons-separate/escalera.png`). En **1.0** las formas apenas
+se pellizcan y se lee como un defecto de dibujo; en **1.6** el cuello ya
+es una forma y los cuatro círculos se siguen leyendo como cuatro. Quedó
+**1.6**, que es una elección de cómo se ve y no una medida: lo medido es
+que σ crece con el movimiento y que el de la referencia está cerca de
+3.0.
+
+Es el mismo procedimiento de siempre cuando lo que se discute es una
+sensación: una perilla y una escalera de imágenes, no una arquitectura
+nueva ni una vuelta atrás entera.
+
 **Lo que sigue sin poder medirse** es lo otro: si los cuatro botones
 abren con un solo paso. Para eso hacen falta los centros uno por uno, y
 la ventana donde podrían diferir cae entera adentro del estado fundido.
