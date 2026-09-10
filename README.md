@@ -1915,6 +1915,63 @@ salida por si algún día el peso importa más: la versión de vidrio traía
 su propio integrador, son cuarenta líneas y está verificado contra la
 documentación de Apple hasta el sexto decimal.
 
+### El título se queda, y compartir pasa a ser un modal
+
+Dos pedidos sobre las capturas, y el primero arregló solo algo que
+veníamos arrastrando.
+
+**El título ya no se va.** Antes se apagaba y las acciones ocupaban su
+lugar, y quedaba media barra vacía — el hueco de 264 px que había que
+explicar cada vez. Ahora el rótulo convive con la fila (2026-09-10: "que
+al clickear siga apareciendo el título"), y el hueco desapareció sin
+tener que encoger nada.
+
+Lo único que cambió para que entre: el grupo reserva el ancho del caso
+ABIERTO y no el del cerrado. Si midiera lo que sobra con la fila
+cerrada, al abrir los tres botones se le vendrían encima.
+
+**Y compartir pasa de una tarjeta de una fila a un modal completo.**
+Ruteado con `/emil-ask-emil`, que mandó a dos skills y no a cinco:
+jerarquía para decidir qué lleva adentro, y campos para el enlace y su
+botón. Lo que salió de ahí:
+
+*Tres bloques, en el orden de las preguntas que alguien se hace al
+abrirlo*: qué estoy compartiendo, a dónde, y si no, el enlace para
+llevármelo a mano.
+
+*Una sola acción primaria.* La regla es que si tres botones pesan lo
+mismo, ninguno es el paso siguiente. Copiar es el único con relleno
+sólido; los cuatro destinos van sin fondo permanente y cerrar es
+terciario, arriba a la derecha y lejos de todo lo demás.
+
+*El enlace no es un `<input>`.* Un campo de sólo lectura trae dos
+problemas que acá no hacen falta: en iOS, un input de menos de 16 px
+hace que Safari acerque la página al enfocarlo, y este sistema tiene un
+solo tamaño de texto y es 14; y un input promete que se puede escribir.
+Va como texto con `user-select: all`, que se lleva el enlace entero de un
+clic, que es lo único que el campo daba de más.
+
+*Los destinos no llevan marcas de terceros.* Un logo ajeno en una pieza
+de exposición es material que no es nuestro. Los cuatro son símbolos del
+sistema, medidos como los demás: `message.fill` 1.212 de ancho sobre
+alto, `envelope.fill` 1.459, `note.text` 1.181, `doc.on.doc` 0.913.
+
+*El foco queda atrapado*, que es la regla para cualquier cosa con
+`aria-modal`: si el Tab puede salirse, lo de atrás queda alcanzable.
+Verificado con siete Tabs sobre un modal de seis controles — el ciclo se
+cierra y vuelve al primero.
+
+**Y el modal va centrado en la caja de la pieza, no apoyado sobre la
+barra.** Arriba de ella no hay lugar: en la caja corta de la lista quedan
+90 px y el modal necesita 208. Así que tapa la barra, que es lo que un
+modal hace, y el velo cuenta que hay algo debajo. El origen del
+crecimiento sigue siendo el botón que lo abrió.
+
+**Dos cosas que aparecieron midiendo.** El botón de copiar saltaba de 89
+a 84 px al cambiar a "Copied", justo en el cuadro en que confirma: se le
+clavó el ancho del texto más largo. Y los cuadros no se movieron con todo
+esto puesto: 0 perdidos a 1× y a 6×.
+
 ### Cuatro correcciones sobre las capturas
 
 Cuatro cosas que sólo se vieron mirando la pieza corriendo, con la

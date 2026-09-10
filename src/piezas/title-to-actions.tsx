@@ -281,9 +281,6 @@ const CORAZON =
 const COMPARTIR =
   'M8 10.08V2.4M8 2.4 5.52 4.88M8 2.4l2.48 2.48M5.28 6.88H4.32a1.52 1.52 0 0 0-1.52 1.52v4.48a1.52 1.52 0 0 0 1.52 1.52h7.36a1.52 1.52 0 0 0 1.52-1.52v-4.48a1.52 1.52 0 0 0-1.52-1.52h-0.96'
 const CERRAR = 'M3.92 3.92 12.08 12.08M12.08 3.92 3.92 12.08'
-const ENLACE =
-  'M6.88 9.12a2.64 2.64 0 0 0 3.76 0l1.68-1.68a2.64 2.64 0 0 0-3.76-3.76l-0.96 0.96M9.12 6.88a2.64 2.64 0 0 0-3.76 0l-1.68 1.68a2.64 2.64 0 0 0 3.76 3.76l0.96-0.96'
-const MARCA = 'M3.52 8.48 6.64 11.68 12.48 3.84'
 const CHEVRON = 'M10 3.2 5.2 8l4.8 4.8'
 const PUNTOS = 'M3.79 8h0.01M8 8h0.01M12.21 8h0.01'
 /* EL TRAZO. 1.5 sobre la caja de 16 es el peso del producto, contado en
@@ -321,28 +318,91 @@ const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === 'share')
 const ANCHO = 460
 
 /* ─────────────────────────────────────────────────────────
- * LA TARJETA DE COMPARTIR
+ * EL MODAL DE COMPARTIR
  *
- * NACE SIENDO EL CÍRCULO DEL BOTÓN y crece hasta la píldora. Es la
- * misma idea del morfeo de vidrio, sin vidrio: allá una forma de SVG
- * interpolaba su rectángulo, acá lo interpola el resorte sobre la caja
- * del elemento. Y por eso el radio arranca en 20 —el del control— y
- * termina en 24 —el de la píldora—: entre esos dos la forma nunca deja
- * de ser una píldora, así que no hay nada que se deforme.
+ * Era una tarjeta de una sola fila —la portada, el título y un botón de
+ * copiar— y el usuario pidió el componente entero (2026-09-10: "que se
+ * abra un modal para compartir bien completo"). Lo que sigue sale de
+ * pasarlo por las dos reglas que aplican, jerarquía y campos.
  *
- * EL CONTENIDO NO SE ESTIRA. Está en su lugar final desde el primer
- * cuadro y lo revela el `overflow: hidden` de la forma que crece, que
- * es lo mismo que allá hacía el recorte. Un contenido escalado sería
- * tipografía deformada, que es lo que una tarjeta que crece no hace.
+ * ─── QUÉ LLEVA, Y EN QUÉ ORDEN ───
+ * Tres bloques, de arriba abajo, y el orden es el de las preguntas que
+ * alguien se hace al abrirlo:
+ *
+ *   1. QUÉ estoy compartiendo   la portada, el título y el enlace
+ *   2. A DÓNDE                  cuatro destinos
+ *   3. O SI NO                  el enlace, para copiarlo a mano
+ *
+ * ─── UNA SOLA ACCIÓN PRIMARIA ───
+ * Es copiar. La regla es que si tres botones pesan lo mismo, ninguno es
+ * el paso siguiente, así que los cuatro destinos van como controles sin
+ * relleno y el de copiar es el único con fondo. Cerrar es terciario y
+ * vive arriba a la derecha, lejos de todo lo demás.
+ *
+ * ─── EL ENLACE NO ES UN <input> ───
+ * Un campo de sólo lectura con el enlace adentro es lo que hace medio
+ * mundo, y trae dos problemas que acá no hacen falta. El primero es de
+ * iOS: un input de menos de 16 px hace que Safari acerque la página al
+ * enfocarlo, y el sistema de este repo tiene un solo tamaño de texto y
+ * es 14. El segundo es que un input promete que se puede escribir, y no
+ * se puede.
+ *
+ * Va como texto con `user-select: all`, que selecciona el enlace entero
+ * con un solo clic — lo que un campo de sólo lectura daba— y sin
+ * prometer nada que no sea cierto.
  * ───────────────────────────────────────────────────────── */
-const TARJETA_ANCHO = 320
-/* Dónde nace: el centro del botón de compartir, que es el segundo de la
-   fila contando desde la derecha. */
-const TARJETA_DESDE = { ancho: CONTROL, alto: CONTROL, radio: RADIO_CONTROL }
-const TARJETA_HASTA = { ancho: TARJETA_ANCHO, alto: ALTO, radio: RADIO_BARRA }
-/* Lo que hay que correr la caja para que su borde derecho quede donde
-   está el del botón mientras crece. El botón vive a PASO del borde. */
-const TARJETA_DERECHA = PADDING + PASO
+const MODAL = {
+  /* Entra en la caja corta de la lista, que mide 260: con 208 de alto
+     quedan 26 de aire arriba y abajo. */
+  ancho: 380,
+  alto: 208,
+  padding: 16,
+  /* El botón redondo de los destinos. Más chico que el de la barra
+     porque abajo lleva su nombre, y los dos juntos son el control. */
+  destino: 44,
+  radio: 16,
+}
+/* Dónde nace: el círculo del botón de compartir, igual que antes. Lo
+   único que cambió es a qué crece. */
+const MODAL_DESDE = { ancho: CONTROL, alto: CONTROL, radio: RADIO_CONTROL }
+const MODAL_HASTA = { ancho: MODAL.ancho, alto: MODAL.alto, radio: MODAL.radio }
+
+/* LOS CUATRO DESTINOS. Símbolos del sistema, medidos como los demás, y
+   ninguna marca de terceros: un logo ajeno en una pieza de exposición
+   sería material que no es nuestro, y la regla del repo es no publicar
+   material ajeno. Los cuatro que Apple pone primero en su propia hoja
+   de compartir son de sistema y alcanzan para contar qué hace la fila.
+
+     message.fill  418×345   1.212 de ancho sobre alto
+     envelope.fill 458×314   1.459
+     note.text     392×332   1.181
+     doc.on.doc    400×438   0.913 */
+const DESTINOS = [
+  {
+    id: 'messages',
+    nombre: 'Messages',
+    trazo:
+      'M8 2.6C4.6 2.6 1.9 4.8 1.9 7.6c0 2.8 2.7 5 6.1 5 .6 0 1.2-.1 1.7-.2l3.1 1.5-.8-2.5c1.3-.9 2.1-2.3 2.1-3.8 0-2.8-2.7-5-6.1-5Z',
+  },
+  {
+    id: 'mail',
+    nombre: 'Mail',
+    trazo:
+      'M2.4 5.4a1.6 1.6 0 0 1 1.6-1.6h8a1.6 1.6 0 0 1 1.6 1.6v5.2a1.6 1.6 0 0 1-1.6 1.6H4a1.6 1.6 0 0 1-1.6-1.6V5.4M2.7 5 8 8.8 13.3 5',
+  },
+  {
+    id: 'notes',
+    nombre: 'Notes',
+    trazo:
+      'M2.4 4.4a1.6 1.6 0 0 1 1.6-1.6h8a1.6 1.6 0 0 1 1.6 1.6v7.2a1.6 1.6 0 0 1-1.6 1.6H4a1.6 1.6 0 0 1-1.6-1.6V4.4M5 6.2h6M5 8.4h6M5 10.6h3.4',
+  },
+  {
+    id: 'copy',
+    nombre: 'Copy',
+    trazo:
+      'M5.6 5.6V3.9a1.4 1.4 0 0 1 1.4-1.4h5.1a1.4 1.4 0 0 1 1.4 1.4v5.1a1.4 1.4 0 0 1-1.4 1.4h-1.7M3.5 5.6h5.1a1.4 1.4 0 0 1 1.4 1.4v5.1a1.4 1.4 0 0 1-1.4 1.4H3.5a1.4 1.4 0 0 1-1.4-1.4V7a1.4 1.4 0 0 1 1.4-1.4Z',
+  },
+] as const
 
 /* EL ÍTEM. Es el mismo que nombraría la página de atrás: la barra dice
    qué estás mirando, que es la mitad de para qué existe. */
@@ -452,6 +512,7 @@ export default function TitleToActions() {
   const botones = useRef<(HTMLButtonElement | null)[]>([])
   const tarjeta = useRef<HTMLDivElement>(null)
   const copiarBoton = useRef<HTMLButtonElement>(null)
+  const cerrarModal = useRef<HTMLButtonElement>(null)
   const conTeclado = useRef(false)
   const conTecladoTarjeta = useRef(false)
 
@@ -489,10 +550,39 @@ export default function TitleToActions() {
       if (botones.current[COMPARTIR_I]?.contains(t)) return
       setCompartir(false)
     }
+    /* EL FOCO NO SE ESCAPA DEL MODAL, que es la regla para cualquier
+       cosa con `aria-modal`: si el Tab puede salirse, el contenido de
+       atrás queda alcanzable y un lector de pantalla se pierde. El ciclo
+       se hace a mano y no con una librería —son ocho líneas— y usa el
+       orden del DOM, así que no hay una lista que mantener. */
+    const alTabular = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const caja = tarjeta.current
+      if (!caja) return
+      const focos = caja.querySelectorAll<HTMLElement>(
+        'button, [href], [tabindex]:not([tabindex="-1"])',
+      )
+      if (!focos.length) return
+      const primero = focos[0]
+      const ultimo = focos[focos.length - 1]
+      const activo = document.activeElement
+      if (e.shiftKey && activo === primero) {
+        e.preventDefault()
+        ultimo.focus()
+      } else if (!e.shiftKey && activo === ultimo) {
+        e.preventDefault()
+        primero.focus()
+      } else if (!caja.contains(activo)) {
+        e.preventDefault()
+        primero.focus()
+      }
+    }
     document.addEventListener('keydown', alTeclear, true)
+    document.addEventListener('keydown', alTabular)
     document.addEventListener('pointerdown', alApuntar)
     return () => {
       document.removeEventListener('keydown', alTeclear, true)
+      document.removeEventListener('keydown', alTabular)
       document.removeEventListener('pointerdown', alApuntar)
     }
   }, [compartir])
@@ -514,7 +604,7 @@ export default function TitleToActions() {
   useEffect(() => {
     if (!conTecladoTarjeta.current) return
     conTecladoTarjeta.current = false
-    const destino = compartir ? copiarBoton.current : botones.current[COMPARTIR_I]
+    const destino = compartir ? cerrarModal.current : botones.current[COMPARTIR_I]
     destino?.focus({ preventScroll: true })
   }, [compartir])
 
@@ -623,15 +713,20 @@ export default function TitleToActions() {
                   aria-hidden="true"
                 />
 
-                <m.div
-                  className="rotulo"
-                  inert={acciones}
-                  animate={{ opacity: acciones ? 0 : 1 }}
-                  transition={fundido}
-                >
+                {/* EL RÓTULO NO SE VA, y eso cambió lo que la pieza
+                    hace: antes el título se apagaba y las acciones
+                    ocupaban su lugar, y quedaba media barra vacía. Ahora
+                    convive con ellas (2026-09-10: "que al clickear siga
+                    apareciendo el título").
+
+                    Por eso el grupo reserva el ancho del caso ABIERTO y
+                    no el del cerrado: si midiera lo que sobra con la
+                    fila cerrada, al abrir los tres botones se le
+                    vendrían encima. */}
+                <div className="rotulo">
                   <p className="titulo">{ITEM.titulo}</p>
                   <p className="autor">{ITEM.autor}</p>
-                </m.div>
+                </div>
               </m.div>
 
               {/* LA RANURA DE LA DERECHA. Los cuatro botones viven acá: los
@@ -769,36 +864,61 @@ export default function TitleToActions() {
                 </m.div>
               </div>
             </div>
+          </div>
 
-            {/* LA TARJETA VIVE AFUERA DE LA BARRA, y tiene que ser así:
-                la barra recorta lo que le sobra cuando se encoge, y una
-                tarjeta adentro se recortaría con el resto. Afuera se
-                ancla al riel, cuyo borde derecho es el mismo que el de
-                la barra y tampoco se mueve.
+          {/* EL VELO Y EL MODAL CUELGAN DE LA ESCENA, no del riel: el
+              modal va centrado en la caja de la pieza y el riel sólo da
+              el ancho de la barra. Arriba de la barra no hay lugar —en
+              la caja corta de la lista quedan 90 px y el modal necesita
+              208— así que el modal tapa la barra, que es lo que un modal
+              hace, y el velo se encarga de que se entienda. */}
+          {/* EL VELO. Un modal que no separa lo que tapa se lee como
+                una capa más de la barra. Va adentro de la escena y no
+                del documento: la pieza es una exposición, así que todo
+                lo suyo pasa dentro de su caja. */}
+          <m.div
+            className="velo"
+            aria-hidden="true"
+            initial={false}
+            animate={{ opacity: compartir ? 1 : 0 }}
+            transition={{ duration: reducido ? 0 : 0.16 }}
+            onPointerDown={() => setCompartir(false)}
+          />
 
-                Está siempre en el documento —así la salida se puede
-                animar sin desmontarla— y lo que la apaga es el tamaño
-                del botón más `inert`, que la saca del orden de
-                tabulación, de los lectores y del puntero. */}
-            <m.div
-              className="tarjeta"
-              ref={tarjeta}
-              role="dialog"
-              aria-label="Share"
-              inert={!compartir}
-              initial={false}
-              animate={{
-                width: compartir ? TARJETA_HASTA.ancho : TARJETA_DESDE.ancho,
-                height: compartir ? TARJETA_HASTA.alto : TARJETA_DESDE.alto,
-                borderRadius: compartir ? TARJETA_HASTA.radio : TARJETA_DESDE.radio,
-                opacity: compartir ? 1 : 0,
-              }}
-              transition={{
-                ...morfeo,
-                opacity: { duration: reducido ? 0 : 0.12 },
-              }}
-            >
-              <div className="dentro">
+          {/* EL MODAL. Está siempre en el documento —así la salida se
+                puede animar sin desmontarlo— y lo que lo apaga es el
+                tamaño del botón más `inert`, que lo saca del orden de
+                tabulación, de los lectores y del puntero.
+
+                Nace siendo el círculo del botón que lo abrió y crece
+                hasta su caja: es la regla de que un modal con disparador
+                anclado sale de él y no del centro de la pantalla. */}
+          <m.div
+            className="modal"
+            ref={tarjeta}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Share this piece"
+            inert={!compartir}
+            initial={false}
+            animate={{
+              width: compartir ? MODAL_HASTA.ancho : MODAL_DESDE.ancho,
+              height: compartir ? MODAL_HASTA.alto : MODAL_DESDE.alto,
+              borderRadius: compartir ? MODAL_HASTA.radio : MODAL_DESDE.radio,
+              opacity: compartir ? 1 : 0,
+            }}
+            transition={{
+              ...morfeo,
+              opacity: { duration: reducido ? 0 : 0.12 },
+            }}
+          >
+            {/* EL CONTENIDO VA A SU ANCHO FINAL desde el primer
+                  cuadro: si se encogiera con la forma, cada cuadro
+                  reacomodaría el texto y los cuatro destinos. Lo que lo
+                  revela es el recorte de la caja que crece. */}
+            <div className="dentro">
+              {/* 1 · QUÉ SE COMPARTE */}
+              <div className="cabeza">
                 <img
                   className="tapa"
                   src={TAPA}
@@ -808,28 +928,70 @@ export default function TitleToActions() {
                   decoding="async"
                   aria-hidden="true"
                 />
-                <div className="rotuloTarjeta">
+                <div className="quePasa">
                   <p className="titulo">{ITEM.titulo}</p>
                   <p className="enlace">{ENLACE_VISIBLE}</p>
                 </div>
                 <Control
+                  ref={cerrarModal}
+                  className="cerrar"
+                  label="Close"
+                  onClick={(e) => {
+                    frenar(e)
+                    conTecladoTarjeta.current = e.detail === 0
+                    setCompartir(false)
+                  }}
+                >
+                  <Glifo d={CERRAR} />
+                </Control>
+              </div>
+
+              {/* 2 · A DÓNDE. Cuatro controles del mismo peso, todos
+                    sin relleno: ninguno es la acción principal, y la
+                    regla es que si tres botones pesan lo mismo ninguno
+                    es el paso siguiente. El que pesa está abajo. */}
+              <div className="destinos">
+                {DESTINOS.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className="destino"
+                    /* El nombre de la acción y no el del ícono: lo que
+                         se anuncia es a dónde va, no qué dibujo es. */
+                    aria-label={`Share to ${d.nombre}`}
+                    onClick={frenar}
+                  >
+                    <span className="destinoCaja">
+                      <Glifo d={d.trazo} />
+                    </span>
+                    <span className="destinoNombre">{d.nombre}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* 3 · O SI NO, EL ENLACE A MANO. `user-select: all` lo
+                    selecciona entero con un clic, que es lo único que un
+                    campo de sólo lectura daba de más. */}
+              <div className="campo">
+                <p className="campoEnlace">{ENLACE_VISIBLE}</p>
+                <button
                   ref={copiarBoton}
-                  /* El nombre cambia con el resultado, que es lo que un
-                   lector de pantalla necesita para saber que el copiado
-                   ocurrió. */
-                  label={copiado ? 'Link copied' : 'Copy link'}
+                  type="button"
+                  className="copiar"
                   data-copiado={copiado ? '' : undefined}
                   onClick={(e) => {
                     frenar(e)
                     copiar()
                   }}
                 >
-                  <Glifo d={ENLACE} className="cambia" />
-                  <Glifo d={MARCA} className="encendido" />
-                </Control>
+                  {/* El texto cambia con el resultado y es lo que lee
+                        un lector de pantalla: sin eso, el copiado ocurre
+                        y nadie se entera. */}
+                  {copiado ? 'Copied' : 'Copy link'}
+                </button>
               </div>
-            </m.div>
-          </div>
+            </div>
+          </m.div>
         </div>
       </div>
     </LazyMotion>
@@ -865,6 +1027,13 @@ const HOJA = `
    tema del producto sin traer una paleta propia. Lo único suyo es el
    aire a los costados, que es el padding lateral de la página. */
 [data-pieza='title-to-actions'] .escena {
+  /* Los tokens del modal viven acá y no en la barra: el modal es su
+     hermano y no heredaría nada declarado allá. */
+  --glifo-modal: var(--activo-c, rgba(18, 18, 18, 0.8));
+  --destino-fondo: rgba(0, 0, 0, 0.05);
+  --destino-hover: rgba(0, 0, 0, 0.09);
+  --campo-fondo: rgba(0, 0, 0, 0.05);
+
   min-height: inherit;
   display: grid;
   place-items: center;
@@ -940,6 +1109,12 @@ const HOJA = `
   gap: ${PADDING}px;
 }
 @media (prefers-color-scheme: dark) {
+  [data-pieza='title-to-actions'] .escena {
+    --glifo-modal: var(--activo-c, rgba(250, 250, 249, 0.93));
+    --destino-fondo: rgba(255, 255, 255, 0.08);
+    --destino-hover: rgba(255, 255, 255, 0.14);
+    --campo-fondo: rgba(255, 255, 255, 0.08);
+  }
   [data-pieza='title-to-actions'] .barra {
     --barra: #1d1d1c;
     --control: #262625;
@@ -977,9 +1152,10 @@ const HOJA = `
    elementos con la misma animación repetida. */
 [data-pieza='title-to-actions'] .grupo {
   flex: 1;
-  /* Lo que sobra hasta la ranura, que está absoluta contra el borde
-     derecho: sin esto el rótulo se le metería debajo. */
-  margin-right: ${CONTROL + PADDING}px;
+  /* Lo que ocupan los TRES botones abiertos, no el que se ve cerrado:
+     el rótulo tiene que caber al lado de la fila desplegada, o al abrir
+     se lo comen. */
+  margin-right: ${CONTROL + ULTIMO * PASO + PADDING}px;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -1191,63 +1367,249 @@ const HOJA = `
 }
 [data-pieza='title-to-actions'] .control[data-copiado] .cambia { opacity: 0; }
 
-/* ─── LA TARJETA DE COMPARTIR ───
+/* ─── EL VELO ───
+   Un modal que no separa lo que tapa se lee como una capa más de la
+   barra. Va adentro de la escena y no del documento: la pieza es una
+   exposición, así que todo lo suyo pasa dentro de su caja, y un velo a
+   pantalla completa se comería la página que la rodea. */
+[data-pieza='title-to-actions'] .velo {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--card-radio, 8px);
+  background: rgb(0 0 0 / 0.28);
+  opacity: 0;
+}
+@media (prefers-color-scheme: dark) {
+  [data-pieza='title-to-actions'] .velo { background: rgb(0 0 0 / 0.5); }
+}
+
+/* ─── EL MODAL ───
    Es la única cosa de la pieza que FLOTA, y por eso la única con fondo
    propio y sombra. El resto se define por contraste, que es la regla del
-   sistema; ésta no puede, porque tapa a la barra y a lo que haya debajo.
-   Es exactamente el caso —y exactamente los valores— del menú del clic
-   derecho: fondo --canvas, y la sombra que ahí está anotada como "la
-   única sombra del sistema".
+   sistema; éste no puede, porque tapa a la barra y a lo que haya debajo.
+   Son los valores del menú del clic derecho: fondo --canvas y la sombra
+   que ahí está anotada como "la única sombra del sistema".
 
-   CRECE DESDE EL BOTÓN QUE LA ABRIÓ, y no con una escala: su caja va
-   del círculo del control a la píldora, así que lo que cambia es la
-   FORMA y el contenido nunca se deforma. Su borde derecho se queda
-   clavado donde está el botón, que es lo que hace que se lea saliendo
-   de él y no apareciendo al lado.
+   CRECE DESDE EL BOTÓN QUE LO ABRIÓ, y no con una escala: su caja va del
+   círculo del control a la suya, así que lo que cambia es la FORMA y el
+   contenido nunca se deforma. Su borde derecho se queda clavado donde
+   está el botón, que es lo que hace que se lea saliendo de él.
 
    'overflow: hidden' es lo que revela el contenido: está en su lugar
-   final desde el primer cuadro y la forma lo va destapando. Es lo mismo
-   que en la versión de vidrio hacía el recorte que seguía al
-   rectángulo. */
-[data-pieza='title-to-actions'] .tarjeta {
+   final desde el primer cuadro y la forma lo va destapando. */
+[data-pieza='title-to-actions'] .modal {
+  /* CENTRADO EN LA CAJA DE LA PIEZA, y no apoyado sobre la barra:
+     arriba de ella no hay lugar. En la caja corta de la lista quedan 90
+     px sobre la barra y el modal necesita 208, así que tapa la barra —
+     que es lo que un modal hace— y el velo cuenta que hay algo debajo.
+
+     EL ORIGEN SIGUE SIENDO EL BOTÓN. Un modal con disparador anclado
+     sale de él y no del centro de la pantalla, y ese botón cae contra
+     el borde derecho del modal y a su misma altura: el riel termina a
+     50 px del borde de la escena y el botón a otros 54 de ahí, o sea a
+     14 px del borde derecho del modal. Verticalmente coinciden, porque
+     la barra y el modal están los dos centrados. */
   position: absolute;
-  right: ${TARJETA_DERECHA}px;
-  bottom: calc(100% + ${PADDING + 4}px);
-  padding: ${PADDING}px;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  transform-origin: calc(100% - 14px) 50%;
+  padding: ${MODAL.padding}px;
   background: var(--canvas, #fdfdfc);
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 0.06),
     0 8px 24px rgb(0 0 0 / 0.12),
     0 2px 6px rgb(0 0 0 / 0.06);
   overflow: hidden;
-  /* El contenido se dibuja alineado a la derecha, que es el borde que
-     no se mueve: así el botón de copiar queda quieto mientras la forma
-     crece hacia la izquierda. */
+  /* El contenido se alinea al borde que NO se mueve, para que no se
+     corra de costado mientras la forma crece. */
   display: flex;
   justify-content: flex-end;
+  align-items: flex-start;
+  text-align: left;
 }
 @media (prefers-color-scheme: dark) {
-  [data-pieza='title-to-actions'] .tarjeta {
+  [data-pieza='title-to-actions'] .modal {
     box-shadow:
       0 0 0 1px rgb(255 255 255 / 0.08),
       0 8px 24px rgb(0 0 0 / 0.4),
       0 2px 6px rgb(0 0 0 / 0.24);
   }
 }
-/* El contenido va a su ancho final desde el primer cuadro: si se
-   encogiera con la forma, el texto se reacomodaría en cada uno. */
+/* A su ancho y alto finales desde el primer cuadro: si se encogiera con
+   la forma, cada cuadro reacomodaría el texto y los cuatro destinos. */
 [data-pieza='title-to-actions'] .dentro {
-  width: ${TARJETA_ANCHO - 2 * PADDING}px;
+  width: ${MODAL.ancho - 2 * MODAL.padding}px;
+  height: ${MODAL.alto - 2 * MODAL.padding}px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: ${MODAL.padding}px;
+}
+
+/* ─── 1 · QUÉ SE COMPARTE ───
+   La misma fila que la barra de atrás, para que se lea como lo mismo:
+   la portada, dos renglones y un control. */
+[data-pieza='title-to-actions'] .cabeza {
   flex: none;
   display: flex;
   align-items: center;
   gap: ${PADDING}px;
 }
-[data-pieza='title-to-actions'] .rotuloTarjeta {
+[data-pieza='title-to-actions'] .quePasa {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   user-select: none;
+}
+[data-pieza='title-to-actions'] .quePasa p {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* CERRAR ES TERCIARIO: sin relleno, y arriba a la derecha, lejos de
+   todo lo demás. La regla de no poner una acción de salida al lado de
+   la que sí querés que se apriete. */
+[data-pieza='title-to-actions'] .cerrar {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+}
+[data-pieza='title-to-actions'] .cerrar svg { width: 14px; height: 14px; }
+
+/* ─── 2 · A DÓNDE ───
+   Cuatro columnas del mismo peso. Ninguna tiene relleno permanente: la
+   acción principal es la de abajo, y si estos cuatro pesaran lo mismo
+   que ella, ninguno sería el paso siguiente. */
+[data-pieza='title-to-actions'] .destinos {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(${DESTINOS.length}, 1fr);
+  gap: ${PADDING / 2}px;
+}
+[data-pieza='title-to-actions'] .destino {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--glifo-modal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: color ${TIMING.color}ms var(--ease-text, ease);
+}
+/* El círculo del destino: el relleno vive acá y no en el botón, así el
+   nombre de abajo queda afuera de la forma y el hover no lo tiñe de
+   fondo. */
+[data-pieza='title-to-actions'] .destinoCaja {
+  width: ${MODAL.destino}px;
+  height: ${MODAL.destino}px;
+  border-radius: 50%;
+  background: var(--destino-fondo);
+  display: grid;
+  place-items: center;
+  transition:
+    background-color ${TIMING.color}ms var(--ease-text, ease),
+    transform ${TIMING.press}ms var(--ease-dialogo, cubic-bezier(0.19, 1, 0.22, 1));
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-pieza='title-to-actions'] .destino:hover { color: var(--ink, #111111); }
+  [data-pieza='title-to-actions'] .destino:hover .destinoCaja {
+    background: var(--destino-hover);
+  }
+}
+[data-pieza='title-to-actions'] .destino:active .destinoCaja { transform: scale(0.97); }
+[data-pieza='title-to-actions'] .destino:focus-visible {
+  outline: var(--focus-outline, 2px solid #005fcc);
+  outline-offset: var(--focus-outline-offset, 2px);
+  border-radius: 10px;
+  transition: none;
+}
+[data-pieza='title-to-actions'] .destinoNombre {
+  font-size: var(--type-body-fs, 14px);
+  line-height: var(--type-body-lh, 20px);
+  font-weight: var(--type-body-fw, 460);
+  letter-spacing: var(--type-body-ls, -0.00563rem);
+  white-space: nowrap;
+}
+
+/* ─── 3 · EL ENLACE, Y LA ÚNICA ACCIÓN PRIMARIA ───
+   El campo no es un <input>: el porqué está arriba de MODAL. Lo que sí
+   conserva es lo único que un campo de sólo lectura daba de más, que es
+   poder llevarse el enlace entero de un clic. */
+[data-pieza='title-to-actions'] .campo {
+  flex: none;
+  margin-top: auto;
+  height: 40px;
+  padding: 0 4px 0 14px;
+  border-radius: 20px;
+  background: var(--campo-fondo);
+  display: flex;
+  align-items: center;
+  gap: ${PADDING / 2}px;
+}
+[data-pieza='title-to-actions'] .campoEnlace {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Un clic se lleva el enlace entero, que es lo que se quiere copiar:
+     media URL seleccionada no sirve para nada. */
+  user-select: all;
+  cursor: text;
+  font-size: var(--type-body-fs, 14px);
+  line-height: var(--type-body-lh, 20px);
+  font-weight: var(--type-body-fw, 460);
+  letter-spacing: var(--type-body-ls, -0.00563rem);
+  color: var(--type-body-c, rgba(0, 0, 0, 0.37));
+}
+/* LA ÚNICA CON RELLENO SÓLIDO de todo el modal, y por eso se lee como
+   el paso siguiente sin que haya que decirlo. */
+[data-pieza='title-to-actions'] .copiar {
+  flex: none;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--ink, #111111);
+  color: var(--canvas, #fdfdfc);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--type-body-fs, 14px);
+  line-height: 32px;
+  font-weight: var(--type-h3-fw, 500);
+  letter-spacing: var(--type-body-ls, -0.00563rem);
+  /* EL ANCHO ES EL DEL TEXTO MÁS LARGO, y está medido: sin esto el
+     botón pasa de 89 px a 84 al cambiar a "Copied" y pega un salto
+     justo en el cuadro en que confirma. Los 90 son "Copy link"
+     redondeado hacia arriba (sonda/copiar.mjs). */
+  min-width: 90px;
+  transition:
+    opacity ${TIMING.color}ms var(--ease-text, ease),
+    transform ${TIMING.press}ms var(--ease-dialogo, cubic-bezier(0.19, 1, 0.22, 1));
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-pieza='title-to-actions'] .copiar:hover { opacity: 0.86; }
+}
+[data-pieza='title-to-actions'] .copiar:active { transform: scale(0.97); }
+[data-pieza='title-to-actions'] .copiar:focus-visible {
+  outline: var(--focus-outline, 2px solid #005fcc);
+  outline-offset: var(--focus-outline-offset, 2px);
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-pieza='title-to-actions'] .destinoCaja,
+  [data-pieza='title-to-actions'] .copiar {
+    transition-property: background-color, color, opacity;
+  }
+  [data-pieza='title-to-actions'] .destino:active .destinoCaja,
+  [data-pieza='title-to-actions'] .copiar:active {
+    transform: none;
+  }
 }
 `
