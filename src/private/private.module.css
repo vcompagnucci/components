@@ -1,219 +1,228 @@
 /* ═══════════════════════════════════════════════════════════════
-   EL MARCO DEL ÁREA PRIVADA
+   THE FRAME OF THE PRIVATE AREA
 
-   Usa LOS MISMOS TOKENS que el producto y ni un número suelto de
-   color, tipografía o motion. Lo que no comparte son las CLASES: el
-   riel de la página son 592px y la grilla del vault tiene que ser más
-   ancha, así que reusar .content sería heredar justo lo que no sirve.
+   It uses THE SAME TOKENS as the product and not one loose number for
+   color, typography or motion. What it does not share are the CLASSES:
+   the page rail is 592px and the vault grid has to be wider, so reusing
+   .content would inherit exactly the part that does not work.
 
-   Tokens compartidos, composición propia.
+   Shared tokens, its own composition.
 
-   EL MARCO SÓLO OWNS LO VERTICAL. El aire de los costados lo aplica
-   cada vista, no él, y eso NO es prolijidad: el playground es un canvas
-   a sangre y no puede tener márgenes, mientras que el vault sí los
-   necesita. Un padding en el marco se los impondría a los dos.
+   THE FRAME ONLY OWNS THE VERTICAL. The air on the sides is applied by
+   each view, not by the frame, and that is NOT tidiness: the playground
+   is a full-bleed canvas and cannot have margins, while the vault does
+   need them. A padding on the frame would impose it on both.
 
-   ─── EL RIEL ES EL DE OPENAI: TOPE 1440, AIRE 32 ───
-   Antes eran 80 de aire y ningún tope, o sea que a 2560 la grilla medía
-   2400 y las cards se estiraban sin fin. Ahora se clava.
+   ─── THE RAIL IS OPENAI'S: 1440 MAX, 32 OF AIR ───
+   It used to be 80 of air and no maximum, so at 2560 the grid measured
+   2400 and the cards stretched forever. Now it is pinned.
 
-   SOURCE · openai.com/news, el ancestro que pone el tope
+   SOURCE · openai.com/news, the ancestor that sets the maximum
      .max-w-container{max-width:1440px}   padding: 0 32px
 
-   Con box-sizing:border-box eso deja el contenido en 1376, y 1440−64 da
-   exactamente lo mismo: el tope y el aire son el mismo par de números.
+   With box-sizing:border-box that leaves the content at 1376, and
+   1440−64 gives exactly the same: the maximum and the air are the same
+   pair of numbers.
 
-   RUNTIME · su grilla medida en ocho ventanas
-     2560 · 1920 · 1728 · 1440   →  1376, CLAVADO. No crece nunca
-     1280 → 1216   1024 → 960   768 → 704      aire 32, 3 columnas
-      744 → 696 ... 570 → 522                  aire 24, 2 columnas
-      560 → 512 ... 430 → 382                  aire 24, 1 columna
-   La canaleta (24) y la fila (80) NO cambian en ningún ancho.
+   RUNTIME · their grid measured in eight windows
+     2560 · 1920 · 1728 · 1440   →  1376, PINNED. It never grows
+     1280 → 1216   1024 → 960   768 → 704      air 32, 3 columns
+      744 → 696 ... 570 → 522                  air 24, 2 columns
+      560 → 512 ... 430 → 382                  air 24, 1 column
+   The gutter (24) and the row (80) do NOT change at any width.
 
-   Sus cortes son container queries sobre el contenedor —2 columnas hasta
-   512 de contenedor— y acá se expresan en viewport, que es lo que usa el
-   resto del sistema: 768 y 560. El de 560 sale de su propia cuenta,
-   512 + 24 + 24, y coincide con lo medido (570 da 2 columnas, 560 da 1).
+   Their breakpoints are container queries on the container (2 columns
+   up to 512 of container) and here they are written against the
+   viewport, which is what the rest of the system uses: 768 and 560. The
+   560 comes out of their own arithmetic, 512 + 24 + 24, and it matches
+   what was measured (570 gives 2 columns, 560 gives 1).
 
-   EL TOPE VA EN CADA VISTA Y NO EN EL MARCO, por lo mismo que el aire:
-   el playground es un canvas a sangre y un max-width en el marco se lo
-   impondría. La barra lo lleva para quedar sobre el mismo riel que la
-   grilla.
+   THE MAXIMUM GOES IN EACH VIEW AND NOT IN THE FRAME, for the same
+   reason as the air: the playground is a full-bleed canvas and a
+   max-width on the frame would impose it. The bar carries it so it sits
+   on the same rail as the grid.
    ═══════════════════════════════════════════════════════════════ */
-/* EL MARCO MIDE LA VENTANA. Es lo que hace posible que el detalle de un
-   clip entre SIEMPRE entero: es el primer eslabón de una cadena de flex
-   —marco → detalle → escenario → reproductor → video— donde cada uno
-   pasa hacia abajo el alto que le queda, y el video se acomoda a lo que
-   sobra en vez de desbordar.
+/* THE FRAME MEASURES THE WINDOW. It is what makes it possible for a
+   clip's detail to ALWAYS fit whole: it is the first link in a chain of
+   flex (frame → detail → stage → player → video) where each one passes
+   down the height it has left, and the video fits into what is left
+   over instead of overflowing.
 
-   Sin esto el clip se dibujaba a su tamaño natural y una grabación de
-   teléfono se cortaba abajo: había que scrollear para ver el final de
-   un gesto, que es lo contrario de estudiarlo.
+   Without this the clip was drawn at its natural size and a phone
+   recording got cut off at the bottom: you had to scroll to see the end
+   of a gesture, which is the opposite of studying it.
 
-   dvh y no vh: en un navegador con barras que aparecen y desaparecen,
-   vh mide la ventana MÁS GRANDE posible, así que con las barras a la
-   vista el contenido queda tapado justo abajo. */
-.marco {
-  --privado-inline: 32px;
-  --privado-ancho: 1440px;
+   dvh and not vh: in a browser with bars that appear and disappear, vh
+   measures the LARGEST possible window, so with the bars showing the
+   content is covered right at the bottom. */
+.frame {
+  --private-inline: 32px;
+  --private-width: 1440px;
 
 
-  /* ─── EL BLANCO, SIN CAJA ───
-     Las dos filas de la cabecera son PALABRAS y se quedan así: ni
-     píldora, ni fondo, ni borde. Lo que crece es el área clickeable,
-     que no se ve.
+  /* ─── THE PADDING, WITH NO BOX ───
+     The two header rows are WORDS and they stay that way: no pill, no
+     background, no border. What grows is the clickable area, which you
+     cannot see.
 
-     El padding agranda el blanco y un margen negativo del mismo tamaño
-     lo devuelve al layout, así que el texto no se mueve ni un píxel y
-     el hueco que se ve entre palabras sigue siendo el mismo 16.
+     The padding grows the whitespace and a negative margin of the same
+     size gives it back to the layout, so the text does not move one
+     pixel and the gap you see between words is still the same 16.
 
-     MEDIDO ANTES: los cinco controles median 16px de alto —"All" era
-     15×16— contra el mínimo de 24×24. Con esto quedan en 32 de alto y
-     ninguno por debajo de 24 de ancho.
+     MEASURED BEFORE: the five controls were 16px tall ("All" was 15×16)
+     against the 24×24 minimum. With this they end up 32 tall and none
+     of them below 24 wide.
 
-     6 A LOS COSTADOS Y NO MÁS: el hueco entre palabras es 16, así que
-     6+6 deja 4px de tierra de nadie entre un blanco y el siguiente. Con
-     8 se tocarían, y un clic justo en el medio caería en cualquiera de
-     los dos sin que se pueda saber cuál.
+     6 ON THE SIDES AND NO MORE: the gap between words is 16, so 6+6
+     leaves 4px of no man's land between one padding box and the next.
+     With 8 they would touch, and a click right in the middle would land
+     in either one with no way to know which.
 
-     Arriba y abajo no hay vecino, así que los 8 salen gratis.
+     Above and below there is no neighbour, so the 8 comes free.
 
-     Vive acá y no en cada archivo porque lo leen las dos filas —las
-     solapas y el filtro— y viven en módulos distintos. Dos nombres para
-     el mismo número se separan solos con el tiempo. */
-  --privado-blanco-y: 8px;
-  --privado-blanco-x: 6px;
+     It lives here and not in each file because two rows read it (the
+     tabs and the filter) and they live in different modules. Two names
+     for the same number come apart on their own over time. */
+  --private-padding-y: 8px;
+  --private-padding-x: 6px;
 
-  /* ─── LA GRILLA DE CONTENIDO Y LA CAJA DE UNA CARD ───
-     Los cuatro se midieron para el vault y VIVÍAN EN vault.module.css.
-     Subieron el día que el playground dibujó su propia grilla de vistas
-     con la misma forma, y por la regla de siempre en este proyecto: UNA
-     CUSTOM PROPERTY SE HEREDA, NO SE BUSCA. Declarados en `.vault` o en
-     `.grilla` no los ve `.playground`, que es un HERMANO y no un
-     descendiente — y no fallan a la vista, resuelven al fallback del
-     `var()`. Dos coincidían con su fallback por casualidad y el tercero
-     no: el rótulo de una opción del diálogo del playground quedaba a
-     12px donde el vault lo pone a 16. Medido.
+  /* ─── THE CONTENT GRID AND THE BOX OF A CARD ───
+     All four were measured for the vault and USED TO LIVE IN
+     vault.module.css. They moved up the day the playground drew its own
+     grid of views with the same shape, and by the rule that always
+     holds in this project: A CUSTOM PROPERTY IS INHERITED, NOT LOOKED
+     UP. Declared in `.vault` or in `.grid` they are not visible to
+     `.playground`, which is a SIBLING and not a descendant, and they do
+     not fail visibly: they resolve to the `var()` fallback. Two matched
+     their fallback by coincidence and the third did not: the label of
+     an option in the playground dialog ended up at 12px where the vault
+     puts it at 16. Measured.
 
-     Es la tercera vez que esa trampa muerde acá. Por eso el arreglo no
-     es otro fallback: es que el valor viva donde los dos lo heredan.
+     It is the third time that trap has bitten here. That is why the fix
+     is not another fallback: it is that the value lives where both of
+     them inherit it.
 
-     Y VIVEN ACÁ Y NO EN tokens.css, que era el otro lugar posible. Dos
-     razones, y la segunda es la que decide:
-       · el producto no dibuja ninguna de estas dos grillas, así que en
-         :root serían cuatro declaraciones que nadie lee
-       · tokens.css SÍ se publica. Poner "--vault-…" ahí mete el
-         vocabulario del área privada en el bundle de producción, y este
-         proyecto tiene una sola regla dura sobre eso: el área privada NO
-         LLEGA al build. Verificado con grep sobre dist/ — con los
-         tokens allá aparecían cuatro veces.
-     `.marco` es el ancestro común de las dos vistas y sólo existe en
-     desarrollo. Es exactamente el lugar.
+     AND THEY LIVE HERE AND NOT IN tokens.css, which was the other
+     possible place. Two reasons, and the second one decides:
+       · the product draws neither of these two grids, so in :root they
+         would be four declarations nobody reads
+       · tokens.css IS published. Putting "--vault-…" there puts the
+         vocabulary of the private area into the production bundle, and
+         this project has one hard rule about that: the private area
+         does NOT REACH the build. Verified with grep over dist/: with
+         the tokens over there they showed up four times.
+     `.frame` is the common ancestor of the two views and it only exists
+     in development. It is exactly the place.
 
-     Los números y su procedencia siguen anotados en vault.module.css,
-     que es donde se midieron:
-       canaleta y fila   openai.com/news, ocho ventanas
-       proporción        la card de benji en family-values, 550×528
-       media-titulo      figma, 16 (contra los 24 de linear) */
-  --vault-canaleta: 24px;
-  --vault-fila: 80px;
-  --vault-proporcion: 550 / 528;
-  --vault-media-titulo: 16px;
+     The numbers and where they came from are still written down in
+     vault.module.css, which is where they were measured:
+       gutter and row    openai.com/news, eight windows
+       aspect ratio      benji's card in family-values, 550×528
+       media-title       figma, 16 (against linear's 24) */
+  --vault-gutter: 24px;
+  --vault-row: 80px;
+  --vault-aspect-ratio: 550 / 528;
+  --vault-media-title: 16px;
 
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   padding-block: var(--page-padding-top) var(--page-padding-bottom);
 }
-/* Y con un clip abierto se CLAVA. `min-height` no acota nada —es un
-   piso, no un techo— así que con sólo eso el escenario crecía con el
-   clip y un `max-height: 100%` adentro no tenía contra qué resolver: la
-   foto vertical terminaba en 2158px de una ventana de 1040.
+/* And with a clip open it gets PINNED. `min-height` bounds nothing (it
+   is a floor, not a ceiling) so with that alone the stage grew with the
+   clip and a `max-height: 100%` inside had nothing to resolve against:
+   the vertical photo ended up 2158px tall in a 1040 window.
 
-   La grilla NO lleva esto, porque tiene que poder crecer y scrollear. */
-.marco[data-detalle] {
+   The grid does NOT carry this, because it has to be able to grow and
+   scroll. */
+.frame[data-detail] {
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
 }
-/* Y CON UN LIENZO ABIERTO ADEMÁS PIERDE EL AIRE. El marco sólo owns lo
-   vertical —eso está dicho arriba— y acá lo entrega entero: el lienzo es
-   a sangre en los cuatro lados y lo único que lo acota es la sidebar,
-   que la pone él. Sin esto quedaban 80 px de canvas arriba y otros 80
-   abajo de una tela que tiene que llegar al borde de la ventana.
-   Ver `enLienzo` en privado.tsx: es la misma condición de los dos
-   lados. */
-.marco[data-lienzo] {
+/* AND WITH A CANVAS OPEN IT ALSO GIVES UP THE AIR. The frame only owns
+   the vertical (that is said above) and here it hands it over whole:
+   the canvas is full bleed on all four sides and the only thing that
+   bounds it is the sidebar, which it puts there itself. Without this
+   there were 80px of canvas above and another 80 below a surface that
+   has to reach the edge of the window.
+   See `inCanvas` in private.tsx: it is the same condition on both
+   sides. */
+.frame[data-canvas] {
   padding-block: 0;
 }
-/* 767 y no 768: a 768 exacto openai todavía da 32 de aire y 3 columnas
-   —medido—, así que el corte va un píxel más abajo. */
+/* 767 and not 768: at exactly 768 openai still gives 32 of air and 3
+   columns (measured), so the breakpoint goes one pixel lower. */
 @media (max-width: 767px) {
-  .marco {
-    --privado-inline: 24px;
+  .frame {
+    --private-inline: 24px;
   }
 }
 
-/* LA BARRA — vault y playground.
+/* THE BAR — vault and playground.
 
-   Pesa lo mismo que el índice lateral y usa su mismo juego de tokens:
-   13px/460 al gris de nav, y el activo sube a --activo-c. Es
-   exactamente el rol para el que se nombró ese token —"ésta", porque
-   la estás señalando o porque es donde estás— y por eso acá no hay
-   ninguna decisión de color nueva.
+   It weighs the same as the side index and uses its same set of tokens:
+   13px/460 in the nav gray, and the active one goes up to --active-c.
+   It is exactly the role that token was named for ("this one", because
+   you are pointing at it or because it is where you are) and that is
+   why there is no new color decision here.
 
-   La distancia entre solapas es lo ÚNICO elegido a ojo de este
-   archivo, y se declara con nombre en vez de quedar suelta en la
-   regla. 16 es múltiplo de 4 y es lo que separa dos palabras cortas
-   sin que se lean como una; con 8 —el de entre links del índice, que
-   es vertical— quedan pegadas. Es andamio: se revisa cuando la barra
-   tenga algo más que dos palabras. */
-.barra {
-  --privado-solapa-gap: 16px;
-  /* El mismo riel que la grilla: tope y aire salen del marco, así que
-     las solapas arrancan en la misma x que la primera card.
+   The distance between tabs is the ONLY thing in this file chosen by
+   eye, and it is declared with a name instead of sitting loose in the
+   rule. 16 is a multiple of 4 and it is what separates two short words
+   without their reading as one; with 8 (the one between links in the
+   index, which is vertical) they end up stuck together. It is
+   scaffolding: it gets revisited when the bar has something more than
+   two words. */
+.bar {
+  --private-tab-gap: 16px;
+  /* The same rail as the grid: the maximum and the air come from the
+     frame, so the tabs start at the same x as the first card.
 
-     `width: 100%` NO es redundante y la primera versión no lo tenía. En
-     un flex de columna el ítem se estira solo por el align-items:stretch
-     implícito, pero un margen automático en el eje transversal APAGA ese
-     estirado: el ítem pasa a medir su contenido. La barra quedaba del
-     ancho de sus dos palabras y centrada — medido, 558px a la derecha de
-     donde arranca la primera card. */
-  max-width: var(--privado-ancho);
+     `width: 100%` is NOT redundant and the first version did not have
+     it. In a column flex the item stretches on its own from the
+     implicit align-items:stretch, but an automatic margin on the cross
+     axis TURNS OFF that stretch: the item goes back to measuring its
+     content. The bar ended up as wide as its two words and centered:
+     measured, 558px to the right of where the first card starts. */
+  max-width: var(--private-width);
   width: 100%;
   margin-inline: auto;
   display: flex;
-  gap: var(--privado-solapa-gap);
-  padding-inline: var(--privado-inline);
-  /* baseline y no center: las solapas son 13/16 y el filtro que se monta
-     a la derecha es 14/20, así que centrarlos por caja los dejaría
-     apoyados en dos alturas distintas. Es la misma regla con la que se
-     alinea el índice del producto contra su primera pieza. */
+  gap: var(--private-tab-gap);
+  padding-inline: var(--private-inline);
+  /* baseline and not center: the tabs are 13/16 and the filter mounted
+     on the right is 14/20, so centering them by box would leave them
+     sitting on two different heights. It is the same rule that aligns
+     the product's index against its first piece. */
   align-items: baseline;
 }
 
-/* EL HUECO DE ACCIONES — la otra punta de la fila.
-   Acá se monta, por portal, el control de la vista que esté abierta: el
-   filtro del vault. `margin-left:auto` lo empuja al extremo sin
-   necesidad de justify-content, que afectaría también a las solapas.
+/* THE ACTIONS SLOT — the other end of the row.
+   The control of whichever view is open mounts here, by portal: the
+   vault's filter. `margin-left:auto` pushes it to the end without
+   needing justify-content, which would affect the tabs too.
 
-   Cuando la ventana no da para las dos cosas en una línea, la barra
-   envuelve y el filtro cae abajo solo — eso no se programa, sale de que
-   el filtro esté ADENTRO de la barra y no posicionado encima. */
-.acciones {
+   When the window cannot fit both things on one line, the bar wraps and
+   the filter drops below on its own. That is not programmed, it comes
+   out of the filter being INSIDE the bar and not positioned on top of
+   it. */
+.actions {
   margin-left: auto;
   display: flex;
   align-items: baseline;
 }
 
-/* text-decoration:none apaga el subrayado global de <a>. Acá no aplica:
-   la regla del subrayado es para un link DENTRO DE PROSA, que necesita
-   distinguirse del texto que lo rodea. Una solapa de navegación no está
-   adentro de nada. Es lo que ya hace .streamItem por lo mismo. */
-.solapa {
-  /* El blanco. Ver --privado-blanco-* arriba, en .marco. */
-  padding: var(--privado-blanco-y) var(--privado-blanco-x);
-  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+/* text-decoration:none turns off the global underline on <a>. It does
+   not apply here: the underline rule is for a link INSIDE PROSE, which
+   needs to stand apart from the text around it. A navigation tab is not
+   inside anything. It is what .streamItem already does, for the same
+   reason. */
+.tab {
+  /* The padding. See --private-padding-* above, in .frame. */
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-fw);
   letter-spacing: var(--type-nav-ls);
@@ -224,33 +233,34 @@
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
 }
-.solapa[data-activa] {
-  color: var(--activo-c);
+.tab[data-active] {
+  color: var(--active-c);
 }
-/* Sin gatear por (hover: hover), al revés que el índice. El artefacto
-   del toque pegado aparece donde tocar NO desmonta el elemento; acá la
-   solapa cambia de vista y se vuelve a pintar sola. Es el mismo
-   razonamiento que deja la card y la flecha de volver sin gatear. */
-.solapa:hover {
-  color: var(--activo-c);
+/* No gating behind (hover: hover), the opposite of the index. The stuck
+   touch artifact shows up where tapping does NOT unmount the element;
+   here the tab changes the view and gets repainted on its own. It is
+   the same reasoning that leaves the card and the back arrow ungated. */
+.tab:hover {
+  color: var(--active-c);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   UN GLIFO DE LA BARRA — 32×32 de blanco sobre un dibujo de 16.
+   A GLYPH IN THE BAR — 32×32 of padding around a 16 drawing.
 
-   La cuenta es la del + de la grilla y la del toggle de la ficha: el
-   dibujo mide 16 y el área de click 32, así que ninguno queda por
-   debajo del mínimo de 24 aunque el ícono sea chico.
+   The arithmetic is the one from the grid's + and from the details
+   toggle: the drawing is 16 and the click area 32, so neither ends up
+   below the 24 minimum even though the icon is small.
 
-   VIVE ACÁ POR LA REGLA DE SIEMPRE: lo leen DOS módulos —el toggle del
-   inspector, en ficha.module.css, y el disparador del menú, en
-   acciones.module.css— y dos copias de la misma caja se separan solas
-   con el tiempo. Es exactamente el motivo por el que --privado-blanco-*
-   y --vault-* también viven en este archivo.
+   IT LIVES HERE BY THE RULE THAT ALWAYS HOLDS: TWO modules read it (the
+   inspector toggle, in details.module.css, and the menu trigger, in
+   actions.module.css) and two copies of the same box come apart on
+   their own over time. It is exactly why --private-padding-* and
+   --vault-* also live in this file.
 
-   Lo que NO entra acá es la posición: el margen negativo que pone el
-   dibujo sobre el riel es de UNO de los dos, y lo pone él. */
-.glifo {
+   What does NOT go in here is the position: the negative margin that
+   puts the drawing on the rail belongs to ONE of the two, and that one
+   applies it. */
+.glyph {
   flex: none;
   width: 32px;
   height: 32px;
@@ -262,49 +272,50 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  /* El radio no se ve —no hay fondo— pero le da forma al anillo de foco,
-     que sigue el border-radius. Es lo mismo que hace .back. */
+  /* The radius is not visible (there is no background) but it shapes
+     the focus ring, which follows the border-radius. It is the same
+     thing .back does. */
   border-radius: 8px;
-  /* ─── EL PRESS, QUE ESTOS GLIFOS NO TENÍAN ───
-     Un botón que reacciona al puntero y no reacciona al dedo se siente
-     muerto. No es un valor nuevo: es el de .accion en
-     acciones.module.css, la única cosa del sistema que hoy tiene press
-     —0.97 y 100ms— con la nota de que "se siente en el dedo, no se ve".
-     Acá aplica igual.
+  /* ─── THE PRESS, WHICH THESE GLYPHS DID NOT HAVE ───
+     A button that reacts to the pointer and does not react to the
+     finger feels dead. It is not a new value: it is the one from
+     .action in actions.module.css, the only thing in the system that
+     has a press today (0.97 and 100ms) with the note that "you feel it
+     in the finger, you do not see it". It applies here the same.
 
-     La card sigue sin press y eso no cambia: tokens.css tiene contado
-     por qué (un solo :active vivo en 23 páginas de las referencias, y
-     es de un botón). Esto ES un botón. */
+     The card still has no press and that does not change: tokens.css
+     has the count of why (a single live :active across 23 pages of the
+     references, and it belongs to a button). This IS a button. */
   transition:
     color var(--dur-text) var(--ease-text),
-    transform 100ms var(--ease-dialogo);
+    transform 100ms var(--ease-dialog);
 }
-.glifo:hover {
-  color: var(--activo-c);
+.glyph:hover {
+  color: var(--active-c);
 }
-.glifo:active {
+.glyph:active {
   transform: scale(0.97);
 }
-/* CON SU MENÚ ABIERTO EL DISPARADOR SE QUEDA ENCENDIDO. Sin esto, al
-   sacar el puntero para ir a un ítem el glifo se apaga y el menú queda
-   colgando de nada. --activo-c es el color que en este sistema significa
-   "ésta" —el del hover y el de la pieza activa del índice—, así que no
-   entra ningún color nuevo.
+/* WITH ITS MENU OPEN THE TRIGGER STAYS LIT. Without this, moving the
+   pointer away to reach an item turns the glyph off and the menu hangs
+   from nothing. --active-c is the color that in this system means "this
+   one" (the hover color and the active piece in the index), so no new
+   color comes in.
 
-   Sólo a los que abren un menú. El toggle del inspector también lleva
-   aria-expanded, pero él ya dice su estado rellenando el compartimento
-   del dibujo; agregarle color sería decir lo mismo dos veces. */
-.glifo[aria-haspopup='menu'][aria-expanded='true'] {
-  color: var(--activo-c);
+   Only for the ones that open a menu. The inspector toggle also carries
+   aria-expanded, but it already says its state by filling the drawing's
+   compartment; adding color would say the same thing twice. */
+.glyph[aria-haspopup='menu'][aria-expanded='true'] {
+  color: var(--active-c);
 }
 @media (prefers-reduced-motion: reduce) {
-  .glifo:active {
+  .glyph:active {
     transform: none;
   }
 }
 
-/* Acá vivía .vacio, el estado vacío del playground. Se fue cuando el
-   playground dejó de ser un cascarón y pasó a tener módulo propio: su
-   aviso vive ahora en playground.module.css, al lado de su lista y su
-   lienzo. Este archivo se queda con lo que comparten las dos vistas —el
-   marco, la barra, las solapas— y nada más. */
+/* .empty used to live here, the playground's empty state. It left when
+   the playground stopped being a shell and got its own module: its
+   notice now lives in playground.module.css, next to its list and its
+   canvas. This file keeps what the two views share (the frame, the bar,
+   the tabs) and nothing else. */

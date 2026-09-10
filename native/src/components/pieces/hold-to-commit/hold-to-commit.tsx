@@ -16,208 +16,211 @@ import Animated, {
 } from 'react-native-reanimated'
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets'
 
-import { Chispas } from './sparks'
-import { Etiqueta, HOLD as L_HOLD, KEEP as L_KEEP, LISTO as L_LISTO, type Tinta } from './label'
-import { alCompletar, DETENTES, tic } from './haptics'
+import { Sparks } from './sparks'
+import { Label, HOLD as L_HOLD, KEEP as L_KEEP, PLACED as L_PLACED, type Ink } from './label'
+import { onComplete, DETENTS, tick } from './haptics'
 import type { Material } from './material'
-import { CLARO, COLOR, COMMIT, CRUCE, DERRAME, FRENTE, frenteEn, HOLD, LABEL, PARTICULAS, PILL, PRESS, REINICIO, VELO } from './measurements'
-import { marcarJS, marcarUI } from './meter'
-import { Particulas } from './particles'
-import { CINEMATICA, mover, type Receta, tiempo, type Tiempos } from './recipe'
-import { ADELANTO_MS, prepararSonido, sonar } from './sound'
+import { LIGHT, COLOR, COMMIT, CROSSFADE, SPILL, FRONT, frontAt, HOLD, LABEL, PARTICLES, PILL, PRESS, RESET, VEIL } from './measurements'
+import { markJS, markUI } from './meter'
+import { Particles } from './particles'
+import { KINEMATICS, move, type Recipe, timing, type Timings } from './recipe'
+import { LEAD_MS, prepareSound, playSound } from './sound'
 
 /* ─────────────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD — hold to commit
  *
- * Se lee de arriba abajo. Los ms son desde el evento de cada bloque, en
- * la receta activa, `clip` (los tiempos medidos de Opal); entre
- * corchetes, lo que cambia con `skill` (springs donde hay dedo, tilde
- * contextual). Cada número vive en `receta.ts` o en `medidas.ts`, con su
- * recibo; acá sólo se leen.
+ * Read it top to bottom. The ms are counted from each block's event, in
+ * the active recipe, `clip` (Opal's measured timings); in brackets, what
+ * changes with `skill` (springs where there is a finger, contextual
+ * checkmark). Every number lives in `recipe.ts` or in `measurements.ts`,
+ * with its receipt; here they are only read.
  *
- * PRESS — el dedo baja
- *      0ms   pill scale 1 → .953, 250 ease-out              [.97, spring 150 rebote 0]
- *      0ms   relleno opacity 0 → 1, 330 ease-in-out
- *      0ms   frente translateX 4.5 % → 95.5 % del ancho, linear 1000: es el gesto
- *      0ms   "Hold to Buy" sale 48 · "Keep Holding..." entra 360, blur-replace
- *    150ms   primer tic háptico (doce en total, cada vez más seguidos)
- *    550ms   label blanco → gris verdoso, por progreso, hasta 700
- *    940ms   sonido de Apple Pay, 60 ms antes del final
- *    965ms   label → negro
- * RELEASE antes del final — el dedo sube
- *      0ms   frente vuelve a 0, 400 ease-out                [spring 400 rebote 0, clavado en 0]
- *      0ms   relleno opacity → 0, 420 exponencial
- *      0ms   pill scale → 1, 250 ease-out                   [spring 400 rebote 0]
- *     80ms   "Keep Holding..." sale 250
- *    150ms   "Hold to Buy" entra 600, lineal
- * COMMIT — 1000 ms de hold
- *      0ms   háptica de éxito · ráfaga de 46 puntos, 700 linear
- *      0ms   pill scale → 1, salto 25 % + 220 ease-out      [spring 400 rebote 0]
- *      0ms   velo blanco opacity 0 → .75, 330 ease-out
- *      0ms   tilde pegado al texto                          [con sus capas: opacity 0 → 1, scale .25 → 1, blur 4 → 0, sobre la misma presencia y escalera]
- *     40ms   "Keep Holding..." sale 280
- *    210ms   "Order Placed" entra 450, lineal, scale .9 → 1
- *    250ms   frente 95.5 % → 101 %, 400 ease-out
- *   5000ms   REINICIO: velo y relleno opacity → 0, 400 ease-out · "Order Placed" sale 250
- *   5400ms   geometría al reposo, invisible · "Hold to Buy" entra 300
+ * PRESS — the finger comes down
+ *      0ms   pill scale 1 → .953, 250 ease-out              [.97, spring 150 bounce 0]
+ *      0ms   fill opacity 0 → 1, 330 ease-in-out
+ *      0ms   front translateX 4.5 % → 95.5 % of the width, linear 1000: it is the gesture
+ *      0ms   "Hold to Buy" exits 48 · "Keep Holding..." enters 360, blur-replace
+ *    150ms   first haptic tick (twelve in all, closer and closer together)
+ *    550ms   label white → greenish grey, by progress, until 700
+ *    940ms   Apple Pay sound, 60 ms before the end
+ *    965ms   label → black
+ * RELEASE before the end — the finger comes up
+ *      0ms   front back to 0, 400 ease-out                  [spring 400 bounce 0, clamped at 0]
+ *      0ms   fill opacity → 0, 420 exponential
+ *      0ms   pill scale → 1, 250 ease-out                   [spring 400 bounce 0]
+ *     80ms   "Keep Holding..." exits 250
+ *    150ms   "Hold to Buy" enters 600, linear
+ * COMMIT — 1000 ms of hold
+ *      0ms   success haptic · burst of 46 dots, 700 linear
+ *      0ms   pill scale → 1, 25 % jump + 220 ease-out       [spring 400 bounce 0]
+ *      0ms   white veil opacity 0 → .75, 330 ease-out
+ *      0ms   checkmark glued to the text                    [with its own layers: opacity 0 → 1, scale .25 → 1, blur 4 → 0, over the same presence and staircase]
+ *     40ms   "Keep Holding..." exits 280
+ *    210ms   "Order Placed" enters 450, linear, scale .9 → 1
+ *    250ms   front 95.5 % → 101 %, 400 ease-out
+ *   5000ms   RESET: veil and fill opacity → 0, 400 ease-out · "Order Placed" exits 250
+ *   5400ms   geometry back to rest, invisible · "Hold to Buy" enters 300
  * ───────────────────────────────────────────────────────────────── */
 
 /* ═══════════════════════════════════════════════════════════════
-   HOLD TO COMMIT — el botón. Apretás, se llena de izquierda a derecha en
-   `HOLD.duracion` (1 s a pedido; el clip mide 2), y si lo sostenés
-   hasta el final queda blanco con un "✓ Order Placed". Si soltás antes,
-   el brillo retrocede y vuelve a decir "Hold to Buy". No hay barra de
-   progreso: el brillo ES el progreso.
+   HOLD TO COMMIT — the button. You press, it fills from left to right in
+   `HOLD.duration` (1 s on request; the clip measures 2), and if you hold
+   it to the end it stays white with a "✓ Order Placed". If you let go
+   earlier, the light retreats and it goes back to saying "Hold to Buy".
+   There is no progress bar: the light IS the progress.
 
-   UNA SOLA ETAPA MANDA (interface-craft: "a single integer state drives
-   the entire sequence; no scattered boolean flags"). `etapa` es un
-   entero —reposo, hold, sonando, commit, reinicio— y cada worklet lo lee
-   para saber si le toca: apretar sólo en reposo o soltando, soltar sólo
-   con el dedo abajo, completar una vez, el sonido una vez por hold. Antes
-   eran dos banderas (`terminado`, `sono`).
+   ONE SINGLE STAGE IS IN CHARGE (interface-craft: "a single integer state
+   drives the entire sequence; no scattered boolean flags"). `stage` is an
+   integer (rest, hold, sounding, commit, reset) and every worklet reads
+   it to know whether it is its turn: press only at rest or while
+   releasing, release only with the finger down, complete once, the sound
+   once per hold. There used to be two flags (`terminado`, `sono`).
 
-   TODO CORRE EN EL HILO DE UI. El gesto es un LongPress de Gesture
-   Handler cuyo `minDuration` es el MISMO número que la duración del
-   relleno (`HOLD.duracion`): el reloj nativo del reconocedor decide
-   cuándo se completó, y el `withTiming` lineal del progreso llega a 1 en
-   el mismo instante. Es la regla 3 del AGENTS del taller —dos gestos que
-   tienen que coincidir salen de una sola constante—. Al hilo de JS sólo
-   se le pide la háptica y el sonido (`scheduleOnRN`), y nunca por
-   cuadro: en los detentes del progreso (`useAnimatedReaction`) y al
-   completar.
+   EVERYTHING RUNS ON THE UI THREAD. The gesture is a Gesture Handler
+   LongPress whose `minDuration` is the SAME number as the fill's duration
+   (`HOLD.duration`): the recognizer's native clock decides when it
+   completed, and the progress's linear `withTiming` reaches 1 at the same
+   instant. It is rule 3 of the workshop's AGENTS: two gestures that have
+   to match come out of a single constant. The JS thread is only asked for
+   the haptics and the sound (`scheduleOnRN`), and never per frame: at the
+   progress's detents (`useAnimatedReaction`) and on completion.
 
-   SÓLO TRANSFORM Y OPACITY (2026-09-07). Cada cosa que se mueve es un
-   translate, una escala o una opacidad; el color del label también es
-   opacidad: tres tandas del texto en sus tres tintas y una partición
-   derivada del progreso (`tinta`, ver etiqueta.tsx).
+   ONLY TRANSFORM AND OPACITY (2026-09-07). Everything that moves is a
+   translate, a scale or an opacity; the label's color is opacity too:
+   three sets of the text in its three inks and a partition derived from
+   the progress (`ink`, see label.tsx).
 
-   LAS CURVAS Y LOS TIEMPOS VIENEN DE LA RECETA (`receta.ts`): la fiel al
-   clip, por tiempo, o la de las tablas del skill, con springs donde
-   hubo un dedo. El botón no sabe cuál está puesta: recibe `receta`, lee
-   `R`, y todo movimiento pasa por `mover(hasta, R.x)`.
+   THE CURVES AND TIMINGS COME FROM THE RECIPE (`recipe.ts`): the one
+   faithful to the clip, by time, or the one from the skill's tables, with
+   springs where there was a finger. The button does not know which one is
+   set: it takes `recipe`, reads `R`, and every movement goes through
+   `move(to, R.x)`.
 
-   EL RELLENO SON CUATRO TEXTURAS, no vistas con degradé (que en RN
-   necesitarían un módulo nativo — ver `media/generate.swift`):
+   THE FILL IS FOUR TEXTURES, not views with a gradient (which in RN would
+   need a native module — see `media/generate.swift`):
 
-     brillo   el teal→verde de reposo, pegado al borde inferior, fijo
-     cuerpo   una columna de 1 px estirada a lo ancho, blanco con el
-              rim verde pálido arriba y abajo
-     frente   el borde de ataque: una cápsula con caída erfc de σ=19 pt
-              centrada en el borde geométrico (140 pt de textura)
-     velo     la punta izquierda del blob (una cápsula desenfocada que
-              arranca 6 pt adentro del pill), hecha como un velo del
-              color del pill sobre el cuerpo, prendido junto con él
+     sheen  the resting teal→green, hugging the bottom edge, fixed
+     body   a 1 px column stretched across the width, white with the pale
+            green rim above and below
+     front  the leading edge: a capsule with an erfc falloff of σ=19 pt
+            centered on the geometric edge (140 pt of texture)
+     veil   the blob's left tip (a blurred capsule that starts 6 pt inside
+            the pill), made as a veil the color of the pill over the body,
+            turned on along with it
 
-   `cuerpo` y `frente` viajan juntos en UN translateX: el borde
-   geométrico del relleno —donde el frente está al 50 %— va del 4.5 % al
-   95.5 % del ancho en el hold (`frenteEn`, o sea `arranque` .045 más
-   `recorrido` .91 de `medidas.ts`; el clip no llega a la punta
-   derecha, el blanqueo la cubre). Además el frente se ensancha un 25 %
-   a lo largo del hold y la punta izquierda se oscurece y se ensancha a
-   medida que el frente se aleja: las dos cosas son un `scaleX` sobre la
-   textura, con el pivote donde corresponde. Delante del frente viajan
-   las CHISPAS (`chispas.tsx`), función del mismo progreso.
+   `body` and `front` travel together in ONE translateX: the fill's
+   geometric edge, where the front is at 50 %, goes from 4.5 % to 95.5 %
+   of the width during the hold (`frontAt`, that is, `start` .045 plus
+   `travel` .91 from `measurements.ts`; the clip does not reach the right
+   tip, the whitening covers it). On top of that the front widens by 25 %
+   over the course of the hold and the left tip darkens and widens as the
+   front moves away: both things are a `scaleX` on the texture, with the
+   pivot where it belongs. Ahead of the front travel the SPARKS
+   (`sparks.tsx`), a function of the same progress.
 
-   CON REDUCE MOTION (animate-expo § 9: queda lo que cuenta el estado
-   —opacidad y color— y se va lo que se mueve) no hay barrido ni escala:
-   el relleno entero se prende con el progreso como opacidad, el label
-   cruza por opacidad sin copias borrosas ni escala, y no hay chispas ni
-   ráfaga. El color del label por progreso queda.
+   WITH REDUCE MOTION (animate-expo § 9: what counts the state stays,
+   opacity and color, and what moves goes) there is no sweep and no scale:
+   the whole fill turns on with the progress as its opacity, the label
+   crossfades by opacity with no blurred copies and no scale, and there
+   are no sparks and no burst. The label's color by progress stays.
 
-   EL LABEL tiene tres textos con una PRESENCIA cada uno (0..1); cruzar
-   es llevar la del que llega a 1 y la del que se va a 0, cada una con
-   su duración y su retardo (`R.cruce`): el saliente se va rápido, el
-   entrante enfoca con cola. La escalera de blur está en `etiqueta.tsx`.
+   THE LABEL has three texts with a PRESENCE each (0..1); crossfading is
+   taking the arriving one's to 1 and the leaving one's to 0, each with
+   its own duration and delay (`R.crossfade`): the outgoing one leaves
+   fast, the incoming one focuses with a tail. The blur staircase is in
+   `label.tsx`.
 
-   El pill se ACHICA al apretar y vuelve al soltar o al completar — está
-   medido y es la mitad del feel.
+   The pill SHRINKS on press and comes back on release or on completion.
+   It is measured and it is half the feel.
 
-   EN MODO CLARO (`esquema`, lo decide la pantalla; recibo en `CLARO`)
-   el pill sigue oscuro pero sin nada pintado en su fondo: ni brillo de
-   reposo ni punta velada, y la ráfaga es del color del pill. Pedido del
-   2026-09-07, mirando el simulador en claro. Lo que lo separa de la
-   página es la sombra de `css.sombra`, en los dos temas.
+   IN LIGHT MODE (`scheme`, the screen decides it; receipt in `LIGHT`) the
+   pill stays dark but with nothing painted on its background: no resting
+   sheen and no veiled tip, and the burst is the color of the pill. Asked
+   for on 2026-09-07, looking at the simulator in light mode. What
+   separates it from the page is the shadow in `css.shadow`, in both
+   themes.
 
-   RENDIMIENTO (2026-09-07, medido con `medidor.tsx` bajo `carga.tsx`):
-   nada de lo que se ve depende del hilo de JS. El gesto, el relleno,
-   las chispas, el label, la ráfaga y el REINICIO corren en UI; el
-   reinicio antes era un `setTimeout` de JS y con JS ocupado llegaba
-   tarde, ahora es un `withDelay` sobre un shared value. Lo único que
-   cruza a JS —la háptica y el sonido— cruza en el instante justo y JS
-   lo atiende cuando puede: `marcarUI()`/`marcarJS()` dejan estampas
-   en los dos hilos para medir cuánto tarda.
+   PERFORMANCE (2026-09-07, measured with `meter.tsx` under `load.tsx`):
+   nothing you can see depends on the JS thread. The gesture, the fill,
+   the sparks, the label, the burst and the RESET run on UI; the reset used
+   to be a JS `setTimeout` and with JS busy it arrived late, now it is a
+   `withDelay` over a shared value. The only things that cross to JS, the
+   haptics and the sound, cross at the exact instant and JS attends to
+   them when it can: `markUI()`/`markJS()` leave stamps on both threads so
+   you can measure how long that takes.
    ═══════════════════════════════════════════════════════════════ */
 
-const TEXTURA = {
-  brillo: require('./media/sheen.png'),
-  cuerpo: require('./media/body.png'),
-  frente: require('./media/front.png'),
-  velo: require('./media/veil.png'),
+const TEXTURE = {
+  sheen: require('./media/sheen.png'),
+  body: require('./media/body.png'),
+  front: require('./media/front.png'),
+  veil: require('./media/veil.png'),
 }
-const FRENTE_ANCHO = FRENTE.antes + FRENTE.despues
-const VELO_ANCHO = Image.resolveAssetSource(TEXTURA.velo).width
+const FRONT_WIDTH = FRONT.before + FRONT.after
+const VEIL_WIDTH = Image.resolveAssetSource(TEXTURE.veil).width
 
-/* LA ETAPA: el único estado del botón, un entero. */
-const ETAPA = { reposo: 0, hold: 1, sonando: 2, commit: 3, reinicio: 4 } as const
+/* THE STAGE: the button's only state, an integer. */
+const STAGE = { rest: 0, hold: 1, sounding: 2, commit: 3, reset: 4 } as const
 
-/* EL VIDRIO, si está. `expo-glass-effect` es un módulo nativo: si el
-   binario no lo linkea (un Expo Go de otra versión, un dev client viejo)
-   el import tira abajo la pieza entera, así que se pide con cuidado y,
-   si no está o iOS es anterior a 26, la opción `vidrio` cae a una cápsula
-   translúcida plana.
+/* THE GLASS, if it is there. `expo-glass-effect` is a native module: if
+   the binary does not link it (an Expo Go of another version, an old dev
+   client) the import brings the whole piece down, so it is asked for
+   carefully and, if it is missing or iOS is older than 26, the `glass`
+   option falls back to a flat translucent capsule.
 
-   CÓMO LO LANZARÍA UNA APP SERIA (Vito, 2026-09-04: "el liquid glass
-   nativo de Apple, bien hecho, no que sólo se vea así"). Lo que hace que
-   el material se VEA y se SIENTA, según la guía de Apple para Liquid
-   Glass (HIG › Materials, WWDC25 "Meet Liquid Glass"):
-     1. `regular` sin tinte: el vidrio de los controles, el que refracta.
-        Un tinte prominente lo vuelve casi opaco y esconde el material.
-     2. `isInteractive`: el material responde al dedo con su propio
-        abultado y su brillo. Por eso el pill de vidrio NO usa la escala
-        del press medida en Opal: sería feedback doble.
-     3. Contenido que pasa por DEBAJO: el vidrio sólo se lee cuando hay
-        algo detrás que refractar. El fondo `accion` scrollea debajo del
-        botón, que flota (ver hold-to-commit-screen.tsx).
-     4. Nada encima que no sea contenido: el brillo de reposo de Opal y
-        la punta velada son del pill opaco y acá no van. El
-        relleno blanco del hold barre encima como siempre: es el gesto.
-     5. El label sigue al esquema como todo control de vidrio: negro en
-        claro, blanco en oscuro.
-   Las trampas del material están en `nativo/VIDRIO.md`: no va bajo una
-   opacidad animada (la escala es un transform: no molesta) y NADIE lo
-   recorta, ni él ni sus ancestros. Acá el vidrio es el CONTENEDOR y el
-   recorte de las texturas es su hijo: el hijo se recorta a sí mismo, el
-   vidrio queda libre y con su `borderRadius` circular. */
-type Vidrio = ComponentType<GlassViewProps>
-const VIDRIO: { GlassView: Vidrio; disponible: boolean } | null = (() => {
+   HOW A SERIOUS APP WOULD SHIP IT (Vito, 2026-09-04: "Apple's native
+   liquid glass, done properly, not something that just looks like it").
+   What makes the material LOOK and FEEL right, according to Apple's guide
+   for Liquid Glass (HIG › Materials, WWDC25 "Meet Liquid Glass"):
+     1. `regular` with no tint: the glass of controls, the one that
+        refracts. A prominent tint turns it almost opaque and hides the
+        material.
+     2. `isInteractive`: the material answers the finger with its own
+        bulge and its own shine. That is why the glass pill does NOT use
+        the press scale measured in Opal: it would be double feedback.
+     3. Content passing UNDERNEATH: glass only reads when there is
+        something behind it to refract. The `stock` background scrolls
+        under the button, which floats (see hold-to-commit-screen.tsx).
+     4. Nothing on top that is not content: Opal's resting sheen and its
+        veiled tip belong to the opaque pill and do not go here. The white
+        fill of the hold sweeps over it as always: it is the gesture.
+     5. The label follows the color scheme, like every glass control:
+        black in light, white in dark.
+   The material's traps are in `native/GLASS.md`: it does not go under an
+   animated opacity (the scale is a transform: that is fine) and NOBODY
+   clips it, neither it nor its ancestors. Here the glass is the CONTAINER
+   and the texture clipping is its child: the child clips itself, the
+   glass stays free and keeps its circular `borderRadius`. */
+type Glass = ComponentType<GlassViewProps>
+const GLASS: { GlassView: Glass; available: boolean } | null = (() => {
   try {
-    /* `require` a propósito: un `import` estático ejecuta `requireNativeViewManager` al cargar el módulo y no se puede envolver en un try. */
+    /* `require` on purpose: a static `import` runs `requireNativeViewManager` when the module loads and cannot be wrapped in a try. */
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const m = require('expo-glass-effect') as { GlassView: Vidrio; isLiquidGlassAvailable: () => boolean }
-    return { GlassView: m.GlassView, disponible: m.isLiquidGlassAvailable() }
+    const m = require('expo-glass-effect') as { GlassView: Glass; isLiquidGlassAvailable: () => boolean }
+    return { GlassView: m.GlassView, available: m.isLiquidGlassAvailable() }
   } catch {
     return null
   }
 })()
 
-/* Lo que cruza a JS, con su estampa para el medidor (no-op si no mide).
-   Declaradas antes de los worklets que las llaman (trampa 14). */
-const ticJS = () => {
-  marcarJS('tic-js')
-  void tic()
+/* What crosses to JS, with its stamp for the meter (a no-op if it is not
+   measuring). Declared before the worklets that call them (trap 14). */
+const tickJS = () => {
+  markJS('tick-js')
+  void tick()
 }
-const alCompletarJS = () => {
-  marcarJS('commit-js')
-  void alCompletar()
+const onCompleteJS = () => {
+  markJS('commit-js')
+  void onComplete()
 }
-const sonarJS = () => {
-  marcarJS('sonido-js')
-  sonar()
+const playSoundJS = () => {
+  markJS('sound-js')
+  playSound()
 }
 
-/* La forma del primer oscurecimiento del label, medida cuadro a cuadro
-   (HOLD.tintaDesde..tintaHasta): mitad del camino a los 5 de 18 cuadros
-   → ease-out cuadrático sobre el progreso. */
+/* The shape of the label's first darkening, measured frame by frame
+   (HOLD.inkFrom..inkTo): half the way in 5 of 18 frames → quadratic
+   ease-out over the progress. */
 const easeOutQuad = (t: number) => {
   'worklet'
   const u = Math.min(1, Math.max(0, t))
@@ -228,595 +231,605 @@ const easeInOutQuad = (t: number) => {
   const u = Math.min(1, Math.max(0, t))
   return u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u)
 }
-/* El reloj del reinicio: un tiempo de 1 ms al final del `withDelay`. */
-const UN_CUADRO = tiempo(1, Easing.linear)
+/* The reset's clock: a 1 ms timing at the end of the `withDelay`. */
+const ONE_FRAME = timing(1, Easing.linear)
 
-export type Esquema = 'light' | 'dark'
+export type ColorScheme = 'light' | 'dark'
 
 type Props = {
-  /** El ancho del pill, en pt. Lo calcula la pantalla: 440 − 2×29. */
-  ancho: number
-  /** Claro u oscuro: lo decide la pantalla (los fondos de Opal son oscuros siempre). */
-  esquema?: Esquema
-  /** Qué curvas y tiempos: los del clip o los de las tablas del skill (`receta.ts`). */
-  receta: Receta
-  /** La luz que se escapa por debajo del pill, medida en la pantalla de
-      Opal. La pantalla decide si va: sólo con el fondo `opal`. */
-  derrame?: boolean
-  /** De qué está hecho el pill: la cápsula opaca medida, o Liquid Glass (`material.ts`). */
+  /** The pill's width, in pt. The screen works it out: 440 − 2×29. */
+  width: number
+  /** Light or dark: the screen decides it (the Opal backgrounds are always dark). */
+  scheme?: ColorScheme
+  /** Which curves and timings: the clip's or the skill's tables (`recipe.ts`). */
+  recipe: Recipe
+  /** The light that escapes under the pill, measured on the Opal screen.
+      The screen decides whether it goes: only with the `opal` background. */
+  spill?: boolean
+  /** What the pill is made of: the measured opaque capsule, or Liquid Glass (`material.ts`). */
   material?: Material
-  /** Sonda de desarrollo: `parcar=0.5` deja el botón quieto a mitad del
-      hold; `parcar=commit`, terminado; `parcar=auto`, apreta solo;
-      `parcar=cruce=120`, el press a los 120 ms; `parcar=cruce-commit=300`,
-      300 ms después de la ráfaga; `parcar=cruce-suelta=150`, 150 ms
-      después de soltar; `parcar=tilde=0.5`, "✓ Order Placed" a mitad de
-      su presencia. Reproducen las curvas de la receta `clip`. */
-  sonda?: string
+  /** Development probe: `park=0.5` leaves the button parked halfway
+      through the hold; `park=commit`, finished; `park=auto`, presses on
+      its own; `park=crossfade=120`, the press at 120 ms;
+      `park=crossfade-commit=300`, 300 ms after the burst;
+      `park=crossfade-release=150`, 150 ms after releasing;
+      `park=checkmark=0.5`, "✓ Order Placed" halfway through its
+      presence. They reproduce the curves of the `clip` recipe. */
+  probe?: string
 }
 
-export function HoldToCommit({ ancho, receta, sonda, derrame = false, material = 'opaco', esquema = 'dark' }: Props) {
-  const reducido = useReducedMotion()
-  /* El label de reposo es blanco sobre el pill opaco (RUNTIME, moda 255)
-     en cualquier modo: el pill es oscuro siempre. Sobre vidrio sigue al
-     esquema: en modo claro el vidrio es claro y el label arranca negro. */
-  const claro = esquema === 'light'
-  const esVidrio = material !== 'opaco'
-  const tintaReposo = esVidrio && claro ? COLOR.tintaNegra : COLOR.texto
-  /* Lo pintado en el fondo del pill (brillo de reposo, punta velada) es
-     del pill opaco de Opal, oscuro sobre oscuro; en claro no va. */
-  const conBrillo = material === 'opaco' && !claro
-  /* La escala del press es del pill opaco: el vidrio interactivo trae su
-     propia respuesta al dedo, y con reduce motion no hay escala. */
-  const escalaPropia = !reducido && !esVidrio
-  const R = CINEMATICA[receta]
+export function HoldToCommit({ width, recipe, probe, spill = false, material = 'opaque', scheme = 'dark' }: Props) {
+  const reduced = useReducedMotion()
+  /* The resting label is white over the opaque pill (RUNTIME, mode 255)
+     in any mode: the pill is always dark. Over glass it follows the color
+     scheme: in light mode the glass is light and the label starts black. */
+  const light = scheme === 'light'
+  const isGlass = material !== 'opaque'
+  const restInk = isGlass && light ? COLOR.blackInk : COLOR.text
+  /* What is painted on the pill's background (resting sheen, veiled tip)
+     belongs to Opal's opaque pill, dark on dark; in light mode it does not
+     go. */
+  const withSheen = material === 'opaque' && !light
+  /* The press scale belongs to the opaque pill: interactive glass brings
+     its own answer to the finger, and with reduce motion there is no
+     scale. */
+  const ownScale = !reduced && !isGlass
+  const R = KINEMATICS[recipe]
 
-  const etapa = useSharedValue<number>(ETAPA.reposo)
-  const progreso = useSharedValue(0)     // 0..1, el frente geométrico del relleno
-  const blob = useSharedValue(0)         // opacidad del relleno (nace apagado)
-  const escala = useSharedValue(1)
-  const blanco = useSharedValue(0)       // el velo blanco del commit
-  const pHold = useSharedValue(1)        // presencia de cada label (ver etiqueta.tsx)
+  const stage = useSharedValue<number>(STAGE.rest)
+  const progress = useSharedValue(0)   // 0..1, the fill's geometric front
+  const blob = useSharedValue(0)       // the fill's opacity (born dark)
+  const scale = useSharedValue(1)
+  const white = useSharedValue(0)      // the commit's white veil
+  const pHold = useSharedValue(1)      // each label's presence (see label.tsx)
   const pKeep = useSharedValue(0)
-  const pListo = useSharedValue(0)
-  const estallido = useSharedValue(0)    // la ráfaga, 0→1
-  const espera = useSharedValue(0)       // el reloj del reinicio, en UI
+  const pPlaced = useSharedValue(0)
+  const burst = useSharedValue(0)      // the burst, 0→1
+  const wait = useSharedValue(0)       // the reset's clock, on UI
 
-  /* El color del label sale del PROGRESO y no de un evento: así soltar a
-     mitad del oscurecimiento lo revierte por la misma curva, sin estados.
-     Es una PARTICIÓN entre las tres tintas (suma 1), que el label usa
-     como opacidad de cada tanda: el color también es opacidad. */
-  const tinta = useDerivedValue<Tinta>(() => {
-    const p = progreso.get()
-    const t1 = easeOutQuad((p - HOLD.tintaDesde) / (HOLD.tintaHasta - HOLD.tintaDesde))
-    const t2 = Math.min(1, Math.max(0, (p - HOLD.negroEn) / 0.012))
-    return { blanco: 1 - t1, oscuro: t1 * (1 - t2), negro: t2 }
+  /* The label's color comes out of the PROGRESS and not out of an event:
+     that way releasing halfway through the darkening reverses it along
+     the same curve, with no states. It is a PARTITION among the three
+     inks (adding up to 1), which the label uses as the opacity of each
+     set: the color is opacity too. */
+  const ink = useDerivedValue<Ink>(() => {
+    const p = progress.get()
+    const t1 = easeOutQuad((p - HOLD.inkFrom) / (HOLD.inkTo - HOLD.inkFrom))
+    const t2 = Math.min(1, Math.max(0, (p - HOLD.blackAt) / 0.012))
+    return { white: 1 - t1, dark: t1 * (1 - t2), black: t2 }
   })
 
-  /* El sonido del commit se precalienta al montar, para salir en el cuadro. */
-  useEffect(prepararSonido, [])
+  /* The commit's sound is preheated on mount, so it comes out on the frame. */
+  useEffect(prepareSound, [])
 
-  /* Cruza el label hacia `destino`: su presencia sube a 1 y la de los
-     otros baja a 0, cada una desde donde esté y con la duración
-     proporcional a lo que le falta — un cruce interrumpido (soltar
-     mientras todavía aparece "Keep Holding...") sigue sin saltos. Un
-     texto no tiene dedo: siempre por tiempo. */
-  const cruzar = (destino: number, t: Tiempos) => {
+  /* Crossfades the label towards `target`: its presence rises to 1 and
+     the others' fall to 0, each from wherever it is and with a duration
+     proportional to how far it has left. An interrupted crossfade
+     (releasing while "Keep Holding..." is still appearing) carries on
+     without jumps. A text has no finger: always by time. */
+  const crossfade = (target: number, t: Timings) => {
     'worklet'
-    const todas = [pHold, pKeep, pListo]
-    for (let k = 0; k < todas.length; k++) {
-      const q = todas[k]!
+    const all = [pHold, pKeep, pPlaced]
+    for (let k = 0; k < all.length; k++) {
+      const q = all[k]!
       cancelAnimation(q)
       const v = q.get()
-      if (k === destino) {
-        if (v < 1) q.set(withDelay(t.retardoEntrada, mover(1, tiempo(t.entrada * (1 - v), t.entradaLineal ? Easing.linear : R.easeOut)), ReduceMotion.Never))
+      if (k === target) {
+        if (v < 1) q.set(withDelay(t.enterDelay, move(1, timing(t.enter * (1 - v), t.linearEnter ? Easing.linear : R.easeOut)), ReduceMotion.Never))
       } else if (v > 0) {
-        q.set(withDelay(t.retardoSalida, mover(0, tiempo(t.salida * v, R.easeOut)), ReduceMotion.Never))
+        q.set(withDelay(t.exitDelay, move(0, timing(t.exit * v, R.easeOut)), ReduceMotion.Never))
       }
     }
   }
 
-  /* `reiniciar` va ANTES de `completar`, que lo llama desde el callback
-     de su movimiento: un worklet captura su closure al crearse, y una
-     `const` de más abajo todavía no existe en ese momento (trampa 25).
+  /* `reset` goes BEFORE `complete`, which calls it from its movement's
+     callback: a worklet captures its closure when it is created, and a
+     `const` further down does not exist yet at that moment (trap 25).
 
-     EL REINICIO ES UN FUNDIDO, NO UN BARRIDO (Vito, 2026-09-04: "que
-     cuando vuelve al estado inicial la transición sea clean, hoy es
-     malísima"). Sólo cambia la opacidad, en dos fases: (1) el velo blanco
-     y el relleno se apagan y "✓ Order Placed" se va con su tilde; (2) con
-     el relleno ya invisible, la geometría vuelve al reposo de golpe (no
-     se ve) y "Hold to Buy" entra blanco, porque el color del label sale
-     del progreso y el progreso ya está en 0. La etapa vuelve a reposo
-     recién en la fase 2: un toque durante el fundido no hace nada. */
-  const reiniciar = () => {
+     THE RESET IS A FADE, NOT A SWEEP (Vito, 2026-09-04: "make the
+     transition back to the initial state clean, today it is terrible").
+     Only the opacity changes, in two phases: (1) the white veil and the
+     fill go out and "✓ Order Placed" leaves with its checkmark; (2) with
+     the fill already invisible, the geometry snaps back to rest (nobody
+     sees it) and "Hold to Buy" comes in white, because the label's color
+     comes from the progress and the progress is already at 0. The stage
+     goes back to rest only in phase 2: a touch during the fade does
+     nothing. */
+  const reset = () => {
     'worklet'
-    marcarUI('reinicio-ui')
-    etapa.set(ETAPA.reinicio)
-    cancelAnimation(progreso)
+    markUI('reset-ui')
+    stage.set(STAGE.reset)
+    cancelAnimation(progress)
     cancelAnimation(blob)
-    cancelAnimation(blanco)
-    cancelAnimation(pListo)
-    /* Y el reloj de los 5 s, que es quien normalmente llama acá: si el
-       reinicio se dispara antes (la sonda `demo` lo adelanta para el
-       video), sin esto el `withDelay` que dejó `completar` vuelve a
-       llamar a `reiniciar` sobre un botón que ya está en reposo. */
-    cancelAnimation(espera)
-    escala.set(1)
-    estallido.set(0)
-    pListo.set(mover(0, tiempo(R.cruce.reinicio.salida, R.easeOut)))
-    blanco.set(mover(0, R.reinicio))
+    cancelAnimation(white)
+    cancelAnimation(pPlaced)
+    /* And the 5 s clock, which is normally the one calling in here: if the
+       reset fires earlier (the `demo` probe pulls it forward for the
+       video), without this the `withDelay` that `complete` left behind
+       calls `reset` again on a button that is already at rest. */
+    cancelAnimation(wait)
+    scale.set(1)
+    burst.set(0)
+    pPlaced.set(move(0, timing(R.crossfade.reset.exit, R.easeOut)))
+    white.set(move(0, R.reset))
     blob.set(
-      mover(0, R.reinicio, (termino) => {
+      move(0, R.reset, (finished) => {
         'worklet'
-        if (!termino) return
-        progreso.set(0)
-        etapa.set(ETAPA.reposo)
-        cruzar(L_HOLD, R.cruce.reinicio)
+        if (!finished) return
+        progress.set(0)
+        stage.set(STAGE.rest)
+        crossfade(L_HOLD, R.crossfade.reset)
       }),
     )
   }
-  const apretar = () => {
+  const press = () => {
     'worklet'
-    if (etapa.get() >= ETAPA.commit) return
-    etapa.set(ETAPA.hold)
-    cancelAnimation(progreso)
+    if (stage.get() >= STAGE.commit) return
+    stage.set(STAGE.hold)
+    cancelAnimation(progress)
     cancelAnimation(blob)
-    cancelAnimation(escala)
-    /* Desde donde esté: si se vuelve a apretar durante la retirada, el
-       relleno sigue desde ahí y llega a 1 justo cuando el LongPress
-       cumple su `minDuration` — un solo reloj para las dos cosas. */
-    marcarUI('press-ui')
-    progreso.set(mover(1, tiempo(HOLD.duracion, Easing.linear)))
-    blob.set(mover(1, R.encendido))
-    /* Con reduce motion el pill no se achica: la escala es movimiento. */
-    if (escalaPropia) escala.set(mover(R.press.escala, R.press.entrada))
-    cruzar(L_KEEP, R.cruce.press)
+    cancelAnimation(scale)
+    /* From wherever it is: if you press again during the retreat, the fill
+       carries on from there and reaches 1 exactly when the LongPress
+       fulfils its `minDuration` — one single clock for both things. */
+    markUI('press-ui')
+    progress.set(move(1, timing(HOLD.duration, Easing.linear)))
+    blob.set(move(1, R.turnOn))
+    /* With reduce motion the pill does not shrink: the scale is movement. */
+    if (ownScale) scale.set(move(R.press.scale, R.press.enter))
+    crossfade(L_KEEP, R.crossfade.press)
   }
 
-  const soltar = () => {
+  const release = () => {
     'worklet'
-    if (etapa.get() >= ETAPA.commit) return
-    etapa.set(ETAPA.reposo)
-    cancelAnimation(progreso)
+    if (stage.get() >= STAGE.commit) return
+    stage.set(STAGE.rest)
+    cancelAnimation(progress)
     cancelAnimation(blob)
-    cancelAnimation(escala)
-    progreso.set(mover(0, R.retirada.progreso))
-    blob.set(mover(0, R.retirada.fundido))
-    if (escalaPropia) escala.set(mover(1, R.press.salida))
-    /* El label vuelve DESPUÉS de que el brillo empezó a retirarse: los
-       retardos están medidos (release en f13, saliente desde f17–18,
-       entrante desde f22). */
-    cruzar(L_HOLD, R.cruce.suelta)
+    cancelAnimation(scale)
+    progress.set(move(0, R.retreat.progress))
+    blob.set(move(0, R.retreat.fade))
+    if (ownScale) scale.set(move(1, R.press.exit))
+    /* The label comes back AFTER the light has started retreating: the
+       delays are measured (release at f13, outgoing from f17–18, incoming
+       from f22). */
+    crossfade(L_HOLD, R.crossfade.release)
   }
 
-  const completar = () => {
+  const complete = () => {
     'worklet'
-    if (etapa.get() >= ETAPA.commit) return
-    etapa.set(ETAPA.commit)
-    cancelAnimation(progreso)
-    cancelAnimation(escala)
-    progreso.set(1)
+    if (stage.get() >= STAGE.commit) return
+    stage.set(STAGE.commit)
+    cancelAnimation(progress)
+    cancelAnimation(scale)
+    progress.set(1)
     blob.set(1)
-    if (!reducido) {
-      /* El frente termina de llegar a la punta derecha mientras blanquea
-         (COMMIT.desliz): el progreso pasa de 1 y `frenteEn` lo lleva al 101 %. */
-      progreso.set(withDelay(R.desliz.retardo, mover(1 + COMMIT.desliz, R.desliz.movimiento), ReduceMotion.Never))
-      /* Un salto (`saltoCommit`) en un cuadro y el resto con la curva. */
-      if (escalaPropia)
-        escala.set(
-          R.press.saltoCommit > 0
+    if (!reduced) {
+      /* The front finishes its trip to the right tip while it whitens
+         (COMMIT.slide): the progress goes past 1 and `frontAt` takes it to
+         101 %. */
+      progress.set(withDelay(R.slide.delay, move(1 + COMMIT.slide, R.slide.motion), ReduceMotion.Never))
+      /* A jump (`commitJump`) in one frame and the rest with the curve. */
+      if (ownScale)
+        scale.set(
+          R.press.commitJump > 0
             ? withSequence(
                 ReduceMotion.Never,
-                mover(R.press.escala + (1 - R.press.escala) * R.press.saltoCommit, tiempo(16, Easing.linear)),
-                mover(1, R.press.commit),
+                move(R.press.scale + (1 - R.press.scale) * R.press.commitJump, timing(16, Easing.linear)),
+                move(1, R.press.commit),
               )
-            : mover(1, R.press.commit),
+            : move(1, R.press.commit),
         )
-      estallido.set(0)
-      estallido.set(mover(1, tiempo(PARTICULAS.duracionVida, Easing.linear)))
+      burst.set(0)
+      burst.set(move(1, timing(PARTICLES.lifetime, Easing.linear)))
     }
-    blanco.set(mover(COMMIT.veloBlanco, R.blanqueo))
-    cruzar(L_LISTO, R.cruce.commit)
-    marcarUI('commit-ui')
-    scheduleOnRN(alCompletarJS)
-    /* EL REINICIO ES DEL TALLER, no de la referencia: el clip termina en
-       "✓ Committed" y no muestra qué pasa después. Acá, a los 5 s de
-       completar, el botón vuelve al reposo con el mismo cruce, para poder
-       probarlo seguido sin salir y volver a entrar a la pieza. El reloj
-       corre en UI: un `withDelay` sobre `espera`. Antes era un
-       `setTimeout` en JS ("5 s no piden precisión de cuadro"), y no la
-       piden, pero un timer de JS espera a que JS esté libre: con el hilo
-       ocupado (carga.tsx) el reinicio llegaba tarde. Acá llega a los
-       5000 ms con JS haciendo lo que sea. */
-    espera.set(0)
-    espera.set(
+    white.set(move(COMMIT.whiteVeil, R.whitening))
+    crossfade(L_PLACED, R.crossfade.commit)
+    markUI('commit-ui')
+    scheduleOnRN(onCompleteJS)
+    /* THE RESET BELONGS TO THE WORKSHOP, not to the reference: the clip
+       ends at "✓ Committed" and does not show what happens next. Here, 5 s
+       after completing, the button goes back to rest with the same
+       crossfade, so you can try it over and over without leaving the piece
+       and coming back. The clock runs on UI: a `withDelay` over `wait`. It
+       used to be a `setTimeout` in JS ("5 s do not ask for frame
+       precision"), and they do not, but a JS timer waits for JS to be
+       free: with the thread busy (load.tsx) the reset arrived late. Here it
+       arrives at 5000 ms with JS doing whatever it likes. */
+    wait.set(0)
+    wait.set(
       withDelay(
-        REINICIO.espera,
-        mover(1, UN_CUADRO, (fin) => {
+        RESET.wait,
+        move(1, ONE_FRAME, (finished) => {
           'worklet'
-          if (fin) reiniciar()
+          if (finished) reset()
         }),
         ReduceMotion.Never,
       ),
     )
   }
 
-  /* Los detentes hápticos: la comparación corre en UI cada cuadro y la
-     llamada a JS ocurre doce veces por hold, sólo cuando el progreso
-     SUBE y cruza un umbral. Soltar no hace tic. */
+  /* The haptic detents: the comparison runs on UI every frame and the call
+     to JS happens twelve times per hold, only when the progress RISES and
+     crosses a threshold. Releasing does not tick. */
   useAnimatedReaction(
-    () => progreso.get(),
-    (p, anterior) => {
-      if (anterior === null || p <= anterior) return
-      for (let i = 0; i < DETENTES.length; i++) {
-        const d = DETENTES[i]!
-        if (anterior < d && p >= d) {
-          marcarUI('tic-ui')
-          scheduleOnRN(ticJS)
+    () => progress.get(),
+    (p, previous) => {
+      if (previous === null || p <= previous) return
+      for (let i = 0; i < DETENTS.length; i++) {
+        const d = DETENTS[i]!
+        if (previous < d && p >= d) {
+          markUI('tick-ui')
+          scheduleOnRN(tickJS)
         }
       }
-      /* El sonido, ADELANTO_MS antes del final: sale del mismo reloj que
-         el relleno, una sola vez por hold (la etapa pasa a `sonando`). */
-      if (etapa.get() === ETAPA.hold && p >= 1 - ADELANTO_MS / HOLD.duracion) {
-        etapa.set(ETAPA.sonando)
-        marcarUI('sonido-ui')
-        scheduleOnRN(sonarJS)
+      /* The sound, LEAD_MS before the end: it comes off the same clock as
+         the fill, once per hold (the stage moves to `sounding`). */
+      if (stage.get() === STAGE.hold && p >= 1 - LEAD_MS / HOLD.duration) {
+        stage.set(STAGE.sounding)
+        markUI('sound-ui')
+        scheduleOnRN(playSoundJS)
       }
     },
   )
 
-  const gesto = useMemo(
+  const gesture = useMemo(
     () =>
       Gesture.LongPress()
-        .minDuration(HOLD.duracion)
-        .maxDistance(HOLD.maxDistancia)
-        .onBegin(apretar)
-        .onStart(completar)
-        .onFinalize((_e, exito) => {
-          if (!exito) soltar()
+        .minDuration(HOLD.duration)
+        .maxDistance(HOLD.maxDistance)
+        .onBegin(press)
+        .onStart(complete)
+        .onFinalize((_e, success) => {
+          if (!success) release()
         }),
-    /* Los tres worklets se recrean en cada render (son closures del
-       componente), así que el gesto se rearma con ellos. Renders hay
-       uno por receta elegida. */
-    [apretar, completar, soltar],
+    /* The three worklets are recreated on every render (they are closures
+       of the component), so the gesture gets rebuilt with them. There is
+       one render per chosen recipe. */
+    [press, complete, release],
   )
 
-  /* La sonda: un estado fijo por recarga, deterministico. Reproduce las
-     curvas de la receta `clip` (las constantes de medidas.ts). */
+  /* The probe: one fixed state per reload, deterministic. It reproduces
+     the curves of the `clip` recipe (the constants in measurements.ts). */
   useEffect(() => {
-    const parquear = (hold: number, keep: number, listo: number) => {
+    const park = (hold: number, keep: number, placed: number) => {
       'worklet'
       pHold.set(hold)
       pKeep.set(keep)
-      pListo.set(listo)
+      pPlaced.set(placed)
     }
-    if (!sonda) {
-      /* Sin sonda, el reposo: así `sonda.ts` vuelto a `undefined` al final
-         de una tanda de capturas deja la pieza limpia sin relanzar
-         (trampa 20). */
+    if (!probe) {
+      /* With no probe, rest: that way `probe.ts` set back to `undefined` at
+         the end of a run of captures leaves the piece clean without
+         relaunching (trap 20). */
       scheduleOnUI(() => {
         'worklet'
-        const todos = [progreso, blob, escala, blanco, estallido, pHold, pKeep, pListo, espera]
-        for (let k = 0; k < todos.length; k++) cancelAnimation(todos[k]!)
-        etapa.set(ETAPA.reposo)
-        progreso.set(0)
+        const all = [progress, blob, scale, white, burst, pHold, pKeep, pPlaced, wait]
+        for (let k = 0; k < all.length; k++) cancelAnimation(all[k]!)
+        stage.set(STAGE.rest)
+        progress.set(0)
         blob.set(0)
-        escala.set(1)
-        blanco.set(0)
-        estallido.set(0)
-        parquear(1, 0, 0)
+        scale.set(1)
+        white.set(0)
+        burst.set(0)
+        park(1, 0, 0)
       })
       return
     }
-    if (sonda === 'commit' || sonda.startsWith('rafaga')) {
-      /* `rafaga=0.12` deja la ráfaga quieta a esa fracción de su vida. */
-      const t = sonda === 'commit' ? 1 : Number(sonda.split('=')[1] ?? 0.1)
+    if (probe === 'commit' || probe.startsWith('burst')) {
+      /* `burst=0.12` holds the burst still at that fraction of its life. */
+      const t = probe === 'commit' ? 1 : Number(probe.split('=')[1] ?? 0.1)
       scheduleOnUI(() => {
         'worklet'
-        etapa.set(ETAPA.commit)
-        progreso.set(sonda === 'commit' ? 1 + COMMIT.desliz : 1)
+        stage.set(STAGE.commit)
+        progress.set(probe === 'commit' ? 1 + COMMIT.slide : 1)
         blob.set(1)
-        escala.set(1)
-        parquear(0, sonda === 'commit' ? 0 : 1, sonda === 'commit' ? 1 : 0)
-        blanco.set(sonda === 'commit' ? COMMIT.veloBlanco : COMMIT.veloBlanco * t * 3)
-        estallido.set(t)
+        scale.set(1)
+        park(0, probe === 'commit' ? 0 : 1, probe === 'commit' ? 1 : 0)
+        white.set(probe === 'commit' ? COMMIT.whiteVeil : COMMIT.whiteVeil * t * 3)
+        burst.set(t)
       })
       return
     }
-    if (sonda.startsWith('cruce')) {
-      /* `cruce=120`: el press, 120 ms después del touch — cada valor donde
-         lo tendría la animación real (mismas curvas y retardos que
-         `apretar`); `cruce-commit=300`: 300 ms después de la ráfaga, con
-         el label, el blanqueo y las partículas donde les toca. Sirve para
-         comparar con el cuadro del clip del mismo instante. */
-      const ms = Number(sonda.split('=')[1] ?? 0)
-      const alCommit = sonda.startsWith('cruce-commit')
-      const alSoltar = sonda.startsWith('cruce-suelta')
-      const tramo = (t: number, retardo: number, duracion: number, lineal?: boolean) => {
+    if (probe.startsWith('crossfade')) {
+      /* `crossfade=120`: the press, 120 ms after the touch — every value
+         where the real animation would have it (same curves and delays as
+         `press`); `crossfade-commit=300`: 300 ms after the burst, with the
+         label, the whitening and the particles where they belong. It is
+         for comparing against the clip frame from the same instant. */
+      const ms = Number(probe.split('=')[1] ?? 0)
+      const atCommit = probe.startsWith('crossfade-commit')
+      const atRelease = probe.startsWith('crossfade-release')
+      const segment = (t: number, delay: number, duration: number, linear?: boolean) => {
         'worklet'
-        const u = Math.min(1, Math.max(0, (t - retardo) / duracion))
-        return lineal ? u : easeOutQuad(u)
+        const u = Math.min(1, Math.max(0, (t - delay) / duration))
+        return linear ? u : easeOutQuad(u)
       }
       scheduleOnUI(() => {
         'worklet'
-        etapa.set(alCommit ? ETAPA.commit : ETAPA.hold)
-        if (alCommit) {
-          const c = CRUCE.commit
-          progreso.set(1 + COMMIT.desliz * tramo(ms, COMMIT.deslizRetardo, COMMIT.deslizDuracion))
+        stage.set(atCommit ? STAGE.commit : STAGE.hold)
+        if (atCommit) {
+          const c = CROSSFADE.commit
+          progress.set(1 + COMMIT.slide * segment(ms, COMMIT.slideDelay, COMMIT.slideDuration))
           blob.set(1)
-          escala.set(PRESS.escala + (1 - PRESS.escala) * (ms < 16 ? 0 : PRESS.saltoCommit + (1 - PRESS.saltoCommit) * tramo(ms, 16, PRESS.duracionCommit)))
-          blanco.set(COMMIT.veloBlanco * tramo(ms, 0, COMMIT.blanqueo))
-          estallido.set(Math.min(0.999, ms / PARTICULAS.duracionVida))
-          parquear(0, 1 - tramo(ms, c.retardoSalida, c.salida), tramo(ms, c.retardoEntrada, c.entrada, c.entradaLineal))
-        } else if (alSoltar) {
-          /* `cruce-suelta=150`: 150 ms después de soltar con el frente al
-             10 % (donde lo suelta el clip: en f13 el 50 % del frente está
-             al 13.5 %), con las mismas curvas que `soltar`. */
-          const c = CRUCE.suelta
-          const desde = 0.1
-          /* el clip suelta con el encendido a medio camino: el pico en f13
-             es 172, que es el 65 % del relleno prendido */
-          const blobAlSoltar = 0.68
-          progreso.set(desde * (1 - tramo(ms, 0, HOLD.retirada)))
-          blob.set(blobAlSoltar * Math.pow(2, (-10 * Math.min(1, ms / HOLD.fundidoRetirada))))
-          escala.set(PRESS.escala + (1 - PRESS.escala) * tramo(ms, 0, PRESS.duracion))
-          blanco.set(0)
-          estallido.set(0)
-          parquear(tramo(ms, c.retardoEntrada, c.entrada, c.entradaLineal), 1 - tramo(ms, c.retardoSalida, c.salida), 0)
+          scale.set(PRESS.scale + (1 - PRESS.scale) * (ms < 16 ? 0 : PRESS.commitJump + (1 - PRESS.commitJump) * segment(ms, 16, PRESS.commitDuration)))
+          white.set(COMMIT.whiteVeil * segment(ms, 0, COMMIT.whitening))
+          burst.set(Math.min(0.999, ms / PARTICLES.lifetime))
+          park(0, 1 - segment(ms, c.exitDelay, c.exit), segment(ms, c.enterDelay, c.enter, c.linearEnter))
+        } else if (atRelease) {
+          /* `crossfade-release=150`: 150 ms after releasing with the front
+             at 10 % (where the clip releases it: in f13 the front's 50 %
+             point is at 13.5 %), with the same curves as `release`. */
+          const c = CROSSFADE.release
+          const from = 0.1
+          /* the clip releases with the turn-on halfway there: the peak in
+             f13 is 172, which is 65 % of the fill lit up */
+          const blobAtRelease = 0.68
+          progress.set(from * (1 - segment(ms, 0, HOLD.retreat)))
+          blob.set(blobAtRelease * Math.pow(2, (-10 * Math.min(1, ms / HOLD.retreatFade))))
+          scale.set(PRESS.scale + (1 - PRESS.scale) * segment(ms, 0, PRESS.duration))
+          white.set(0)
+          burst.set(0)
+          park(segment(ms, c.enterDelay, c.enter, c.linearEnter), 1 - segment(ms, c.exitDelay, c.exit), 0)
         } else {
-          const c = CRUCE.press
-          progreso.set(ms / HOLD.duracion)
-          blob.set(easeInOutQuad(ms / HOLD.encendido))
-          escala.set(1 - (1 - PRESS.escala) * tramo(ms, 0, PRESS.duracion))
-          blanco.set(0)
-          estallido.set(0)
-          parquear(1 - tramo(ms, c.retardoSalida, c.salida), tramo(ms, c.retardoEntrada, c.entrada), 0)
+          const c = CROSSFADE.press
+          progress.set(ms / HOLD.duration)
+          blob.set(easeInOutQuad(ms / HOLD.turnOn))
+          scale.set(1 - (1 - PRESS.scale) * segment(ms, 0, PRESS.duration))
+          white.set(0)
+          burst.set(0)
+          park(1 - segment(ms, c.exitDelay, c.exit), segment(ms, c.enterDelay, c.enter), 0)
         }
       })
       return
     }
-    if (sonda.startsWith('tilde')) {
-      /* `tilde=0.5`: el commit ya asentado con "✓ Order Placed" a esa
-         fracción de su presencia: el texto en su escalera y el tilde
-         contextual con opacidad, escala y blur a medio camino, juntos. */
-      const q = Number(sonda.split('=')[1] ?? 0.5)
+    if (probe.startsWith('checkmark')) {
+      /* `checkmark=0.5`: the commit already settled with "✓ Order Placed"
+         at that fraction of its presence: the text on its staircase and
+         the contextual checkmark with its opacity, scale and blur halfway,
+         together. */
+      const q = Number(probe.split('=')[1] ?? 0.5)
       scheduleOnUI(() => {
         'worklet'
-        etapa.set(ETAPA.commit)
-        progreso.set(1 + COMMIT.desliz)
+        stage.set(STAGE.commit)
+        progress.set(1 + COMMIT.slide)
         blob.set(1)
-        escala.set(1)
-        blanco.set(COMMIT.veloBlanco)
-        estallido.set(0)
-        parquear(0, 0, q)
+        scale.set(1)
+        white.set(COMMIT.whiteVeil)
+        burst.set(0)
+        park(0, 0, q)
       })
       return
     }
-    if (sonda === 'auto' || sonda === 'auto-suelta') {
-      const t1 = setTimeout(() => scheduleOnUI(apretar), 700)
+    if (probe === 'auto' || probe === 'auto-release') {
+      const t1 = setTimeout(() => scheduleOnUI(press), 700)
       const t2 = setTimeout(
-        () => scheduleOnUI(sonda === 'auto' ? completar : soltar),
-        700 + (sonda === 'auto' ? HOLD.duracion : 400),
+        () => scheduleOnUI(probe === 'auto' ? complete : release),
+        700 + (probe === 'auto' ? HOLD.duration : 400),
       )
       return () => {
         clearTimeout(t1)
         clearTimeout(t2)
       }
     }
-    if (sonda === 'demo') {
-      /* LA COREOGRAFÍA DE LA GRABACIÓN. No hay forma de mandarle un dedo
-         al simulador, así que la toma se maneja desde adentro llamando a
-         los MISMOS worklets que llama el gesto (`apretar`, `soltar`,
-         `completar`): las curvas, los tiempos, la háptica y el sonido son
-         los del camino real, no una imitación.
+    if (probe === 'demo') {
+      /* THE RECORDING CHOREOGRAPHY. There is no way to send a finger to
+         the simulator, so the take is driven from inside by calling the
+         SAME worklets the gesture calls (`press`, `release`, `complete`):
+         the curves, the timings, the haptics and the sound are the ones on
+         the real path, not an imitation.
 
-         UN SOLO GESTO, DE PUNTA A PUNTA. La primera versión abría con un
-         hold abandonado —apretar, soltar a los 700 ms, mostrar la
-         retirada— y recién después el que completa. Vito, 2026-09-08:
-         "que en la grabación se ejecute todo de una, sacá esa parte del
-         principio que se aprieta el botón y se corta en la mitad". La
-         retirada sigue existiendo en la pieza y está contada en las
-         notas; en el video, cortarse a la mitad antes de haber mostrado
-         una vez qué pasa al final se lee como un error, no como una
-         opción.
+         ONE SINGLE GESTURE, END TO END. The first version opened with an
+         abandoned hold: press, release at 700 ms, show the retreat, and
+         only then the one that completes. Vito, 2026-09-08: "make the
+         recording run it all in one go, drop that bit at the start where
+         the button gets pressed and cut off halfway". The retreat still
+         exists in the piece and it is described in the notes; in the
+         video, cutting off halfway before ever having shown what happens
+         at the end reads as an error, not as an option.
 
-             3000   apretar          reposo largo antes del gesto, para
-                                     cortar 1.2 s antes (AGENTS del
-                                     taller) con margen de sobra: el
-                                     arranque de la app tarda distinto
-                                     cada vez, y en la toma en claro los
-                                     1800 ms de la primera versión
-                                     dejaban el corte 0.2 s ANTES de que
-                                     la pieza terminara de montarse
-             4000   (solo)           el LongPress cumple: ráfaga, "✓ Order
-                                     Placed", háptica de éxito y sonido
-             6000   reiniciar        el fundido de vuelta al reposo
+             3000   press            a long rest before the gesture, to cut
+                                     1.2 s before it (the workshop's
+                                     AGENTS) with room to spare: the app's
+                                     startup takes a different amount of
+                                     time each run, and in the light take
+                                     the 1800 ms of the first version left
+                                     the cut 0.2 s BEFORE the piece had
+                                     finished mounting
+             4000   (on its own)     the LongPress fulfils: burst, "✓ Order
+                                     Placed", success haptic and sound
+             6000   reset            the fade back to rest
 
-         EL REINICIO LLEGA A LOS 2 s Y NO A LOS 5. Los 5 s son del taller
-         —para poder probar el botón seguido sin salir de la pieza— y en
-         un video son tres segundos de nada. El fundido que se ve es el
-         mismo código y la misma curva; sólo se adelanta el disparo.
-         `reiniciar` cancela `espera`, así que el reloj de los 5 s que
-         dejó `completar` no vuelve a disparar sobre el reposo. */
-      const en = (ms: number, w: () => void) => setTimeout(() => scheduleOnUI(w), ms)
+         THE RESET ARRIVES AT 2 s AND NOT AT 5. The 5 s belong to the
+         workshop, so you can try the button over and over without leaving
+         the piece, and in a video they are three seconds of nothing. The
+         fade you see is the same code and the same curve; only the trigger
+         is pulled forward. `reset` cancels `wait`, so the 5 s clock
+         `complete` left behind does not fire again over the rest. */
+      const at = (ms: number, w: () => void) => setTimeout(() => scheduleOnUI(w), ms)
       const t = [
-        en(3000, apretar),
-        en(3000 + HOLD.duracion, completar),
-        en(3000 + HOLD.duracion + 2000, reiniciar),
+        at(3000, press),
+        at(3000 + HOLD.duration, complete),
+        at(3000 + HOLD.duration + 2000, reset),
       ]
       return () => t.forEach(clearTimeout)
     }
-    const p = Number(sonda)
+    const p = Number(probe)
     if (Number.isFinite(p)) {
       scheduleOnUI(() => {
         'worklet'
-        etapa.set(p > 0 ? ETAPA.hold : ETAPA.reposo)
-        blanco.set(0)
-        estallido.set(0)
-        progreso.set(p)
+        stage.set(p > 0 ? STAGE.hold : STAGE.rest)
+        white.set(0)
+        burst.set(0)
+        progress.set(p)
         blob.set(p > 0 ? 1 : 0)
-        escala.set(p > 0 ? PRESS.escala : 1)
-        parquear(p > 0 ? 0 : 1, p > 0 ? 1 : 0, 0)
+        scale.set(p > 0 ? PRESS.scale : 1)
+        park(p > 0 ? 0 : 1, p > 0 ? 1 : 0, 0)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sonda])
+  }, [probe])
 
-  const estiloEscala = useAnimatedStyle(() => ({ transform: [{ scale: escalaPropia ? escala.get() : 1 }] }))
-  /* El contenedor del relleno lleva el borde geométrico a `frenteEn(p)`:
-     su borde está `ancho` pt adentro del contenedor (cuerpo + 83 del
-     frente), así que translateX = frenteEn(p) − ancho.
+  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: ownScale ? scale.get() : 1 }] }))
+  /* The fill's container carries the geometric edge to `frontAt(p)`: its
+     edge is `width` pt inside the container (body + 83 of the front), so
+     translateX = frontAt(p) − width.
 
-     CON REDUCE MOTION NO HAY BARRIDO: el relleno queda entero (el borde
-     geométrico donde termina al completar, 101 %) y su OPACIDAD es el
-     progreso — el mismo reloj, contado con luz en vez de con posición. */
-  const estiloRelleno = useAnimatedStyle(() => {
-    const p = progreso.get()
-    return reducido
-      ? { opacity: blob.get() * Math.min(1, p), transform: [{ translateX: frenteEn(1 + COMMIT.desliz, ancho) - ancho }] }
-      : { opacity: blob.get(), transform: [{ translateX: frenteEn(p, ancho) - ancho }] }
+     WITH REDUCE MOTION THERE IS NO SWEEP: the fill stays whole (the
+     geometric edge where it ends on completion, 101 %) and its OPACITY is
+     the progress — the same clock, counted with light instead of with
+     position. */
+  const fillStyle = useAnimatedStyle(() => {
+    const p = progress.get()
+    return reduced
+      ? { opacity: blob.get() * Math.min(1, p), transform: [{ translateX: frontAt(1 + COMMIT.slide, width) - width }] }
+      : { opacity: blob.get(), transform: [{ translateX: frontAt(p, width) - width }] }
   })
-  /* El frente se ensancha con el progreso: escala en x alrededor del
-     borde geométrico (a FRENTE.antes de su borde izquierdo). RN escala
-     alrededor del centro de la vista, así que el pivote se corre con un
-     translate previo de (pivote − centro)·(1 − s). */
-  const estiloFrente = useAnimatedStyle(() => {
-    const p = reducido ? 1 : progreso.get()
-    const s = FRENTE.escala.desde + (FRENTE.escala.hasta - FRENTE.escala.desde) * p
-    return { transform: [{ translateX: (FRENTE.antes - FRENTE_ANCHO / 2) * (1 - s) }, { scaleX: s }] }
+  /* The front widens with the progress: a scale in x around the geometric
+     edge (at FRONT.before from its left edge). RN scales around the
+     center of the view, so the pivot is moved with a previous translate of
+     (pivot − center)·(1 − s). */
+  const frontStyle = useAnimatedStyle(() => {
+    const p = reduced ? 1 : progress.get()
+    const s = FRONT.scale.from + (FRONT.scale.to - FRONT.scale.from) * p
+    return { transform: [{ translateX: (FRONT.before - FRONT_WIDTH / 2) * (1 - s) }, { scaleX: s }] }
   })
-  /* Y el cuerpo se corre para seguir pegado al frente escalado: su borde
-     derecho tiene que quedar donde el frente arranca (a 83·s del borde). */
-  const estiloCuerpo = useAnimatedStyle(() => {
-    const p = reducido ? 1 : progreso.get()
-    const s = FRENTE.escala.desde + (FRENTE.escala.hasta - FRENTE.escala.desde) * p
-    return { transform: [{ translateX: FRENTE.antes * (1 - s) }] }
+  /* And the body moves to stay glued to the scaled front: its right edge
+     has to end up where the front starts (at 83·s from the edge). */
+  const bodyStyle = useAnimatedStyle(() => {
+    const p = reduced ? 1 : progress.get()
+    const s = FRONT.scale.from + (FRONT.scale.to - FRONT.scale.from) * p
+    return { transform: [{ translateX: FRONT.before * (1 - s) }] }
   })
-  /* El velo de la punta se ensancha desde la punta del pill (pivote en su
-     borde izquierdo) y se prende con el blob (con reduce motion, con el
-     relleno entero: la misma opacidad que él). */
-  const estiloVelo = useAnimatedStyle(() => {
-    const p = reducido ? 1 : progreso.get()
-    const s = VELO.escala.desde + (VELO.escala.hasta - VELO.escala.desde) * p
-    const opacity = reducido ? blob.get() * Math.min(1, progreso.get()) : blob.get()
-    return { opacity, transform: [{ translateX: -(VELO_ANCHO / 2) * (1 - s) }, { scaleX: s }] }
+  /* The tip's veil widens from the pill's tip (pivot at its left edge) and
+     turns on with the blob (with reduce motion, with the whole fill: the
+     same opacity as it). */
+  const veilStyle = useAnimatedStyle(() => {
+    const p = reduced ? 1 : progress.get()
+    const s = VEIL.scale.from + (VEIL.scale.to - VEIL.scale.from) * p
+    const opacity = reduced ? blob.get() * Math.min(1, progress.get()) : blob.get()
+    return { opacity, transform: [{ translateX: -(VEIL_WIDTH / 2) * (1 - s) }, { scaleX: s }] }
   })
-  const estiloBlanco = useAnimatedStyle(() => ({ opacity: blanco.get() }))
+  const whiteStyle = useAnimatedStyle(() => ({ opacity: white.get() }))
 
   return (
-    <View style={{ width: ancho, height: PILL.alto }}>
-      <GestureDetector gesture={gesto}>
+    <View style={{ width, height: PILL.height }}>
+      <GestureDetector gesture={gesture}>
         <Animated.View
           accessible
           accessibilityRole="button"
-          accessibilityLabel={LABEL.reposo}
-          accessibilityHint={`Hold for ${HOLD.duracion === 1000 ? 'one second' : `${HOLD.duracion / 1000} seconds`} to place the order`}
-          /* La sombra va ACÁ, en la vista de afuera: la cápsula recorta
-             con `overflow: hidden` y una sombra dibujada adentro no
-             saldría. */
-          style={[css.pill, css.sombra, estiloEscala]}
+          accessibilityLabel={LABEL.rest}
+          accessibilityHint={`Hold for ${HOLD.duration === 1000 ? 'one second' : `${HOLD.duration / 1000} seconds`} to place the order`}
+          /* The shadow goes HERE, on the outer view: the capsule clips with
+             `overflow: hidden` and a shadow drawn inside would not come
+             out. */
+          style={[css.pill, css.shadow, scaleStyle]}
         >
-          {/* El derrame: la luz que se escapa por DEBAJO del pill en la
-              pantalla de Opal, una franja que asoma 18 pt con su sombra
-              (recibo en DERRAME). Sobre un fondo neutro se lee como una
-              caja detrás del botón, así que sólo va con el fondo `opal`
-              (Vito, 2026-09-04, mirándolo en el teléfono: "hay algo
-              detrás del botón, sacalo"). */}
-          {derrame && <View style={css.derrame} />}
-          <Capsula material={material}>
-            {conBrillo && <Image source={TEXTURA.brillo} resizeMode="stretch" style={css.lleno} />}
-            {/* `needsOffscreenAlphaCompositing`: Android compone los hijos de
-                una vista con opacidad UNO POR UNO, así que durante el
-                fundido del reinicio el punto de solape entre cuerpo y
-                frente se veía como una línea más clara (RUNTIME, emulador,
-                `cmp/android-prod-tira.png`); con la bandera, el grupo se
-                dibuja aparte y se funde entero. iOS ya lo hace solo
-                (`allowsGroupOpacity`). Sólo cuesta mientras hay opacidad. */}
-            <Animated.View needsOffscreenAlphaCompositing style={[css.relleno, { width: ancho + FRENTE.despues }, estiloRelleno]}>
-              <Animated.Image source={TEXTURA.cuerpo} resizeMode="stretch" style={[{ width: ancho - FRENTE.antes + 1, height: PILL.alto }, estiloCuerpo]} />
-              {/* Un punto de solape: dos imágenes pegadas borde con borde
-                  dejan una costura de 1 px cuando el translate cae entre
-                  píxeles (se vio en la ampliación). El frente arranca
-                  opaco, así que el solape no se ve. */}
-              <Animated.Image source={TEXTURA.frente} style={[{ width: FRENTE_ANCHO, height: PILL.alto, marginLeft: -1 }, estiloFrente]} />
+          {/* The spill: the light that escapes UNDER the pill on the Opal
+              screen, a strip that peeks out 18 pt with its shadow (receipt
+              in SPILL). Over a neutral background it reads as a box behind
+              the button, so it only goes with the `opal` background (Vito,
+              2026-09-04, looking at it on the phone: "there is something
+              behind the button, take it out"). */}
+          {spill && <View style={css.spill} />}
+          <Capsule material={material}>
+            {withSheen && <Image source={TEXTURE.sheen} resizeMode="stretch" style={css.full} />}
+            {/* `needsOffscreenAlphaCompositing`: Android composes the
+                children of a view with opacity ONE BY ONE, so during the
+                reset's fade the overlap point between body and front showed
+                up as a lighter line (RUNTIME, emulator,
+                `cmp/android-prod-tira.png`); with the flag, the group is
+                drawn apart and fades as a whole. iOS already does it on its
+                own (`allowsGroupOpacity`). It only costs while there is
+                opacity. */}
+            <Animated.View needsOffscreenAlphaCompositing style={[css.fill, { width: width + FRONT.after }, fillStyle]}>
+              <Animated.Image source={TEXTURE.body} resizeMode="stretch" style={[{ width: width - FRONT.before + 1, height: PILL.height }, bodyStyle]} />
+              {/* One point of overlap: two images butted edge to edge leave
+                  a 1 px seam when the translate falls between pixels (it
+                  showed up in the magnification). The front starts out
+                  opaque, so the overlap is invisible. */}
+              <Animated.Image source={TEXTURE.front} style={[{ width: FRONT_WIDTH, height: PILL.height, marginLeft: -1 }, frontStyle]} />
             </Animated.View>
-            {conBrillo && <Animated.Image source={TEXTURA.velo} style={[css.velo, estiloVelo]} />}
-            {/* Las chispas van sobre el relleno y bajo el velo blanco: al
-                completar, el blanco las tapa. */}
-            {!reducido && <Chispas ancho={ancho} progreso={progreso} blob={blob} />}
-            <Animated.View style={[css.lleno, css.blanco, estiloBlanco]} />
-          </Capsula>
-          <Etiqueta
-            tinta={tinta}
-            colorReposo={tintaReposo}
-            presencia={[pHold, pKeep, pListo]}
-            sinBlur={reducido}
-            escalaEntrada={R.escalaEntrada}
-            tildeContextual={R.tilde === 'contextual'}
+            {withSheen && <Animated.Image source={TEXTURE.veil} style={[css.veil, veilStyle]} />}
+            {/* The sparks go over the fill and under the white veil: on
+                completion, the white covers them. */}
+            {!reduced && <Sparks width={width} progress={progress} blob={blob} />}
+            <Animated.View style={[css.full, css.white, whiteStyle]} />
+          </Capsule>
+          <Label
+            ink={ink}
+            restColor={restInk}
+            presence={[pHold, pKeep, pPlaced]}
+            noBlur={reduced}
+            enterScale={R.enterScale}
+            contextualCheckmark={R.checkmark === 'contextual'}
           />
         </Animated.View>
       </GestureDetector>
-      {!reducido && <Particulas ancho={ancho} estallido={estallido} color={claro ? CLARO.particula : undefined} />}
+      {!reduced && <Particles width={width} burst={burst} color={light ? LIGHT.particle : undefined} />}
     </View>
   )
 }
 
-/* La cápsula: opaca, es la vista que recorta las texturas con el color
-   del pill medido. De vidrio, es el `GlassView` (libre, interactivo, con
-   su radio circular) y ADENTRO la vista que recorta, transparente. */
-function Capsula({ material, children }: { material: Material; children: ReactNode }) {
-  if (material === 'opaco') return <View style={css.recorte}>{children}</View>
-  const recorte = <View style={[css.recorte, css.recorteVidrio]}>{children}</View>
-  if (VIDRIO && VIDRIO.disponible) {
+/* The capsule: opaque, it is the view that clips the textures, with the
+   measured pill color. In glass, it is the `GlassView` (free, interactive,
+   with its circular radius) and INSIDE it the view that clips,
+   transparent. */
+function Capsule({ material, children }: { material: Material; children: ReactNode }) {
+  if (material === 'opaque') return <View style={css.clip}>{children}</View>
+  const clip = <View style={[css.clip, css.clipGlass]}>{children}</View>
+  if (GLASS && GLASS.available) {
     return (
-      <VIDRIO.GlassView glassEffectStyle="regular" isInteractive style={css.vidrio}>
-        {recorte}
-      </VIDRIO.GlassView>
+      <GLASS.GlassView glassEffectStyle="regular" isInteractive style={css.glass}>
+        {clip}
+      </GLASS.GlassView>
     )
   }
-  return <View style={[css.vidrio, css.vidrioCaida]}>{recorte}</View>
+  return <View style={[css.glass, css.glassFallback]}>{clip}</View>
 }
 
 const css = StyleSheet.create({
-  pill: { width: '100%', height: PILL.alto },
-  recorte: {
+  pill: { width: '100%', height: PILL.height },
+  clip: {
     ...StyleSheet.absoluteFill,
-    borderRadius: PILL.alto / 2,
+    borderRadius: PILL.height / 2,
     backgroundColor: COLOR.pill,
     overflow: 'hidden',
   },
-  recorteVidrio: { backgroundColor: 'transparent' },
-  /* La cápsula de vidrio: mismo radio circular que el pill medido (no
-     `continuous`: la cápsula del clip es circular), sin `overflow`. */
-  vidrio: { ...StyleSheet.absoluteFill, borderRadius: PILL.alto / 2 },
-  /* SUPUESTO · la caída sin Liquid Glass: una cápsula translúcida plana. */
-  vidrioCaida: { backgroundColor: 'rgba(128,128,128,0.25)' },
-  lleno: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
-  relleno: { position: 'absolute', top: 0, left: 0, height: PILL.alto, flexDirection: 'row' },
-  velo: { position: 'absolute', top: 0, left: 0, width: VELO_ANCHO, height: PILL.alto },
-  blanco: { backgroundColor: COLOR.committed },
-  /* SUPUESTO · no está medido en ninguna referencia: es la receta de
-     better-ui ("layered transparent box-shadow values"), dos capas, una
-     de contacto y una de ambiente. Sobre el fondo negro del modo oscuro
-     no se ve, y está bien: ahí no hay profundidad que comunicar.
+  clipGlass: { backgroundColor: 'transparent' },
+  /* The glass capsule: the same circular radius as the measured pill (not
+     `continuous`: the clip's capsule is circular), with no `overflow`. */
+  glass: { ...StyleSheet.absoluteFill, borderRadius: PILL.height / 2 },
+  /* ASSUMED · the fallback with no Liquid Glass: a flat translucent capsule. */
+  glassFallback: { backgroundColor: 'rgba(128,128,128,0.25)' },
+  full: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
+  fill: { position: 'absolute', top: 0, left: 0, height: PILL.height, flexDirection: 'row' },
+  veil: { position: 'absolute', top: 0, left: 0, width: VEIL_WIDTH, height: PILL.height },
+  white: { backgroundColor: COLOR.committed },
+  /* ASSUMED · it is not measured in any reference: it is better-ui's
+     recipe ("layered transparent box-shadow values"), two layers, one of
+     contact and one of ambience. Over the black background of dark mode it
+     is invisible, and that is fine: there is no depth to communicate
+     there.
 
-     EL RADIO NO ES DECORACIÓN ACÁ. `boxShadow` sigue la forma de la
-     vista, y esta vista es un rectángulo: sin el radio, la sombra
-     dibujaba una CAJA con esquinas vivas alrededor de la cápsula
-     (Vito, 2026-09-08: "se nota todo el box del componente, muy feo").
-     Con el radio de la cápsula, la sombra la calca. */
-  sombra: {
-    borderRadius: PILL.alto / 2,
+     THE RADIUS IS NOT DECORATION HERE. `boxShadow` follows the shape of
+     the view, and this view is a rectangle: without the radius, the shadow
+     drew a BOX with sharp corners around the capsule (Vito, 2026-09-08:
+     "you can see the whole box of the component, really ugly"). With the
+     capsule's radius, the shadow traces it. */
+  shadow: {
+    borderRadius: PILL.height / 2,
     boxShadow: '0 1px 2px rgba(0,0,0,0.14), 0 6px 16px rgba(0,0,0,0.18)',
   },
-  derrame: {
+  spill: {
     position: 'absolute',
     left: '50%',
-    marginLeft: -DERRAME.ancho / 2,
-    width: DERRAME.ancho,
-    top: PILL.alto - 8,
-    height: 8 + DERRAME.asoma,
+    marginLeft: -SPILL.width / 2,
+    width: SPILL.width,
+    top: PILL.height - 8,
+    height: 8 + SPILL.peek,
     borderRadius: 12,
-    backgroundColor: DERRAME.color,
-    boxShadow: DERRAME.sombra,
+    backgroundColor: SPILL.color,
+    boxShadow: SPILL.shadow,
   },
 })

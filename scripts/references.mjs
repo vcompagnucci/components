@@ -1,189 +1,194 @@
-/* ¿ALGÚN COMENTARIO NOMBRA ALGO QUE YA NO EXISTE?
+/* DOES ANY COMMENT NAME SOMETHING THAT NO LONGER EXISTS?
  *
- *     pnpm referencias           # informe; sale con 1 si hay algo muerto
- *     pnpm referencias --todo    # también lo que nunca fue de acá
+ *     pnpm references          # report; exits with 1 if something is dead
+ *     pnpm references --all    # also what was never from here
  *
- * ─── POR QUÉ EXISTE ───
- * El repo escribe el porqué arriba de cada archivo y en la bitácora, y
- * esos textos NOMBRAN cosas: `medidas.ts`, `HOLD.duracion`, `css.sombra`.
- * Cuando algo se borra o se renombra, el código deja de compilar y el
- * comentario NO: sigue ahí explicando algo que ya no pasa. Es el modo en
- * que este repo se rompe, y ninguna otra herramienta lo ve: el typecheck
- * no lee comentarios y el linter tampoco. El 2026-09-09 fueron nueve en
- * un día — dos recibos que quedaron atrás de un renombre y siete que
- * sobrevivieron al borrado del anillo.
+ * ─── WHY IT EXISTS ───
+ * This repo writes the why at the top of every file and in the log, and
+ * those texts NAME things: `measurements.ts`, `HOLD.duration`,
+ * `css.shadow`. When something is deleted or renamed the code stops
+ * compiling and the comment does NOT: it stays there explaining
+ * something that no longer happens. It is the way this repo breaks, and
+ * no other tool sees it: the typecheck does not read comments and the
+ * linter does not either. On 2026-09-09 there were nine in one day, two
+ * receipts left behind by a rename and seven that survived the deletion
+ * of the ring.
  *
- * ─── POR QUÉ NO ALCANZA CON "NO ESTÁ DEFINIDO" ───
- * Así, el primer intento marcó 426 referencias y casi todas eran
- * legítimas: el repo nombra placeholders (`src/notas/<slug>.tsx`), APIs
- * del navegador (`getComputedStyle`), teclas (`Escape`) y clases CSS de
- * los sitios que MIDE (`Toolbar_chip` es de una referencia ajena). "No
- * está acá" no distingue lo muerto de lo que nunca fue nuestro.
+ * ─── WHY "IT IS NOT DEFINED" IS NOT ENOUGH ───
+ * Done that way, the first attempt flagged 426 references and almost all
+ * of them were legitimate: the repo names placeholders
+ * (`src/notes/<slug>.tsx`), browser APIs (`getComputedStyle`), keys
+ * (`Escape`) and CSS classes of the sites it MEASURES (`Toolbar_chip`
+ * belongs to someone else's reference). "It is not here" does not tell
+ * the dead apart from what was never ours.
  *
- * ─── LOS DOS DISCRIMINADORES, Y NINGUNA LISTA DE EXCEPCIONES ───
- * 1. LA HISTORIA. Se marca lo que este repo TUVO: un archivo, si figura
- *    entre los borrados de `git log --diff-filter=D`; un nombre, si
- *    alguna vez hubo una definición suya. El índice de nombres sale de
- *    un solo `git log -p` sobre toda la historia (~11 s, 2.600 nombres);
- *    preguntarle a git nombre por nombre con `-G` tardaba 31 s CADA UNO.
- * 2. EL PARECIDO. Un nombre que nunca existió pero que, bajado a
- *    minúsculas y sin guiones bajos, coincide con uno que sí existe hoy,
- *    es una referencia mal escrita y no algo ajeno: decía VELO_BLANCO
- *    donde el nombre vivo es `COMMIT.veloBlanco`. Sin esta regla, un
- *    nombre que SIEMPRE estuvo mal no lo encuentra nadie.
+ * ─── THE TWO DISCRIMINATORS, AND NO LIST OF EXCEPTIONS ───
+ * 1. HISTORY. What gets flagged is what this repo HAD: a file, if it
+ *    shows up among the deletions of `git log --diff-filter=D`; a name,
+ *    if there was ever a definition of it. The index of names comes out
+ *    of a single `git log -p` over the whole history (~11 s, 2,600
+ *    names); asking git name by name with `-G` took 31 s EACH.
+ * 2. RESEMBLANCE. A name that never existed but that, lowercased and
+ *    stripped of underscores, matches one that does exist today, is a
+ *    misspelled reference and not something foreign: it said WHITE_VEIL
+ *    where the live name is `COMMIT.whiteVeil`. Without this rule, a
+ *    name that was ALWAYS wrong is found by nobody.
  *
- *    (Y ese ejemplo va sin backticks a propósito: la convención que este
- *    script impone es que un backtick PROMETE que la cosa existe. Nombrar
- *    algo muerto se hace en prosa. Sin eso, el script se marcaba a sí
- *    mismo por citar el error que encontró.)
+ *    (And that example goes without backticks on purpose: the convention
+ *    this script imposes is that a backtick PROMISES the thing exists.
+ *    Naming something dead is done in prose. Without that, the script
+ *    flagged itself for quoting the mistake it had found.)
  *
- * ─── QUÉ ATRAPA, PROBADO ───
- * Con tres referencias muertas inyectadas a propósito encuentra dos:
- * un archivo borrado y un nombre que existió. NO encuentra la tercera,
- * `HOLD_DURACION` por `HOLD.duracion` —un camino con puntos escrito con
- * guiones bajos—, y no se le agregó la regla porque para atraparla habría
- * que aceptar como sospechoso cualquier NOMBRE_ASI cuyas dos mitades
- * existan por separado, que en este repo son muchas.
+ * ─── WHAT IT CATCHES, TESTED ───
+ * With three dead references injected on purpose it finds two: a deleted
+ * file and a name that existed. It does NOT find the third,
+ * `HOLD_DURATION` for `HOLD.duration`, a dotted path written with
+ * underscores, and the rule was not added because catching it would mean
+ * accepting as suspect any NAME_LIKE_THIS whose two halves exist
+ * separately, and in this repo there are many of those.
  *
- * Y no ve, por definición, un comentario que describe MAL algo que sí
- * existe. Para eso hay que leer. */
+ * And it does not see, by definition, a comment that describes BADLY
+ * something that does exist. For that you have to read. */
 import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync, execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const RAIZ = fileURLToPath(new URL('../', import.meta.url))
-const TODO = process.argv.includes('--todo')
-const git = (...a) => execFileSync('git', a, { cwd: RAIZ, maxBuffer: 1 << 28 }).toString()
+const ROOT = fileURLToPath(new URL('../', import.meta.url))
+const ALL = process.argv.includes('--all')
+const git = (...a) => execFileSync('git', a, { cwd: ROOT, maxBuffer: 1 << 28 }).toString()
 
-const rastreados = git('ls-files').trim().split('\n')
-/* Para leer: sólo texto. Para RESOLVER una referencia: todos, o un
-   `media/compra.wav` no se encuentra a sí mismo. */
-const archivos = rastreados.filter((f) => /\.(ts|tsx|mjs|js|md|css|swift|py|sh)$/.test(f))
-const contenido = new Map(archivos.map((f) => [f, fs.readFileSync(path.join(RAIZ, f), 'utf8')]))
+const tracked = git('ls-files').trim().split('\n')
+/* To read: text only. To RESOLVE a reference: all of them, or a
+   `media/purchase.wav` does not find itself. */
+const files = tracked.filter((f) => /\.(ts|tsx|mjs|js|md|css|swift|py|sh)$/.test(f))
+const contents = new Map(files.map((f) => [f, fs.readFileSync(path.join(ROOT, f), 'utf8')]))
 
-/* Los archivos de medición viven en `.context/`, que está gitignoreado:
-   la bitácora los nombra igual y existen en la máquina. */
-const enContexto = new Set()
-const recorrer = (dir) => {
+/* The measurement files live in `.context/`, which is gitignored: the
+   log names them all the same and they do exist on the machine. */
+const inContext = new Set()
+const walk = (dir) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name.startsWith('.git')) continue
     const p = path.join(dir, e.name)
-    if (e.isDirectory()) recorrer(p)
-    else enContexto.add(e.name)
+    if (e.isDirectory()) walk(p)
+    else inContext.add(e.name)
   }
 }
-if (fs.existsSync(path.join(RAIZ, '.context'))) recorrer(path.join(RAIZ, '.context'))
+if (fs.existsSync(path.join(ROOT, '.context'))) walk(path.join(ROOT, '.context'))
 
-const borrados = git('log', '--all', '--diff-filter=D', '--name-only', '--format=').split('\n').filter(Boolean)
+const deleted = git('log', '--all', '--diff-filter=D', '--name-only', '--format=').split('\n').filter(Boolean)
 
-/* ── LOS DOS ÍNDICES DE NOMBRES ── */
-const DEFINICION = '((export[[:space:]]+)?(const|let|var|function|type|interface|class)[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*)|(^[-+]?[[:space:]]*[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*:)'
-const NOMBRE_SOLO = "grep -oE '[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*:?$' | tr -d ' :' | sort -u"
-const sh = (cmd) => execSync(cmd, { cwd: RAIZ, maxBuffer: 1 << 28, shell: '/bin/bash' }).toString().trim().split('\n').filter(Boolean)
+/* ── THE TWO INDEXES OF NAMES ── */
+const DEFINITION = '((export[[:space:]]+)?(const|let|var|function|type|interface|class)[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*)|(^[-+]?[[:space:]]*[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*:)'
+const NAME_ONLY = "grep -oE '[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*:?$' | tr -d ' :' | sort -u"
+const sh = (cmd) => execSync(cmd, { cwd: ROOT, maxBuffer: 1 << 28, shell: '/bin/bash' }).toString().trim().split('\n').filter(Boolean)
 
-const definidosHoy = new Set(sh(`git ls-files -z | xargs -0 grep -hoE '${DEFINICION}' 2>/dev/null | ${NOMBRE_SOLO}`))
+const definedToday = new Set(sh(`git ls-files -z | xargs -0 grep -hoE '${DEFINITION}' 2>/dev/null | ${NAME_ONLY}`))
 
-/* Un solo recorrido de la historia, CACHEADO por commit: es el paso caro
-   (~11 s) y sin caché el loop de corregir-y-volver-a-correr cuesta dos
-   minutos por vuelta. */
-const CACHE = path.join(RAIZ, '.context/referencias-historia.txt')
-/* El sello es HEAD y NADA MÁS. La primera versión sumaba
-   `git rev-list --all --count`, y con varios worktrees en paralelo eso
-   cambia cada vez que otra rama commitea: el caché no se usaba nunca. El
-   índice se arma de `--all`, así que una rama ajena puede agregarle
-   nombres; el precio de no verlos hasta que HEAD se mueva es que una
-   referencia recién muerta EN OTRA RAMA no se detecta acá, que es
-   exactamente donde no importa. */
-const sello = git('rev-parse', 'HEAD').trim()
-let existieron
-if (fs.existsSync(CACHE) && fs.readFileSync(CACHE, 'utf8').split('\n')[0] === sello) {
-  existieron = new Set(fs.readFileSync(CACHE, 'utf8').split('\n').slice(1).filter(Boolean))
+/* One single pass over the history, CACHED by commit: it is the
+   expensive step (~11 s) and without a cache the fix-and-run-again loop
+   costs two minutes per round. */
+const CACHE = path.join(ROOT, '.context/references-history.txt')
+/* The stamp is HEAD and NOTHING ELSE. The first version added
+   `git rev-list --all --count`, and with several worktrees in parallel
+   that changes every time another branch commits: the cache was never
+   used. The index is built from `--all`, so a branch that is not yours
+   can add names to it; the price of not seeing them until HEAD moves is
+   that a reference that just died ON ANOTHER BRANCH is not detected
+   here, which is exactly where it does not matter. */
+const stamp = git('rev-parse', 'HEAD').trim()
+let definedEver
+if (fs.existsSync(CACHE) && fs.readFileSync(CACHE, 'utf8').split('\n')[0] === stamp) {
+  definedEver = new Set(fs.readFileSync(CACHE, 'utf8').split('\n').slice(1).filter(Boolean))
 } else {
-  existieron = new Set(sh(
+  definedEver = new Set(sh(
     `git log --all --format= -U0 -p -- '*.ts' '*.tsx' '*.mjs' '*.js' '*.md' '*.css' '*.swift' 2>/dev/null` +
-    ` | grep -E '^[-+]' | grep -oE '${DEFINICION}' | ${NOMBRE_SOLO}`,
+    ` | grep -E '^[-+]' | grep -oE '${DEFINITION}' | ${NAME_ONLY}`,
   ))
   fs.mkdirSync(path.dirname(CACHE), { recursive: true })
-  fs.writeFileSync(CACHE, sello + '\n' + [...existieron].join('\n'))
+  fs.writeFileSync(CACHE, stamp + '\n' + [...definedEver].join('\n'))
 }
-/* Para el segundo discriminador: la forma normalizada de lo que hay hoy. */
-const formaDeHoy = new Set([...definidosHoy].map((n) => n.toLowerCase().replace(/_/g, '')))
+/* For the second discriminator: the normalized form of what exists today. */
+const normalizedToday = new Set([...definedToday].map((n) => n.toLowerCase().replace(/_/g, '')))
 
-/* ¿El nombre aparece EN CÓDIGO, fuera de un backtick? Un nombre vivo se
-   usa; uno muerto sólo se menciona. Los `.md` no cuentan: son prosa. */
-const codigo = [...contenido].filter(([f]) => /\.(ts|tsx|mjs|js|css|swift)$/.test(f))
+/* Does the name appear IN CODE, outside a backtick? A live name gets
+   used; a dead one only gets mentioned. The `.md` files do not count:
+   they are prose. */
+const code = [...contents].filter(([f]) => /\.(ts|tsx|mjs|js|css|swift)$/.test(f))
   .map(([, s]) => s.replace(/`[^`\n]*`/g, ' ')).join('\n')
-const seUsa = (n) => new RegExp(`\\b${n}\\b`).test(codigo)
+const isUsed = (n) => new RegExp(`\\b${n}\\b`).test(code)
 
 const EXT = /\.(ts|tsx|mjs|js|md|css|swift|py|sh|json|png|wav|caf|mp4|mov|webm)$/
-/* Ni una extensión suelta (`.tsx`) ni un molde (`src/notas/<slug>.tsx`)
-   son una referencia a un archivo. */
-const esPlaceholder = (r) => /[<>*{}]/.test(r) || r.startsWith('.') && !r.includes('/')
-const existeArchivo = (ref, desdeDir) => {
-  const limpio = ref.replace(/^\.\//, '')
-  const base = path.basename(limpio)
-  if (fs.existsSync(path.join(RAIZ, limpio)) || fs.existsSync(path.join(RAIZ, desdeDir, limpio))) return true
-  if (rastreados.some((f) => f === limpio || f.endsWith('/' + base))) return true
-  return enContexto.has(base)
+/* Neither a bare extension (`.tsx`) nor a mold (`src/notes/<slug>.tsx`)
+   is a reference to a file. */
+const isPlaceholder = (r) => /[<>*{}]/.test(r) || r.startsWith('.') && !r.includes('/')
+const fileExists = (ref, fromDir) => {
+  const clean = ref.replace(/^\.\//, '')
+  const base = path.basename(clean)
+  if (fs.existsSync(path.join(ROOT, clean)) || fs.existsSync(path.join(ROOT, fromDir, clean))) return true
+  if (tracked.some((f) => f === clean || f.endsWith('/' + base))) return true
+  return inContext.has(base)
 }
-/* QUÉ SE MIRA Y QUÉ NO, después de leer los 23 primeros hallazgos.
-   Nuestros nombres son CONSTANTES EN MAYÚSCULAS, solas o encabezando un
-   campo (`HOLD.duracion`, `COMMIT.veloBlanco`). Eso deja afuera, sin
-   nombrar a ninguno, todo lo que dio falso positivo: APIs de librerías
-   (`ReduceMotion.Never`, `props.fallback`), del navegador
-   (`history.pushState`, `console.log`), valores del DOM (`BODY`),
-   bundles (`Taller.app`) y prosa (`undefined.map`). De un nombre con
-   punto se mira SÓLO el primero: el segundo casi siempre es de otro. */
-const primerSegmento = (r) => r.replace(/\(\)$/, '').split('.')[0]
-const esNombreNuestro = (r) =>
-  !r.endsWith('()') && /^[A-Z][A-Z0-9_]{2,}$/.test(primerSegmento(r)) && !primerSegmento(r).endsWith('_')
+/* WHAT IS LOOKED AT AND WHAT IS NOT, after reading the first 23
+   findings. Our names are CONSTANTS IN CAPITALS, alone or heading a
+   field (`HOLD.duration`, `COMMIT.whiteVeil`). That leaves out, without
+   naming a single one, everything that gave a false positive: library
+   APIs (`ReduceMotion.Never`, `props.fallback`), browser ones
+   (`history.pushState`, `console.log`), DOM values (`BODY`), bundles
+   (`Workshop.app`) and prose (`undefined.map`). Of a name with a dot
+   only the first part is looked at: the second one almost always
+   belongs to someone else. */
+const firstSegment = (r) => r.replace(/\(\)$/, '').split('.')[0]
+const isOurName = (r) =>
+  !r.endsWith('()') && /^[A-Z][A-Z0-9_]{2,}$/.test(firstSegment(r)) && !firstSegment(r).endsWith('_')
 
-const muertos = []
-const ajenos = []
-const sinVerificar = []
-for (const [f, src] of contenido) {
+const dead = []
+const foreign = []
+const unverified = []
+for (const [f, src] of contents) {
   const dir = path.dirname(f)
   src.split('\n').forEach((l, i) => {
     for (const m of l.matchAll(/`([^`\n]{2,80})`/g)) {
       const ref = m[1].trim()
-      const donde = { archivo: f, linea: i + 1, ref, texto: l.trim().slice(0, 120) }
-      if (EXT.test(ref) && !/\s/.test(ref) && !esPlaceholder(ref)) {
-        if (existeArchivo(ref, dir)) continue
+      const where = { file: f, line: i + 1, ref, text: l.trim().slice(0, 120) }
+      if (EXT.test(ref) && !/\s/.test(ref) && !isPlaceholder(ref)) {
+        if (fileExists(ref, dir)) continue
         const base = path.basename(ref)
-        /* `.context/` es scratch de cada máquina y está gitignoreado: que
-           un archivo de ahí no esté acá no dice nada sobre el repo. */
-        if (ref.startsWith('.context/')) { sinVerificar.push({ ...donde, tipo: 'archivo' }); continue }
-        const fueBorrado = borrados.some((b) => b === ref || b.endsWith('/' + base))
-        ;(fueBorrado ? muertos : ajenos).push({ ...donde, tipo: 'archivo', motivo: fueBorrado ? 'lo borró un commit' : 'nunca estuvo' })
-      } else if (esNombreNuestro(ref)) {
-        const n = primerSegmento(ref)
-        if (definidosHoy.has(n) || seUsa(n)) continue
-        const existio = existieron.has(n)
-        /* El parecido sólo vale con guión bajo: es el patrón de nuestras
-           constantes, y sin esa condición `BODY` pesca a `body`. */
-        const parecido = n.includes('_') && formaDeHoy.has(n.toLowerCase().replace(/_/g, ''))
-        if (existio) muertos.push({ ...donde, tipo: 'nombre', motivo: `${n} existió en este repo y ya no` })
-        else if (parecido) muertos.push({ ...donde, tipo: 'nombre', motivo: `${n} no existe; sí existe algo escrito de otra forma` })
-        else ajenos.push({ ...donde, tipo: 'nombre', motivo: 'nunca fue de acá' })
+        /* `.context/` is scratch on each machine and it is gitignored: a
+           file from there not being here says nothing about the repo. */
+        if (ref.startsWith('.context/')) { unverified.push({ ...where, kind: 'file' }); continue }
+        const wasDeleted = deleted.some((b) => b === ref || b.endsWith('/' + base))
+        ;(wasDeleted ? dead : foreign).push({ ...where, kind: 'file', reason: wasDeleted ? 'a commit deleted it' : 'never was here' })
+      } else if (isOurName(ref)) {
+        const n = firstSegment(ref)
+        if (definedToday.has(n) || isUsed(n)) continue
+        const existed = definedEver.has(n)
+        /* The resemblance only counts with an underscore: it is the
+           pattern of our constants, and without that condition `BODY`
+           catches `body`. */
+        const resembles = n.includes('_') && normalizedToday.has(n.toLowerCase().replace(/_/g, ''))
+        if (existed) dead.push({ ...where, kind: 'name', reason: `${n} existed in this repo and does not any more` })
+        else if (resembles) dead.push({ ...where, kind: 'name', reason: `${n} does not exist; something written another way does` })
+        else foreign.push({ ...where, kind: 'name', reason: 'never was from here' })
       }
     }
   })
 }
 
-if (muertos.length) {
-  console.log(`MUERTAS (${muertos.length}) — el repo tuvo esto y ya no:\n`)
-  for (const h of muertos) console.log(`  ${h.archivo}:${h.linea}  \`${h.ref}\` — ${h.motivo}\n      ${h.texto}\n`)
+if (dead.length) {
+  console.log(`DEAD (${dead.length}). The repo had these and does not any more:\n`)
+  for (const hit of dead) console.log(`  ${hit.file}:${hit.line}  \`${hit.ref}\` · ${hit.reason}\n      ${hit.text}\n`)
 } else {
-  console.log('OK: ninguna referencia nombra algo que este repo haya perdido.')
+  console.log('OK: no reference names something this repo has lost.')
 }
-if (TODO && ajenos.length) {
-  console.log(`\nDE AFUERA (${ajenos.length}) — nunca estuvieron acá; casi siempre APIs, teclas o código ajeno medido:\n`)
-  for (const h of ajenos) console.log(`  ${h.archivo}:${h.linea}  \`${h.ref}\``)
+if (ALL && foreign.length) {
+  console.log(`\nFROM OUTSIDE (${foreign.length}). They never were here; almost always APIs, keys or measured code that belongs to someone else:\n`)
+  for (const hit of foreign) console.log(`  ${hit.file}:${hit.line}  \`${hit.ref}\``)
 }
-if (sinVerificar.length) {
-  console.log(`\nSIN VERIFICAR (${sinVerificar.length}) — apuntan a \`.context/\`, que es scratch de cada máquina y no viaja: puede estar en la tuya y no en otra.`)
-  if (TODO) for (const h of sinVerificar) console.log(`  ${h.archivo}:${h.linea}  \`${h.ref}\``)
+if (unverified.length) {
+  console.log(`\nUNVERIFIED (${unverified.length}). They point at \`.context/\`, which is scratch on each machine and does not travel: it can be on yours and not on another.`)
+  if (ALL) for (const hit of unverified) console.log(`  ${hit.file}:${hit.line}  \`${hit.ref}\``)
 }
-console.log(`\n${archivos.length} archivos · ${definidosHoy.size} nombres hoy · ${existieron.size} en la historia · ${muertos.length} muertas · ${ajenos.length} de afuera · ${sinVerificar.length} sin verificar${TODO ? '' : ' (--todo)'}`)
-process.exit(muertos.length ? 1 : 0)
+console.log(`\n${files.length} files · ${definedToday.size} names today · ${definedEver.size} in the history · ${dead.length} dead · ${foreign.length} from outside · ${unverified.length} unverified${ALL ? '' : ' (--all)'}`)
+process.exit(dead.length ? 1 : 0)

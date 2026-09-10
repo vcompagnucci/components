@@ -1,147 +1,156 @@
-import { Seccion } from '../../../notes'
+import { Section } from '../../../notes'
 
-/* Las notas de Hold to commit. Todo lo de acá está en el registro: el
-   README (§ Hold to commit), `medidas.ts` y `receta.ts` de la pieza, y
-   las mediciones de `.context/hold-to-commit/`. Si una frase deja de ser
-   cierta, se corrige acá Y allá: el texto público no es un resumen
-   libre, es la misma evidencia contada para alguien que llega de afuera.
+/* The notes of Hold to buy. Everything here is in the record: the
+   README (§ Hold to commit), the piece's `measurements.ts` and
+   `recipe.ts`, and the measurements in `.context/hold-to-commit/`. If a
+   sentence stops being true, it gets fixed here AND there: the public
+   text is not a free summary, it is the same evidence told for someone
+   arriving from outside.
 
-   EL PROCEDIMIENTO ES EL DE AGENTS.md › Cómo se escriben la línea y las
-   notas, el que fijó Swipeable tabs. Lo que sigue son los recibos de
-   ESTA página, uno por decisión.
+   THE PROCEDURE IS THE ONE IN AGENTS.md › How the line and the notes
+   are written, the one Swipe between tabs settled. What follows are the
+   receipts of THIS page, one per decision.
 
-   SIN LÍNEA DE DESCRIPCIÓN. Es la primera regla: el título ya dice qué
-   es el gesto. "Hold to commit" son catorce caracteres y nombra la
-   acción; una línea abajo sólo la repetiría.
+   NO DESCRIPTION LINE. It is the first rule: the title already says
+   what the gesture is. "Hold to buy" is eleven characters and it names
+   the action; a line under it would only repeat it.
 
-   EL TONO, leído servido el 2026-09-08, no de memoria. De josh puckett
-   (joshpuckett.me /bloom, /pasito, /melt-effect) se toma la medida: 19
-   párrafos de prosa suya dan mediana de 25 palabras y 2 oraciones, con
-   oraciones de 12 palabras de promedio. Y la forma de abrir: la primera
-   palabra del párrafo es el sujeto del hecho, nunca un anuncio de lo
-   que sigue. La secuencia se escribe con "then", en orden, en una sola
-   oración ("Automatically sizes to fit the trigger content, then
-   animates to the menu dimensions"). De benji (benji.org, "How it
-   works" de /liveline) se toma la prosa que va de lo que se siente al
-   mecanismo sin volverse un changelog.
+   THE TONE, read served on 2026-09-08, not from memory. The measure
+   comes from josh puckett (joshpuckett.me /bloom, /pasito,
+   /melt-effect): 19 paragraphs of his prose give a median of 25 words
+   and 2 sentences, with sentences of 12 words on average. And the way
+   he opens a paragraph: the first word is the subject of the fact,
+   never an announcement of what follows. The sequence is written with
+   "then", in order, in a single sentence ("Automatically sizes to fit
+   the trigger content, then animates to the menu dimensions"). From
+   benji (benji.org, the "How it works" of /liveline) comes the prose
+   that goes from what you feel to the mechanism without turning into a
+   changelog.
 
-   PERSONA. Cero "I" y cero "we": en las dos páginas de referencia de
-   josh (/pasito, /bloom) no hay ninguno, y el "we" aparece sólo en el
-   tutorial. "You" es quien mantiene apretado el botón.
+   PERSON. Zero "I" and zero "we": in josh's two reference pages
+   (/pasito, /bloom) there is not one of either, and the "we" shows up
+   only in the tutorial. "You" is whoever holds the button down.
 
-   UN SOLO NOMBRE POR COSA, en toda la página y no por sección, que es
-   la falla que `better-writing` más encuentra acá. Las decisiones:
-   "the fill" para el brillo que cruza (nunca "sweep" ni "glow"), "the
-   label" para el texto, "haptic detents" para la háptica, "checkmark"
-   para el glifo y "tap" SÓLO para el dedo. La primera versión decía
-   "taps" para la háptica en Anatomy y "tick" en Performance, con "tap"
-   ya ocupado en Use cases. Y "tick" tuvo que salir del todo cuando
-   entró el tilde al texto: en inglés un tilde ES un tick, así que la
-   misma palabra nombraba el glifo y el pulso háptico. "Detent" —un tope
-   mecánico que se siente— es además el nombre que el código ya usaba
-   (`DETENTES` en `haptica.ts`).
+   ONE NAME PER THING, across the whole page and not per section, which
+   is the failure `better-writing` finds most here. The decisions: "the
+   fill" for the sheen that crosses (never "sweep" or "glow"), "the
+   label" for the text, "haptic detents" for the haptics, "checkmark"
+   for the glyph and "tap" ONLY for the finger. The first version said
+   "taps" for the haptics in Anatomy and "tick" in Performance, with
+   "tap" already taken in Use cases. And "tick" had to go altogether
+   when the checkmark entered the text: in English a checkmark IS a
+   tick, so the same word named the glyph and the haptic pulse.
+   "Detent", a mechanical stop you can feel, is also the name the code
+   already used (`DETENTS` in `haptics.ts`).
 
-   ANATOMY HABLA SÓLO DEL BOTÓN. La ficha financiera que se ve detrás en
-   el video (el gráfico, el selector de rango, las filas) es esqueleto y
-   no entra: es lo mismo que se decidió con los tabs. La referencia se
-   nombra en el cierre, junto con cómo se midió.
+   ANATOMY TALKS ABOUT THE BUTTON ONLY. The financial card behind it in
+   the video (the chart, the range picker, the rows) is skeleton and
+   does not go in: it is the same thing that was decided with the tabs.
+   The reference is named in the closing, together with how it was
+   measured.
 
-   MUCHO MÁS CORTA (2026-09-08, "hacela muchísima más corta, y fiel al
-   código"). De 750 palabras y 12 párrafos a 396 y 9: un 47 %, en dos
-   pasadas y sumando tres hechos nuevos en el medio (el borde, el
-   centrado óptico y el teléfono). Lo que se fue: el párrafo del reinicio (es del taller, no de la pieza), el que
-   contaba cómo está hecho el relleno y el label (implementación, y la
-   regla del repo es escribir desde lo que se ve), el de la latencia de
-   la háptica desmenuzada, y la lista de acciones de ejemplo de Use
-   cases. Ninguna afirmación se tocó: se borraron enteras las que
-   sobraban.
+   MUCH SHORTER (2026-09-08, "make it way shorter, and faithful to the
+   code"). From 750 words and 12 paragraphs to 396 and 9: 47 %, in two
+   passes and adding three new facts along the way (the border, the
+   optical centering and the phone). What went: the paragraph about the
+   reset (that one belongs to the workshop, not to the piece), the one
+   that told how the fill and the label are made (implementation, and
+   the repo's rule is to write from what you see), the one that broke
+   the haptic latency down, and the list of example actions in Use
+   cases. No claim was touched: the ones left over were deleted whole.
 
-   LO QUE SE MENCIONA DE LOS SKILLS, Y LO QUE NO. Entra sólo lo que un
-   lector puede VER o sentir en la pieza, con su recibo:
-     · `animate-expo`: corre en el hilo de UI y no en el de JavaScript
-       (`boton.tsx`, todo el gesto en worklets); sólo transform y opacity
-       (el color del label es opacidad de tandas apiladas,
-       `etiqueta.tsx`); reduce motion (`useReducedMotion`); la háptica
-       nunca es el único feedback (`haptica.ts` + el relleno); el texto
-       sigue a Dynamic Type (`TEXTO.escalaMaxima`); el reconocedor y el
-       relleno leen la MISMA constante (`HOLD.duracion`).
-     · `better-ui`: interrumpible (volver a apretar durante la retirada
-       retoma desde donde está, `boton.tsx:apretar`); alineación óptica
-       ("the checkmark and the words are centered by eye, not by box",
-       la corrección medida de −6.6 pt, `LABEL.correccionOptica` en
-       `medidas.ts`); y sombras para
-       elevación en vez de un borde que sólo daba profundidad, que es
-       también lo que contesta la lente de crítica de `interface-craft`
-       ("do outlines add structure or noise?").
-   LA FRASE DE LA SOMBRA ES CONDICIONAL a propósito: "lifted by a shadow
-   on light backgrounds". Una sombra negra sobre el fondo negro del modo
-   oscuro no se ve, así que decir que la sombra lleva el borde sería
-   falso en la mitad de los casos.
-   NO entra lo que es craft del código y el lector no puede comprobar:
-   el storyboard, la etapa única, los tiempos con nombre en un solo
-   lugar y el data-driven de `interface-craft` son sobre la fuente, no
-   sobre la pieza.
+   WHAT GETS MENTIONED FROM THE SKILLS, AND WHAT DOES NOT. Only what a
+   reader can SEE or feel in the piece goes in, with its receipt:
+     · `animate-expo`: it runs on the UI thread and not on the
+       JavaScript one (`hold-to-commit.tsx`, the whole gesture in
+       worklets); transform and opacity only (the label color is the
+       opacity of stacked batches, `label.tsx`); reduce motion
+       (`useReducedMotion`); the haptics are never the only feedback
+       (`haptics.ts` plus the fill); the text follows Dynamic Type
+       (`TEXT.maxScale`); the recognizer and the fill read the SAME
+       constant (`HOLD.duration`).
+     · `better-ui`: interruptible (pressing again during the retreat
+       picks up from where it is, `hold-to-commit.tsx:press`); optical
+       alignment ("the checkmark and the words are centered by eye, not
+       by box", the measured correction of −6.6 pt,
+       `LABEL.opticalCorrection` in `measurements.ts`); and shadows for
+       elevation instead of a border that only gave depth, which is
+       also what answers the critique lens of `interface-craft` ("do
+       outlines add structure or noise?").
+   THE SHADOW SENTENCE IS CONDITIONAL on purpose: "lifted by a shadow
+   on light backgrounds". A black shadow on the black background of
+   dark mode cannot be seen, so saying that the shadow carries the
+   border would be false in half the cases.
+   What does NOT go in is the craft of the code, which the reader
+   cannot check: the storyboard, the single stage, the named timings in
+   one place and the data-driven of `interface-craft` are about the
+   source, not about the piece.
 
-   LA RETIRADA SE CUENTA AUNQUE EL VIDEO NO LA MUESTRE. La grabación es
-   un solo gesto de punta a punta desde el 2026-09-08 (Vito: "que en la
-   grabación se ejecute todo de una, sacá esa parte del principio que se
-   aprieta el botón y se corta en la mitad"), así que soltar antes ya no
-   se ve. Sigue en el texto porque es la mitad del mecanismo: un botón
-   que se puede abandonar es lo que hace que mantener apretado sea una
-   confirmación y no una traba. Va escrita como propiedad del botón
-   ("Let go early and…"), no como algo que el lector esté viendo.
+   THE RETREAT IS TOLD EVEN THOUGH THE VIDEO DOES NOT SHOW IT. The
+   recording is a single gesture end to end since 2026-09-08 (Vito:
+   "have the recording run everything in one go, take out that part at
+   the start where the button gets pressed and it cuts in the middle"),
+   so letting go early is no longer on screen. It stays in the text
+   because it is half the mechanism: a button you can abandon is what
+   makes holding a confirmation and not a lock. It is written as a
+   property of the button ("Let go early and…"), not as something the
+   reader is watching.
 
-   LO QUE NO SE AFIRMA, Y POR QUÉ. No se dice que el hold mida un
-   segundo con 4 ms de error, aunque la tabla del README lo tenga: esa
-   medición sale de la sonda `auto`, que dispara `apretar` y `completar`
-   con dos `setTimeout` de JavaScript (`boton.tsx`), así que mide la
-   puntería de esos timers y no el reloj del reconocedor de gestos. Lo
-   que sí se afirma es lo que la medición sí prueba: que el reconocedor
-   y el relleno leen la misma constante (`HOLD.duracion`), y los cuadros
-   perdidos.
+   WHAT IS NOT CLAIMED, AND WHY. It does not say that the hold measures
+   one second with 4 ms of error, even though the README's table has
+   it: that measurement comes from the `auto` probe, which fires
+   `press` and `complete` with two JavaScript `setTimeout`s
+   (`hold-to-commit.tsx`), so it measures the aim of those timers and
+   not the clock of the gesture recognizer. What it does claim is what
+   the measurement does prove: that the recognizer and the fill read
+   the same constant (`HOLD.duration`), and the dropped frames.
 
-   EL TELÉFONO ENTRA COMO PRUEBA, NO COMO MEDICIÓN (2026-09-09, Vito:
-   "ya testeado en celular real"). La frase es "Measured on the iOS
-   Simulator and an Android emulator, and tested on a phone, where the
-   haptic can be felt", y los dos verbos son distintos a propósito: los
-   NÚMEROS de esa sección siguen saliendo del simulador y del emulador,
-   que es de donde salieron, y del teléfono sale lo único que sólo se
-   puede saber ahí. El simulador no vibra —lo dice el encabezado de
-   `haptica.ts`, y por eso toda esa pista está marcada SIN RECIBO—, así
-   que la háptica es la parte de la pieza que no se puede juzgar de otra
-   manera. Lo que NO se escribe es un cuadro por segundo ni una latencia
-   medidos en un teléfono: esos no existen.
+   THE PHONE COMES IN AS PROOF, NOT AS MEASUREMENT (2026-09-09, Vito:
+   "already tested on a real phone"). The sentence is "Measured on the
+   iOS Simulator and an Android emulator, and tested on a phone, where
+   the haptic can be felt", and the two verbs are different on purpose:
+   the NUMBERS in that section still come from the simulator and the
+   emulator, which is where they came from, and from the phone comes
+   the one thing you can only know there. The simulator does not
+   vibrate, the header of `haptics.ts` says so and that is why the
+   whole haptic track is marked NO RECEIPT, so the haptics are the part
+   of the piece you cannot judge any other way. What is NOT written is
+   a frame rate or a latency measured on a phone: those do not exist.
 
-   LOS NÚMEROS, verificados contra el código el 2026-09-08: 46 puntos en
-   la ráfaga (`medidas.ts`, PARTICULAS.cantidad); 36 chispas en 12
-   vistas (CHISPAS.vistas 12 × vidasPorVista 3); 12 detentes hápticos
-   (`haptica.ts`, DETENTES); el label empieza a oscurecerse al 55 % del
-   recorrido (HOLD.tintaDesde); la retirada al soltar dura 400 ms
-   (HOLD.retirada); el hold dura 1000 ms (HOLD.duracion). Los cuadros
-   bajo carga y las latencias con el hilo bloqueado están en el README.
+   THE NUMBERS, checked against the code on 2026-09-08: 46 points in
+   the burst (`measurements.ts`, PARTICLES.count); 36 sparks over 12
+   views (SPARKS.views 12 × livesPerView 3); 12 haptic detents
+   (`haptics.ts`, DETENTS); the label starts to darken at 55 % of the
+   travel (HOLD.inkFrom); the retreat on release lasts 400 ms
+   (HOLD.retreat); the hold lasts 1000 ms (HOLD.duration). The frames
+   under load and the latencies with the thread blocked are in the
+   README.
 
-   USE CASES SIN CITAR A NADIE. Los conceptos y los números salen de la
-   guía de interfaz de Apple, leída el 2026-09-08 por su API de
-   documentación (developer.apple.com/tutorials/data/design/human-
-   interface-guidelines/<slug>.json; la página HTML se arma con
-   JavaScript y devuelve sólo el título). Entran como explicación y
-   dichos en llano como propios, nunca como autoridad y sin nombrarla,
-   que es la regla de AGENTS.md. Los dos que quedaron en el texto corto:
-     · «Avoid displaying alerts for common, undoable actions, even when
-       they're destructive. […] when people take an uncommon destructive
-       action that they can't undo, it's important to display an alert»
-       (feedback.json) → el primer párrafo y el tercero.
-     · «Offer alternatives to gestures. […] offer onscreen ways to
-       achieve the same outcome» (accessibility.json) → el cierre.
+   USE CASES WITHOUT CITING ANYONE. The concepts and the numbers come
+   from Apple's interface guidelines, read on 2026-09-08 through their
+   documentation API (developer.apple.com/tutorials/data/design/human-
+   interface-guidelines/<slug>.json; the HTML page is assembled with
+   JavaScript and returns the title only). They come in as explanation
+   and are said plainly as our own, never as authority and without
+   naming them, which is the rule in AGENTS.md. The two that stayed in
+   the short text:
+     · "Avoid displaying alerts for common, undoable actions, even when
+       they're destructive. [...] when people take an uncommon
+       destructive action that they can't undo, it's important to
+       display an alert" (feedback.json) → the first paragraph and the
+       third.
+     · "Offer alternatives to gestures. [...] offer onscreen ways to
+       achieve the same outcome" (accessibility.json) → the closing.
 
-   SIN RAYA en el texto público, ni em dash ni en dash: donde salía una,
-   son dos oraciones o son dos puntos. Los guiones de palabra compuesta
-   se quedan. La regla es del texto público; en estos comentarios en
-   castellano la raya es puntuación normal. */
-export default function Notas() {
+   NO DASH in the public text, neither em dash nor en dash: where one
+   showed up, there are two sentences or there is a colon. Hyphens
+   inside a compound word stay. The rule is for the public text, not
+   for these comments, which were written in Spanish, where the dash is
+   ordinary punctuation. */
+export default function Notes() {
   return (
     <>
-      <Seccion titulo="Anatomy">
+      <Section title="Anatomy">
         <p>
           React Native, with Expo. The button is a capsule with a label at its center. Touch and
           hold, and a white fill crosses it at a constant rate: the fill is the progress, not a bar
@@ -167,9 +176,9 @@ export default function Notas() {
           The reference is the hold button in Opal, the screen time app on iOS, measured frame by
           frame at 60 fps.
         </p>
-      </Seccion>
+      </Section>
 
-      <Seccion titulo="Performance">
+      <Section title="Performance">
         <p>
           Everything that moves is computed on the UI thread, not the JavaScript thread. A native
           recognizer times the hold and reads the same duration as the fill, so they cannot drift
@@ -181,9 +190,9 @@ export default function Notas() {
           thread, the haptic and the sound. Measured on the iOS Simulator and an Android emulator,
           and tested on a phone, where the haptic can be felt.
         </p>
-      </Seccion>
+      </Section>
 
-      <Seccion titulo="Use cases">
+      <Section title="Use cases">
         <p>
           A hold fits an uncommon action that cannot be undone and would be too easy to start by
           accident. The confirmation happens inside the button: no separate surface and no extra
@@ -194,7 +203,7 @@ export default function Notas() {
           it. And a hold cannot be the only path: someone who cannot press and wait needs another
           way to the same outcome.
         </p>
-      </Seccion>
+      </Section>
     </>
   )
 }

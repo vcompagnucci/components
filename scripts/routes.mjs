@@ -1,64 +1,67 @@
-/* Genera vercel.json desde pieces.ts.
+/* Generates vercel.json from pieces.ts.
 
-   El host tiene que servir index.html SÓLO para las rutas que existen,
-   y devolver un 404 de verdad para todo lo demás — que es lo que hacen
-   benji y josh, medido con curl. Un fallback ciego a index.html daría
-   200 en cualquier URL inventada.
+   The host has to serve index.html ONLY for the routes that exist, and
+   return a real 404 for everything else, which is what benji and josh
+   do, measured with curl. A blind fallback to index.html would give 200
+   on any made-up URL.
 
-   Se genera y no se escribe a mano porque escribirla a mano es duplicar
-   pieces.ts en un archivo que nadie mira: el día que se agregue una
-   pieza, su URL daría 404 en producción y nada lo diría. Corre en
-   prebuild, así no se puede publicar desincronizado.
+   It is generated and not written by hand because writing it by hand is
+   duplicating pieces.ts into a file nobody looks at: the day a piece
+   gets added, its URL would 404 in production and nothing would say so.
+   It runs in prebuild, so it cannot be published out of sync.
 
-   IMPORTA pieces.ts DE VERDAD, no lo lee con un regex. Acá vivía un
-   matchAll de `name: '...'` con su propia copia del slug, y las dos
-   cosas eran deuda: el regex se rompía en silencio si el archivo
-   cambiaba de forma (por eso existía el guard de "vacío a propósito"),
-   y el slug copiado divergía del de la página. Node ≥24 —que engines ya
-   exige— corre TypeScript sin tipos ejecutables, así que se puede leer
-   la lista real. Si pieces.ts no compila, esto revienta acá y el build
-   no sale: mismo freno, sin regex. El slug de cada pieza es un CAMPO de
-   su entrada desde el 2026-09-10, no una cuenta sobre el nombre: acá se
-   lee, no se calcula. */
+   IT IMPORTS pieces.ts FOR REAL, it does not read it with a regex.
+   There used to be a matchAll of `name: '...'` here with its own copy
+   of the slug, and both things were debt: the regex broke in silence if
+   the file changed shape (that is why the "empty on purpose" guard
+   existed), and the copied slug drifted from the page's. Node ≥24,
+   which engines already requires, runs TypeScript without executable
+   types, so the real list can be read. If pieces.ts does not compile,
+   this blows up here and the build does not come out: same brake,
+   without a regex. Each piece's slug is a FIELD of its entry since
+   2026-09-10, not a computation over the name: here it gets read, not
+   computed. */
 import { writeFileSync, readFileSync } from 'node:fs'
 import { PIECES } from '../src/pieces.ts'
 
-const rutas = PIECES.map((p) => p.slug)
+const routes = PIECES.map((p) => p.slug)
 
-const INMUTABLE = 'public, max-age=31536000, immutable'
+const IMMUTABLE = 'public, max-age=31536000, immutable'
 
 const config = {
   $schema: 'https://openapi.vercel.sh/vercel.json',
-  /* La barra final redirige al canónico con 308, como los dos. */
+  /* The trailing slash redirects to the canonical with a 308, like both
+     of them. */
   trailingSlash: false,
-  /* Sin piezas no hay rewrite: sólo existe `/`, y cualquier otra URL
-     recibe el 404 del host. */
-  ...(rutas.length
-    ? { rewrites: [{ source: `/:pieza(${rutas.join('|')})`, destination: '/index.html' }] }
+  /* With no pieces there is no rewrite: only `/` exists, and any other
+     URL gets the host's 404. */
+  ...(routes.length
+    ? { rewrites: [{ source: `/:pieza(${routes.join('|')})`, destination: '/index.html' }] }
     : {}),
-  /* EL CACHÉ, y va acá y no en vercel.json a mano porque este script
-     PISA ese archivo entero en cada prebuild. Se intentó dos veces
-     editarlo directo y las dos veces el build lo borró sin decir nada.
+  /* THE CACHE, and it goes here and not in vercel.json by hand because
+     this script OVERWRITES that whole file on every prebuild. Editing
+     it directly was tried twice and both times the build deleted it
+     without saying anything.
 
-     Sin esta sección Vercel contesta `public, max-age=0,
-     must-revalidate` para TODO —medido con curl contra producción el
-     2026-09-10, incluido el JS con hash de contenido—, así que cada
-     recarga vuelve a bajar el sitio entero. Ése era el síntoma.
+     Without this section Vercel answers `public, max-age=0,
+     must-revalidate` for EVERYTHING (measured with curl against
+     production on 2026-09-10, including the JS with a content hash), so
+     every reload downloads the whole site again. That was the symptom.
 
-     La regla es una sola: si el nombre del archivo cambia cuando
-     cambia el archivo, se puede cachear para siempre. */
+     The rule is a single one: if the name of the file changes when the
+     file changes, it can be cached forever. */
   headers: [
-    /* Vite les pone hash de contenido: `index-Q3GrExxQ.js`. Un cambio
-       cambia el nombre, así que `immutable` no puede servir nada
-       viejo. */
-    { source: '/assets/(.*)', headers: [{ key: 'Cache-Control', value: INMUTABLE }] },
-    /* Nombre estable, pero una fuente no cambia. SI ALGUNA VEZ CAMBIA
-       HAY QUE RENOMBRAR EL ARCHIVO: el que ya la tenga se queda un año
-       con la vieja. */
-    { source: '/fonts/(.*)', headers: [{ key: 'Cache-Control', value: INMUTABLE }] },
-    /* Los videos también tienen nombre estable y SÍ se regraban, así
-       que acá no va `immutable`: un día de caché —la recarga sale
-       instantánea— y treinta de revalidación en segundo plano. */
+    /* Vite gives them a content hash: `index-Q3GrExxQ.js`. A change
+       changes the name, so `immutable` cannot serve anything old. */
+    { source: '/assets/(.*)', headers: [{ key: 'Cache-Control', value: IMMUTABLE }] },
+    /* Stable name, but a font does not change. IF IT EVER CHANGES THE
+       FILE HAS TO BE RENAMED: whoever already has it stays a year with
+       the old one. */
+    { source: '/fonts/(.*)', headers: [{ key: 'Cache-Control', value: IMMUTABLE }] },
+    /* The videos also have a stable name and they DO get recorded
+       again, so `immutable` does not go here: one day of cache (the
+       reload comes out instant) and thirty of revalidation in the
+       background. */
     {
       source: '/pieces/(.*)',
       headers: [
@@ -68,16 +71,16 @@ const config = {
   ],
 }
 
-const salida = new URL('../vercel.json', import.meta.url)
-const texto = JSON.stringify(config, null, 2) + '\n'
-const antes = (() => {
+const output = new URL('../vercel.json', import.meta.url)
+const text = JSON.stringify(config, null, 2) + '\n'
+const before = (() => {
   try {
-    return readFileSync(salida, 'utf8')
+    return readFileSync(output, 'utf8')
   } catch {
     return ''
   }
 })()
-writeFileSync(salida, texto)
+writeFileSync(output, text)
 console.log(
-  `vercel.json ${antes === texto ? 'sin cambios' : 'actualizado'} — ${rutas.length} rutas: ${rutas.join(' ')}`,
+  `vercel.json ${before === text ? 'unchanged' : 'updated'} · ${routes.length} routes: ${routes.join(' ')}`,
 )

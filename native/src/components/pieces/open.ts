@@ -1,15 +1,16 @@
-/* ABRIR DIRECTO EN UNA PIEZA — perilla de desarrollo del taller.
+/* OPEN STRAIGHT INTO A PIECE — a development knob of the workshop.
  *
- * Con una sola pieza el índice no existe: el taller abre en ella. Con dos
- * o más aparece la lista, y eso es lo correcto para elegir, pero no para
- * medir: las sondas (`sonda.ts` de cada pieza) y `pnpm grabar` necesitan
- * que la app arranque en la pieza sin tocar nada, y `simctl openurl`
- * con el esquema del dev client pide confirmación en iOS 26 (no se puede
- * tocar desde la terminal). Así que el slug se escribe ACÁ, Fast Refresh
- * lo aplica, y el índice redirige. Tiene que quedar en `undefined` en el
- * repo: el otro worktree tiene su propia pieza.
+ * With a single piece the index does not exist: the workshop opens into
+ * it. With two or more the list shows up, and that is the right thing
+ * for choosing, but not for measuring: the probes (`probe.ts` of each
+ * piece) and `pnpm record` need the app to start in the piece without
+ * anyone touching anything, and `simctl openurl` with the scheme of the
+ * dev client asks for confirmation on iOS 26 (which cannot be tapped
+ * from the terminal). So the slug is written HERE, Fast Refresh applies
+ * it, and the index redirects. It has to stay `undefined` in the repo:
+ * the other worktree has its own piece.
  *
- * Vive fuera de `src/app/` a propósito: Expo Router convierte en ruta
- * todo archivo que cuelgue de ahí.
+ * It lives outside `src/app/` on purpose: Expo Router turns every file
+ * hanging off there into a route.
  */
-export const ABRIR: string | undefined = undefined
+export const OPEN_IN: string | undefined = undefined

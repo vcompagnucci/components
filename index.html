@@ -10,15 +10,15 @@
       content="Components for web and native apps that feel right."
     />
 
-    <!-- El color del canvas. Pinta la barra del navegador en Android y
-         la de Safari en iOS, así que el borde de la pantalla no corta
-         contra un blanco distinto al de la página. -->
+    <!-- The color of the canvas. It paints the browser bar on Android
+         and Safari's bar on iOS, so the edge of the screen does not cut
+         against a white that differs from the page's. -->
     <meta name="theme-color" content="#fdfdfc" />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    <!-- Open Graph. Sin og:url ni og:image todavía: no hay host elegido
-         y no hay imagen. Se completan al desplegar. -->
+    <!-- Open Graph. No og:url and no og:image yet: no host has been
+         chosen and there is no image. Both get filled in on deploy. -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Interface exhibition" />
     <meta
@@ -26,11 +26,11 @@
       content="Components for web and native apps that feel right."
     />
 
-    <!-- La fuente va self-hosteada (ver src/fonts.css). Se precarga
-         sólo el subset latin en redonda, que es el único que la página
-         necesita siempre; los otros tres los pide el navegador recién
-         si aparece un carácter que los use. crossorigin es obligatorio
-         en preload de fuentes aunque sean del mismo origen. -->
+    <!-- The font is self-hosted (see src/fonts.css). Only the upright
+         latin subset is preloaded, which is the only one the page
+         always needs; the browser asks for the other three only once a
+         character that uses them shows up. crossorigin is mandatory on
+         a font preload even when the font is same-origin. -->
     <link
       rel="preload"
       href="/fonts/InterVariable-latin.woff2"

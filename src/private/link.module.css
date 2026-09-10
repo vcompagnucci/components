@@ -1,65 +1,65 @@
 /* ═══════════════════════════════════════════════════════════════
-   EL LINK DE UNA NOTA — favicon + etiqueta, en línea con el texto.
+   THE LINK IN A NOTE — favicon + label, in line with the text.
 
-   TODO ACÁ ES `inline`, ni flex ni inline-block, y es una decisión y
-   no una omisión. Un chip en flex se alinea mal contra la prosa que lo
-   rodea: la línea base de un contenedor flex sale de su primer hijo, y
-   si ese hijo es una imagen la línea base pasa a ser el borde de abajo
-   de la imagen. En línea normal no hay nada que resolver — el texto se
-   sienta donde se sienta el resto de la nota, se envuelve con ella y
-   el subrayado cae exactamente bajo las letras.
+   EVERYTHING HERE IS `inline`, neither flex nor inline-block, and it is
+   a decision and not an omission. A chip in flex aligns badly against
+   the prose around it: the baseline of a flex container comes from its
+   first child, and if that child is an image the baseline becomes the
+   bottom edge of the image. In normal inline flow there is nothing to
+   solve. The text sits where the rest of the note sits, it wraps with
+   it and the underline falls exactly under the letters.
    ═══════════════════════════════════════════════════════════════ */
 
-/* El ancla NO se subraya: se subraya la etiqueta. Si el subrayado
-   viviera en el <a> correría también por debajo del favicon y de su
-   aire, y se leería como una tachadura larga con un ícono adentro. */
-.enlace {
+/* The anchor is NOT underlined: the label is. If the underline lived on
+   the <a> it would also run under the favicon and its air, and it would
+   read as a long strikethrough with an icon inside. */
+.link {
   text-decoration: none;
 }
 
-/* ─── EL HUECO DEL FAVICON ───
-   14px, no 16: el tamaño de un favicon al lado de texto de 14px es el
-   de una mayúscula, no el de un glifo de interfaz. Los 16 del chevron
-   y del glifo del panel son otro rol —controles en el margen— y acá
-   competirían con la letra.
+/* ─── THE FAVICON'S SLOT ───
+   14px, not 16: the size of a favicon next to 14px text is that of a
+   capital letter, not that of an interface glyph. The 16 of the chevron
+   and of the panel's glyph is another role (controls in the margin) and
+   here they would compete with the letter.
 
-   El hueco existe SIEMPRE. `vertical-align: -2px` lo baja hasta
-   centrarlo ópticamente contra la altura de x: la línea es de 20px y
-   el dibujo de 14, así que centrado geométrico y centrado óptico no
-   son el mismo punto — el texto no ocupa su renglón de forma
-   simétrica. Los 2px salen de mirarlo, que es como se resuelve una
-   alineación óptica. */
-.icono {
+   The slot exists ALWAYS. `vertical-align: -2px` lowers it until it is
+   optically centered against the x-height: the line is 20px and the
+   drawing 14, so geometric centering and optical centering are not the
+   same point, since the text does not fill its line symmetrically. The
+   2px come from looking at it, which is how an optical alignment gets
+   settled. */
+.icon {
   display: inline-block;
   width: 14px;
   height: 14px;
   margin-right: 5px;
   vertical-align: -2px;
 }
-/* `contain` y no `cover`: un favicon apaisado —los hay— se vería
-   recortado en vez de completo, y lo que importa es reconocer el
-   sitio. */
-.icono img {
+/* `contain` and not `cover`: a landscape favicon (there are some) would
+   show up cropped instead of whole, and what matters is recognizing the
+   site. */
+.icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
-/* El subrayado del sistema, con sus dos tokens y su transición. Es la
-   regla global de `a` en tokens.css, movida acá adentro porque en el
-   ancla la apagamos: el subrayado le corresponde a la etiqueta.
+/* The system's underline, with its two tokens and its transition. It is
+   the global `a` rule from tokens.css, moved in here because on the
+   anchor we turn it off: the underline belongs to the label.
 
-   El offset despega la línea de los descendentes —la 'y' de un título,
-   la 'p' de .tsx— sin tocar el layout. */
-.etiqueta {
-  /* `break-word` y no el `anywhere` que hereda de la nota. La
-     diferencia se ve cuando la etiqueta es un título largo: con
-     `anywhere` el navegador corta donde le queda cómodo y parte
-     palabras al medio aunque hubiera un espacio a dos caracteres;
-     con `break-word` sólo parte una palabra que sola no entra en la
-     columna. El `anywhere` sigue vivo en el texto de alrededor, que
-     es donde puede haber una ruta larga sin espacios. */
+   The offset lifts the line off the descenders (the 'y' of a title, the
+   'p' of .tsx) without touching the layout. */
+.label {
+  /* `break-word` and not the `anywhere` it inherits from the note. The
+     difference shows when the label is a long title: with `anywhere`
+     the browser breaks wherever it finds convenient and splits words in
+     half even when there was a space two characters away; with
+     `break-word` it only breaks a word that on its own does not fit in
+     the column. The `anywhere` is still alive in the text around it,
+     which is where a long path with no spaces can turn up. */
   overflow-wrap: break-word;
   text-decoration: underline;
   text-decoration-color: var(--link-underline);
@@ -67,14 +67,14 @@
   text-underline-offset: 2px;
   transition: text-decoration-color var(--dur-text) var(--ease-text);
 }
-.enlace:hover .etiqueta {
+.link:hover .label {
   text-decoration-color: var(--link-underline-hover);
 }
 
-/* Sólo para lector de pantalla. Ni display:none ni visibility:hidden,
-   que lo sacarían también del árbol de accesibilidad: la técnica es
-   recortar la caja a un píxel y dejarla en el flujo. */
-.oculto {
+/* For screen readers only. Neither display:none nor visibility:hidden,
+   which would also take it out of the accessibility tree: the technique
+   is to clip the box to one pixel and leave it in the flow. */
+.hidden {
   position: absolute;
   width: 1px;
   height: 1px;

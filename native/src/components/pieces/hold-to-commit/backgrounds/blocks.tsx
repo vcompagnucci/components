@@ -1,96 +1,94 @@
 import { StyleSheet, View, type ViewStyle } from 'react-native'
 
-import { CARD, COLOR, DIAS, HUECO, PANTALLA, SECCION, TOGGLE } from '../measurements'
+import { CARD, COLOR, DAYS, GAP, SCREEN, SECTION, TOGGLE } from '../measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL FONDO "BLOQUES" — la pantalla de Opal como esqueleto: la misma
-   grilla, las mismas alturas y paddings medidos, sin texto, sin color y
-   sin manchas. Cada texto es una barra gris, cada control es su
-   silueta. Así el botón tiene contexto (está al pie de un formulario)
-   sin que nada compita con él.
+   THE "BLOCKS" BACKGROUND — the Opal screen as a skeleton: the same grid,
+   the same measured heights and paddings, with no text, no color and no
+   blotches. Each text is a grey bar, each control is its silhouette. That
+   way the button has context (it is at the foot of a form) without
+   anything competing with it.
 
-   TRES GRISES, todos neutros: el fondo (COLOR.fondo), las cards
-   (COLOR.card) y las barras (`BARRA`, un escalón más claro). Nada tiene
-   tinte.
+   THREE GREYS, all neutral: the background (COLOR.background), the cards
+   (COLOR.card) and the bars (`BAR`, one step lighter). Nothing has a tint.
 
-   EL BOTÓN NO SE TOCA NI SE PISA: el último bloque termina
-   `SECCION.alPill` (32 pt, medido en el clip) por encima del pill, que
-   es la misma distancia que la última card de Opal. Pedido del
-   2026-09-03: "mucho mejor y ordenado, que no se overlapeen con el
-   botón".
+   THE BUTTON IS NEITHER TOUCHED NOR OVERLAPPED: the last block ends
+   `SECTION.toPill` (32 pt, measured off the clip) above the pill, which is
+   the same distance as Opal's last card. Asked for on 2026-09-03: "much
+   better and tidier, don't let them overlap the button".
    ═══════════════════════════════════════════════════════════════ */
 
-/* RUNTIME · las barras hacen de texto: una línea de SF 17 ocupa 20.3 pt
-   de caja; la barra mide 14 (la altura de la x más la panza) y queda
-   centrada en esos 20.3 → 3 pt de aire arriba y abajo. */
-const BARRA = { alto: 14, radio: 7, color: '#2A2A2A', aire: 3 } as const
-const TITULO = { ancho: 168, alto: 30, radio: 9, color: '#2E2E2E' } as const
+/* RUNTIME · the bars stand in for text: one line of SF 17 takes up 20.3 pt
+   of box; the bar measures 14 (the x-height plus the belly) and stays
+   centered in those 20.3 → 3 pt of air above and below. */
+const BAR = { height: 14, radius: 7, color: '#2A2A2A', air: 3 } as const
+const TITLE = { width: 168, height: 30, radius: 9, color: '#2E2E2E' } as const
 
-function Barra({ ancho, alto = BARRA.alto, style }: { ancho: number; alto?: number; style?: ViewStyle }) {
-  return <View style={[{ width: ancho, height: alto, borderRadius: alto / 2, backgroundColor: BARRA.color }, style]} />
+function Bar({ width, height = BAR.height, style }: { width: number; height?: number; style?: ViewStyle }) {
+  return <View style={[{ width, height, borderRadius: height / 2, backgroundColor: BAR.color }, style]} />
 }
 
-/* Una fila de card: barra a la izquierda, barra a la derecha, con la
-   misma caja de línea (20.3) que el texto que reemplaza. */
-function Fila({ izquierda, derecha }: { izquierda: number; derecha: number }) {
+/* A card row: a bar on the left, a bar on the right, with the same line
+   box (20.3) as the text it replaces. */
+function Row({ left, right }: { left: number; right: number }) {
   return (
-    <View style={css.fila}>
-      <Barra ancho={izquierda} />
-      <Barra ancho={derecha} />
+    <View style={css.row}>
+      <Bar width={left} />
+      <Bar width={right} />
     </View>
   )
 }
 
-export function FondoBloques({ paddingTop }: { paddingTop: number }) {
+export function BlocksBackground({ paddingTop }: { paddingTop: number }) {
   return (
     <>
-      {/* La cabeza: el título y su descripción, como barras. */}
-      <View style={[css.cabeza, { paddingTop }]}>
-        <View style={css.tituloBarra} />
-        <Barra ancho={236} />
+      {/* The head: the title and its description, as bars. */}
+      <View style={[css.head, { paddingTop }]}>
+        <View style={css.titleBar} />
+        <Bar width={236} />
       </View>
 
-      <View style={css.estirar} />
+      <View style={css.stretch} />
 
-      <View style={css.bloque}>
-        <View style={css.cabecera}>
-          <Barra ancho={112} />
+      <View style={css.block}>
+        <View style={css.sectionHeader}>
+          <Bar width={112} />
         </View>
-        <View style={{ height: SECCION.abajo }} />
-        {/* From / To: dos filas con el paso medido de la línea de tiempo. */}
+        <View style={{ height: SECTION.below }} />
+        {/* From / To: two rows with the timeline's measured step. */}
         <View style={[css.card, { paddingVertical: CARD.paddingVertical + 2 }]}>
-          <Fila izquierda={58} derecha={86} />
+          <Row left={58} right={86} />
           <View style={{ height: 15.4 }} />
-          <Fila izquierda={30} derecha={92} />
+          <Row left={30} right={92} />
         </View>
-        <View style={{ height: CARD.separacion }} />
-        {/* Los días: la fila de texto y los siete círculos, en gris. */}
+        <View style={{ height: CARD.separation }} />
+        {/* The days: the text row and the seven circles, in grey. */}
         <View style={css.card}>
-          <Fila izquierda={128} derecha={66} />
-          <View style={{ height: HUECO.textoACirculos }} />
-          <View style={css.circulos}>
+          <Row left={128} right={66} />
+          <View style={{ height: GAP.textToCircles }} />
+          <View style={css.circles}>
             {Array.from({ length: 7 }, (_, i) => (
-              <View key={i} style={css.circulo} />
+              <View key={i} style={css.circle} />
             ))}
           </View>
         </View>
-        <View style={{ height: SECCION.arriba }} />
-        <View style={css.cabecera}>
-          <Barra ancho={148} />
+        <View style={{ height: SECTION.above }} />
+        <View style={css.sectionHeader}>
+          <Bar width={148} />
         </View>
-        <View style={{ height: SECCION.abajo }} />
+        <View style={{ height: SECTION.below }} />
         <View style={css.card}>
-          <Fila izquierda={118} derecha={58} />
+          <Row left={118} right={58} />
         </View>
-        <View style={{ height: CARD.separacion }} />
-        {/* Hard Mode: dos líneas a la izquierda y la silueta del toggle. */}
-        <View style={[css.card, css.filaCentrada, { paddingVertical: CARD.paddingVerticalDosLineas }]}>
-          <View style={{ gap: CARD.entreLineas }}>
-            <View style={css.linea}>
-              <Barra ancho={92} />
+        <View style={{ height: CARD.separation }} />
+        {/* Hard Mode: two lines on the left and the toggle's silhouette. */}
+        <View style={[css.card, css.rowCentered, { paddingVertical: CARD.paddingVerticalTwoLines }]}>
+          <View style={{ gap: CARD.betweenLines }}>
+            <View style={css.line}>
+              <Bar width={92} />
             </View>
-            <View style={css.linea}>
-              <Barra ancho={150} />
+            <View style={css.line}>
+              <Bar width={150} />
             </View>
           </View>
           <View style={css.toggle}>
@@ -102,39 +100,39 @@ export function FondoBloques({ paddingTop }: { paddingTop: number }) {
   )
 }
 
-/* La caja de una línea de SF 17: 20.3 pt. Las barras se centran en ella
-   para que las cards midan lo mismo que las de Opal. */
-const LINEA = 20.3
+/* The box of one line of SF 17: 20.3 pt. The bars are centered in it so
+   that the cards measure the same as Opal's. */
+const LINE = 20.3
 
 const css = StyleSheet.create({
-  cabeza: { paddingHorizontal: PANTALLA.margen, gap: 10 },
-  tituloBarra: { width: TITULO.ancho, height: TITULO.alto, borderRadius: TITULO.radio, backgroundColor: TITULO.color, marginTop: 52 },
-  estirar: { flex: 1 },
-  bloque: { paddingHorizontal: PANTALLA.margen },
-  /* La cabecera de sección va HUECO.insetCabecera desde el borde de la
-     pantalla, 4 pt más afuera que el texto de las cards, como en Opal. */
-  cabecera: { height: LINEA, justifyContent: 'center', marginLeft: HUECO.insetCabecera - PANTALLA.margen },
+  head: { paddingHorizontal: SCREEN.margin, gap: 10 },
+  titleBar: { width: TITLE.width, height: TITLE.height, borderRadius: TITLE.radius, backgroundColor: TITLE.color, marginTop: 52 },
+  stretch: { flex: 1 },
+  block: { paddingHorizontal: SCREEN.margin },
+  /* The section header sits GAP.headerInset from the screen edge, 4 pt
+     further out than the cards' text, like in Opal. */
+  sectionHeader: { height: LINE, justifyContent: 'center', marginLeft: GAP.headerInset - SCREEN.margin },
   card: {
     backgroundColor: COLOR.card,
-    borderRadius: CARD.radio,
+    borderRadius: CARD.radius,
     borderCurve: 'continuous',
     paddingLeft: CARD.padding,
-    paddingRight: CARD.paddingDerecho,
+    paddingRight: CARD.paddingRight,
     paddingVertical: CARD.paddingVertical,
   },
-  fila: { height: LINEA, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  filaCentrada: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  linea: { height: LINEA, justifyContent: 'center' },
-  circulos: { flexDirection: 'row', justifyContent: 'space-between' },
-  circulo: { width: DIAS.diametro, height: DIAS.diametro, borderRadius: DIAS.diametro / 2, backgroundColor: BARRA.color },
+  row: { height: LINE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  rowCentered: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  line: { height: LINE, justifyContent: 'center' },
+  circles: { flexDirection: 'row', justifyContent: 'space-between' },
+  circle: { width: DAYS.diameter, height: DAYS.diameter, borderRadius: DAYS.diameter / 2, backgroundColor: BAR.color },
   toggle: {
-    width: TOGGLE.ancho,
-    height: TOGGLE.alto,
-    borderRadius: TOGGLE.alto / 2,
-    backgroundColor: BARRA.color,
+    width: TOGGLE.width,
+    height: TOGGLE.height,
+    borderRadius: TOGGLE.height / 2,
+    backgroundColor: BAR.color,
     justifyContent: 'center',
     paddingLeft: TOGGLE.inset,
-    marginRight: TOGGLE.correccionDerecha,
+    marginRight: TOGGLE.rightCorrection,
   },
-  knob: { width: TOGGLE.knobAncho, height: TOGGLE.knobAlto, borderRadius: TOGGLE.knobAlto / 2, backgroundColor: '#3A3A3A' },
+  knob: { width: TOGGLE.knobWidth, height: TOGGLE.knobHeight, borderRadius: TOGGLE.knobHeight / 2, backgroundColor: '#3A3A3A' },
 })

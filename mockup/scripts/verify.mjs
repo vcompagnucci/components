@@ -1,16 +1,16 @@
-/* ¿EL HUECO DEL BISEL QUEDA LLENO EN TODA LA CÁMARA? Renderiza doce
-   cuadros con un rojo pleno en vez de la grabación y comprueba píxel
-   por píxel, con la misma geometría que dibuja la composición, que
-   todo el hueco muestra rojo: ni fondo ni sombra asomando por un
-   borde. Existe porque en el pipeline anterior la pantalla quedó
-   15×20 px corrida y en la esquina asomaba el fondo; en el cuadro
-   entero no se veía, en un zoom sí ("mirá los bordes, no se fillean",
-   2026-09-04). Cada capa se posiciona por su cuenta: un origen mal
-   tomado no falla, se ve.
+/* DOES THE SLOT OF THE BEZEL STAY FILLED THROUGH THE WHOLE CAMERA? It
+   renders twelve frames with a solid red instead of the recording and
+   checks pixel by pixel, with the same geometry the composition draws
+   with, that the whole slot shows red: no background and no shadow
+   poking out at an edge. It exists because in the previous pipeline the
+   screen ended up 15×20 px off and the background showed at the corner;
+   in the whole frame you could not see it, zoomed in you could ("look at
+   the edges, they are not filling in", 2026-09-04). Each layer positions
+   itself on its own: an origin taken wrong does not fail, it shows.
 
-     pnpm verificar
+     pnpm verify
 
-   Sale con 1 si algún cuadro tiene el hueco sin llenar. */
+   It exits with 1 if any frame has the slot unfilled. */
 import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
@@ -18,78 +18,79 @@ import { fileURLToPath } from 'node:url'
 import { bundle } from '@remotion/bundler'
 import { renderStill, selectComposition } from '@remotion/renderer'
 
-import { IPHONE_17, capas, encuadre } from '../src/geometry.ts'
+import { IPHONE_17, layers, framing } from '../src/geometry.ts'
 
-const AQUI = fileURLToPath(new URL('../', import.meta.url))
-const SALIDA = path.join(AQUI, 'out/verificacion')
-fs.mkdirSync(SALIDA, { recursive: true })
+const MOCKUP = fileURLToPath(new URL('../', import.meta.url))
+const OUTPUT = path.join(MOCKUP, 'out/verification')
+fs.mkdirSync(OUTPUT, { recursive: true })
 
-const serveUrl = await bundle({ entryPoint: path.join(AQUI, 'src/index.ts') })
-/* La composición se pasa por argumento desde la segunda pieza: cada una
-   tiene su cámara, y la guarda de los bordes sólo vale si comprueba la
-   cámara que se va a renderizar.  node scripts/verificar.mjs HoldToCommit */
+const serveUrl = await bundle({ entryPoint: path.join(MOCKUP, 'src/index.ts') })
+/* The composition is passed by argument since the second piece: each one
+   has its own camera, and the guard on the edges is only worth something
+   if it checks the camera that is going to be rendered.
+   node scripts/verify.mjs HoldToCommit */
 const id = process.argv[2] ?? 'SwipeableTabs'
-const inputProps = { pantalla: 'roja' }
-const composicion = await selectComposition({ serveUrl, id, inputProps })
-console.log(`composición: ${id}`)
-const props = composicion.props
-const L = composicion.width
+const inputProps = { screen: 'red' }
+const composition = await selectComposition({ serveUrl, id, inputProps })
+console.log(`composition: ${id}`)
+const props = composition.props
+const L = composition.width
 
-/* Los cuadros: reposo, cuatro de la entrada, la meseta, cuatro de la
-   salida y el reposo final, en segundos del clip. */
-const cam = props.camara
-const tiempos = [0.1, cam.espera + 0.15, cam.espera + 0.35, cam.espera + 0.55, cam.espera + cam.entra, cam.hasta - 0.5, cam.hasta + 0.07, cam.hasta + 0.23, cam.hasta + 0.4, cam.hasta + cam.sale, cam.hasta + cam.sale + 0.2, composicion.durationInFrames / composicion.fps - 0.05]
-const cuadros = tiempos.map((t) => Math.min(composicion.durationInFrames - 1, Math.round(t * composicion.fps)))
+/* The frames: at rest, four of the way in, the plateau, four of the way
+   out and the final rest, in seconds of the clip. */
+const cam = props.camera
+const times = [0.1, cam.wait + 0.15, cam.wait + 0.35, cam.wait + 0.55, cam.wait + cam.in, cam.until - 0.5, cam.until + 0.07, cam.until + 0.23, cam.until + 0.4, cam.until + cam.out, cam.until + cam.out + 0.2, composition.durationInFrames / composition.fps - 0.05]
+const frames = times.map((t) => Math.min(composition.durationInFrames - 1, Math.round(t * composition.fps)))
 
-/* El alfa del bisel, para saber qué es hueco. */
-const bisel = path.join(AQUI, 'public', props.bisel)
-const alfaPng = execFileSync('ffmpeg', ['-v', 'error', '-i', bisel, '-vf', 'alphaextract', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 28 })
-const { png, cuerpo, pantalla } = IPHONE_17
-const alfa = (x, y) => (x < 0 || y < 0 || x >= png.w || y >= png.h ? 255 : alfaPng[y * png.w + x])
-/* Lo transparente ADENTRO del cuerpo: en las esquinas de la caja del
-   hueco hay alfa 0 que es el exterior del teléfono, y ahí el fondo
-   tiene que verse. */
-const rc = cuerpo.r + 8
-const dentroDelCuerpo = (x, y) => {
-  const ex = x < cuerpo.x + rc ? cuerpo.x + rc : x > cuerpo.x + cuerpo.w - 1 - rc ? cuerpo.x + cuerpo.w - 1 - rc : x
-  const ey = y < cuerpo.y + rc ? cuerpo.y + rc : y > cuerpo.y + cuerpo.h - 1 - rc ? cuerpo.y + cuerpo.h - 1 - rc : y
+/* The alpha of the bezel, to know what is slot. */
+const bezel = path.join(MOCKUP, 'public', props.bezel)
+const alphaPng = execFileSync('ffmpeg', ['-v', 'error', '-i', bezel, '-vf', 'alphaextract', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 28 })
+const { png, body, screen } = IPHONE_17
+const alpha = (x, y) => (x < 0 || y < 0 || x >= png.w || y >= png.h ? 255 : alphaPng[y * png.w + x])
+/* What is transparent INSIDE the body: at the corners of the box of the
+   slot there is alpha 0 that is the outside of the phone, and there the
+   background does have to show. */
+const rc = body.r + 8
+const insideBody = (x, y) => {
+  const ex = x < body.x + rc ? body.x + rc : x > body.x + body.w - 1 - rc ? body.x + body.w - 1 - rc : x
+  const ey = y < body.y + rc ? body.y + rc : y > body.y + body.h - 1 - rc ? body.y + body.h - 1 - rc : y
   return (x - ex) ** 2 + (y - ey) ** 2 <= rc * rc
 }
 
-let fallas = 0
-console.log('\ncuadro   t      k      píxeles del hueco   sin rojo   dónde')
-for (const n of cuadros) {
-  const archivo = path.join(SALIDA, `f${n}.png`)
-  await renderStill({ composition: composicion, serveUrl, frame: n, output: archivo, inputProps, imageFormat: 'png' })
-  const rgb = execFileSync('ffmpeg', ['-v', 'error', '-i', archivo, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], { maxBuffer: 1 << 28 })
-  const t = n / composicion.fps
-  const e = encuadre(t, L, props.altura, cam)
-  const r = capas(e, { w: props.clipAncho, h: props.clipAlto })
+let failures = 0
+console.log('\n frame   t      k      pixels in the slot   not red   where')
+for (const n of frames) {
+  const file = path.join(OUTPUT, `f${n}.png`)
+  await renderStill({ composition, serveUrl, frame: n, output: file, inputProps, imageFormat: 'png' })
+  const rgb = execFileSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], { maxBuffer: 1 << 28 })
+  const t = n / composition.fps
+  const e = framing(t, L, props.height, cam)
+  const r = layers(e, { w: props.clipWidth, h: props.clipHeight })
   let total = 0
-  let malos = 0
+  let notRed = 0
   let minX = L, minY = L, maxX = -1, maxY = -1
-  for (let py = pantalla.y; py < pantalla.y + pantalla.h; py++)
-    for (let px = pantalla.x; px < pantalla.x + pantalla.w; px++) {
-      if (alfa(px, py) !== 0 || !dentroDelCuerpo(px, py)) continue
-      let cerca = false
-      for (let dy = -3; dy <= 3 && !cerca; dy++) for (let dx = -3; dx <= 3; dx++) if (alfa(px + dx, py + dy)) { cerca = true; break }
-      if (cerca) continue
-      const X = Math.round(r.bisel.x + px * e.s)
-      const Y = Math.round(r.bisel.y + py * e.s)
+  for (let py = screen.y; py < screen.y + screen.h; py++)
+    for (let px = screen.x; px < screen.x + screen.w; px++) {
+      if (alpha(px, py) !== 0 || !insideBody(px, py)) continue
+      let near = false
+      for (let dy = -3; dy <= 3 && !near; dy++) for (let dx = -3; dx <= 3; dx++) if (alpha(px + dx, py + dy)) { near = true; break }
+      if (near) continue
+      const X = Math.round(r.bezel.x + px * e.s)
+      const Y = Math.round(r.bezel.y + py * e.s)
       if (X < 0 || Y < 0 || X >= L || Y >= L) continue
       total++
       const o = (Y * L + X) * 3
       if (!(rgb[o] > 150 && rgb[o + 1] < 110 && rgb[o + 2] < 110)) {
-        if (malos < 4) console.log(`   · cuadro ${n}: png (${px},${py}) → lienzo (${X},${Y}) rgb ${rgb[o]},${rgb[o + 1]},${rgb[o + 2]}`)
-        malos++
+        if (notRed < 4) console.log(`   · frame ${n}: png (${px},${py}) → canvas (${X},${Y}) rgb ${rgb[o]},${rgb[o + 1]},${rgb[o + 2]}`)
+        notRed++
         if (X < minX) minX = X
         if (Y < minY) minY = Y
         if (X > maxX) maxX = X
         if (Y > maxY) maxY = Y
       }
     }
-  if (malos) fallas++
-  console.log(`${String(n).padStart(6)}   ${t.toFixed(2)}   ${e.k.toFixed(3)}   ${String(total).padStart(16)}   ${String(malos).padStart(8)}   ${malos ? `x ${minX}..${maxX}  y ${minY}..${maxY}` : 'ok'}`)
+  if (notRed) failures++
+  console.log(`${String(n).padStart(6)}   ${t.toFixed(2)}   ${e.k.toFixed(3)}   ${String(total).padStart(16)}   ${String(notRed).padStart(8)}   ${notRed ? `x ${minX}..${maxX}  y ${minY}..${maxY}` : 'ok'}`)
 }
-console.log(fallas ? `\nFALLA: ${fallas} cuadros con el hueco sin llenar` : '\nOK: el hueco está lleno en todos los cuadros')
-process.exit(fallas ? 1 : 0)
+console.log(failures ? `\nFAILED: ${failures} frames with the slot unfilled` : '\nOK: the slot is filled in every frame')
+process.exit(failures ? 1 : 0)

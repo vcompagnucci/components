@@ -1,83 +1,85 @@
 /* ═══════════════════════════════════════════════════════════════
-   LA TARJETA DE UN LINK — el título y el favicon de una página.
+   THE CARD OF A LINK. The title and the favicon of a page.
 
-   Existe para UNA cosa: que un link pegado en una nota se lea como
-   "🐙 tab-layout.tsx" y no como cuatro renglones de URL. Es lo que hace
-   Notion con una mención de link, y hace falta salir a buscarlo porque
-   ni el título ni el ícono están en la URL.
+   It exists for ONE thing: so that a link pasted into a note reads as
+   "🐙 tab-layout.tsx" and not as four lines of URL. It is what Notion
+   does with a link mention, and it has to go out and look for it
+   because neither the title nor the icon is in the URL.
 
-   ─── POR QUÉ EN EL SERVIDOR Y NO EN EL CLIENTE ───
-   Un fetch desde el navegador a github.com no puede leer la respuesta:
-   no hay CORS y no lo va a haber. Node no tiene esa restricción. Y de
-   paso evita la alternativa fea —pedirle el favicon a un servicio de
-   terceros tipo google.com/s2/favicons, que le cuenta a Google cada
-   link que anotás.
+   ─── WHY ON THE SERVER AND NOT ON THE CLIENT ───
+   A fetch from the browser to github.com cannot read the response:
+   there is no CORS and there is not going to be. Node has no such
+   restriction. And it avoids the ugly alternative, which is asking a
+   third party service like google.com/s2/favicons for the favicon and
+   telling Google about every link you write down.
 
-   ─── LAS TRES GUARDAS ───
-   Mismo criterio que el puente de medios, porque esto también sale a
-   tocar algo que no controlamos:
+   ─── THE THREE GUARDS ───
+   The same criterion as the media bridge, because this also goes out
+   to touch something we do not control:
 
-   1 · SÓLO http Y https. Un file:// desde acá leería el disco del que
-       corre el servidor.
+   1 · http AND https ONLY. A file:// from here would read the disk of
+       whoever is running the server.
 
-   2 · NADA HACIA ADENTRO DE LA RED. localhost, 127.x, 10.x, 192.168.x,
-       172.16–31.x, 169.254.x, ::1 y los .local quedan afuera: sin esto
-       una nota con http://192.168.1.1/reboot convierte a este endpoint
-       en un pulsador remoto contra la red de quien corre el vault.
-       Se chequea el HOST LITERAL, no lo que resuelve el DNS — un
-       nombre público apuntado a una IP privada pasaría. Es una guarda
-       proporcionada a la amenaza real acá (una URL que vos mismo
-       pegaste en tu nota), no un filtro de SSRF completo, y queda
-       dicho para que nadie lo confunda con uno.
+   2 · NOTHING POINTING INSIDE THE NETWORK. localhost, 127.x, 10.x,
+       192.168.x, 172.16-31.x, 169.254.x, ::1 and the .local names stay
+       out: without this a note holding http://192.168.1.1/reboot turns
+       this endpoint into a remote button against the network of
+       whoever runs the vault.
+       What gets checked is the LITERAL HOST, not what DNS resolves. A
+       public name pointed at a private IP would get through. It is a
+       guard proportionate to the real threat here (a URL you pasted
+       into your own note), not a complete SSRF filter, and it is said
+       out loud so nobody mistakes it for one.
 
-   3 · LA RESPUESTA SE CORTA. Seis segundos de reloj y 1MB de cuerpo,
-       leídos en streaming. Un servidor que chorrea para siempre no
-       puede colgar al que está mirando un clip.
+   3 · THE RESPONSE GETS CUT OFF. A six second timeout and 1MB of body,
+       read as a stream. A server that dribbles forever cannot hang the
+       person who is watching a clip.
 
-       EL TECHO ESTUVO EN 256KB Y ERA MUY BAJO, con la excusa de que
-       "el <head> de cualquier página entra de sobra". Medido sobre
-       una nota real del vault, es falso:
+       THE CEILING WAS AT 256KB AND IT WAS FAR TOO LOW, with the excuse
+       that "the <head> of any page fits with room to spare". Measured
+       against a real note from the vault, that is false:
 
-         youtube.com/watch   <title> en el byte 697.911
-                             </head> en el 707.807
-                             página entera 1.300.994
+         youtube.com/watch   <title> at byte 697,911
+                             </head> at 707,807
+                             whole page 1,300,994
 
-       O sea que YouTube mete 700KB de configuración inline ANTES de
-       decir cómo se llama el video. Con 256KB el fetch salía bien
-       —ok:true— y sin título, y el link se etiquetaba "youtube.com":
-       un fracaso silencioso, que es la peor clase. 1MB le deja 300KB
-       de aire y sigue acotado; el que corta de verdad es el reloj.
+       Which means YouTube puts 700KB of inline configuration BEFORE
+       saying what the video is called. With 256KB the fetch came back
+       fine (ok:true) and with no title, and the link got labeled
+       "youtube.com": a silent failure, which is the worst kind. 1MB
+       leaves it 300KB of air and is still bounded; the one that really
+       cuts is the timeout.
 
-   ─── EL CACHÉ ES DE LA SESIÓN ───
-   En memoria, como el de los cuadros, y sin TTL: se vacía al reiniciar
-   Vite. Un título no cambia mientras mirás un vault, y persistirlo
-   metería un archivo de caché adentro de una carpeta que es tuya —el
-   mismo motivo por el que las fichas van en UN solo archivo oculto.
-   Los fracasos también se cachean: si dribbble te bloqueó, reintentar
-   en cada render son seis segundos de espera por cada render.
+   ─── THE CACHE BELONGS TO THE SESSION ───
+   In memory, like the one for frames, and with no TTL: it empties when
+   Vite restarts. A title does not change while you are looking at a
+   vault, and persisting it would put a cache file inside a folder that
+   is yours, the same reason the details live in ONE single hidden
+   file. Failures get cached too: if dribbble blocked you, retrying on
+   every render is six seconds of waiting per render.
    ═══════════════════════════════════════════════════════════════ */
 
-const RELOJ = 6000
-const TECHO = 1024 * 1024
+const TIMEOUT = 6000
+const CEILING = 1024 * 1024
 
-/* Un navegador de verdad. No es evasión: varios sitios devuelven un
-   cuerpo distinto —o ninguno— a un agente que no reconocen, y lo que
-   se quiere es exactamente lo que vería el navegador que tenés
-   abierto al lado. */
-const AGENTE =
+/* A real browser. This is not evasion: several sites return a different
+   body, or none at all, to an agent they do not recognize, and what we
+   want is exactly what the browser you have open next to this would
+   see. */
+const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
 
-const PRIVADO =
+const PRIVATE_HOST =
   /^(localhost|127\.|0\.0\.0\.0$|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[?::1\]?$)|\.local$/i
 
 const cache = new Map()
 
-/* ─── ENTIDADES ───
-   Medido en el título real de X: `&quot;` y `&#x27;`. Sin esto la
-   etiqueta muestra "Ever wanted to build Apple Music&#x27;s mini
-   player", que es peor que la URL cruda. */
-const NOMBRADAS = {
+/* ─── ENTITIES ───
+   Measured on the real title from X: `&quot;` and `&#x27;`. Without
+   this the label shows "Ever wanted to build Apple Music&#x27;s mini
+   player", which is worse than the raw URL. */
+const NAMED_ENTITIES = {
   amp: '&',
   lt: '<',
   gt: '>',
@@ -90,142 +92,148 @@ const NOMBRADAS = {
   middot: '·',
 }
 
-const desentidad = (s) =>
-  s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (todo, cuerpo) => {
-    if (cuerpo[0] === '#') {
+const decodeEntities = (s) =>
+  s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (whole, body) => {
+    if (body[0] === '#') {
       const n =
-        cuerpo[1] === 'x' || cuerpo[1] === 'X'
-          ? parseInt(cuerpo.slice(2), 16)
-          : parseInt(cuerpo.slice(1), 10)
-      return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : todo
+        body[1] === 'x' || body[1] === 'X'
+          ? parseInt(body.slice(2), 16)
+          : parseInt(body.slice(1), 10)
+      return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : whole
     }
-    return NOMBRADAS[cuerpo.toLowerCase()] ?? todo
+    return NAMED_ENTITIES[body.toLowerCase()] ?? whole
   })
 
-/* ─── EL ÍCONO ───
-   Orden MEDIDO, no supuesto (2026-08-23):
+/* ─── THE ICON ───
+   Order MEASURED, not assumed (2026-08-23):
 
      <link rel="icon">        github ✓ (favicon.svg)   x ✓ (/favicon.ico)
      <link rel="apple-touch-icon">
-                              github ✗ (no lo declara)
-                              x ✓ pero /apple-touch-icon.png devuelve
-                                el HTML de la app, 276KB de text/html
-     <origen>/favicon.ico     5 de 6 orígenes probados; dribbble da 404
+                              github ✗ (does not declare it)
+                              x ✓ but /apple-touch-icon.png returns the
+                                HTML of the app, 276KB of text/html
+     <origin>/favicon.ico     5 of 6 origins tried; dribbble gives 404
 
-   O sea que ninguno de los tres alcanza solo y el orden importa: el
-   declarado gana porque es el que el sitio eligió, y /favicon.ico
-   queda de red — es una convención, no una promesa.
+   Which means none of the three is enough on its own and the order
+   matters: the declared one wins because it is the one the site chose,
+   and /favicon.ico is left as the net underneath. It is a convention,
+   not a promise.
 
-   El apple-touch-icon quedó en el medio y no primero, que era la idea
-   inicial: la especificación de Apple pide que sea opaco, así que
-   sería el único que no desaparece sobre fondo oscuro. Se descartó
-   como primera opción porque el caso de X muestra que estar declarado
-   no significa que se pueda bajar. */
-const RANGO = { icon: 0, 'shortcut icon': 1, 'apple-touch-icon': 2 }
+   The apple-touch-icon ended up in the middle and not first, which was
+   the initial idea: Apple's specification asks for it to be opaque, so
+   it would be the only one that does not disappear on a dark
+   background. It was dropped as the first option because the case of X
+   shows that being declared does not mean it can be downloaded. */
+const RANK = { icon: 0, 'shortcut icon': 1, 'apple-touch-icon': 2 }
 
-function iconoDe(cabeza, base) {
-  let mejor = null
-  for (const m of cabeza.matchAll(/<link\b[^>]*>/gi)) {
-    const etiqueta = m[0]
-    const rel = etiqueta.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1]?.trim().toLowerCase()
-    const href = etiqueta.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1]
+function iconOf(head, base) {
+  let best = null
+  for (const m of head.matchAll(/<link\b[^>]*>/gi)) {
+    const tag = m[0]
+    const rel = tag.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1]?.trim().toLowerCase()
+    const href = tag.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1]
     if (!rel || !href) continue
-    /* "alternate icon" cae acá por el endsWith: es el PNG que github
-       pone al lado de su SVG, y sirve igual. */
-    const puesto = RANGO[rel] ?? (rel.endsWith('icon') ? 3 : null)
-    if (puesto === null) continue
-    if (mejor && mejor.puesto <= puesto) continue
+    /* "alternate icon" falls in here because of the endsWith: it is the
+       PNG github puts next to its SVG, and it works just as well. */
+    const rank = RANK[rel] ?? (rel.endsWith('icon') ? 3 : null)
+    if (rank === null) continue
+    if (best && best.rank <= rank) continue
     try {
-      mejor = { puesto, url: new URL(desentidad(href), base).toString() }
+      best = { rank, url: new URL(decodeEntities(href), base).toString() }
     } catch {}
   }
-  return mejor?.url ?? new URL('/favicon.ico', base).toString()
+  return best?.url ?? new URL('/favicon.ico', base).toString()
 }
 
-export async function tarjetaDe(crudo) {
-  if (cache.has(crudo)) return cache.get(crudo)
+export async function linkCardOf(rawUrl) {
+  if (cache.has(rawUrl)) return cache.get(rawUrl)
 
   let u
   try {
-    u = new URL(crudo)
+    u = new URL(rawUrl)
   } catch {
-    return { ok: false, motivo: 'url inválida' }
+    return { ok: false, reason: 'invalid url' }
   }
   if (u.protocol !== 'http:' && u.protocol !== 'https:')
-    return { ok: false, motivo: 'sólo http y https' }
-  if (PRIVADO.test(u.hostname)) return { ok: false, motivo: 'host interno' }
+    return { ok: false, reason: 'http and https only' }
+  if (PRIVATE_HOST.test(u.hostname)) return { ok: false, reason: 'internal host' }
 
-  let salida
+  let card
   try {
     const r = await fetch(u, {
       redirect: 'follow',
-      signal: AbortSignal.timeout(RELOJ),
-      headers: { 'user-agent': AGENTE, accept: 'text/html,application/xhtml+xml' },
+      signal: AbortSignal.timeout(TIMEOUT),
+      headers: { 'user-agent': USER_AGENT, accept: 'text/html,application/xhtml+xml' },
     })
-    /* Un 404 igual trae HTML, y su título es "Page not found". Se
-       prefiere no decir nada antes que etiquetar el link con eso. */
+    /* A 404 brings HTML all the same, and its title is "Page not
+       found". Saying nothing is better than labeling the link with
+       that. */
     if (!r.ok) throw new Error(`http ${r.status}`)
 
-    /* En streaming y con techo: se corta apenas apareció el cierre del
-       head, que es donde está todo lo que se busca.
+    /* Streamed and with a ceiling: it cuts as soon as the closing of
+       the head shows up, which is where everything we are after lives.
 
-       LA BÚSQUEDA MIRA SÓLO LO NUEVO, no todo lo acumulado. Con el
-       techo en 1MB eso dejó de ser un detalle: buscar </head> sobre el
-       string entero en cada trozo es cuadrático, y sobre el megabyte
-       de YouTube son cientos de pasadas completas. Se busca en el
-       trozo recién llegado más 6 caracteres de solapamiento —el largo
-       de "</head>" menos uno— para no perder el corte justo cuando cae
-       partido entre dos trozos. */
+       THE SEARCH LOOKS ONLY AT WHAT IS NEW, not at everything piled
+       up. With the ceiling at 1MB that stopped being a detail:
+       searching </head> over the whole string on every chunk is
+       quadratic, and over YouTube's megabyte that is hundreds of full
+       passes. The search runs over the chunk that just arrived plus 6
+       characters of overlap (the length of "</head>" minus one) so the
+       cut is not missed exactly when it falls split between two
+       chunks. */
     let html = ''
-    let visto = 0
-    for await (const trozo of r.body.pipeThrough(new TextDecoderStream('utf-8', { fatal: false }))) {
-      html += trozo
-      if (/<\/head>/i.test(html.slice(Math.max(0, visto - 6)))) break
-      visto = html.length
-      if (visto > TECHO) break
+    let seen = 0
+    for await (const chunk of r.body.pipeThrough(new TextDecoderStream('utf-8', { fatal: false }))) {
+      html += chunk
+      if (/<\/head>/i.test(html.slice(Math.max(0, seen - 6)))) break
+      seen = html.length
+      if (seen > CEILING) break
     }
 
-    const cabeza = html.split(/<\/head>/i)[0]
-    const bruto =
-      cabeza.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ??
-      cabeza.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i)?.[1] ??
+    const head = html.split(/<\/head>/i)[0]
+    const raw =
+      head.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ??
+      head.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i)?.[1] ??
       ''
-    const titulo = desentidad(bruto).replace(/\s+/g, ' ').trim()
+    const title = decodeEntities(raw).replace(/\s+/g, ' ').trim()
 
-    salida = {
+    card = {
       ok: true,
-      /* Sin título se devuelve ok igual: el ícono solo ya mejora el
-         link, y el cliente sabe caer al host para la etiqueta. */
-      titulo: titulo || null,
-      icono: iconoDe(cabeza, r.url || u.toString()),
-      /* ─── A DÓNDE LLEGÓ DE VERDAD ───
-         Después de los redirects. Existe por los ACORTADORES: un link
-         copiado de X es un t.co, y `t.co` como etiqueta no dice nada
-         —ni qué es, ni de qué sitio—. Con la URL final, un t.co que
-         lleva a GitHub se etiqueta como GitHub.
-         El href del ancla NO cambia: sigue siendo lo que escribiste.
-         Esto es para nombrar, no para navegar. */
+      /* With no title it returns ok anyway: the icon on its own already
+         improves the link, and the client knows to fall back to the
+         host for the label. */
+      title: title || null,
+      icon: iconOf(head, r.url || u.toString()),
+      /* ─── WHERE IT ACTUALLY LANDED ───
+         After the redirects. It exists because of SHORTENERS: a link
+         copied from X is a t.co, and `t.co` as a label says nothing,
+         neither what it is nor what site it is from. With the final
+         URL, a t.co that leads to GitHub gets labeled GitHub.
+         The href of the anchor does NOT change: it is still what you
+         wrote. This is for naming, not for navigating. */
       final: r.url || null,
     }
   } catch (e) {
-    /* EL FRACASO NO ES UN ERROR DEL VAULT y por eso no viaja como uno:
-       un sitio caído, sin red, detrás de un login o que corta a un
-       agente que no reconoce son todos casos normales de una nota que
-       vive años. Se devuelve el ícono que se puede armar sin leer nada
-       —la convención de /favicon.ico, que acierta en 5 de los 6
-       orígenes medidos— y el cliente pone el host como etiqueta. El
-       link nunca queda inservible: sigue siendo clickeable. */
-    salida = {
+    /* A FAILURE IS NOT AN ERROR OF THE VAULT, and that is why it does
+       not travel as one: a site that is down, no network, one behind a
+       login or one that cuts off an agent it does not recognize are all
+       normal cases for a note that lives for years. It returns the icon
+       that can be assembled without reading anything (the /favicon.ico
+       convention, which is right in 5 of the 6 origins measured) and
+       the client puts the host as the label. The link is never left
+       useless: it is still clickable. */
+    card = {
       ok: false,
-      motivo: String(e?.message ?? e),
-      titulo: null,
-      icono: new URL('/favicon.ico', u.origin).toString(),
-      /* Sin haber llegado no hay destino que reportar: el cliente cae
-         al host de lo que escribiste, que es todo lo que se sabe. */
+      reason: String(e?.message ?? e),
+      title: null,
+      icon: new URL('/favicon.ico', u.origin).toString(),
+      /* Without having arrived there is no destination to report: the
+         client falls back to the host of what you wrote, which is all
+         that is known. */
       final: null,
     }
   }
 
-  cache.set(crudo, salida)
-  return salida
+  cache.set(rawUrl, card)
+  return card
 }

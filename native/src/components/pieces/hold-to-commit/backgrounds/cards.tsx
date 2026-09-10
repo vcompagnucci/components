@@ -2,15 +2,16 @@ import { SymbolView } from 'expo-symbols'
 import type { ReactNode } from 'react'
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
-import { BADGE, CARD, COLOR, DIAS, HUECO, LINEA_TIEMPO, SIMBOLO, TEXTO, TOGGLE } from '../measurements'
+import { BADGE, CARD, COLOR, DAYS, GAP, TIMELINE, SYMBOL, TEXT, TOGGLE } from '../measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   LAS PIEZAS DE LA PANTALLA — todo lo que rodea al botón.
+   THE SCREEN'S PARTS — everything that surrounds the button.
 
-   Nada de esto anima ni responde: en el clip el único gesto es el del
-   botón, y estas cards existen para que el botón esté en su lugar. Los
-   valores están medidos (ver `medidas.ts`); lo que NO se pudo medir es
-   lo que el clip corta arriba, y está marcado SUPUESTO donde aparece.
+   None of this animates or responds: in the clip the only gesture is the
+   button's, and these cards exist so that the button is in its place. The
+   values are measured (see `measurements.ts`); what could NOT be measured
+   is what the clip cuts off at the top, and it is marked ASSUMED where it
+   appears.
    ═══════════════════════════════════════════════════════════════ */
 
 export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
@@ -22,61 +23,61 @@ export const Label = ({ children }: { children: ReactNode }) => (
     {children}
   </Text>
 )
-export const Valor = ({ children, hora, suelto }: { children: ReactNode; hora?: boolean; suelto?: boolean }) => (
-  <Text allowFontScaling={false} style={[css.valor, hora && css.hora, suelto && css.valorSuelto]}>
+export const Value = ({ children, time, loose }: { children: ReactNode; time?: boolean; loose?: boolean }) => (
+  <Text allowFontScaling={false} style={[css.value, time && css.time, loose && css.valueLoose]}>
     {children}
   </Text>
 )
-export const Secundario = ({ children }: { children: ReactNode }) => (
-  <Text allowFontScaling={false} style={css.secundario}>
+export const Secondary = ({ children }: { children: ReactNode }) => (
+  <Text allowFontScaling={false} style={css.secondary}>
     {children}
   </Text>
 )
 
-/* "Selected Apps · 5 Apps ›" y "To · 10:00 PM ⌃⌄": label a la izquierda,
-   valor y símbolo a la derecha, con el hueco de 12 medido. */
-export function Derecha({ valor, simbolo }: { valor: string; simbolo: 'chevron' | 'stepper' }) {
-  const s = SIMBOLO[simbolo]
+/* "Selected Apps · 5 Apps ›" and "To · 10:00 PM ⌃⌄": label on the left,
+   value and symbol on the right, with the measured gap of 12. */
+export function ValueAndSymbol({ value, symbol }: { value: string; symbol: 'chevron' | 'stepper' }) {
+  const s = SYMBOL[symbol]
   return (
-    <View style={css.derecha}>
-      <Valor hora={simbolo === 'stepper'}>{valor}</Valor>
+    <View style={css.right}>
+      <Value time={symbol === 'stepper'}>{value}</Value>
       <SymbolView
-        name={s.nombre}
+        name={s.name}
         scale="large"
         weight="semibold"
-        tintColor={COLOR.secundario}
-        style={{ width: s.caja.ancho, height: s.caja.alto, marginRight: -s.desdeDerecha }}
+        tintColor={COLOR.secondary}
+        style={{ width: s.box.width, height: s.box.height, marginRight: -s.fromRight }}
       />
     </View>
   )
 }
 
-/* El header de sección: un SF Symbol gris y el texto en bold. */
-export function CabeceraSeccion({ simbolo, texto }: { simbolo: 'candado' | 'reloj'; texto: string }) {
-  const s = SIMBOLO[simbolo]
+/* The section header: a grey SF Symbol and the text in bold. */
+export function SectionHeader({ symbol, text }: { symbol: 'lock' | 'clock'; text: string }) {
+  const s = SYMBOL[symbol]
   return (
-    <View style={css.cabecera}>
+    <View style={css.header}>
       <SymbolView
-        name={s.nombre}
+        name={s.name}
         scale="large"
         weight="semibold"
-        tintColor={COLOR.secundario}
-        style={{ width: s.caja.ancho, height: s.caja.alto }}
+        tintColor={COLOR.secondary}
+        style={{ width: s.box.width, height: s.box.height }}
       />
-      <Text allowFontScaling={false} style={css.seccion}>
-        {texto}
+      <Text allowFontScaling={false} style={css.section}>
+        {text}
       </Text>
     </View>
   )
 }
 
-/* Los siete círculos: 44 con 8 de hueco, letra negra en bold. */
-export function Circulos() {
+/* The seven circles: 44 with a gap of 8, black letter in bold. */
+export function DayCircles() {
   return (
-    <View style={css.circulos}>
-      {DIAS.letras.map((l, i) => (
-        <View key={i} style={css.circulo}>
-          <Text allowFontScaling={false} style={css.letra}>
+    <View style={css.circles}>
+      {DAYS.letters.map((l, i) => (
+        <View key={i} style={css.circle}>
+          <Text allowFontScaling={false} style={css.letter}>
             {l}
           </Text>
         </View>
@@ -85,7 +86,7 @@ export function Circulos() {
   )
 }
 
-/* El toggle custom de la referencia: NO es un UISwitch (ver TOGGLE). */
+/* The reference's custom toggle: it is NOT a UISwitch (see TOGGLE). */
 export function Toggle() {
   return (
     <View style={css.track}>
@@ -94,11 +95,11 @@ export function Toggle() {
   )
 }
 
-/* [⚡ PRO]: cápsula con borde verde, rayo y texto de 11 con tracking. */
-export function BadgePro() {
+/* [⚡ PRO]: a capsule with a green border, a bolt and text of 11 with tracking. */
+export function ProBadge() {
   return (
     <View style={css.badge}>
-      <SymbolView name={SIMBOLO.rayo.nombre} scale="large" weight="bold" tintColor={COLOR.pro} style={css.rayo} />
+      <SymbolView name={SYMBOL.bolt.name} scale="large" weight="bold" tintColor={COLOR.pro} style={css.bolt} />
       <Text allowFontScaling={false} style={css.pro}>
         PRO
       </Text>
@@ -106,36 +107,37 @@ export function BadgePro() {
   )
 }
 
-/* Una fila de la línea de tiempo: el nodo (círculo lleno para "From",
-   hueco para "To"), el conector punteado hacia arriba si corresponde, y
-   el label. El conector se dibuja con rayas de verdad (5 pt, hueco 2.5)
-   porque `borderStyle: 'dashed'` no deja elegir el paso. */
-export function FilaHora({ texto, hora, lleno, conector }: { texto: string; hora: string; lleno: boolean; conector: boolean }) {
-  const rayas = Math.floor((LINEA_TIEMPO.pasoFila - LINEA_TIEMPO.circulo) / (LINEA_TIEMPO.raya + LINEA_TIEMPO.huecoRaya))
+/* One row of the timeline: the node (a filled circle for "From", hollow
+   for "To"), the dashed connector going up if there is one, and the
+   label. The connector is drawn with real dashes (5 pt, gap 2.5) because
+   `borderStyle: 'dashed'` does not let you choose the step. */
+export function TimeRow({ text, time, filled, connector }: { text: string; time: string; filled: boolean; connector: boolean }) {
+  const dashes = Math.floor((TIMELINE.rowStep - TIMELINE.circle) / (TIMELINE.dash + TIMELINE.dashGap))
   return (
-    <View style={css.filaHora}>
-      <View style={css.columnaTiempo}>
-        {conector && (
-          <View style={css.conector}>
-            {Array.from({ length: rayas }, (_, i) => (
-              <View key={i} style={css.raya} />
+    <View style={css.timeRow}>
+      <View style={css.timeColumn}>
+        {connector && (
+          <View style={css.connector}>
+            {Array.from({ length: dashes }, (_, i) => (
+              <View key={i} style={css.dash} />
             ))}
           </View>
         )}
-        <View style={[css.nodo, lleno ? css.nodoLleno : css.nodoHueco]} />
+        <View style={[css.node, filled ? css.nodeFilled : css.nodeHollow]} />
       </View>
-      <Label>{texto}</Label>
-      <View style={css.estirar} />
-      <Derecha valor={hora} simbolo="stepper" />
+      <Label>{text}</Label>
+      <View style={css.stretch} />
+      <ValueAndSymbol value={time} symbol="stepper" />
     </View>
   )
 }
 
-/* Una mancha de color desenfocada del fondo. El clip muestra cuatro,
-   sólo por el margen izquierdo, entre las cards y el borde: son lo que
-   queda de un fondo con imagen. Se hacen con la sombra difusa de un
-   punto, que es lo único en RN que desenfoca sin módulo nativo. */
-export function Mancha({ x, y, radio, color }: { x: number; y: number; radio: number; color: string }) {
+/* A blurred blotch of color from the background. The clip shows four, only
+   down the left margin, between the cards and the edge: they are what is
+   left of a background with an image. They are made with the diffuse
+   shadow of a dot, which is the only thing in RN that blurs without a
+   native module. */
+export function Blotch({ x, y, radius, color }: { x: number; y: number; radius: number; color: string }) {
   return (
     <View
       pointerEvents="none"
@@ -147,7 +149,7 @@ export function Mancha({ x, y, radio, color }: { x: number; y: number; radio: nu
         height: 8,
         borderRadius: 4,
         backgroundColor: color,
-        boxShadow: `0 0 ${radio}px ${radio * 0.6}px ${color}`,
+        boxShadow: `0 0 ${radius}px ${radius * 0.6}px ${color}`,
       }}
     />
   )
@@ -156,70 +158,70 @@ export function Mancha({ x, y, radio, color }: { x: number; y: number; radio: nu
 const css = StyleSheet.create({
   card: {
     backgroundColor: COLOR.card,
-    borderRadius: CARD.radio,
+    borderRadius: CARD.radius,
     borderCurve: 'continuous',
     paddingLeft: CARD.padding,
-    paddingRight: CARD.paddingDerecho,
+    paddingRight: CARD.paddingRight,
     paddingVertical: CARD.paddingVertical,
   },
-  label: { fontSize: TEXTO.cuerpo, fontWeight: TEXTO.pesoLabel, color: COLOR.texto },
-  valor: { fontSize: TEXTO.valor, fontWeight: TEXTO.pesoValor, color: COLOR.secundario },
-  hora: { fontSize: TEXTO.hora },
-  valorSuelto: { marginRight: -HUECO.colaValor },
-  secundario: { fontSize: TEXTO.cuerpo, fontWeight: TEXTO.pesoValor, color: COLOR.secundario },
-  seccion: { fontSize: TEXTO.cuerpo, fontWeight: TEXTO.pesoSeccion, color: COLOR.texto },
-  derecha: { flexDirection: 'row', alignItems: 'center', gap: HUECO.valorAIcono },
-  cabecera: { flexDirection: 'row', alignItems: 'center', gap: HUECO.iconoATexto, paddingHorizontal: HUECO.insetCabecera },
-  circulos: { flexDirection: 'row', justifyContent: 'space-between', marginTop: HUECO.textoACirculos },
-  circulo: {
-    width: DIAS.diametro,
-    height: DIAS.diametro,
-    borderRadius: DIAS.diametro / 2,
-    backgroundColor: COLOR.circulo,
+  label: { fontSize: TEXT.body, fontWeight: TEXT.labelWeight, color: COLOR.text },
+  value: { fontSize: TEXT.value, fontWeight: TEXT.valueWeight, color: COLOR.secondary },
+  time: { fontSize: TEXT.time },
+  valueLoose: { marginRight: -GAP.valueTail },
+  secondary: { fontSize: TEXT.body, fontWeight: TEXT.valueWeight, color: COLOR.secondary },
+  section: { fontSize: TEXT.body, fontWeight: TEXT.sectionWeight, color: COLOR.text },
+  right: { flexDirection: 'row', alignItems: 'center', gap: GAP.valueToIcon },
+  header: { flexDirection: 'row', alignItems: 'center', gap: GAP.iconToText, paddingHorizontal: GAP.headerInset },
+  circles: { flexDirection: 'row', justifyContent: 'space-between', marginTop: GAP.textToCircles },
+  circle: {
+    width: DAYS.diameter,
+    height: DAYS.diameter,
+    borderRadius: DAYS.diameter / 2,
+    backgroundColor: COLOR.circle,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  letra: { fontSize: TEXTO.cuerpo, fontWeight: '700', color: COLOR.circuloLetra },
+  letter: { fontSize: TEXT.body, fontWeight: '700', color: COLOR.circleLetter },
   track: {
-    width: TOGGLE.ancho,
-    height: TOGGLE.alto,
-    borderRadius: TOGGLE.alto / 2,
+    width: TOGGLE.width,
+    height: TOGGLE.height,
+    borderRadius: TOGGLE.height / 2,
     backgroundColor: COLOR.toggleTrack,
     justifyContent: 'center',
     paddingLeft: TOGGLE.inset,
-    marginRight: TOGGLE.correccionDerecha,
+    marginRight: TOGGLE.rightCorrection,
   },
   knob: {
-    width: TOGGLE.knobAncho,
-    height: TOGGLE.knobAlto,
-    borderRadius: TOGGLE.knobAlto / 2,
+    width: TOGGLE.knobWidth,
+    height: TOGGLE.knobHeight,
+    borderRadius: TOGGLE.knobHeight / 2,
     backgroundColor: COLOR.toggleKnob,
   },
   badge: {
-    height: BADGE.alto,
-    borderRadius: BADGE.alto / 2,
-    borderWidth: BADGE.borde,
+    height: BADGE.height,
+    borderRadius: BADGE.height / 2,
+    borderWidth: BADGE.border,
     borderColor: COLOR.pro,
-    backgroundColor: COLOR.proFondo,
-    paddingLeft: BADGE.paddingIzquierdo,
-    paddingRight: BADGE.paddingDerecho,
+    backgroundColor: COLOR.proBackground,
+    paddingLeft: BADGE.paddingLeft,
+    paddingRight: BADGE.paddingRight,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: BADGE.entreRayoYTexto,
+    gap: BADGE.betweenBoltAndText,
   },
-  rayo: { width: SIMBOLO.rayo.caja.ancho, height: SIMBOLO.rayo.caja.alto },
-  pro: { fontSize: TEXTO.badge, fontWeight: '700', color: COLOR.pro, letterSpacing: TEXTO.badgeTracking },
-  filaHora: { flexDirection: 'row', alignItems: 'center', height: LINEA_TIEMPO.pasoFila },
-  columnaTiempo: { width: LINEA_TIEMPO.columna, marginRight: LINEA_TIEMPO.aTexto, alignItems: 'center', justifyContent: 'center' },
-  conector: {
+  bolt: { width: SYMBOL.bolt.box.width, height: SYMBOL.bolt.box.height },
+  pro: { fontSize: TEXT.badge, fontWeight: '700', color: COLOR.pro, letterSpacing: TEXT.badgeTracking },
+  timeRow: { flexDirection: 'row', alignItems: 'center', height: TIMELINE.rowStep },
+  timeColumn: { width: TIMELINE.column, marginRight: TIMELINE.toText, alignItems: 'center', justifyContent: 'center' },
+  connector: {
     position: 'absolute',
-    bottom: LINEA_TIEMPO.circulo / 2 + LINEA_TIEMPO.huecoRaya,
+    bottom: TIMELINE.circle / 2 + TIMELINE.dashGap,
     alignItems: 'center',
-    gap: LINEA_TIEMPO.huecoRaya,
+    gap: TIMELINE.dashGap,
   },
-  raya: { width: LINEA_TIEMPO.grosor, height: LINEA_TIEMPO.raya, backgroundColor: COLOR.secundario, borderRadius: 0.5 },
-  nodo: { width: LINEA_TIEMPO.circulo, height: LINEA_TIEMPO.circulo, borderRadius: LINEA_TIEMPO.circulo / 2 },
-  nodoLleno: { backgroundColor: COLOR.secundario },
-  nodoHueco: { borderWidth: LINEA_TIEMPO.anillo, borderColor: COLOR.secundario },
-  estirar: { flex: 1 },
+  dash: { width: TIMELINE.thickness, height: TIMELINE.dash, backgroundColor: COLOR.secondary, borderRadius: 0.5 },
+  node: { width: TIMELINE.circle, height: TIMELINE.circle, borderRadius: TIMELINE.circle / 2 },
+  nodeFilled: { backgroundColor: COLOR.secondary },
+  nodeHollow: { borderWidth: TIMELINE.ring, borderColor: COLOR.secondary },
+  stretch: { flex: 1 },
 })

@@ -1,15 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
-   LO QUE SE PUEDE HACER CON UN CLIP — el menú del clic derecho.
+   WHAT YOU CAN DO WITH A CLIP — the right-click menu.
 
-   Renombrar y mandar a la papelera vivían afuera de la app: había que
-   ir al Finder. Ahora están donde está el clip.
+   Renaming and moving to the trash lived outside the app: you had to go
+   to the Finder. Now they are where the clip is.
 
-   ─── EL MENÚ ES UNA SUPERFICIE, no una palabra ───
-   Es la única cosa del área privada que tiene caja, y es a propósito:
-   aparece FLOTANDO sobre contenido que no controlamos —un clip puede
-   ser de cualquier color— así que sin fondo propio no habría forma de
-   garantizar que se lea. El resto del chrome vive sobre el canvas y por
-   eso puede ser texto pelado.
+   ─── THE MENU IS A SURFACE, not a word ───
+   It is the only thing in the private area that has a box, and it is on
+   purpose: it appears FLOATING over content we do not control (a clip
+   can be any color) so without a background of its own there would be
+   no way to guarantee it can be read. The rest of the chrome lives over
+   the canvas and that is why it can be bare text.
    ═══════════════════════════════════════════════════════════════ */
 .menu {
   position: fixed;
@@ -18,10 +18,10 @@
   padding: 4px;
   min-width: 168px;
   border: 0;
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
   background: var(--canvas);
-  /* La única sombra del sistema. Un menú flotante sin separación del
-     fondo se lee como parte de lo que tapa. */
+  /* The only shadow in the system. A floating menu with no separation
+     from the background reads as part of what it covers. */
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 0.06),
     0 8px 24px rgb(0 0 0 / 0.12),
@@ -30,50 +30,51 @@
   flex-direction: column;
   gap: 2px;
 
-  /* ─── LA ENTRADA ───
-     ESCALA DESDE DONDE SE APRETÓ, no desde el centro: transform-origin
-     lo pone el componente con la esquina que le tocó según dónde haya
-     caído el cursor. Un menú que crece desde su centro se despega del
-     gesto que lo abrió.
+  /* ─── THE ENTRANCE ───
+     IT SCALES FROM WHERE YOU PRESSED, not from the center:
+     transform-origin is set by the component with whichever corner it
+     got depending on where the cursor landed. A menu that grows from
+     its center comes unstuck from the gesture that opened it.
 
-     0.96 y no 0: nada aparece de la nada. Y ease-out fuerte, que es lo
-     que pide algo que entra en pantalla. */
+     0.96 and not 0: nothing appears out of nothing. And a strong
+     ease-out, which is what something entering the screen asks for. */
   opacity: 0;
   transform: scale(0.96);
-  /* ─── Y LA SALIDA, QUE ES ESTE MISMO BLOQUE ───
-     Acá decía `overlay` y `display` con allow-discrete. Las dos son
-     para elementos de la CAPA SUPERIOR —un <dialog> o un popover— y
-     esto es un div: no hacían nada. Y encima el menú se desmontaba al
-     cerrar, así que la salida no tenía ni nodo que animar.
+  /* ─── AND THE EXIT, WHICH IS THIS SAME BLOCK ───
+     This said `overlay` and `display` with allow-discrete. Both are for
+     TOP LAYER elements (a <dialog> or a popover) and this is a div:
+     they did nothing. And on top of that the menu unmounted on close,
+     so the exit did not even have a node to animate.
 
-     `visibility` sí sirve en un div, y para esto es mejor que las
-     otras dos: la transición de visibility tiene la regla vieja de CSS
-     —si alguno de los dos extremos es `visible`, se queda visible toda
-     la transición— así que al abrir aparece en el cuadro 0 y al cerrar
-     se queda hasta el último. Es exactamente lo que hace falta, sin
-     allow-discrete.
+     `visibility` does work in a div, and for this it is better than the
+     other two: the visibility transition has the old CSS rule (if
+     either end is `visible`, it stays visible for the whole transition)
+     so on open it appears at frame 0 and on close it stays until the
+     last one. It is exactly what is needed, without allow-discrete.
 
-     Y de paso hace lo que `return null` hacía gratis: escondido, el
-     menú no recibe clics ni Tab, y desaparece del árbol de
-     accesibilidad. Un menú apagado no puede seguir siendo pulsable. */
+     And along the way it does what `return null` did for free: hidden,
+     the menu takes no clicks and no Tab, and it disappears from the
+     accessibility tree. A menu that is off cannot go on being
+     pressable. */
   visibility: hidden;
   transition:
-    opacity 120ms var(--ease-dialogo),
-    transform 120ms var(--ease-dialogo),
+    opacity 120ms var(--ease-dialog),
+    transform 120ms var(--ease-dialog),
     visibility 120ms;
 }
-.menu[data-abierto] {
+.menu[data-open] {
   opacity: 1;
   transform: scale(1);
   visibility: visible;
-  /* La entrada es más larga que la salida: al cerrar ya decidiste. */
+  /* The entrance is longer than the exit: on close you already
+     decided. */
   transition:
-    opacity 160ms var(--ease-dialogo),
-    transform 160ms var(--ease-dialogo),
+    opacity 160ms var(--ease-dialog),
+    transform 160ms var(--ease-dialog),
     visibility 160ms;
 }
 @starting-style {
-  .menu[data-abierto] {
+  .menu[data-open] {
     opacity: 0;
     transform: scale(0.96);
   }
@@ -87,18 +88,19 @@
   }
 }
 
-/* ─── EL DISPARADOR — los tres puntos de la barra del detalle ───
-   Es la MISMA caja que el toggle del inspector: 32×32 sobre un dibujo
-   de 16, sin fondo. Por eso no la escribe de nuevo, la compone.
+/* ─── THE TRIGGER — the three dots in the detail's bar ───
+   It is the SAME box as the inspector toggle: 32×32 over a 16 drawing,
+   with no background. That is why it does not write it again, it
+   composes it.
 
-   Sin margen negativo, al revés que el toggle: el que se apoya contra
-   el riel es el último de la fila, y éste no lo es. */
-.disparador {
-  composes: glifo from './privado.module.css';
+   No negative margin, the opposite of the toggle: the one that leans
+   against the rail is the last of the row, and this one is not. */
+.trigger {
+  composes: glyph from './private.module.css';
 }
 
-/* Un ítem es una palabra, como todo el resto: lo que le da cuerpo es el
-   relleno al pasar por encima, no una caja permanente. */
+/* An item is a word, like everything else: what gives it body is the
+   fill when you go over it, not a permanent box. */
 .item {
   appearance: none;
   border: 0;
@@ -121,54 +123,54 @@
   outline: none;
 }
 
-/* ─── EL ÍTEM DESTRUCTIVO ───
-   ACÁ DECÍA LO CONTRARIO: "no se pinta de rojo, en esta interfaz no hay
-   ni un color de estado, y meter el primero sería inventar un nivel
-   entero del sistema". La premisa era falsa. El nivel no había que
-   inventarlo: estaba decidido en la bitácora de Carousels, y su línea
-   374 es literalmente este caso —un ítem destructivo de menú, con su
-   texto, su hover con tinte y su hairline delante—. La derivación
-   completa y lo que se midió sobre nuestros fondos están en tokens.css,
-   en --destructivo.
+/* ─── THE DESTRUCTIVE ITEM ───
+   THIS SAID THE OPPOSITE: "it does not get painted red, in this
+   interface there is not one state color, and putting in the first
+   would be inventing a whole level of the system". The premise was
+   false. The level did not have to be invented: it was decided in the
+   Carousels log, and its line 374 is literally this case, a destructive
+   menu item with its text, its tinted hover and its hairline in front.
+   The full derivation and what was measured over our backgrounds are in
+   tokens.css, in --destructive.
 
-   El otro argumento que había —"lo que lo distingue es el diálogo que
-   abre"— tampoco se sostiene solo: pone toda la señal DESPUÉS del clic,
-   cuando lo que hace falta es que se vea ANTES.
+   The other argument that was here ("what tells it apart is the dialog
+   it opens") does not hold on its own either: it puts all the signal
+   AFTER the click, when what is needed is for it to be seen BEFORE.
 
-   EL HOVER NO ES --surface SINO EL TINTE. Si el rojo pintara sobre el
-   gris de siempre, el ítem se leería como los otros con una letra de
-   otro color; con el tinte, la fila entera cambia de familia. */
-.item[data-destructivo] {
-  color: var(--destructivo);
+   THE HOVER IS NOT --surface, IT IS THE TINT. If the red painted over
+   the usual gray, the item would read like the others with a letter in
+   another color; with the tint, the whole row changes family. */
+.item[data-destructive] {
+  color: var(--destructive);
 }
-.item[data-destructivo]:hover,
-.item[data-destructivo]:focus-visible {
-  background: var(--destructivo-tinte);
+.item[data-destructive]:hover,
+.item[data-destructive]:focus-visible {
+  background: var(--destructive-tint);
 }
 
-/* LA CERCA. Va delante del destructivo y sale de la misma línea de la
-   bitácora ("preceded by a Menu.Separator hairline").
+/* THE FENCE. It goes in front of the destructive one and comes out of
+   the same line in the log ("preceded by a Menu.Separator hairline").
 
-   No reemplaza al orden, lo acompaña: el menú ya venía ordenado por
-   consecuencia —de la más liviana a la más pesada, ver MenuClip— y eso
-   sigue siendo lo que decide la posición. La línea sólo dice que abajo
-   empieza otra cosa.
+   It does not replace the order, it accompanies it: the menu already
+   came ordered by consequence, from the lightest to the heaviest (see
+   ClipMenu) and that is still what decides the position. The line only
+   says that something else starts below.
 
-   Los márgenes laterales la dejan más corta que los ítems: una línea de
-   borde a borde parte la caja en dos menús. */
-.regla {
+   The side margins leave it shorter than the items: a line from edge to
+   edge splits the box into two menus. */
+.separator {
   height: 1px;
   margin: 4px 6px;
   background: var(--hairline);
 }
 
-/* ─── LOS DIÁLOGOS ───
-   Angostos: lo que muestran es una pregunta y un campo, no dos cards.
-   Comparten el resto del tratamiento con el diálogo de subir. */
-.corto {
+/* ─── THE DIALOGS ───
+   Narrow: what they show is a question and a field, not two cards. They
+   share the rest of the treatment with the upload dialog. */
+.narrow {
   width: min(420px, calc(100vw - 48px));
 }
-.titulo {
+.title {
   margin: 0;
   font-size: var(--type-h1-fs);
   font-weight: var(--type-h1-fw);
@@ -176,7 +178,7 @@
   line-height: var(--type-h1-lh);
   color: var(--ink);
 }
-.dice {
+.message {
   margin: 8px 0 0;
   font-size: var(--type-meta-fs);
   font-weight: var(--type-meta-fw);
@@ -184,11 +186,12 @@
   line-height: var(--type-meta-lh);
   color: var(--text-secondary);
 }
-/* El campo se ve como campo ACÁ y no en la ficha, y la diferencia no es
-   capricho: en la ficha escribís sobre un valor que ya está en su
-   lugar; acá el diálogo existe SÓLO para que escribas, así que el
-   cursor tiene que saber dónde caer antes de que empieces. */
-.campo {
+/* The field looks like a field HERE and not in the details panel, and
+   the difference is not a whim: in the details panel you write over a
+   value that is already in its place; here the dialog exists ONLY so
+   you can write, so the cursor has to know where to land before you
+   start. */
+.field {
   width: 100%;
   margin-top: 20px;
   padding: 8px 10px;
@@ -202,13 +205,13 @@
   line-height: var(--type-body-lh);
   color: var(--ink);
 }
-.pie {
+.footer {
   margin-top: 24px;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
-.accion {
+.action {
   appearance: none;
   border: 0;
   border-radius: 6px;
@@ -224,27 +227,27 @@
   transition:
     background-color var(--dur-text) var(--ease-text),
     color var(--dur-text) var(--ease-text),
-    transform 100ms var(--ease-dialogo);
+    transform 100ms var(--ease-dialog);
 }
-.accion:hover {
+.action:hover {
   color: var(--ink);
   background: var(--surface);
 }
-/* La confirmación se siente en el dedo, no se ve: 0.97 es lo que se
-   percibe como apretado sin que la caja se desarme. */
-.accion:active {
+/* The confirmation is felt in the finger, not seen: 0.97 is what reads
+   as pressed without the box falling apart. */
+.action:active {
   transform: scale(0.97);
 }
-.accion[data-fuerte] {
+.action[data-primary] {
   background: var(--ink);
   color: var(--canvas);
 }
-.accion[data-fuerte]:hover {
+.action[data-primary]:hover {
   background: var(--ink);
   color: var(--canvas);
   opacity: 0.88;
 }
-.accion:disabled {
+.action:disabled {
   opacity: 0.32;
   cursor: default;
 }
@@ -257,15 +260,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .menu,
-  .menu[data-abierto] {
+  .menu[data-open] {
     transform: none;
   }
   @starting-style {
-    .menu[data-abierto] {
+    .menu[data-open] {
       transform: none;
     }
   }
-  .accion:active {
+  .action:active {
     transform: none;
   }
 }

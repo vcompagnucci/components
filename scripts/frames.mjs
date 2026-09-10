@@ -1,175 +1,177 @@
 /* ═══════════════════════════════════════════════════════════════
-   CUÁNTO DURA UN CUADRO — leído del contenedor, no estimado.
+   HOW LONG A FRAME LASTS. Read from the container, not estimated.
 
-   Es la pieza que hace posible el cuadro a cuadro. Sin el número
-   exacto, apretar una flecha mueve "más o menos un cuadro" y contar
-   cuadros para sacar una duración deja de servir, que es justamente
-   para lo que existe el vault: llevás la inspo al cuadro donde arranca
-   el gesto, contás hasta donde termina, y eso te da los milisegundos.
+   It is the part that makes frame by frame possible. Without the exact
+   number, pressing an arrow moves "roughly one frame" and counting
+   frames to get a duration stops being useful, which is exactly what
+   the vault is for: you take the inspiration to the frame where the
+   gesture starts, you count to where it ends, and that gives you the
+   milliseconds.
 
-   NO HAY ffprobe EN ESTA MÁQUINA y no se agrega una dependencia para
-   esto. Un mp4 y un .mov son el mismo formato de cajas anidadas
-   (ISO-BMFF / QuickTime) y el dato está en dos de ellas:
+   THERE IS NO ffprobe ON THIS MACHINE and no dependency gets added for
+   this. An mp4 and a .mov are the same format of nested boxes
+   (ISO-BMFF / QuickTime) and the number lives in two of them:
 
-     mdhd  el TIMESCALE de la pista: cuántas unidades por segundo
-     stts  la tabla de duraciones: cuántas unidades dura cada muestra
+     mdhd  the TIMESCALE of the track: how many units per second
+     stts  the table of durations: how many units each sample lasts
 
-     duración de un cuadro = sample_delta / timescale
+     duration of one frame = sample_delta / timescale
 
-   Se lee la pista de VIDEO y no la primera que aparezca: la de audio
-   tiene su propio timescale (48000) y daría un número sin sentido. Cuál
-   es cuál lo dice la caja `hdlr`, que en la de video declara 'vide'.
+   The VIDEO track is the one that gets read, not the first one that
+   turns up: the audio track has its own timescale (48000) and would
+   give a meaningless number. Which one is which is told by the `hdlr`
+   box, which in the video one declares 'vide'.
 
-   TASA VARIABLE: si stts trae más de una entrada con deltas distintos,
-   el video no tiene un cuadro de duración fija. En ese caso se devuelve
-   el delta MÁS FRECUENTE y se avisa con `variable: true`, para que
-   quien lo use sepa que el paso es aproximado en vez de creer que es
-   exacto.
+   VARIABLE RATE: if stts brings more than one entry with different
+   deltas, the video does not have a frame of fixed duration. In that
+   case the MOST FREQUENT delta is returned and `variable: true` says
+   so, so that whoever uses it knows the step is approximate instead of
+   believing it is exact.
 
-   Sólo se leen las cajas que hacen falta y se saltea el resto por su
-   tamaño, así que no se carga el archivo entero en memoria: un clip de
-   2 MB se resuelve leyendo unos pocos kilobytes de cabecera.
+   Only the boxes that are needed get read and the rest is skipped by
+   its size, so the whole file never loads into memory: a 2 MB clip is
+   resolved by reading a few kilobytes of header.
    ═══════════════════════════════════════════════════════════════ */
 import fs from 'node:fs'
 
-/* Las cajas que hay que ABRIR para seguir bajando. El resto —mdat, que
-   es el video en sí y pesa el 99%— se saltea entero. */
-const CONTENEDORAS = new Set(['moov', 'trak', 'mdia', 'minf', 'stbl'])
+/* The boxes that have to be OPENED to keep going down. The rest gets
+   skipped whole: mdat, which is the video itself and is 99% of it. */
+const CONTAINERS = new Set(['moov', 'trak', 'mdia', 'minf', 'stbl'])
 
-/* Recorre las cajas de un rango y llama a `ver` con cada una. Las cajas
-   son [tamaño:4][tipo:4][contenido], y un tamaño de 1 significa que el
-   real viene en 8 bytes más después del tipo. */
-function cajas(buf, inicio, fin, ver) {
-  let p = inicio
-  while (p + 8 <= fin) {
-    let tam = buf.readUInt32BE(p)
-    const tipo = buf.toString('latin1', p + 4, p + 8)
-    let cuerpo = p + 8
-    if (tam === 1) {
-      if (p + 16 > fin) break
-      /* 64 bits. Se lee como Number y no como BigInt a propósito: un
-         archivo de más de 9 petabytes no es un caso de este vault. */
-      tam = Number(buf.readBigUInt64BE(p + 8))
-      cuerpo = p + 16
-    } else if (tam === 0) {
-      tam = fin - p /* hasta el final */
+/* Walks the boxes of a range and calls `visit` with each one. The boxes
+   are [size:4][type:4][content], and a size of 1 means the real one
+   comes in 8 more bytes after the type. */
+function boxes(buf, start, end, visit) {
+  let p = start
+  while (p + 8 <= end) {
+    let size = buf.readUInt32BE(p)
+    const type = buf.toString('latin1', p + 4, p + 8)
+    let body = p + 8
+    if (size === 1) {
+      if (p + 16 > end) break
+      /* 64 bits. It is read as Number and not as BigInt on purpose: a
+         file of more than 9 petabytes is not a case of this vault. */
+      size = Number(buf.readBigUInt64BE(p + 8))
+      body = p + 16
+    } else if (size === 0) {
+      size = end - p /* to the end */
     }
-    if (tam < 8 || p + tam > fin) break
-    ver(tipo, cuerpo, p + tam)
-    p += tam
+    if (size < 8 || p + size > end) break
+    visit(type, body, p + size)
+    p += size
   }
 }
 
-/* La cabecera de la pista: el timescale está en el byte 12 (versión 0)
-   o en el 20 (versión 1, con tiempos de 64 bits). */
-function leerMdhd(buf, ini) {
-  const version = buf[ini]
-  return version === 1 ? buf.readUInt32BE(ini + 20) : buf.readUInt32BE(ini + 12)
+/* The header of the track: the timescale is at byte 12 (version 0) or
+   at 20 (version 1, with 64-bit times). */
+function readMdhd(buf, start) {
+  const version = buf[start]
+  return version === 1 ? buf.readUInt32BE(start + 20) : buf.readUInt32BE(start + 12)
 }
 
-/* La tabla de duraciones. Devuelve el delta más frecuente y si hay más
-   de uno. */
-function leerStts(buf, ini, fin) {
-  const n = buf.readUInt32BE(ini + 4)
-  const cuenta = new Map()
+/* The table of durations. Returns the most frequent delta and whether
+   there is more than one. */
+function readStts(buf, start, end) {
+  const n = buf.readUInt32BE(start + 4)
+  const counts = new Map()
   let total = 0
   for (let i = 0; i < n; i++) {
-    const off = ini + 8 + i * 8
-    if (off + 8 > fin) break
-    const muestras = buf.readUInt32BE(off)
+    const off = start + 8 + i * 8
+    if (off + 8 > end) break
+    const samples = buf.readUInt32BE(off)
     const delta = buf.readUInt32BE(off + 4)
     if (!delta) continue
-    cuenta.set(delta, (cuenta.get(delta) || 0) + muestras)
-    total += muestras
+    counts.set(delta, (counts.get(delta) || 0) + samples)
+    total += samples
   }
-  if (!cuenta.size) return null
-  let mejor = 0
-  let mejorN = 0
-  for (const [delta, m] of cuenta) {
-    if (m > mejorN) {
-      mejorN = m
-      mejor = delta
+  if (!counts.size) return null
+  let best = 0
+  let bestCount = 0
+  for (const [delta, m] of counts) {
+    if (m > bestCount) {
+      bestCount = m
+      best = delta
     }
   }
-  return { delta: mejor, muestras: total, variable: cuenta.size > 1 }
+  return { delta: best, samples: total, variable: counts.size > 1 }
 }
 
-export function cuadroDe(ruta) {
+export function frameStepOf(path) {
   let fd
   try {
-    fd = fs.openSync(ruta, 'r')
+    fd = fs.openSync(path, 'r')
     const total = fs.fstatSync(fd).size
 
-    /* Encontrar moov sin leer todo: se recorren las cajas de nivel
-       superior leyendo sólo sus 16 bytes de cabecera. moov puede estar
-       al principio (optimizado para streaming) o al final. */
-    let moovIni = -1
-    let moovFin = -1
+    /* Find moov without reading everything: the top level boxes get
+       walked reading only their 16 bytes of header. moov can be at the
+       beginning (optimized for streaming) or at the end. */
+    let moovStart = -1
+    let moovEnd = -1
     {
-      const cab = Buffer.alloc(16)
+      const header = Buffer.alloc(16)
       let p = 0
       while (p + 8 <= total) {
-        if (fs.readSync(fd, cab, 0, 16, p) < 8) break
-        let tam = cab.readUInt32BE(0)
-        const tipo = cab.toString('latin1', 4, 8)
-        let cuerpo = p + 8
-        if (tam === 1) {
-          tam = Number(cab.readBigUInt64BE(8))
-          cuerpo = p + 16
-        } else if (tam === 0) {
-          tam = total - p
+        if (fs.readSync(fd, header, 0, 16, p) < 8) break
+        let size = header.readUInt32BE(0)
+        const type = header.toString('latin1', 4, 8)
+        let body = p + 8
+        if (size === 1) {
+          size = Number(header.readBigUInt64BE(8))
+          body = p + 16
+        } else if (size === 0) {
+          size = total - p
         }
-        if (tam < 8) break
-        if (tipo === 'moov') {
-          moovIni = cuerpo
-          moovFin = p + tam
+        if (size < 8) break
+        if (type === 'moov') {
+          moovStart = body
+          moovEnd = p + size
           break
         }
-        p += tam
+        p += size
       }
     }
-    if (moovIni < 0) return null
+    if (moovStart < 0) return null
 
-    /* moov sí se lee entero: son las tablas, no el video. En un clip de
-       2 MB son decenas de kilobytes. */
-    const moov = Buffer.alloc(moovFin - moovIni)
-    fs.readSync(fd, moov, 0, moov.length, moovIni)
+    /* moov does get read whole: it is the tables, not the video. In a
+       2 MB clip that is tens of kilobytes. */
+    const moov = Buffer.alloc(moovEnd - moovStart)
+    fs.readSync(fd, moov, 0, moov.length, moovStart)
 
-    let salida = null
-    /* Cada trak se examina por separado y sólo se queda con la de video. */
-    cajas(moov, 0, moov.length, (tipo, ini, fin) => {
-      if (tipo !== 'trak' || salida) return
-      let esVideo = false
+    let result = null
+    /* Each trak is examined on its own and only the video one is kept. */
+    boxes(moov, 0, moov.length, (type, start, end) => {
+      if (type !== 'trak' || result) return
+      let isVideo = false
       let timescale = 0
       let stts = null
-      const bajar = (b, i, f) => {
-        cajas(b, i, f, (t, ci, cf) => {
+      const descend = (b, from, to) => {
+        boxes(b, from, to, (t, childStart, childEnd) => {
           if (t === 'hdlr') {
-            /* handler_type está 8 bytes después del inicio del cuerpo:
-               versión+flags (4) y pre_defined (4). */
-            if (b.toString('latin1', ci + 8, ci + 12) === 'vide') esVideo = true
+            /* handler_type is 8 bytes after the start of the body:
+               version+flags (4) and pre_defined (4). */
+            if (b.toString('latin1', childStart + 8, childStart + 12) === 'vide') isVideo = true
           } else if (t === 'mdhd') {
-            timescale = leerMdhd(b, ci)
+            timescale = readMdhd(b, childStart)
           } else if (t === 'stts') {
-            stts = leerStts(b, ci, cf)
-          } else if (CONTENEDORAS.has(t)) {
-            bajar(b, ci, cf)
+            stts = readStts(b, childStart, childEnd)
+          } else if (CONTAINERS.has(t)) {
+            descend(b, childStart, childEnd)
           }
         })
       }
-      bajar(moov, ini, fin)
-      if (!esVideo || !timescale || !stts) return
-      salida = {
+      descend(moov, start, end)
+      if (!isVideo || !timescale || !stts) return
+      result = {
         fps: +(timescale / stts.delta).toFixed(6),
-        /* Lo que de verdad usa el reproductor: cuánto avanzar. */
-        cuadro: +(stts.delta / timescale).toFixed(9),
-        cuadros: stts.muestras,
+        /* What the player really uses: how much to advance. */
+        step: +(stts.delta / timescale).toFixed(9),
+        samples: stts.samples,
         timescale,
         delta: stts.delta,
         variable: stts.variable,
       }
     })
-    return salida
+    return result
   } catch {
     return null
   } finally {

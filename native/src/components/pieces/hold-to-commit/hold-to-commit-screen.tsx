@@ -4,191 +4,192 @@ import { useState } from 'react'
 import { Pressable, StyleSheet, Text, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { type Carga, CargaJS, cargaJS, cargaPesada, cargaRender } from './load'
-import { FONDO, FONDOS, type Fondo } from './background'
-import { FondoAccion, paleta } from './backgrounds/stock'
-import { FondoBloques } from './backgrounds/blocks'
-import { FondoOpal } from './backgrounds/opal'
-import { HoldToCommit, type Esquema } from './hold-to-commit'
-import { MATERIAL, MATERIALES, type Material } from './material'
-import { Medidor } from './meter'
-import { CLARO, COLOR, PANTALLA, PILL, SECCION } from './measurements'
-import { RECETA, RECETAS, type Receta } from './recipe'
-import { CARGA, MEDIR, RECEPTOR, SONDA } from './probe'
+import { type Load, LoadJS, hasJSLoad, isHeavyLoad, hasRenderLoad } from './load'
+import { BACKGROUND, BACKGROUNDS, type Background } from './background'
+import { StockBackground, palette } from './backgrounds/stock'
+import { BlocksBackground } from './backgrounds/blocks'
+import { OpalBackground } from './backgrounds/opal'
+import { HoldToCommit, type ColorScheme } from './hold-to-commit'
+import { MATERIAL, MATERIALS, type Material } from './material'
+import { Meter } from './meter'
+import { LIGHT, COLOR, SCREEN, PILL, SECTION } from './measurements'
+import { RECIPE, RECIPES, type Recipe } from './recipe'
+import { LOAD, MEASURE, RECEIVER, PROBE } from './probe'
 
 /* ═══════════════════════════════════════════════════════════════
-   HOLD TO COMMIT — la pantalla, autocontenida: el botón, y detrás lo
-   que diga `fondo`. La ruta (`src/app/[slug].tsx`) la encuentra en el
-   registro por su slug y la monta; acá se leen las perillas y se
-   compone todo. En la exhibition la pieza se llama `Hold to buy`: el
-   slug quedó el del día en que se publicó (ver `Piece` en
-   `src/pieces.ts` del repo web).
+   HOLD TO COMMIT — the screen, self-contained: the button, and behind it
+   whatever `background` says. The route (`src/app/[slug].tsx`) finds it
+   in the registry by its slug and mounts it; here the knobs get read and
+   everything gets composed. In the exhibition the piece is called `Hold
+   to buy`: the slug stayed the one from the day it was published (see
+   `Piece` in `src/pieces.ts` of the web repo).
 
-   La referencia es `VAULT_DIR/nativo/Hold to commit.mp4`: el botón de
-   **Opal** (Screen Time Control, Apple Design Award 2025), publicado por
-   @60fpsdesign en X y catalogado en 60fps.design como "Opal Hold to
-   Commit Button Interaction"; 60 fps. Medida cuadro a cuadro: el recibo
-   de cada valor está en `medidas.ts` y los scripts de medición en
-   `.context/hold-to-commit/`.
+   The reference is `VAULT_DIR/nativo/Hold to commit.mp4`: the **Opal**
+   button (Screen Time Control, Apple Design Award 2025), published by
+   @60fpsdesign on X and catalogued on 60fps.design as "Opal Hold to
+   Commit Button Interaction"; 60 fps. Measured frame by frame: every
+   value's receipt is in `measurements.ts` and the measuring scripts are
+   in `.context/hold-to-commit/`.
 
-   LA CARPETA TIENE LA FORMA DE components/animations/<slug>/ DE
-   react-native-motion, con sus mismos nombres: `index.tsx` exporta esta
-   pantalla por defecto, `hold-to-commit.tsx` es el botón —el
-   mecanismo—, y al lado sus partes (`etiqueta`, `chispas`,
-   `particulas`), sus valores con recibo (`medidas.ts`, `receta.ts`), la
-   háptica y el sonido, las variantes (`fondo.ts`, `material.ts`; los
-   fondos dibujados, en `fondos/`) y el andamiaje de medición
-   (`sonda.ts`, `carga.tsx`, `medidor.tsx`).
+   THE FOLDER HAS THE SHAPE OF components/animations/<slug>/ FROM
+   react-native-motion, with its same names: `index.tsx` exports this
+   screen by default, `hold-to-commit.tsx` is the button (the mechanism),
+   and next to it its parts (`label`, `sparks`, `particles`), its values
+   with receipts (`measurements.ts`, `recipe.ts`), the haptics and the
+   sound, the variants (`background.ts`, `material.ts`; the drawn
+   backgrounds, in `backgrounds/`) and the measuring scaffolding
+   (`probe.ts`, `load.tsx`, `meter.tsx`).
 
-   El botón es el mismo en todas las variantes y no sabe cuál está
-   puesta: recibe su ancho, su receta, su sonda y el ESQUEMA de la
-   pantalla, nada más. Lo que cambia es lo de atrás y dónde queda el
-   pill (al pie, como en el clip, o centrado). Las variantes están
-   descritas en `fondo.ts`; la pantalla de Opal, medida, vive en
-   `fondos/opal.tsx`.
+   The button is the same in every variant and does not know which one is
+   set: it takes its width, its recipe, its probe and the screen's COLOR
+   SCHEME, and nothing else. What changes is what is behind it and where
+   the pill sits (at the foot, like in the clip, or centered). The
+   variants are described in `background.ts`; the Opal screen, measured,
+   lives in `backgrounds/opal.tsx`.
 
-   EL ESQUEMA LO DECIDE LA PANTALLA, no el sistema: los fondos de Opal
-   y sus esqueletos son oscuros siempre (el clip es oscuro), así que
-   sólo `accion` sigue al modo claro/oscuro del sistema. El botón, los
-   chips y la barra de estado reciben ese esquema y no consultan nada.
+   THE COLOR SCHEME IS DECIDED BY THE SCREEN, not by the system: the Opal
+   backgrounds and their skeletons are always dark (the clip is dark), so
+   only `stock` follows the system's light/dark mode. The button, the
+   chips and the status bar take that scheme and consult nothing.
 
-   Con `fondo = 'elegir'` o `receta = 'elegir'` aparece un selector
-   arriba para pasar de una variante a otra en vivo. Es andamiaje de la
-   exploración: se va cuando haya ganador.
+   With `background = 'choose'` or `recipe = 'choose'` a selector appears
+   at the top to go from one variant to another live. It is scaffolding
+   for the exploration: it goes when there is a winner.
 
-   LA CARGA Y EL MEDIDOR son andamiaje de rendimiento (`carga.tsx`,
-   `medidor.tsx`): con `carga` se ocupa el hilo de JS y/o se
-   re-renderiza la ficha a 10 Hz debajo del botón; con `medir` se
-   cuentan cuadros y latencias durante 9 s y se reportan por consola.
+   THE LOAD AND THE METER are performance scaffolding (`load.tsx`,
+   `meter.tsx`): with `load` the JS thread gets busy and/or the detail
+   page under the button re-renders at 10 Hz; with `measure`, frames and
+   latencies get counted for 9 s and reported on the console.
 
-   LAS PERILLAS, por URL o escritas en un archivo. La sonda
-   (`?parcar=0.5`, `commit`, `rafaga=0.2`, `cruce=25`,
-   `cruce-commit=308`, `cruce-suelta=217`, `auto`, `auto-suelta`) deja la
-   pieza en un estado fijo por recarga para medirla contra el clip; no
-   hace nada si no se pasa. Por URL o, más cómodo desde la terminal,
-   escribiéndola en `sonda.ts` (ver ahí por qué). El fondo
-   (`?fondo=liso`, o `FONDO` en `fondo.ts`) elige qué hay detrás del
-   botón, y la receta (`?receta=skill`, o `RECETA` en `receta.ts`) qué
-   curvas y tiempos lleva: los medidos del clip o los de las tablas de
-   animate-expo. Con `'elegir'` la pieza muestra un selector para
-   cambiarlos en vivo. Las lee `HoldToCommitScreen`, que es lo que el
-   registro monta; `Pantalla` recibe todo ya decidido.
+   THE KNOBS, by URL or written into a file. The probe (`?park=0.5`,
+   `commit`, `burst=0.2`, `crossfade=25`, `crossfade-commit=308`,
+   `crossfade-release=217`, `auto`, `auto-release`) leaves the piece in a
+   fixed state per reload so you can measure it against the clip; it does
+   nothing if you do not pass it. By URL or, easier from the terminal, by
+   writing it into `probe.ts` (see there why). The background
+   (`?background=plain`, or `BACKGROUND` in `background.ts`) picks what is
+   behind the button, and the recipe (`?recipe=skill`, or `RECIPE` in
+   `recipe.ts`) picks what curves and timings it carries: the ones
+   measured off the clip or the ones from the animate-expo tables. With
+   `'choose'` the piece shows a selector to change them live.
+   `HoldToCommitScreen` reads them, and that is what the registry mounts;
+   `Screen` takes everything already decided.
 
-   Cuando esté lista:  pnpm grabar hold-to-commit
+   When it is ready:  pnpm record hold-to-commit
    ═══════════════════════════════════════════════════════════════ */
 
-/* Lo que el registro monta. Las perillas del archivo mandan sobre la
-   URL en la sonda, la carga, el medidor y el receptor —son las que
-   escribe un script y no puede pisar un link viejo—; en el fondo, la
-   receta y el material manda la URL, que son las que se cambian
-   mirando. Es la misma precedencia que tenía la ruta cuando era una
-   por pieza. */
+/* What the registry mounts. The file knobs win over the URL for the
+   probe, the load, the meter and the receiver (they are the ones a script
+   writes and an old link must not override); for the background, the
+   recipe and the material the URL wins, since those are the ones you
+   change while looking. It is the same precedence the route had when
+   there was one per piece. */
 export function HoldToCommitScreen() {
-  const { parcar, fondo, receta, material, carga, medir } = useLocalSearchParams<{
-    parcar?: string
-    fondo?: Fondo
-    receta?: Receta
+  const { park, background, recipe, material, load, measure } = useLocalSearchParams<{
+    park?: string
+    background?: Background
+    recipe?: Recipe
     material?: Material
-    carga?: Carga
-    medir?: string
+    load?: Load
+    measure?: string
   }>()
   return (
-    <Pantalla
-      sonda={SONDA ?? parcar}
-      fondo={fondo ?? FONDO}
-      receta={receta ?? RECETA}
+    <Screen
+      probe={PROBE ?? park}
+      background={background ?? BACKGROUND}
+      recipe={recipe ?? RECIPE}
       material={material ?? MATERIAL}
-      carga={CARGA ?? carga}
-      medir={MEDIR || medir === '1'}
-      receptor={RECEPTOR}
+      load={LOAD ?? load}
+      measure={MEASURE || measure === '1'}
+      receiver={RECEIVER}
     />
   )
 }
 
 type Props = {
-  sonda?: string
-  fondo: Fondo | 'elegir'
-  receta: Receta | 'elegir'
-  material: Material | 'elegir'
-  carga?: Carga
-  medir?: boolean
-  /** A dónde manda el informe el medidor, además de la consola. */
-  receptor?: string
+  probe?: string
+  background: Background | 'choose'
+  recipe: Recipe | 'choose'
+  material: Material | 'choose'
+  load?: Load
+  measure?: boolean
+  /** Where the meter sends the report, besides the console. */
+  receiver?: string
 }
 
-/* Lo que dura la secuencia entera con la sonda `auto`: 700 ms de espera,
-   1 s de hold, la ráfaga, 5 s hasta el reinicio y el fundido. */
-const VENTANA_MEDIDOR = 9000
+/* How long the whole sequence lasts with the `auto` probe: 700 ms of
+   waiting, 1 s of hold, the burst, 5 s until the reset and the fade. */
+const METER_WINDOW = 9000
 
-function Pantalla({ sonda, fondo: pedido, receta: pedida, material: pedidoMaterial, carga, medir = false, receptor }: Props) {
+function Screen({ probe, background: requestedBackground, recipe: requestedRecipe, material: requestedMaterial, load, measure = false, receiver }: Props) {
   const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
-  const sistema = useColorScheme()
-  const [elegido, setElegido] = useState<Fondo>(pedido === 'elegir' ? FONDOS[0]! : pedido)
-  const [elegida, setElegida] = useState<Receta>(pedida === 'elegir' ? RECETAS[0]! : pedida)
-  const [elegidoMaterial, setElegidoMaterial] = useState<Material>(pedidoMaterial === 'elegir' ? MATERIALES[0]! : pedidoMaterial)
-  const fondo = pedido === 'elegir' ? elegido : pedido
-  const receta = pedida === 'elegir' ? elegida : pedida
-  const material = pedidoMaterial === 'elegir' ? elegidoMaterial : pedidoMaterial
-  const esquema: Esquema = fondo === 'accion' && sistema === 'light' ? 'light' : 'dark'
-  const anchoPill = width - 2 * PANTALLA.margenPill
-  const pillArriba = insets.bottom + PILL.sobreSafeArea + PILL.alto
+  const system = useColorScheme()
+  const [chosenBackground, setChosenBackground] = useState<Background>(requestedBackground === 'choose' ? BACKGROUNDS[0]! : requestedBackground)
+  const [chosenRecipe, setChosenRecipe] = useState<Recipe>(requestedRecipe === 'choose' ? RECIPES[0]! : requestedRecipe)
+  const [chosenMaterial, setChosenMaterial] = useState<Material>(requestedMaterial === 'choose' ? MATERIALS[0]! : requestedMaterial)
+  const background = requestedBackground === 'choose' ? chosenBackground : requestedBackground
+  const recipe = requestedRecipe === 'choose' ? chosenRecipe : requestedRecipe
+  const material = requestedMaterial === 'choose' ? chosenMaterial : requestedMaterial
+  const scheme: ColorScheme = background === 'stock' && system === 'light' ? 'light' : 'dark'
+  const pillWidth = width - 2 * SCREEN.pillMargin
+  const pillTop = insets.bottom + PILL.aboveSafeArea + PILL.height
 
   return (
-    <View style={[css.pantalla, fondo === 'accion' && { backgroundColor: paleta(esquema).fondo }]}>
-      <StatusBar style={esquema === 'light' ? 'dark' : 'light'} />
-      {fondo === 'opal' && <FondoOpal pillArriba={pillArriba} paddingTop={insets.top} />}
-      {fondo === 'bloques' && <FondoBloques paddingTop={insets.top} />}
-      {/* `accion` scrollea por DEBAJO del botón, que flota: es lo que hace
-          que el vidrio se lea (refracta lo que pasa detrás) y es cómo
-          flota un botón primario en iOS 26. */}
-      {fondo === 'accion' && (
-        <FondoAccion paddingTop={insets.top} paddingBottom={insets.bottom + PILL.sobreSafeArea + PILL.alto + SECCION.alPill} enVivo={cargaRender(carga)} />
+    <View style={[css.screen, background === 'stock' && { backgroundColor: palette(scheme).background }]}>
+      <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
+      {background === 'opal' && <OpalBackground pillTop={pillTop} paddingTop={insets.top} />}
+      {background === 'blocks' && <BlocksBackground paddingTop={insets.top} />}
+      {/* `stock` scrolls UNDER the button, which floats: that is what makes
+          the glass read (it refracts what passes behind it) and it is how a
+          primary button floats on iOS 26. */}
+      {background === 'stock' && (
+        <StockBackground paddingTop={insets.top} paddingBottom={insets.bottom + PILL.aboveSafeArea + PILL.height + SECTION.toPill} live={hasRenderLoad(load)} />
       )}
-      {(fondo === 'liso' || fondo === 'centrado') && <View style={css.estirar} />}
+      {(background === 'plain' || background === 'centered') && <View style={css.stretch} />}
 
       <View
         pointerEvents="box-none"
         style={[
-          css.pie,
-          (fondo === 'opal' || fondo === 'bloques') && css.pieOpal,
-          fondo === 'accion' ? [css.flotante, { bottom: insets.bottom + PILL.sobreSafeArea }] : { marginBottom: fondo === 'centrado' ? 0 : insets.bottom + PILL.sobreSafeArea },
+          css.foot,
+          (background === 'opal' || background === 'blocks') && css.footOpal,
+          background === 'stock' ? [css.floating, { bottom: insets.bottom + PILL.aboveSafeArea }] : { marginBottom: background === 'centered' ? 0 : insets.bottom + PILL.aboveSafeArea },
         ]}
       >
-        <HoldToCommit ancho={anchoPill} receta={receta} sonda={sonda} derrame={fondo === 'opal'} material={material} esquema={esquema} />
+        <HoldToCommit width={pillWidth} recipe={recipe} probe={probe} spill={background === 'opal'} material={material} scheme={scheme} />
       </View>
-      {fondo === 'centrado' && <View style={css.estirar} />}
+      {background === 'centered' && <View style={css.stretch} />}
 
-      {(pedido === 'elegir' || pedida === 'elegir' || pedidoMaterial === 'elegir') && (
+      {(requestedBackground === 'choose' || requestedRecipe === 'choose' || requestedMaterial === 'choose') && (
         <View pointerEvents="box-none" style={[css.selector, { top: insets.top + 8 }]}>
-          {pedido === 'elegir' && <Selector opciones={FONDOS} activa={fondo} elegir={setElegido} esquema={esquema} />}
-          {pedida === 'elegir' && <Selector opciones={RECETAS} activa={receta} elegir={setElegida} esquema={esquema} />}
-          {pedidoMaterial === 'elegir' && <Selector opciones={MATERIALES} activa={material} elegir={setElegidoMaterial} esquema={esquema} />}
+          {requestedBackground === 'choose' && <Selector options={BACKGROUNDS} active={background} choose={setChosenBackground} scheme={scheme} />}
+          {requestedRecipe === 'choose' && <Selector options={RECIPES} active={recipe} choose={setChosenRecipe} scheme={scheme} />}
+          {requestedMaterial === 'choose' && <Selector options={MATERIALS} active={material} choose={setChosenMaterial} scheme={scheme} />}
         </View>
       )}
 
-      {cargaJS(carga) && <CargaJS pesada={cargaPesada(carga)} />}
-      {medir && <Medidor contexto={`${carga ?? 'sin carga'} · ${receta} · ${material} · ${esquema}`} ventana={VENTANA_MEDIDOR} receptor={receptor} />}
+      {hasJSLoad(load) && <LoadJS heavy={isHeavyLoad(load)} />}
+      {measure && <Meter context={`${load ?? 'no load'} · ${recipe} · ${material} · ${scheme}`} windowMs={METER_WINDOW} receiver={receiver} />}
     </View>
   )
 }
 
-/* Una fila de chips: chrome de la exploración, no candidato. Sigue al
-   esquema de la pantalla: en claro, los grises de sistema de iOS. */
-function Selector<T extends string>({ opciones, activa, elegir, esquema }: { opciones: readonly T[]; activa: T; elegir: (o: T) => void; esquema: Esquema }) {
-  const claro = esquema === 'light'
+/* A row of chips: chrome for the exploration, not a candidate. It follows
+   the screen's color scheme: in light mode, iOS's system greys. */
+function Selector<T extends string>({ options, active, choose, scheme }: { options: readonly T[]; active: T; choose: (o: T) => void; scheme: ColorScheme }) {
+  const light = scheme === 'light'
   return (
-    <View style={css.fila}>
-      {opciones.map((o) => {
-        const activo = o === activa
+    <View style={css.row}>
+      {options.map((o) => {
+        const isActive = o === active
         return (
           <Pressable
             key={o}
-            onPress={() => elegir(o)}
+            onPress={() => choose(o)}
             hitSlop={6}
-            style={[css.opcion, { backgroundColor: claro ? (activo ? CLARO.chipActivo : CLARO.chip) : activo ? COLOR.chipActivo : COLOR.chip }]}
+            style={[css.option, { backgroundColor: light ? (isActive ? LIGHT.chipActive : LIGHT.chip) : isActive ? COLOR.chipActive : COLOR.chip }]}
           >
-            <Text allowFontScaling={false} style={[css.opcionTexto, { color: claro ? (activo ? CLARO.chipTextoActivo : CLARO.chipTexto) : activo ? COLOR.texto : COLOR.secundario }]}>
+            <Text allowFontScaling={false} style={[css.optionText, { color: light ? (isActive ? LIGHT.chipTextActive : LIGHT.chipText) : isActive ? COLOR.text : COLOR.secondary }]}>
               {o}
             </Text>
           </Pressable>
@@ -199,236 +200,246 @@ function Selector<T extends string>({ opciones, activa, elegir, esquema }: { opc
 }
 
 const css = StyleSheet.create({
-  pantalla: { flex: 1, backgroundColor: COLOR.fondo },
-  estirar: { flex: 1 },
-  pie: { alignItems: 'center' },
-  /* Con cards arriba (Opal o su esqueleto) el pill va a la distancia
-     medida de la última card: nada lo toca. */
-  pieOpal: { marginTop: SECCION.alPill },
-  /* El botón flotando sobre el contenido, a la misma distancia del borde. */
-  flotante: { position: 'absolute', left: 0, right: 0 },
+  screen: { flex: 1, backgroundColor: COLOR.background },
+  stretch: { flex: 1 },
+  foot: { alignItems: 'center' },
+  /* With cards above it (Opal or its skeleton) the pill goes at the
+     measured distance from the last card: nothing touches it. */
+  footOpal: { marginTop: SECTION.toPill },
+  /* The button floating over the content, at the same distance from the edge. */
+  floating: { position: 'absolute', left: 0, right: 0 },
   selector: { position: 'absolute', left: 0, right: 0, alignItems: 'center', gap: 6 },
-  fila: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  opcion: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
-  opcionTexto: { fontSize: 12, fontWeight: '600' },
+  row: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  option: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
+  optionText: { fontSize: 12, fontWeight: '600' },
 })
 
 /*
- * No tocar sin volver a medir
+ * Do not touch without measuring again
  *
- * — El hold dura `HOLD.duracion` y el LongPress activa en el MISMO
- *   número a propósito. Si se separan, el relleno llega antes o después
- *   de que el gesto complete. Son 1000 ms desde el 2026-09-07 (pedido,
- *   primero 1500 y después 1000); lo medido en el clip son 2000, y todo
- *   lo que es función del progreso se comprime solo.
- *   RUNTIME: 121 cuadros del press a la ráfaga; frente lineal a 7.75
- *   px/cuadro. SOURCE: los dos leen HOLD.duracion.
+ * — The hold lasts `HOLD.duration` and the LongPress fires on the SAME
+ *   number on purpose. If they are separated, the fill arrives before or
+ *   after the gesture completes. It has been 1000 ms since 2026-09-07
+ *   (asked for, first 1500 and then 1000); what was measured in the clip
+ *   is 2000, and everything that is a function of the progress compresses
+ *   by itself.
+ *   RUNTIME: 121 frames from the press to the burst; linear front at 7.75
+ *   px/frame. SOURCE: both read HOLD.duration.
  *
- * — El frente es una erfc de σ = 19 pt CENTRADA en el borde geométrico y
- *   con forma de cápsula, ESCALADA en x alrededor de ese borde (.66 +
- *   .36·p: más angosto al principio). Y el borde geométrico va del 4.5
- *   al 95.5 % del ancho en los 2 s, no de punta a punta; al completar se
- *   desliza al 101 % mientras blanquea.
- *   RUNTIME: 50 % del frente cada 100 ms f76…f181 (174 pt/s, 93.5 % en
- *   f181); ancho 90→10 % 51→64 pt a lo largo del hold; verificado en
- *   captura a ±5 en p .23 / .5 / .74 / .99.
+ * — The front is an erfc of σ = 19 pt CENTERED on the geometric edge and
+ *   shaped like a capsule, SCALED in x around that edge (.66 + .36·p:
+ *   narrower at the start). And the geometric edge goes from 4.5 % to
+ *   95.5 % of the width in the 2 s, not tip to tip; on completion it
+ *   slides to 101 % while it whitens.
+ *   RUNTIME: 50 % of the front every 100 ms f76…f181 (174 pt/s, 93.5 % at
+ *   f181); width 90→10 % 51→64 pt over the course of the hold; verified in
+ *   a capture to ±5 at p .23 / .5 / .74 / .99.
  *
- * — La punta izquierda del blob se OSCURECE y se ENSANCHA a medida que el
- *   frente se aleja: la textura del velo es la del final (f181) y se
- *   escala en x desde la punta, s = .25 + .75·p; se invierte POR CANAL
- *   contra el color objetivo (verde pálido). Un velo gris no puede dar
- *   (150,172,156), y uno fijo no puede dar 249 → 183 a 38 pt.
- *   RUNTIME: f88…f181 cada 6 cuadros; verificado exacto en cuatro progresos.
+ * — The blob's left tip DARKENS and WIDENS as the front moves away: the
+ *   veil's texture is the one from the end (f181) and it gets scaled in x
+ *   from the tip, s = .25 + .75·p; it is inverted PER CHANNEL against the
+ *   target color (pale green). A grey veil cannot give (150,172,156), and
+ *   a fixed one cannot give 249 → 183 at 38 pt.
+ *   RUNTIME: f88…f181 every 6 frames; verified exactly at four progresses.
  *
- * — El relleno se ENCIENDE en 330 ms con ease-in-out (arranca lento), y
- *   al soltar se apaga con una exponencial de τ = 60 ms mientras el
- *   frente retrocede despacio (400 ms ease-out).
- *   RUNTIME: pico a 10 pt del borde f63…f80 y f13…f20; captura a ±7.
+ * — The fill TURNS ON in 330 ms with ease-in-out (it starts slow), and on
+ *   release it goes out with an exponential of τ = 60 ms while the front
+ *   retreats slowly (400 ms ease-out).
+ *   RUNTIME: peak 10 pt from the edge f63…f80 and f13…f20; capture to ±7.
  *
- * — El pill escala a .953 al apretar, con ease-out CUADRÁTICO de 250 ms.
- *   Con bezier(.23,1,.32,1) cierra el doble de rápido. Al completar
- *   vuelve con un salto del 25 % en un cuadro y 220 ms de ease-out.
- *   RUNTIME: bordes 157→182 / 1194→1169; 16/52/80/96 % a 1/4/8/13 cuadros;
- *   ancho 364→369→374→378→380→382 en f182…f195, captura a ±1.3 pt.
+ * — The pill scales to .953 on press, with a QUADRATIC ease-out of 250 ms.
+ *   With bezier(.23,1,.32,1) it closes twice as fast. On completion it
+ *   comes back with a 25 % jump in one frame and 220 ms of ease-out.
+ *   RUNTIME: edges 157→182 / 1194→1169; 16/52/80/96 % at 1/4/8/13 frames;
+ *   width 364→369→374→378→380→382 in f182…f195, capture to ±1.3 pt.
  *
- * — El label es semibold 17 en los tres estados. "Committed" parece bold
- *   sólo porque "Keep Holding..." está achicado por el press.
- *   RUNTIME: anchos de tinta 121.1 / 118.9 / 86.7 pt contra SF medido en
- *   macOS: medium y bold quedan a 2–4 %. Los textos son "Hold to Buy" /
- *   "Keep Holding..." / "✓ Order Placed" desde el 2026-09-04 (pedido:
- *   un botón para comprar); la medida de peso es de los de Opal y vale
- *   igual. Las copias borrosas se regeneran con `media/generate.swift`.
+ * — The label is semibold 17 in all three states. "Committed" only looks
+ *   bold because "Keep Holding..." is shrunk by the press.
+ *   RUNTIME: ink widths 121.1 / 118.9 / 86.7 pt against SF measured on
+ *   macOS: medium and bold land 2–4 % away. The texts have been "Hold to
+ *   Buy" / "Keep Holding..." / "✓ Order Placed" since 2026-09-04 (asked
+ *   for: a button for buying); the weight measurement is from Opal's and
+ *   holds just the same. The blurred copies are regenerated with
+ *   `media/generate.swift`.
  *
- * — El color del label sale del PROGRESO: blanco → gris verdoso (#202B24)
- *   entre .55 y .70 con ease-out, y escalón a negro en .965.
- *   RUNTIME: mínimo de luminancia en "Ke": 253 en f128 → 47 en f146 →
- *   meseta hasta f177 → 26 en f178.
+ * — The label's color comes out of the PROGRESS: white → greenish grey
+ *   (#202B24) between .55 and .70 with ease-out, and a step to black at
+ *   .965.
+ *   RUNTIME: luminance minimum in "Ke": 253 in f128 → 47 in f146 →
+ *   plateau until f177 → 26 in f178.
  *
- * — Los cruces del label son blur-replace con DOS copias desenfocadas
- *   por texto (σ 2.5 y 1.0, rasterizadas en Swift, teñidas con tintColor)
- *   y una escalera que es partición de la opacidad; cada label tiene su
- *   presencia. Son asimétricos: press 360 ease-out / 48; suelta 600
- *   lineal desde 150 / 250 desde 80; commit 450 lineal desde 210 / 280
- *   desde 40. "✓ Committed" entra creciendo desde .9 (SUPUESTO, pedido).
- *   RUNTIME: asta de la "i" de Commit y de Holding cuadro a cuadro
- *   (f61–f95, f10–f44, f184–f220); verificado con sondas en ms contra el
- *   cuadro del clip del mismo instante.
+ * — The label crossfades are blur-replace with TWO blurred copies per text
+ *   (σ 2.5 and 1.0, rasterized in Swift, tinted with tintColor) and a
+ *   staircase that is a partition of the opacity; each label has its own
+ *   presence. They are asymmetric: press 360 ease-out / 48; release 600
+ *   linear from 150 / 250 from 80; commit 450 linear from 210 / 280 from
+ *   40. "✓ Committed" comes in growing from .9 (ASSUMED, asked for).
+ *   RUNTIME: the stem of the "i" in Commit and in Holding frame by frame
+ *   (f61–f95, f10–f44, f184–f220); verified with probes in ms against the
+ *   clip frame from the same instant.
  *
- * — Las chispas de adentro del pill son función del progreso: nacen
- *   8–100 pt delante del frente, viajan a la derecha al 50–75 % de su
- *   velocidad y viven 250–450 ms. 12 vistas × 3 vidas.
- *   RUNTIME: 24 pistas enlazadas en f64–f182 (chispas2.py).
+ * — The sparks inside the pill are a function of the progress: they are
+ *   born 8–100 pt ahead of the front, travel right at 50–75 % of its speed
+ *   and live 250–450 ms. 12 views × 3 lives.
+ *   RUNTIME: 24 tracks linked in f64–f182 (chispas2.py).
  *
- * — La ráfaga se ABRE desde el centro: dx final = 0.075 × (x₀ − centro),
- *   más el viaje por la normal (2–17 pt, mediana 7), puntas incluidas.
- *   Sin esa correlación la nube tiembla y se ve sucia.
- *   RUNTIME: 58 pistas enlazadas (rastro.py), −18.7 / +14.3 en las puntas.
+ * — The burst OPENS from the center: final dx = 0.075 × (x₀ − center),
+ *   plus the travel along the normal (2–17 pt, median 7), tips included.
+ *   Without that correlation the cloud shakes and looks dirty.
+ *   RUNTIME: 58 tracks linked (rastro.py), −18.7 / +14.3 at the tips.
  *
- * — Las partículas se miden en CAPTURA, nunca en la grabación de simctl:
- *   el video las comprime hasta volverlas polvo y engañó dos veces.
- *   RUNTIME: pico mediano 175/125/81 a 36/204/516 ms contra 189/127/84
- *   del clip; diámetro mediano 2.7 contra 2.7.
+ * — The particles are measured in a CAPTURE, never in the simctl
+ *   recording: the video compresses them until they are dust and it
+ *   fooled us twice.
+ *   RUNTIME: median peak 175/125/81 at 36/204/516 ms against 189/127/84 in
+ *   the clip; median diameter 2.7 against 2.7.
  *
- * — Los SF Symbols llevan su caja natural y scaleAspectFit: el `size` de
- *   SymbolView no es el pointSize (rasteriza a 14 siempre).
+ * — SF Symbols carry their natural box and scaleAspectFit: SymbolView's
+ *   `size` is not the pointSize (it always rasterizes at 14).
  *   SOURCE: expo-symbols/ios/SymbolView.swift:127.
  *
- * — Al completar suena el éxito de Apple Pay (`sonido.ts`,
- *   `media/purchase.wav` = `payment_success.caf` de iOS; ASSET DE APPLE,
- *   no se redistribuye), disparado 60 ms antes del final del hold desde
- *   el mismo reloj que el relleno, sólo si el iPhone no está en
- *   silencio y sin pausar otras apps. Reproductor precalentado: reusar
- *   uno con `seekTo` + `play` perdía golpes, y crearlo en el momento
- *   tardaba. Expo Go trae `expo-audio`; el dev client, no.
+ * — On completion Apple Pay's success sound plays (`sound.ts`,
+ *   `media/purchase.wav` = iOS's `payment_success.caf`; AN APPLE ASSET,
+ *   not redistributed), fired 60 ms before the end of the hold from the
+ *   same clock as the fill, only if the iPhone is not on silent and
+ *   without pausing other apps. Preheated player: reusing one with
+ *   `seekTo` + `play` dropped hits, and creating it on the spot took too
+ *   long. Expo Go ships `expo-audio`; the dev client does not.
  *
- * — La háptica sigue la tabla de animate-expo § 8: `selectionAsync` en
- *   cada uno de los doce detentes (acelerando de 300 a 60 ms) y Success
- *   al completar; apretar y soltar no vibran. No tiene recibo: el clip
- *   es video. Se ajusta con el teléfono en la mano, en `haptica.ts` y en
- *   ningún otro lado.
+ * — The haptics follow the animate-expo § 8 table: `selectionAsync` at
+ *   each of the twelve detents (accelerating from 300 to 60 ms) and
+ *   Success on completion; pressing and releasing do not vibrate. It has
+ *   no receipt: the clip is video. It gets tuned with the phone in hand,
+ *   in `haptics.ts` and nowhere else.
  *
- * — TODO `withTiming` del botón lleva `reduceMotion: Never`, y reduce
- *   motion se aplica a mano: sin escala, sin barrido (el relleno entero
- *   con el progreso como opacidad), sin chispas, ráfaga ni copias
- *   borrosas; quedan opacidad y color. Con el default de Reanimated
- *   (`System`) el relleno saltaba entero en el cuadro del press.
- *   RUNTIME: luminancia media del pill 64.2 → 182.0 en un cuadro y
- *   clavada los 2 s, simulador B con Reduce Motion (2026-09-04).
+ * — EVERY `withTiming` in the button carries `reduceMotion: Never`, and
+ *   reduce motion is applied by hand: no scale, no sweep (the whole fill
+ *   with the progress as its opacity), no sparks, no burst and no blurred
+ *   copies; opacity and color are left. With Reanimated's default
+ *   (`System`) the fill jumped in whole on the press frame.
+ *   RUNTIME: mean luminance of the pill 64.2 → 182.0 in one frame and
+ *   pinned there for the 2 s, simulator B with Reduce Motion (2026-09-04).
  *
- * — El label sigue a Dynamic Type hasta ×1.786 (`TEXTO.escalaMaxima`,
- *   la primera talla de accesibilidad); copias borrosas y tilde escalan
- *   con el mismo factor. Más grande no entra en un pill de 52 pt.
- *   SOURCE: RCTAccessibilityManager.mm:267; caja de línea 20.3 × 1.786.
+ * — The label follows Dynamic Type up to ×1.786 (`TEXT.maxScale`, the
+ *   first accessibility size); the blurred copies and the checkmark scale
+ *   by the same factor. Any bigger does not fit in a 52 pt pill.
+ *   SOURCE: RCTAccessibilityManager.mm:267; line box 20.3 × 1.786.
  *
- * — Las curvas y los tiempos son una RECETA (`receta.ts`): `clip` es lo
- *   medido; `skill` son las tablas de animate-expo a la letra, para
- *   compararlas en vivo sin perder lo fiel. Las sondas miden `clip`.
+ * — The curves and the timings are a RECIPE (`recipe.ts`): `clip` is what
+ *   was measured; `skill` is the animate-expo tables to the letter, so
+ *   they can be compared live without losing the faithful one. The probes
+ *   measure `clip`.
  *
- * — El reinicio a los 5 s es un SUPUESTO del taller (el clip no lo
- *   muestra) y es un FUNDIDO en dos fases, nunca un barrido: primero se
- *   apagan el velo blanco y el relleno con el label saliente, y recién
- *   con el relleno invisible el progreso vuelve a 0 y entra el label de
- *   reposo. Si el progreso se anima a 0 con el relleno visible, se ve
- *   retroceder el frente y la transición se ensucia.
- *   RUNTIME: interior del pill 217 → 177 → 141 → 104 → 74 → 58, parejo.
+ * — The reset at 5 s is a workshop ASSUMPTION (the clip does not show it)
+ *   and it is a FADE in two phases, never a sweep: first the white veil
+ *   and the fill go out along with the outgoing label, and only with the
+ *   fill invisible does the progress go back to 0 and the resting label
+ *   come in. If the progress is animated to 0 with the fill visible, you
+ *   see the front retreat and the transition gets dirty.
+ *   RUNTIME: the inside of the pill 217 → 177 → 141 → 104 → 74 → 58,
+ *   evenly.
  *
- * — Los fondos son variantes (`fondo.ts`): `accion`, el elegido, es la
- *   ficha de un activo medida de la captura oficial de Robinhood, en un
- *   solo gris; `opal` es la pantalla del clip y la única con derrame.
- *   `accion` sigue al modo claro/oscuro con colores de sistema
- *   (`PlatformColor`): nada que mantener. RUNTIME: barra (43,43,46) en
- *   oscuro y (228,228,230) en claro.
+ * — The backgrounds are variants (`background.ts`): `stock`, the chosen
+ *   one, is an asset's detail page measured from Robinhood's official
+ *   screenshot, in a single grey; `opal` is the clip's screen and the only
+ *   one with a spill. `stock` follows light/dark mode with system colors
+ *   (`PlatformColor`): nothing to maintain. RUNTIME: bar (43,43,46) in
+ *   dark and (228,228,230) in light.
  *
- * — El material del botón es una variante (`material.ts`): `opaco` es
- *   el pill medido; `vidrio` es Liquid Glass nativo, `regular` sin tinte
- *   e interactivo, como CONTENEDOR del pill (VIDRIO.md: no se recorta ni
- *   va bajo opacidad animada; el hijo se recorta a sí mismo), sin
- *   brillo, velo ni escala del press. El fondo `accion` scrollea
- *   por debajo del botón, que flota: sin contenido detrás, el vidrio no
- *   se lee.
+ * — The button's material is a variant (`material.ts`): `opaque` is the
+ *   measured pill; `glass` is native Liquid Glass, `regular` with no tint
+ *   and interactive, as the CONTAINER of the pill (GLASS.md: it does not
+ *   get clipped and does not go under an animated opacity; the child clips
+ *   itself), with no sheen, no veil and no press scale. The `stock`
+ *   background scrolls under the button, which floats: with no content
+ *   behind it, the glass does not read.
  *
- * — El ESQUEMA lo decide la pantalla (`esquema` del botón): sólo con
- *   `accion` sigue al sistema; los fondos de Opal son oscuros siempre.
- *   En claro el pill opaco sigue oscuro pero sin brillo ni velo, y la
- *   ráfaga es del color del pill; los chips usan
- *   los grises de sistema (`CLARO`, SUPUESTO). RUNTIME:
+ * — The COLOR SCHEME is decided by the screen (the button's `scheme`):
+ *   only with `stock` does it follow the system; the Opal backgrounds are
+ *   always dark. In light mode the opaque pill stays dark but with no
+ *   sheen and no veil, and the burst is the color of the pill; the chips
+ *   use the system greys (`LIGHT`, ASSUMED). RUNTIME:
  *   `cmp/claro-tablero.png`.
  *
- * — Android dibuja lo mismo que iOS: colores de sistema escritos
- *   (`PALETA`, no `PlatformColor`: en Android da transparente), copias
- *   borrosas con `filter: blur` desde la API 31 en vez de las PNG de SF,
- *   tilde `check` de Material Symbols en 700, `includeFontPadding:
- *   false`. RUNTIME: `cmp/android-tablero.png` (emulador Pixel 9).
+ * — Android draws the same thing as iOS: system colors written out
+ *   (`PALETTE`, not `PlatformColor`: on Android it gives transparent),
+ *   blurred copies with `filter: blur` from API 31 on instead of SF's
+ *   PNGs, `check` checkmark from Material Symbols at 700,
+ *   `includeFontPadding: false`. RUNTIME: `cmp/android-tablero.png`
+ *   (Pixel 9 emulator).
  *
- * — El reinicio corre en UI (`withDelay` sobre `espera`), no en un
- *   `setTimeout`: llega a los 5030 ms del commit con JS bloqueado.
- *   `reiniciar` va declarada ANTES de `completar`, que la llama desde
- *   un callback (un worklet captura `undefined` si la const viene
- *   después). RUNTIME: `medidor.tsx` bajo `carga.tsx` (`pesada`).
+ * — The reset runs on UI (`withDelay` over `wait`), not in a
+ *   `setTimeout`: it arrives 5030 ms after the commit with JS blocked.
+ *   `reset` is declared BEFORE `complete`, which calls it from a callback
+ *   (a worklet captures `undefined` if the const comes later). RUNTIME:
+ *   `meter.tsx` under `load.tsx` (`heavy`).
  *
- * — Sólo transform y opacity: el color del label son tres tandas del
- *   texto en sus tres tintas con la partición del progreso como
- *   opacidad (`tinta`); ninguna vista anima `color` ni `tintColor`.
+ * — Only transform and opacity: the label's color is three sets of the
+ *   text in its three inks with the partition of the progress as their
+ *   opacity (`ink`); no view animates `color` or `tintColor`.
  *
- * — La receta activa es `clip` (`RECETA`), la medida: Vito la pidió de
- *   vuelta el 2026-09-07 al ver la `skill` ("diferente, sobre todo el
- *   final"). RUNTIME: reposo, 0.5, commit y cruce-commit=150 dan PSNR
- *   infinito contra las capturas anteriores a la reescritura. La `skill`
- *   —springs con duración y rebote 0 donde hubo dedo, `overshootClamping`
- *   en la retirada, tilde contextual— sigue entera con `?receta=skill`.
+ * — The active recipe is `clip` (`RECIPE`), the measured one: Vito asked
+ *   for it back on 2026-09-07 after seeing the `skill` one ("different,
+ *   especially the ending"). RUNTIME: rest, 0.5, commit and
+ *   crossfade-commit=150 give infinite PSNR against the captures from
+ *   before the rewrite. The `skill` one is still there in full, springs
+ *   with duration and bounce 0 where there was a finger,
+ *   `overshootClamping` on the retreat, contextual checkmark, with
+ *   `?recipe=skill`.
  *
- * — El tilde de "Order Placed" entra con opacidad 0 → 1, escala .25 → 1
- *   y blur 4 → 0 (better-ui, ícono contextual); en `clip`, pegado al
- *   texto. NO TIENE RELOJ PROPIO: lee `pListo`, la presencia del texto,
- *   y sus dos capas llevan la misma partición de la escalera que el
- *   texto (nítida `nitido`, borrosa `ancho + angosto`), así el ícono y
- *   "Order Placed" no pueden separarse en ninguna receta (pedido del
- *   2026-09-07). Lo único que los distingue es la escala prescripta.
- *   RUNTIME: `cmp/tilde-de-la-mano.png` y `tilde.py` — en `clip` las dos
- *   tintas van a ±1.5 puntos porcentuales en cada q; en `skill` la
- *   diferencia que queda es exactamente el área del tilde a esa escala.
+ * — The checkmark in "Order Placed" comes in with opacity 0 → 1, scale
+ *   .25 → 1 and blur 4 → 0 (better-ui, contextual icon); in `clip`, glued
+ *   to the text. IT HAS NO CLOCK OF ITS OWN: it reads `pPlaced`, the
+ *   text's presence, and its two layers carry the same partition of the
+ *   staircase as the text (sharp `sharp`, blurred `wide + narrow`), so the
+ *   icon and "Order Placed" cannot come apart in any recipe (asked for on
+ *   2026-09-07). The only thing that tells them apart is the prescribed
+ *   scale.
+ *   RUNTIME: `cmp/tilde-de-la-mano.png` and `tilde.py` — in `clip` the two
+ *   inks stay within ±1.5 percentage points at every q; in `skill` the
+ *   difference left is exactly the area of the checkmark at that scale.
  *
- * — Un solo estado, `etapa` (entero): reposo, hold, sonando, commit,
- *   reinicio. El storyboard arriba de `hold-to-commit.tsx` lee como la secuencia
- *   y no tiene números propios: todos viven en `receta.ts` y `medidas.ts`.
+ * — One single state, `stage` (an integer): rest, hold, sounding, commit,
+ *   reset. The storyboard at the top of `hold-to-commit.tsx` reads like
+ *   the sequence and has no numbers of its own: they all live in
+ *   `recipe.ts` and `measurements.ts`.
  *
- * — Nada visible depende de JS: 0 cuadros perdidos en la secuencia
- *   bajo `todo` y `pesada` (iOS dev, Android producción). Lo que cruza
- *   a JS —háptica y sonido— espera lo que JS tarde: hasta ~90 ms bajo
- *   `pesada`, ≤ 12 ms bajo `todo`. Sin módulo nativo no hay más que
- *   eso en Expo Go. Perillas: `CARGA`, `MEDIR`, `RECEPTOR` en
- *   `sonda.ts` (o `?carga=`, `?medir=1`).
+ * — Nothing visible depends on JS: 0 frames dropped in the sequence under
+ *   `all` and `heavy` (iOS dev, Android production). What crosses to JS,
+ *   the haptics and the sound, waits however long JS takes: up to ~90 ms
+ *   under `heavy`, ≤ 12 ms under `all`. Without the native module there is
+ *   no more than that in Expo Go. Knobs: `LOAD`, `MEASURE`, `RECEIVER` in
+ *   `probe.ts` (or `?load=`, `?measure=1`).
  *
- * — EL BOTÓN NO ES LA COPIA LITERAL DEL CLIP, y en tres cosas se aparta
- *   a propósito: el anillo de 1 pt no se dibuja y en su lugar va una
- *   sombra de dos capas; "✓ Order Placed" se corre 6.6 pt a la
- *   izquierda; y en claro la página es el gris agrupado de iOS y no
- *   blanco puro. RUNTIME: el anillo se despegaba +54.5 de lo que tenía a
- *   2 pt afuera contra +4 del clip; el texto del label caía +13.67 pt a
- *   la derecha del centro y el centroide +6.60, y la corrección es ese Δ
- *   anulado (verificado en −0.06).
+ * — THE BUTTON IS NOT A LITERAL COPY OF THE CLIP, and in three things it
+ *   departs from it on purpose: the 1 pt ring is not drawn and a two-layer
+ *   shadow goes in its place; "✓ Order Placed" is moved 6.6 pt to the
+ *   left; and in light mode the page is iOS's grouped grey and not pure
+ *   white. RUNTIME: the ring pulled +54.5 away from what it had 2 pt
+ *   outside against +4 in the clip; the label's text fell +13.67 pt to the
+ *   right of the center and the centroid +6.60, and the correction is that
+ *   Δ cancelled out (verified at −0.06).
  *
- *   Hubo un rato en que las dos versiones convivían detrás de un chip
- *   (el archivo acabado.ts, con los valores referencia y revisado). El
- *   chip se sacó
- *   cuando la exploración terminó y el archivo entero se borró después:
- *   una perilla con una sola posición no es una perilla, y el registro
- *   de lo que hace el clip no vive en una rama muerta del código sino en
- *   el README y en los recibos de `medidas.ts`.
+ *   For a while both versions coexisted behind a chip (the file
+ *   acabado.ts, with the reference values and reviewed). The chip came out
+ *   when the exploration ended and the whole file was deleted afterwards:
+ *   a knob with a single position is not a knob, and the record of what
+ *   the clip does does not live in a dead branch of the code but in the
+ *   README and in the receipts in `measurements.ts`.
  *
- * — La sombra lleva `borderRadius` y no es decoración: `boxShadow` sigue
- *   la forma de la VISTA, y sin el radio dibuja una caja de esquinas
- *   vivas alrededor de la cápsula.
+ * — The shadow carries a `borderRadius` and it is not decoration:
+ *   `boxShadow` follows the shape of the VIEW, and without the radius it
+ *   draws a box with sharp corners around the capsule.
  *
- * — El botón llega a BLANCO PLENO en los dos temas, como la referencia.
- *   Que en claro no se perdiera contra la página no se arregló
- *   atenuando el relleno —se probó y se descartó— sino moviendo el
- *   fondo. El protagonista no se ensucia para arreglar el escenario.
+ * — The button reaches FULL WHITE in both themes, like the reference. That
+ *   it did not get lost against the page in light mode was not fixed by
+ *   dimming the fill (that was tried and discarded) but by moving the
+ *   background. The protagonist does not get dirtied to fix the set.
  *
- * — El fondo `accion` termina ARRIBA del botón: el `paddingBottom` acota
- *   el viewport del `ScrollView`, no el contenido. Un `paddingBottom` en
- *   el contenido sólo agrega aire al final y las filas se siguen
- *   dibujando detrás del pill. Y el contenido termina antes de ese
- *   borde: cortado al ras se lee como un error de layout.
- *   RUNTIME: 742 pt de contenido contra un borde en 831.
+ * — The `stock` background ends ABOVE the button: the `paddingBottom`
+ *   bounds the `ScrollView`'s viewport, not the content. A `paddingBottom`
+ *   on the content only adds air at the end and the rows keep on drawing
+ *   behind the pill. And the content ends before that edge: cut flush it
+ *   reads as a layout error.
+ *   RUNTIME: 742 pt of content against an edge at 831.
  */

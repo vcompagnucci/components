@@ -1,693 +1,716 @@
 /* ═══════════════════════════════════════════════════════════════
-   BUTTONS SEPARATE — una sola forma de vidrio que se abre en cuatro
-   botones redondos al pasar el puntero, y se vuelve a cerrar al salir.
+   BUTTONS SEPARATE: one single shape of glass that opens into four
+   round buttons when the pointer moves over it, and closes again when
+   the pointer leaves.
 
-   La referencia es el Spotlight de macOS 26 Tahoe. Todo número de este
-   archivo está MEDIDO sobre el original de 3420×2214 —2 px físicos por
-   punto— y cada uno lleva su recibo al lado. La tabla completa y los
-   scripts que la reproducen: .context/buttons-separate/MEDICION.md.
+   The reference is Spotlight in macOS 26 Tahoe. Every number in this
+   file is MEASURED off the 3420×2214 original (2 physical pixels per
+   point) and each one carries its receipt beside it. The whole table
+   and the scripts that reproduce it are in
+   .context/buttons-separate/MEDICION.md.
 
-   FUNDIDO ES UNA PÍLDORA, no cuatro círculos pegados: el perfil de
-   altura da 56.0 pt de un extremo al otro, sin una hondonada. Por eso
-   las cinco formas van bajo UN goo y no se dibujan pegadas.
+   FUSED IT IS A PILL, not four circles stuck together: the height
+   profile reads 56.0 pt from one end to the other, with no dip. That is
+   why the five shapes go under ONE goo and are not drawn touching.
 
-   LA PIEZA CONTRA LA GRABACIÓN, con la pieza corriendo: 4.95 pt de error
-   cuadrático medio en el borde del conjunto sobre el primer segundo, y
-   0.039 / 0.228 pt en la opacidad y el desenfoque de los glifos. Acá
-   decía 2.35 pt: ese número salía de una sonda que modelaba el borde del
-   botón en r = 19.58 y lo dibujado mide 19. No volver a 2.35.
+   THE PIECE AGAINST THE RECORDING, with the piece running: 4.95 pt of
+   root mean square error on the edge of the group over the first
+   second, and 0.039 / 0.228 pt on the opacity and the blur of the
+   glyphs. This used to say 2.35 pt: that number came out of a probe
+   that modelled the edge of the button at r = 19.58, and what is drawn
+   measures 19. Do not go back to 2.35.
    ═══════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import type { Mount } from '../../../demos'
 
 /* ─────────────────────────────────────────────────────────
- * STORYBOARD — cada tiempo es ms desde que el puntero recorre sus
- * primeros 20 px adentro de la card
+ * STORYBOARD: every time is ms from the moment the pointer covers its
+ * first 20 px inside the card
  *
- *     0ms   el campo empieza a acortarse, 456 → 276
- *    42ms   los botones empiezan a abrirse en abanico, paso 0 → 45
- *   ~90ms   el campo pasa por su ancho final y sigue de largo
- *   ~140ms  asoma el cuarto botón por el extremo derecho
- *   ~270ms  los glifos empiezan a subir de opacidad
- *   ~290ms  y a enfocarse, desde 2.14 px de desenfoque
- *   ~400ms  el paso pasa por 45 y rebota un 6 %
- *   ~530ms  los glifos ya están, opacos y nítidos
- *   ~730ms  todo quieto
+ *     0ms   the field starts to shorten, 456 → 276
+ *    42ms   the buttons start to fan out, step 0 → 45
+ *   ~90ms   the field passes its final width and keeps going
+ *   ~140ms  the fourth button shows up past the right end
+ *   ~270ms  the glyphs start to gain opacity
+ *   ~290ms  and to sharpen, from 2.14 px of blur
+ *   ~400ms  the step passes 45 and bounces 6%
+ *   ~530ms  the glyphs are there, opaque and sharp
+ *   ~730ms  everything still
  *
- * Al salir el puntero de la card, lo mismo al revés y con el retraso
- * del otro lado: primero se juntan los botones, después los tapa el
- * campo.
+ * When the pointer leaves the card, the same in reverse and with the
+ * delay on the other side: first the buttons come together, then the
+ * field covers them.
  * ───────────────────────────────────────────────────────── */
 
-/* LA GEOMETRÍA, en px de pantalla. Es la referencia por 5/7: el campo
-   de 56 pt de alto entraría crudo en la card de 544, pero 640 de largo
-   no, y encogerlo sólo a lo ancho rompería la proporción que hace que
-   esto se lea como un control y no como una barra. Cada valor lleva al
-   lado el punto del que salió. */
-const G = {
-  alto: 40, //          56 pt · 5/7 = 40.0
-  campo: 276, //       384 pt        = 274.3, redondeado para cerrar en 456
-  boton: 38, //         54 pt        = 38.6
-  hueco: 7, //          10 pt        =  7.1
-  /* LA CAJA de la lupa, no el glifo. El glifo ocupa 14.5 de las 16
-     unidades del viewBox, o sea 0.906 de la caja: 18 × 0.906 = 16.3 px,
-     que son los 23 pt medidos en la referencia por 5/7 (16.4). Estaba
-     en 16 con un glifo que llenaba 0.71 y salía de 11.35 px, la mitad
-     del que hay que copiar. */
-  lupa: 18, //          23 pt de glifo = 16.4 px; la caja, 18
-  lupaSangria: 14, //   20.5 pt = 14.6 del borde del campo al glifo, y el
-  //                    glifo entra 0.86 en su caja
-  lupaTexto: 12, //     18 pt = 12.9 del glifo a la primera letra
-  texto: 18, //         26 pt        = 18.6, sacado de la altura de x (13.5 pt)
-  icono: 22, //         22 pt de 54 = 0.407 del diámetro; acá 15.1 de 38 = 0.398
-  //                     (los cuatro glifos ocupan 11 de la caja de 16, o sea 0.6875)
+/* THE GEOMETRY, in screen px. It is the reference times 5/7: the field
+   at 56 pt tall would go into the 544 card raw, but 640 long would not,
+   and shrinking it across only would break the proportion that makes
+   this read as a control and not as a bar. Every value carries the
+   point it came from beside it. */
+const GEOMETRY = {
+  height: 40, //          56 pt · 5/7 = 40.0
+  field: 276, //         384 pt        = 274.3, rounded to close at 456
+  button: 38, //          54 pt        = 38.6
+  gap: 7, //              10 pt        =  7.1
+  /* THE BOX of the magnifier, not the glyph. The glyph takes 14.5 of
+     the 16 units of the viewBox, that is 0.906 of the box: 18 × 0.906 =
+     16.3 px, which are the 23 pt measured in the reference times 5/7
+     (16.4). It was at 16 with a glyph that filled 0.71 and came out of
+     11.35 px, half of the one to copy. */
+  magnifier: 18, //       23 pt of glyph = 16.4 px; the box, 18
+  magnifierInset: 14, //  20.5 pt = 14.6 from the edge of the field to
+  //                      the glyph, and the glyph sits 0.86 in its box
+  magnifierToText: 12, // 18 pt = 12.9 from the glyph to the first letter
+  text: 18, //            26 pt        = 18.6, taken from the x-height (13.5 pt)
+  icon: 22, //            22 pt of 54 = 0.407 of the diameter; here 15.1 of 38 = 0.398
+  //                       (the four glyphs take 11 of the 16 box, that is 0.6875)
 }
-const PASO = G.boton + G.hueco //  45 — 64 pt · 5/7 = 45.7
-const TOTAL = G.campo + G.hueco + 4 * G.boton + 3 * G.hueco // 456 — 640 pt
-/* La primera ranura: el centro del primer botón, y el punto del que
-   salen los otros tres. No se mueve nunca (nota 2 de arriba). */
-const RANURA = G.campo + G.hueco + G.boton / 2
+const STEP = GEOMETRY.button + GEOMETRY.gap // 45. 64 pt · 5/7 = 45.7
+const TOTAL_WIDTH =
+  GEOMETRY.field + GEOMETRY.gap + 4 * GEOMETRY.button + 3 * GEOMETRY.gap // 456. 640 pt
+/* The first slot: the centre of the first button, and the point the
+   other three come out of. It never moves (note 2 above). */
+const FIRST_SLOT = GEOMETRY.field + GEOMETRY.gap + GEOMETRY.button / 2
 
-/* Cuánto se sale el degradado de la escena por cada lado. El vidrio es
-   una copia desenfocada de ese degradado, y un desenfoque se come el
-   borde de su propia capa: si las dos capas terminan donde termina la
-   escena, la mitad izquierda del vidrio muestra el desvanecido en vez
-   del fondo. Las dos se dibujan sobre la misma caja agrandada, así que
-   siguen coincidiendo píxel a píxel. */
-const DESBORDE = 96
+/* How far the gradient runs past the scene on each side. The glass is a
+   blurred copy of that gradient, and a blur eats the edge of its own
+   layer: if the two layers end where the scene ends, the left half of
+   the glass shows the fade instead of the background. Both are drawn
+   over the same enlarged box, so they still line up pixel for pixel. */
+const BLEED = 96
 
-/* EL FONDO SALE DEL SISTEMA: cada parada es el lienzo de la página con
-   tinta mezclada, así que sigue al tema. Antes era un degradado
-   azul-gris con paleta propia.
+/* THE BACKGROUND COMES FROM THE SYSTEM: every stop is the page's canvas
+   with ink mixed in, so it follows the theme. It used to be a blue-grey
+   gradient with a palette of its own.
 
-   LOS PORCENTAJES IGUALAN LA LUMINANCIA de las paradas que había, no el
-   color. El vidrio es una copia desenfocada de este fondo y su velo está
-   medido contra el material nativo: si el fondo cambia de claridad,
-   cambia el vidrio.
+   THE PERCENTAGES MATCH THE LUMINANCE of the stops that were there, not
+   the colour. The glass is a blurred copy of this background and its
+   veil is measured against the native material: if the background
+   changes lightness, the glass changes.
 
-   EN CLARO NO PUEDE SER `--surface` A SECAS: el vidrio es claro y sobre
-   #f8f8f6 no se vería. El degradado baja a L* 58, que es donde despega. */
-const RAMPA = {
-  claro: { lienzo: '#fdfdfc', tinta: '#111111', radial: [3.5, 16.8, 36.8, 45.7], lineal: [7.0, 47.8] },
-  oscuro: { lienzo: '#090908', tinta: '#fafaf9', radial: [44.2, 26.2, 10.9, 7.2], lineal: [29.4, 3.6] },
+   IN LIGHT IT CANNOT BE `--surface` ON ITS OWN: the glass is light and
+   over #f8f8f6 it would not show. The gradient goes down to L* 58,
+   which is where it lifts off. */
+const RAMP = {
+  light: { canvas: '#fdfdfc', ink: '#111111', radial: [3.5, 16.8, 36.8, 45.7], linear: [7.0, 47.8] },
+  dark: { canvas: '#090908', ink: '#fafaf9', radial: [44.2, 26.2, 10.9, 7.2], linear: [29.4, 3.6] },
 } as const
 
-function degradado({ lienzo, tinta, radial, lineal }: (typeof RAMPA)[keyof typeof RAMPA]) {
-  const m = (p: number) => `color-mix(in srgb, var(--ink, ${tinta}) ${p}%, var(--canvas, ${lienzo}))`
-  const paradas = [0, 38, 76, 100]
+function gradient({ canvas, ink, radial, linear }: (typeof RAMP)[keyof typeof RAMP]) {
+  const mix = (p: number) => `color-mix(in srgb, var(--ink, ${ink}) ${p}%, var(--canvas, ${canvas}))`
+  const stops = [0, 38, 76, 100]
   return `radial-gradient(118% 150% at 20% 8%, ${radial
-    .map((p, i) => `${m(p)} ${paradas[i]}%`)
-    .join(', ')}), linear-gradient(160deg, ${m(lineal[0])} 0%, ${m(lineal[1])} 100%)`
+    .map((p, i) => `${mix(p)} ${stops[i]}%`)
+    .join(', ')}), linear-gradient(160deg, ${mix(linear[0])} 0%, ${mix(linear[1])} 100%)`
 }
 
-/* El aire mínimo a cada lado de la barra. Por debajo de 456 + 2·44 la
-   barra se achica en bloque, con un solo factor que va al transform de
-   las formas y al del contenido. */
-const AIRE = 44
+/* The least room on each side of the bar. Below 456 + 2·44 the bar
+   shrinks as a block, with a single factor that goes into the transform
+   of the shapes and into the one of the content. */
+const SIDE_MARGIN = 44
 
-/* EL MOVIMIENTO, en la parametrización de Apple: `duración` fija la
-   frecuencia (ω = 2π/duración) y `rebote` la amortiguación (1 − rebote).
-   Los dos pares están MEDIDOS sobre la grabación por mínimos cuadrados,
-   y se ajustaron con ESTE modelo puesto: el campo arrancando en su ancho
-   de reposo y el abanico en la primera ranura, sin desfase libre. Con el
-   desfase suelto el ajuste da 395 ms para el campo y 0.58 pt de error,
-   pero se los come un t0 de −8 ms que acá no existe: el resorte arranca
-   cuando entra el puntero. 1.57 y 1.42 pt de error sobre 64 cuadros. */
-const CAMPO = { duracion: 0.365, rebote: 0.38 } //   365 ms, rms 1.57 pt
-const ABANICO = { duracion: 0.532, rebote: 0.32 } // 532 ms, rms 1.42 pt
-const RETRASO = 0.042 //                             s, medido
+/* THE MOVEMENT, in Apple's parametrization: `duration` sets the
+   frequency (ω = 2π/duration) and `bounce` the damping (1 - bounce).
+   Both pairs are MEASURED off the recording by least squares, and they
+   were fitted with THIS model in place: the field starting at its
+   resting width and the fan at the first slot, with no free phase. With
+   the phase loose the fit gives 395 ms for the field and 0.58 pt of
+   error, but a t0 of -8 ms eats them, and that t0 does not exist here:
+   the spring starts when the pointer comes in. 1.57 and 1.42 pt of
+   error over 64 frames. */
+const FIELD = { duration: 0.365, bounce: 0.38 } // 365 ms, rms 1.57 pt
+const FAN = { duration: 0.532, bounce: 0.32 } //   532 ms, rms 1.42 pt
+const DELAY = 0.042 //                             s, measured
 
-/* LOS GLIFOS NO SE FUNDEN: ENTRAN FUERA DE FOCO Y SE ENFOCAN. Medido
-   sobre dos ciclos y los cuatro botones (.context/…/desenfoque.py):
+/* THE GLYPHS DO NOT FADE IN: THEY COME IN OUT OF FOCUS AND SHARPEN.
+   Measured over two cycles and the four buttons
+   (.context/…/desenfoque.py):
 
-     α  →  270 ms de retraso, 260 ms, rebote 0.14   (rms 0.043)
-     σ  →  290 ms de retraso, 350 ms, sin rebote    (rms 0.122 pt)
+     α  →  270 ms of delay, 260 ms, bounce 0.14   (rms 0.043)
+     σ  →  290 ms of delay, 350 ms, no bounce     (rms 0.122 pt)
 
-   SON DOS TRAMOS, no uno con dos lecturas: con α ya pegado a 1 —0.93 a
-   los 417— σ sigue bajando de 1.02 a 0.30, así que σ no es función de α.
-   Y los 20 ms entre los dos retrasos no se unen: unidos, la opacidad va
-   un cuadro atrás y el desenfoque uno adelante.
+   THEY ARE TWO SEGMENTS, not one with two readings: with α already
+   pinned to 1 (0.93 at 417) σ keeps coming down from 1.02 to 0.30, so σ
+   is not a function of α. And the 20 ms between the two delays do not
+   join: joined, the opacity runs a frame behind and the blur a frame
+   ahead.
 
-   ANTES ERA UN FUNDIDO de 200 ms de retraso y 300 de duración. A los
-   300 ms los glifos valían 0.62 y en la referencia valen 0.14:
-   aparecían mientras los botones todavía volaban, y nítidos desde el
-   primer cuadro. Eso es la lectura de "se están cargando". */
-const ICONO = { duracion: 0.26, rebote: 0.14 }
-const RETRASO_ICONO = 0.228 //                       270 − 42 ms
-const FOCO = { duracion: 0.35, rebote: 0 }
-const RETRASO_FOCO = 0.248 //                        290 − 42 ms
-/* 3.0 pt de la referencia por 5/7. Verificado en Chrome con una rampa de
-   valores sobre un borde duro: en pantalla Retina `blur(Npx)` da una
-   gaussiana de σ = N px con un 8 % de error, y por debajo de 0.5 px la
-   redondea a cero —son tres cajas, no una gaussiana—, así que la cola no
-   se escribe. */
-const DESENFOQUE = 2.14 // px
+   IT USED TO BE A FADE of 200 ms of delay and 300 of duration. At 300
+   ms the glyphs were worth 0.62 and in the reference they are worth
+   0.14: they showed up while the buttons were still flying, and sharp
+   from the first frame. That reads as "they are loading". */
+const ICON = { duration: 0.26, bounce: 0.14 }
+const ICON_DELAY = 0.228 //                        270 - 42 ms
+const SHARPEN = { duration: 0.35, bounce: 0 }
+const SHARPEN_DELAY = 0.248 //                     290 - 42 ms
+/* 3.0 pt of the reference times 5/7. Verified in Chrome with a ramp of
+   values over a hard edge: on a Retina screen `blur(Npx)` gives a
+   gaussian of σ = N px with 8% of error, and below 0.5 px it rounds it
+   to zero (they are three boxes, not a gaussian), so the tail is not
+   written. */
+const BLUR = 2.14 // px
 
-/* LA SALIDA NO ES LA ENTRADA AL REVÉS, y por tres razones que se ven
-   posando el cierre cuadro a cuadro (Vito, 2026-09-09: "la salida sobre
-   todo, no me convence"):
+/* CLOSING IS NOT THE OPENING REVERSED, and for three reasons you can
+   see by stepping through the close frame by frame (Vito, 2026-09-09:
+   "the exit above all, it does not convince me"):
 
-   1. LOS ICONOS QUEDABAN DE FANTASMA. Con el tramo de 300 los glifos
-      todavía valían 0.28 a los 120 ms: cuatro iconos apilados encima del
-      campo. Con 110 se van ANTES QUE TODO LO DEMÁS, que es lo que hacía
-      falta.
+   1. THE ICONS STAYED ON AS GHOSTS. With the segment of 300 the glyphs
+      were still worth 0.28 at 120 ms: four icons stacked over the
+      field. With 110 they leave BEFORE EVERYTHING ELSE, which is what
+      was needed.
 
-      ACÁ DECÍA "antes de que las formas se pisen" Y NO ES CIERTO. Medido
-      con la pieza corriendo (`sonda/salida.cjs`): las formas se vuelven
-      a tocar —paso por debajo de 38, el diámetro— a los 49 ms, y ahí los
-      glifos valen 0.25. Recién a los 115 llegan a 0.02. Lo que se
-      arregló es el orden, no que lleguen a cero primero.
-   2. EL CAMPO SE PASABA 14 px de su largo de reposo a los 300 ms. Ese
-      rebote está MEDIDO, pero en la contracción de la apertura: al
-      cerrar no hay nada que lo justifique y se lee como un temblor. Al
-      cerrar, sin rebote.
-   3. ERA TAN LARGA COMO LA ENTRADA. El que se va ya decidió irse. Un
-      cuarto más corta, que es la regla.
+      THIS USED TO SAY "before the shapes overlap" AND IT IS NOT TRUE.
+      Measured with the piece running (`sonda/salida.cjs`): the shapes
+      touch again, step below 38, the diameter, at 49 ms, and there the
+      glyphs are worth 0.25. Only at 115 do they get to 0.02. What was
+      fixed is the order, not that they reach zero first.
+   2. THE FIELD WENT 14 px past its resting length at 300 ms. That
+      bounce is MEASURED, but in the contraction of the opening: on the
+      way closed there is nothing to justify it and it reads as a
+      tremor. Closing, no bounce.
+   3. IT WAS AS LONG AS THE OPENING. Whoever is leaving has already
+      decided to leave. A quarter shorter, which is the rule.
 
-   La entrada se queda EXACTA como la referencia: lo de acá es sólo el
-   cierre, que la grabación no muestra. */
-const CAMPO_SALIDA = { duracion: 0.28, rebote: 0 }
-const ABANICO_SALIDA = { duracion: 0.4, rebote: 0.1 }
-const ICONO_SALIDA = { duracion: 0.11, rebote: 0 }
+   The opening stays EXACTLY as the reference: what is here is only the
+   close, which the recording does not show. */
+const FIELD_CLOSE = { duration: 0.28, bounce: 0 }
+const FAN_CLOSE = { duration: 0.4, bounce: 0.1 }
+const ICON_CLOSE = { duration: 0.11, bounce: 0 }
 
-/* EL PRESS. Achica el círculo del vidrio, no el glifo: antes escalaba
-   sólo el <svg> y se leía "se achicó el ícono", no "se hundió el botón".
-   0.96 y no menos, que abajo de 0.95 se ve exagerado. */
-const PRESION = { duracion: 0.16, rebote: 0 }
-const PRESION_ESCALA = 0.96
+/* THE PRESS. It shrinks the circle of the glass, not the glyph: before
+   it scaled the <svg> only and it read as "the icon got smaller", not
+   as "the button sank". 0.96 and no less, because under 0.95 it looks
+   exaggerated. */
+const PRESS = { duration: 0.16, bounce: 0 }
+const PRESS_SCALE = 0.96
 
-/* Con movimiento reducido no se apaga la separación —es el contenido de
-   la pieza, no un adorno— pero sí el rebote y el retraso: un solo tramo
-   corto y sin sobrepasar. */
-const SIN_REBOTE = { duracion: 0.15, rebote: 0 }
+/* With reduced motion the separation does not turn off, it is the
+   content of the piece and not an ornament, but the bounce and the
+   delay do: one short segment and no overshoot. */
+const NO_BOUNCE = { duration: 0.15, bounce: 0 }
 
-/* EL INTEGRADOR. Dos resortes de segundo orden, masa 1, en un solo lazo
-   de cuadro. Es la pieza entera que se traía `motion`: catorce kilobytes
-   comprimidos de librería para mover dos números, y en producción esta
-   pieza era su único lector.
+/* THE INTEGRATOR. Two second order springs, mass 1, in a single frame
+   loop. It is the whole part `motion` was brought in for: fourteen
+   compressed kilobytes of library to move two numbers, and in
+   production this piece was its only reader.
 
-   Euler semi-implícito con sub-paso fijo de 1/240 s: a 60 Hz un paso de
-   16.7 ms con ω = 16 rad/s ya se pasa de largo, y con la pestaña en
-   segundo plano el navegador entrega saltos de cientos de ms. El sub-
-   paso los parte; el tope de 50 ms descarta lo que quedó atrás.
+   Semi-implicit Euler with a fixed substep of 1/240 s: at 60 Hz a step
+   of 16.7 ms with ω = 16 rad/s already overshoots, and with the tab in
+   the background the browser hands over jumps of hundreds of ms. The
+   substep splits them; the cap of 50 ms throws away what was left
+   behind.
 
-   La interrupción sale gratis y es la mitad del asunto: entrar y salir
-   rápido con el puntero sólo cambia el destino, y la posición y la
-   velocidad siguen siendo las que había. */
-const SUBPASO = 1 / 240
-const SALTO_MAXIMO = 0.05
+   Interruption comes for free and it is half the point: coming in and
+   out fast with the pointer only changes the target, and the position
+   and the velocity go on being the ones that were there. */
+const SUBSTEP = 1 / 240
+const MAXIMUM_INTERVAL = 0.05
 
-type Resorte = {
-  x: number //       posición, 0 cerrado y 1 abierto
-  v: number //       velocidad, por segundo
-  destino: number
-  desde: number //   cuándo empieza a moverse, en segundos de reloj
-  k: number //       rigidez
-  c: number //       amortiguamiento
+type Spring = {
+  x: number //         position, 0 closed and 1 open
+  v: number //         velocity, per second
+  target: number
+  startTime: number // when it starts to move, in clock seconds
+  k: number //         stiffness
+  c: number //         damping
 }
 
-type Ajuste = { duracion: number; rebote: number }
+type Tuning = { duration: number; bounce: number }
 
-function afinar(r: Resorte, { duracion, rebote }: Ajuste) {
-  const w = (2 * Math.PI) / duracion
-  r.k = w * w
-  r.c = 2 * (1 - rebote) * w
+function tune(s: Spring, { duration, bounce }: Tuning) {
+  const w = (2 * Math.PI) / duration
+  s.k = w * w
+  s.c = 2 * (1 - bounce) * w
 }
 
-function nace(x: number, ajuste: Ajuste): Resorte {
-  const r: Resorte = { x, v: 0, destino: x, desde: 0, k: 0, c: 0 }
-  afinar(r, ajuste)
-  return r
+function createSpring(x: number, tuning: Tuning): Spring {
+  const s: Spring = { x, v: 0, target: x, startTime: 0, k: 0, c: 0 }
+  tune(s, tuning)
+  return s
 }
 
-/* Devuelve true mientras al resorte le quede algo por hacer. El reposo
-   se toma en 1/2000 de recorrido —0.09 px sobre los 180 que viaja el
-   campo— y en 1/200 por segundo. */
-function avanzar(r: Resorte, ahora: number, dt: number) {
-  if (ahora < r.desde) return true
-  let queda = Math.min(dt, SALTO_MAXIMO)
-  while (queda > 0) {
-    const h = Math.min(SUBPASO, queda)
-    r.v += (-r.k * (r.x - r.destino) - r.c * r.v) * h
-    r.x += r.v * h
-    queda -= h
+/* Returns true while the spring still has something left to do. Rest is
+   taken at 1/2000 of the travel (0.09 px over the 180 the field covers)
+   and at 1/200 per second. */
+function advance(s: Spring, now: number, dt: number) {
+  if (now < s.startTime) return true
+  let remaining = Math.min(dt, MAXIMUM_INTERVAL)
+  while (remaining > 0) {
+    const h = Math.min(SUBSTEP, remaining)
+    s.v += (-s.k * (s.x - s.target) - s.c * s.v) * h
+    s.x += s.v * h
+    remaining -= h
   }
-  if (Math.abs(r.x - r.destino) < 0.0005 && Math.abs(r.v) < 0.005) {
-    r.x = r.destino
-    r.v = 0
+  if (Math.abs(s.x - s.target) < 0.0005 && Math.abs(s.v) < 0.005) {
+    s.x = s.target
+    s.v = 0
     return false
   }
   return true
 }
 
-/* EL GOO. σ = 6.6 pt medido · 5/7 = 4.7 px. El umbral del feColorMatrix
-   está en alfa 0.5, que es donde vale la cuenta del cuello.
+/* THE GOO. σ = 6.6 pt measured · 5/7 = 4.7 px. The threshold of the
+   feColorMatrix sits at alpha 0.5, which is where the sum for the neck
+   holds.
 
-   EL GOO SÓLO PONE LOS CUELLOS. El borde de cada forma lo pone la forma
-   misma, dibujada otra vez encima y sin filtro. No es cinturón y
-   tirantes: la especificación de SVG deja implementar feGaussianBlur
-   como TRES desenfoques de caja, y Chrome lo hace; con un umbral duro
-   detrás, las curvas de nivel de esa aproximación se ven, y un círculo
-   de 38 sale como un polígono redondeado. Se veía al 4× (Vito,
-   2026-09-09: "que terminen redondos bien, al 100").
+   THE GOO ONLY PUTS IN THE NECKS. The edge of each shape is put there
+   by the shape itself, drawn again on top and with no filter. It is not
+   belt and braces: the SVG specification allows feGaussianBlur to be
+   implemented as THREE box blurs, and Chrome does it; with a hard
+   threshold behind, the level curves of that approximation show, and a
+   circle of 38 comes out as a rounded polygon. It showed at 4× (Vito,
+   2026-09-09: "make them come out properly round, at 100").
 
-   El umbral encoge lo curvo en σ²/2R —0.58 px en un círculo de 19—, así
-   que la capa del goo queda ADENTRO de la nítida y no asoma ninguna
-   faceta. Por eso el radio ya no se compensa.
+   The threshold shrinks what is curved by σ²/2R, 0.58 px on a circle of
+   19, so the goo layer stays INSIDE the sharp one and no facet shows.
+   That is why the radius is no longer compensated.
 
-   σ ES CONSTANTE ACÁ Y EN LA REFERENCIA NO, y aun así se queda
-   constante. Medido: la grabación está FUNDIDA con 12.9 pt de hueco (a
-   los 360 ms) y SEPARADA con 9.9 (a los 700), o sea que su σ crece
-   mientras las formas se mueven; el valor equivalente sería sumarle ~3.0
-   proporcional a la velocidad del abanico. Se implementó, se probó una
-   escalera de cinco valores en imágenes y Vito eligió esto, sin cuellos,
-   dos veces. Acá los cuatro botones se despegan sueltos porque es como
-   se prefirió mirándolo. La medición y la escalera están en el README. */
+   σ IS CONSTANT HERE AND IN THE REFERENCE IT IS NOT, and even so it
+   stays constant. Measured: the recording is FUSED with 12.9 pt of gap
+   (at 360 ms) and SEPARATE with 9.9 (at 700), which means its σ grows
+   while the shapes move; the equivalent value would be adding ~3.0
+   proportional to the speed of the fan. It was implemented, a staircase
+   of five values was tried in images and Vito chose this, with no
+   necks, twice. Here the four buttons come apart loose because that is
+   how it was preferred when looking at it. The measurement and the
+   staircase are in the README. */
 const SIGMA = 4.7
 
-/* LOS CUATRO BOTONES. Iconos de trazo, 16×16: son ámbitos de búsqueda,
-   que es lo que son los cuatro de la referencia. */
-const BOTONES = [
+/* THE FOUR BUTTONS. Stroke icons, 16×16: they are search scopes, which
+   is what the four in the reference are. */
+const BUTTONS = [
   {
-    nombre: 'Files',
-    trazo:
-      'M9.5 2.5H5.1A1.6 1.6 0 0 0 3.5 4.1v7.8a1.6 1.6 0 0 0 1.6 1.6h5.8a1.6 1.6 0 0 0 1.6-1.6V5.5zM9.5 2.5v2.2a.8.8 0 0 0 .8.8h2.2',
+    name: 'Files',
+    path: 'M9.5 2.5H5.1A1.6 1.6 0 0 0 3.5 4.1v7.8a1.6 1.6 0 0 0 1.6 1.6h5.8a1.6 1.6 0 0 0 1.6-1.6V5.5zM9.5 2.5v2.2a.8.8 0 0 0 .8.8h2.2',
   },
   {
-    nombre: 'Images',
-    trazo:
-      'M2.5 5.3a1.8 1.8 0 0 1 1.8-1.8h7.4a1.8 1.8 0 0 1 1.8 1.8v5.4a1.8 1.8 0 0 1-1.8 1.8H4.3a1.8 1.8 0 0 1-1.8-1.8zM2.9 11.5 5.7 8.9a1.3 1.3 0 0 1 1.8 0l2.3 2.4M9.6 10l.8-.9a1.3 1.3 0 0 1 1.8 0l1.3 1.2M6.4 6.5a.8.8 0 1 1-1.6 0 .8.8 0 0 1 1.6 0',
+    name: 'Images',
+    path: 'M2.5 5.3a1.8 1.8 0 0 1 1.8-1.8h7.4a1.8 1.8 0 0 1 1.8 1.8v5.4a1.8 1.8 0 0 1-1.8 1.8H4.3a1.8 1.8 0 0 1-1.8-1.8zM2.9 11.5 5.7 8.9a1.3 1.3 0 0 1 1.8 0l2.3 2.4M9.6 10l.8-.9a1.3 1.3 0 0 1 1.8 0l1.3 1.2M6.4 6.5a.8.8 0 1 1-1.6 0 .8.8 0 0 1 1.6 0',
   },
   {
-    nombre: 'People',
-    trazo: 'M10.7 5.7a2.7 2.7 0 1 1-5.4 0 2.7 2.7 0 0 1 5.4 0M3.3 13.4a4.9 4.9 0 0 1 9.4 0',
+    name: 'People',
+    path: 'M10.7 5.7a2.7 2.7 0 1 1-5.4 0 2.7 2.7 0 0 1 5.4 0M3.3 13.4a4.9 4.9 0 0 1 9.4 0',
   },
   {
-    nombre: 'Messages',
-    trazo:
-      'M12.9 8.05c0 2.6-2.2 4.75-4.9 4.75a5.4 5.4 0 0 1-1.6-.24l-3.1 1.24.8-2.42A4.55 4.55 0 0 1 3.1 8.05c0-2.6 2.2-4.75 4.9-4.75s4.9 2.15 4.9 4.75',
+    name: 'Messages',
+    path: 'M12.9 8.05c0 2.6-2.2 4.75-4.9 4.75a5.4 5.4 0 0 1-1.6-.24l-3.1 1.24.8-2.42A4.55 4.55 0 0 1 3.1 8.05c0-2.6 2.2-4.75 4.9-4.75s4.9 2.15 4.9 4.75',
   },
 ] as const
 
-/* LO QUE ABRE LA BARRA: el puntero moviéndose 20 px en la card, no el
-   hover sobre la barra. Elegido sobre un picker de tres disparos; la
-   tabla con lo que cuesta cada uno está en el README.
+/* WHAT OPENS THE BAR: the pointer moving 20 px inside the card, not
+   hover over the bar. Chosen with a picker of three triggers; the table
+   with what each one costs is in the README.
 
-   LA GRABACIÓN NO DICE CUÁL VA: ahí el puntero nunca sube a la barra y
-   las tres esperas son distintas. Es lo único de la pieza que no salió
-   de medir.
+   THE RECORDING DOES NOT SAY WHICH ONE GOES: there the pointer never
+   comes up to the bar and the three waits are different. It is the only
+   thing in the piece that did not come out of measuring.
 
-   NO PONER CERO: dispara con el temblor de un píxel y con el primer
-   evento que manda el navegador al entrar. */
-const UMBRAL_MOVIMIENTO = 20 // px
+   DO NOT PUT ZERO: it fires with a one pixel tremor and with the first
+   event the browser sends on entering. */
+const MOVEMENT_THRESHOLD = 20 // px
 
-/* EL CAMPO SE ESCRIBE Y NO HACE NADA MÁS: sin sugerencias, sin
-   desplegable y sin cambiar de tamaño.
+/* THE FIELD TAKES TYPING AND DOES NOTHING ELSE: no suggestions, no
+   dropdown and no change of size.
 
-   24 ES LO QUE ENTRA. La caja del texto mide 218 px (276 − 44 − 14) y un
-   carácter promedio con el tipo del sitio a 18 px mide 8.69: entran 25.
+   24 IS WHAT FITS. The box of the text measures 218 px (276 - 44 - 14)
+   and an average character in the site's typeface at 18 px measures
+   8.69: 25 fit.
 
-   NO SOBREVIVE A UNA RECARGA a propósito: es estado del componente, sin
-   localStorage, así que no hay nada que restaurar ni un salto al cargar.
-   `autoComplete="off"` apaga la restauración de formularios, que es el
-   otro camino por el que un valor vuelve solo. */
-const MAXIMO = 24
+   IT DOES NOT SURVIVE A RELOAD, on purpose: it is state of the
+   component, with no localStorage, so there is nothing to restore and
+   no jump on load. `autoComplete="off"` turns off the restoring of
+   forms, which is the other path a value comes back on its own by. */
+const MAXIMUM_LENGTH = 24
 
-/* Un puntero fino que no puede hacer hover —un dedo— no tiene cómo
-   pedir la separación, así que la pieza arranca abierta y se queda. Es
-   lo mismo que hace el botón de velocidad del reproductor. */
-const sinHover = () => typeof matchMedia === 'function' && !matchMedia('(hover: hover)').matches
+/* A fine pointer that cannot hover, a finger, has no way to ask for the
+   separation, so the piece starts open and stays open. It is the same
+   thing the player's speed button does. */
+const cannotHover = () => typeof matchMedia === 'function' && !matchMedia('(hover: hover)').matches
 
-/* La misma consulta que el resto del sitio, escuchada para que un cambio
-   del sistema se vea sin recargar. */
-function useMovimientoReducido() {
-  const [reducido, setReducido] = useState(
+/* The same query as the rest of the site, listened to so that a change
+   in the system shows up without a reload. */
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(
     () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
   useEffect(() => {
     if (typeof matchMedia !== 'function') return
-    const consulta = matchMedia('(prefers-reduced-motion: reduce)')
-    const alCambiar = (e: MediaQueryListEvent) => setReducido(e.matches)
-    consulta.addEventListener('change', alCambiar)
-    return () => consulta.removeEventListener('change', alCambiar)
+    const query = matchMedia('(prefers-reduced-motion: reduce)')
+    const update = (e: MediaQueryListEvent) => setReduced(e.matches)
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
   }, [])
-  return reducido
+  return reduced
 }
 
-type Asiento = { x: number; y: number; escala: number; ancho: number; alto: number }
+type Placement = { x: number; y: number; scale: number; width: number; height: number }
 
-export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' | 'detalle' } = {}) {
-  /* Sin los dos puntos: `useId` los devolvía en versiones anteriores de
-     React y un id con `:` no se puede escribir en un `url(#…)`. */
+export default function ButtonsSeparate({ mode = 'detail' }: { mode?: Mount } = {}) {
+  /* Without the colons: `useId` returned them in earlier versions of
+     React and an id with `:` cannot be written into a `url(#…)`. */
   const id = useId().replace(/:/g, '')
-  const escena = useRef<HTMLDivElement>(null)
-  const campo = useRef<SVGRectElement>(null)
-  const circulos = useRef<(SVGCircleElement | null)[]>([])
-  const contenido = useRef<HTMLDivElement>(null)
-  const botones = useRef<(HTMLButtonElement | null)[]>([])
-  /* El desenfoque va en el GLIFO y no en el botón: el botón también
-     lleva el velo del hover, y ese no se enfoca. */
-  const glifos = useRef<(SVGSVGElement | null)[]>([])
+  const scene = useRef<HTMLDivElement>(null)
+  const fieldRect = useRef<SVGRectElement>(null)
+  const circles = useRef<(SVGCircleElement | null)[]>([])
+  const content = useRef<HTMLDivElement>(null)
+  const buttons = useRef<(HTMLButtonElement | null)[]>([])
+  /* The blur goes on the GLYPH and not on the button: the button also
+     carries the veil of the hover, and that one does not sharpen. */
+  const glyphs = useRef<(SVGSVGElement | null)[]>([])
 
-  /* Se decide ANTES del primer render y no en un efecto: con un efecto,
-     un teléfono pintaría un cuadro con la forma cerrada y la abriría
-     después. */
-  const [abierto, setAbierto] = useState(sinHover)
-  const reducido = useMovimientoReducido()
-  const [texto, setTexto] = useState('')
+  /* It is decided BEFORE the first render and not in an effect: with an
+     effect, a phone would paint one frame with the shape closed and
+     open it afterwards. */
+  const [open, setOpen] = useState(cannotHover)
+  const reduced = useReducedMotion()
+  const [text, setText] = useState('')
 
-  /* EN LA LISTA EL CAMPO NO SE ESCRIBE Y LOS BOTONES NO SE TOCAN. Ahí
-     el demo es un PREVIEW adentro de una card que promete abrir el
-     detalle: un campo de texto pelea con ese clic, y cuatro botones más
-     por card ensucian el tabulador. En el detalle la pieza es la cosa y
-     se usa entera.
+  /* IN THE LIST THE FIELD IS NOT TYPED INTO AND THE BUTTONS ARE NOT
+     TOUCHED. There the demo is a PREVIEW inside a card that promises to
+     open the detail: a text field fights that click, and four more
+     buttons per card make a mess of the tab order. In the detail the
+     piece is the thing and it is used whole.
 
-     LO DECIDE LA PROP, no el árbol: `modo` es la única prop que recibe
-     una pieza, y por qué es una prop y no una consulta al DOM está
-     arriba de Montaje, en demos.tsx. */
-  const esPreview = modo === 'lista'
+     THE PROP DECIDES IT, not the tree: `mode` is the only prop a piece
+     gets, and why it is a prop and not a query to the DOM is above
+     Mount, in demos.tsx. */
+  const isPreview = mode === 'list'
 
-  /* EL DISPARO ESCUCHA LA ESCENA ENTERA, no la barra. Va en un efecto y
-     no en props de React porque el que tiene que escuchar es el <div> de
-     la escena, que también es el que enmascara: colgarle manejadores en
-     el JSX obligaría a re-renderizar la pieza para cambiarlos.
-     `pointermove` es pasivo: no llama a preventDefault. */
+  /* THE TRIGGER LISTENS TO THE WHOLE SCENE, not to the bar. It goes in
+     an effect and not in React props because the one that has to listen
+     is the <div> of the scene, which is also the one that masks:
+     hanging handlers on it in the JSX would force a re-render of the
+     piece to change them. `pointermove` is passive: it does not call
+     preventDefault. */
   useEffect(() => {
-    const el = escena.current
+    const el = scene.current
     if (!el) return
-    let desde: { x: number; y: number } | null = null
-    const mover = (e: PointerEvent) => {
-      if (!desde) {
-        desde = { x: e.clientX, y: e.clientY }
+    let origin: { x: number; y: number } | null = null
+    const move = (e: PointerEvent) => {
+      if (!origin) {
+        origin = { x: e.clientX, y: e.clientY }
         return
       }
-      if (Math.hypot(e.clientX - desde.x, e.clientY - desde.y) >= UMBRAL_MOVIMIENTO) {
-        setAbierto(true)
+      if (Math.hypot(e.clientX - origin.x, e.clientY - origin.y) >= MOVEMENT_THRESHOLD) {
+        setOpen(true)
       }
     }
-    const salir = () => {
-      desde = null
-      /* SI EL FOCO ESTÁ ADENTRO, NO SE CIERRA. Escribiendo en el campo y
-         sacando el mouse de la card, la barra se cerraba y el campo
-         crecía por encima de los botones con el cursor todavía puesto.
-         Cerrar es cosa del blur, que ya está más abajo. */
+    const leave = () => {
+      origin = null
+      /* IF FOCUS IS INSIDE, IT DOES NOT CLOSE. Typing in the field and
+         taking the mouse out of the card, the bar closed and the field
+         grew over the buttons with the caret still in it. Closing is
+         the blur's business, which is further down. */
       if (el.contains(document.activeElement)) return
-      setAbierto(sinHover())
+      setOpen(cannotHover())
     }
-    el.addEventListener('pointermove', mover, { passive: true })
-    el.addEventListener('pointerleave', salir)
+    el.addEventListener('pointermove', move, { passive: true })
+    el.addEventListener('pointerleave', leave)
     return () => {
-      el.removeEventListener('pointermove', mover)
-      el.removeEventListener('pointerleave', salir)
+      el.removeEventListener('pointermove', move)
+      el.removeEventListener('pointerleave', leave)
     }
   }, [])
 
-  /* LOS RESORTES VIVEN EN UN REF y no en estado: los toca el lazo de
-     cuadro, y un estado por cuadro volvería a renderizar la pieza
-     sesenta veces por segundo para mover un puñado de números. */
-  const resortes = useRef({
-    campo: nace(abierto ? 1 : 0, CAMPO),
-    abanico: nace(abierto ? 1 : 0, ABANICO),
-    icono: nace(abierto ? 1 : 0, ICONO),
-    foco: nace(abierto ? 1 : 0, FOCO),
-    presion: BOTONES.map(() => nace(0, PRESION)),
+  /* THE SPRINGS LIVE IN A REF and not in state: the frame loop touches
+     them, and one state per frame would re-render the piece sixty times
+     a second to move a handful of numbers. */
+  const springs = useRef({
+    field: createSpring(open ? 1 : 0, FIELD),
+    fan: createSpring(open ? 1 : 0, FAN),
+    icon: createSpring(open ? 1 : 0, ICON),
+    sharpen: createSpring(open ? 1 : 0, SHARPEN),
+    press: BUTTONS.map(() => createSpring(0, PRESS)),
   })
-  const todos = (r: typeof resortes.current) => [
-    r.campo,
-    r.abanico,
-    r.icono,
-    r.foco,
-    ...r.presion,
-  ]
+  const allSprings = (s: typeof springs.current) => [s.field, s.fan, s.icon, s.sharpen, ...s.press]
 
-  /* DÓNDE CAE LA BARRA DENTRO DE LA ESCENA. Las máscaras se dibujan en
-     el espacio de la escena, así que el origen y la escala tienen que
-     ser UN solo par de números: el mismo transform los aplica a las
-     formas y a la capa del contenido. Se recalculan cuando la escena
-     cambia de tamaño, no por cuadro. */
-  const [caja, setCaja] = useState<Asiento>({ x: 0, y: 0, escala: 1, ancho: 0, alto: 0 })
+  /* WHERE THE BAR LANDS INSIDE THE SCENE. The masks are drawn in the
+     space of the scene, so the origin and the scale have to be ONE
+     single pair of numbers: the same transform applies them to the
+     shapes and to the layer of the content. They are recalculated when
+     the scene changes size, not per frame. */
+  const [box, setBox] = useState<Placement>({ x: 0, y: 0, scale: 1, width: 0, height: 0 })
   useLayoutEffect(() => {
-    const el = escena.current
+    const el = scene.current
     if (!el) return
-    const medir = () => {
+    const measure = () => {
       const { width, height } = el.getBoundingClientRect()
-      const escala = Math.min(1, (width - 2 * AIRE) / TOTAL)
-      setCaja({
-        x: Math.round(width - TOTAL * escala) / 2,
-        y: Math.round(height - G.alto * escala) / 2,
-        escala,
-        ancho: Math.ceil(width),
-        alto: Math.ceil(height),
+      const scale = Math.min(1, (width - 2 * SIDE_MARGIN) / TOTAL_WIDTH)
+      setBox({
+        x: Math.round(width - TOTAL_WIDTH * scale) / 2,
+        y: Math.round(height - GEOMETRY.height * scale) / 2,
+        scale,
+        width: Math.ceil(width),
+        height: Math.ceil(height),
       })
     }
-    medir()
-    const observador = new ResizeObserver(medir)
-    observador.observe(el)
-    return () => observador.disconnect()
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
-  /* EL LAZO DE CUADRO, FUERA DE REACT. Escribe atributos y estilos
-     directo en el DOM. La opacidad va en cada botón y no en una
-     variable CSS del padre: una variable obliga a recalcular el estilo
-     de todo el subárbol por cuadro, y esto son cuatro escrituras. */
-  const pintar = useCallback(() => {
-    const { campo: rc, abanico: ra, icono: ri, foco: rf, presion } = resortes.current
-    campo.current?.setAttribute('width', String(TOTAL + (G.campo - TOTAL) * rc.x))
-    const paso = PASO * ra.x
-    const opaco = Math.max(0, Math.min(1, ri.x))
-    const visible = String(opaco)
-    /* Se escribe la cadena vacía y no `blur(0px)`: un filtro, aunque no
-       haga nada, obliga al navegador a rasterizar el glifo en su propia
-       superficie, y en reposo son cuatro de gratis. El corte en 0.4 px
-       no se ve: por debajo de 0.5 Chrome ya redondea a cero. */
-    const radio = DESENFOQUE * (1 - rf.x)
-    const foco = opaco > 0.001 && radio > 0.4 ? `blur(${radio.toFixed(2)}px)` : ''
-    for (let i = 0; i < BOTONES.length; i++) {
-      const encogido = 1 - (1 - PRESION_ESCALA) * presion[i].x
-      circulos.current[i]?.setAttribute('cx', String(RANURA + paso * i))
-      circulos.current[i]?.setAttribute('r', String((G.boton / 2) * encogido))
-      const boton = botones.current[i]
-      if (boton) {
-        boton.style.transform = `translateX(${paso * i}px) scale(${encogido})`
-        boton.style.opacity = visible
+  /* THE FRAME LOOP, OUTSIDE REACT. It writes attributes and styles
+     straight into the DOM. The opacity goes on each button and not in a
+     CSS variable on the parent: a variable forces the browser to
+     recompute the style of the whole subtree per frame, and this is
+     four writes. */
+  const paint = useCallback(() => {
+    const { field, fan, icon, sharpen, press } = springs.current
+    const width = TOTAL_WIDTH + (GEOMETRY.field - TOTAL_WIDTH) * field.x
+    fieldRect.current?.setAttribute('width', String(width))
+    const step = STEP * fan.x
+    const opaque = Math.max(0, Math.min(1, icon.x))
+    const visible = String(opaque)
+    /* The empty string is written and not `blur(0px)`: a filter, even
+       when it does nothing, forces the browser to rasterize the glyph
+       on a surface of its own, and at rest that is four for free. The
+       cut at 0.4 px does not show: below 0.5 Chrome already rounds to
+       zero. */
+    const radius = BLUR * (1 - sharpen.x)
+    const blurFilter = opaque > 0.001 && radius > 0.4 ? `blur(${radius.toFixed(2)}px)` : ''
+    for (let i = 0; i < BUTTONS.length; i++) {
+      const shrunk = 1 - (1 - PRESS_SCALE) * press[i].x
+      circles.current[i]?.setAttribute('cx', String(FIRST_SLOT + step * i))
+      circles.current[i]?.setAttribute('r', String((GEOMETRY.button / 2) * shrunk))
+      const button = buttons.current[i]
+      if (button) {
+        button.style.transform = `translateX(${step * i}px) scale(${shrunk})`
+        button.style.opacity = visible
       }
-      const glifo = glifos.current[i]
-      if (glifo) glifo.style.filter = foco
+      const glyph = glyphs.current[i]
+      if (glyph) glyph.style.filter = blurFilter
     }
   }, [])
   useLayoutEffect(() => {
-    pintar()
-  }, [pintar, caja])
+    paint()
+  }, [paint, box])
 
-  /* UN SOLO LAZO PARA TODO, y sólo mientras algo se mueve: en reposo no
-     hay cuadro pedido, que es lo que hace que ocho de estas piezas en
-     una lista no cuesten nada (medido: ocho montadas, scrolleando a 20×
-     de CPU, cero cuadros perdidos). */
-  const cuadro = useRef(0)
-  const reloj = useRef(0)
-  const animar = useCallback(() => {
-    if (cuadro.current) return
-    reloj.current = performance.now() / 1000
-    const paso = (ms: number) => {
+  /* ONE SINGLE LOOP FOR EVERYTHING, and only while something moves: at
+     rest there is no frame asked for, which is what makes eight of
+     these pieces in a list cost nothing (measured: eight mounted,
+     scrolling at 20× of CPU, zero frames dropped). */
+  const frame = useRef(0)
+  const clock = useRef(0)
+  const animate = useCallback(() => {
+    if (frame.current) return
+    clock.current = performance.now() / 1000
+    const advanceFrame = (ms: number) => {
       const t = ms / 1000
-      const dt = t - reloj.current
-      reloj.current = t
-      let vivo = false
-      for (const r of todos(resortes.current)) vivo = avanzar(r, t, dt) || vivo
-      pintar()
-      cuadro.current = vivo ? requestAnimationFrame(paso) : 0
+      const dt = t - clock.current
+      clock.current = t
+      let alive = false
+      for (const s of allSprings(springs.current)) alive = advance(s, t, dt) || alive
+      paint()
+      frame.current = alive ? requestAnimationFrame(advanceFrame) : 0
     }
-    cuadro.current = requestAnimationFrame(paso)
-  }, [pintar])
-  useEffect(() => () => cancelAnimationFrame(cuadro.current), [])
+    frame.current = requestAnimationFrame(advanceFrame)
+  }, [paint])
+  useEffect(() => () => cancelAnimationFrame(frame.current), [])
 
-  /* EL RETRASO CAMBIA DE LADO. Al abrir, el campo va primero y los
-     botones lo siguen; al cerrar, primero se juntan los botones y
-     después los tapa el campo. Si no, el campo crecería por encima de
-     cuatro botones todavía abiertos y saldrían de adentro.
+  /* THE DELAY CHANGES SIDES. On opening, the field goes first and the
+     buttons follow it; on closing, the buttons come together first and
+     then the field covers them. Otherwise the field would grow over
+     four buttons that are still open and they would come out from
+     inside it.
 
-     Va en un efecto de LAYOUT y no en uno normal: con useEffect el
-     primer cuadro del resorte cae después de pintar, y eso son 16 ms
-     sobre una separación de 730. */
+     It goes in a LAYOUT effect and not in a normal one: with useEffect
+     the first frame of the spring lands after painting, and that is 16
+     ms over a separation of 730. */
   useLayoutEffect(() => {
-    const { campo: rc, abanico: ra, icono: ri, foco: rf } = resortes.current
-    const salida = !abierto
-    afinar(rc, reducido ? SIN_REBOTE : salida ? CAMPO_SALIDA : CAMPO)
-    afinar(ra, reducido ? SIN_REBOTE : salida ? ABANICO_SALIDA : ABANICO)
-    afinar(ri, reducido ? SIN_REBOTE : salida ? ICONO_SALIDA : ICONO)
-    afinar(rf, salida ? ICONO_SALIDA : FOCO)
+    const { field, fan, icon, sharpen } = springs.current
+    const closing = !open
+    tune(field, reduced ? NO_BOUNCE : closing ? FIELD_CLOSE : FIELD)
+    tune(fan, reduced ? NO_BOUNCE : closing ? FAN_CLOSE : FAN)
+    tune(icon, reduced ? NO_BOUNCE : closing ? ICON_CLOSE : ICON)
+    tune(sharpen, closing ? ICON_CLOSE : SHARPEN)
 
-    /* CON MOVIMIENTO REDUCIDO NO HAY DESENFOQUE. Lo demás se acorta;
-       esto se apaga entero, porque un glifo fuera de foco no es una
-       versión más suave de un glifo nítido: es texto que no se lee. */
-    if (reducido) {
-      rf.x = 1
-      rf.v = 0
+    /* WITH REDUCED MOTION THERE IS NO BLUR. The rest gets shorter; this
+       turns off whole, because a glyph out of focus is not a softer
+       version of a sharp glyph: it is text you cannot read. */
+    if (reduced) {
+      sharpen.x = 1
+      sharpen.v = 0
     }
 
-    /* Al montar, el destino ya es el que hay: no hay nada que integrar y
-       pedir cuadros sería tenerlos girando por el retraso. */
-    const destino = abierto ? 1 : 0
-    const enfoque = reducido ? 1 : destino
-    if (rc.x === destino && ra.x === destino && ri.x === destino && rf.x === enfoque) return
+    /* On mount the target is already the one in place: there is nothing
+       to integrate and asking for frames would be leaving them spinning
+       through the delay. */
+    const target = open ? 1 : 0
+    const sharpTarget = reduced ? 1 : target
+    const settled =
+      field.x === target && fan.x === target && icon.x === target && sharpen.x === sharpTarget
+    if (settled) return
 
-    const ahora = performance.now() / 1000
-    rc.destino = ra.destino = ri.destino = destino
-    rf.destino = enfoque
-    /* Al abrir sigue el abanico; al cerrar, el campo. Los glifos entran
-       tarde y se van enseguida: al cerrar no hay nada que esperar, y el
-       foco se va con ellos. */
-    rc.desde = ra.desde = ri.desde = rf.desde = ahora
-    ;(abierto ? ra : rc).desde = ahora + (reducido ? 0 : RETRASO)
-    if (abierto && !reducido) {
-      ri.desde = ahora + RETRASO + RETRASO_ICONO
-      rf.desde = ahora + RETRASO + RETRASO_FOCO
+    const now = performance.now() / 1000
+    field.target = fan.target = icon.target = target
+    sharpen.target = sharpTarget
+    /* On opening the fan follows; on closing, the field. The glyphs
+       come in late and go away at once: on closing there is nothing to
+       wait for, and the focus goes with them. */
+    field.startTime = fan.startTime = icon.startTime = sharpen.startTime = now
+    ;(open ? fan : field).startTime = now + (reduced ? 0 : DELAY)
+    if (open && !reduced) {
+      icon.startTime = now + DELAY + ICON_DELAY
+      sharpen.startTime = now + DELAY + SHARPEN_DELAY
     }
-    animar()
-  }, [abierto, reducido, animar])
+    animate()
+  }, [open, reduced, animate])
 
-  const apretar = (i: number, hundido: boolean) => {
-    const r = resortes.current.presion[i]
-    afinar(r, reducido ? SIN_REBOTE : PRESION)
-    r.destino = hundido ? 1 : 0
-    /* oxlint-disable-next-line react/purity -- `performance.now()` no
-       corre en render: `apretar` es un manejador de evento y su cuerpo
-       sólo se ejecuta cuando el usuario aprieta. La regla lo marca por
-       estar léxicamente dentro del componente. */
-    r.desde = performance.now() / 1000
-    animar()
+  const setPressed = (i: number, down: boolean) => {
+    const s = springs.current.press[i]
+    tune(s, reduced ? NO_BOUNCE : PRESS)
+    s.target = down ? 1 : 0
+    /* oxlint-disable-next-line react/purity -- `performance.now()` does
+       not run in render: `setPressed` is an event handler and its body
+       only runs when the user presses. The rule flags it for being
+       lexically inside the component. */
+    s.startTime = performance.now() / 1000
+    animate()
   }
 
-  const asiento = `translate(${caja.x}px, ${caja.y}px) scale(${caja.escala})`
-  const mascara = (cual: 'relleno' | 'halo' | 'anillo') => {
-    const url = `url(#mascara-${cual}-${id})`
+  const groupTransform = `translate(${box.x}px, ${box.y}px) scale(${box.scale})`
+  const mask = (which: 'fill' | 'halo' | 'ring') => {
+    const url = `url(#mask-${which}-${id})`
     return { maskImage: url, WebkitMaskImage: url }
   }
-  /* La región de una máscara es la caja del elemento que enmascara, y
-     las tres capas cubren la escena entera. Sin esto, el valor por
-     defecto se resuelve contra el <svg> de las definiciones, que mide
-     cero, y la máscara sale vacía. */
-  const cajaMascara = {
+  /* The region of a mask is the box of the element it masks, and the
+     three layers cover the whole scene. Without this, the default value
+     resolves against the <svg> of the definitions, which measures zero,
+     and the mask comes out empty. */
+  const maskBox = {
     maskUnits: 'userSpaceOnUse' as const,
     x: 0,
     y: 0,
-    width: caja.ancho,
-    height: caja.alto,
+    width: box.width,
+    height: box.height,
   }
 
   return (
-    <div className="pieza" data-pieza="buttons-separate">
-      {/* Ver LA HOJA, abajo: izada y deduplicada en producción, en línea
-          en desarrollo para que un cambio de CSS se vea sin recargar. */}
+    <div className="piece" data-piece="buttons-separate">
+      {/* See THE STYLESHEET, below: hoisted and deduplicated in
+          production, inline in development so that a change of CSS
+          shows up without a reload. */}
       {import.meta.env.DEV ? (
-        <style>{HOJA}</style>
+        <style>{STYLESHEET}</style>
       ) : (
-        <style href="pieza-buttons-separate" precedence="medium">
-          {HOJA}
+        <style href="piece-buttons-separate" precedence="medium">
+          {STYLESHEET}
         </style>
       )}
 
-      <div className="escena" ref={escena}>
-        <div className="fondo" aria-hidden="true" />
+      <div className="scene" ref={scene}>
+        <div className="background" aria-hidden="true" />
 
-        <svg className="definiciones" aria-hidden="true" focusable="false">
+        <svg className="definitions" aria-hidden="true" focusable="false">
           <defs>
-            {/* EL GOO: desenfocar y volver a endurecer el alfa. El
-                umbral queda en 0.5 con 24/−12, que es donde vale la
-                cuenta del cuello. sRGB explícito: por defecto un filtro
-                SVG trabaja en linearRGB y el umbral se corre. */}
+            {/* THE GOO: blur and harden the alpha again. The threshold
+                stays at 0.5 with 24/-12, which is where the sum for the
+                neck holds. Explicit sRGB: by default an SVG filter
+                works in linearRGB and the threshold shifts. */}
             <filter id={`goo-${id}`} {...REGION} colorInterpolationFilters="sRGB">
-              <feGaussianBlur stdDeviation={SIGMA * caja.escala} result="difuso" />
-              <feColorMatrix in="difuso" type="matrix" values={UMBRAL} />
+              <feGaussianBlur stdDeviation={SIGMA * box.scale} result="blurred" />
+              <feColorMatrix in="blurred" type="matrix" values={ALPHA_THRESHOLD} />
             </filter>
-            {/* LA SOMBRA DE CONTACTO: la silueta ablandada MENOS la
-                silueta. Sólo queda el halo de afuera, así que el negro
-                no se cuela por debajo del vidrio, que es translúcido.
-                Medida en la referencia: simétrica alrededor de la forma
-                y apagada a los 3 pt. */}
+            {/* THE CONTACT SHADOW: the softened silhouette MINUS the
+                silhouette. Only the halo on the outside is left, so the
+                black does not leak in under the glass, which is
+                translucent. Measured in the reference: symmetric around
+                the shape and out at 3 pt. */}
             <filter id={`halo-${id}`} {...REGION} colorInterpolationFilters="sRGB">
-              <feGaussianBlur stdDeviation={1.4 * caja.escala} result="blanda" />
-              <feComposite in="blanda" in2="SourceGraphic" operator="out" />
+              <feGaussianBlur stdDeviation={1.4 * box.scale} result="soft" />
+              <feComposite in="soft" in2="SourceGraphic" operator="out" />
             </filter>
-            {/* EL BORDE: la silueta menos la silueta comida un punto. Da
-                el anillo de 1 pt medido en la referencia, y sigue el
-                cuello del goo igual que el relleno. */}
-            <filter id={`anillo-${id}`} {...REGION} colorInterpolationFilters="sRGB">
-              <feMorphology operator="erode" radius={caja.escala} result="comida" />
-              <feComposite in="SourceGraphic" in2="comida" operator="out" />
+            {/* THE BORDER: the silhouette minus the silhouette eaten in
+                by one point. It gives the ring of 1 pt measured in the
+                reference, and it follows the neck of the goo the same
+                as the fill. */}
+            <filter id={`ring-${id}`} {...REGION} colorInterpolationFilters="sRGB">
+              <feMorphology operator="erode" radius={box.scale} result="eaten" />
+              <feComposite in="SourceGraphic" in2="eaten" operator="out" />
             </filter>
 
-            {/* UN solo juego de formas y UNA sola pasada de goo. Las
-                tres máscaras parten de la misma silueta: la sombra y el
-                borde la reciben ya fundida, así que sus cuellos son
-                exactamente los del relleno. */}
-            <g id={`formas-${id}`} transform={`translate(${caja.x} ${caja.y}) scale(${caja.escala})`}>
-              <rect ref={campo} x="0" y="0" width={TOTAL} height={G.alto} rx={G.alto / 2} fill="#fff" />
-              {BOTONES.map((b, i) => (
+            {/* ONE single set of shapes and ONE single pass of goo. The
+                three masks start from the same silhouette: the shadow
+                and the border get it already fused, so their necks are
+                exactly the ones of the fill. */}
+            <g id={`shapes-${id}`} transform={`translate(${box.x} ${box.y}) scale(${box.scale})`}>
+              <rect
+                ref={fieldRect}
+                x="0"
+                y="0"
+                width={TOTAL_WIDTH}
+                height={GEOMETRY.height}
+                rx={GEOMETRY.height / 2}
+                fill="#fff"
+              />
+              {BUTTONS.map((b, i) => (
                 <circle
-                  key={b.nombre}
+                  key={b.name}
                   ref={(el) => {
-                    circulos.current[i] = el
+                    circles.current[i] = el
                   }}
-                  cx={RANURA}
-                  cy={G.alto / 2}
-                  r={G.boton / 2}
+                  cx={FIRST_SLOT}
+                  cy={GEOMETRY.height / 2}
+                  r={GEOMETRY.button / 2}
                   fill="#fff"
                 />
               ))}
             </g>
-            <g id={`silueta-${id}`}>
+            <g id={`silhouette-${id}`}>
               <g filter={`url(#goo-${id})`}>
-                <use href={`#formas-${id}`} />
+                <use href={`#shapes-${id}`} />
               </g>
-              <use href={`#formas-${id}`} />
+              <use href={`#shapes-${id}`} />
             </g>
 
-            {/* El prefijo de las máscaras NO es decorativo: un <mask> y
-                un <filter> con el mismo id son un id duplicado, y
-                url(#…) resuelve al primero de los dos — lo que deja la
-                capa entera en blanco sin decir nada. */}
-            <mask id={`mascara-relleno-${id}`} {...cajaMascara}>
-              <use href={`#silueta-${id}`} />
+            {/* The prefix on the masks is NOT decorative: a <mask> and a
+                <filter> with the same id are a duplicate id, and
+                url(#…) resolves to the first of the two, which leaves
+                the whole layer blank without saying anything. */}
+            <mask id={`mask-fill-${id}`} {...maskBox}>
+              <use href={`#silhouette-${id}`} />
             </mask>
-            <mask id={`mascara-halo-${id}`} {...cajaMascara}>
+            <mask id={`mask-halo-${id}`} {...maskBox}>
               <g filter={`url(#halo-${id})`}>
-                <use href={`#silueta-${id}`} />
+                <use href={`#silhouette-${id}`} />
               </g>
             </mask>
-            <mask id={`mascara-anillo-${id}`} {...cajaMascara}>
-              <g filter={`url(#anillo-${id})`}>
-                <use href={`#silueta-${id}`} />
+            <mask id={`mask-ring-${id}`} {...maskBox}>
+              <g filter={`url(#ring-${id})`}>
+                <use href={`#silhouette-${id}`} />
               </g>
             </mask>
           </defs>
         </svg>
 
-        <div className="sombra" style={mascara('halo')} aria-hidden="true" />
-        <div className="vidrio" style={mascara('relleno')} aria-hidden="true">
-          <div className="refraccion" />
-          <div className="velo" />
+        <div className="shadow" style={mask('halo')} aria-hidden="true" />
+        <div className="glass" style={mask('fill')} aria-hidden="true">
+          <div className="refraction" />
+          <div className="veil" />
         </div>
-        <div className="borde" style={mascara('anillo')} aria-hidden="true" />
+        <div className="border" style={mask('ring')} aria-hidden="true" />
 
-        {/* EL PUNTERO LO ESCUCHA LA ESCENA, en el efecto de arriba. Acá
-            quedan sólo el foco y el desenfoque de foco, que son el
-            camino del teclado: sin ellos la separación no existiría para
-            quien no usa un puntero. */}
+        {/* THE SCENE LISTENS FOR THE POINTER, in the effect above. What
+            is left here is only the focus and the blur of focus, which
+            are the path of the keyboard: without them the separation
+            would not exist for anyone who does not use a pointer. */}
         <div
-          className="contenido"
-          ref={contenido}
-          data-abierto={abierto ? '' : undefined}
-          style={{ transform: asiento }}
-          onFocus={() => setAbierto(true)}
+          className="content"
+          ref={content}
+          data-open={open ? '' : undefined}
+          style={{ transform: groupTransform }}
+          onFocus={() => setOpen(true)}
           onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget)) setAbierto(sinHover)
+            if (!e.currentTarget.contains(e.relatedTarget)) setOpen(cannotHover)
           }}
         >
-          <div className="campo" aria-hidden={esPreview || undefined}>
-            {/* El glifo llena la caja de 0.75 a 15.25; el trazo de 1.27
-                da los 2 pt medidos en la referencia (1.43 px). */}
-            <svg className="lupa" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <div className="field" aria-hidden={isPreview || undefined}>
+            {/* The glyph fills the box from 0.75 to 15.25; the stroke of
+                1.27 gives the 2 pt measured in the reference (1.43
+                px). */}
+            <svg className="magnifier" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <circle cx="6.4" cy="6.4" r="5" stroke="currentColor" strokeWidth="1.27" />
               <path
                 d="M9.95 9.95 14.8 14.8"
@@ -696,23 +719,23 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
                 strokeLinecap="round"
               />
             </svg>
-            {esPreview ? (
-              <span className="marcador">Search</span>
+            {isPreview ? (
+              <span className="field-text">Search</span>
             ) : (
               <input
-                className="marcador entrada"
+                className="field-text input"
                 type="text"
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
                 placeholder="Search"
                 aria-label="Search"
-                maxLength={MAXIMO}
-                /* Ninguno de los cuatro es decorativo: `off` apaga la
-                   restauración del navegador al recargar —que es por
-                   donde volvería un valor viejo—, y los otros tres
-                   sacan la corrección, el subrayado rojo y la barra de
-                   dictado, que son cosas de un formulario y acá no hay
-                   ninguno. */
+                maxLength={MAXIMUM_LENGTH}
+                /* Not one of the four is decorative: `off` turns off the
+                   browser's restoring on reload, which is the way an
+                   old value would come back, and the other three take
+                   away the correction, the red underline and the
+                   dictation bar, which are things of a form and here
+                   there is no form. */
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
@@ -720,32 +743,33 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
               />
             )}
           </div>
-          {BOTONES.map((b, i) => (
+          {BUTTONS.map((b, i) => (
             <button
-              key={b.nombre}
+              key={b.name}
               type="button"
               ref={(el) => {
-                botones.current[i] = el
+                buttons.current[i] = el
               }}
-              className="boton"
-              style={{ left: RANURA - G.boton / 2 }}
-              aria-label={b.nombre}
-              /* EN LA LISTA NO SE TABULA NI SE TOCA, por lo mismo que el
-                 campo no se escribe: ahí el demo es un preview adentro
-                 de una card que promete abrir la pieza. Sin esto,
-                 tabular por la lista para en cuatro botones por card que
-                 no hacen nada. Con pointer-events en none el clic cae en
-                 la card y navega, que es lo que el lector espera. */
-              tabIndex={esPreview ? -1 : undefined}
-              data-inerte={esPreview ? '' : undefined}
-              onPointerDown={() => apretar(i, true)}
-              onPointerUp={() => apretar(i, false)}
-              onPointerCancel={() => apretar(i, false)}
-              onPointerLeave={() => apretar(i, false)}
+              className="button"
+              style={{ left: FIRST_SLOT - GEOMETRY.button / 2 }}
+              aria-label={b.name}
+              /* IN THE LIST IT IS NOT TABBED TO AND NOT TOUCHED, for the
+                 same reason the field is not typed into: there the demo
+                 is a preview inside a card that promises to open the
+                 piece. Without this, tabbing through the list stops at
+                 four buttons per card that do nothing. With
+                 pointer-events none the click lands on the card and
+                 navigates, which is what the reader expects. */
+              tabIndex={isPreview ? -1 : undefined}
+              data-inert={isPreview ? '' : undefined}
+              onPointerDown={() => setPressed(i, true)}
+              onPointerUp={() => setPressed(i, false)}
+              onPointerCancel={() => setPressed(i, false)}
+              onPointerLeave={() => setPressed(i, false)}
               onClick={(e) => {
-                /* El mismo freno que el botón de velocidad del
-                   reproductor: en la lista este demo vive adentro del
-                   <a> de la card, y sin esto un clic acá navega. */
+                /* The same brake as the speed button of the player: in
+                   the list this demo lives inside the <a> of the card,
+                   and without this a click here navigates. */
                 e.preventDefault()
                 e.stopPropagation()
               }}
@@ -755,11 +779,11 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
                 fill="none"
                 aria-hidden="true"
                 ref={(el) => {
-                  glifos.current[i] = el
+                  glyphs.current[i] = el
                 }}
               >
                 <path
-                  d={b.trazo}
+                  d={b.path}
                   stroke="currentColor"
                   strokeWidth="1"
                   strokeLinecap="round"
@@ -774,203 +798,208 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
   )
 }
 
-/* La región de los tres filtros. Por defecto un filtro pinta apenas un
-   10 % afuera de la caja de la forma, y sobre una barra de 456×40 eso
-   son 4 px arriba y abajo: el desenfoque y la sombra quedarían
-   cortados. */
+/* The region of the three filters. By default a filter paints barely
+   10% outside the box of the shape, and over a bar of 456×40 that is 4
+   px above and below: the blur and the shadow would come out cut. */
 const REGION = { x: '-10%', y: '-80%', width: '120%', height: '260%' } as const
-/* Alfa por 24 menos 12: un escalón con el umbral en 0.5. */
-const UMBRAL = '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -12'
+/* Alpha times 24 minus 12: a step with the threshold at 0.5. */
+const ALPHA_THRESHOLD = '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -12'
 
-/* La hoja va adentro del archivo porque una pieza publicada es UN
-   archivo en src/components/pieces/: no puede traerse un .module.css
-   al lado. El
-   href la deduplica —React 19 la iza una sola vez aunque la lista y el
-   detalle monten dos— y el data-pieza la encierra, así que los nombres
-   cortos de adentro no chocan con nadie. */
-const HOJA = `
-/* Los DOS: en la card el alto lo pone un min-height heredado y el 100 %
-   no resuelve; en el lienzo del playground el frame tiene alto fijo y
-   entonces el que no resuelve es el min-height. */
-[data-pieza='buttons-separate'] {
+/* The stylesheet goes inside the file because a published piece is ONE
+   file in src/components/pieces/: it cannot bring a .module.css along
+   beside it. The href deduplicates it, React 19 hoists it once even if
+   the list and the detail mount two, and the data-piece fences it in,
+   so the short names inside do not collide with anyone. */
+const STYLESHEET = `
+/* BOTH of them: in the card the height comes from an inherited
+   min-height and the 100% does not resolve; on the canvas of the
+   playground the frame has a fixed height and then the one that does
+   not resolve is the min-height. */
+[data-piece='buttons-separate'] {
   width: 100%;
   height: 100%;
   min-height: inherit;
   display: grid;
 }
-[data-pieza='buttons-separate'] .escena {
+[data-piece='buttons-separate'] .scene {
   position: relative;
   min-height: inherit;
   isolation: isolate;
   overflow: hidden;
-  /* El mismo radio que la card. Va escrito con respaldo porque una
-     pieza no importa nada del producto: si el token está, manda. */
-  border-radius: var(--card-radio, 8px);
-  /* Ver RAMPA: cada parada es el lienzo de la página con tinta
-     mezclada, en el porcentaje que iguala la luminancia que tenía el
-     degradado escrito a mano. */
-  --fondo: ${degradado(RAMPA.claro)};
-  /* EL VELO Y EL DESENFOQUE SALEN DEL MATERIAL NATIVO, medidos en esta
-     misma Mac con una sonda de SwiftUI: .glassEffect() sobre tres rampas
-     de valor conocido, capturado con screencapture y ajustado por
-     mínimos cuadrados. La ley es LINEAL en sRGB:
+  /* The same radius as the card. It is written with a fallback because
+     a piece imports nothing from the product: if the token is there, it
+     wins. */
+  border-radius: var(--card-radius, 8px);
+  /* See RAMP: every stop is the canvas of the page with ink mixed in,
+     at the percentage that matches the luminance the hand-written
+     gradient had. */
+  --piece-background: ${gradient(RAMP.light)};
+  /* THE VEIL AND THE BLUR COME OUT OF THE NATIVE MATERIAL, measured on
+     this same Mac with a SwiftUI probe: .glassEffect() over three ramps
+     of known value, captured with screencapture and fitted by least
+     squares. The law is LINEAR in sRGB:
 
-       claro   salida = 0.325 · fondo + 159   (rms 4.5 niveles)
-       oscuro  salida = 0.444 · fondo +  31   (rms 10.4)
+       light  output = 0.325 · background + 159   (rms 4.5 levels)
+       dark   output = 0.444 · background +  31   (rms 10.4)
 
-     Y eso es exactamente un velo: 1 − ganancia es el alfa, y el offset
-     dividido por el alfa es el color. Nada de saturate ni de brightness:
-     el ajuste con un saturate libre no mejora. Ver
+     And that is exactly a veil: 1 - gain is the alpha, and the offset
+     divided by the alpha is the colour. No saturate and no brightness:
+     the fit with a free saturate does not improve. See
      .context/buttons-separate/vidrio/. */
-  --velo: rgba(235, 235, 235, 0.675);
-  /* EL ANILLO, medido en la referencia: sube el relleno 40 niveles y no
-     más —de rgb(178,197,230) a rgb(218,241,255)—, y es un blanco FRÍO,
-     no blanco puro. Con el relleno de acá, 40 niveles son 0.42 de alfa. */
-  --anillo: rgba(255, 255, 255, 0.85);
-  --sombra: 0.16;
-  /* El realce del hover TIÑE, no aclara: en claro el vidrio ya está
-     casi en blanco y un velo blanco encima no se ve. */
-  --realce: rgba(46, 68, 97, 0.1);
-  /* UNA SOLA TINTA. En la referencia el placeholder, la lupa y los
-     cuatro glifos miden lo mismo —rgb(47,69,99), rgb(48,69,97) y
-     rgb(44,65,95)—: no hay un gris de marcador aparte.
+  --piece-veil: rgba(235, 235, 235, 0.675);
+  /* THE RING, measured in the reference: it lifts the fill 40 levels
+     and no more, from rgb(178,197,230) to rgb(218,241,255), and it is a
+     COLD white, not pure white. With the fill here, 40 levels are 0.42
+     of alpha. */
+  --piece-ring: rgba(255, 255, 255, 0.85);
+  --piece-shadow: 0.16;
+  /* The highlight of the hover TINTS, it does not lighten: in light the
+     glass is already almost white and a white veil on top does not
+     show. */
+  --piece-highlight: rgba(46, 68, 97, 0.1);
+  /* ONE SINGLE INK. In the reference the placeholder, the magnifier and
+     the four glyphs measure the same, rgb(47,69,99), rgb(48,69,97) and
+     rgb(44,65,95): there is no separate placeholder grey.
 
-     Y SALE DEL SISTEMA, igual que el fondo y por el mismo método: la
-     mezcla que iguala la LUMINANCIA de la tinta medida. #2e4461 está en
-     L* 28.32 y 78.9 % de tinta sobre el lienzo da L* 28.32. Se pierde el
-     tono frío y se conserva el peso, que es lo que decide la lectura: el
-     contraste contra el vidrio queda en los mismos 7.88:1. Con el fondo
-     ya neutro, una tinta fría era la única costura que quedaba. */
-  --tinta: color-mix(in srgb, var(--ink, #111111) 78.9%, var(--canvas, #fdfdfc));
+     AND IT COMES OUT OF THE SYSTEM, the same as the background and by
+     the same method: the mix that matches the LUMINANCE of the measured
+     ink. #2e4461 sits at L* 28.32 and 78.9% of ink over the canvas
+     gives L* 28.32. The cold hue is lost and the weight is kept, which
+     is what decides the reading: the contrast against the glass stays
+     at the same 7.88:1. With the background already neutral, a cold ink
+     was the only seam left. */
+  --piece-ink: color-mix(in srgb, var(--ink, #111111) 78.9%, var(--canvas, #fdfdfc));
 }
 @media (prefers-color-scheme: dark) {
-  [data-pieza='buttons-separate'] .escena {
-    --fondo: ${degradado(RAMPA.oscuro)};
-    /* Más velo que en claro: el vidrio de la referencia sube el fondo
-       unos 120 niveles en los tres canales, y sobre un fondo oscuro eso
-       pide más blanco para llegar al mismo lugar. */
-    /* EL VELO NO CAMBIA CON EL TEMA. La ley oscura del nativo también
-       está medida —salida = 0.444 · fondo + 31, o sea un velo de
-       rgb(55,55,55) al 55.6 %— y da un vidrio MÁS OSCURO que el fondo,
-       que es lo que hace macOS en oscuro. Acá no se usa: la referencia
-       es la apariencia clara, un vidrio claro sobre un cielo oscuro, y
-       eso es exactamente lo que pasa en el tema oscuro de la pieza
-       cuando la escena baja y el velo se queda. Poner la ley oscura deja
-       forma oscura sobre fondo oscuro y la tinta ilegible; probado. */
-    --anillo: rgba(226, 246, 255, 0.42);
-    --sombra: 0.42;
-    --realce: rgba(255, 255, 255, 0.2);
-    /* La misma cuenta con los tokens del tema: 22.4 % de tinta sobre el
-       lienzo oscuro da L* 26.6, que es la tinta que había. */
-    --tinta: color-mix(in srgb, var(--ink, #fafaf9) 22.4%, var(--canvas, #090908));
+  [data-piece='buttons-separate'] .scene {
+    --piece-background: ${gradient(RAMP.dark)};
+    /* More veil than in light: the glass of the reference lifts the
+       background some 120 levels in the three channels, and over a dark
+       background that asks for more white to get to the same place. */
+    /* THE VEIL DOES NOT CHANGE WITH THE THEME. The dark law of the
+       native material is measured too, output = 0.444 · background + 31,
+       that is a veil of rgb(55,55,55) at 55.6%, and it gives glass
+       DARKER than the background, which is what macOS does in dark.
+       Here it is not used: the reference is the light appearance, light
+       glass over a dark sky, and that is exactly what happens in the
+       dark theme of the piece when the scene goes down and the veil
+       stays. Putting the dark law in leaves a dark shape over a dark
+       background and the ink unreadable; tried. */
+    --piece-ring: rgba(226, 246, 255, 0.42);
+    --piece-shadow: 0.42;
+    --piece-highlight: rgba(255, 255, 255, 0.2);
+    /* The same sum with the tokens of the theme: 22.4% of ink over the
+       dark canvas gives L* 26.6, which is the ink that was there. */
+    --piece-ink: color-mix(in srgb, var(--ink, #fafaf9) 22.4%, var(--canvas, #090908));
   }
 }
-[data-pieza='buttons-separate'] .fondo,
-[data-pieza='buttons-separate'] .refraccion {
+[data-piece='buttons-separate'] .background,
+[data-piece='buttons-separate'] .refraction {
   position: absolute;
-  inset: -${DESBORDE}px;
-  background: var(--fondo);
+  inset: -${BLEED}px;
+  background: var(--piece-background);
 }
-[data-pieza='buttons-separate'] .definiciones {
+[data-piece='buttons-separate'] .definitions {
   position: absolute;
   width: 0;
   height: 0;
   overflow: hidden;
 }
 
-/* EL VIDRIO ES UNA SEGUNDA COPIA DEL FONDO, desenfocada y aclarada, no
-   un backdrop-filter. Dos razones y las dos importan: el desenfoque de
-   la referencia es enorme —sobre la nube clara el vidrio da casi
-   neutro, o sea que promedia un vecindario del ancho de la nube— y un
-   backdrop-filter recortado por una máscara SVG no está garantizado en
-   todos los motores. Acá el fondo es nuestro, así que copiarlo es
-   exacto, y además sale más barato: la capa desenfocada no cambia
-   nunca, lo único que se mueve es la máscara.
+/* THE GLASS IS A SECOND COPY OF THE BACKGROUND, blurred and lightened,
+   not a backdrop-filter. Two reasons and both matter: the blur of the
+   reference is enormous, over the light cloud the glass comes out
+   almost neutral, which means it averages a neighbourhood the width of
+   the cloud, and a backdrop-filter clipped by an SVG mask is not
+   guaranteed in every engine. Here the background is ours, so copying
+   it is exact, and it also comes out cheaper: the blurred layer never
+   changes, the only thing that moves is the mask.
 
-   El desenfoque va en el hijo y la máscara en el padre porque el orden
-   de CSS es filtro y DESPUÉS máscara: con los dos en la misma capa, el
-   velo blanco entraría también al saturate y al brightness. */
-[data-pieza='buttons-separate'] .vidrio,
-[data-pieza='buttons-separate'] .sombra,
-[data-pieza='buttons-separate'] .borde {
+   The blur goes on the child and the mask on the parent because the
+   order in CSS is filter and THEN mask: with both on the same layer,
+   the white veil would go into the saturate and the brightness too. */
+[data-piece='buttons-separate'] .glass,
+[data-piece='buttons-separate'] .shadow,
+[data-piece='buttons-separate'] .border {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
-/* σ = 4.0 pt, medido sobre un borde duro de negro a blanco bajo el
-   vidrio nativo: el 10 al 90 % cruza en 10.2 pt, y para una gaussiana
-   eso es 2.563 σ. Por 5/7 son 2.9 px. Estaba en 20, siete veces de más:
-   el error venía de leer el desenfoque en el video, donde el vidrio
-   sobre la nube da casi neutro — pero eso no es desenfoque, es que la
-   ley del material comprime el rango. */
-[data-pieza='buttons-separate'] .refraccion {
+/* σ = 4.0 pt, measured over a hard black to white edge under the native
+   glass: the 10 to 90% crosses in 10.2 pt, and for a gaussian that is
+   2.563 σ. Times 5/7 it is 2.9 px. It was at 20, seven times too much:
+   the error came from reading the blur off the video, where the glass
+   over the cloud comes out almost neutral. But that is not blur, it is
+   the law of the material compressing the range. */
+[data-piece='buttons-separate'] .refraction {
   filter: blur(2.9px);
 }
-[data-pieza='buttons-separate'] .velo {
+[data-piece='buttons-separate'] .veil {
   position: absolute;
   inset: 0;
-  background: var(--velo);
+  background: var(--piece-veil);
 }
-/* La sombra de contacto medida: el fondo por ~0.65 pegado al borde y
-   apagada a los 3 pt. Va negra y corta, no una sombra proyectada: en la
-   referencia es igual arriba que abajo. */
-[data-pieza='buttons-separate'] .sombra {
+/* The measured contact shadow: the background times ~0.65 right against
+   the edge and out at 3 pt. It goes black and short, not a drop shadow:
+   in the reference it is the same above as below. */
+[data-piece='buttons-separate'] .shadow {
   background: #000;
-  opacity: var(--sombra);
+  opacity: var(--piece-shadow);
 }
-[data-pieza='buttons-separate'] .borde {
-  background: var(--anillo);
+[data-piece='buttons-separate'] .border {
+  background: var(--piece-ring);
 }
 
-[data-pieza='buttons-separate'] .contenido {
+[data-piece='buttons-separate'] .content {
   position: absolute;
   top: 0;
   left: 0;
-  width: ${TOTAL}px;
-  height: ${G.alto}px;
+  width: ${TOTAL_WIDTH}px;
+  height: ${GEOMETRY.height}px;
   transform-origin: 0 0;
   z-index: 1;
-  color: var(--tinta);
+  color: var(--piece-ink);
 }
-/* EL CAMPO ES LA PÍLDORA ENTERA y no una fila que crece con su
-   contenido. Antes era un flex de dos —glifo, texto— y el ancho lo ponía
-   la palabra; con un input adentro eso es un campo que se agranda al
-   escribir. Ahora la caja mide lo que mide el campo abierto y las dos
-   partes se apoyan encima, cada una en su lugar medido, así que el clic
-   cae en cualquier parte de la píldora, incluida la lupa. */
-[data-pieza='buttons-separate'] .campo {
+/* THE FIELD IS THE WHOLE PILL and not a row that grows with its
+   content. It used to be a flex of two, glyph and text, and the width
+   came from the word; with an input inside, that is a field that grows
+   as you type. Now the box measures what the open field measures and
+   the two parts lean on top of it, each in its measured place, so the
+   click lands anywhere on the pill, the magnifier included. */
+[data-piece='buttons-separate'] .field {
   position: absolute;
   inset: 0 auto 0 0;
-  width: ${G.campo}px;
+  width: ${GEOMETRY.field}px;
   pointer-events: none;
   user-select: none;
 }
-[data-pieza='buttons-separate'] .lupa {
+[data-piece='buttons-separate'] .magnifier {
   position: absolute;
-  left: ${G.lupaSangria}px;
-  top: ${(G.alto - G.lupa) / 2}px;
-  width: ${G.lupa}px;
-  height: ${G.lupa}px;
-  color: var(--tinta);
+  left: ${GEOMETRY.magnifierInset}px;
+  top: ${(GEOMETRY.height - GEOMETRY.magnifier) / 2}px;
+  width: ${GEOMETRY.magnifier}px;
+  height: ${GEOMETRY.magnifier}px;
+  color: var(--piece-ink);
 }
-/* LA MISMA CAJA PARA LOS DOS, el <span> de la lista y el <input> del
-   detalle, para que el texto no se mueva ni un píxel entre uno y otro:
-   la píldora entera, con la sangría de la izquierda como padding y la
-   línea del alto de la barra. Con la altura de línea igual al alto, el
-   medio interlineado centra el glifo exactamente donde lo dejaba la
-   altura de línea 1 de antes —misma métrica, misma línea de base— y de
-   paso deja aire para las colas de la g y la y, que un input sí recorta
-   contra su caja. */
-[data-pieza='buttons-separate'] .marcador {
+/* THE SAME BOX FOR BOTH, the <span> of the list and the <input> of the
+   detail, so that the text does not move a pixel between one and the
+   other: the whole pill, with the inset on the left as padding and the
+   line at the height of the bar. With the line height equal to the
+   height, the half leading centres the glyph exactly where line height
+   1 left it before, same metric, same baseline, and it also leaves room
+   for the tails of the g and the y, which an input does clip against
+   its box. */
+[data-piece='buttons-separate'] .field-text {
   position: absolute;
   inset: 0;
-  padding: 0 ${G.lupaSangria}px 0 ${G.lupaSangria + G.lupa + G.lupaTexto}px;
-  font-size: ${G.texto}px;
-  line-height: ${G.alto}px;
+  padding: 0 ${GEOMETRY.magnifierInset}px 0
+    ${GEOMETRY.magnifierInset + GEOMETRY.magnifier + GEOMETRY.magnifierToText}px;
+  font-size: ${GEOMETRY.text}px;
+  line-height: ${GEOMETRY.height}px;
   letter-spacing: -0.01em;
-  color: var(--tinta);
+  color: var(--piece-ink);
 }
-[data-pieza='buttons-separate'] .entrada {
+[data-piece='buttons-separate'] .input {
   width: 100%;
   margin: 0;
   border: 0;
@@ -980,58 +1009,59 @@ const HOJA = `
   appearance: none;
   pointer-events: auto;
   user-select: text;
-  /* EL BLANCO LLEGA A 44 aunque la barra mida 40. Los 2 px de cada lado
-     sobresalen de la píldora y caen sobre la escena, que no escucha el
-     clic, así que no le sacan blanco a nadie. La altura de línea sube
-     con la caja —40 → 44— y por eso el texto no se mueve: el medio
-     interlineado lo recentra y la línea de base queda donde estaba.
-     Los cuatro botones ya llegaban a 44 por su ::before. */
+  /* THE HIT AREA REACHES 44 even though the bar measures 40. The 2 px
+     on each side stick out of the pill and land on the scene, which
+     does not listen for the click, so they take hit area away from
+     nobody. The line height goes up with the box, 40 to 44, and that is
+     why the text does not move: the half leading recentres it and the
+     baseline stays where it was. The four buttons already reached 44
+     through their ::before. */
   top: -2px;
   bottom: -2px;
   line-height: 44px;
-  /* Sin esto, un toque doble sobre el campo hace zoom en vez de escribir. */
+  /* Without this, a double tap on the field zooms instead of typing. */
   touch-action: manipulation;
-  /* El cursor ES el indicador de foco de este campo (nota de abajo), así
-     que se le fija la tinta de la pieza y no se deja al navegador. */
-  caret-color: var(--tinta);
-  /* Al tocar, Android e iOS pintan un rectángulo gris encima. Es la
-     misma familia de problema que el anillo: chrome del navegador
-     dibujado sobre el vidrio. */
+  /* The caret IS the focus indicator of this field (note below), so the
+     ink of the piece is set on it and it is not left to the browser. */
+  caret-color: var(--piece-ink);
+  /* On touch, Android and iOS paint a grey rectangle on top. It is the
+     same family of problem as the ring: chrome of the browser drawn
+     over the glass. */
   -webkit-tap-highlight-color: transparent;
 }
-/* En la referencia el marcador, la lupa y el texto escrito miden lo
-   mismo: no hay un gris de placeholder aparte. Firefox le pone 0.54 de
-   opacidad por su cuenta. */
-[data-pieza='buttons-separate'] .entrada::placeholder {
-  color: var(--tinta);
+/* In the reference the placeholder, the magnifier and the typed text
+   measure the same: there is no separate placeholder grey. Firefox
+   gives it 0.54 of opacity on its own. */
+[data-piece='buttons-separate'] .input::placeholder {
+  color: var(--piece-ink);
   opacity: 1;
 }
-/* EL CAMPO NO LLEVA ANILLO DE FOCO, Y NO ES UN OLVIDO. En un campo de
-   texto Chrome hace coincidir :focus-visible SIEMPRE —el elemento acepta
-   teclas—, así que un clic normal para escribir dibuja el anillo: no es
-   un indicador de foco, es un borde permanente. Y salía rectangular
-   sobre una píldora, porque el radio lo dibuja la máscara y no este
-   elemento.
+/* THE FIELD CARRIES NO FOCUS RING, AND IT IS NOT AN OVERSIGHT. In a
+   text field Chrome matches :focus-visible ALWAYS, the element takes
+   keys, so a normal click to type draws the ring: it is not a focus
+   indicator, it is a permanent border. And it came out rectangular over
+   a pill, because the radius is drawn by the mask and not by this
+   element.
 
-   El indicador es EL CURSOR, que está siempre que el campo tiene el
-   foco, con el mouse y con el tabulador. Los cuatro botones sí llevan
-   anillo: un botón no tiene cursor. */
-[data-pieza='buttons-separate'] .entrada:focus,
-[data-pieza='buttons-separate'] .entrada:focus-visible {
+   The indicator is THE CARET, which is there whenever the field has the
+   focus, with the mouse and with the tab key. The four buttons do carry
+   a ring: a button has no caret. */
+[data-piece='buttons-separate'] .input:focus,
+[data-piece='buttons-separate'] .input:focus-visible {
   outline: none;
 }
-[data-pieza='buttons-separate'] .boton {
+[data-piece='buttons-separate'] .button {
   position: absolute;
-  top: ${(G.alto - G.boton) / 2}px;
-  width: ${G.boton}px;
-  height: ${G.boton}px;
+  top: ${(GEOMETRY.height - GEOMETRY.button) / 2}px;
+  width: ${GEOMETRY.button}px;
+  height: ${GEOMETRY.button}px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: var(--tinta);
-  /* La escribe el lazo de cuadro. Acá va el valor de arranque para que
-     el primer pintado no muestre los cuatro apilados. */
+  color: var(--piece-ink);
+  /* The frame loop writes it. The starting value goes here so that the
+     first paint does not show the four stacked. */
   opacity: 0;
   transform-origin: 50% 50%;
   display: grid;
@@ -1039,87 +1069,88 @@ const HOJA = `
   cursor: pointer;
   isolation: isolate;
   touch-action: manipulation;
-  /* Cerrado están los cuatro apilados y transparentes: sin esto, un
-     clic ahí le pega al último de la pila. */
+  /* Closed, the four are stacked and transparent: without this, a click
+     there hits the last one of the stack. */
   pointer-events: none;
 }
-[data-pieza='buttons-separate'] .contenido[data-abierto] .boton {
+[data-piece='buttons-separate'] .content[data-open] .button {
   pointer-events: auto;
 }
-[data-pieza='buttons-separate'] .boton[data-inerte] {
+[data-piece='buttons-separate'] .button[data-inert] {
   pointer-events: none;
   cursor: inherit;
 }
-/* El área de toque llega a 44 sin tocar la del vecino: el hueco es de
-   7, y 3 de cada lado dejan 1 entre las dos.
+/* The touch area reaches 44 without touching the neighbour's: the gap
+   is 7, and 3 on each side leave 1 between the two.
 
-   CON LA BARRA CERRADA, ESTOS BOTONES SON FOCALIZABLES Y VALEN CERO DE
-   OPACIDAD. Una auditoría lo marca —tabular hacia algo invisible es un
-   defecto— y acá no lo es: el foco ABRE la barra, porque el onFocus vive
-   en el contenido y focusin burbujea. Verificado tabulando de verdad: el
-   foco llega primero al campo, que ya la abre, así que ninguno de los
-   cuatro recibe el foco invisible; y entrando por atrás, el que lo
-   recibe la abre en el mismo cuadro. Es el patrón de un disclosure:
-   esconderlos con visibility hidden cerraría el único camino que tiene
-   el teclado para abrirla. */
-[data-pieza='buttons-separate'] .boton::before {
+   WITH THE BAR CLOSED, THESE BUTTONS ARE FOCUSABLE AND WORTH ZERO
+   OPACITY. An audit flags it, tabbing towards something invisible is a
+   defect, and here it is not: the focus OPENS the bar, because the
+   onFocus lives on the content and focusin bubbles. Verified by tabbing
+   for real: the focus reaches the field first, which already opens it,
+   so none of the four gets the invisible focus; and coming in from
+   behind, the one that gets it opens the bar in the same frame. It is
+   the pattern of a disclosure: hiding them with visibility hidden would
+   close the only way the keyboard has to open it. */
+[data-piece='buttons-separate'] .button::before {
   content: '';
   position: absolute;
   inset: -3px;
 }
-/* El filtro lo escribe el lazo de cuadro mientras el glifo se enfoca, y
-   vuelve a la cadena vacía cuando llega. El borrón es más grande que el
-   glifo, así que necesita lugar para desbordar: overflow visible es el
-   valor por defecto de un svg en línea, pero se deja escrito porque de
-   eso depende que el borrón no salga recortado. */
-[data-pieza='buttons-separate'] .boton svg {
+/* The frame loop writes the filter while the glyph sharpens, and puts
+   it back to the empty string when it gets there. The smear is bigger
+   than the glyph, so it needs room to spill: overflow visible is the
+   default value of an inline svg, but it is written down because the
+   smear not coming out clipped depends on it. */
+[data-piece='buttons-separate'] .button svg {
   position: relative;
-  width: ${G.icono}px;
-  height: ${G.icono}px;
+  width: ${GEOMETRY.icon}px;
+  height: ${GEOMETRY.icon}px;
   overflow: visible;
 }
-/* EL HOVER ENCIENDE EL VIDRIO, no el glifo. El relleno del botón lo
-   dibuja la capa enmascarada, que es una sola para las cinco formas: un
-   velo redondo del tamaño exacto del círculo, encima, es la única forma
-   de aclarar UNO. El press ya no vive acá: achica el CÍRCULO de la
-   máscara, en el lazo de cuadro, así que se hunde el botón entero y no
-   sólo el glifo. */
-[data-pieza='buttons-separate'] .boton::after {
+/* THE HOVER LIGHTS UP THE GLASS, not the glyph. The fill of the button
+   is drawn by the masked layer, which is one single layer for the five
+   shapes: a round veil the exact size of the circle, on top, is the
+   only way to lighten ONE. The press no longer lives here: it shrinks
+   the CIRCLE of the mask, in the frame loop, so the whole button sinks
+   and not the glyph alone. */
+[data-piece='buttons-separate'] .button::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: var(--realce);
+  background: var(--piece-highlight);
   opacity: 0;
   transition-property: opacity;
   transition-duration: 150ms;
   transition-timing-function: ease-out;
 }
-/* Un dedo dispara :hover al tocar y lo deja pegado. */
+/* A finger fires :hover on touch and leaves it stuck. */
 @media (hover: hover) and (pointer: fine) {
-  [data-pieza='buttons-separate'] .boton:hover::after {
+  [data-piece='buttons-separate'] .button:hover::after {
     opacity: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-pieza='buttons-separate'] .boton::after {
+  [data-piece='buttons-separate'] .button::after {
     transition-duration: 0s;
   }
 }
-[data-pieza='buttons-separate'] .boton:focus-visible {
+[data-piece='buttons-separate'] .button:focus-visible {
   outline: var(--focus-outline, 2px solid #005fcc);
   outline-offset: var(--focus-outline-offset, 2px);
 }
 `
 
-/* LA HOJA se iza en producción y va en línea en desarrollo. React 19 iza
-   un <style href> UNA sola vez por href: eso deduplica la lista y el
-   detalle, y con HMR deja la hoja VIEJA puesta hasta recargar a mano.
-   Sin href no hay izado y el cambio de CSS se ve al toque, también al
-   deshacerlo.
+/* THE STYLESHEET is hoisted in production and goes inline in
+   development. React 19 hoists a <style href> ONCE per href: that
+   deduplicates the list and the detail, and with HMR it leaves the OLD
+   sheet in place until you reload by hand. With no href there is no
+   hoisting and the change of CSS shows up right away, undoing it
+   included.
 
-   NO PONERLE LA HUELLA DE LA HOJA AL href: arregla la ida y rompe la
-   vuelta, porque al volver a un CSS anterior gana la última que entró.
-   Medido. En desarrollo quedan dos <style> iguales; es inofensivo y la
-   rama no llega al bundle. */
-
+   DO NOT PUT THE FINGERPRINT OF THE SHEET IN THE href: it fixes the way
+   out and breaks the way back, because on returning to an earlier CSS
+   the last one in wins. Measured. In development two identical <style>
+   tags are left; it is harmless and the branch never reaches the
+   bundle. */

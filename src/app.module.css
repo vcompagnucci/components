@@ -1,27 +1,28 @@
-/* ═══════════ AIRE SUPERIOR — 80px, como benji (medido y leído de su
-   CSS: padding 5rem). El escalón a 32 va en 768, el suyo ═══════════ */
+/* ═══════════ TOP AIR: 80px, like benji (measured and read off his
+   CSS: padding 5rem). The step down to 32 goes at 768, his ═══════════ */
 .page {
-  /* --page-padding-top es el aire total que se VE; el mast pone 16 de
-     su propio padding, así que acá va el resto. El token es el número
-     que se elige, la resta es plomería. */
-  padding-top: calc(var(--page-padding-top) - 16px); /* 16 = el padding propio del mast */
+  /* --page-padding-top is the total air you SEE; the mast puts in 16 of
+     its own padding, so the rest goes here. The token is the number
+     that gets chosen, the subtraction is plumbing. */
+  padding-top: calc(var(--page-padding-top) - 16px); /* 16 = the mast's own padding */
 }
 .page > .content:first-child {
-  padding-top: 16px; /* el mismo que pone el mast, para que el total sea --page-padding-top */
+  padding-top: 16px; /* the same one the mast puts in, so the total is --page-padding-top */
 }
 
 /* ═══════════ MASTHEAD ═══════════
-   Arreglo stack: título arriba, una línea debajo.
-   El subtítulo NO cambia de tamaño — sólo baja de peso y de color, que
-   es la regla compartida por benji (h1 500 ink / time 460 al 40%) y por
-   josh (nombre y descripción al mismo tamaño, sólo cambia el color). */
+   Stack arrangement: title on top, one line below.
+   The subtitle does NOT change size. It only drops in weight and in
+   colour, which is the rule benji shares (h1 500 ink / time 460 at 40%)
+   with josh (name and description at the same size, only the colour
+   changes). */
 .mast {
   max-width: var(--page-content-max-width);
-  margin: 0 auto 8px; /* lo descuenta --section-first-gap */
+  margin: 0 auto 8px; /* --section-first-gap takes it off */
   padding: 16px var(--page-padding-inline) 0;
-  /* Columna con gap, como el header de benji: display:flex;
-     flex-direction:column; gap:.25rem. El 8 de abajo ya lo teníamos y
-     es también el suyo (padding:0 0 .5rem). */
+  /* A column with a gap, like benji's header: display:flex;
+     flex-direction:column; gap:.25rem. We already had the 8 below and
+     it is his too (padding:0 0 .5rem). */
   display: flex;
   flex-direction: column;
   gap: var(--masthead-subtitle-gap);
@@ -42,34 +43,35 @@
   color: var(--type-body-c);
 }
 
-/* ═══════════ ÍNDICE LATERAL ═══════════
-   La navegación de la página. Es lo que hacen las dos referencias en 9
-   de las 13 páginas medidas: ninguna de las dos usa tabs en ninguna.
-   Valores de benji (.context/recon/NAVIGATION.md): links 13px/460 al
-   40%, 8px de separación, ancho ajustado al label más largo.
+/* ═══════════ SIDE INDEX ═══════════
+   The navigation of the page. It is what both references do in 9 of the
+   13 pages measured: neither of them uses tabs in any of them. benji's
+   values (.context/recon/NAVIGATION.md): links 13px/460 at 40%, 8px of
+   separation, width fitted to the longest label.
 
-   AHORA SÍ TIENE SCROLLSPY. Antes acá decía que se había decidido no
-   ponerlo; se revirtió, y de paso resolvió de raíz otro problema: los
-   rótulos "Web" y "App" arrancan invisibles y aparecen recién cuando el
-   separador de la primera sección sale de pantalla, así la misma palabra
-   nunca está dos veces al mismo tiempo.
+   IT DOES HAVE A SCROLLSPY NOW. This used to say the decision had been
+   not to put one in; it was reverted, and on the way it solved another
+   problem at the root: the "Web" and "App" labels start invisible and
+   appear only when the separator of the first section leaves the
+   screen, so the same word is never on screen twice at once.
 
-   Los tres mecanismos son de benji, decodificados de su bundle:
-     - el rótulo aparece por opacidad, con su transición de 400ms
-     - activo = el último cuyo top pasó una línea a 128px del viewport
-     - más un guarda: al final del documento gana el último sí o sí
-   Lo único nuestro es el DISPARADOR del rótulo: el suyo es un umbral de
-   100px de scroll, que acá mostraría "Web" con el separador "Web"
-   todavía a la vista. */
+   The three mechanisms are benji's, decoded from his bundle:
+     - the label appears by opacity, with his 400ms transition
+     - active = the last one whose top crossed a line at 128px from
+       the top of the viewport
+     - plus a guard: at the end of the document the last one always wins
+   The only thing of ours is the TRIGGER of the label: his is a
+   threshold of 100px of scroll, which here would show "Web" with the
+   "Web" separator still in sight. */
 .index {
   position: fixed;
   left: var(--index-offset-left);
   top: var(--index-offset-top);
   display: flex;
   flex-direction: column;
-  /* El aire de abajo es fijo y no un espejo del de arriba: desde que el
-     índice puede arrancar más abajo, duplicar el top dejaría la lista
-     sin altura. */
+  /* The air at the bottom is fixed and not a mirror of the one on top:
+     since the index can start further down, doubling the top would
+     leave the list with no height. */
   max-height: calc(100vh - var(--index-offset-top) - 32px);
   overflow-y: auto;
   scrollbar-width: none;
@@ -77,11 +79,12 @@
 .index::-webkit-scrollbar {
   display: none;
 }
-/* El grupo es un bloque plano y no una columna con gap, a propósito: si
-   el gap viviera acá se sumaría al aire del rótulo y el número escrito
-   dejaría de ser el número que se ve. Cada hueco lo pide un solo dueño —
-   el rótulo el suyo, la lista el de entre links. Es la estructura de
-   benji, nav > h2 + ul, con los mismos dos dueños. */
+/* The group is a flat block and not a column with a gap, on purpose: if
+   the gap lived here it would add to the label's air and the number
+   written down would stop being the number you see. Each gap is asked
+   for by a single owner: the label asks for its own, the list for the
+   one between links. It is benji's structure, nav > h2 + ul, with the
+   same two owners. */
 .indexGroup + .indexGroup {
   margin-top: var(--index-group-gap);
 }
@@ -89,23 +92,25 @@
   display: flex;
   flex-direction: column;
   gap: var(--index-item-gap);
-  /* Cada link mide lo que su palabra y no lo que la columna. Sin esto
-     el flex los estira a los 89px del más largo, y el anillo de foco
-     dibujaba hasta 58px de vacío al lado de "Input".
+  /* Each link measures its word and not the column. Without this the
+     flex stretches them to the 89px of the longest one, and the focus
+     ring drew up to 58px of emptiness next to "Input".
 
-     Es además la forma de benji: sus links son <a> inline dentro de un
-     <li>, así que miden el texto por naturaleza. El costo es un área de
-     click más chica, y se acepta por lo mismo — es la que él tiene. */
+     It is also benji's shape: his links are inline <a> inside an <li>,
+     so they measure the text by nature. The cost is a smaller click
+     area, and it is accepted for the same reason: it is the one he
+     has. */
   align-items: flex-start;
 }
-/* El rótulo está siempre — no aparece con el scroll. Se probó contra la
-   alternativa (invisible arriba de todo, revelado cuando el separador
-   "Web" sale de pantalla, para que la palabra no esté dos veces) y se
-   eligió que esté siempre: el índice queda legible desde el primer
-   cuadro y no hay nada que sincronizar.
+/* The label is always there. It does not appear with the scroll. It was
+   tried against the alternative (invisible at the very top, revealed
+   when the "Web" separator leaves the screen, so the word is not on
+   screen twice) and always-there won: the index is legible from the
+   first frame and there is nothing to keep in sync.
 
-   Y pesa lo mismo que sus links, 460 al 40%: no es un encabezado, es la
-   primera línea de su grupo. Lo único que lo separa es el aire. */
+   And it weighs the same as its links, 460 at 40%: it is not a heading,
+   it is the first line of its group. The only thing that sets it apart
+   is the air. */
 .indexLabel {
   padding-bottom: var(--index-label-gap);
   font-size: var(--type-nav-fs);
@@ -115,14 +120,14 @@
   color: var(--type-nav-c);
   white-space: nowrap;
 }
-/* EL BLANCO LLEGA A 24, que es el mínimo de la norma para un blanco de
-   puntero (WCAG 2.5.8, AA). Los 44 de Apple no entran: los links están a
-   8 px uno de otro, y estirarlos hasta ahí les haría pisarse el blanco
-   entre ellos. Con 4 de cada lado los blancos se TOCAN y no se
-   superponen, que es el máximo que da este ritmo.
+/* THE TARGET REACHES 24, which is the standard's minimum for a pointer
+   target (WCAG 2.5.8, AA). Apple's 44 does not fit: the links are 8 px
+   from each other, and stretching them that far would make their
+   targets step on each other. With 4 on each side the targets TOUCH and
+   do not overlap, which is the most this rhythm gives.
 
-   El texto no se mueve: el ::before no ocupa layout, así que el hueco de
-   8 medido contra benji sigue siendo el que se ve. */
+   The text does not move: the ::before takes up no layout, so the gap
+   of 8 measured against benji is still the one you see. */
 .indexLink {
   position: relative;
   padding: 0;
@@ -143,179 +148,188 @@
   position: absolute;
   inset: -4px 0;
 }
-/* La pieza que estás mirando se pinta. La regla es la de benji: activa
-   es la última cuyo borde superior ya pasó una línea a 128px del tope
-   del viewport. Él la marca subiendo el color y nada más — sin barra ni
-   punto. */
+/* The piece you are looking at gets painted. The rule is benji's:
+   active is the last one whose top edge has already crossed a line
+   128px from the top of the viewport. He marks it by raising the colour
+   and nothing else, no bar and no dot. */
 .indexLink[data-active] {
-  color: var(--activo-c);
+  color: var(--active-c);
 }
-/* Y el hover va detrás de (hover: hover), que es el ÚNICO lugar del
-   sistema donde se gatea. No es simetría: es dónde aparece el
-   artefacto, y aparece donde el toque DEJA EL ELEMENTO EN PANTALLA.
+/* And the hover goes behind (hover: hover), which is the ONLY place in
+   the system that is gated. It is not symmetry: it is where the
+   artifact shows up, and it shows up where the touch LEAVES THE ELEMENT
+   ON SCREEN.
 
-   Tocar un link del índice no navega, sólo scrollea, así que el :hover
-   se le queda pegado hasta el próximo toque. Y como hover y activo
-   pintan el mismo color, el pegado es indistinguible del verdadero:
-   medido en un iPad Pro horizontal, tocar "Switch" y scrollear lejos
-   deja DOS links pintados a la vez —"Switch" pegado y "Tab Bar"
-   activo— y el índice miente sobre dónde estás.
+   Touching a link of the index does not navigate, it only scrolls, so
+   the :hover stays stuck to it until the next touch. And since hover
+   and active paint the same colour, the stuck one is indistinguishable
+   from the real one: measured on an iPad Pro in landscape, touching
+   "Switch" and scrolling far away leaves TWO links painted at once,
+   "Switch" stuck and "Tab Bar" active, and the index lies about where
+   you are.
 
-   La card no lo necesita: tocarla la desmonta. La flecha de volver
-   tampoco, por lo mismo (verificado: :hover vacío después del toque).
-   Y en WebKit un solo toque alcanza en las dos, así que tampoco hay
-   que gatear por el problema del doble tap.
+   The card does not need it: touching it unmounts it. The back arrow
+   does not either, for the same reason (verified: :hover empty after
+   the touch). And in WebKit a single touch is enough on both, so there
+   is nothing to gate for the double tap problem either.
 
-   El corte cae justo: el índice se muestra arriba de 1080px y el único
-   dispositivo medido que llega ahí sin mouse es el iPad Pro horizontal
-   —1194px, (hover: hover) false— o sea exactamente donde el artefacto
-   existe. En escritorio con mouse da true y no cambia nada.
+   The cut falls right where it should: the index shows above 1080px and
+   the only measured device that gets there without a mouse is the iPad
+   Pro in landscape (1194px, (hover: hover) false), which is exactly
+   where the artifact exists. On a desktop with a mouse it is true and
+   nothing changes.
 
-   Ninguna de las dos referencias gatea nada por puntero: cero
-   apariciones de (hover:, (pointer: y (any-hover: en los dos bundles.
-   Tampoco tienen un índice que se quede en pantalla al tocarlo. */
+   Neither of the two references gates anything by pointer: zero
+   appearances of (hover:, (pointer: and (any-hover: in both bundles.
+   They do not have an index that stays on screen when you touch it
+   either. */
 @media (hover: hover) {
   .indexLink:hover {
-    color: var(--activo-c);
+    color: var(--active-c);
   }
 }
-/* El índice se esconde y no se reemplaza: es una decisión, no una
-   deuda. Medido a 390px, ninguna de las dos referencias da navegación
-   dentro de la página en mobile — benji esconde sus links de sección y
-   deja sólo el "← Index"; josh esconde el índice entero. Los dos
-   aceptan que ahí se scrollea.
+/* The index hides and is not replaced: it is a decision, not a debt.
+   Measured at 390px, neither reference gives in-page navigation on
+   mobile. benji hides his section links and leaves only the "← Index";
+   josh hides the whole index. Both accept that you scroll there.
 
-   Se va en 1080, que es el de benji, de su CSS servido:
+   It goes at 1080, which is benji's, from his served CSS:
      @media(max-width:1080px){.styles_container__MZ8RH{display:none}}
-   Antes acá había un 1200 que no salía de ninguno de los dos: era
-   nuestro y nadie lo había decidido. (Josh usa 1280 y al revés — lo
-   tiene hidden y lo muestra con xl:block.) */
+   There used to be a 1200 here that came from neither of them: it was
+   ours and nobody had decided it. (Josh uses 1280 and the other way
+   around: he has it hidden and shows it with xl:block.) */
 @media (max-width: 1080px) {
   .index {
     display: none;
   }
 }
 
-/* ═══════════ CONTENIDO ═══════════ */
-/* Sin padding arriba: el aire hasta la primera sección lo pone el
-   propio grupo, así hay un solo lugar donde vive ese número. Antes se
-   apilaba acá con el margin del masthead y el padding del grupo, y el
-   total no lo había decidido nadie. */
+/* ═══════════ CONTENT ═══════════ */
+/* No padding on top: the air down to the first section is put in by the
+   group itself, so there is a single place where that number lives. It
+   used to stack up here with the masthead's margin and the group's
+   padding, and nobody had decided the total. */
 .content {
   max-width: var(--page-content-max-width);
   margin: 0 auto;
   padding: 0 var(--page-padding-inline) var(--page-padding-bottom);
 }
-/* ═══════════ SEPARADOR DE SECCIÓN ═══════════
-   El de benji en /liveline y /drawesome, medido en vivo (el <hr> de su
-   markup está vacío: lo que pinta es el div que React le envuelve).
+/* ═══════════ SECTION SEPARATOR ═══════════
+   benji's in /liveline and /drawesome, measured live (the <hr> in his
+   markup is empty: what paints is the div React wraps around it).
 
-   Él tira la línea a lo ancho del riel entero y le monta encima un span
-   pintado del color del fondo, que le hace un agujero; su padding-right
-   de 8px es el hueco. Acá se llega al mismo píxel con flex, sin depender
-   de que ese fondo coincida con el de la página.
+   He runs the line across the whole rail and mounts on top of it a span
+   painted the colour of the background, which punches a hole in it; his
+   8px padding-right is the gap. Here the same pixel is reached with
+   flex, without depending on that background matching the page's.
 
-   Medido: rótulo 14px/600/#111 · hueco 8px · 64px arriba · 56px abajo
-   (24 de su bloque + 32 del margin-top del siguiente). */
-/* 64 entre secciones — el de benji, medido. La primera lleva el aire
-   del masthead menos el margin del propio masthead, para que el token
-   sea el hueco total y no un sumando. */
+   Measured: label 14px/600/#111 · gap 8px · 64px above · 56px below
+   (24 from his block + 32 from the next one's margin-top). */
+/* 64 between sections, benji's, measured. The first one carries the
+   masthead's air minus the masthead's own margin, so that the token is
+   the total gap and not one term of a sum. */
 .group {
   padding-top: var(--section-gap);
 }
-/* La sección fija la caja de sus piezas. El dueño es la sección y no la
-   pieza porque la regla no depende de qué componente es, sino de qué
-   plataforma: en Web adentro corre algo, en App adentro va un teléfono.
+/* The section fixes the box of its pieces. The owner is the section and
+   not the piece because the rule does not depend on which component it
+   is, but on which platform: in Web something runs inside, in App a
+   phone goes inside.
 
-   En App la caja NO declara altura. Reserva el hueco del teléfono —
-   228 de ancho, tope el ancho disponible, y la proporción lo alarga — y
-   la altura sale de ahí más el padding. Eso reproduce el comportamiento
-   de benji sin una sola media query: mientras el hueco entra, la caja
-   mide siempre lo mismo; cuando deja de entrar, se achica sola. */
-.group[data-plataforma='App'] .streamPreview {
+   In App the box does NOT declare a height. It reserves the phone slot
+   (228 wide, capped at the available width, and the aspect ratio makes
+   it taller) and the height comes out of that plus the padding. That
+   reproduces benji's behaviour without a single media query: while the
+   slot fits, the box always measures the same; when it stops fitting,
+   it shrinks on its own. */
+.group[data-platform='App'] .streamPreview {
   min-height: 0;
   padding: var(--card-app-padding);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.group[data-plataforma='App'] .streamPreview::before {
+.group[data-platform='App'] .streamPreview::before {
   content: '';
-  width: var(--card-app-slot-ancho);
+  width: var(--card-app-slot-width);
   max-width: 100%;
   aspect-ratio: var(--card-app-slot-ratio);
 }
-/* CON GRABACIÓN, EL HUECO ES ELLA. El ::before de arriba existe para
-   reservar la silueta del teléfono cuando no hay nada que mostrar; con
-   un video adentro los dos convivirían y la caja mediría doble. El video
-   toma el MISMO ancho por el MISMO token, y la altura ya no es la del
-   ratio reservado sino la del archivo — que en una grabación de iPhone
-   es la misma silueta, ahora de verdad. */
-.group[data-plataforma='App'] .streamPreview:has(.demo)::before {
+/* WITH A RECORDING, THE SLOT IS THE RECORDING. The ::before above
+   exists to reserve the silhouette of the phone when there is nothing
+   to show; with a video inside, the two would live together and the box
+   would measure double. The video takes the SAME width by the SAME
+   token, and the height is no longer the reserved ratio's but the
+   file's, which in an iPhone recording is the same silhouette, now for
+   real. */
+.group[data-platform='App'] .streamPreview:has(.demo)::before {
   content: none;
 }
-/* Con video, la caja es el video: sin padding, sin flex. */
-.group[data-plataforma='App'] .streamPreview:has(.demo) {
+/* With video, the box is the video: no padding, no flex. */
+.group[data-platform='App'] .streamPreview:has(.demo) {
   padding: 0;
   display: block;
 }
 .demo {
   display: block;
-  /* LA CAJA SE RESERVA ANTES DE QUE LLEGUE EL ARCHIVO. Sin esto, con
-     `height: auto` la altura no existe hasta que el video entrega sus
-     metadatos, y cuando entrega, la card cambia de alto y empuja todo lo
-     de abajo. Medido en la home: cinco cargas daban 0.0516, 0, 0.0294, 0
-     y 0.0516 de CLS, y el cero en dos de cinco es la firma de una
-     carrera, no de un layout roto.
+  /* THE BOX IS RESERVED BEFORE THE FILE ARRIVES. Without this, with
+     `height: auto` the height does not exist until the video hands over
+     its metadata, and when it does, the card changes height and pushes
+     everything below it. Measured on the home page: five loads gave
+     0.0516, 0, 0.0294, 0 and 0.0516 of CLS, and the zero in two out of
+     five is the signature of a race, not of a broken layout.
 
-     `auto 1` y no `1` a secas: manda la proporción REAL del archivo en
-     cuanto se conoce, y el 1 sólo cubre el hueco hasta entonces. Las dos
-     grabaciones de hoy son 1120×1120 —el lienzo del mockup es cuadrado—
-     así que el 1 acierta y no hay ningún salto; si mañana entra una que
-     no lo sea, la caja se corrige sola en vez de deformar el video. */
+     `auto 1` and not a bare `1`: the REAL aspect ratio of the file
+     rules as soon as it is known, and the 1 only covers the gap until
+     then. Today's two recordings are 1120×1120 (the mockup's canvas is
+     square) so the 1 gets it right and there is no jump; if one that is
+     not square comes in tomorrow, the box corrects itself instead of
+     deforming the video. */
   aspect-ratio: auto 1;
-  /* EL VIDEO ES LA CAJA. Con la grabación transparente, el cuadrado del
-     mockup ocupa la caja entera —sin el padding de 40/60 que reservaba
-     el hueco— y así el borde del video ES el borde de la caja: cuando
-     la cámara entra (1.576×) el teléfono se corta contra el límite del
-     espacio que da la exhibition, no contra un cuadrado invisible 60 px
-     más adentro ("que el corte al hacer zoom sea natural, con el borde
-     en el espacio que brinda la library", 2026-09-05). Y más cerca: a
-     560 de lado el teléfono al 92 % mide 515 px; antes, en el cuadrado
-     de 440 al 86 %, 378. El hueco de 228×448 sigue existiendo para la
-     card sin video (el ::before). */
+  /* THE VIDEO IS THE BOX. With the recording transparent, the mockup's
+     square takes the whole box (without the 40/60 padding that reserved
+     the slot) and so the edge of the video IS the edge of the box: when
+     the camera moves in (1.576×) the phone gets cut against the limit
+     of the space the exhibition gives, not against an invisible square
+     60 px further in ("the cut when you zoom should feel natural, with
+     the edge in the space the library gives", 2026-09-05). And closer
+     in: at 560
+     a side the phone at 92 % measures 515 px; before, in the square of
+     440 at 86 %, 378. The 228×448 slot still exists for the card
+     without video (the ::before). */
   width: 100%;
   height: auto;
   max-width: 100%;
-  /* El radio de los controles chicos, no el de la card: una grabación
-     cruda tiene esquinas vivas y dentro de una superficie ya redondeada
-     se leen como sin terminar. 8 es lo que ya usan los clips del
-     playground y las cajas del sistema. */
-  border-radius: var(--card-radio);
+  /* The radius of the small controls, not the card's: a raw recording
+     has live corners and inside an already rounded surface they read as
+     unfinished. 8 is what the playground's clips and the system's boxes
+     already use. */
+  border-radius: var(--card-radius);
 }
 
-/* ─── EL REPRODUCTOR: el video y su velocidad ───
-   El botón de velocidad de benji.org (Family Values), medido en su CSS:
-   arriba a la derecha con 1rem de padding; 0.75rem/460, alto 1.25rem,
-   radio píldora, color #989897; ancho 1.75rem en 1x y 2.5rem en 0.5x;
-   los dos rótulos superpuestos (position:absolute; inset:0) y cruzados
-   por opacidad; hover: color al 60 % y fondo #f2f2f2; todo con
-   `transition: all .2s ease`. Acá los colores son los tokens que ya
-   dicen lo mismo —text-secondary y surface-hover— y la tipografía es
-   la de nav (13/460), la más chica del sistema, en vez de 12. Dónde se
-   ve: en el DETALLE siempre, como en benji; en el hub de la exhibition
-   sólo con el mouse sobre el video —ahí es una lista, y un control
-   por card es ruido— y siempre donde no hay hover (touch). Sin cambio
-   de fondo ni de color al pasar por encima: el rótulo alcanza (pedido
-   del usuario, 2026-09-05; benji sí pinta #f2f2f2). */
-.reproductor {
+/* ─── THE PLAYER: the video and its speed ───
+   The speed button of benji.org (Family Values), measured in his CSS:
+   top right with 1rem of padding; 0.75rem/460, height 1.25rem, pill
+   radius, colour #989897; width 1.75rem at 1x and 2.5rem at 0.5x; the
+   two labels on top of each other (position:absolute; inset:0) and
+   crossed by opacity; on hover, colour at 60 % and background #f2f2f2;
+   all with `transition: all .2s ease`. Here the colours are the tokens
+   that already say the same thing, text-secondary and surface-hover,
+   and the type is nav's (13/460), the smallest in the system, instead
+   of 12. Where it shows: in the DETAIL always, as on benji; in the hub
+   of the exhibition only with the mouse over the video (there it is a
+   list, and one control per card is noise) and always where there is no
+   hover (touch). No change of background and no change of colour when
+   you pass over it: the label is enough (the user's request,
+   2026-09-05; benji does paint #f2f2f2). */
+.player {
   position: relative;
 }
-/* Sin máscara de esquinas cuando el video es transparente (ver Reproductor). */
-.demoAlfa {
+/* No corner mask when the video is transparent (see Player). */
+.demoAlpha {
   border-radius: 0;
 }
-.velocidad {
+.speed {
   position: absolute;
   top: 16px;
   right: 16px;
@@ -339,17 +353,17 @@
     opacity var(--dur-surface) var(--ease-surface),
     width var(--dur-surface) var(--ease-surface);
 }
-/* 28×20 a la vista, 44 de blanco. Está solo en su esquina, así que
-   crecer hacia adentro no le pisa el blanco a nadie. */
-.velocidad::before {
+/* 28×20 to the eye, 44 of target. It is alone in its corner, so growing
+   inward does not step on anybody's target. */
+.speed::before {
   content: '';
   position: absolute;
   inset: -12px;
 }
-.velocidad[data-velocidad='0.5'] {
+.speed[data-speed='0.5'] {
   width: 40px;
 }
-.velocidad span {
+.speed span {
   position: absolute;
   inset: 0;
   display: flex;
@@ -358,43 +372,45 @@
   opacity: 0;
   transition: inherit;
 }
-.velocidad span[data-activa='true'] {
+.speed span[data-active='true'] {
   opacity: 1;
 }
-/* En la lista, oculto hasta el hover (o el foco); en el detalle, siempre. */
-.streamPreview .velocidad {
+/* In the list, hidden until the hover (or the focus); in the detail,
+   always. */
+.streamPreview .speed {
   opacity: 0;
 }
-.streamPreview .reproductor:hover .velocidad,
-.streamPreview .velocidad:focus-visible {
+.streamPreview .player:hover .speed,
+.streamPreview .speed:focus-visible {
   opacity: 1;
 }
 @media (hover: none) {
-  .streamPreview .velocidad {
+  .streamPreview .speed {
     opacity: 1;
   }
 }
 
-/* ─── EL ESCENARIO DE UN DEMO VIVO (pieza Web) ───
-   La caja de la card ya decide el piso —260 en la lista, 400 en el
-   detalle, la decisión medida de benji— y este envoltorio sólo lo
-   HEREDA y centra lo que el componente dibuje. `inherit` y no el token
-   de nuevo: así el piso está escrito una vez y el escenario no puede
-   desincronizarse de su caja. El componente manda en todo lo demás. */
-.demoVivo {
+/* ─── THE STAGE OF A LIVE DEMO (Web piece) ───
+   The box of the card already decides the floor (260 in the list, 400
+   in the detail, benji's measured decision) and this wrapper only
+   INHERITS it and centres whatever the component draws. `inherit` and
+   not the token again: that way the floor is written once and the stage
+   cannot fall out of sync with its box. The component rules everything
+   else. */
+.liveDemo {
   min-height: inherit;
   display: grid;
   place-items: center;
 }
 .group:first-child {
-  padding-top: calc(var(--section-first-gap) - 8px); /* 8 = el margin del mast */
+  padding-top: calc(var(--section-first-gap) - 8px); /* 8 = the mast's margin */
 }
-/* --section-content-gap es el hueco que se VE: de la línea al primer
-   texto. No es el margin, porque la línea va centrada en la caja del
-   rótulo y quedan (alto de la caja − 1px de línea) / 2 por debajo. Esa
-   diferencia se descuenta acá y no en el token, así el número que se
-   elige es el que se mide. Sale de --type-h2-lh, así que sigue siendo
-   correcto si cambia el tamaño de fuente o la interlínea. */
+/* --section-content-gap is the gap you SEE: from the line to the first
+   text. It is not the margin, because the line is centred in the
+   label's box and (box height − 1px of line) / 2 is left below it. That
+   difference is taken off here and not in the token, so the number you
+   choose is the number you measure. It comes out of --type-h2-lh, so it
+   stays correct if the font size or the leading changes. */
 .groupHead {
   display: flex;
   align-items: center;
@@ -402,12 +418,12 @@
   margin-bottom: calc(var(--section-content-gap) - (var(--type-h2-lh) - 1px) / 2);
 }
 .groupLabel {
-  /* Sin margen: el rótulo es un <div> en la lista y un <h2> en las notas,
-     y el h2 trae 0.83em de margen del navegador arriba y abajo (11.6 px
-     a 14 px). Sin este reset el mismo separador rendía distinto en los
-     dos lugares: 76 del preview al rótulo y 53 de la línea al primer
-     texto en las notas, donde el diseño dice 64 y 40 (medido en la
-     página servida, 2026-09-07). */
+  /* No margin: the label is a <div> in the list and an <h2> in the
+     notes, and the h2 brings 0.83em of browser margin above and below
+     (11.6 px at 14 px). Without this reset the same separator rendered
+     differently in the two places: 76 from the preview to the label and
+     53 from the line to the first text in the notes, where the design
+     says 64 and 40 (measured on the served page, 2026-09-07). */
   margin: 0;
   font-size: var(--type-h2-fs);
   font-weight: var(--type-h2-fw);
@@ -422,26 +438,26 @@
   background: var(--hairline);
 }
 
-/* La pieza entera es el botón: el título también es clickeable y entra
-   por teclado, no sólo el rectángulo. */
-/* Es un <a href> y no un botón — ver el comentario en parts.tsx. Por eso
-   acá se neutraliza lo del ancla y no lo del botón: el subrayado y el
-   color heredado, en vez de border, background y text-align. El
-   `color: inherit` importa: sin él el título de la pieza tomaría el
-   color de link del navegador. */
-/* LA CARD YA NO ES EL ANCLA. Era un <a> que envolvía todo, y un <a> no
-   puede contener contenido interactivo: adentro del preview viven los
-   cuatro <button> de una pieza Web y el de velocidad del video. Ahora es
-   un <article>, el ancla envuelve el título y se estira sobre la card
-   con un ::after, y el preview va DESPUÉS en el documento, así que pinta
-   encima de esa capa y el demo sigue vivo. El porqué completo está en
-   parts.tsx, arriba de Item. */
+/* The whole piece is the button: the title is clickable too and can be
+   reached by keyboard, not only the rectangle. */
+/* It is an <a href> and not a button, see the comment in parts.tsx.
+   That is why what gets neutralised here is the anchor's and not the
+   button's: the underline and the inherited colour, instead of border,
+   background and text-align. The `color: inherit` matters: without it
+   the title of the piece would take the browser's link colour. */
+/* THE CARD IS NO LONGER THE ANCHOR. It was an <a> that wrapped
+   everything, and an <a> cannot contain interactive content: inside the
+   preview live the four <button> of a Web piece and the video's speed
+   one. Now it is an <article>, the anchor wraps the title and stretches
+   over the card with an ::after, and the preview comes AFTER in the
+   document, so it paints on top of that layer and the demo stays alive.
+   The full why is in parts.tsx, above Item. */
 .streamItem {
   position: relative;
   display: block;
   width: 100%;
   padding: 0;
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
   cursor: pointer;
 }
 .streamLink {
@@ -452,11 +468,11 @@
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
 }
-/* El foco se ve sobre la CARD y no sobre las letras del título: el área
-   que el ancla activa es la card entera, y el anillo tiene que decir
-   eso. Va en el ::after, que es esa área. */
+/* The focus shows on the CARD and not on the letters of the title: the
+   area the anchor activates is the whole card, and the ring has to say
+   that. It goes on the ::after, which is that area. */
 .streamLink:focus-visible {
   outline: none;
 }
@@ -467,12 +483,12 @@
 .streamItem + .streamItem {
   margin-top: var(--piece-gap);
 }
-/* El aire lo reclama el bloque de abajo, no lo empuja el título — es
-   como lo hace benji: su h2 lleva margin-top:0 y son el p, el pre y el
-   figure los que traen su propio .75rem. Dos consecuencias reales:
-   un bloque sin título arriba respira igual, y cualquier cosa que se
-   sume a la pieza —una nota, una etiqueta— hereda el hueco sin tener
-   que tocar nada. */
+/* The air is claimed by the block below, not pushed by the title. It is
+   how benji does it: his h2 carries margin-top:0 and it is the p, the
+   pre and the figure that bring their own .75rem. Two real
+   consequences: a block with no title above it breathes the same, and
+   anything added to the piece (a note, a label) inherits the gap
+   without having to touch anything. */
 .streamItem > * + * {
   margin-top: var(--piece-card-gap);
 }
@@ -483,43 +499,43 @@
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
 }
-/* min-height y no height: 260 es un PISO, no un techo. La card mide 260
-   mientras lo que tenga adentro entre; si una pieza necesita más, empuja
-   y la card la sigue. Con la card vacía las dos formas dan lo mismo, así
-   que la diferencia es toda a futuro — y es la que evita tener que
-   volver acá a discutir el número la primera vez que un componente no
-   entre. */
+/* min-height and not height: 260 is a FLOOR, not a ceiling. The card
+   measures 260 for as long as what it has inside fits; if a piece needs
+   more, it pushes and the card follows. With the card empty both forms
+   give the same result, so the difference is all in the future, and it
+   is the one that saves having to come back here to argue about the
+   number the first time a component does not fit. */
 .streamPreview {
-  /* Posicionado para quedar POR ENCIMA de la capa del ancla: si no, el
-     ::after tapa el demo y no hay hover ni botón de velocidad. Sin
-     z-index a propósito — alcanza con el orden del documento. */
+  /* Positioned so it stays ON TOP of the anchor's layer: otherwise the
+     ::after covers the demo and there is no hover and no speed button.
+     No z-index on purpose, the document order is enough. */
   position: relative;
-  min-height: var(--card-alto);
+  min-height: var(--card-height);
   background: var(--surface);
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
   transition: background-color var(--dur-surface) var(--ease-surface);
 }
-/* EL SISTEMA DE JOSH, COMPLETO: el hover oscurece el relleno y no pasa
-   nada más. Ni sombra, ni escala, ni movimiento, ni opacidad, ni press.
+/* JOSH'S SYSTEM, WHOLE: the hover darkens the fill and nothing else
+   happens. No shadow, no scale, no movement, no opacity, no press.
 
-   Su fila de lista —580×76, el mismo objeto que esta card— se midió en
-   vivo: transparent → rgb(245,245,245) en 0.15s cubic-bezier(.4,0,.2,1),
-   nadie más se mueve, y el :active pinta IDÉNTICO al :hover.
+   His list row (580×76, the same object as this card) was measured
+   live: transparent → rgb(245,245,245) in 0.15s cubic-bezier(.4,0,.2,1),
+   nobody else moves, and the :active paints IDENTICAL to the :hover.
 
-   Sólo cambia la card, no el ítem entero: se descartó el mecanismo de
-   benji —atenuar las hermanas a .3— porque depende de ver la lista
-   completa de una. La suya son 7 filas de 41px que se tocan, 286px en
-   total; la nuestra son 8 pantallas y se ven 2 cards a la vez, así que
-   "se apaga el resto" serían literalmente la otra.
+   Only the card changes, not the whole item: benji's mechanism, dimming
+   the siblings to .3, was dropped because it depends on seeing the
+   complete list at once. His is 7 rows of 41px that touch each other,
+   286px in total; ours is 8 screens and you see 2 cards at a time, so
+   "the rest goes dark" would literally be the other one.
 
-   NO HAY :active a propósito. Ver el bloque de --surface-press en
-   tokens.css: en 23 páginas de las dos referencias hay un solo :active
-   vivo y es un botón de 40×40. */
+   THERE IS NO :active on purpose. See the --surface-press block in
+   tokens.css: in 23 pages of the two references there is a single live
+   :active and it is a 40×40 button. */
 .streamItem:hover .streamPreview {
   background: var(--surface-hover);
 }
 
-/* ═══════════ DETALLE ═══════════ */
+/* ═══════════ DETAIL ═══════════ */
 .back {
   display: flex;
   align-items: center;
@@ -533,58 +549,61 @@
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  /* El cuadrado se ve de 34; el blanco llega a 44 sin mover nada. */
+  /* The square shows at 34; the target reaches 44 without moving
+     anything. */
   position: relative;
-  /* SE PINTA LA FLECHA, NO EL CUADRADO. Antes el hover rellenaba los
-     34×34 con --a1; ahora sólo cambia el color del glifo. Es unánime en
-     las dos referencias, medido en vivo:
+  /* THE ARROW GETS PAINTED, NOT THE SQUARE. The hover used to fill the
+     34×34 with --a1; now it only changes the colour of the glyph. It is
+     unanimous in both references, measured live:
 
-       benji .styles_backButton   "Index" 122×28, radio 0, pad 4px 0
+       benji .styles_backButton   "Index" 122×28, radius 0, pad 4px 0
                                   transition: color 0.1s
                                   rgba(0,0,0,.4) → rgba(0,0,0,.8)
-       josh  /melt-effect         "Home" 62×20, radio 0, pad 0
+       josh  /melt-effect         "Home" 62×20, radius 0, pad 0
                                   rgb(163,163,163) → rgb(23,23,23)
 
-     Los dos: no pintan fondo, cambian el color, no se mueven. Y los
-     0.1s de benji son exactamente el --dur-text que ya teníamos.
+     Both of them: they paint no background, they change the colour,
+     they do not move. And benji's 0.1s is exactly the --dur-text we
+     already had.
 
-     Como ahora anima UNA sola familia, la excepción del par se fue: ya
-     no hay un elemento que anime superficie y texto a la vez, así que
-     la regla queda limpia — manda la propiedad, y nada más. */
+     Since it now animates ONE family only, the exception for the pair
+     is gone: there is no longer an element that animates surface and
+     text at once, so the rule stays clean. The property rules, and
+     nothing else. */
   transition: color var(--dur-text) var(--ease-text);
 }
-/* 34×34 a la vista, 44 de blanco. La flecha está sola arriba a la
-   izquierda del detalle, así que crecer 5 px por lado no le pisa el
-   blanco a nadie. */
+/* 34×34 to the eye, 44 of target. The arrow is alone at the top left of
+   the detail, so growing 5 px per side does not step on anybody's
+   target. */
 .back::before {
   content: '';
   position: absolute;
   inset: -5px;
 }
-/* El cuadrado de 34×34 se queda, pero invisible: es el área de click. Y
-   el radio también, porque es lo que le da forma al anillo de foco —
-   el outline sigue el border-radius. */
+/* The 34×34 square stays, but invisible: it is the click area. And the
+   radius stays too, because it is what gives the focus ring its shape.
+   The outline follows the border-radius. */
 .back:hover {
-  /* Llega a --activo-c, no a la tinta. Es lo de benji, medido: su
-     .styles_backButton va de rgba(0,0,0,.4) a rgba(0,0,0,.8) y NO llega
-     a su tinta — para en 51 sobre su canvas. Nosotros paramos en 65,
-     porque el 80% se escribe desde nuestra base de ink y no desde negro
-     puro: es la misma estructura de "un alfa, dos bases" que ya rige los
-     grises de texto.
+  /* It reaches --active-c, not the ink. It is benji's, measured: his
+     .styles_backButton goes from rgba(0,0,0,.4) to rgba(0,0,0,.8) and
+     does NOT reach his ink. It stops at 51 over his canvas. We stop at
+     65, because the 80% is written from our ink base and not from pure
+     black: it is the same "one alpha, two bases" structure that already
+     rules the text greys.
 
-     Y es el MISMO token que marca la pieza activa del índice. En su
-     sistema hover y activo son una sola declaración —
+     And it is the SAME token that marks the active piece in the index.
+     In his system hover and active are a single declaration,
        nav ul li a:hover, nav ul li[data-active=true] a
          { color: hsla(0,0%,7%,.8) }
-     — porque dicen lo mismo: "ésta". Acá también.
+     because they say the same thing: "this one". Here too.
 
-     Se descartó llegar a la tinta (17, que es lo que hace josh: su
-     "Home" va de neutral-400 a neutral-900) y llegar al nivel del hover
-     de texto (102, --link-underline-hover). El segundo era tentador
-     porque unificaría todo lo que reacciona al puntero en un solo color,
-     pero en oscuro cae en 160 contra un reposo de 155: cinco unidades,
-     invisible. */
-  color: var(--activo-c);
+     Reaching the ink was dropped (17, which is what josh does: his
+     "Home" goes from neutral-400 to neutral-900) and so was reaching
+     the level of the text hover (102, --link-underline-hover). The
+     second one was tempting because it would unify everything that
+     reacts to the pointer in a single colour, but in dark it lands on
+     160 against a resting 155: five units, invisible. */
+  color: var(--active-c);
 }
 
 .detailHead {
@@ -608,118 +627,122 @@
   line-height: var(--type-meta-lh);
   color: var(--type-meta-c);
 }
-/* Sin max-width propio: la columna ya son 560 y la medida de lectura la
-   pone ella. Acá había un 36.375rem —el riel de benji, usado como medida
-   de texto— que con el riel en 592 quedó por encima de la columna y no
-   podía aplicar nunca: un número que se leía como decisión y no hacía
-   nada. Si el detalle llega a querer una medida más angosta que su
-   columna, es una decisión aparte y se toma con la primera pieza. */
-/* Va DEBAJO del preview (ver Detail en parts.tsx), así que estos 24 no
-   son los 8 de antes: son la misma distancia con la que el bloque de
-   arriba se despega de la caja (.detailHead margin-bottom). Un número y
-   no dos para la misma relación —texto contra la pieza—, hasta que se
-   elija con scrubber sobre la página real. */
+/* No max-width of its own: the column is already 560 and it is the one
+   that sets the measure for reading. There used to be a 36.375rem here,
+   benji's rail used as a text measure, which with the rail at 592 ended
+   up above the column and could never apply: a number that read as a
+   decision and did nothing. If the detail ever wants a measure narrower
+   than its column, that is a separate decision and it gets taken with
+   the first piece. */
+/* It goes BELOW the preview (see Detail in parts.tsx), so these 24 are
+   not the 8 from before: they are the same distance the block above
+   uses to come off the box (.detailHead margin-bottom). One number and
+   not two for the same relation, text against the piece, until it gets
+   chosen with a scrubber on the real page. */
 .detailDesc {
   margin: 24px 0 0;
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
   line-height: var(--type-body-lh);
-  /* ink y no gris: es prosa, y la prosa va en ink. Ver DESIGN.md. */
+  /* ink and not grey: it is prose, and prose goes in ink. See
+     DESIGN.md. */
   color: var(--ink);
-  /* Sin viudas, como .notas p: una línea de descripción es exactamente
-     el caso de `pretty` en better-typography. */
+  /* No widows, like .notes p: one line of description is exactly the
+     case for `pretty` in better-typography. */
   text-wrap: pretty;
 }
-/* Al abrir una pieza la caja crece. La relación es la de benji y no un
-   número inventado: adentro de una página larga sus demos miden 260, y
-   cuando el demo ES la página —drawesome— el frame mide 400. Nosotros
-   tenemos exactamente esas dos situaciones. */
+/* When you open a piece the box grows. The relation is benji's and not
+   an invented number: inside a long page his demos measure 260, and
+   when the demo IS the page (drawesome) the frame measures 400. We have
+   exactly those two situations. */
 .detailPreview {
-  min-height: var(--card-alto-detalle);
+  min-height: var(--card-height-detail);
   background: var(--surface);
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
 }
-/* En App lo que crece no es la caja sino el teléfono, y también con un
-   número suyo: 319×628 es su otro tamaño de teléfono en family-values,
-   el que usa cuando el teléfono va solo. La caja lo sigue. */
-.detailPreview[data-plataforma='App'] {
+/* In App what grows is not the box but the phone, and also with a
+   number of his: 319×628 is his other phone size in family-values, the
+   one he uses when the phone goes alone. The box follows it. */
+.detailPreview[data-platform='App'] {
   min-height: 0;
   padding: var(--card-app-padding);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.detailPreview[data-plataforma='App']::before {
+.detailPreview[data-platform='App']::before {
   content: '';
-  width: var(--card-app-slot-detalle);
+  width: var(--card-app-slot-detail);
   max-width: 100%;
   aspect-ratio: var(--card-app-slot-ratio);
 }
-/* Mismo reemplazo que en la lista: con grabación, el hueco es ella, al
-   ancho del teléfono del detalle. */
-.detailPreview[data-plataforma='App']:has(.demo)::before {
+/* Same replacement as in the list: with a recording, the slot is the
+   recording, at the width of the detail's phone. */
+.detailPreview[data-platform='App']:has(.demo)::before {
   content: none;
 }
-.detailPreview[data-plataforma='App']:has(.demo) {
+.detailPreview[data-platform='App']:has(.demo) {
   padding: 0;
   display: block;
 }
 
-/* ─── LAS NOTAS DEL DETALLE ───
-   El texto largo bajo la pieza, partido en secciones. El separador es el
-   mismo objeto que parte la lista —.groupHead y sus dos hijos—, así que
-   acá no se declara ninguna línea: se declara sólo el ritmo alrededor.
+/* ─── THE NOTES OF THE DETAIL ───
+   The long text under the piece, split into sections. The separator is
+   the same object that splits the list (.groupHead and its two
+   children), so no line is declared here: only the rhythm around it is.
 
-   Los dos huecos son tokens que ya existían y NO se volvieron a elegir:
-   64 arriba de cada rótulo (--section-gap, el que separa Web de App) y
-   40 de la línea al primer renglón (--section-content-gap, con su
-   corrección de media caja adentro de .groupHead). Reusarlos es tener un
-   número por relación en vez de dos; que sean los correctos PARA PROSA
-   está sin medir, y se decide con el scrubber sobre esta página. */
-.notas p {
+   The two gaps are tokens that already existed and were NOT chosen
+   again: 64 above each label (--section-gap, the one that separates Web
+   from App) and 40 from the line to the first line of text
+   (--section-content-gap, with its half-box correction inside
+   .groupHead). Reusing them means one number per relation instead of
+   two; whether they are the correct ones FOR PROSE is unmeasured, and
+   it gets decided with the scrubber on this page. */
+.notes p {
   margin: 0;
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
   line-height: var(--type-body-lh);
-  /* ink y no gris, igual que .detailDesc: es prosa, y la prosa se lee.
-     El gris es para lo que anota. Ver DESIGN.md. */
+  /* ink and not grey, the same as .detailDesc: it is prose, and prose
+     gets read. Grey is for what annotates. See DESIGN.md. */
   color: var(--ink);
-  /* Sin viudas: `pretty` evita que una palabra sola quede en la última
-     línea. Es la regla de better-typography para descripciones —párrafos
-     cortos, como estos— y no para texto largo. RUNTIME (2026-09-07, en
-     producción): el primer párrafo de Performance terminaba en "frame."
-     solo en su línea. */
+  /* No widows: `pretty` keeps a single word from being left on the last
+     line. It is better-typography's rule for descriptions (short
+     paragraphs, like these) and not for long text. RUNTIME (2026-09-07,
+     in production): the first paragraph of Performance ended with
+     "frame." alone on its line. */
   text-wrap: pretty;
 }
-/* Una línea de aire entre párrafos, que es el interlineado del cuerpo.
-   SIN RECIBO: no sale de ninguna referencia medida — es el default
-   tipográfico de toda la vida y está acá para no inventar un número.
-   Cuando la primera nota se lea en pantalla, se elige mirando. */
-.notas p + p {
+/* One line of air between paragraphs, which is the body's leading. NO
+   RECEIPT: it does not come from any measured reference. It is the
+   typographic default of all time and it is here so as not to invent a
+   number. When the first note gets read on screen, it will be chosen by
+   looking. */
+.notes p + p {
   margin-top: var(--type-body-lh);
 }
-.notaSeccion {
+.noteSection {
   padding-top: var(--section-gap);
 }
-/* LAS NOTAS DIRECTO DEBAJO DEL PREVIEW llevan 48 más: el preview es un
-   demo, y benji separa un demo del separador siguiente con 112, no con
-   los 64 que separan prosa de separador. RUNTIME /liveline (2026-09-07,
-   página servida): 112 en las diez secciones que terminan en demo, con
-   pie de foto (del pie a la línea) o sin él ("Just a line", del borde
-   del demo a la línea); 64 en las que terminan en prosa. 112 = 48 + 64:
-   su hueco bajo una pieza (--piece-gap, ya medido) más el de sección.
-   Sólo cuando no hay línea de descripción: con línea, es prosa lo que
-   precede al separador, y ahí van los 64 de siempre. */
-.detailPreview + .notas {
+/* THE NOTES DIRECTLY BELOW THE PREVIEW carry 48 more: the preview is a
+   demo, and benji separates a demo from the next separator with 112,
+   not with the 64 that separate prose from a separator. RUNTIME
+   /liveline (2026-09-07, served page): 112 in the ten sections that end
+   in a demo, with a caption (from the caption to the line) or without
+   one ("Just a line", from the edge of the demo to the line); 64 in the
+   ones that end in prose. 112 = 48 + 64: his gap under a piece
+   (--piece-gap, already measured) plus the section one. Only when there
+   is no description line: with a line, what precedes the separator is
+   prose, and there the usual 64 go. */
+.detailPreview + .notes {
   padding-top: var(--piece-gap);
 }
 
-/* EL ESCALÓN DE 768 se mudó a tokens.css, al lado de los valores que
-   pisa. Vivía acá, sobre .page, cuando .page era el único marco que
-   había; ahora el área privada tiene el suyo y heredarlo de :root es
-   tenerlo escrito una vez y no dos. Los tres lectores —.mast, .content
-   y .page— están todos adentro de .page, así que el cambio no mueve un
-   píxel: se verificó a 769 y a 768 en las dos formas. */
-
+/* THE 768 STEP moved to tokens.css, next to the values it overrides. It
+   lived here, on .page, when .page was the only frame there was; now
+   the private area has its own and inheriting it from :root means
+   having it written once and not twice. The three readers, .mast,
+   .content and .page, are all inside .page, so the change does not move
+   a pixel: it was verified at 769 and at 768 in both forms. */

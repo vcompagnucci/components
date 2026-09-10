@@ -1,22 +1,23 @@
 import { createContext, useContext } from 'react'
 
-import { COLOR, type Paleta } from './measurements'
+import { COLOR, type Palette } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL TEMA — un contexto con la paleta vigente, y nada más.
+   THE THEME — a context with the palette in force, and nothing else.
 
-   La pieza se midió entera en oscuro, así que `COLOR` (la paleta
-   oscura, con recibo por valor) es el default: sin provider, todo se ve
-   exactamente como antes de que existiera el modo claro. La ruta decide
-   la paleta con `useColorScheme()` — el tema del SISTEMA, no un toggle
-   propio: la referencia es la app de X, que sigue al sistema.
+   The piece was measured entirely in dark, so `COLOR` (the dark
+   palette, with a receipt per value) is the default: with no provider,
+   everything looks exactly as it did before light mode existed. The
+   route picks the palette with `useColorScheme()`, the SYSTEM color
+   scheme and not a toggle of our own: the reference is the X app, which
+   follows the system.
 
-   Contexto y no props: la paleta atraviesa cinco componentes y varios
-   `memo`. Un cambio de esquema re-renderiza a los consumidores aunque
-   el `memo` corte las props — que es exactamente la semántica que un
-   tema necesita. Las dos paletas son constantes de módulo, así que la
-   identidad es estable y ningún render se dispara de más.
+   Context and not props: the palette crosses five components and
+   several `memo`s. A change of color scheme re-renders the consumers
+   even though `memo` cuts the props off, which is exactly the semantics
+   a theme needs. Both palettes are module constants, so their identity
+   is stable and no render fires for nothing.
    ═══════════════════════════════════════════════════════════════ */
-export const Tema = createContext<Paleta>(COLOR)
+export const Theme = createContext<Palette>(COLOR)
 
-export const usePaleta = () => useContext(Tema)
+export const usePalette = () => useContext(Theme)

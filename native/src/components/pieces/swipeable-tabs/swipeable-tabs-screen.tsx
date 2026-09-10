@@ -4,262 +4,275 @@ import { StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { Tab } from './tab-bar'
-import { Cabecera } from './header'
-import { CLARO, COLOR } from './measurements'
-import { Pagina } from './page'
+import { Header } from './header'
+import { LIGHT, COLOR } from './measurements'
+import { Page } from './page'
 import { SwipeableTabs } from './swipeable-tabs'
-import { Tema } from './theme'
+import { Theme } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   SWIPEABLE TABS — la pantalla, autocontenida. Arma los datos, elige la
-   paleta y monta la pieza. La ruta (`src/app/[slug].tsx`) la encuentra
-   en el registro por su slug y la monta. En la exhibition la pieza se
-   llama `Swipe between tabs`: el slug quedó el del día en que se
-   publicó (ver `Piece` en `src/pieces.ts` del repo web).
+   SWIPEABLE TABS — the screen, self-contained. It assembles the data,
+   picks the palette and mounts the piece. The route
+   (`src/app/[slug].tsx`) finds it in the registry by its slug and
+   mounts it. In the exhibition the piece is called `Swipe between
+   tabs`: the slug stayed the one from the day it was published (see
+   `Piece` in `src/pieces.ts` of the web repo).
 
-   La referencia es X en iOS: el clip del vault (`Swipeable tabs.mov`) y
-   las grabaciones de la cuenta del usuario, medidas cuadro a cuadro. El
-   recibo de cada valor está arriba de él en `medidas.ts`, y la planilla
-   entera en `.context/recon/swipeable-tabs/MEDICIONES.md`.
+   The reference is X on iOS: the vault clip (`Swipeable tabs.mov`) and
+   the recordings of the user's account, measured frame by frame. Each
+   value's receipt is above it in `measurements.ts`, and the whole
+   spreadsheet is in `.context/recon/swipeable-tabs/MEDICIONES.md`.
 
-   LA CARPETA TIENE LA FORMA DE UN COMPONENTE DE react-native-motion
-   (`apps/expo/components/animations/<slug>/`), y desde el 2026-09-10
-   con sus mismos nombres: `index.tsx` exporta esta pantalla por
-   defecto, `swipeable-tabs.tsx` es el mecanismo, y al lado sus partes
-   (`barra`, `pliegue`, `pagina`, `cabecera`), el tema (`theme.ts`,
-   paletas en `medidas.ts`) y los datos (`media.ts`). Su registry
-   también está —`components/pieces/registry.ts`—, pero derivado de las
-   carpetas y no escrito a mano: ver ahí por qué.
+   THE FOLDER HAS THE SHAPE OF A react-native-motion COMPONENT
+   (`apps/expo/components/animations/<slug>/`), and since 2026-09-10
+   with its same names: `index.tsx` exports this screen by default,
+   `swipeable-tabs.tsx` is the mechanism, and beside it its parts
+   (`tab-bar`, `collapse`, `page`, `header`), the theme (`theme.ts`,
+   palettes in `measurements.ts`) and the data (`media.ts`). Its
+   registry is there too, `components/pieces/registry.ts`, but derived
+   from the folders and not written by hand: see there for why.
 
-   Los labels son los de la referencia a propósito: así la comparación
-   contra el clip es directa, cuadro contra cuadro, sin que un texto
-   más corto o más largo mueva el subrayado y ensucie la lectura.
+   The labels are the reference's on purpose: that way the comparison
+   against the clip is direct, frame against frame, without a shorter or
+   longer text moving the underline and muddying the reading.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Los símbolos siguen la regla de la referencia, que no es decorativa:
-   los dos feeds propios llevan un CHEVRON a la derecha —son menús, se
-   despliegan— y los tabs de tema llevan un ÍCONO a la izquierda, que
-   los nombra. Por eso también están pintados distinto: el chevron
-   gris, el ícono blanco. Los dos valores están medidos del clip.
+/* The symbols follow the reference's rule, which is not decorative: the
+   two feeds of your own carry a CHEVRON on the right (they are menus,
+   they unfold) and the topic tabs carry an ICON on the left, which
+   names them. That is also why they are painted differently: the
+   chevron grey, the icon white. Both values are measured off the clip.
 
-   Son SF Symbols, o sea la tipografía de íconos del sistema: mismo
-   peso óptico que el texto al lado y sin un asset que mantener. */
-/* SEIS tabs, no siete: la cuenta de X del usuario tiene exactamente
-   estos, y con seis la tira entera casi entra en la pantalla — el tope
-   de scroll queda en ~30 pt y ningún subrayado termina abajo del
-   degradé después de un arrastre. Con un séptimo tab (se probó con
-   Sports) el tab activo podía quedar con el subrayado metido bajo la
-   rampa derecha, que era el reclamo: "la barra de abajo del último
-   elemento se ve blureada". RUNTIME: en las grabaciones nuevas de X
-   (2026-09-01) el estado con Design activo deja la fila en su tope y
-   el degradé apagado. */
+   They are SF Symbols, that is, the system's icon typeface: the same
+   optical weight as the text next to it and no asset to maintain. */
+/* SIX tabs, not seven: the user's X account has exactly these, and with
+   six the whole strip almost fits on the screen. The scroll limit lands
+   at ~30 pt and no underline ends up under the gradient after a drag.
+   With a seventh tab (Sports was tried) the active tab could end up
+   with its underline tucked under the right ramp, which was the
+   complaint: "the bar under the last item looks blurred". RUNTIME: in
+   X's new recordings (2026-09-01) the state with Design active leaves
+   the row at its limit and the gradient off. */
 const TABS: Tab[] = [
-  { id: 'for-you', label: 'For you', simbolo: 'chevron.down', lado: 'derecha' },
-  { id: 'following', label: 'Following', simbolo: 'chevron.down', lado: 'derecha' },
-  { id: 'stocks', label: 'Stocks', lado: 'izquierda', chip: true },
-  { id: 'tech', label: 'Tech', simbolo: 'cpu', lado: 'izquierda' },
-  { id: 'ai', label: 'AI', simbolo: 'sparkles', lado: 'izquierda' },
-  { id: 'design', label: 'Design', simbolo: 'paintbrush', lado: 'izquierda' },
+  { id: 'for-you', label: 'For you', symbol: 'chevron.down', side: 'right' },
+  { id: 'following', label: 'Following', symbol: 'chevron.down', side: 'right' },
+  { id: 'stocks', label: 'Stocks', side: 'left', chip: true },
+  { id: 'tech', label: 'Tech', symbol: 'cpu', side: 'left' },
+  { id: 'ai', label: 'AI', symbol: 'sparkles', side: 'left' },
+  { id: 'design', label: 'Design', symbol: 'paintbrush', side: 'left' },
 ]
 
 export function SwipeableTabsScreen() {
   const insets = useSafeAreaInsets()
-  /* El tema lo decide el SISTEMA, como en la app de X: no hay toggle
-     propio. La paleta oscura es la medida; la clara lleva su recibo (y
-     su falta de recibo) arriba de `CLARO` en `medidas.ts`. */
-  const paleta = useColorScheme() === 'light' ? CLARO : COLOR
+  /* The SYSTEM decides the theme, as in the X app: there is no toggle
+     of our own. The dark palette is the measured one; the light one
+     carries its receipt (and its lack of receipt) above `LIGHT` in
+     `measurements.ts`. */
+  const palette = useColorScheme() === 'light' ? LIGHT : COLOR
   const params = useLocalSearchParams<{ demo?: string }>()
   const demo = params.demo === '1' || params.demo === 'true'
 
   return (
-    <Tema.Provider value={paleta}>
-      {/* Sin `paddingTop`: la pieza llega hasta el borde de la pantalla y
-          es el bloque plegable el que incluye la barra de estado — cuando
-          sube, el contenido pasa por debajo de ella (ver `pliegue.tsx`). */}
-      <View style={[css.pieza, { backgroundColor: paleta.fondo }]}>
-        {/* `auto` sigue al esquema del sistema, igual que la paleta. */}
+    <Theme.Provider value={palette}>
+      {/* No `paddingTop`: the piece reaches the edge of the screen and
+          it is the collapsing block that includes the status bar. When
+          it rises, the content passes underneath it (see
+          `collapse.tsx`). */}
+      <View style={[css.piece, { backgroundColor: palette.background }]}>
+        {/* `auto` follows the system color scheme, same as the palette. */}
         <StatusBar style="auto" />
         <SwipeableTabs
           tabs={TABS}
-          arriba={insets.top}
-          cabecera={<Cabecera />}
-          pagina={(tab, indice) => <Pagina id={tab.id} indice={indice} />}
+          top={insets.top}
+          header={<Header />}
+          page={(tab, index) => <Page id={tab.id} index={index} />}
           demo={demo}
         />
       </View>
-    </Tema.Provider>
+    </Theme.Provider>
   )
 }
 
 const css = StyleSheet.create({
-  pieza: { flex: 1 },
+  piece: { flex: 1 },
 })
 
 /*
- * No tocar sin volver a medir
+ * Do not touch without measuring again
  *
- * Los valores sueltos —colores, tamaños, paddings— tienen su recibo
- * arriba de cada uno en `medidas.ts`. Acá van sólo
- * los que no son un número: las reglas de las que depende que la pieza
- * se sienta como la referencia.
+ * The loose values (colors, sizes, paddings) have their receipt above
+ * each one in `measurements.ts`. Only the ones that are not a number go
+ * here: the rules that the piece feeling like the reference depends on.
  *
- * — `d`, `h` y `t` son UN shared value (`Tramo`), no tres. Separarlos
- *   devuelve el titileo de los íconos: los estilos leen un trío que no
- *   existió y el ícono que entra prende del todo por un cuadro.
- *   RUNTIME: traza sacada del propio mapper del estilo, un barrido de
- *   seis páginas. Los seis tabs hacían 0.000 → 1.000 → 0.008 al cruzar.
- *   Con un valor: cero cambios de dirección espurios en 492 cuadros.
- *   SOURCE de por qué: `useAnimatedReaction` llama a `startMapper` sin
- *   lista de salidas, así que el orden topológico de Reanimated no puede
- *   ordenarla antes de quien lee lo que escribe.
+ * — `d`, `h` and `t` are ONE shared value (`Segment`), not three.
+ *   Splitting them brings the icons' flicker back: the styles read a
+ *   trio that never existed and the incoming icon lights up all the way
+ *   for a frame.
+ *   RUNTIME: trace taken from the style's own mapper, a sweep of six
+ *   pages. All six tabs did 0.000 → 1.000 → 0.008 on the crossing. With
+ *   one value: zero spurious changes of direction in 492 frames.
+ *   SOURCE for why: `useAnimatedReaction` calls `startMapper` with no
+ *   list of outputs, so Reanimated's topological order cannot put it
+ *   before whoever reads what it writes.
  *
- * — La fila se mueve con el mismo avance del contenido, tocando Y
- *   arrastrando, y la regla la elige `BARRA.fila` (medidas.ts):
- *   'visible' —la de hoy— se queda donde estaba y sólo se corre lo
- *   justo para que el activo entre entero; 'centrar' centra el activo
- *   en la pantalla ENTERA (440) clampeado al tope.
- *   RUNTIME: X hace 'centrar' — las siete transiciones de las tres
- *   grabaciones del usuario (2026-09-01) caen en ese modelo, incluido
- *   Stocks→Tech con el dedo (fila 0 → 45.6, lineal con el contenido,
- *   v1 cuadros 203–221). PEDIDO (2026-09-02): "solo cambia una vez que
- *   voy a una tab que no es visible" — 'visible' es eso, y con seis
- *   tabs mueve la tira sólo en AI↔Design, Following↔For you y en los
- *   toques a un tab tapado. Decisión consciente sobre la referencia;
- *   volver es una palabra.
+ * — The row moves with the same progress as the content, tapping AND
+ *   dragging, and `TAB_BAR.row` (measurements.ts) picks the rule:
+ *   'visible', today's one, stays where it was and only shifts as much
+ *   as it takes for the active one to fit whole; 'center' centers the
+ *   active one in the WHOLE screen (440), clamped to the limit.
+ *   RUNTIME: X does 'center'. The seven transitions of the user's three
+ *   recordings (2026-09-01) fall in that model, Stocks→Tech with the
+ *   finger included (row 0 → 45.6, linear with the content, v1 frames
+ *   203-221). ASKED FOR (2026-09-02): "it only changes once I go to a
+ *   tab that is not visible". 'visible' is that, and with six tabs it
+ *   moves the strip only on AI↔Design, Following↔For you and on taps to
+ *   a covered tab. A conscious decision about the reference; going back
+ *   is one word.
  *
- * — Un toque lejano mueve el contenido UNA sola página, no cuatro.
- *   RUNTIME: en el toque For you → Tech del video de X hay un solo
- *   empalme; ni Following ni Stocks aparecen. Acá se consigue prestando
- *   la página de origen al lugar de al lado del destino.
+ * — A far tap moves the content ONE single page, not four.
+ *   RUNTIME: in the For you → Tech tap of the X video there is a single
+ *   splice; neither Following nor Stocks appears. Here it is achieved
+ *   by lending the origin page to the slot next to the destination.
  *
- * — El dedo interrumpe cualquier toque, también uno lejano. El préstamo
- *   sigue vivo mientras se arrastra y se devuelve sólo cuando no se ve:
- *   al llegar al destino, o al frenar sobre la página prestada saltando
- *   en el mismo cuadro a su lugar real (con la háptica de ese salto
- *   silenciada). Hasta el 2026-09-07 el pager rechazaba el dedo durante
- *   el toque lejano, contra la regla de interrupción de `animate-expo`.
- *   SIN RECIBO en pantalla todavía: se prueba en el teléfono.
+ * — The finger interrupts any tap, including a far one. The loan stays
+ *   alive while you drag and it is given back only when it cannot be
+ *   seen: on reaching the destination, or on stopping over the lent
+ *   page, jumping in the same frame to its real slot (with the haptic
+ *   for that jump silenced). Until 2026-09-07 the pager refused the
+ *   finger during a far tap, against `animate-expo`'s interruption
+ *   rule.
+ *   NO RECEIPT on screen yet: it gets tested on the phone.
  *
- * — La curva del toque es easeOutCubic a 300 ms, y NO es la del
- *   arrastre. Son dos animaciones distintas: la del arrastre es la
- *   deceleración del UIScrollView y no la elige nadie.
- *   RUNTIME: ajustada contra los TRES toques de las grabaciones nuevas
- *   del usuario (RMS 0.0081/0.0123/0.0179; el bezier(.4,.9,.72,1)
- *   anterior daba 0.0153/0.0068/0.0250 y se sentía abrupto — la
- *   historia entera está arriba de `EASE_SETTLE`).
+ * — The tap's curve is easeOutCubic at 300 ms, and it is NOT the drag's
+ *   curve. They are two different animations: the drag's is the
+ *   UIScrollView's deceleration and nobody chooses it.
+ *   RUNTIME: fitted against the THREE taps of the user's new recordings
+ *   (RMS 0.0081/0.0123/0.0179; the previous bezier(.4,.9,.72,1) gave
+ *   0.0153/0.0068/0.0250 and felt abrupt. The whole story is above
+ *   `EASE_SETTLE`).
  *
- * — El glifo del símbolo se DESBORDA de su ranura: dibuja 16 pt en un
- *   lugar que ocupa 11. Igualarlos engorda el tab activo ~5 pt y se ve
- *   en el ancho del subrayado.
- *   RUNTIME: el subrayado de la referencia mide 90.7 / 77.7 / 58.7 en
+ * — The symbol's glyph OVERFLOWS its slot: it draws 16 pt in a place
+ *   that occupies 11. Making them equal fattens the active tab by ~5 pt
+ *   and it shows in the width of the underline.
+ *   RUNTIME: the reference's underline measures 90.7 / 77.7 / 58.7 on
  *   Stocks / Tech / AI.
  *
- * — El símbolo se esconde ATRÁS de la palabra, como X: nace ~1–2 pt
- *   tapado, viaja ENTERO (nunca recortado) los 13/12 pt medidos, y el
- *   zIndex del label existe para eso.
- *   RUNTIME: el recibo de `desliz` está en `medidas.ts` — con DOS
- *   vueltas encima: la ventana con recorte y la pluma se probaron y se
- *   volvieron (2026-09-01 a la mañana), y la CUNA PROFUNDA (desliz 4/7,
- *   viaje de 17) también (mismo día a la tarde, "hacelo como ellos" con
- *   las grabaciones de la cuenta real de recibo). No lo vuelvas a tocar
- *   sin leer esa historia en `medidas.ts` y MEDICIONES.md.
+ * — The symbol hides BEHIND the word, like X: it is born ~1-2 pt
+ *   covered, travels WHOLE (never clipped) the measured 13/12 pt, and
+ *   the label's zIndex exists for that.
+ *   RUNTIME: the receipt for `slide` is in `measurements.ts`, with TWO
+ *   round trips on top of it: the clipping window and the feather were
+ *   tried and rolled back (the morning of 2026-09-01), and so was the
+ *   DEEP CRADLE (slide 4/7, a travel of 17) that same afternoon ("do it
+ *   like they do", with the recordings of the real account as the
+ *   receipt). Do not touch it again without reading that story in
+ *   `measurements.ts` and MEDICIONES.md.
  *
- * — El fade del símbolo tiene DOS curvas: el ícono blanco va con r^1.5
- *   ARRANCANDO en `ICONO.piso` y el chevron gris va lineal. Y el label
- *   interpola color con `gamma: 1` (sRGB crudo), no en espacio lineal.
- *   Emparejar las curvas vuelve el "aparece de golpe"; sacar el piso
- *   vuelve el fantasma pegado a la palabra.
- *   RUNTIME: curvas extraídas cuadro a cuadro del clip con el subrayado
- *   de reloj; la tabla está arriba de `desliz` en `medidas.ts`. El piso
- *   es la única desviación deliberada (SIN RECIBO, pedido perceptual):
- *   en el cuadro-spec (r=0.348) da 43/181/91 contra 55/180/93 de X, y a
- *   cambio en r<0.15 no queda ni el fantasma (luma ≤ 8).
+ * — The symbol's fade has TWO curves: the white icon goes with r^1.5
+ *   STARTING at `ICON.floor` and the grey chevron goes linear. And the
+ *   label interpolates color with `gamma: 1` (raw sRGB), not in linear
+ *   space. Matching the curves brings back the "it appears all at
+ *   once"; removing the floor brings back the ghost stuck to the word.
+ *   RUNTIME: curves extracted frame by frame off the clip with the
+ *   underline as the clock; the table is above `slide` in
+ *   `measurements.ts`. The floor is the only deliberate deviation (NO
+ *   RECEIPT, a perceptual request): on the spec frame (r=0.348) it
+ *   gives 43/181/91 against X's 55/180/93, and in exchange at r<0.15
+ *   not even the ghost is left (luma ≤ 8).
  *
- * — La oclusión es DE VERDAD: el label lleva su propio fondo del color
- *   de la paleta (brecha 4 pt compensada con margen negativo, y `medir`
- *   la descuenta del onLayout), y el símbolo emerge por un borde limpio
- *   pegado a la palabra. Dos cosas se rompen si se toca de a una: sin
- *   el fondo, el símbolo tapado se ve entre las letras (la mancha); sin
- *   la brecha, las dos tintas se rozan.
- *   RUNTIME: reposos intactos al décimo con el fondo puesto; el canal
- *   sólido de 4 pt está medido en r=0.5.
+ * — The occlusion is REAL: the label carries its own background in the
+ *   palette's color (a clearance of 4 pt compensated with a negative
+ *   margin, and `measure` subtracts it from the onLayout), and the
+ *   symbol emerges through a clean edge flush with the word. Two things
+ *   break if you touch them one at a time: without the background, the
+ *   covered symbol shows between the letters (the smudge); without the
+ *   clearance, the two inks graze each other.
+ *   RUNTIME: rest states intact to the tenth with the background in
+ *   place; the solid channel of 4 pt is measured at r=0.5.
  *
- * — TODA palabra inactiva se INCLINA `BARRA.apartar` = 4.7 pt
- *   alejándose del tab activo — labels, velos y símbolos, NUNCA las
- *   cajas ni el subrayado. Es lo que hace que "For you" se corra al
- *   perder el chevron y que la palabra que muere viaje ranura+lean
- *   (~26 pt, como X). Sacarla vuelve tres síntomas de una vez.
- *   RUNTIME: la tabla de las seis palabras en los seis reposos de X
- *   está arriba de `apartar` en `medidas.ts`; verificado en pantalla
- *   con parques (For you −2.4 en t=0.5, mitad exacta de −4.7).
+ * — EVERY inactive word LEANS `TAB_BAR.lean` = 4.7 pt away from the
+ *   active tab: labels, veils and symbols, NEVER the boxes or the
+ *   underline. It is what makes "For you" shift when it loses the
+ *   chevron and what makes the dying word travel slot+lean (~26 pt,
+ *   like X). Taking it out brings back three symptoms at once.
+ *   RUNTIME: the table of the six words in X's six rest states is above
+ *   `lean` in `measurements.ts`; verified on screen with parked states
+ *   (For you −2.4 at t=0.5, exactly half of −4.7).
  *
- * — El borde de oclusión NO es un filo: lleva un velo de `pluma` =
- *   2.5 pt de degradé. Su techo es una desigualdad, no un gusto:
- *   brecha + pluma + bearing ≤ 7.5 (el hueco de reposo del ícono de
- *   17 pt), o el velo tocaría al símbolo en reposo.
- *   RUNTIME: perfil del corte con velo: 82→68→56→45→33→21→10→0 en
- *   2.5 pt (sin velo era un escalón de una columna); reposo del caso
- *   justo: 255→245→48→0, sin rastro. Y OJO CON YOGA: los hijos
- *   absolutos se posicionan desde el border box — el padding del golpe
- *   se suma a mano o el velo cae 12 pt corrido.
+ * — The occlusion edge is NOT a hard edge: it carries a veil of
+ *   `feather` = 2.5 pt of gradient. Its ceiling is an inequality, not a
+ *   matter of taste: clearance + feather + bearing ≤ 7.5 (the rest gap
+ *   of the 17 pt icon), or the veil would touch the symbol at rest.
+ *   RUNTIME: profile of the cut with the veil: 82→68→56→45→33→21→10→0
+ *   over 2.5 pt (without the veil it was a one-column step); rest state
+ *   of the tightest case: 255→245→48→0, without a trace. And WATCH OUT
+ *   FOR YOGA: absolute children are positioned from the border box, so
+ *   the hit area's padding is added by hand or the veil lands 12 pt
+ *   off.
  *
- * — El símbolo de Stocks es un CHIP compuesto (contorno + cinco barras
- *   rotadas), no un SF Symbol. Los vértices del zigzag están medidos
- *   del píxel; el recibo entero arriba de `CHIP` en `medidas.ts`.
- *   RUNTIME: perfil fila por fila contra el cuadro 107 del clip — caja
- *   idéntica y montaña a ±2 px.
+ * — The Stocks symbol is a composed CHIP (outline + five rotated bars),
+ *   not an SF Symbol. The zigzag's vertices are measured off the pixel;
+ *   the whole receipt is above `CHIP` in `measurements.ts`.
+ *   RUNTIME: profile row by row against frame 107 of the clip. Identical
+ *   box and the mountain to ±2 px.
  *
- * — El contenido de la fila lleva el ancho del `+` de cola. Sin eso el
- *   ScrollView no llega al tope y el último tab queda 44 pt corto.
- *   RUNTIME: el subrayado de Design frenaba en 272.3 en vez de 223.3.
+ * — The row's content carries the `+`'s width as a tail. Without that
+ *   the ScrollView does not reach the limit and the last tab ends up
+ *   44 pt short.
+ *   RUNTIME: Design's underline stopped at 272.3 instead of 223.3.
  *
- * — La fila tiene DOS rampas, y son la misma idea en las dos puntas: la
- *   derecha entra cuando queda scroll por delante, la izquierda cuando
- *   hay contenido escondido atrás (`fila > 0`). Mismo ancho
- *   (`BORDE.rampa`) a propósito. No es un blur: en la referencia las
- *   letras conservan las astas nítidas mientras pierden luminancia.
- *   RUNTIME: la referencia apaga las letras en ~21 pt (6→153); la
- *   nuestra da 20→125 y tinta plena en 23. Apagada en reposo sin
- *   scroll: la F de For you arranca en 255 pleno.
+ * — The row has TWO ramps, and they are the same idea at both ends: the
+ *   right one comes in when there is scroll left ahead, the left one
+ *   when there is content hidden behind (`row > 0`). The same width
+ *   (`EDGE.ramp`) on purpose. It is not a blur: in the reference the
+ *   letters keep their stems sharp while they lose luminance.
+ *   RUNTIME: the reference dims the letters over ~21 pt (6→153); ours
+ *   gives 20→125 and full ink at 23. Off at rest with no scroll: the F
+ *   in For you starts at a full 255.
  *
- * — Los labels NO escalan con Dynamic Type (`allowFontScaling: false`).
- *   RUNTIME: en el mismo teléfono y el mismo momento, X medía 62.3 pt de
- *   ancho y 10.00 de cap mientras el sistema estaba en extra-small.
+ * — The labels do NOT scale with Dynamic Type (`allowFontScaling:
+ *   false`).
+ *   RUNTIME: on the same phone at the same moment, X measured 62.3 pt
+ *   of width and 10.00 of cap while the system was at extra-small.
  *
- * — La háptica es `impactAsync(Light)` en `alTocar` (onPress), NUNCA en
- *   onPressIn: ahí sonaba al empezar a arrastrar la fila, porque el
- *   dedo apoya sobre un tab ("saca el haptic", 2026-09-01). El scroll
- *   cancela el press, así que el arrastre queda mudo solo.
- *   SIN RECIBO la intensidad: el clip es video y no tiene pista
- *   háptica. Se ajustó a mano con el teléfono.
+ * — The haptic is `impactAsync(Light)` in `onTap` (onPress), NEVER in
+ *   onPressIn: there it fired when you started dragging the row,
+ *   because the finger rests on a tab ("take the haptic out",
+ *   2026-09-01). The scroll cancels the press, so the drag goes mute on
+ *   its own.
+ *   NO RECEIPT for the intensity: the clip is video and has no haptic
+ *   track. It was tuned by hand with the phone.
  *
- * — El modo CLARO sale de `useColorScheme` (la app de X sigue al
- *   sistema) y la paleta viaja por el contexto `Tema`. Las DOS paletas
- *   están medidas con el mismo método: la oscura en el clip del vault y
- *   la clara en la grabación del pliegue (2026-09-02). El activo claro
- *   es #000000 neutro, no el #0F1419 de la web; el divisor claro es
- *   #C9CBCB, no #EFF3F4. Recibo arriba de `CLARO` en `medidas.ts`.
+ * — LIGHT mode comes out of `useColorScheme` (the X app follows the
+ *   system) and the palette travels through the `Theme` context. BOTH
+ *   palettes are measured with the same method: the dark one in the
+ *   vault clip and the light one in the collapse recording
+ *   (2026-09-02). The light active is a neutral #000000, not the web's
+ *   #0F1419; the light divider is #C9CBCB, not #EFF3F4. Receipt above
+ *   `LIGHT` in `measurements.ts`.
  *
- * — EL BLOQUE DE ARRIBA SE PLIEGA con el scroll del contenido: barra de
- *   estado + cabecera + tabs + divisor se trasladan 1:1 con el delta
- *   del scroll (sin umbral, sin snap, sin animación propia) hasta que
- *   el divisor queda pegado al borde de la barra de estado. El FONDO
- *   del bloque es opaco y no se desvanece —cuando frena, es lo que tapa
- *   la barra de estado—; lo que se desvanece es lo de encima, con
- *   α = 1 − subida/(0.94·recorrido). Al scrollear hacia arriba vuelve
- *   por el mismo camino, desde donde quedó. NO hay tapa aparte.
- *   RUNTIME: grabación clara de X (2026-09-02): traslación = scroll al
- *   décimo; recorrido 151.6 = su borde de abajo (213.7) menos la barra
- *   de estado (62); la fila de 62 pt es blanco puro a mitad de pliegue
- *   (el fondo no se desvanece); L = 1.8·D. Dos vueltas dadas y anotadas
- *   en `pliegue.tsx`: el bloque entero desvanecido (asomaba el filete
- *   de la tapa) y el recorrido entero con los labels saliendo por
- *   arriba (rechazado en el teléfono: "volvé a lo de antes"). Sin
- *   recibo: al cambiar de tab el bloque no queda más plegado que el
- *   scroll de la página que llega.
+ * — THE BLOCK AT THE TOP COLLAPSES with the content's scroll: status
+ *   bar + header + tabs + divider translate 1:1 with the scroll delta
+ *   (no threshold, no snap, no animation of their own) until the
+ *   divider is flush against the edge of the status bar. The block's
+ *   BACKGROUND is opaque and does not fade, and when it stops it is
+ *   what covers the status bar; what fades is everything on top of it,
+ *   with α = 1 − rise/(0.94·travel). Scrolling up it comes back along
+ *   the same path, from wherever it stopped. There is NO separate
+ *   cover.
+ *   RUNTIME: light recording of X (2026-09-02): translation = scroll to
+ *   the tenth; travel 151.6 = its bottom edge (213.7) minus the status
+ *   bar (62); the row at 62 pt is pure white halfway through the
+ *   collapse (the background does not fade); L = 1.8·D. Two round trips
+ *   taken and written down in `collapse.tsx`: the whole block faded
+ *   (the cover's hairline showed through) and the whole travel with the
+ *   labels leaving through the top (rejected on the phone: "go back to
+ *   how it was"). No receipt: on changing tabs the block does not end
+ *   up more collapsed than the scroll of the arriving page.
  *
- * — `BORDE.respiro` vale 4 y tiene DOS lecturas que no coinciden: 3.6 pt
- *   en el clip del vault y 0.0 en la grabación nueva.
- *   SIN RECIBO ÚNICO: se dejó el valor viejo porque tiene el suyo, pero
- *   una de las dos mediciones está mal y no se sabe cuál.
+ * — `EDGE.slack` is 4 and it has TWO readings that do not agree: 3.6 pt
+ *   in the vault clip and 0.0 in the new recording.
+ *   NO SINGLE RECEIPT: the old value was kept because it has one of its
+ *   own, but one of the two measurements is wrong and nobody knows
+ *   which.
  */

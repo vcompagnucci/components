@@ -2,74 +2,76 @@ import { Suspense, lazy, type ComponentType, type ReactNode } from 'react'
 import css from './app.module.css'
 
 /* ═══════════════════════════════════════════════════════════════
-   LAS NOTAS DE UNA PIEZA — el texto largo del detalle.
+   THE NOTES OF A PIECE: the long text of the detail.
 
-   Es para lo que existe el detalle: "la lista muestra, el detalle
-   explica" (README). La descripción de PIECES es una línea y sigue
-   siéndolo —es la que se escribe al publicar, y la que se lee de
-   corrido bajo la pieza—; esto es lo otro: de dónde salió, cómo se
-   midió, qué peleó.
+   It is what the detail exists for: "the list shows, the detail
+   explains" (README). The description in PIECES is one line and stays
+   one line. That is the one written when the piece is published, and
+   the one you read straight through under the piece. This is the other
+   thing: where it came from, how it was measured, what it fought.
 
-   EL MECANISMO ES EL DE demos.tsx, a propósito: un `notes.tsx` en la
-   carpeta de cada pieza, src/components/pieces/<slug>/, glob perezoso,
-   cache por ref y Suspense sin fallback. La carpeta ES el mapa y no hay
-   registro que mantener — la misma decisión que hace que la carpeta
-   del vault sea el manifiesto. Una pieza sin notas no dibuja nada y no
-   rompe nada. Las notas de una pieza App viven en la misma carpeta que
-   tendría su demo si fuera Web: es lo único de ella que hay de este
-   lado del repo (su código está en `nativo/`).
+   THE MECHANISM IS THE ONE IN demos.tsx, on purpose: a `notes.tsx` in
+   each piece's folder, src/components/pieces/<slug>/, lazy glob, cache
+   by ref and Suspense with no fallback. The folder IS the map and there
+   is no registry to keep, the same decision that makes the vault's
+   folder the manifest. A piece without notes draws nothing and breaks
+   nothing. The notes of an App piece live in the same folder its demo
+   would have if it were Web: they are the only part of it on this side
+   of the repo (its code is in `native/`).
 
-   Y son .tsx y no datos: una nota puede querer un link. Lo que NO puede
-   es traerse tipografía propia — el estilo vive todo acá abajo, así que
-   un archivo de notas es prosa y nada más.
+   And they are .tsx and not data: a note may want a link. What it
+   CANNOT do is bring its own typography. The style all lives down here,
+   so a notes file is prose and nothing else.
 
-   LA FORMA DE UNA NOTA: tres secciones como máximo, en el tono de josh
-   (joshpuckett.me): "Anatomy" —para quien acaba de ver el video: qué
-   está mirando y con qué está hecho, sólo LA ANIMACIÓN que da nombre a
-   la pieza; lo que la rodea en la grabación no va ahí, y se escribe
-   desde lo que se ve hacia el cómo, no desde la implementación (pedido
-   del usuario, 2026-09-07)—, "Performance" —por dónde corre y qué se
-   midió— y, sólo cuando la pieza lo pide, "Use cases". Dos o tres
-   oraciones por párrafo, y ningún nombre de librería que el lector no
-   reconozca: "React Native", no "Reanimated" (mismo pedido).
-   Decidido con la primera pieza (2026-09-05). Y ES PROSA: se probó un
-   subtítulo por parte adentro de "Anatomy" —un h3 con el nombre y su
-   párrafo debajo, la forma de josh en /bloom— y el usuario lo rechazó
-   en la página ("no me gusta esta estructura", 2026-09-07). Las partes
-   se nombran al pasar, en el párrafo, con su término técnico (regla de
-   nombres del repo, AGENTS.md › Método de trabajo). */
-const MODULOS = import.meta.glob<{ default: ComponentType }>('./components/pieces/*/notes.tsx')
+   THE SHAPE OF A NOTE: three sections at most, in josh's tone
+   (joshpuckett.me). "Anatomy" is for whoever just watched the video:
+   what they are looking at and what it is made with, only THE ANIMATION
+   that gives the piece its name; what surrounds it in the recording
+   does not go there, and it is written from what you see towards the
+   how, not from the implementation (the user's request, 2026-09-07).
+   "Performance" is where it runs and what was measured. And, only when
+   the piece calls for it, "Use cases". Two or three sentences per
+   paragraph, and no library name the reader would not recognise:
+   "React Native", not "Reanimated" (same request). Decided with the
+   first piece (2026-09-05). And IT IS PROSE: a subhead per part inside
+   "Anatomy" was tried, an h3 with the name and its paragraph below,
+   josh's shape in /bloom, and the user rejected it on the page ("I
+   don't like this structure", 2026-09-07). The parts get named in
+   passing, inside the paragraph, with their technical term (the repo's
+   naming rule, AGENTS.md › Working method). */
+const MODULES = import.meta.glob<{ default: ComponentType }>('./components/pieces/*/notes.tsx')
 
 const cache = new Map<string, ComponentType>()
 
-function componenteDe(slug: string): ComponentType | null {
-  const clave = `./components/pieces/${slug}/notes.tsx`
-  const cargar = MODULOS[clave]
-  if (!cargar) return null
-  let c = cache.get(clave)
+function componentFor(slug: string): ComponentType | null {
+  const key = `./components/pieces/${slug}/notes.tsx`
+  const load = MODULES[key]
+  if (!load) return null
+  let c = cache.get(key)
   if (!c) {
-    c = lazy(cargar)
-    cache.set(clave, c)
+    c = lazy(load)
+    cache.set(key, c)
   }
   return c
 }
 
-/* UNA SECCIÓN DE LA NOTA, y su línea. El separador es EL MISMO que parte
-   la lista en Web y App —.groupHead, rótulo 14/600 + hairline hasta el
-   borde del riel, hueco de 8—, medido en su día del separador de benji
-   en /liveline y /drawesome. Se reusa entero en vez de escribir otro:
-   una sola línea en la página quiere decir una sola regla.
+/* ONE SECTION OF THE NOTE, and its line. The separator is THE SAME one
+   that splits the list into Web and App (.groupHead, a 14/600 label
+   plus a hairline out to the edge of the rail, a gap of 8), measured in
+   its day off benji's separator in /liveline and /drawesome. It is
+   reused whole instead of writing another one: a single line on the
+   page means a single rule.
 
-   Ojo con de quién es cada mitad: las LÍNEAS son de benji —josh no tiene
-   una sola, cero <hr> en /melt-effect (SOURCE, 2026-09-04)— y el TONO de
-   los rótulos es de josh, que titula corto y en sentence case ("The
-   filter", "Apply it", "1. What's a displacement map?"). La mezcla es
-   nuestra y por eso queda dicha. */
-export function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
+   Watch out for whose each half is: the LINES are benji's (josh does
+   not have a single one, zero <hr> in /melt-effect, SOURCE 2026-09-04)
+   and the TONE of the labels is josh's, who titles short and in
+   sentence case ("The filter", "Apply it", "1. What's a displacement
+   map?"). The mix is ours and that is why it gets said out loud. */
+export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className={css.notaSeccion}>
+    <section className={css.noteSection}>
       <div className={css.groupHead}>
-        <h2 className={css.groupLabel}>{titulo}</h2>
+        <h2 className={css.groupLabel}>{title}</h2>
         <span className={css.groupLine} aria-hidden />
       </div>
       {children}
@@ -77,17 +79,17 @@ export function Seccion({ titulo, children }: { titulo: string; children: ReactN
   )
 }
 
-export function Notas({ slug }: { slug: string }) {
-  const C = componenteDe(slug)
+export function Notes({ slug }: { slug: string }) {
+  const C = componentFor(slug)
   if (!C) return null
   return (
-    <div className={css.notas}>
+    <div className={css.notes}>
       <Suspense fallback={null}>
-        {/* oxlint-disable-next-line react/static-components -- `C` no se
-            crea en cada render: `componenteDe` cachea el `lazy()` en un Map
-            de nivel de módulo y devuelve la misma referencia por clave. El
-            bug que la regla busca —perder el estado en cada render— acá no
-            puede pasar. */}
+        {/* oxlint-disable-next-line react/static-components -- `C` is not
+            created on every render: `componentFor` caches the `lazy()` in a
+            module-level Map and returns the same reference per key. The bug
+            the rule is looking for, losing the state on every render, cannot
+            happen here. */}
         <C />
       </Suspense>
     </div>

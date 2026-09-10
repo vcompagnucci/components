@@ -1,231 +1,246 @@
-import { Seccion } from '../../../notes'
+import { Section } from '../../../notes'
 
-/* Las notas de Select summary. Todo lo de acá está en el registro: los
-   comentarios de `select-summary.tsx` —en esta carpeta— y las mediciones de
-   `.context/select-summary/`. Si una frase deja de ser cierta, se
-   corrige acá Y allá: el texto público no es un resumen libre, es la
-   misma evidencia contada para alguien que llega de afuera.
+/* The notes of Selection summary. Everything here is in the record:
+   the comments in `select-summary.tsx`, in this folder, and the
+   measurements in `.context/select-summary/`. If a sentence stops
+   being true, it gets fixed here AND there: the public text is not a
+   free summary, it is the same evidence told for someone arriving from
+   outside.
 
-   EL PROCEDIMIENTO ES EL DE AGENTS.md › Cómo se escriben la línea y las
-   notas, el que fijó Swipeable tabs. Lo que sigue son los recibos de
-   ESTA página, uno por decisión.
+   THE PROCEDURE IS THE ONE IN AGENTS.md › How the line and the notes
+   are written, the one Swipe between tabs settled. What follows are the
+   receipts of THIS page, one per decision.
 
-   SIN LÍNEA, como las otras tres. La tuvo un día —"The button shows who
-   you selected: a name for one person, a count for more"— y se borró el
-   2026-09-10: el título ya dice qué es, que es la primera regla de
-   AGENTS.md › Cómo se nombra.
+   NO LINE, like the other three. It had one for a day ("The button
+   shows who you selected: a name for one person, a count for more")
+   and it was deleted on 2026-09-10: the title already says what it is,
+   which is the first rule of AGENTS.md › How a piece is named.
 
-   EL TONO, medido servido el 2026-09-10, no de memoria. Tres páginas,
-   leídas con el navegador y contadas:
+   THE TONE, measured on the served pages on 2026-09-10, not from
+   memory. Three pages, read with the browser and counted:
 
-     joshpuckett.me/bloom      5 párrafos · mediana 12 palabras · 2
-                               oraciones · 7.9 palabras por oración
-     joshpuckett.me/pasito     7 párrafos · mediana 17 · 2 · 10.0
-     benji.org/liveline       32 párrafos · mediana 24 · 2 · 9.7
+     joshpuckett.me/bloom      5 paragraphs · median 12 words · 2
+                               sentences · 7.9 words per sentence
+     joshpuckett.me/pasito     7 paragraphs · median 17 · 2 · 10.0
+     benji.org/liveline       32 paragraphs · median 24 · 2 · 9.7
 
-   O sea: párrafos de dos oraciones, oraciones de ocho a diez palabras.
-   Esta página se escribió contra esos números y no contra una
-   impresión. De benji sale además la prosa que va de lo que se siente
-   al mecanismo; de josh, abrir el párrafo por el sujeto del hecho y
-   nunca por un anuncio de lo que sigue.
+   So: paragraphs of two sentences, sentences of eight to ten words.
+   This page was written against those numbers and not against an
+   impression. From benji comes the prose that goes from what you feel
+   to the mechanism; from josh, opening the paragraph on the subject of
+   the fact and never on an announcement of what follows.
 
-   PERSONA. Cero "I" y cero "we": josh no usa ninguno en las dos páginas
-   medidas. "You" es quien opera el control.
+   PERSON. Zero "I" and zero "we": josh uses neither on the two pages
+   measured. "You" is whoever works the control.
 
-   UN SOLO NOMBRE POR COSA, en toda la página y no por sección, que es la
-   falla que `better-writing` más encuentra acá. Las decisiones: "the
-   button" para el disparador (nunca "trigger" ni "pill"), "the panel"
-   para lo que se abre (nunca "menu" ni "dropdown", aunque su rol ARIA
-   sea menu), "the cluster" para el racimo, "a row" para cada fila, "the
-   label" SÓLO para el texto del botón, y "select" como único verbo.
+   ONE NAME PER THING, across the whole page and not per section, which
+   is the failure `better-writing` finds most here. The decisions: "the
+   button" for the trigger (never "trigger" and never "pill"), "the
+   panel" for what opens (never "menu" and never "dropdown", even
+   though its ARIA role is menu), "the cluster" for the cluster of
+   photos, "a row" for each row, "the label" ONLY for the button's
+   text, and "select" as the only verb.
 
-   Y "photo", nunca "face". El texto decía "faces" y era falso en una de
-   las cuatro: el avatar de Elon Musk es un lanzamiento de Starship.
+   And "photo", never "face". The text said "faces" and it was false in
+   one of the four: Elon Musk's avatar is a Starship launch.
 
-   ANATOMY HABLA SÓLO DEL RESUMEN, que es lo que da nombre a la pieza: el
-   racimo y el rótulo del botón. Cómo se elige —las filas, las casillas,
-   el hover— es el mecanismo alrededor y no entra, que es lo mismo que se
-   decidió con los tabs y con el botón.
+   ANATOMY TALKS ABOUT THE SUMMARY ONLY, which is what the piece is
+   named after: the cluster and the button's label. How you select (the
+   rows, the checkboxes, the hover) is the mechanism around it and does
+   not go in, which is the same thing that was decided with the tabs
+   and with the button.
 
-   Y NO CIERRA CON LA REFERENCIA, al revés que las otras dos (pedido del
-   usuario, 2026-09-10: "saca lo de la referencia"). Es una diferencia
-   con AGENTS.md › Cómo se escriben la línea y las notas, que la pide en
-   el cierre junto con cómo se midió, y hay que decir qué cuesta: la
-   atribución sale de la página. Sigue en dos lados —la ficha del vault
-   (x.com/abjt14/status/2097316524436627688) y el encabezado de
-   `select-summary.tsx`—, así que no se pierde, pero deja de leerse.
+   AND IT DOES NOT CLOSE WITH THE REFERENCE, unlike the other two (the
+   user's request, 2026-09-10: "take out the reference part"). It is a
+   difference with AGENTS.md › How the line and the notes are written,
+   which asks for it in the closing together with how it was measured,
+   and what it costs has to be said: the attribution leaves the page.
+   It is still in two places, the vault's details
+   (x.com/abjt14/status/2097316524436627688) and the header of
+   `select-summary.tsx`, so it is not lost, but it stops being read.
 
-   LA VOZ. El texto tiene por primera vez una opinión y una admisión:
-   "deciding what not to move took longer than building what does" y "a
-   control you use all day should sit still". Es la mitad de
-   `emil-unslop-writing` que hasta acá no se aplicaba —«voiceless but
-   correct is exactly what a model on its best behavior produces»— y que
-   entra por pedido explícito ("mucho más humana"). Sigue sin "I" ni
-   "we", que es la decisión que fijó Hold to commit.
+   THE VOICE. For the first time the text has an opinion and an
+   admission: "deciding what not to move took longer than building what
+   does" and "a control you use all day should sit still". It is the
+   half of `emil-unslop-writing` that had not been applied until here
+   ("voiceless but correct is exactly what a model on its best behavior
+   produces"), and it comes in on an explicit request ("much more
+   human"). It still has no "I" and no "we", which is the decision Hold
+   to buy settled.
 
-   Y LA PRIMERA DE LAS DOS ES CIERTA, que es lo que la hace decible: el
-   ancho animado (370 ms ajustados sobre 18 muestras), el fundido del
-   rótulo token por token, el scale del press afinado en píxeles y el
-   guion de la lista se construyeron los cuatro, se midieron, y los
-   cuatro se sacaron después.
+   AND THE FIRST OF THE TWO IS TRUE, which is what makes it sayable:
+   the animated width (370 ms fitted over 18 samples), the label's fade
+   token by token, the press scale tuned in pixels and the list's
+   script were all four built, all four measured, and all four taken
+   out afterwards.
 
-   LO QUE SE MENCIONA DE LOS SKILLS, Y LO QUE NO. Entra sólo lo que un
-   lector puede VER, con su recibo. `animate-expo` no aplica: es de
-   React Native y esto corre en el navegador.
-     · `better-ui` y `emil-surfaces` › image outlines: cada foto lleva
-       una línea de 1 px al 10 %, negro puro en claro y blanco puro en
-       oscuro, nunca un neutro teñido (`--pieza-contorno`, y el círculo
-       de `Chip`). Es la regla textual de los dos, y el valor no se
-       elige: se mira sobre la foto de fondo blanco, que es la que lo
-       necesita.
-     · `emil-surfaces` › depth without borders: el disparador y el panel
-       no llevan `border` sino un anillo `inset 0 0 0 1px`. Además de
-       componer sobre lo que tenga debajo, saca de la cuenta del ancho
-       el único término que estaba en píxeles.
-     · `better-ui` › shadows for elevation, borders for structure: cero
-       sombras. Las dos líneas que hay separan cosas —el panel de la
-       card, la foto de la superficie— y ninguna finge profundidad.
-     · `better-ui` › interruptible animations: todo es `transition` de
-       CSS y no hay un solo keyframe, así que tocar dos filas seguidas no
-       reinicia nada.
-     · `better-ui` › skip animation on page load: el racimo no anima en
-       el primer pintado (`Racimo`, el estado `montado` con su rAF).
-     · `better-ui` › transition only what changes: las cinco
-       transiciones nombran su propiedad; medido, ninguna es `all`.
-     · `interface-craft` › la lente de crítica, en "do outlines add
-       structure or noise?" y en color: después de sacar el violeta, los
-       únicos colores de la pieza son las cuatro fotos.
+   WHAT GETS MENTIONED FROM THE SKILLS, AND WHAT DOES NOT. Only what a
+   reader can SEE goes in, with its receipt. `animate-expo` does not
+   apply: it is React Native's and this runs in the browser.
+     · `better-ui` and `emil-surfaces` › image outlines: every photo
+       carries a 1 px line at 10 %, pure black in light and pure white
+       in dark, never a tinted neutral (`--piece-outline`, and the
+       circle in `Chip`). It is the literal rule in both, and the value
+       is not chosen: it is looked at over the photo with the white
+       background, which is the one that needs it.
+     · `emil-surfaces` › depth without borders: the trigger and the
+       panel carry no `border` but a ring, `inset 0 0 0 1px`. Besides
+       compositing over whatever is underneath, it takes the only term
+       that was in pixels out of the width's sum.
+     · `better-ui` › shadows for elevation, borders for structure: zero
+       shadows. The two lines there are separate things (the panel from
+       the card, the photo from the surface) and neither one fakes
+       depth.
+     · `better-ui` › interruptible animations: everything is a CSS
+       `transition` and there is not one keyframe, so touching two rows
+       one after the other restarts nothing.
+     · `better-ui` › skip animation on page load: the cluster does not
+       animate on the first paint (`Cluster`, the `mounted` state with
+       its rAF).
+     · `better-ui` › transition only what changes: the five transitions
+       name their property; measured, none of them is `all`.
+     · `interface-craft` › the critique lens, in "do outlines add
+       structure or noise?" and in color: after taking the violet out,
+       the only colors in the piece are the four photos.
 
-   LO QUE LA PIEZA ROMPE A PROPÓSITO, y por eso NO está en el texto:
-     · `better-ui` pide `scale(0.96)` al apretar. Acá el botón no se
-       mueve —decisión del 2026-09-10, con el respaldo de DESIGN.md › El
-       press— y el acuse es relleno.
-     · El alfa del contorno es 5.1 % y el skill pide 10 %. Manda el
-       `--hairline` del sistema, que es el que usan las otras líneas de
-       la pieza.
-     · Los chips viajan 370 ms, arriba de los 150 que el skill reserva
-       para lo de alta frecuencia. Es el sumario, que es la pieza.
+   WHAT THE PIECE BREAKS ON PURPOSE, and that is why it is NOT in the
+   text:
+     · `better-ui` asks for `scale(0.96)` on press. Here the button
+       does not move, a decision of 2026-09-10 backed by DESIGN.md ›
+       The press, and the feedback is fill.
+     · The outline's alpha is 5.1 % and the skill asks for 10 %. The
+       system's `--hairline` wins, which is the one the other lines of
+       the piece use.
+     · The chips travel for 370 ms, above the 150 the skill reserves
+       for high-frequency things. It is the summary, which is the
+       piece.
 
-   USE CASES SIN CITAR A NADIE. Los conceptos salen de la guía de
-   interfaz de Apple, leída el 2026-09-10 por su API de documentación
-   (developer.apple.com/tutorials/data/design/human-interface-guidelines/
-   <slug>.json; la página HTML se arma con JavaScript y devuelve sólo el
-   título). Entran como explicación y dichos en llano como propios, nunca
-   como autoridad y sin nombrarla, que es la regla de AGENTS.md:
-     · «After people choose an item from a pop-up button's menu, the menu
-       closes, and the button can update its content to indicate the
-       current selection» y «Use a pop-up button to present a flat list
-       of mutually exclusive options […] Use a [pull-down button] instead
-       if you need to […] Let people select multiple items»
-       (pop-up-buttons.json) → el primer párrafo.
-     · «If you want to avoid listing a separate menu item for each state,
-       it can be efficient to create a single, toggled menu item that
-       communicates the current state and lets people change it» y
-       «people might not know whether the changeable labels HDR On and
-       HDR Off describe actions or states» (menus.json) → el segundo.
+   USE CASES WITHOUT CITING ANYONE. The concepts come from Apple's
+   interface guidelines, read on 2026-09-10 through their documentation
+   API (developer.apple.com/tutorials/data/design/human-interface-
+   guidelines/<slug>.json; the HTML page is assembled with JavaScript
+   and returns the title only). They come in as explanation and are
+   said plainly as our own, never as authority and without naming them,
+   which is the rule in AGENTS.md:
+     · "After people choose an item from a pop-up button's menu, the
+       menu closes, and the button can update its content to indicate
+       the current selection" and "Use a pop-up button to present a
+       flat list of mutually exclusive options [...] Use a [pull-down
+       button] instead if you need to [...] Let people select multiple
+       items" (pop-up-buttons.json) → the first paragraph.
+     · "If you want to avoid listing a separate menu item for each
+       state, it can be efficient to create a single, toggled menu item
+       that communicates the current state and lets people change it"
+       and "people might not know whether the changeable labels HDR On
+       and HDR Off describe actions or states" (menus.json) → the
+       second.
 
-   LOS NÚMEROS, verificados en la página el 2026-09-10: el botón mide un
-   solo ancho en los siete estados y ninguno recorta; el layout no se
-   mueve en ningún estado, ni al abrir, ni al cerrar; 421 cuadros en 7 s
-   de la card de la home dan 0.00 px; el chip que entra crece en 90 ms;
-   la casilla cruza en 150; el paso del guión es 1500 ms.
+   THE NUMBERS, checked on the page on 2026-09-10: the button measures
+   a single width across the seven states and none of them clips; the
+   layout does not move in any state, not on opening, not on closing;
+   421 frames over 7 s of the home card give 0.00 px; the chip coming
+   in grows in 90 ms; the checkbox crosses in 150; the script's step is
+   1500 ms.
 
-   SIN RAYA en el texto público, ni em dash ni en dash: donde salía una,
-   son dos oraciones o son dos puntos. Los guiones de palabra compuesta
-   se quedan. La regla es del texto público; en estos comentarios en
-   castellano la raya es puntuación normal.
+   NO DASH in the public text, neither em dash nor en dash: where one
+   showed up, there are two sentences or there is a colon. Hyphens
+   inside a compound word stay. The rule is for the public text; in
+   these comments, written in Spanish, the dash is ordinary
+   punctuation.
 
-   MUCHO MÁS CORTA (2026-09-10, "hacela muchísima más concisa, máximo 2
-   párrafos y 4 líneas"). De 293 palabras a 150, y las tres secciones
-   quedaron iguales de largas: dos párrafos y cuatro líneas renderizadas
-   cada una, contadas en la página y no a ojo. Lo que se fue son los
-   hechos que el lector ve solo —el racimo de una, de dos, de tres y de
-   cuatro; el contorno de las fotos; el panel sin sombra— y lo que quedó
-   es lo que hay que decirle.
+   MUCH SHORTER (2026-09-10, "make it way more concise, 2 paragraphs
+   and 4 lines at most"). From 293 words to 150, and the three sections
+   came out the same length: two paragraphs and four rendered lines
+   each, counted on the page and not by eye. What went are the facts
+   the reader sees on their own (the cluster of one, of two, of three
+   and of four; the outline of the photos; the panel with no shadow),
+   and what stayed is what has to be told to them.
 
-   LO QUE EL TEXTO DICE SOBRE NO ANIMAR sale del curso de animations.dev
-   (`animate`) y de `emil-animations`, y son sus dos pruebas, dichas en
-   llano y como propias:
+   WHAT THE TEXT SAYS ABOUT NOT ANIMATING comes from the animations.dev
+   course (`animate`) and from `emil-animations`, and they are its two
+   tests, said plainly and as our own:
 
-   · EL PROPÓSITO. «Every animation needs one of: explanation, feedback,
-     spatial consistency, state indication, preventing a jarring change,
-     or delight. "It looks cool" on a frequently-seen element is not a
-     purpose», y «you can answer "why does this animate?" in one
-     sentence». De ahí sale "it is the only thing that answers a
-     question": el racimo contesta quién está adentro del resumen, y las
-     otras tres candidatas no contestaban nada.
-   · LA FRECUENCIA. Su tabla es explícita: 100+ veces por día, «no
-     animation, ever»; decenas de veces por día, «remove or drastically
-     reduce». Un filtro se toca todo el día, y de ahí sale "a control you
-     use all day should sit still".
+   · THE PURPOSE. "Every animation needs one of: explanation, feedback,
+     spatial consistency, state indication, preventing a jarring
+     change, or delight. "It looks cool" on a frequently-seen element
+     is not a purpose", and "you can answer "why does this animate?" in
+     one sentence". That is where "it is the only thing that answers a
+     question" comes from: the cluster answers who is inside the
+     summary, and the other three candidates answered nothing.
+   · THE FREQUENCY. Its table is explicit: 100+ times a day, "no
+     animation, ever"; dozens of times a day, "remove or drastically
+     reduce". A filter gets touched all day, and that is where "a
+     control you use all day should sit still" comes from.
 
-   Y la frase que gobierna las dos: «If everything animates, nothing
-   stands out. Motion is a spice, not the meal». Está el curso entero
-   atrás de que la pieza tenga UNA animación y no cuatro.
+   And the sentence that governs both: "If everything animates, nothing
+   stands out. Motion is a spice, not the meal". The whole course is
+   behind the piece having ONE animation and not four.
 
-   MÁS TÉCNICO, Y COMO LO CUENTA ÉL (pedido del usuario, 2026-09-10). Su
-   forma es nombrar la propiedad y el número en la misma frase que la
-   razón, no hablar de sensaciones: «only animate transform and opacity»,
-   «start entrances from scale(0.9–0.95)», «press feedback is felt, not
-   seen». Así que el texto dice el TIPO de ease y los milisegundos —370 ms
-   sobre un strong ease-out que arranca rápido y se asienta lento—, dice
-   el mecanismo —transición y no keyframe, y por eso dos toques seguidos
-   retoman en vez de reiniciar— y dice qué hace el press en vez de
-   escalar.
+   MORE TECHNICAL, AND THE WAY HE TELLS IT (the user's request,
+   2026-09-10). His shape is to name the property and the number in the
+   same sentence as the reason, not to talk about feelings: "only
+   animate transform and opacity", "start entrances from
+   scale(0.9-0.95)", "press feedback is felt, not seen". So the text
+   says the KIND of ease and the milliseconds (370 ms on a strong
+   ease-out that starts fast and settles slowly), says the mechanism (a
+   transition and not a keyframe, and that is why two taps in a row
+   retarget instead of restarting) and says what the press does instead
+   of scaling.
 
-   SIN LA CURVA LITERAL (pedido del usuario, 2026-09-10: "saca el cubic
-   bezier literal, mencioná qué tipo de ease es"). Cuatro números en el
-   medio de una oración son un dato que el lector no puede evaluar, y
-   nombrar el tipo dice además qué se siente, que es la forma del curso:
-   «fast start, gentle settle, feels responsive». Los cuatro números
-   siguen en la pieza, arriba del valor, que es donde alguien los va a
-   necesitar.
+   WITHOUT THE LITERAL CURVE (the user's request, 2026-09-10: "take out
+   the literal cubic bezier, mention what kind of ease it is"). Four
+   numbers in the middle of a sentence are a datum the reader cannot
+   judge, and naming the kind also says what it feels like, which is
+   the course's shape: "fast start, gentle settle, feels responsive".
+   The four numbers are still in the piece, above the value, which is
+   where somebody is going to need them.
 
-   LA CURVA ES DE LAS SUYAS, y por casualidad: el mejor ajuste de 14
-   curvas × 39 duraciones sobre 18 muestras de la referencia dio
-   cubic-bezier(.19, 1, .22, 1), que es exactamente el --ease-out-expo de
-   su catálogo, «strong ease-out». Salió de medir un video, no de copiar
-   su lista.
+   THE CURVE IS ONE OF HIS, and by accident: the best fit of 14 curves
+   × 39 durations over 18 samples of the reference gave
+   cubic-bezier(.19, 1, .22, 1), which is exactly the --ease-out-expo
+   of his catalogue, "strong ease-out". It came out of measuring a
+   video, not out of copying his list.
 
-   LO QUE NO ENTRA AL TEXTO AUNQUE SEA TÉCNICO: que el chip que entra
-   nace en scale 0, que es lo que él prohíbe. La excepción tiene número
-   —a 11.8 px, arrancar en 0.95 son 0.6 px de recorrido— pero explicarla
-   pide una tercera oración y la sección tiene cuatro líneas. Queda acá,
-   donde ya estaba.
+   WHAT DOES NOT GO INTO THE TEXT EVEN THOUGH IT IS TECHNICAL: that the
+   chip coming in is born at scale 0, which is what he forbids. The
+   exception has a number (at 11.8 px, starting at 0.95 is 0.6 px of
+   travel) but explaining it asks for a third sentence and the section
+   has four lines. It stays here, where it already was.
 
-   Lo que la pieza NO anima está respaldado por ese mismo skill:
-     · el acuse del apretar, que no escala: «Not every button needs it;
-       skip it on high-frequency controls».
-     · el primer pintado, que no anima: «Don't animate initial page load
-       state».
-     · el guion de la lista, que se fue del todo (2026-09-10): una pieza
-       Web que reproduce una secuencia se lee como un video, y lo que
-       tiene que hacer es contestarle al puntero.
-   Lo que la pieza rompe de ese skill queda acá y no en el texto: el chip
-   que entra nace en scale 0 —«Never enter from scale(0)»— porque a 11.8
-   px arrancar en 0.95 son 0.6 px de recorrido, y el racimo viaja 370 ms,
-   arriba de los 300 que pide, porque es la curva medida de la
-   referencia.
+   What the piece does NOT animate is backed by that same skill:
+     · the press feedback, which does not scale: "Not every button
+       needs it; skip it on high-frequency controls".
+     · the first paint, which does not animate: "Don't animate initial
+       page load state".
+     · the list's script, which went away entirely (2026-09-10): a Web
+       piece that plays a sequence reads like a video, and what it has
+       to do is answer the pointer.
+   What the piece breaks of that skill stays here and not in the text:
+   the chip coming in is born at scale 0 ("Never enter from scale(0)")
+   because at 11.8 px starting at 0.95 is 0.6 px of travel, and the
+   cluster travels for 370 ms, above the 300 it asks for, because it is
+   the measured curve of the reference.
 
-   LA PASADA DE `emil-unslop-writing`, medida sobre la página servida:
-   cero palabras de las que el skill lista, cero rayas, cero comillas
-   curvas y ninguna pasiva sin actor. Lo que sí encontró fueron DOS
-   PUNTOS: cuatro en 26 oraciones, tres de ellos uniendo una frase que se
-   sostenía sola. Quedó uno, el de la línea de descripción, que sí abre
-   una enumeración. Después del recorte quedan 13 oraciones, media 11.5
-   palabras y desvío 3.9. También se fueron un "lives in" que era metáfora, un
-   "carries" que era "has", un "without being opened" que escondía al
-   actor y un "land in the same place" que no decía nada.
+   THE `emil-unslop-writing` PASS, measured on the served page: zero
+   words from the ones the skill lists, zero dashes, zero curly quotes
+   and no passive without an actor. What it did find were COLONS: four
+   in 26 sentences, three of them joining a phrase that stood on its
+   own. One was left, the one in the description line, which does open
+   an enumeration. After the cut there are 13 sentences left, mean 11.5
+   words and deviation 3.9. A "lives in" that was a metaphor also went,
+   and a "carries" that was "has", a "without being opened" that hid
+   the actor and a "land in the same place" that said nothing.
 
-   Y LO QUE EL SKILL PIDE Y ESTA PÁGINA NO HACE: tener una reacción y
-   escribir en primera persona. No entra porque el tono está medido y
-   josh no usa ninguna de las dos en las dos páginas contadas. La
-   variación de ritmo, que es la otra mitad de ese pedido, sí está:
-   oraciones de 3 a 20 palabras, media 11.5 y desvío 4.5. */
-export default function Notas() {
+   AND WHAT THE SKILL ASKS FOR AND THIS PAGE DOES NOT DO: have a
+   reaction and write in the first person. It does not go in because
+   the tone is measured and josh uses neither of the two on the two
+   pages counted. The variation of rhythm, which is the other half of
+   that request, is there: sentences from 3 to 20 words, mean 11.5 and
+   deviation 4.5. */
+export default function Notes() {
   return (
     <>
-      <Seccion titulo="Anatomy">
+      <Section title="Anatomy">
         <p>
           Select someone and the cluster rearranges. Each photo scales from its top left corner over
           370ms, on a strong ease-out that starts fast and settles slowly.
@@ -234,9 +249,9 @@ export default function Notas() {
           It is the only animation here, because it is the only one that answers a question. The
           label swaps in a frame, the width holds, and the press paints instead of scaling.
         </p>
-      </Seccion>
+      </Section>
 
-      <Seccion titulo="Performance">
+      <Section title="Performance">
         <p>
           Transform and opacity only, plus the color of a row. Each one is a CSS transition and not a
           keyframe, so two fast selections retarget instead of restarting.
@@ -244,9 +259,9 @@ export default function Notas() {
         <p>
           In every state, nothing drifts by a pixel. A control you use all day should sit still.
         </p>
-      </Seccion>
+      </Section>
 
-      <Seccion titulo="Use cases">
+      <Section title="Use cases">
         <p>
           A summary in the button fits a filter that holds several things at once. It answers what is
           on before you open it.
@@ -255,7 +270,7 @@ export default function Notas() {
           The last row is a checkbox and not a command, because it reports a state. Selecting nobody
           and selecting everybody are the same state, and neither one filters.
         </p>
-      </Seccion>
+      </Section>
     </>
   )
 }

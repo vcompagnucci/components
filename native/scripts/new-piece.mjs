@@ -1,31 +1,32 @@
-/* NUEVA PIEZA — el equivalente nativo de "New sketch" del playground.
+/* NEW PIECE — the native equivalent of the playground's "New sketch".
  *
- *   pnpm nueva "Swipe to pay"
+ *   pnpm new "Swipe to pay"
  *
- * Crea src/components/pieces/<slug>/ con dos archivos y nada más:
- * `<slug>-screen.tsx`, la pantalla, e `index.tsx`, que la exporta por
- * defecto. Es la forma de components/animations/<slug>/ en
- * react-native-motion. El registro (`src/components/pieces/registry.ts`)
- * la levanta solo porque se deriva de las carpetas, así que no hay
- * ninguna lista ni ninguna ruta que tocar: la ruta es una para todas
- * (`src/app/[slug].tsx`).
+ * Creates src/components/pieces/<slug>/ with two files and nothing
+ * else: `<slug>-screen.tsx`, the screen, and `index.tsx`, which exports
+ * it by default. It is the shape of components/animations/<slug>/ in
+ * react-native-motion. The registry
+ * (`src/components/pieces/registry.ts`) picks it up on its own because
+ * it is derived from the folders, so there is no list and no route to
+ * touch: the route is one for all of them (`src/app/[slug].tsx`).
  *
- * EL SLUG ES LA MISMA CUENTA QUE EL REPO WEB —minúsculas, todo lo que
- * no es alfanumérico a guión— y eso importa de verdad: la carpeta acá,
- * la URL de la pieza publicada y el nombre del archivo de la grabación
- * son EL MISMO string. Si divergieran, la pieza en la exhibition no
- * apuntaría a su propio taller. Se asigna acá UNA vez: si el título
- * cambia después en la exhibition, la carpeta no se renombra (ver
- * `slug` en `src/pieces.ts` del repo web).
+ * THE SLUG IS THE SAME ARITHMETIC AS THE WEB REPO (lowercase,
+ * everything that is not alphanumeric turned into a hyphen) and that
+ * matters for real: the folder here, the URL of the published piece and
+ * the name of the recording's file are THE SAME string. If they
+ * diverged, the piece in the exhibition would not point at its own
+ * workshop. It is assigned here ONCE: if the title changes later in the
+ * exhibition, the folder is not renamed (see `slug` in `src/pieces.ts`
+ * of the web repo).
  *
- * No pide confirmación y no pisa nada: si la carpeta existe, avisa y
- * corta.
+ * It asks for no confirmation and overwrites nothing: if the folder
+ * exists, it says so and stops.
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const PIEZAS = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
+const PIECES_DIR = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
 
 const slug = (s) =>
   s
@@ -35,69 +36,70 @@ const slug = (s) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
-const aIdentificador = (s) =>
+const toIdentifier = (s) =>
   s
     .split('-')
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join('')
 
-const crudo = process.argv.slice(2).join(' ').trim()
-if (!crudo) {
-  console.error('Falta el nombre.  pnpm nueva "Swipe to pay"')
+const raw = process.argv.slice(2).join(' ').trim()
+if (!raw) {
+  console.error('The name is missing.  pnpm new "Swipe to pay"')
   process.exit(1)
 }
 
-const s = slug(crudo)
+const s = slug(raw)
 if (!s) {
-  console.error(`Con "${crudo}" no se puede armar un slug.`)
+  console.error(`"${raw}" cannot be turned into a slug.`)
   process.exit(1)
 }
 
-const carpeta = path.join(PIEZAS, s)
-if (fs.existsSync(carpeta)) {
-  console.error(`Ya existe src/components/pieces/${s}/ — elegí otro nombre o editá esa.`)
+const folder = path.join(PIECES_DIR, s)
+if (fs.existsSync(folder)) {
+  console.error(`src/components/pieces/${s}/ already exists. Pick another name, or edit that one.`)
   process.exit(1)
 }
 
-const Id = aIdentificador(s)
+const Id = toIdentifier(s)
 
-/* LA PLANTILLA ES CASI NADA, igual que la del boceto web: lo que se
-   abre tiene que ser una hoja en blanco con el mínimo para que corra,
-   no un ejemplo que después hay que borrar.
-   `flex: 1` porque la pieza ocupa la pantalla entera — no hay header,
-   se va a grabar así. */
-const pantalla = `import { StyleSheet, View } from 'react-native'
+/* THE TEMPLATE IS ALMOST NOTHING, the same as the one for a web sketch:
+   what opens has to be a blank sheet with the minimum for it to run,
+   not an example you then have to delete.
+   `flex: 1` because the piece takes the whole screen. There is no
+   header, it is going to be recorded like that. */
+const screen = `import { StyleSheet, View } from 'react-native'
 
-/* ${Id} — una pieza del taller.
+/* ${Id} — a piece of the workshop.
  *
- * Ocupa la pantalla entera y sin header, porque así se graba. Para
- * volver al índice, swipe desde el borde izquierdo.
+ * It takes the whole screen and has no header, because that is how it
+ * gets recorded. To go back to the index, swipe from the left edge.
  *
- * La carpeta tiene la forma de components/animations/<slug>/ de
- * react-native-motion: \`index.tsx\` exporta esta pantalla por defecto
- * y el registro (\`../registry.ts\`) la levanta solo. El mecanismo va en
- * \`${s}.tsx\` al lado cuando lo haya, y lo demás —los valores con su
- * recibo, el tema, los datos— en archivos por responsabilidad.
+ * The folder has the shape of components/animations/<slug>/ in
+ * react-native-motion: \`index.tsx\` exports this screen by default and
+ * the registry (\`../registry.ts\`) picks it up on its own. The
+ * mechanism goes in \`${s}.tsx\` next to it when there is one, and
+ * the rest (the values with their receipts, the theme, the data) in
+ * files by responsibility.
  *
- * A mano: reanimated, gesture-handler, skia y expo-haptics ya están
- * instalados. Cuando esté lista:
+ * On hand: reanimated, gesture-handler, skia and expo-haptics are
+ * already installed. When it is ready:
  *
- *   pnpm grabar ${s}
+ *   pnpm record ${s}
  */
 export function ${Id}Screen() {
-  return <View style={css.pieza} />
+  return <View style={css.piece} />
 }
 
 const css = StyleSheet.create({
-  pieza: { flex: 1, backgroundColor: '#fff' },
+  piece: { flex: 1, backgroundColor: '#fff' },
 })
 `
 
-const indice = `export { ${Id}Screen as default } from './${s}-screen'\n`
+const index = `export { ${Id}Screen as default } from './${s}-screen'\n`
 
-fs.mkdirSync(carpeta, { recursive: true })
-fs.writeFileSync(path.join(carpeta, `${s}-screen.tsx`), pantalla)
-fs.writeFileSync(path.join(carpeta, 'index.tsx'), indice)
+fs.mkdirSync(folder, { recursive: true })
+fs.writeFileSync(path.join(folder, `${s}-screen.tsx`), screen)
+fs.writeFileSync(path.join(folder, 'index.tsx'), index)
 
 console.log(`src/components/pieces/${s}/${s}-screen.tsx`)
-console.log(`Abrila en el simulador: la ruta es /${s}`)
+console.log(`Open it in the simulator: the route is /${s}`)

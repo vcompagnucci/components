@@ -1,139 +1,143 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
-import { Detail, Item, Masthead, baseDeTexto } from './parts'
+import { Detail, Item, Masthead, textBaseline } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { NotFound } from './not-found'
 
 const PLATFORMS = ['Web', 'App'] as const
 const by = (pl: Platform) => PIECES.filter((p) => p.platform === pl)
 
-/* ═══════════ LAS RUTAS PRIVADAS ═══════════
-   El vault y el playground. NO SE PUBLICAN: existen sólo mientras corre
-   el servidor de desarrollo, y no porque el host las bloquee sino
-   porque el código no llega al build.
+/* ═══════════ THE PRIVATE ROUTES ═══════════
+   The vault and the playground. THEY ARE NOT PUBLISHED: they exist only
+   while the development server runs, and not because the host blocks
+   them but because the code never reaches the build.
 
-   Son DOS PLIEGUES, y hacen falta los dos:
+   They are TWO FOLDS, and both are needed:
 
-     1. la lista        import.meta.env.DEV ? [...] : []
-     2. el componente   import.meta.env.DEV ? lazy(() => import(…)) : null
+     1. the list        import.meta.env.DEV ? [...] : []
+     2. the component   import.meta.env.DEV ? lazy(() => import(…)) : null
 
-   Vite reemplaza import.meta.env.DEV por `false` al construir, los dos
-   ternarios se pliegan a su rama vacía, y con eso desaparecen tanto las
-   cadenas "/vault" y "/playground" como el import dinámico entero —
-   Rollup no genera el chunk de algo que nadie alcanza. Sin el pliegue 1
-   las rutas quedarían escritas en el bundle; sin el 2 quedaría el
-   código. Verificado contando ocurrencias en dist/.
+   Vite replaces import.meta.env.DEV with `false` when it builds, both
+   ternaries fold to their empty branch, and with that the strings
+   "/vault" and "/playground" disappear along with the whole dynamic
+   import. Rollup does not generate the chunk of something nobody
+   reaches. Without fold 1 the routes would stay written in the bundle;
+   without fold 2 the code would. Verified by counting occurrences in
+   dist/.
 
-   La lista vive acá y no adentro de src/privado/ por la misma razón:
-   importarla del otro lado la ataría al bundle. Acá es el router el que
-   sabe qué rutas hay —que ya es su trabajo, igual que con las piezas— y
-   src/privado/ sólo sabe dibujarlas.
+   The list lives here and not inside src/private/ for the same reason:
+   importing it from the other side would tie it to the bundle. Here it
+   is the router that knows which routes exist, which is already its job
+   (the same as with the pieces), and src/private/ only knows how to
+   draw them.
 
-   Y como en producción la lista queda vacía, desdeUrl nunca devuelve
-   'privado' y /vault cae en la misma rama que cualquier URL inventada:
-   404, sin ninguna regla especial. */
-export type Privada = { ruta: string; nombre: string }
+   And since in production the list stays empty, fromUrl never returns
+   'private' and /vault falls into the same branch as any made-up URL:
+   404, with no special rule. */
+export type PrivateRoute = { path: string; name: string }
 
-/* Lo que viene DESPUÉS de la ruta privada: /vault/nativo/sheet.mov deja
-   "nativo/sheet.mov". Existe porque el detalle de un clip tiene que
-   vivir en el HISTORIAL y no en un estado local.
+/* What comes AFTER the private route: /vault/nativo/sheet.mov leaves
+   "nativo/sheet.mov". It exists because the detail of a clip has to
+   live in the HISTORY and not in local state.
 
-   Vivía en un useState, y eso producía un bug que se sentía como un
-   error del navegador: abrías un clip, hacías el gesto de atrás en el
-   trackpad, y en vez de cerrar el clip te sacaba del vault entero —
-   aterrizabas en /playground, porque era la entrada anterior de
-   verdad. El detalle no estaba en la pila, así que no había nada que
-   deshacer.
+   It used to live in a useState, and that produced a bug that felt like
+   a browser error: you opened a clip, made the back gesture on the
+   trackpad, and instead of closing the clip it threw you out of the
+   whole vault. You landed on /playground, because that was the real
+   previous entry. The detail was not on the stack, so there was nothing
+   to undo.
 
-   De paso cada clip queda linkeable, que es lo que querés cuando le
-   pasás una referencia a un agente. */
-export type Vista2 = { privada: Privada; resto: string }
+   It also leaves every clip linkable, which is what you want when you
+   hand a reference to an agent. */
+export type PrivateView = { route: PrivateRoute; rest: string }
 
-const PRIVADAS: Privada[] = import.meta.env.DEV
+const PRIVATE_ROUTES: PrivateRoute[] = import.meta.env.DEV
   ? [
-      { ruta: '/vault', nombre: 'Vault' },
-      { ruta: '/playground', nombre: 'Playground' },
+      { path: '/vault', name: 'Vault' },
+      { path: '/playground', name: 'Playground' },
     ]
   : []
 
-const Privado = import.meta.env.DEV ? lazy(() => import('./private/private')) : null
+const PrivateArea = import.meta.env.DEV ? lazy(() => import('./private/private')) : null
 
-/* A PROPÓSITO NO HAY NINGÚN LINK HACIA /vault NI /playground en la
-   portada, ni siquiera en dev: al área privada se entra escribiendo la
-   URL. Hubo una barra de solapas acá y se quitó por pedido — la
-   portada es la página del producto, y el área privada no es parte del
-   producto. */
+/* ON PURPOSE THERE IS NO LINK TO /vault OR /playground on the front
+   page, not even in dev: you enter the private area by typing the URL.
+   There was a tab bar here and it was taken out by request. The front
+   page is the page of the product, and the private area is not part of
+   the product. */
 
-/* Rutas sin router: son TRES vistas. `/` es la lista, `/button` la
-   pieza, y cualquier otra cosa es una ruta que no existe.
+/* Routes without a router: there are THREE views. `/` is the list,
+   `/button` is the piece, and anything else is a route that does not
+   exist.
 
-   Las tres respuestas son las de benji y josh, que coinciden exactas —
-   medido con curl contra las dos:
+   The three answers are benji's and josh's, which match exactly,
+   measured with curl against both:
 
-     /drawesome     200            la pieza
-     /no-existe     404            la URL SE QUEDA, no redirige
-     /Drawesome     404            la mayúscula NO se normaliza
-     /drawesome/    308 → sin barra  redirect permanente al canónico
+     /drawesome     200            the piece
+     /no-existe     404            the URL STAYS, it does not redirect
+     /Drawesome     404            the capital is NOT normalised
+     /drawesome/    308 → no slash  permanent redirect to the canonical
 
-   La barra final se resuelve acá con replaceState —el equivalente de
-   cliente de un 308: no agrega entrada al historial, así que el botón
-   de atrás no queda atrapado rebotando— y en el host con la config de
-   verdad. El resto no se toca: una ruta inválida se queda donde está.
+   The trailing slash is resolved here with replaceState, the client
+   equivalent of a 308 (it adds no entry to the history, so the back
+   button does not get trapped bouncing) and on the host with the real
+   config. Nothing else is touched: an invalid route stays where it is.
 
-   Y el título NO cambia en el 404. También medido: el de benji sigue
-   diciendo "Benji Taylor" y el de josh "Josh Puckett".
+   And the title does NOT change on the 404. Also measured: benji's
+   still says "Benji Taylor" and josh's "Josh Puckett".
 
-   El status HTTP real lo tiene que dar el host, porque un SPA que ya
-   cargó no puede cambiarlo. Como las rutas de las piezas se conocen en
-   build, el host puede servir index.html sólo para ésas y devolver un
-   404 de verdad para todo lo demás — que es exactamente lo que hacen
-   los dos. Está en vercel.json; hoy, con PIECES vacío, no hay rewrite
-   ninguno y sólo existe `/` — el rewrite vuelve con la primera pieza
-   real. */
-type Vista =
-  | { tipo: 'lista' }
-  | { tipo: 'pieza'; piece: Piece }
-  | { tipo: 'privado'; privada: Privada; resto: string }
-  | { tipo: 'nada' }
+   The real HTTP status has to come from the host, because a SPA that
+   already loaded cannot change it. Since the routes of the pieces are
+   known at build time, the host can serve index.html only for those and
+   return a real 404 for everything else, which is exactly what both of
+   them do. It is in vercel.json; today, with PIECES empty, there is no
+   rewrite at all and only `/` exists. The rewrite comes back with the
+   first real piece. */
+type View =
+  | { kind: 'list' }
+  | { kind: 'piece'; piece: Piece }
+  | { kind: 'private'; route: PrivateRoute; rest: string }
+  | { kind: 'none' }
 
-const desdeUrl = (): Vista => {
-  let ruta: string
+const fromUrl = (): View => {
+  let path: string
   try {
-    ruta = decodeURIComponent(location.pathname)
+    path = decodeURIComponent(location.pathname)
   } catch {
-    return { tipo: 'nada' }
+    return { kind: 'none' }
   }
-  if (ruta.length > 1 && ruta.endsWith('/')) {
-    ruta = ruta.replace(/\/+$/, '')
-    history.replaceState(history.state, '', ruta + location.search + location.hash)
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.replace(/\/+$/, '')
+    history.replaceState(history.state, '', path + location.search + location.hash)
   }
-  if (ruta === '' || ruta === '/') return { tipo: 'lista' }
-  /* En producción PRIVADAS está vacío, así que este find nunca acierta y
-     /vault cae en 'nada' como cualquier URL inventada.
+  if (path === '' || path === '/') return { kind: 'list' }
+  /* In production PRIVATE_ROUTES is empty, so this find never hits and
+     /vault falls into 'none' like any made-up URL.
 
-     Matchea la ruta exacta Y sus subrutas: /vault y /vault/lo/que/sea.
-     El separador en el startsWith importa — sin él "/vaultimpostor"
-     también entraría.
+     It matches the exact path AND its subpaths: /vault and
+     /vault/whatever. The separator in the startsWith matters: without
+     it "/vaultimpostor" would come in too.
 
-     EL TERCER PLIEGUE: el bloque entero va detrás de import.meta.env.DEV
-     aunque el find ya sea rama muerta con la lista vacía. Lo que el
-     minificador no puede probar muerto es el LITERAL 'privado' del
-     retorno — medido: viajaba al bundle como palabra suelta, la única
-     del área en dist. Con el if constante, Rollup tira el bloque entero,
-     literal incluido. (El gate del render abajo lo logra gratis con su
-     `&& Privado`, que ya es null en producción.) */
+     THE THIRD FOLD: the whole block goes behind import.meta.env.DEV even
+     though the find is already a dead branch with the list empty. What
+     the minifier cannot prove dead is the LITERAL 'private' in the
+     return. Measured: it travelled to the bundle as a loose word, the
+     only one from the area in dist. With the constant if, Rollup throws
+     out the whole block, literal included. (The render gate below gets
+     this for free with its `&& PrivateArea`, which is already null in
+     production.) */
   if (import.meta.env.DEV) {
-    const privada = PRIVADAS.find((p) => ruta === p.ruta || ruta.startsWith(p.ruta + '/'))
-    if (privada) {
-      return { tipo: 'privado', privada, resto: ruta.slice(privada.ruta.length + 1) }
+    const route = PRIVATE_ROUTES.find((p) => path === p.path || path.startsWith(p.path + '/'))
+    if (route) {
+      return { kind: 'private', route, rest: path.slice(route.path.length + 1) }
     }
   }
-  const encontrada = PIECES.find((p) => p.slug === ruta.slice(1))
-  return encontrada ? { tipo: 'pieza', piece: encontrada } : { tipo: 'nada' }
+  const found = PIECES.find((p) => p.slug === path.slice(1))
+  return found ? { kind: 'piece', piece: found } : { kind: 'none' }
 }
 
-/* 80px de descuento: el mismo aire superior de la página, así el título
-   de la pieza no queda pegado al borde al llegar. */
+/* 80px taken off: the same top air as the page, so the title of the
+   piece does not end up stuck to the edge when you get there. */
 const goTo = (slug: string) => {
   const el = document.getElementById(slug)
   if (!el) return
@@ -144,69 +148,69 @@ const goTo = (slug: string) => {
   })
 }
 
-/* "Web", el primer rótulo del índice, se apoya en la misma línea que
-   "Button", el título de la primera pieza. Los dos extremos del par que
-   se eligió mirando; el cómo está en el efecto que lo mide.
+/* "Web", the first label of the index, sits on the same line as
+   "Button", the title of the first piece. The two ends of the pair that
+   was chosen by looking; the how is in the effect that measures it.
 
-   SIN PIEZAS EL ANCLA ES EL PROPIO "Web" DEL CUERPO: con la lista
-   vacía no hay primera pieza y el índice se quedaba pegado al
-   masthead — la misma palabra dos veces en pantalla a dos alturas
-   distintas, medido 106px de desvío. La reserva alinea rótulo contra
-   rótulo; cuando la primera pieza real llegue, vuelve a mandar ella. */
-const ALINEAR = {
-  desde: '[data-primer-rotulo]',
-  hasta: '[data-primera-pieza]',
-  reserva: '[data-primer-grupo]',
+   WITH NO PIECES THE ANCHOR IS THE BODY'S OWN "Web": with the list
+   empty there is no first piece and the index used to stay stuck to the
+   masthead, the same word twice on screen at two different heights,
+   106px of drift measured. The fallback aligns label against label;
+   when the first real piece arrives, it rules again. */
+const ALIGN = {
+  from: '[data-first-label]',
+  to: '[data-first-piece]',
+  fallback: '[data-first-group]',
 }
 
-/* Cuál pieza está activa: la ÚLTIMA cuyo borde superior ya pasó una
-   línea a --index-spy-line del tope del viewport.
+/* Which piece is active: the LAST one whose top edge has already
+   crossed a line at --index-spy-line from the top of the viewport.
 
-   Es la regla de benji, que en su bundle minificado parece más compleja
-   de lo que es:
+   It is benji's rule, which in his minified bundle looks more complex
+   than it is:
 
-     punto     = scrollY + 128 + 0.5·altoVentana
-     condición = punto > topAbsoluto + 0.5·altoVentana
+     point      = scrollY + 128 + 0.5·windowHeight
+     condition  = point > absoluteTop + 0.5·windowHeight
 
-   El medio viewport está de los dos lados y se cancela, así que queda
-   `topAbsoluto < scrollY + 128`, o sea `rect.top < 128`. */
-const LINEA_SPY = 128
+   Half a viewport is on both sides and cancels out, so what is left is
+   `absoluteTop < scrollY + 128`, that is `rect.top < 128`. */
+const SPY_LINE = 128
 
-function piezaActiva(): string | null {
-  /* Sin piezas no hay activa — y sin esta salida, la cláusula del final
-     del documento leería PIECES[-1] y reventaría en el primer scroll de
-     una página corta. */
+function activePiece(): string | null {
+  /* With no pieces there is no active one, and without this exit the
+     end-of-document clause would read PIECES[-1] and blow up on the
+     first scroll of a short page. */
   if (PIECES.length === 0) return null
-  let activa: string | null = null
+  let active: string | null = null
   for (const p of PIECES) {
     const el = document.getElementById(p.slug)
-    if (el && el.getBoundingClientRect().top < LINEA_SPY) activa = p.slug
+    if (el && el.getBoundingClientRect().top < SPY_LINE) active = p.slug
   }
-  /* Al final del documento gana la última sí o sí: la que queda abajo de
-     todo puede ser demasiado corta para llegar nunca a la línea. También
-     es de él. */
+  /* At the end of the document the last one wins no matter what: the
+     one at the very bottom can be too short to ever reach the line.
+     That one is his too. */
   const d = document.documentElement
   if (d.scrollHeight - window.scrollY - window.innerHeight < 24) {
-    activa = PIECES[PIECES.length - 1].slug
+    active = PIECES[PIECES.length - 1].slug
   }
-  return activa
+  return active
 }
 
-function Index({ activa }: { activa: string | null }) {
-  /* Sin piezas no hay índice: un nav con dos rótulos y cero links es
-     andamiaje a la vista. La misma decisión que las secciones del
-     cuerpo, abajo. */
-  /* EL ÍNDICE SE QUEDA AUNQUE NO HAYA PIEZAS — pedido explícito: los
-     rótulos Web y App son la estructura de la casa, y la estructura se
-     ve aunque las salas estén vacías. Un grupo sin piezas rinde su
-     rótulo y una lista vacía; el efecto que alinea contra la primera
-     pieza ya sabe no hacer nada si no la encuentra. */
+function Index({ active }: { active: string | null }) {
+  /* With no pieces there is no index: a nav with two labels and zero
+     links is scaffolding in plain sight. The same decision as the
+     sections of the body, below. */
+  /* THE INDEX STAYS EVEN WITH NO PIECES, an explicit request: the Web
+     and App labels are the structure of the house, and the structure
+     shows even when the rooms are empty. A group with no pieces renders
+     its label and an empty list; the effect that aligns against the
+     first piece already knows to do nothing if it does not find it. */
   return (
     <nav className={css.index} aria-label="Pieces">
       {PLATFORMS.map((pl) => (
         <div className={css.indexGroup} key={pl}>
-          {/* El primer rótulo es el que se alinea con la primera pieza. */}
-          <div className={css.indexLabel} data-primer-rotulo={pl === PLATFORMS[0] ? '' : undefined}>
+          {/* The first label is the one that aligns with the first piece. */}
+          <div className={css.indexLabel} data-first-label={pl === PLATFORMS[0] ? '' : undefined}>
             {pl}
           </div>
           <div className={css.indexList}>
@@ -214,7 +218,7 @@ function Index({ activa }: { activa: string | null }) {
               <button
                 className={css.indexLink}
                 key={p.slug}
-                data-active={activa === p.slug ? '' : undefined}
+                data-active={active === p.slug ? '' : undefined}
                 onClick={() => goTo(p.slug)}
               >
                 {p.name}
@@ -228,139 +232,143 @@ function Index({ activa }: { activa: string | null }) {
 }
 
 export function App() {
-  const [vista, setVista] = useState<Vista>(desdeUrl)
-  const [activa, setActiva] = useState<string | null>(null)
-  /* La lista es la única vista con índice y scrollspy; las otras dos
-     comparten "no es la lista". */
-  const selected = vista.tipo === 'pieza' ? vista.piece : null
-  const esLista = vista.tipo === 'lista'
+  const [view, setView] = useState<View>(fromUrl)
+  const [active, setActive] = useState<string | null>(null)
+  /* The list is the only view with an index and a scrollspy; the other
+     two share "it is not the list". */
+  const selected = view.kind === 'piece' ? view.piece : null
+  const isList = view.kind === 'list'
   const listScroll = useRef(0)
   const first = useRef(true)
 
-  /* ALINEACIÓN DEL ÍNDICE — "Web", el primer rótulo, se apoya en la misma
-     línea que "Button", el título de la primera pieza.
+  /* ALIGNMENT OF THE INDEX. "Web", the first label, sits on the same
+     line as "Button", the title of the first piece.
 
-     El par se eligió mirando, contra otros dos: primer link ↔ primera
-     pieza, y rótulo ↔ separador de sección. Ganó éste.
+     The pair was chosen by looking, against two others: first link ↔
+     first piece, and label ↔ section separator. This one won.
 
-     Se alinea por la BASE del texto y no por el medio de las cajas: los
-     renglones del índice son 13/16 y los de la página 14/20, así que
-     centrarlos deja las letras apoyadas en dos alturas distintas. (Acá
-     la diferencia entre las dos formas es 0.60px y el redondeo a píxel
-     entero se la come — pero el que la fórmula sea la correcta deja de
-     ser un detalle apenas los dos tamaños se separen más.)
+     It aligns by the BASELINE of the text and not by the middle of the
+     boxes: the index's lines are 13/16 and the page's are 14/20, so
+     centring them leaves the letters sitting at two different heights.
+     (Here the difference between the two ways is 0.60px and the
+     rounding to a whole pixel eats it, but the formula being the right
+     one stops being a detail the moment the two sizes drift further
+     apart.)
 
-     Y se MIDE en vez de calcularse. El número correcto sería la suma de
-     todo el apilado vertical de la página, y escribir esa suma como calc
-     duplicaría la estructura entera en una fórmula que nadie
-     actualizaría si mañana se agrega un elemento en el medio: quedaría
-     mal y nada lo diría. Midiendo, se corrige sola — como ya pasó al
-     meterle 16px de aire al rótulo.
+     And it is MEASURED instead of calculated. The correct number would
+     be the sum of the whole vertical stack of the page, and writing
+     that sum as a calc would duplicate the entire structure in a
+     formula nobody would update if an element gets added in the middle
+     tomorrow: it would be wrong and nothing would say so. By measuring,
+     it corrects itself, as already happened when 16px of air went into
+     the label.
 
-     En useLayoutEffect, antes de pintar, para que no se vea el salto. */
+     In useLayoutEffect, before painting, so the jump is not seen. */
   useLayoutEffect(() => {
-    if (!esLista) return
-    const alinear = () => {
+    if (!isList) return
+    const align = () => {
       const nav = document.querySelector<HTMLElement>('[aria-label="Pieces"]')
-      const desde = document.querySelector<HTMLElement>(ALINEAR.desde)
-      const hasta =
-        document.querySelector<HTMLElement>(ALINEAR.hasta) ??
-        document.querySelector<HTMLElement>(ALINEAR.reserva)
-      if (!nav || !desde || !hasta) return
-      const actual = parseFloat(getComputedStyle(nav).top) || 0
-      const delta = baseDeTexto(hasta) - baseDeTexto(desde)
-      nav.style.setProperty('--index-offset-top', `${Math.round(actual + delta)}px`)
+      const from = document.querySelector<HTMLElement>(ALIGN.from)
+      const to =
+        document.querySelector<HTMLElement>(ALIGN.to) ??
+        document.querySelector<HTMLElement>(ALIGN.fallback)
+      if (!nav || !from || !to) return
+      const current = parseFloat(getComputedStyle(nav).top) || 0
+      const delta = textBaseline(to) - textBaseline(from)
+      nav.style.setProperty('--index-offset-top', `${Math.round(current + delta)}px`)
     }
-    alinear()
-    window.addEventListener('resize', alinear)
-    return () => window.removeEventListener('resize', alinear)
-  }, [esLista])
+    align()
+    window.addEventListener('resize', align)
+    return () => window.removeEventListener('resize', align)
+  }, [isList])
 
-  /* La pieza activa necesita el scroll, porque la respuesta cambia de
-     forma continua y no en un borde. Se calcula en rAF para no hacer
-     layout más de una vez por cuadro. */
+  /* The active piece needs the scroll, because the answer changes
+     continuously and not at an edge. It is computed in rAF so that
+     layout does not run more than once per frame. */
   useEffect(() => {
-    if (!esLista) return
-    let pedido = 0
-    const leer = () => {
-      pedido = 0
-      setActiva(piezaActiva())
+    if (!isList) return
+    let pending = 0
+    const read = () => {
+      pending = 0
+      setActive(activePiece())
     }
     const onScroll = () => {
-      if (!pedido) pedido = requestAnimationFrame(leer)
+      if (!pending) pending = requestAnimationFrame(read)
     }
-    leer()
+    read()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
     return () => {
-      if (pedido) cancelAnimationFrame(pedido)
+      if (pending) cancelAnimationFrame(pending)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [esLista])
+  }, [isList])
 
   useEffect(() => {
-    const onPop = () => setVista(desdeUrl())
+    const onPop = () => setView(fromUrl())
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  /* Las rutas privadas llevan su propio nombre y no el del producto: no
-     son el producto, y con dos pestañas abiertas el nombre es lo único
-     que las distingue. El resto —la lista y la ruta que no existe— sigue
-     diciendo el nombre del producto, igual que antes.
+  /* The private routes carry their own name and not the product's: they
+     are not the product, and with two tabs open the name is the only
+     thing that tells them apart. The rest, the list and the route that
+     does not exist, keeps saying the name of the product, the same as
+     before.
 
-     Y es el MISMO string que el H1 del masthead, entero: el nombre no se
-     acorta en ningún lado. Se probó dejar "Exhibition" acá arriba y el
-     completo en el título, apoyándose en que el subtítulo dice de qué es
-     la exhibición; se descartó, porque el nombre de un producto que
-     cambia de largo según dónde se lee es dos nombres. */
+     And it is the SAME string as the masthead's H1, whole: the name is
+     not shortened anywhere. Leaving "Exhibition" up here and the full
+     one in the title was tried, leaning on the subtitle saying what the
+     exhibition is about; it was dropped, because the name of a product
+     that changes length depending on where you read it is two names. */
   useEffect(() => {
-    if (vista.tipo === 'pieza') document.title = `${vista.piece.name} — Interface exhibition`
-    /* El DEV delante pliega el literal 'privado' fuera del bundle — ver
-       el tercer pliegue en desdeUrl. En producción esta rama es
-       inalcanzable igual (desdeUrl nunca devuelve ese tipo). */
-    else if (import.meta.env.DEV && vista.tipo === 'privado') document.title = vista.privada.nombre
+    if (view.kind === 'piece') document.title = `${view.piece.name} — Interface exhibition`
+    /* The DEV in front folds the literal 'private' out of the bundle,
+       see the third fold in fromUrl. In production this branch is
+       unreachable anyway (fromUrl never returns that kind). */
+    else if (import.meta.env.DEV && view.kind === 'private') document.title = view.route.name
     else document.title = 'Interface exhibition'
-  }, [vista])
+  }, [view])
 
-  /* Volver a la lista devuelve el scroll donde estabas. Sin esto la
-     lista reaparece arriba de todo y perdés el lugar, que con 18 piezas
-     es media pantalla de scroll. El primer render se saltea para no
-     pisar la restauración del navegador al recargar. */
+  /* Going back to the list returns the scroll to where you were.
+     Without this the list reappears at the very top and you lose your
+     place, which with 18 pieces is half a screen of scrolling. The
+     first render is skipped so as not to override the browser's own
+     restoration on reload. */
   useLayoutEffect(() => {
     if (first.current) {
       first.current = false
       return
     }
-    window.scrollTo(0, esLista ? listScroll.current : 0)
-  }, [vista])
+    window.scrollTo(0, isList ? listScroll.current : 0)
+  }, [view])
 
-  /* Navegación de cliente genérica: empuja la URL y relee la vista de
-     ella. Que la vista salga de desdeUrl() y no de un argumento es a
-     propósito — así llegar a /vault por link, por barra de direcciones o
-     por el botón de atrás pasa siempre por el mismo camino. */
-  const ir = (ruta: string) => {
-    history.pushState({}, '', ruta)
-    setVista(desdeUrl())
+  /* Generic client navigation: it pushes the URL and reads the view
+     back out of it. That the view comes from fromUrl() and not from an
+     argument is on purpose: that way reaching /vault by link, by the
+     address bar or by the back button always goes down the same path. */
+  const go = (path: string) => {
+    history.pushState({}, '', path)
+    setView(fromUrl())
   }
 
   const open = (p: Piece) => {
     listScroll.current = window.scrollY
     history.pushState({ fromList: true }, '', `/${p.slug}`)
-    setVista({ tipo: 'pieza', piece: p })
+    setView({ kind: 'piece', piece: p })
   }
 
-  /* Si llegaste desde la lista, volvés por el historial y la pila no
-     crece. Si entraste directo por link no hay a dónde volver, así que
-     se empuja la lista. */
+  /* If you arrived from the list, you go back through the history and
+     the stack does not grow. If you came straight in from a link there
+     is nowhere to go back to, so the list gets pushed. */
   const back = () => {
     if (history.state?.fromList) {
       history.back()
       return
     }
     history.pushState({}, '', '/')
-    setVista({ tipo: 'lista' })
+    setView({ kind: 'list' })
   }
 
   useEffect(() => {
@@ -371,21 +379,22 @@ export function App() {
     return () => document.removeEventListener('keydown', onKey)
   })
 
-  /* El `&& Privado` no es defensivo, es lo que le dice a TypeScript que
-     en producción esto no existe. Y no puede darse el caso de una vista
-     privada sin componente: las dos salen del mismo import.meta.env.DEV. */
-  if (vista.tipo === 'privado' && Privado) {
+  /* The `&& PrivateArea` is not defensive, it is what tells TypeScript
+     that in production this does not exist. And a private view without
+     a component cannot happen: both come out of the same
+     import.meta.env.DEV. */
+  if (view.kind === 'private' && PrivateArea) {
     return (
-      /* fallback en null y no en un cartel: el chunk está en disco, a un
-         fetch del servidor local, y cualquier cosa que se dibuje sería un
-         parpadeo de un cuadro. */
+      /* fallback of null and not a sign: the chunk is on disk, one fetch
+         away from the local server, and anything drawn would be a
+         one-frame flicker. */
       <Suspense fallback={null}>
-        <Privado vistas={PRIVADAS} actual={vista.privada.ruta} resto={vista.resto} ir={ir} />
+        <PrivateArea routes={PRIVATE_ROUTES} current={view.route.path} rest={view.rest} go={go} />
       </Suspense>
     )
   }
 
-  if (vista.tipo === 'nada') {
+  if (view.kind === 'none') {
     return <NotFound />
   }
 
@@ -399,26 +408,25 @@ export function App() {
 
   return (
     <div className={css.page}>
-      <Index activa={activa} />
+      <Index active={active} />
       <Masthead />
       <div className={css.content}>
-        {/* Las secciones también se quedan con cero piezas — misma
-            decisión que el índice: la estructura está, el contenido
-            llega. */}
+        {/* The sections also stay with zero pieces, the same decision
+            as the index: the structure is there, the content arrives. */}
         {PLATFORMS.map((pl) => (
-          <section className={css.group} key={pl} data-plataforma={pl}>
+          <section className={css.group} key={pl} data-platform={pl}>
             <div className={css.groupHead}>
-              {/* El ancla de reserva del índice cuando no hay piezas. */}
+              {/* The index's fallback anchor when there are no pieces. */}
               <div
                 className={css.groupLabel}
-                data-primer-grupo={pl === PLATFORMS[0] ? '' : undefined}
+                data-first-group={pl === PLATFORMS[0] ? '' : undefined}
               >
                 {pl}
               </div>
               <span className={css.groupLine} aria-hidden />
             </div>
             {by(pl).map((p, i) => (
-              <Item piece={p} onOpen={open} primera={pl === PLATFORMS[0] && i === 0} key={p.slug} />
+              <Item piece={p} onOpen={open} first={pl === PLATFORMS[0] && i === 0} key={p.slug} />
             ))}
           </section>
         ))}

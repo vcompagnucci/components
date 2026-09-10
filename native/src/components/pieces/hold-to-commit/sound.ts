@@ -1,61 +1,63 @@
 import type { AudioPlayer } from 'expo-audio'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL SONIDO DEL COMMIT — al completar, si el iPhone no está en
-   silencio, el sonido de éxito de Apple Pay: el que suena al pagar y al
-   confirmar una compra o instalación en el App Store. Pedido de Vito
-   (2026-09-07, "dejá el de Apple al descargar una app, bien timeado"),
-   después de probar un arpegio, una campana, la moneda de los
-   videojuegos, el pajarito de Berry y una voz.
+   THE COMMIT SOUND — on completion, if the iPhone is not on silent,
+   Apple Pay's success sound: the one that plays when you pay and when
+   you confirm a purchase or an install in the App Store. Vito asked for
+   it (2026-09-07, "use Apple's one from downloading an app, timed
+   right"), after trying an arpeggio, a bell, the videogame coin, Berry's
+   little bird and a voice.
 
-   EL ARCHIVO ES DE APPLE: `media/purchase.wav` es `payment_success.caf`
-   del runtime de iOS 26.2 (`/System/Library/Audio/UISounds/`), pasado a
-   WAV 44.1 kHz mono 16 bit y subido de −11 a −1 dBFS de pico, porque el
-   original viene bajo. ES UN ASSET DE APPLE y no se redistribuye: si
-   este repo se hace público, ese archivo no viaja. RUNTIME
-   (`.context/hold-to-commit/audio/medir-sonido.py`): re 6 (1176 Hz)
-   durante 120 ms y re 7 (2352 Hz, una octava arriba) que decae ~1.1 dB
-   cada 20 ms hasta apagarse a los 700 ms; 1.41 s de archivo con cola.
+   THE FILE IS APPLE'S: `media/purchase.wav` is `payment_success.caf`
+   from the iOS 26.2 runtime (`/System/Library/Audio/UISounds/`),
+   converted to WAV 44.1 kHz mono 16 bit and raised from −11 to −1 dBFS
+   peak, because the original comes in quiet. IT IS AN APPLE ASSET and
+   it is not redistributed: if this repo goes public, that file does not
+   travel. RUNTIME
+   (`.context/hold-to-commit/audio/medir-sonido.py`): D6 (1176 Hz) for
+   120 ms and D7 (2352 Hz, an octave up) decaying ~1.1 dB every 20 ms
+   until it dies out at 700 ms; 1.41 s of file with the tail.
 
-   BIEN TIMEADO. El sonido se dispara `ADELANTO_MS` antes del final del
-   hold, desde el mismo reloj que el relleno (el progreso cruzando
-   1 − adelanto/duración, en el hilo de UI), no desde el gesto: así
-   absorbe lo que tarda el audio de iOS en salir por el parlante y la
-   primera nota cae en el mismo cuadro que la ráfaga y la háptica, y la
-   segunda, la que se oye como "ding", 120 ms después, mientras el pill
-   blanquea. Es la misma coreografía que usa Apple: el sonido arranca
-   con la animación de éxito. Si se suelta en esos últimos milisegundos,
-   sonó igual: es el precio.
+   TIMED RIGHT. The sound fires `LEAD_MS` before the end of the hold,
+   from the same clock as the fill (the progress crossing
+   1 − lead/duration, on the UI thread), not from the gesture: that
+   absorbs however long iOS audio takes to come out of the speaker, and
+   the first note lands in the same frame as the burst and the haptics,
+   and the second one, the one you hear as a "ding", 120 ms later, while
+   the pill whitens. It is the same choreography Apple uses: the sound
+   starts with the success animation. If you release in those last few
+   milliseconds, it played anyway: that is the price.
 
-   UN REPRODUCTOR PRECALENTADO. Reusar uno con `seekTo(0)` + `play()`
-   perdía golpes (el seek es asincrónico y el play le ganaba), y crear
-   uno en el momento tardaba decenas de ms. El SIGUIENTE se crea y carga
-   apenas se usa el anterior: al golpe llega uno listo, se toca y se
-   suelta cuando termina.
+   A PREHEATED PLAYER. Reusing one with `seekTo(0)` + `play()` dropped
+   hits (the seek is asynchronous and the play beat it), and creating
+   one on the spot took tens of ms. The NEXT one is created and loaded
+   as soon as the previous one is used: the hit finds one ready, plays
+   it and releases it when it finishes.
 
-   `playsInSilentMode: false` (el switch de silencio manda) y
-   `mixWithOthers` (un efecto de UI no pausa lo que el usuario escucha).
-   `expo-audio` es un módulo nativo: Expo Go lo trae, el dev client del
-   simulador no hasta que se reconstruya; se pide con un `require` en un
-   try, como el vidrio, y sin módulo no hay sonido y no pasa nada más.
+   `playsInSilentMode: false` (the silent switch wins) and
+   `mixWithOthers` (a UI effect does not pause what the user is
+   listening to). `expo-audio` is a native module: Expo Go ships it, the
+   simulator's dev client does not until it gets rebuilt; it is asked for
+   with a `require` inside a try, like the glass, and with no module
+   there is no sound and nothing else happens.
    ═══════════════════════════════════════════════════════════════ */
 
-/* SIN RECIBO · el archivo ya está a −1 dBFS; el reproductor, entero. */
-const VOLUMEN = 1.0
-/* SIN RECIBO · cuántos ms antes del final del hold se dispara: la
-   latencia de salida del audio de iOS más un cuadro. */
-export const ADELANTO_MS = 60
-const FUENTE = require('./media/purchase.wav') as number
+/* NO RECEIPT · the file is already at −1 dBFS; the player, all the way up. */
+const VOLUME = 1.0
+/* NO RECEIPT · how many ms before the end of the hold it fires: the
+   output latency of iOS audio plus one frame. */
+export const LEAD_MS = 60
+const SOURCE = require('./media/purchase.wav') as number
 
 type Audio = {
-  createAudioPlayer: (fuente: number) => AudioPlayer
-  preload: (fuente: number) => Promise<void>
-  setAudioModeAsync: (modo: { playsInSilentMode: boolean; interruptionMode: 'mixWithOthers' }) => Promise<void>
-  setIsAudioActiveAsync: (activo: boolean) => Promise<void>
+  createAudioPlayer: (source: number) => AudioPlayer
+  preload: (source: number) => Promise<void>
+  setAudioModeAsync: (mode: { playsInSilentMode: boolean; interruptionMode: 'mixWithOthers' }) => Promise<void>
+  setIsAudioActiveAsync: (active: boolean) => Promise<void>
 }
 const audio: Audio | null = (() => {
   try {
-    /* `require` a propósito: un `import` estático carga el módulo nativo al arrancar y no se puede envolver en un try. */
+    /* `require` on purpose: a static `import` loads the native module at startup and cannot be wrapped in a try. */
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require('expo-audio') as Audio
   } catch {
@@ -63,60 +65,60 @@ const audio: Audio | null = (() => {
   }
 })()
 
-let preparado = false
-let listo: AudioPlayer | null = null
+let prepared = false
+let ready: AudioPlayer | null = null
 
-/* Arma el próximo reproductor, ya con el archivo, para que el golpe no
-   tenga que esperar nada. */
-function precalentar() {
+/* Builds the next player, file and all, so that the hit does not have to
+   wait for anything. */
+function createNextPlayer() {
   if (!audio) return
   try {
-    listo = audio.createAudioPlayer(FUENTE)
-    listo.volume = VOLUMEN
+    ready = audio.createAudioPlayer(SOURCE)
+    ready.volume = VOLUME
   } catch {
-    listo = null
+    ready = null
   }
 }
 
-/* Se llama una vez al montar el botón: sesión de audio activa, archivo
-   en caché y un reproductor listo. */
-export function prepararSonido() {
-  if (!audio || preparado) return
-  preparado = true
+/* Called once when the button mounts: audio session active, file cached
+   and one player ready. */
+export function prepareSound() {
+  if (!audio || prepared) return
+  prepared = true
   audio.setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers' }).catch(() => {})
   audio.setIsAudioActiveAsync(true).catch(() => {})
-  audio.preload(FUENTE).catch(() => {})
-  precalentar()
+  audio.preload(SOURCE).catch(() => {})
+  createNextPlayer()
 }
 
-export function sonar() {
+export function playSound() {
   if (!audio) return
-  prepararSonido()
-  const jugador = listo
-  listo = null
-  if (!jugador) {
-    precalentar()
+  prepareSound()
+  const player = ready
+  ready = null
+  if (!player) {
+    createNextPlayer()
     return
   }
-  jugador.play()
-  /* el siguiente, ya mismo: el próximo golpe lo encuentra cargado */
-  precalentar()
-  let suelto = false
-  const soltar = () => {
-    if (suelto) return
-    suelto = true
+  player.play()
+  /* the next one, right now: the next hit finds it loaded */
+  createNextPlayer()
+  let released = false
+  const release = () => {
+    if (released) return
+    released = true
     try {
-      jugador.remove()
+      player.remove()
     } catch {
-      /* ya liberado */
+      /* already released */
     }
   }
-  const escucha = jugador.addListener('playbackStatusUpdate', (estado) => {
-    if (estado.didJustFinish) {
-      escucha.remove()
-      soltar()
+  const listener = player.addListener('playbackStatusUpdate', (status) => {
+    if (status.didJustFinish) {
+      listener.remove()
+      release()
     }
   })
-  /* Por si el evento de fin no llega: el archivo dura 1.4 s. */
-  setTimeout(soltar, 4000)
+  /* In case the finish event never arrives: the file lasts 1.4 s. */
+  setTimeout(release, 4000)
 }

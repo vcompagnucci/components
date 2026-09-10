@@ -17,760 +17,779 @@ import Animated, {
 } from 'react-native-reanimated'
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets'
 
-import { Barra, MOVIMIENTO, type Tab, type Tramo } from './tab-bar'
-import { BARRA, CABECERA } from './measurements'
-import { PliegueContext, opacidadPlegada, type Pliegue } from './collapse'
-import { usePaleta } from './theme'
+import { TabBar, MOTION, type Tab, type Segment } from './tab-bar'
+import { TAB_BAR, HEADER } from './measurements'
+import { CollapseContext, collapsedOpacity, type Collapse } from './collapse'
+import { usePalette } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL MECANISMO — el pager, y el `Tramo` que le pasa a la barra.
+   THE MECHANISM — the pager, and the `Segment` it hands to the bar.
 
-   De dónde sale la transición, a dónde va y cuánto se avanzó (0..1), en
-   un solo valor. La barra no tiene estado propio y dibuja todo a partir
-   de eso. Que sea UN valor y no tres es lo que arregló el titileo de los
-   íconos: el recibo está arriba de `Tramo`, en `barra.tsx`.
+   Where the transition comes from, where it goes and how far it has got
+   (0..1), in a single value. The bar has no state of its own and draws
+   everything out of that. Its being ONE value and not three is what
+   fixed the icons' flicker: the receipt is above `Segment`, in
+   `tab-bar.tsx`.
 
-   ARRASTRAR Y TOCAR NO SON EL MISMO CAMINO, y no por comodidad: la
-   referencia los trata distinto y está medido cuadro a cuadro.
+   DRAGGING AND TAPPING ARE NOT THE SAME PATH, and not for convenience:
+   the reference treats them differently and it is measured frame by
+   frame.
 
-   ARRASTRANDO, EL PAGER ES UN ScrollView CON `pagingEnabled`. Se midió
-   y el subrayado va pegado al contenido cuadro a cuadro, así que la
-   curva con la que frena el subrayado ES la deceleración del
-   UIScrollView de iOS — no un easing que alguien eligió. Rehacer el
-   gesto a mano con Gesture Handler obligaría a re-derivar esa física
-   para volver al mismo lugar. Ahí `t` es la parte decimal de la página.
-   La fila de tabs se mueve —o no— con este mismo `t`, tocando y
-   arrastrando por igual; la regla la elige `BARRA.fila` y el recibo
-   está arriba de `objetivo` en `barra.tsx`.
+   WHEN DRAGGING, THE PAGER IS A ScrollView WITH `pagingEnabled`. It was
+   measured and the underline stays glued to the content frame by frame,
+   so the curve the underline stops on IS the deceleration of iOS's
+   UIScrollView, not an easing someone chose. Rebuilding the gesture by
+   hand with Gesture Handler would mean re-deriving that physics to get
+   back to the same place. There `t` is the fractional part of the page.
+   The row of tabs moves, or does not, with this same `t`, tapping and
+   dragging alike; `TAB_BAR.row` picks the rule and the receipt is above
+   `target` in `tab-bar.tsx`.
 
-   TOCANDO, DOS COSAS CAMBIAN:
+   WHEN TAPPING, TWO THINGS CHANGE:
 
-   1. La animación la maneja Reanimated y no UIKit. `scrollTo({ animated:
-      true })` tarda cerca de 400 ms con una curva simétrica: arranca
-      lento justo cuando el usuario ya decidió y está mirando. Se sentía
-      pesado y lo era. Acá va un `withTiming` con la curva ajustada
-      contra los toques de la referencia (abajo).
-   2. El contenido viaja UNA página aunque el salto sea de cinco tabs —
-      ver `alTocar`. Por eso `t` no puede salir del scroll y el toque
-      trae el suyo.
+   1. Reanimated drives the animation, not UIKit. `scrollTo({ animated:
+      true })` takes close to 400 ms on a symmetric curve: it starts
+      slow exactly when the user has already decided and is watching. It
+      felt heavy and it was. Here it goes with a `withTiming` on the
+      curve fitted against the reference's taps (below).
+   2. The content travels ONE page even if the jump is five tabs wide,
+      see `onTap`. That is why `t` cannot come out of the scroll and the
+      tap brings its own.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ═══ LA CURVA DEL TOQUE, AJUSTADA CONTRA LOS TOQUES DEL USUARIO ═══
+/* ═══ THE TAP CURVE, FITTED AGAINST THE USER'S TAPS ═══
 
-   Esta curva ya dio dos vueltas enteras, y las dos veces el error fue
-   del instrumento, no del ajuste:
+   This curve has already gone all the way around twice, and both times
+   the error was in the instrument, not in the fit:
 
-   1. easeOutCubic a 333 ms — ajustada contra el settle del clip del
-      vault... cuyas transiciones resultaron ser ARRASTRES: era la
-      deceleración del UIScrollView aplicada a un toque.
-   2. bezier(.4,.9,.72,1) a 283 ms — ajustada contra "siete toques" de
-      una grabación vieja de X. Con esa curva el usuario sintió el
-      toque ABRUPTO ("en X se hace mucho más clean", 2026-09-01), y las
-      grabaciones nuevas de su propia cuenta le dan la razón.
+   1. easeOutCubic at 333 ms, fitted against the settle of the vault
+      clip... whose transitions turned out to be DRAGS: it was the
+      UIScrollView's deceleration applied to a tap.
+   2. bezier(.4,.9,.72,1) at 283 ms, fitted against "seven taps" from an
+      old recording of X. With that curve the user felt the tap was
+      ABRUPT ("in X it is done much more cleanly", 2026-09-01), and the
+      new recordings of his own account prove him right.
 
-   El ajuste vigente sale de los TRES toques de esas grabaciones nuevas
-   (For you→Tech, Tech→Following, For you→Design), subrayado cuadro a
-   cuadro, con búsqueda sobre duración y fase de cuadro:
+   The fit in force comes from the THREE taps in those new recordings
+   (For you→Tech, Tech→Following, For you→Design), underline frame by
+   frame, with a search over duration and frame phase:
 
                                     Fy→Tech   Tech→Fol   Fy→Design
      easeOutCubic                    0.0081     0.0123     0.0179   ✓
-     bezier(.4,.9,.72,1) (anterior)  0.0153     0.0068     0.0250
+     bezier(.4,.9,.72,1) (previous)  0.0153     0.0068     0.0250
      easeOutQuart                    0.0225     0.0693     0.0230
 
-   easeOutCubic gana dos de tres y en el tercero queda a nada. La
-   diferencia perceptual está en el arranque: la cúbica parte con
-   pendiente 3 —el subrayado responde al dedo en el primer cuadro— y
-   frena monótona; el bezier arrancaba con 2.25 y quedaba con una
-   panza a mitad de camino, que es el "tirón" reportado.
+   easeOutCubic wins two of three and in the third it comes within a
+   hair. The perceptual difference is in the start: the cubic leaves
+   with slope 3, so the underline answers the finger on the first frame,
+   and slows down monotonically; the bezier left with 2.25 and had a
+   belly halfway through, which is the reported "tug".
 
-   La duración medida es ~18 cuadros a 60 fps: los mejores ajustes caen
-   en 18–19 (300–317 ms), no en los 17 de la grabación vieja. */
+   The measured duration is ~18 frames at 60 fps: the best fits land at
+   18-19 (300-317 ms), not at the 17 of the old recording. */
 const EASE_SETTLE = Easing.out(Easing.cubic)
-const TOQUE = 300
+const TAP_MS = 300
 
-/* Las tres cosas que se mueven en un toque —el contenido, el avance de la
-   barra y el scroll de la fila— comparten la misma config, que es la
-   única forma de garantizar que salgan y lleguen juntas.
+/* The three things that move on a tap (the content, the bar's progress
+   and the row's scroll) share the same config, which is the only way to
+   guarantee they leave and arrive together.
 
-   `ReduceMotion.System` SALTA TODO AL FINAL, y se queda así. Lo estudié
-   el 2026-09-08 porque `animate-expo` § 9 pide "fewer and gentler, not
-   zero: keep opacity and color changes that explain a state change, drop
-   translation", y acá se va también el fundido. La conclusión es que la
-   regla no aplica a esta pieza, por dos razones:
+   `ReduceMotion.System` JUMPS EVERYTHING TO THE END, and it stays that
+   way. I studied it on 2026-09-08 because `animate-expo` § 9 asks for
+   "fewer and gentler, not zero: keep opacity and color changes that
+   explain a state change, drop translation", and here the fade goes
+   too. The conclusion is that the rule does not apply to this piece,
+   for two reasons:
 
-   · CUMPLIRLA ROMPERÍA LO QUE EVITA EL TITILEO. Todo deriva de UN valor,
-     `Tramo`: la posición del subrayado y el color del label salen del
-     mismo `t`. Animar el color y saltar la posición pide DOS avances que
-     bajo motion normal tienen que ser idénticos — que es exactamente la
-     trampa que está documentada como la novena cosa que muerde en
-     `nativo/AGENTS.md` ("si dos valores tienen que ser ciertos AL MISMO
-     TIEMPO, son un valor, no dos") y la causa medida del titileo de los
-     símbolos. Y dejaría de ser cierta la frase de Performance.
-   · Y NO HAY NADA QUE EXPLICAR. La regla existe para cuando sacar el
-     movimiento deja el cambio de estado sin explicación —algo que
-     aparece de la nada—. Acá el estado lo dicen propiedades estáticas:
-     el label activo en blanco, el subrayado debajo, la página nueva en
-     pantalla. Saltando se ve todo eso, instantáneo y completo.
+   · FOLLOWING IT WOULD BREAK WHAT KEEPS THE FLICKER AWAY. Everything
+     derives from ONE value, `Segment`: the underline's position and the
+     label's color come out of the same `t`. Animating the color and
+     jumping the position asks for TWO progress values that under normal
+     motion have to be identical, which is exactly the trap documented
+     as the ninth thing that bites in `native/AGENTS.md` ("if two values
+     have to be true AT THE SAME TIME, they are one value, not two") and
+     the measured cause of the symbols' flicker. And the sentence in
+     Performance would stop being true.
+   · AND THERE IS NOTHING TO EXPLAIN. The rule exists for when taking
+     the movement away leaves the state change unexplained, something
+     appearing out of nowhere. Here static properties tell the state:
+     the active label in white, the underline beneath it, the new page
+     on screen. Jumping, you see all of that, instant and complete.
 
-   O sea que un cambio de tab instantáneo bajo reduced motion es el
-   comportamiento correcto, no una deuda. El texto público dice "Reduced
-   motion is respected", que es cierto en las dos lecturas. Si algún día
-   se revisa: el cambio real es partir `Tramo` en dos, y hay que medirlo
-   en el teléfono con el ajuste prendido, no razonarlo. */
-const CFG = { duration: TOQUE, easing: EASE_SETTLE, reduceMotion: ReduceMotion.System }
+   So an instant tab change under reduced motion is the correct
+   behaviour, not a debt. The public text says "Reduced motion is
+   respected", which is true on both readings. If this is ever
+   revisited, the real change is splitting `Segment` in two, and it has
+   to be measured on the phone with the setting turned on, not reasoned
+   about. */
+const CFG = { duration: TAP_MS, easing: EASE_SETTLE, reduceMotion: ReduceMotion.System }
 
-/* LA HÁPTICA DEL CAMBIO DE TAB, en un solo lugar porque es la perilla
-   que más se va a tocar y no se puede medir desde acá: el clip de
-   referencia es video y no tiene pista háptica.
+/* THE HAPTIC FOR THE TAB CHANGE, in one single place because it is the
+   knob that will be touched most and it cannot be measured from here:
+   the reference clip is video and has no haptic track.
 
-   NO HAY INTENSIDAD CONTINUA, y no es una limitación de iOS sino de
-   `expo-haptics`. iOS tiene `impactOccurred(intensity:)` desde iOS 13,
-   que toma un número de 0 a 1, y encima tiene Core Haptics para armar
-   patrones a mano. Pero el módulo llama al `impactOccurred()` SIN
-   argumento — está en su Swift, `HapticsModule.swift`, seis líneas:
+   THERE IS NO CONTINUOUS INTENSITY, and it is not a limitation of iOS
+   but of `expo-haptics`. iOS has `impactOccurred(intensity:)` since
+   iOS 13, which takes a number from 0 to 1, and on top of that it has
+   Core Haptics for building patterns by hand. But the module calls
+   `impactOccurred()` WITH NO argument. It is in its Swift,
+   `HapticsModule.swift`, six lines:
 
        let generator = UIImpactFeedbackGenerator(style: ...)
        generator.prepare()
        generator.impactOccurred()
 
-   Así que desde acá hay cinco escalones y nada en el medio. Llegar a la
-   intensidad continua pide un módulo nativo propio, y eso rompe Expo Go
-   —la pieza dejaría de abrirse en el teléfono— y obliga a reconstruir
-   el dev client. No vale para una perilla de una pieza.
+   So from here there are five steps and nothing in between. Reaching
+   continuous intensity takes a native module of our own, and that
+   breaks Expo Go (the piece would stop opening on the phone) and forces
+   a rebuild of the dev client. Not worth it for one piece's knob.
 
-   La escalera, de menos a más:
+   The ladder, from least to most:
 
-     selectionAsync()            el tick más suave
-     impactAsync(Soft)           blando, difuso
-     impactAsync(Light)       ←  acá estamos
-     impactAsync(Rigid)          la amplitud de Medium con un ataque más
-                                 corto y seco
-     impactAsync(Medium)         se sentía de más
-     impactAsync(Heavy)          el techo, y demasiado para algo que
-                                 pasa cincuenta veces por sesión
+     selectionAsync()            the softest tick
+     impactAsync(Soft)           soft, diffuse
+     impactAsync(Light)       ←  we are here
+     impactAsync(Rigid)          Medium's amplitude with a shorter,
+                                 drier attack
+     impactAsync(Medium)         felt like too much
+     impactAsync(Heavy)          the ceiling, and too much for
+                                 something that happens fifty times a
+                                 session
 
-   El recorrido, porque la conclusión sola no sirve: arrancó en
-   `selectionAsync` y se sentía casi nada, pero eso fue un bocado en
-   falso — el helper estaba escrito y las dos llamadas seguían yendo
-   directo a `selectionAsync`, así que la prueba con Medium nunca llegó
-   al teléfono. Ya cableado: Heavy demasiado, Medium un poco de más.
-   Entre los dos candidatos que quedaban se probó Light, que es el que
-   baja la AMPLITUD. `Rigid` es la otra opción y baja otra cosa: `soft`
-   y `rigid` no son escalones de fuerza sino de DUREZA —cuánto se
-   comprime lo que choca— así que Rigid pega parecido a Medium pero
-   termina antes. Si Light queda corto, ese es el escalón de al lado.
+   The trip, because the conclusion on its own is no use: it started at
+   `selectionAsync` and felt like almost nothing, but that was a bite on
+   nothing. The function was written and both calls still went straight
+   to `selectionAsync`, so the test with Medium never reached the phone.
+   Once wired up: Heavy too much, Medium a little too much. Of the two
+   candidates left, Light was tried, which is the one that lowers the
+   AMPLITUDE. `Rigid` is the other option and it lowers something else:
+   `soft` and `rigid` are not steps of force but of HARDNESS, how much
+   the thing that hits compresses, so Rigid strikes about like Medium
+   but ends sooner. If Light falls short, that is the step next door.
 
-   Esto es lo único de la pieza sin recibo: el clip es video y no tiene
-   pista háptica. Se ajusta con el teléfono en la mano y nada más. */
-const golpe = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+   This is the only thing in the piece with no receipt: the clip is
+   video and has no haptic track. It is tuned with the phone in your
+   hand and nothing else. */
+const impact = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
-/* Centinela: el pager lo está manejando el dedo, no un toque. */
-const NADIE = -1
+/* Sentinel: the finger is driving the pager, not a tap. */
+const NONE = -1
 
 type Props = {
   tabs: Tab[]
-  /** El contenido de cada página. Se llama una vez por tab. */
-  pagina: (tab: Tab, indice: number) => ReactNode
-  /** Lo que va arriba de la barra de tabs y se pliega con ella. */
-  cabecera?: ReactNode
-  /** El alto de la barra de estado: el bloque plegable la incluye y la
-      tapa que queda cuando se fue mide exactamente eso. */
-  arriba: number
-  /** Coreografía one-shot para grabar (Stocks lento → resto rápido). */
+  /** The content of each page. Called once per tab. */
+  page: (tab: Tab, index: number) => ReactNode
+  /** What goes above the tab bar and collapses with it. */
+  header?: ReactNode
+  /** The height of the status bar: the collapsing block includes it,
+      and the cover left behind once it is gone measures exactly that. */
+  top: number
+  /** One-shot choreography for recording (Stocks slow → the rest fast). */
   demo?: boolean
 }
 
-export function SwipeableTabs({ tabs, pagina, cabecera, arriba, demo = false }: Props) {
+export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) {
   const { width } = useWindowDimensions()
-  const paleta = usePaleta()
+  const palette = usePalette()
 
-  /* ═══ EL PLIEGUE — el bloque de arriba sube con el scroll de la página.
-     El mecanismo y su recibo están en `pliegue.tsx`. Acá vive el estado
-     porque acá se sabe qué página está activa. */
-  const subida = useSharedValue(0)
-  const posiciones = useSharedValue<number[]>(tabs.map(() => 0))
-  const alto = arriba + CABECERA.alto + BARRA.alto + StyleSheet.hairlineWidth
-  /* El bloque frena con el divisor pegado al borde de la barra de
-     estado: el recorrido es su alto menos esa barra. Se probó el
-     recorrido entero (los labels saliendo por arriba, como en X) y el
-     usuario lo rechazó en el teléfono — ver `pliegue.tsx`. */
-  const recorrido = alto - arriba
-  const pliegue = useMemo<Pliegue>(
-    () => ({ alto, recorrido, subida, posiciones }),
-    [alto, recorrido, subida, posiciones],
+  /* ═══ THE COLLAPSE — the block at the top rises with the page's
+     scroll. The mechanism and its receipt are in `collapse.tsx`. The
+     state lives here because here is where it is known which page is
+     active. */
+  const rise = useSharedValue(0)
+  const positions = useSharedValue<number[]>(tabs.map(() => 0))
+  const height = top + HEADER.height + TAB_BAR.height + StyleSheet.hairlineWidth
+  /* The block stops with the divider flush against the edge of the
+     status bar: the travel is its height minus that bar. The whole
+     travel was tried (the labels leaving through the top, as in X) and
+     the user rejected it on the phone. See `collapse.tsx`. */
+  const travel = height - top
+  const collapse = useMemo<Collapse>(
+    () => ({ height, travel, rise, positions }),
+    [height, travel, rise, positions],
   )
   const pager = useAnimatedRef<Animated.ScrollView>()
-  /* SONDA: en demo el pager nace en Following (ver `contentOffset`) y
-     la barra tiene que nacer ahí también, o el primer cuadro muestra
-     el tab de Following con el contenido de For you. */
+  /* PROBE: in demo the pager is born on Following (see `contentOffset`)
+     and the bar has to be born there too, or the first frame shows the
+     Following tab with the For you content. */
   const scrollX = useSharedValue(demo ? width : 0)
-  const destino = useSharedValue(NADIE)
+  const target = useSharedValue(NONE)
 
-  /* Qué está moviendo el contenido. La barra lo necesita para saber si
-     le toca comandar su fila o dejársela al usuario. */
-  const movimiento = useSharedValue<number>(MOVIMIENTO.quieto)
+  /* What is moving the content. The bar needs it to know whether it is
+     its turn to command its row or to leave it to the user. */
+  const motion = useSharedValue<number>(MOTION.still)
 
-  const progreso = useDerivedValue(() => (width > 0 ? scrollX.get() / width : 0))
+  const progress = useDerivedValue(() => (width > 0 ? scrollX.get() / width : 0))
 
-  /* Los extremos y el avance del toque en curso. Los escribe `alTocar`
-     una sola vez, y sólo se leen mientras `destino` no sea el centinela. */
-  const toqueDesde = useSharedValue(0)
-  const toqueHasta = useSharedValue(0)
-  const avanceToque = useSharedValue(0)
+  /* The ends and the progress of the tap under way. `onTap` writes them
+     once, and they are only read while `target` is not the sentinel. */
+  const tapFrom = useSharedValue(0)
+  const tapTo = useSharedValue(0)
+  const tapProgress = useSharedValue(0)
 
   /* ───────────────────────────────────────────────────────────────
-     LA TRANSICIÓN EN CURSO, ENTERA Y EN UN SOLO VALOR.
+     THE TRANSITION UNDER WAY, WHOLE AND IN A SINGLE VALUE.
 
-     ── Qué son `d` y `h` ──
-     La barra no interpola sobre los n estados: interpola entre DOS, el
-     de donde viene y el de a dónde va. La diferencia sólo aparece
-     cuando esos dos no son vecinos.
+     ── What `d` and `h` are ──
+     The bar does not interpolate over the n states: it interpolates
+     between TWO, the one it comes from and the one it goes to. The
+     difference only shows when those two are not neighbours.
 
-     Arrastrando siempre son vecinos —`floor(p)` y el que sigue.
+     Dragging they always are, `floor(p)` and the next one.
 
-     Tocando, no. Un toque del tab 2 al 6 barre `progreso` por 3, 4 y 5,
-     y con la interpolación sobre todos los estados cada uno de esos
-     abría su ícono al pasar y volvía a cerrarlo. Se veía como un
-     manoteo. Fijando los extremos en 2 y 6 mientras dura el toque, el
-     layout va del estado 2 al 6 de una, y los únicos dos íconos que se
-     mueven son los de las puntas.
+     Tapping, they are not. A tap from tab 2 to tab 6 sweeps `progress`
+     through 3, 4 and 5, and with the interpolation over every state
+     each of those opened its icon on the way past and closed it again.
+     It looked like flailing. By pinning the ends at 2 and 6 for as long
+     as the tap lasts, the layout goes from state 2 to state 6 in one
+     move, and the only two icons that move are the ones at the ends.
 
-     ── Qué es `t`, y por qué no alcanza con mirar el scroll ──
-     Arrastrando sí alcanza: los dos extremos son vecinos y el avance es
-     la parte decimal de la página. Pero un TOQUE LEJANO mueve el
-     contenido UNA SOLA PÁGINA aunque el salto sea de cuatro tabs (ver
-     `alTocar`), así que ahí el scroll recorre 1/4 de lo que recorre la
-     barra. Por eso el toque trae su propio avance.
+     ── What `t` is, and why looking at the scroll is not enough ──
+     Dragging it is enough: the two ends are neighbours and the progress
+     is the fractional part of the page. But a FAR TAP moves the content
+     A SINGLE PAGE even if the jump is four tabs wide (see `onTap`), so
+     there the scroll covers 1/4 of what the bar covers. That is why the
+     tap brings its own progress.
 
-     ── Y POR QUÉ ES UN VALOR Y NO TRES ──
-     Porque los tres tienen que ser ciertos AL MISMO TIEMPO, y con tres
-     shared values no lo eran: el recibo del titileo que eso causaba está
-     arriba de `Tramo`, en `barra.tsx`. Un `useDerivedValue` declara su
-     salida, así que el orden topológico de Reanimated lo corre antes que
-     todos sus lectores; un `useAnimatedReaction` no declara ninguna.
+     ── AND WHY IT IS ONE VALUE AND NOT THREE ──
+     Because the three of them have to be true AT THE SAME TIME, and
+     with three shared values they were not: the receipt for the flicker
+     that caused is above `Segment`, in `tab-bar.tsx`. A
+     `useDerivedValue` declares its output, so Reanimated's topological
+     order runs it before all of its readers; a `useAnimatedReaction`
+     declares none.
      ─────────────────────────────────────────────────────────────── */
-  /* La página que está prestada, a qué lugar, y cuál es la que vivía ahí
-     —esa se apaga mientras dure el préstamo, o las dos se dibujan una
-     encima de la otra y el texto queda pisado. Ver `alTocar`. */
-  const prestadaIndice = useSharedValue(NADIE)
-  const prestadaX = useSharedValue(0)
-  const tapadaIndice = useSharedValue(NADIE)
+  /* The page that is on loan, to which slot, and which one used to live
+     there. That one goes dark for as long as the loan lasts, or the two
+     of them are drawn on top of each other and the text is trampled.
+     See `onTap`. */
+  const lentIndex = useSharedValue(NONE)
+  const lentX = useSharedValue(0)
+  const coveredIndex = useSharedValue(NONE)
 
-  const ultimo = tabs.length - 1
-  const tramo = useDerivedValue<Tramo>(() => {
-    /* El tramo del toque vale MIENTRAS HAY UN TOQUE, y el toque es
-       `movimiento === toque`, no `destino !== NADIE`: cualquier otra
-       cosa que mueva el pager por `destino` (una sonda de grabación,
-       2026-09-04) dejaba a la barra leyendo `toqueDesde`/`toqueHasta`
-       viejos y el subrayado quedaba clavado en For you mientras el
-       contenido viajaba. */
-    if (destino.get() !== NADIE && movimiento.get() === MOVIMIENTO.toque) {
-      return { d: toqueDesde.get(), h: toqueHasta.get(), t: avanceToque.get() }
+  const last = tabs.length - 1
+  const segment = useDerivedValue<Segment>(() => {
+    /* The tap's segment holds WHILE THERE IS A TAP, and the tap is
+       `motion === tap`, not `target !== NONE`: anything else that moves
+       the pager through `target` (a recording probe, 2026-09-04) left
+       the bar reading a stale `tapFrom`/`tapTo` and the underline stuck
+       on For you while the content travelled. */
+    if (target.get() !== NONE && motion.get() === MOTION.tap) {
+      return { d: tapFrom.get(), h: tapTo.get(), t: tapProgress.get() }
     }
-    /* El toque lejano que el dedo interrumpió: el préstamo sigue vivo,
-       así que la barra sigue yendo de `desde` a `hasta`, con el avance
-       leído del scroll entre el lugar prestado y el destino (el recibo
-       está arriba de `asentarPrestamo`). */
-    if (prestadaIndice.get() !== NADIE) {
-      const d = toqueDesde.get()
-      const h = toqueHasta.get()
+    /* The far tap that the finger interrupted: the loan is still alive,
+       so the bar keeps going from `from` to `to`, with the progress
+       read off the scroll between the lent slot and the destination
+       (the receipt is above `settleLoan`). */
+    if (lentIndex.get() !== NONE) {
+      const d = tapFrom.get()
+      const h = tapTo.get()
       const dir = h > d ? 1 : -1
-      return { d, h, t: Math.min(1, Math.max(0, (progreso.get() - (h - dir)) * dir)) }
+      return { d, h, t: Math.min(1, Math.max(0, (progress.get() - (h - dir)) * dir)) }
     }
-    const p = progreso.get()
-    const d = Math.max(0, Math.min(Math.floor(p), ultimo))
-    const h = Math.min(d + 1, ultimo)
-    /* `h` es siempre `d + 1` salvo en el último tab, donde no hay a dónde
-       ir y los dos extremos son el mismo. Ahí `t` no significa nada. */
+    const p = progress.get()
+    const d = Math.max(0, Math.min(Math.floor(p), last))
+    const h = Math.min(d + 1, last)
+    /* `h` is always `d + 1` except on the last tab, where there is
+       nowhere to go and both ends are the same. There `t` means
+       nothing. */
     return { d, h, t: h === d ? 0 : Math.min(1, Math.max(0, p - d)) }
   })
 
-  /* De quién es el toque en curso. Ver `alTocar`. */
-  const generacion = useSharedValue(0)
+  /* Whose tap is under way. See `onTap`. */
+  const generation = useSharedValue(0)
 
-  /* El tab al que el scroll va a saltar SIN que cambie nada en pantalla
-     (ver `asentarPrestamo`): ese cruce no vibra. */
-  const hapticaSuprimida = useSharedValue(NADIE)
+  /* The tab the scroll is about to jump to WITHOUT anything changing on
+     screen (see `settleLoan`): that crossing does not buzz. */
+  const hapticSuppressed = useSharedValue(NONE)
 
-  /* ═══ EL DEDO GANA, TAMBIÉN DURANTE UN TOQUE LEJANO ═══
+  /* ═══ THE FINGER WINS, ALSO DURING A FAR TAP ═══
 
-     Hasta el 2026-09-07 el pager rechazaba el dedo mientras duraba un
-     toque lejano (`scrollEnabled={!quieto}`, un estado de React que
-     cambiaba dos veces por toque), por la página prestada: devolverla
-     con media pantalla adentro se veía como un salto. Eso rompía la
-     regla que `animate-expo` pone como piso —la interrupción no es
-     pulido, es la base— y el usuario pidió cumplirla sin tocar la
-     animación del toque, para no regrabar el video.
+     Until 2026-09-07 the pager refused the finger for as long as a far
+     tap lasted (`scrollEnabled={!still}`, a React state that changed
+     twice per tap), because of the page on loan: giving it back with
+     half a screen showing looked like a jump. That broke the rule
+     `animate-expo` sets as the floor, that interruption is not polish
+     but the base, and the user asked for it to be honoured without
+     touching the tap's animation, so the video would not need
+     re-recording.
 
-     Cómo: el préstamo SIGUE VIVO mientras el dedo arrastra. La geometría
-     que ve el usuario —la página de origen en el lugar vecino, el
-     destino al lado— se mantiene, y la barra sigue yendo de `desde` a
-     `hasta` con el avance leído del scroll (ver `tramo`). El préstamo se
-     devuelve recién cuando no se puede ver:
-       · si el contenido llega al destino, ahí mismo: el lugar prestado
-         queda fuera de pantalla;
-       · si el dedo vuelve y el pager frena sobre la página prestada, se
-         devuelve y en el MISMO cuadro el scroll salta al lugar real de
-         esa página. El contenido es idéntico antes y después, y la
-         háptica de ese salto se silencia porque no cambió nada.
-     Lo que queda mal, y es una esquina de una esquina: arrastrar hacia
-     ATRÁS más allá de la página prestada dentro de esos 300 ms muestra
-     el lugar vacío de donde salió, o una página que no es su vecina; se
-     arregla solo al soltar, por el mismo camino. No hay forma de
-     evitarlo sin mover el scroll con el dedo apoyado, y UIScrollView
-     no lo respeta. SIN RECIBO EN PANTALLA TODAVÍA: probar en el
-     teléfono tocando lejos y arrastrando enseguida, en las dos
-     direcciones. */
-  const devolver = () => {
+     How: the loan STAYS ALIVE while the finger drags. The geometry the
+     user sees, the origin page in the neighbouring slot and the
+     destination next to it, is kept, and the bar keeps going from
+     `from` to `to` with the progress read off the scroll (see
+     `segment`). The loan is given back only when it cannot be seen:
+       · if the content reaches the destination, right there: the lent
+         slot ends up off screen;
+       · if the finger comes back and the pager stops on the lent page,
+         it is given back and in the SAME frame the scroll jumps to that
+         page's real slot. The content is identical before and after,
+         and the haptic for that jump is silenced because nothing
+         changed.
+     What is left wrong, and it is a corner of a corner: dragging
+     BACKWARD past the lent page inside those 300 ms shows the empty
+     slot it came out of, or a page that is not its neighbour; it fixes
+     itself on release, along the same path. There is no way to avoid it
+     without moving the scroll with the finger down, and UIScrollView
+     does not honour that. NO RECEIPT ON SCREEN YET: test on the phone
+     by tapping far away and dragging right after, in both directions. */
+  const returnLoan = () => {
     'worklet'
-    prestadaIndice.set(NADIE)
-    prestadaX.set(0)
-    tapadaIndice.set(NADIE)
+    lentIndex.set(NONE)
+    lentX.set(0)
+    coveredIndex.set(NONE)
   }
-  const asentarPrestamo = () => {
+  const settleLoan = () => {
     'worklet'
-    if (prestadaIndice.get() === NADIE || width <= 0) return
-    const d = toqueDesde.get()
-    const h = toqueHasta.get()
-    const vecino = h - (h > d ? 1 : -1)
-    if (Math.round(progreso.get()) === vecino) {
-      hapticaSuprimida.set(d)
+    if (lentIndex.get() === NONE || width <= 0) return
+    const d = tapFrom.get()
+    const h = tapTo.get()
+    const neighbour = h - (h > d ? 1 : -1)
+    if (Math.round(progress.get()) === neighbour) {
+      hapticSuppressed.set(d)
       scrollTo(pager, d * width, 0, false)
       scrollX.set(d * width)
     }
-    devolver()
+    returnLoan()
   }
-  const alScrollear = useAnimatedScrollHandler(
+  const onScroll = useAnimatedScrollHandler(
     {
       onScroll: (e) => {
         scrollX.set(e.contentOffset.x)
-        /* Con el préstamo vivo y el dedo al mando: al llegar al destino
-           el lugar prestado ya no se ve, y se devuelve ahí mismo. */
-        if (prestadaIndice.get() !== NADIE && movimiento.get() === MOVIMIENTO.arrastre && width > 0) {
-          const h = toqueHasta.get()
-          const dir = h > toqueDesde.get() ? 1 : -1
-          if ((progreso.get() - h) * dir >= 0) devolver()
+        /* With the loan alive and the finger in command: on reaching
+           the destination the lent slot can no longer be seen, and it
+           is given back right there. */
+        if (lentIndex.get() !== NONE && motion.get() === MOTION.drag && width > 0) {
+          const h = tapTo.get()
+          const dir = h > tapFrom.get() ? 1 : -1
+          if ((progress.get() - h) * dir >= 0) returnLoan()
         }
       },
-      /* Si el dedo entra en escena, corta cualquier animación de toque que
-         esté corriendo — el gesto siempre gana. Con una página prestada el
-         turno pasa al dedo: el callback del toque, que llega cancelado, ya
-         no es de nadie y no limpia. */
+      /* If the finger comes on stage, it cuts off any tap animation
+         that is running. The gesture always wins. With a page on loan
+         the turn passes to the finger: the tap's callback, which
+         arrives cancelled, belongs to nobody and does not clean up. */
       onBeginDrag: () => {
-        if (prestadaIndice.get() !== NADIE) {
-          generacion.set(generacion.get() + 1)
-          avanceToque.set(avanceToque.get())
+        if (lentIndex.get() !== NONE) {
+          generation.set(generation.get() + 1)
+          tapProgress.set(tapProgress.get())
         }
-        destino.set(NADIE)
-        movimiento.set(MOVIMIENTO.arrastre)
+        target.set(NONE)
+        motion.set(MOTION.drag)
       },
-      /* Recién con el momentum terminado: entre soltar y frenar el
-         contenido sigue moviéndose, y la fila tiene que seguir atada a él. */
+      /* Only once the momentum is over: between release and stop the
+         content keeps moving, and the row has to stay tied to it. */
       onMomentumEnd: () => {
-        if (destino.get() !== NADIE) return
-        asentarPrestamo()
-        movimiento.set(MOVIMIENTO.quieto)
+        if (target.get() !== NONE) return
+        settleLoan()
+        motion.set(MOTION.still)
       },
-      /* Soltar justo en un borde de página y sin velocidad no trae
-         momentum, así que `onMomentumEnd` no llega: se asienta acá. */
+      /* Releasing right on a page boundary with no velocity brings no
+         momentum, so `onMomentumEnd` never arrives: it settles here. */
       onEndDrag: (e) => {
-        if (destino.get() !== NADIE || width <= 0) return
+        if (target.get() !== NONE || width <= 0) return
         const p = e.contentOffset.x / width
         if (Math.abs(e.velocity?.x ?? 0) > 0.001 || Math.abs(p - Math.round(p)) > 0.001) return
-        asentarPrestamo()
-        movimiento.set(MOVIMIENTO.quieto)
+        settleLoan()
+        motion.set(MOTION.still)
       },
     },
     [width],
   )
 
-  /* El único puente entre la animación y el ScrollView, y corre entero
-     en el hilo de UI: ni un render de React por cuadro. */
+  /* The only bridge between the animation and the ScrollView, and it
+     runs entirely on the UI thread: not one React render per frame. */
   useAnimatedReaction(
-    () => destino.get(),
+    () => target.get(),
     (x) => {
-      if (x !== NADIE) scrollTo(pager, x, 0, false)
+      if (x !== NONE) scrollTo(pager, x, 0, false)
     },
   )
 
   /* ───────────────────────────────────────────────────────────────
-     EL TICK AL CAMBIAR DE TAB.
+     THE TICK ON CHANGING TABS.
 
-     Esto es lo que hace que arrastrar se sienta como un control con
-     posiciones y no como una tela. El subrayado es continuo, así que no
-     hay ningún salto visual que marque el momento — pero la IDENTIDAD
-     del tab activo sí salta, justo en la mitad. Ahí va el tick.
+     This is what makes dragging feel like a control with positions and
+     not like a piece of cloth. The underline is continuous, so there is
+     no visual jump marking the moment, but the IDENTITY of the active
+     tab does jump, right in the middle. That is where the tick goes.
 
-     ADVERTENCIA DE EVIDENCIA: esto NO está medido contra la referencia.
-     El clip es un video y no tiene pista háptica; no hay forma de sacar
-     de ahí si X vibra, cuándo, ni con qué intensidad. El patrón sale del
-     skill `animate-expo` —"a value ticks past a step"— y la intensidad
-     se ajustó a mano, con el teléfono. Es lo único de la pieza sin
-     recibo.
+     EVIDENCE WARNING: this is NOT measured against the reference. The
+     clip is a video and has no haptic track; there is no way to get out
+     of it whether X buzzes, when, or with what intensity. The pattern
+     comes from the `animate-expo` skill, "a value ticks past a step",
+     and the intensity was tuned by hand, with the phone. It is the only
+     thing in the piece without a receipt.
 
-     La condición del `prepare` es lo que lo hace barato: se redondea
-     `progreso` y Reanimated sólo llama al cuerpo cuando ese entero
-     cambia. Nunca hay un `scheduleOnRN` por cuadro, que es la forma
-     clásica de arruinar el hilo de JS con hápticas.
+     The condition in the `prepare` is what makes it cheap: `progress`
+     is rounded and Reanimated only calls the body when that integer
+     changes. There is never a `scheduleOnRN` per frame, which is the
+     classic way to ruin the JS thread with haptics.
      ─────────────────────────────────────────────────────────────── */
   useAnimatedReaction(
-    () => Math.round(progreso.get()),
-    (tab, anterior) => {
-      if (anterior === null || tab === anterior) return
-      /* Un toque ya dio su tick al apretar. Sin esto, saltar del tab 0
-         al 3 haría vibrar tres veces mientras la animación pasa por el
-         medio — y la regla es una háptica por acción del usuario, no
-         una por cosa que se mueve. */
-      if (destino.get() !== NADIE) return
-      /* El scroll asentándose en el lugar real de la página prestada no
-         cambia lo que se ve, y no vibra (ver `asentarPrestamo`). */
-      if (tab === hapticaSuprimida.get()) {
-        hapticaSuprimida.set(NADIE)
+    () => Math.round(progress.get()),
+    (tab, previous) => {
+      if (previous === null || tab === previous) return
+      /* A tap already gave its tick on the press. Without this, jumping
+         from tab 0 to tab 3 would buzz three times while the animation
+         goes through the middle, and the rule is one haptic per user
+         action, not one per thing that moves. */
+      if (target.get() !== NONE) return
+      /* The scroll settling into the lent page's real slot does not
+         change what you see, and does not buzz (see `settleLoan`). */
+      if (tab === hapticSuppressed.get()) {
+        hapticSuppressed.set(NONE)
         return
       }
-      scheduleOnRN(golpe)
+      scheduleOnRN(impact)
     },
   )
 
-  const alTocar = useCallback((indice: number) => {
-    /* LA HÁPTICA VA EN EL TOQUE CONSUMADO, no en el apretón. Estuvo en
-       `onPressIn` ("el tick tiene que llegar cuando decidís") y el
-       teléfono mostró el costo: arrancar a ARRASTRAR la fila apoya el
-       dedo sobre un tab, así que cada arrastre de la lista sonaba
-       ("saca el haptic", 2026-09-01). El scroll cancela el press y
-       `onPress` no dispara — el tick queda solo en los toques.
+  const onTap = useCallback((index: number) => {
+    /* THE HAPTIC GOES ON THE COMPLETED TAP, not on the press. It was in
+       `onPressIn` ("the tick has to arrive when you decide") and the
+       phone showed the cost: starting to DRAG the row puts the finger
+       down on a tab, so every drag of the list buzzed ("take the haptic
+       out", 2026-09-01). The scroll cancels the press and `onPress`
+       does not fire, so the tick is left only on taps.
 
-       Y sólo si el tab cambia: vibrar sobre el tab ya activo es ruido —
-       la háptica marca un cambio de selección, y ahí no hay ninguno. */
-    if (Math.round(progreso.get()) !== indice) golpe()
-    /* Ningún estado de React acá: un toque, lejano o no, no renderiza.
-       El pager acepta el dedo siempre, también durante un toque lejano
-       (ver `asentarPrestamo`). */
+       And only if the tab changes: buzzing on the already active tab is
+       noise, because the haptic marks a change of selection and there
+       is none there. */
+    if (Math.round(progress.get()) !== index) impact()
+    /* No React state here: a tap, far or not, does not render. The
+       pager accepts the finger always, also during a far tap (see
+       `settleLoan`). */
 
-    /* LAS ASIGNACIONES VAN JUNTAS EN EL HILO DE UI, y no es un detalle:
-       escribir un shared value desde JS se encola, así que dos
-       escrituras seguidas en el mismo tick pueden llegar como una sola.
-       Si eso pasara, el `withTiming` arrancaría desde el valor viejo de
-       `destino` —que después de un arrastre es el centinela— y el pager
-       saltaría. Adentro de un worklet corren en orden. */
+    /* THE ASSIGNMENTS GO TOGETHER ON THE UI THREAD, and it is not a
+       detail: writing a shared value from JS is queued, so two writes
+       in a row in the same tick can arrive as one. If that happened,
+       the `withTiming` would start from the old value of `target`,
+       which after a drag is the sentinel, and the pager would jump.
+       Inside a worklet they run in order. */
     scheduleOnUI(
-      (i: number, ancho: number) => {
+      (i: number, pageWidth: number) => {
         'worklet'
-        /* ═══ UN TOQUE CANCELA AL ANTERIOR, Y HAY QUE CERRARLO BIEN ═══
+        /* ═══ A TAP CANCELS THE PREVIOUS ONE, AND IT HAS TO BE CLOSED
+           PROPERLY ═══
 
-           Regla de la casa: cancelá lo que está corriendo antes de
-           arrancar otra animación sobre el mismo shared value. Acá no
-           alcanza con eso, porque el toque deja algo prendido además de
-           la animación — la página prestada.
+           House rule: cancel whatever is running before starting
+           another animation on the same shared value. Here that is not
+           enough, because the tap leaves something else switched on
+           besides the animation: the page on loan.
 
-           Si llega un segundo toque, el primero se termina AL INSTANTE:
-           el pager salta a donde iba y la página prestada vuelve a su
-           lugar. Recién ahí `Math.round(progreso)` vuelve a leer una
-           página de verdad y no un punto a mitad de camino. */
-        if (destino.get() !== NADIE) {
-          scrollTo(pager, toqueHasta.get() * ancho, 0, false)
-          scrollX.set(toqueHasta.get() * ancho)
-          prestadaIndice.set(NADIE)
-          prestadaX.set(0)
-          tapadaIndice.set(NADIE)
+           If a second tap arrives, the first one ends AT ONCE: the
+           pager jumps to where it was going and the page on loan goes
+           back to its slot. Only then does `Math.round(progress)` read
+           a real page again and not a point halfway there. */
+        if (target.get() !== NONE) {
+          scrollTo(pager, tapTo.get() * pageWidth, 0, false)
+          scrollX.set(tapTo.get() * pageWidth)
+          lentIndex.set(NONE)
+          lentX.set(0)
+          coveredIndex.set(NONE)
         } else {
-          /* Un préstamo que el dedo interrumpió y todavía no se asentó
-             (el pager sigue frenando): se asienta ahora, o el nuevo
-             toque leería una página que no es la que se ve. */
-          asentarPrestamo()
+          /* A loan the finger interrupted and that has not settled yet
+             (the pager is still stopping): it settles now, or the new
+             tap would read a page that is not the one on screen. */
+          settleLoan()
         }
 
-        const d = Math.round(progreso.get())
+        const d = Math.round(progress.get())
         if (i === d) return
         const dir = i > d ? 1 : -1
 
-        /* El turno de este toque. El callback del `withTiming` se dispara
-           igual cuando lo cancelan, así que sin esto la limpieza del
-           toque viejo le borraría la página prestada al nuevo. */
-        const turno = generacion.get() + 1
-        generacion.set(turno)
+        /* This tap's turn. The `withTiming` callback fires even when it
+           is cancelled, so without this the old tap's cleanup would
+           wipe the new one's page on loan. */
+        const turn = generation.get() + 1
+        generation.set(turn)
 
-        /* ═══ EL CONTENIDO VIAJA UNA SOLA PÁGINA ═══
+        /* ═══ THE CONTENT TRAVELS A SINGLE PAGE ═══
 
-           Tocar el tab 4 estando en el 0 NO scrollea cuatro pantallas de
-           contenido. La referencia lo hace así y está medido: en el
-           toque For you → Tech —dos tabs de por medio— hay UN SOLO
-           empalme en el video. La página de For you sale y la de Tech
-           entra, pegadas. Ni Following ni Stocks aparecen.
+           Tapping tab 4 from tab 0 does NOT scroll four screens of
+           content. The reference does it this way and it is measured:
+           in the For you → Tech tap, two tabs in between, there is ONE
+           SINGLE splice in the video. The For you page leaves and the
+           Tech page comes in, back to back. Neither Following nor
+           Stocks appears.
 
-           Cómo: la página de ORIGEN se presta al lugar de al lado del
-           destino, y el scroll salta ahí en el mismo cuadro. En pantalla
-           no cambia nada —la página de origen sigue ocupando todo— pero
-           el viaje pasó a ser de una página. Al terminar se devuelve, y
-           ahí ya está fuera de pantalla: tampoco se ve.
+           How: the ORIGIN page is lent to the slot next to the
+           destination, and the scroll jumps there in the same frame. On
+           screen nothing changes, the origin page still fills
+           everything, but the trip has become one page long. When it is
+           over the page is given back, and by then it is off screen: it
+           is not seen either.
 
-           El orden importa. `destino` se fija PRIMERO para cerrarle la
-           puerta al tick háptico y al cálculo de `desde`/`hasta`, que si
-           no leerían el salto del scroll como un cambio de tab. */
-        const vecino = i - dir
-        destino.set(vecino * ancho)
-        movimiento.set(MOVIMIENTO.toque)
-        toqueDesde.set(d)
-        toqueHasta.set(i)
+           The order matters. `target` is set FIRST to shut the door on
+           the haptic tick and on the `from`/`to` arithmetic, which
+           would otherwise read the scroll's jump as a tab change. */
+        const neighbour = i - dir
+        target.set(neighbour * pageWidth)
+        motion.set(MOTION.tap)
+        tapFrom.set(d)
+        tapTo.set(i)
 
-        if (vecino !== d) {
-          prestadaIndice.set(d)
-          prestadaX.set((vecino - d) * ancho)
-          tapadaIndice.set(vecino)
-          scrollTo(pager, vecino * ancho, 0, false)
-          /* A mano y no esperando el evento de scroll: `progreso` tiene
-             que estar en el lugar nuevo YA, o el cuadro siguiente lo lee
-             viejo. */
-          scrollX.set(vecino * ancho)
+        if (neighbour !== d) {
+          lentIndex.set(d)
+          lentX.set((neighbour - d) * pageWidth)
+          coveredIndex.set(neighbour)
+          scrollTo(pager, neighbour * pageWidth, 0, false)
+          /* By hand and not waiting for the scroll event: `progress`
+             has to be at the new place NOW, or the next frame reads it
+             stale. */
+          scrollX.set(neighbour * pageWidth)
         }
 
-        /* La barra recorre de `desde` a `hasta` completo aunque el
-           contenido recorra una página: por eso el toque trae su propio
-           avance en vez de derivarlo del scroll. */
-        avanceToque.set(0)
-        avanceToque.set(withTiming(1, CFG))
-        destino.set(
-          withTiming(i * ancho, CFG, () => {
-            /* Si mientras tanto entró otro toque, este callback llega
-               tarde y no le corresponde limpiar nada: el turno ya es de
-               otro. */
-            if (generacion.get() !== turno) return
-            /* Y si no, limpia sin mirar si la animación terminó o la
-               cancelaron: en los dos casos hay que devolver la página
-               prestada y soltar el centinela, o el tick del arrastre
-               queda mudo para siempre. */
-            prestadaIndice.set(NADIE)
-            prestadaX.set(0)
-            tapadaIndice.set(NADIE)
-            destino.set(NADIE)
-            movimiento.set(MOVIMIENTO.quieto)
+        /* The bar covers `from` to `to` in full even though the content
+           covers one page: that is why the tap brings its own progress
+           instead of deriving it from the scroll. */
+        tapProgress.set(0)
+        tapProgress.set(withTiming(1, CFG))
+        target.set(
+          withTiming(i * pageWidth, CFG, () => {
+            /* If another tap came in meanwhile, this callback arrives
+               late and it is not its job to clean anything up: the turn
+               belongs to someone else. */
+            if (generation.get() !== turn) return
+            /* And if not, it cleans up without checking whether the
+               animation finished or was cancelled: in both cases the
+               page on loan has to be given back and the sentinel
+               released, or the drag's tick goes mute forever. */
+            lentIndex.set(NONE)
+            lentX.set(0)
+            coveredIndex.set(NONE)
+            target.set(NONE)
+            motion.set(MOTION.still)
           }),
         )
       },
-      indice,
+      index,
       width,
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width])
 
-  /* ═══ LAS PÁGINAS SE MEMOIZAN, Y NO ES MICRO-OPTIMIZACIÓN ═══
+  /* ═══ THE PAGES ARE MEMOIZED, AND IT IS NOT MICRO-OPTIMIZATION ═══
 
-     Hoy este componente no tiene estado de React: ni un toque ni un
-     arrastre lo renderizan. Lo tuvo hasta el 2026-09-07 (`quieto`, el
-     bloqueo del pager durante un toque lejano), y ese render volvía a
-     crear los elementos de las SEIS páginas —doce filas de texto cada
-     una— justo en el cuadro en que arrancaba la animación del toque. El
-     memo se queda: un render del padre (el tema, por ejemplo) haría lo
-     mismo, y la medición de abajo es el recibo de lo que cuesta.
+     Today this component has no React state: neither a tap nor a drag
+     renders it. It had some until 2026-09-07 (`still`, the pager's
+     lock during a far tap), and that render re-created the elements of
+     all SIX pages, twelve rows of text each, right on the frame the
+     tap's animation started. The memo stays: a render of the parent
+     (the theme, for instance) would do the same thing, and the
+     measurement below is the receipt for what it costs.
 
-     Estaba medido: en la grabación a 60 fps de un toque lejano, el
-     primer cuadro después del toque no se movía y el segundo saltaba
-     0.195 de golpe (el ease pedía 0.128 y 0.252). Un cuadro entero
-     perdido, y se veía como un tirón.
+     It was measured: in the 60 fps recording of a far tap, the first
+     frame after the tap did not move and the second one jumped 0.195 at
+     once (the ease asked for 0.128 and 0.252). A whole frame lost, and
+     it looked like a tug.
 
-     `pagina` viene de la ruta, que no re-renderiza cuando cambia el
-     estado de acá, así que su identidad aguanta y este `useMemo` no se
-     recalcula nunca en la práctica. */
-  const hojas = useMemo(
-    () => tabs.map((tab, indice) => ({ id: tab.id, contenido: pagina(tab, indice) })),
-    [tabs, pagina],
+     `page` comes from the route, which does not re-render when the
+     state here changes, so its identity holds and in practice this
+     `useMemo` never recalculates. */
+  const sheets = useMemo(
+    () => tabs.map((tab, index) => ({ id: tab.id, content: page(tab, index) })),
+    [tabs, page],
   )
 
-  /* Cambiando de tab, el bloque no puede quedar más plegado que lo que
-     scrolleó la página que llega: se interpola entre las dos páginas del
-     tramo mientras el contenido viaja, y al asentarse la subida se
-     clampea a la página nueva para que el próximo delta arranque de lo
-     que se ve. DECISIÓN NUESTRA (ver `pliegue.tsx`). */
-  const plegado = useDerivedValue(() => {
-    const { d, h, t } = tramo.get()
-    const p = posiciones.get()
-    const desde = p[d] ?? 0
-    const scroll = desde + ((p[h] ?? 0) - desde) * t
-    return Math.min(subida.get(), Math.max(0, scroll))
+  /* On changing tabs, the block cannot end up more collapsed than the
+     arriving page scrolled: it interpolates between the segment's two
+     pages while the content travels, and on settling the rise is
+     clamped to the new page so the next delta starts from what is on
+     screen. OUR DECISION (see `collapse.tsx`). */
+  const clampedRise = useDerivedValue(() => {
+    const { d, h, t } = segment.get()
+    const p = positions.get()
+    const from = p[d] ?? 0
+    const scroll = from + ((p[h] ?? 0) - from) * t
+    return Math.min(rise.get(), Math.max(0, scroll))
   })
-  /* Dos capas: el bloque entero se traslada con fondo opaco; sólo lo
-     que va encima (cabecera y barra) se desvanece. El divisor queda con
-     el fondo: es la línea que viaja y frena bajo la barra de estado. */
-  const estiloBloque = useAnimatedStyle(() => ({ transform: [{ translateY: -plegado.get() }] }))
-  const estiloFrente = useAnimatedStyle(() => ({ opacity: opacidadPlegada(plegado.get(), recorrido) }))
+  /* Two layers: the whole block translates with an opaque background;
+     only what sits on top (header and bar) fades. The divider stays
+     with the background: it is the line that travels and stops under
+     the status bar. */
+  const blockStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -clampedRise.get() }] }))
+  const frontStyle = useAnimatedStyle(() => ({ opacity: collapsedOpacity(clampedRise.get(), travel) }))
   useAnimatedReaction(
-    () => movimiento.get(),
-    (m, anterior) => {
-      if (m !== MOVIMIENTO.quieto || anterior === null || anterior === MOVIMIENTO.quieto) return
-      const p = posiciones.get()
-      subida.set(Math.min(subida.get(), Math.max(0, p[Math.round(progreso.get())] ?? 0)))
+    () => motion.get(),
+    (m, previous) => {
+      if (m !== MOTION.still || previous === null || previous === MOTION.still) return
+      const p = positions.get()
+      rise.set(Math.min(rise.get(), Math.max(0, p[Math.round(progress.get())] ?? 0)))
     },
   )
 
 
-  /* ═══ SONDA DE GRABACIÓN (?demo=1) — no forma parte de la pieza ═══
-     Una coreografía one-shot para grabar el video, con gestos
-     sintéticos que van por los caminos reales de la pieza: los
-     arrastres mueven el offset del pager cuadro a cuadro con
-     `movimiento` en `arrastre` (la barra sigue al contenido como con un
-     dedo) y los toques son `alTocar`. Se borra antes de cerrar, como
-     todas las sondas.
+  /* ═══ RECORDING PROBE (?demo=1) — not part of the piece ═══
+     A one-shot choreography for recording the video, with synthetic
+     gestures that go down the piece's real paths: the drags move the
+     pager's offset frame by frame with `motion` set to `drag` (the bar
+     follows the content as it would with a finger) and the taps are
+     `onTap`. It gets deleted before closing, like every probe.
 
-     Lo que pidió el usuario sobre la toma anterior (2026-09-04): que la
-     entrada a Following no se trabe (era un salto instantáneo), que
-     Following → Stocks sea LENTO, y que la parte rápida no pase tan
-     rápido (eran toques cada 600 ms).
+     What the user asked for about the previous take (2026-09-04): that
+     the entry into Following should not stall (it was an instant jump),
+     that Following → Stocks should be SLOW, and that the fast part
+     should not go by so fast (they were taps every 600 ms).
 
-       0.0  nace en Following, barra y contenido (contentOffset)
-       1.5  arrastre lento Following → Stocks: 1.7 s, seno in-out —un
-            dedo que acelera y frena— (X, medido: 1.73 s)
-       4.1  toque a For you
-       5.1  cinco flicks de un tab, cada 1.0 s: 15 % del viaje en 110 ms
-            (easeInQuad) y el resto en 430 ms (easeOutCubic), el perfil
-            ajustado contra los arrastres medidos de X
-      10.1  en Design, dos flicks atrás (AI, Tech), cada 1.0 s
-      12.1  quieto en Tech hasta el final */
+       0.0  born on Following, bar and content (contentOffset)
+       1.5  slow drag Following → Stocks: 1.7 s, sine in-out, a finger
+            that speeds up and slows down (X, measured: 1.73 s)
+       4.1  tap to For you
+       5.1  five one-tab flicks, every 1.0 s: 15 % of the trip in 110 ms
+            (easeInQuad) and the rest in 430 ms (easeOutCubic), the
+            profile fitted against X's measured drags
+      10.1  on Design, two flicks back (AI, Tech), every 1.0 s
+      12.1  still on Tech until the end */
   useEffect(() => {
     if (!demo || width <= 0) return
     let cancel = false
     const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
-    /* Los arrastres van por `destino`, el mismo puente que usa el toque
-       (su reacción hace `scrollTo` por cuadro y el `onScroll` alimenta
-       `scrollX`): una reacción propia sobre otro shared value dejó la
-       toma anterior con saltos en vez de arrastres. */
-    const arrastre = (desde: number, hasta: number, lento: boolean) =>
+    /* The drags go through `target`, the same bridge the tap uses (its
+       reaction does a `scrollTo` per frame and the `onScroll` feeds
+       `scrollX`): a reaction of its own on another shared value left
+       the previous take with jumps instead of drags. */
+    const drag = (from: number, to: number, slow: boolean) =>
       scheduleOnUI(
-        (a: number, b: number, ancho: number, esLento: boolean) => {
+        (a: number, b: number, pageWidth: number, isSlow: boolean) => {
           'worklet'
-          movimiento.set(MOVIMIENTO.arrastre)
-          destino.set(a * ancho)
-          const fin = (terminado?: boolean) => {
+          motion.set(MOTION.drag)
+          target.set(a * pageWidth)
+          const done = (finished?: boolean) => {
             'worklet'
-            if (!terminado) return
-            destino.set(NADIE)
-            movimiento.set(MOVIMIENTO.quieto)
+            if (!finished) return
+            target.set(NONE)
+            motion.set(MOTION.still)
           }
-          if (esLento) {
-            destino.set(withTiming(b * ancho, { duration: 1700, easing: Easing.inOut(Easing.sin) }, fin))
+          if (isSlow) {
+            target.set(withTiming(b * pageWidth, { duration: 1700, easing: Easing.inOut(Easing.sin) }, done))
           } else {
-            destino.set(
+            target.set(
               withSequence(
-                withTiming((a + (b - a) * 0.15) * ancho, { duration: 110, easing: Easing.in(Easing.quad) }),
-                withTiming(b * ancho, { duration: 430, easing: Easing.out(Easing.cubic) }, fin),
+                withTiming((a + (b - a) * 0.15) * pageWidth, { duration: 110, easing: Easing.in(Easing.quad) }),
+                withTiming(b * pageWidth, { duration: 430, easing: Easing.out(Easing.cubic) }, done),
               ),
             )
           }
         },
-        desde,
-        hasta,
+        from,
+        to,
         width,
-        lento,
+        slow,
       )
     ;(async () => {
       await wait(1500)
       if (cancel) return
-      arrastre(1, 2, true)
+      drag(1, 2, true)
       await wait(1700 + 900)
       if (cancel) return
-      alTocar(0)
+      onTap(0)
       await wait(300 + 700)
       for (const i of [1, 2, 3, 4, 5]) {
         if (cancel) return
-        arrastre(i - 1, i, false)
+        drag(i - 1, i, false)
         await wait(1000)
       }
-      /* Llegado al último tab, dos flicks atrás y ahí termina
-         (pedido del usuario, 2026-09-04). */
+      /* Once at the last tab, two flicks back and that is where it ends
+         (the user's request, 2026-09-04). */
       for (const i of [4, 3]) {
         if (cancel) return
-        arrastre(i + 1, i, false)
+        drag(i + 1, i, false)
         await wait(1000)
       }
     })()
     return () => {
       cancel = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot de grabación
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot for the recording
   }, [demo, width])
 
   return (
-    <View style={[css.pieza, { backgroundColor: paleta.fondo }]}>
-      {/* El pager ocupa la pantalla ENTERA, barra de estado incluida: el
-          contenido pasa por debajo del bloque cuando el bloque se fue.
-          Cada página deja libre `alto` arriba (ver `useScrollPlegable`). */}
-      <PliegueContext.Provider value={pliegue}>
+    <View style={[css.piece, { backgroundColor: palette.background }]}>
+      {/* The pager fills the WHOLE screen, status bar included: the
+          content passes under the block once the block is gone. Each
+          page leaves `height` free at the top (see
+          `useCollapsingScroll`). */}
+      <CollapseContext.Provider value={collapse}>
         <Animated.ScrollView
           ref={pager}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          onScroll={alScrollear}
+          onScroll={onScroll}
           scrollEventThrottle={16}
-          /* SONDA: nacer en Following de verdad. Un `scrollTo` en el
-             primer efecto no movía el pager (el contenido todavía no
-             estaba) y quedaba la barra en Following con el contenido
-             de For you. */
+          /* PROBE: to really be born on Following. A `scrollTo` in the
+             first effect did not move the pager (the content was not
+             there yet) and left the bar on Following with the For you
+             content. */
           contentOffset={demo ? { x: width, y: 0 } : undefined}
         >
-          {hojas.map((hoja, indice) => (
-            <Hoja
-              key={hoja.id}
-              indice={indice}
-              ancho={width}
-              prestadaIndice={prestadaIndice}
-              prestadaX={prestadaX}
-              tapadaIndice={tapadaIndice}
+          {sheets.map((sheet, index) => (
+            <Sheet
+              key={sheet.id}
+              index={index}
+              width={width}
+              lentIndex={lentIndex}
+              lentX={lentX}
+              coveredIndex={coveredIndex}
             >
-              {hoja.contenido}
-            </Hoja>
+              {sheet.content}
+            </Sheet>
           ))}
         </Animated.ScrollView>
-      </PliegueContext.Provider>
+      </CollapseContext.Provider>
 
-      {/* EL BLOQUE QUE SE PLIEGA: barra de estado + cabecera + tabs +
-          divisor. Se traslada entero con el fondo opaco; frena con el
-          divisor pegado al borde de la barra de estado, y entonces su
-          fondo ES lo que tapa la barra de estado — no hace falta una
-          tapa aparte (hubo una, y su filete asomaba a través del bloque
-          mientras se desvanecía; ver `pliegue.tsx`). */}
-      <Animated.View style={[css.bloque, { paddingTop: arriba, backgroundColor: paleta.fondo }, estiloBloque]}>
-        <Animated.View style={estiloFrente}>
-          {cabecera}
-          <Barra tabs={tabs} tramo={tramo} movimiento={movimiento} viewport={width} alTocar={alTocar} />
+      {/* THE BLOCK THAT COLLAPSES: status bar + header + tabs +
+          divider. It translates as a whole with an opaque background;
+          it stops with the divider flush against the edge of the status
+          bar, and then its background IS what covers the status bar. No
+          separate cover is needed (there was one, and its hairline
+          showed through the block while it faded; see `collapse.tsx`). */}
+      <Animated.View style={[css.block, { paddingTop: top, backgroundColor: palette.background }, blockStyle]}>
+        <Animated.View style={frontStyle}>
+          {header}
+          <TabBar tabs={tabs} segment={segment} motion={motion} viewport={width} onTap={onTap} />
         </Animated.View>
-        <View style={[css.divisor, { backgroundColor: paleta.divisor }]} />
+        <View style={[css.divider, { backgroundColor: palette.divider }]} />
       </Animated.View>
     </View>
   )
 }
 
-/* Una página del pager. Está en su propio componente sólo para que cada
-   una tenga su `useAnimatedStyle`: el 99% del tiempo devuelve 0 y no
-   cuesta nada, y en el 1% es la que se presta.
+/* One page of the pager. It is in its own component only so each one
+   has its own `useAnimatedStyle`: 99% of the time it returns 0 and
+   costs nothing, and in the other 1% it is the one on loan.
 
-   `memo` porque el contenido ya viene memoizado de arriba: sin esto, un
-   render del pager volvería a renderizar las seis igual. */
-const Hoja = memo(function Hoja({
-  indice,
-  ancho,
-  prestadaIndice,
-  prestadaX,
-  tapadaIndice,
+   `memo` because the content already arrives memoized from above:
+   without this, a render of the pager would re-render all six anyway. */
+const Sheet = memo(function Sheet({
+  index,
+  width,
+  lentIndex,
+  lentX,
+  coveredIndex,
   children,
 }: {
-  indice: number
-  ancho: number
-  prestadaIndice: SharedValue<number>
-  prestadaX: SharedValue<number>
-  tapadaIndice: SharedValue<number>
+  index: number
+  width: number
+  lentIndex: SharedValue<number>
+  lentX: SharedValue<number>
+  coveredIndex: SharedValue<number>
   children: ReactNode
 }) {
-  const estilo = useAnimatedStyle(() => ({
-    opacity: tapadaIndice.get() === indice ? 0 : 1,
-    transform: [{ translateX: prestadaIndice.get() === indice ? prestadaX.get() : 0 }],
+  const style = useAnimatedStyle(() => ({
+    opacity: coveredIndex.get() === index ? 0 : 1,
+    transform: [{ translateX: lentIndex.get() === index ? lentX.get() : 0 }],
   }))
-  return <Animated.View style={[{ width: ancho }, estilo]}>{children}</Animated.View>
+  return <Animated.View style={[{ width }, style]}>{children}</Animated.View>
 })
 
 const css = StyleSheet.create({
-  pieza: { flex: 1 },
-  bloque: { position: 'absolute', top: 0, left: 0, right: 0 },
-  /* 1 px en la referencia, que a 3x es exactamente `hairlineWidth`. El
-     subrayado se apoya justo encima. El color viene de la paleta. */
-  divisor: { height: StyleSheet.hairlineWidth },
+  piece: { flex: 1 },
+  block: { position: 'absolute', top: 0, left: 0, right: 0 },
+  /* 1 px in the reference, which at 3x is exactly `hairlineWidth`. The
+     underline rests right on top of it. The color comes from the
+     palette. */
+  divider: { height: StyleSheet.hairlineWidth },
 })

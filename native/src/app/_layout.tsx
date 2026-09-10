@@ -2,22 +2,22 @@ import { Stack } from 'expo-router'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL MARCO DEL TALLER.
+   THE FRAME OF THE WORKSHOP.
 
-   SIN HEADER EN NINGUNA PANTALLA, y no es estética: una pieza abierta
-   se GRABA, así que todo lo que no sea la pieza terminaría adentro del
-   video. La barra de navegación de iOS es chrome del taller, no de la
-   pieza.
+   NO HEADER ON ANY SCREEN, and this is not about looks: an open piece
+   gets RECORDED, so anything that is not the piece would end up inside
+   the video. The iOS navigation bar is the workshop's chrome, not the
+   piece's.
 
-   La salida es el SWIPE DESDE EL BORDE, que el stack nativo de iOS da
-   gratis y sin dibujar nada. El costo está dicho: una pieza que use el
-   borde izquierdo para su propio gesto tiene que apagarlo, con
-   `<Stack.Screen options={{ gestureEnabled: false }} />` adentro de su
-   pantalla.
+   The way out is the SWIPE FROM THE EDGE, which the native iOS stack
+   gives for free and without drawing anything. The cost is stated: a
+   piece that uses the left edge for its own gesture has to turn it off,
+   with `<Stack.Screen options={{ gestureEnabled: false }} />` inside
+   its screen.
 
-   GestureHandlerRootView ENVUELVE TODO. Es requisito de
-   react-native-gesture-handler —sin él los gestos no llegan— y va acá
-   arriba una vez, para que ninguna pieza tenga que acordarse.
+   GestureHandlerRootView WRAPS EVERYTHING. It is a requirement of
+   react-native-gesture-handler (without it the gestures never arrive)
+   and it goes up here once, so that no piece has to remember it.
    ═══════════════════════════════════════════════════════════════ */
 export default function Layout() {
   return (

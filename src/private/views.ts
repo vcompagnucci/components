@@ -1,437 +1,444 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /* ═══════════════════════════════════════════════════════════════
-   LAS VISTAS DEL PLAYGROUND — cada una es un lienzo.
+   THE PLAYGROUND VIEWS. Each one is a canvas.
 
-   Al revés que los clips, esto NO se deriva del disco: un clip existe
-   porque soltaste un archivo en una carpeta, y una vista existe porque
-   la creaste. Así que sí hay algo que mantener, y vive en
-   .lima-playground.json en la raíz del vault, al lado de las fichas.
+   Unlike the clips, this is NOT derived from disk: a clip exists
+   because you dropped a file in a folder, and a view exists because
+   you created it. So there is something to maintain, and it lives in
+   .lima-playground.json at the root of the vault, next to the details.
 
-   POR QUÉ EN EL VAULT Y NO EN localStorage: una vista referencia clips
-   por su ruta, así que pertenece al mismo lugar que ellos. En
-   localStorage se perdería al limpiar el navegador y no se podría mirar
-   desde otro, y las dos cosas serían raras para algo que es tan tuyo
-   como los clips.
+   WHY IN THE VAULT AND NOT IN localStorage: a view references clips by
+   their path, so it belongs in the same place they do. In localStorage
+   it would be lost when you clear the browser and it could not be seen
+   from another one, and both would be strange for something that is as
+   much yours as the clips are.
 
-   EL SERVIDOR NO CONFÍA EN ESTO. Todo lo que se manda se sanea del otro
-   lado —campos conocidos, números acotados, tipos de frame de una
-   lista— así que este archivo puede quedarse con la parte cómoda.
+   THE SERVER DOES NOT TRUST THIS. Everything sent gets sanitized on
+   the other side, known fields, bounded numbers, frame kinds from a
+   list, so this file gets to keep the comfortable half.
    ═══════════════════════════════════════════════════════════════ */
 
-export type TipoFrame = 'pieza' | 'clip' | 'boceto'
+export type FrameKind = 'piece' | 'clip' | 'sketch'
 
-/* Un frame es UNA cosa puesta en el lienzo, y hay tres:
+/* A frame is ONE thing placed on the canvas, and there are three:
 
-     clip     una referencia del vault. `ref` es su ruta
-     boceto   un componente que estás escribiendo. `ref` es el nombre de
-              su archivo en src/privado/bocetos/, sin extensión
-     pieza    una pieza publicada. `ref` es su nombre. Todavía no se
-              dibuja: ver el hueco en playground.tsx
+     clip     a reference from the vault. `ref` is its path
+     sketch   a component you are writing. `ref` is the name of its
+              file in src/private/sketches/, without the extension
+     piece    a published piece. `ref` is its name. It is not drawn
+              yet: see the gap in playground.tsx
 
-   Los tres guardan una REFERENCIA y no una copia, a propósito: si le
-   cambiás la ficha a un clip o escribís en un boceto, el frame que lo
-   muestra ya está actualizado. Nada del contenido vive acá adentro. */
+   All three store a REFERENCE and not a copy, on purpose: if you
+   change a clip's details or write in a sketch, the frame showing it
+   is already up to date. None of the content lives in here. */
 export type Frame = {
   id: string
-  tipo: TipoFrame
+  kind: FrameKind
   ref: string
   x: number
   y: number
-  ancho: number
-  alto: number
+  width: number
+  height: number
 }
 
-export type Vista = {
+export type View = {
   id: string
-  nombre: string
-  creada: number
+  name: string
+  created: number
   frames: Frame[]
 }
 
-export type EstadoVistas =
-  | { cargando: true }
-  | { cargando: false; conectado: false; motivo: string }
-  | { cargando: false; conectado: true; vistas: Vista[] }
+export type ViewsStatus =
+  | { loading: true }
+  | { loading: false; connected: false; reason: string }
+  | { loading: false; connected: true; views: View[] }
 
-/* randomUUID pide un contexto seguro. localhost cuenta como seguro, así
-   que en desarrollo siempre está — pero el respaldo evita que abrir esto
-   desde la IP de la máquina en el teléfono tire una excepción en vez de
-   crear la vista. */
-export const nuevoId = () =>
+/* randomUUID asks for a secure context. localhost counts as secure, so
+   in development it is always there. The fallback keeps opening this
+   from the machine's IP on a phone from throwing an exception instead
+   of creating the view. */
+export const newId = () =>
   typeof crypto?.randomUUID === 'function'
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2) + Date.now().toString(36)
 
-/* CUÁNTO SE ESPERA ANTES DE GUARDAR.
+/* HOW LONG WE WAIT BEFORE SAVING.
 
-   Arrastrar un frame dispara un evento por cuadro: a 60fps, un arrastre
-   de dos segundos son 120 escrituras al disco. Con esto son una.
+   Dragging a frame fires an event per frame: at 60fps, a two-second
+   drag is 120 writes to disk. With this it is one.
 
-   400 y no más: es cortito para una mano —soltás el frame y para cuando
-   volvés a mirar ya está guardado— y largo comparado con los 16ms de un
-   cuadro, que es lo que hay que absorber. */
-const ESPERA = 400
+   400 and no more: it is short for a hand, you let go of the frame and
+   by the time you look back it is already saved, and it is long next
+   to the 16ms of a frame, which is what has to be absorbed. */
+const SAVE_DELAY = 400
 
-/* Sin nombre y sin diálogo. La vista nace con un nombre puesto y se
-   renombra después, que es lo que hace Figma: un modal antes de ver nada
-   te obliga a decidir cómo se llama algo que todavía no existe.
+/* No name and no dialog. The view is born with a name on it and gets
+   renamed later, which is what Figma does: a modal before you see
+   anything forces you to decide what to call something that does not
+   exist yet.
 
-   VIVE ACÁ Y NO EN playground.tsx porque lo usan DOS caminos: el botón
-   "New view" y el helper de abajo, que crea una vista sin que haya
-   ninguna interfaz montada. Dos constantes con el mismo texto en dos
-   archivos se separan solas el día que una cambie. */
-export const SIN_NOMBRE = 'Untitled'
+   IT LIVES HERE AND NOT IN playground.tsx because TWO paths use it:
+   the "New view" button and the helper below, which creates a view
+   with no interface mounted at all. Two constants with the same text
+   in two files come apart on their own the day one changes. */
+export const UNNAMED = 'Untitled'
 
 /* ═══════════════════════════════════════════════════════════════
-   DESHACER Y REHACER — ⌘Z y ⇧⌘Z.
+   UNDO AND REDO. ⌘Z and ⇧⌘Z.
 
-   ─── POR QUÉ SNAPSHOTS Y NO UN PATRÓN DE COMANDOS ───
-   Cada paso guarda una COPIA ENTERA del array de vistas. Suena caro y no
-   lo es: son unas pocas vistas con unos pocos frames planos —siete
-   números y dos strings cada uno— así que un paso pesa lo que pesa el
-   JSON, o sea nada.
+   ─── WHY SNAPSHOTS AND NOT A COMMAND PATTERN ───
+   Each step stores a WHOLE COPY of the array of views. It sounds
+   expensive and it is not: a few views with a few flat frames, seven
+   numbers and two strings each, so a step weighs what the JSON weighs,
+   which is nothing.
 
-   Y a cambio se lleva la propiedad que de verdad importa acá: NO PUEDE
-   DESINCRONIZARSE. Un patrón de comandos obliga a escribir el inverso de
-   cada acción, y el día que alguien agrega una acción nueva y se olvida
-   del inverso —o lo escribe mal— deshacer deja el documento en un estado
-   que nunca existió, en silencio. Con snapshots eso es imposible por
-   construcción: deshacer es volver a un estado que YA fue verdadero.
+   And in exchange it gets the property that actually matters here: IT
+   CANNOT GO OUT OF SYNC. A command pattern forces you to write the
+   inverse of every action, and the day somebody adds a new action and
+   forgets the inverse, or writes it wrong, undo leaves the document in
+   a state that never existed, in silence. With snapshots that is
+   impossible by construction: undoing is going back to a state that
+   WAS true.
 
-   ─── EL HISTORIAL ES DE LA SESIÓN ───
-   Vive en memoria y no se persiste. Recargar la página lo vacía, y está
-   bien: deshacer es para arreglar lo que acabás de hacer, no para
-   arqueología. Guardarlo en el vault convertiría un archivo de datos en
-   un archivo de datos MÁS un registro de todo lo que probaste.
+   ─── THE HISTORY BELONGS TO THE SESSION ───
+   It lives in memory and is not persisted. Reloading the page empties
+   it, and that is fine: undo is for fixing what you just did, not for
+   archaeology. Keeping it in the vault would turn a data file into a
+   data file PLUS a record of everything you tried.
 
-   ─── DESHACER GUARDA EN EL ACTO ───
-   Sin debounce. Es la única escritura que se descarga ya, y por una
-   razón concreta: si deshacés y recargás dentro de los 400ms, el disco
-   todavía tiene lo que deshiciste y la app te lo devuelve. Deshacer algo
-   y que vuelva es de las pocas cosas que rompen la confianza de verdad.
+   ─── UNDO SAVES IMMEDIATELY ───
+   No debounce. It is the only write that goes out at once, and for a
+   concrete reason: if you undo and reload within 400ms, the disk still
+   has what you undid and the app gives it back to you. Undoing
+   something and having it come back is one of the few things that
+   really breaks trust.
 
-   ─── LA SELECCIÓN NO ES DESHACIBLE ───
-   Ni la de un frame ni la vista abierta: es dónde estás mirando, no lo
-   que hiciste. Es lo que hacen todos los editores, y meterla en la pila
-   obligaría a apretar ⌘Z tres veces para deshacer un movimiento.
+   ─── THE SELECTION IS NOT UNDOABLE ───
+   Neither the selected frame nor the open view: that is where you are
+   looking, not what you did. It is what every editor does, and putting
+   it on the stack would force you to press ⌘Z three times to undo one
+   move.
    ═══════════════════════════════════════════════════════════════ */
 
-/* CUÁNTOS PASOS SE RECUERDAN. 100 es holgado para una sesión de tablero
-   y acota la memoria: cien copias de un documento de este tamaño no
-   llegan a un megabyte. */
-const PILA = 100
+/* HOW MANY STEPS ARE REMEMBERED. 100 is generous for a session at the
+   board and it bounds the memory: a hundred copies of a document this
+   size do not reach a megabyte. */
+const STACK_LIMIT = 100
 
-/* CUÁNTO DURA UNA "MISMA ACCIÓN" para juntarla en un solo paso.
+/* HOW LONG "THE SAME ACTION" LASTS so it can be merged into one step.
 
-   Sin esto la pila se llena de basura: escribir seis letras en el nombre
-   de una vista serían seis pasos de deshacer, y cinco flechazos serían
-   cinco. Con esto, los eventos consecutivos que traen la MISMA etiqueta
-   —el mismo campo, el mismo frame— dentro de esta ventana no abren un
-   paso nuevo: el primero ya guardó el estado de antes, que es el único
-   que hace falta para volver.
+   Without this the stack fills with garbage: typing six letters into a
+   view's name would be six undo steps, and five arrow presses would be
+   five. With this, consecutive events carrying the SAME label, the
+   same field, the same frame, inside this window do not open a new
+   step: the first one already stored the state from before, which is
+   the only one needed to go back.
 
-   800ms: más largo que la pausa entre dos teclas escribiendo de corrido
-   (unos 150) y más corto que una pausa para pensar. Es también el doble
-   de los 400 del debounce de guardado, así que un paso nunca se parte
-   entre dos escrituras al disco. */
-const JUNTAR = 800
+   800ms: longer than the pause between two keys while typing straight
+   through (about 150) and shorter than a pause to think. It is also
+   twice the 400 of the save debounce, so a step never gets split
+   across two writes to disk. */
+const MERGE_WINDOW = 800
 
-/* Un paso de la pila: cómo estaba TODO antes, y qué lo cambió. La
-   etiqueta no se muestra en ningún lado — sólo sirve para decidir si el
-   evento que viene es "lo mismo" y hay que juntarlo. */
-type Paso = { vistas: Vista[]; etiqueta: string }
+/* A step on the stack: how EVERYTHING was before, and what changed it.
+   The label is not shown anywhere. It is only there to decide whether
+   the event coming in is "the same thing" and has to be merged. */
+type Step = { views: View[]; label: string }
 
-/* ─── LA SEMILLA DE "OPEN IN PLAYGROUND" ───
-   Ese camino corre FUERA de React (ver alPlayground, abajo) y termina
-   navegando: el vault se desmonta y el lienzo se monta de cero, así que
-   no hay ningún estado de React donde dejar el paso previo. El módulo sí
-   sobrevive —la navegación es del cliente, no recarga nada— así que el
-   snapshot de antes se deja acá y el hook lo levanta al cargar.
+/* ─── THE SEED FOR "OPEN IN PLAYGROUND" ───
+   That path runs OUTSIDE React (see toPlayground, below) and ends in a
+   navigation: the vault unmounts and the canvas mounts from scratch,
+   so there is no React state anywhere to leave the previous step in.
+   The module does survive, since the navigation is client-side and
+   reloads nothing, so the snapshot from before is left here and the
+   hook picks it up on load.
 
-   Con eso, el primer ⌘Z en el lienzo al que acabás de llegar deshace el
-   clip que lo trajo, que es exactamente lo que esperás. */
-let semilla: Vista[] | null = null
+   With that, the first ⌘Z on the canvas you just arrived at undoes the
+   clip that brought you there, which is exactly what you expect. */
+let seed: View[] | null = null
 
-export function useVistas() {
-  const [estado, setEstado] = useState<EstadoVistas>({ cargando: true })
+export function useViews() {
+  const [status, setStatus] = useState<ViewsStatus>({ loading: true })
 
-  /* El temporizador y lo último que hay para mandar, fuera del estado:
-     que cambien no tiene que redibujar nada. */
+  /* The timer and the last thing there is to send, outside of state:
+     them changing does not have to redraw anything. */
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendiente = useRef<Vista[] | null>(null)
+  const pending = useRef<View[] | null>(null)
 
-  /* EL PRESENTE, TAMBIÉN EN UN REF. El historial tiene que leer "cómo
-     está ahora" para apilarlo ANTES de cambiarlo, y leerlo de `estado`
-     obligaría a hacerlo adentro del updater de setState —que React puede
-     llamar dos veces— y a empujar la pila dos veces por acción. Con el
-     ref, apilar pasa una sola vez y fuera de todo render. */
-  const presente = useRef<Vista[]>([])
+  /* THE PRESENT, ALSO IN A REF. The history has to read "how it is
+     now" to stack it BEFORE changing it, and reading it from `status`
+     would force doing it inside the setState updater, which React can
+     call twice, and would push the stack twice per action. With the
+     ref, stacking happens once and outside of any render. */
+  const present = useRef<View[]>([])
 
-  /* Las dos pilas y la marca de la última acción, para juntar. Nada de
-     esto redibuja: por eso son refs y no estado. */
-  const atras = useRef<Paso[]>([])
-  const adelante = useRef<Vista[][]>([])
-  const ultimo = useRef<{ etiqueta: string; cuando: number } | null>(null)
+  /* The two stacks and the mark of the last action, for merging. None
+     of this redraws: that is why they are refs and not state. */
+  const back = useRef<Step[]>([])
+  const forward = useRef<View[][]>([])
+  const last = useRef<{ label: string; time: number } | null>(null)
 
-  const mandar = useCallback(() => {
-    const v = pendiente.current
-    pendiente.current = null
+  const send = useCallback(() => {
+    const v = pending.current
+    pending.current = null
     timer.current = null
     if (!v) return
-    fetch('/vault-media/__vistas', {
+    fetch('/vault-media/__views', {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ vistas: v }),
+      body: JSON.stringify({ views: v }),
     }).catch(() => {})
   }, [])
 
   useEffect(() => {
-    let vivo = true
-    fetch('/vault-media/__vistas')
+    let alive = true
+    fetch('/vault-media/__views')
       .then((r) => r.json())
       .then((d) => {
-        if (!vivo) return
-        if (!d.conectado) {
-          setEstado({ cargando: false, conectado: false, motivo: d.motivo })
+        if (!alive) return
+        if (!d.connected) {
+          setStatus({ loading: false, connected: false, reason: d.reason })
           return
         }
-        presente.current = d.vistas
-        /* Si llegaste desde "Open in playground", el paso previo espera
-           en el módulo. Se levanta una sola vez. */
-        if (semilla) {
-          atras.current = [{ vistas: semilla, etiqueta: '' }]
-          semilla = null
+        present.current = d.views
+        /* If you got here from "Open in playground", the previous step
+           is waiting in the module. It is picked up once. */
+        if (seed) {
+          back.current = [{ views: seed, label: '' }]
+          seed = null
         }
-        setEstado({ cargando: false, conectado: true, vistas: d.vistas })
+        setStatus({ loading: false, connected: true, views: d.views })
       })
       .catch((e) => {
-        if (vivo) setEstado({ cargando: false, conectado: false, motivo: String(e) })
+        if (alive) setStatus({ loading: false, connected: false, reason: String(e) })
       })
     return () => {
-      vivo = false
+      alive = false
     }
   }, [])
 
-  /* AL DESMONTAR SE MANDA LO QUE HAYA QUEDADO. Sin esto, mover un frame
-     y salir del playground antes de los 400ms pierde el movimiento — y
-     se sentiría como que la app olvida cosas al azar. */
+  /* ON UNMOUNT, WHATEVER IS LEFT GETS SENT. Without this, moving a
+     frame and leaving the playground before the 400ms loses the move,
+     and it would feel like the app forgets things at random. */
   useEffect(
     () => () => {
       if (timer.current) {
         clearTimeout(timer.current)
-        mandar()
+        send()
       }
     },
-    [mandar],
+    [send],
   )
 
-  /* La escritura es OPTIMISTA: la pantalla se actualiza ya y el disco
-     después. Un frame que se arrastra tiene que seguir al puntero sin
-     esperar a nadie.
-     `ya` salta el debounce, y lo usan deshacer y rehacer. */
-  const aplicar = useCallback(
-    (vistas: Vista[], ya = false) => {
-      presente.current = vistas
-      pendiente.current = vistas
-      setEstado((e) => (e.cargando || !e.conectado ? e : { ...e, vistas }))
+  /* The write is OPTIMISTIC: the screen updates now and the disk
+     later. A frame being dragged has to follow the pointer without
+     waiting for anybody.
+     `now` skips the debounce, and undo and redo use it. */
+  const apply = useCallback(
+    (views: View[], now = false) => {
+      present.current = views
+      pending.current = views
+      setStatus((s) => (s.loading || !s.connected ? s : { ...s, views }))
       if (timer.current) clearTimeout(timer.current)
-      if (ya) mandar()
-      else timer.current = setTimeout(mandar, ESPERA)
+      if (now) send()
+      else timer.current = setTimeout(send, SAVE_DELAY)
     },
-    [mandar],
+    [send],
   )
 
-  /* TODA mutación pasa por acá, y por eso el historial no se puede
-     olvidar de ninguna: no hay forma de cambiar el documento sin apilar
-     el estado de antes.
+  /* EVERY mutation goes through here, and that is why the history
+     cannot forget any of them: there is no way to change the document
+     without stacking the state from before.
 
-     La etiqueta tiene TRES valores y cada uno es una clase de cambio:
+     The label has THREE values and each one is a class of change:
 
-       undefined   una acción discreta: agregar, borrar, traer al
-                   frente. Cada llamada es un paso
-       un string   una acción continua: tipear un nombre, mover con las
-                   flechas. Dos llamadas seguidas con la misma etiqueta,
-                   dentro de JUNTAR, son un solo paso
-       null        NO ES UNA ACCIÓN TUYA. Se guarda al disco pero no
-                   entra al historial ni corta la rama de rehacer
+       undefined   a discrete action: add, delete, bring to front.
+                   Every call is one step
+       a string    a continuous action: typing a name, moving with the
+                   arrow keys. Two calls in a row with the same label,
+                   inside MERGE_WINDOW, are a single step
+       null        NOT AN ACTION OF YOURS. It is saved to disk but it
+                   does not enter the history and it does not cut the
+                   redo branch
 
-     El tercero existe por las CORRECCIONES AUTOMÁTICAS: el frame que
-     nace con la proporción provisional y se arregla cuando el video
-     termina de cargar, y el que estaba guardado fuera de una tela más
-     chica y se acomoda al montar. Las dos son la app arreglándose sola,
-     y meterlas en la pila hacía que el primer ⌘Z después de agregar un
-     clip deshiciera la corrección en vez de el clip — medido, y era
-     exactamente lo que se sentía roto. Deshacer tiene que deshacer lo
-     que hiciste VOS.
-     Si un ⌘Z las revierte igual, se vuelven a aplicar solas: son
-     idempotentes y su disparador vuelve a correr. */
-  const guardar = useCallback(
-    (siguiente: (v: Vista[]) => Vista[], etiqueta?: string | null) => {
-      const antes = presente.current
-      const despues = siguiente(antes)
-      /* Un cambio que no cambia nada no es un paso. Es lo que evita que
-         un clic sobre el frame que ya está al frente ensucie la pila. */
-      if (despues === antes) return
+     The third one exists because of the AUTOMATIC CORRECTIONS: the
+     frame born with the provisional aspect ratio that gets fixed when
+     the video finishes loading, and the one that was stored outside a
+     smaller canvas and gets moved in on mount. Both are the app
+     fixing itself, and putting them on the stack made the first ⌘Z
+     after adding a clip undo the correction instead of the clip.
+     Measured, and it was exactly what felt broken. Undo has to undo
+     what YOU did.
+     If a ⌘Z reverts them anyway, they reapply on their own: they are
+     idempotent and their trigger runs again. */
+  const save = useCallback(
+    (next: (v: View[]) => View[], label?: string | null) => {
+      const before = present.current
+      const after = next(before)
+      /* A change that changes nothing is not a step. It is what keeps
+         a click on the frame that is already at the front from
+         dirtying the stack. */
+      if (after === before) return
 
-      if (etiqueta !== null) {
-        const junta =
-          etiqueta !== undefined &&
-          ultimo.current?.etiqueta === etiqueta &&
-          Date.now() - ultimo.current.cuando < JUNTAR
-        if (!junta) {
-          atras.current.push({ vistas: antes, etiqueta: etiqueta ?? '' })
-          if (atras.current.length > PILA) atras.current.shift()
+      if (label !== null) {
+        const merges =
+          label !== undefined &&
+          last.current?.label === label &&
+          Date.now() - last.current.time < MERGE_WINDOW
+        if (!merges) {
+          back.current.push({ views: before, label: label ?? '' })
+          if (back.current.length > STACK_LIMIT) back.current.shift()
         }
-        ultimo.current = etiqueta === undefined ? null : { etiqueta, cuando: Date.now() }
+        last.current = label === undefined ? null : { label, time: Date.now() }
 
-        /* UNA ACCIÓN NUEVA CORTA LA RAMA DE REHACER. Es el
-           comportamiento de todos los editores: si deshacés tres pasos y
-           hacés algo distinto, el futuro que habías descartado deja de
-           existir — mantenerlo obligaría a un árbol y a una interfaz
-           para navegarlo.
-           Una corrección automática NO corta nada: no es una decisión
-           tuya, así que no puede tirar a la basura la que sí lo era. */
-        adelante.current = []
+        /* A NEW ACTION CUTS THE REDO BRANCH. It is what every editor
+           does: if you undo three steps and do something different,
+           the future you had discarded stops existing. Keeping it
+           would call for a tree and an interface to navigate it.
+           An automatic correction CUTS NOTHING: it is not a decision
+           of yours, so it cannot throw away the one that was. */
+        forward.current = []
       }
-      aplicar(despues)
+      apply(after)
     },
-    [aplicar],
+    [apply],
   )
 
-  const deshacer = useCallback(() => {
-    const paso = atras.current.pop()
-    if (!paso) return false
-    adelante.current.push(presente.current)
-    /* Se corta la juntada: lo próximo que escribas abre un paso nuevo,
-       aunque sea sobre el mismo campo. */
-    ultimo.current = null
-    aplicar(paso.vistas, true)
+  const undo = useCallback(() => {
+    const step = back.current.pop()
+    if (!step) return false
+    forward.current.push(present.current)
+    /* The merge is cut off: the next thing you type opens a new step,
+       even on the same field. */
+    last.current = null
+    apply(step.views, true)
     return true
-  }, [aplicar])
+  }, [apply])
 
-  const rehacer = useCallback(() => {
-    const v = adelante.current.pop()
+  const redo = useCallback(() => {
+    const v = forward.current.pop()
     if (!v) return false
-    atras.current.push({ vistas: presente.current, etiqueta: '' })
-    ultimo.current = null
-    aplicar(v, true)
+    back.current.push({ views: present.current, label: '' })
+    last.current = null
+    apply(v, true)
     return true
-  }, [aplicar])
+  }, [apply])
 
-  const crear = useCallback(
-    (nombre: string) => {
-      const vista: Vista = { id: nuevoId(), nombre, creada: Date.now(), frames: [] }
-      /* La nueva va PRIMERA, igual que el clip más reciente en el vault:
-         acabás de crearla, es lo que estás por abrir. */
-      guardar((v) => [vista, ...v])
-      return vista
+  const create = useCallback(
+    (name: string) => {
+      const view: View = { id: newId(), name, created: Date.now(), frames: [] }
+      /* The new one goes FIRST, same as the most recent clip in the
+         vault: you just created it, it is what you are about to open. */
+      save((v) => [view, ...v])
+      return view
     },
-    [guardar],
+    [save],
   )
 
-  const borrar = useCallback(
-    (id: string) => guardar((v) => v.filter((x) => x.id !== id)),
-    [guardar],
+  const remove = useCallback(
+    (id: string) => save((v) => v.filter((x) => x.id !== id)),
+    [save],
   )
 
-  const cambiar = useCallback(
-    (id: string, f: (v: Vista) => Vista, etiqueta?: string | null) =>
-      guardar((v) => {
+  const update = useCallback(
+    (id: string, f: (v: View) => View, label?: string | null) =>
+      save((v) => {
         const i = v.findIndex((x) => x.id === id)
         if (i < 0) return v
-        const siguiente = f(v[i])
-        /* Se compara la VISTA y no el array: así un cambio que devuelve
-           la misma vista —el acomodo que no tenía nada que acomodar— no
-           llega a apilar un paso. */
-        if (siguiente === v[i]) return v
-        return v.map((x, k) => (k === i ? siguiente : x))
-      }, etiqueta),
-    [guardar],
+        const next = f(v[i])
+        /* The VIEW is compared and not the array: that way a change
+           returning the same view, the tidy-up that had nothing to
+           tidy, never gets as far as stacking a step. */
+        if (next === v[i]) return v
+        return v.map((x, k) => (k === i ? next : x))
+      }, label),
+    [save],
   )
 
-  return { estado, crear, borrar, cambiar, deshacer, rehacer }
+  return { status, create, remove, update, undo, redo }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MANDAR UN CLIP AL PLAYGROUND DESDE EL VAULT.
+   SEND A CLIP TO THE PLAYGROUND FROM THE VAULT.
 
-   ES UN HELPER Y NO UN HOOK a propósito: lo dispara un ítem del menú
-   del clic derecho, o sea un lugar donde el playground NO está montado
-   y no hay ningún estado suyo del cual colgarse. Un hook obligaría al
-   vault a suscribirse a las vistas —y a pedirlas en cada render— para
-   usarlas una vez cada tanto.
+   IT IS A HELPER AND NOT A HOOK on purpose: it is fired by an item in
+   the right-click menu, that is, a place where the playground is NOT
+   mounted and there is no state of its own to hang off. A hook would
+   force the vault to subscribe to the views, and to ask for them on
+   every render, to use them once in a while.
 
-   VA A LA VISTA MÁS RECIENTE, la de `creada` más alta, y no a la
-   primera del array: el array lo ordena `crear` poniendo la nueva
-   adelante, pero eso es una decisión de presentación y no un hecho del
-   dato. Si no hay ninguna, se crea una — porque "mandar esto al
-   playground" tiene que funcionar la primera vez que lo apretás, sin
-   obligarte a ir a crear una vista antes.
+   IT GOES TO THE MOST RECENT VIEW, the one with the highest `created`,
+   and not to the first in the array: the array is ordered by `create`
+   putting the new one in front, but that is a presentation decision
+   and not a fact about the data. If there is none, one gets created,
+   because "send this to the playground" has to work the first time you
+   press it, without making you go create a view first.
 
-   El documento se lee y se vuelve a escribir ENTERO, que es el mismo
-   contrato que tiene useVistas con el servidor. Devuelve el id de la
-   vista para que el que llama navegue, o null si el vault no está.
+   The document is read and written back WHOLE, which is the same
+   contract useViews has with the server. It returns the view's id so
+   the caller can navigate, or null if the vault is not there.
    ═══════════════════════════════════════════════════════════════ */
 
-/* La medida de arranque cuando NO hay de dónde medir la proporción del
-   clip. Desde el vault no hay ningún elemento cargado —el menú vive
-   sobre la card, no sobre el lienzo— así que el frame nace en 16/9 y el
-   lienzo lo corrige cuando el medio termina de cargar. Ver PROVISIONAL
-   en playground.tsx: son el mismo par de números y el mismo trato. */
-const PROVISIONAL = { ancho: 480, alto: 270 }
+/* The starting size when there is NOWHERE to measure the clip's aspect
+   ratio from. From the vault there is no element loaded, since the
+   menu lives over the card and not over the canvas, so the frame is
+   born at 16/9 and the canvas corrects it when the media finishes
+   loading. See PROVISIONAL in playground.tsx: same pair of numbers and
+   same deal. */
+const PROVISIONAL = { width: 480, height: 270 }
 
-/* Y ARRANCA ARRIBA A LA IZQUIERDA, no centrado como el que se agrega
-   desde el lienzo. No es una preferencia: desde el vault no se puede
-   saber cuánto mide la tela —no está montada— y centrar contra un
-   tamaño inventado deja el frame en cualquier lado. 24 y la misma
-   cascada de 24 que usa el lienzo, así que dos clips seguidos no se
-   tapan. */
-const ESQUINA = 24
-const CASCADA = 24
-const VUELTAS = 8
+/* AND IT STARTS AT THE TOP LEFT, not centered like the one added from
+   the canvas. It is not a preference: from the vault there is no way
+   to know how big the canvas is, it is not mounted, and centering
+   against an invented size leaves the frame anywhere. 24, and the same
+   cascade of 24 the canvas uses, so two clips in a row do not cover
+   each other. */
+const CORNER = 24
+const CASCADE = 24
+const CASCADE_STEPS = 8
 
-export async function alPlayground(ruta: string): Promise<string | null> {
-  const r = await fetch('/vault-media/__vistas')
+export async function toPlayground(path: string): Promise<string | null> {
+  const r = await fetch('/vault-media/__views')
   const d = await r.json().catch(() => null)
-  if (!d?.conectado) return null
+  if (!d?.connected) return null
 
-  const vistas: Vista[] = Array.isArray(d.vistas) ? d.vistas : []
-  const reciente = vistas.reduce<Vista | null>((a, b) => (a && a.creada >= b.creada ? a : b), null)
-  const destino: Vista = reciente ?? {
-    id: nuevoId(),
-    nombre: SIN_NOMBRE,
-    creada: Date.now(),
+  const views: View[] = Array.isArray(d.views) ? d.views : []
+  const latest = views.reduce<View | null>((a, b) => (a && a.created >= b.created ? a : b), null)
+  const target: View = latest ?? {
+    id: newId(),
+    name: UNNAMED,
+    created: Date.now(),
     frames: [],
   }
 
-  const n = destino.frames.length
-  const salto = ESQUINA + (n % VUELTAS) * CASCADA
+  const n = target.frames.length
+  const offset = CORNER + (n % CASCADE_STEPS) * CASCADE
   const frame: Frame = {
-    id: nuevoId(),
-    tipo: 'clip',
-    ref: ruta,
-    x: salto,
-    y: salto,
+    id: newId(),
+    kind: 'clip',
+    ref: path,
+    x: offset,
+    y: offset,
     ...PROVISIONAL,
   }
-  const conFrame: Vista = { ...destino, frames: [...destino.frames, frame] }
+  const withFrame: View = { ...target, frames: [...target.frames, frame] }
 
-  /* Cómo estaba TODO antes de esto, para que el ⌘Z del lienzo al que
-     estás por llegar pueda deshacerlo. Ver `semilla`, arriba. */
-  semilla = vistas
+  /* How EVERYTHING was before this, so the ⌘Z on the canvas you are
+     about to reach can undo it. See `seed`, above. */
+  seed = views
 
-  /* Si la vista ya existía se reemplaza en su lugar; si es nueva va
-     primera, igual que en `crear`. */
-  const siguiente = reciente
-    ? vistas.map((v) => (v.id === conFrame.id ? conFrame : v))
-    : [conFrame, ...vistas]
+  /* If the view already existed it gets replaced in place; if it is
+     new it goes first, same as in `create`. */
+  const next = latest
+    ? views.map((v) => (v.id === withFrame.id ? withFrame : v))
+    : [withFrame, ...views]
 
-  await fetch('/vault-media/__vistas', {
+  await fetch('/vault-media/__views', {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ vistas: siguiente }),
+    body: JSON.stringify({ views: next }),
   })
 
-  return conFrame.id
+  return withFrame.id
 }

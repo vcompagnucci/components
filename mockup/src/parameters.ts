@@ -1,237 +1,243 @@
-/* LOS NÚMEROS DEL VIDEO, uno por línea y con recibo. Son las props de
-   la composición: en Remotion Studio aparecen como controles y se
-   tocan en vivo, sin re-encodear nada.
+/* THE NUMBERS OF THE VIDEO, one per line and each with its receipt.
+   They are the props of the composition: in Remotion Studio they show
+   up as controls and you move them live, without re-encoding anything.
 
-   La referencia es el clip de @nater02 (x.com/nater02/status/
-   2092952884987957708, 720² a 60 fps, medido cuadro a cuadro el
-   2026-09-04; planilla en .context/recon/swipeable-tabs/MEDICIONES.md).
-   Donde el brief se aparta de la referencia a propósito, está dicho. */
+   The reference is the clip by @nater02 (x.com/nater02/status/
+   2092952884987957708, 720² at 60 fps, measured frame by frame on
+   2026-09-04; the spreadsheet is in
+   .context/recon/swipeable-tabs/MEDICIONES.md). Where the brief departs
+   from the reference on purpose, it says so. */
 import { z } from 'zod'
 
-const curva = z.object({ x1: z.number(), y1: z.number(), x2: z.number(), y2: z.number() })
+const curve = z.object({ x1: z.number(), y1: z.number(), x2: z.number(), y2: z.number() })
 
-export const esquema = z.object({
-  /* medido: RGB (235, 230, 232) plano, sin gradiente */
-  fondo: z.string(),
-  /* qué hay detrás del teléfono además del color plano. `color` es la
-     referencia; lo demás es la exploración de fondos (ver fondos.ts):
-     degradados, foco, malla, grano, trama, piso, una imagen, o la
-     app misma desenfocada. Los campos que un tipo no usa se ignoran */
-  fondoEstilo: z.object({
-    tipo: z.enum(['color', 'degradado', 'foco', 'malla', 'grano', 'puntos', 'piso', 'imagen', 'app']),
-    colores: z.array(z.string()),
-    angulo: z.number(),
-    imagen: z.string(),
-    desenfoque: z.number(),
-    luz: z.number(),
-    escala: z.number(),
-    grano: z.number(),
+export const schema = z.object({
+  /* measured: flat RGB (235, 230, 232), no gradient */
+  background: z.string(),
+  /* what is behind the phone besides the flat color. `color` is the
+     reference; the rest is the exploration of backgrounds (see
+     backgrounds.ts): gradients, spotlight, mesh, grain, dots, floor, an
+     image, or the app itself blurred. The fields a type does not use
+     are ignored */
+  backgroundStyle: z.object({
+    type: z.enum(['color', 'gradient', 'spotlight', 'mesh', 'grain', 'dots', 'floor', 'image', 'app']),
+    colors: z.array(z.string()),
+    angle: z.number(),
+    image: z.string(),
+    blur: z.number(),
+    light: z.number(),
+    scale: z.number(),
+    grain: z.number(),
   }),
-  /* cuerpo del teléfono como fracción del alto del lienzo. La
-     referencia mide 0.953; el brief pide más aire: 0.75 */
-  altura: z.number().min(0.3).max(1),
-  /* capas de sombra, en px de un lienzo de 720 (se escalan con el
-     lienzo y con el zoom). Cada capa: opacidad, desenfoque (σ), corrida
-     en x y en y, color y cuánto crece el rectángulo antes de
-     desenfocarse (`expandir`; negativo lo achica). Medido en la
-     referencia de @nater02: α .60 σ 8 (12, 12) + α .20 σ 30 (70, 70).
-     El brief pide una sombra más marcada: α .82 σ 7 y α .32 σ 36; las
-     corridas quedan las medidas. Otras variantes, medidas sobre los
-     clips del vault o tomadas de los sistemas de diseño, en
-     `sombras.ts` */
-  sombra: z.array(
+  /* body of the phone as a fraction of the height of the canvas. The
+     reference measures 0.953; the brief asks for more air: 0.75 */
+  height: z.number().min(0.3).max(1),
+  /* shadow layers, in px of a 720 canvas (they scale with the canvas
+     and with the zoom). Each layer: alpha, blur (σ), offset in x and in
+     y, color, and how much the rectangle grows before it is blurred
+     (`spread`; negative shrinks it). Measured on the reference by
+     @nater02: α .60 σ 8 (12, 12) + α .20 σ 30 (70, 70). The brief asks
+     for a more marked shadow: α .82 σ 7 and α .32 σ 36; the offsets
+     stay the measured ones. Other variants, measured over the clips of
+     the vault or taken from design systems, are in `shadows.ts` */
+  shadow: z.array(
     z.object({
-      alfa: z.number(),
+      alpha: z.number(),
       sigma: z.number(),
       dx: z.number(),
       dy: z.number(),
       color: z.string(),
-      expandir: z.number(),
+      spread: z.number(),
     }),
   ),
-  camara: z.object({
-    espera: z.number(),
-    entra: z.number(),
+  camera: z.object({
+    wait: z.number(),
+    in: z.number(),
     k1: z.number(),
-    hasta: z.number(),
-    sale: z.number(),
+    until: z.number(),
+    out: z.number(),
     k2: z.number(),
-    foco: z.number(),
-    focoEnLienzo: z.number(),
-    aireArriba: z.number(),
-    curvaEntra: curva,
-    curvaSale: curva,
+    focus: z.number(),
+    focusOnCanvas: z.number(),
+    airAbove: z.number(),
+    curveIn: curve,
+    curveOut: curve,
   }),
-  /* qué va en el hueco: la grabación, o un rojo pleno para verificar */
-  pantalla: z.enum(['clip', 'roja']),
-  /* archivos en public/ (los escribe `pnpm assets`) */
+  /* what goes in the slot: the recording, or a solid red to verify */
+  screen: z.enum(['clip', 'red']),
+  /* files in public/ (`pnpm assets` writes them) */
   clip: z.string(),
-  bisel: z.string(),
-  /* tamaño de la grabación; lo completa calculateMetadata */
-  clipAncho: z.number(),
-  clipAlto: z.number(),
+  bezel: z.string(),
+  /* size of the recording; calculateMetadata fills it in */
+  clipWidth: z.number(),
+  clipHeight: z.number(),
 })
 
-export type Parametros = z.infer<typeof esquema>
+export type Parameters = z.infer<typeof schema>
 
-/* CADA VIDEO SALE DOS VECES: sobre el fondo claro (la referencia) y
-   sobre uno oscuro. Regla del usuario, 2026-09-04: "a cada video hay
-   que hacerle dos fondos, uno para light mode y uno para dark mode".
-   El oscuro NO está medido —el vault no tiene ninguna referencia sobre
-   fondo oscuro: Mini player y Hold to commit, que parecían oscuros,
-   miden 253–255 en las esquinas— así que es el neutro medido bajado a
-   ~11 % de luminancia con el mismo tinte: (235,230,232) → (28,24,26).
-   La sombra queda la misma: negra sobre casi negro no se ve, y el
-   teléfono se separa por el canto metálico del bisel, como en Apple. */
-export const FONDO_OSCURO = '#1C181A'
+/* EVERY VIDEO COMES OUT TWICE: over the light background (the
+   reference) and over a dark one. The user's rule, 2026-09-04: "every
+   video needs two backgrounds, one for light mode and one for dark
+   mode". The dark one is NOT measured. The vault has no reference over
+   a dark background: Mini player and Hold to commit, which looked dark,
+   measure 253 to 255 in the corners. So it is the measured neutral
+   taken down to ~11 % luminance with the same tint: (235,230,232) →
+   (28,24,26). The shadow stays the same: black over nearly black is not
+   visible, and what separates the phone is the metal edge of the bezel,
+   the way Apple does it. */
+export const DARK_BACKGROUND = '#1C181A'
 
-/* LA EXHIBITION LLEVA UN SOLO RENDER, TRANSPARENTE Y SIN SOMBRA
-   (pnpm render:exhibition → scripts/exhibition.mjs): el fondo lo pone la
-   card de la exhibition en el tema que sea, y el teléfono va sin sombra,
-   como los videos de Family en benji.org. Teléfono al 92 % del cuadro —el
-   video es la caja entera de la card y el usuario lo quiso más cerca;
-   benji va al 85 %— y la cámara que entra a los tabs y se queda hasta el
-   final (`hasta` fuera del clip): lo que se muestra son los tabs. Antes se rendía un par claro/oscuro con el color
-   de la card horneado y el usuario lo rechazó: "que haya solo un
-   fondo, el del lugar que da la library, y sin sombra, como Family"
-   (2026-09-05). El alfa viaja en dos archivos porque ningún códec lo
-   lleva a todos los navegadores: WebM VP9 para Chrome y Firefox, HEVC
-   con alfa en .mov para Safari. */
+/* THE EXHIBITION TAKES A SINGLE RENDER, TRANSPARENT AND WITHOUT SHADOW
+   (pnpm render:exhibition → scripts/exhibition.mjs): the exhibition
+   card supplies the background, in whatever theme it is in, and the
+   phone goes with no shadow, like the Family videos on benji.org. Phone
+   at 92 % of the frame (the video is the whole box of the card and the
+   user wanted it closer; benji goes to 85 %) and the camera comes in to
+   the tabs and stays there until the end (`until` outside the clip):
+   what is being shown are the tabs. Before, a light/dark pair was
+   rendered with the color of the card baked in and the user rejected
+   it: "let there be only one background, the one the library gives, and
+   no shadow, like Family" (2026-09-05). The alpha travels in two files
+   because no codec carries it to every browser: WebM VP9 for Chrome and
+   Firefox, HEVC with alpha in .mov for Safari. */
 
-export const PARAMETROS: Parametros = {
-  fondo: '#EBE6E8',
-  fondoEstilo: { tipo: 'color', colores: [], angulo: 180, imagen: '', desenfoque: 0, luz: 0, escala: 1, grano: 0 },
-  altura: 0.75,
-  /* La sombra del video de referencia, tal cual se midió (ver la
-     variante 1 de sombras.ts). El brief había pedido una más marcada
-     (α .82 σ 7 + α .32 σ 36); se miró la grilla y el usuario eligió
-     la medida, 2026-09-04. */
-  sombra: [
-    { alfa: 0.6, sigma: 8, dx: 12, dy: 12, color: '#000000', expandir: 0 },
-    { alfa: 0.2, sigma: 30, dx: 70, dy: 70, color: '#000000', expandir: 0 },
+export const PARAMETERS: Parameters = {
+  background: '#EBE6E8',
+  backgroundStyle: { type: 'color', colors: [], angle: 180, image: '', blur: 0, light: 0, scale: 1, grain: 0 },
+  height: 0.75,
+  /* The shadow of the reference video, exactly as it was measured (see
+     variant 1 of shadows.ts). The brief had asked for a more marked one
+     (α .82 σ 7 + α .32 σ 36); we looked at the grid and the user chose
+     the measured one, 2026-09-04. */
+  shadow: [
+    { alpha: 0.6, sigma: 8, dx: 12, dy: 12, color: '#000000', spread: 0 },
+    { alpha: 0.2, sigma: 30, dx: 70, dy: 70, color: '#000000', spread: 0 },
   ],
-  camara: {
-    /* referencia: entra desde el cuadro 0; acá un respiro de 0.25 s */
-    espera: 0.25,
-    /* 0.65 s a 1.576× (ancho del cuerpo 335 → 528 en 720) */
-    entra: 0.65,
+  camera: {
+    /* reference: it comes in from frame 0; here a 0.25 s breath */
+    wait: 0.25,
+    /* 0.65 s to 1.576× (body width 335 → 528 in 720) */
+    in: 0.65,
     k1: 1.576,
-    /* hasta que termina la parte lenta del clip. Medido sobre la toma
-       del 2026-09-04 (diferencia entre cuadros a 60 fps): el arrastre
-       lento Following → Stocks va de 1.20 a 2.85 s, el toque a For you
-       a 3.80, y los siete flicks cada 1.0 s desde 4.81 (cinco hasta
-       Design, dos de vuelta hasta Tech). La salida arranca a 3.0 y
-       termina a 3.62, antes del toque: la entrada cubre el arrastre
-       lento entero y lo demás se ve desde el encuadre final */
-    hasta: 3.0,
-    /* 0.62 s a 1.161× (528 → 389) */
-    sale: 0.62,
+    /* until the slow part of the clip ends. Measured over the take of
+       2026-09-04 (difference between frames at 60 fps): the slow drag
+       Following → Stocks runs from 1.20 to 2.85 s, the tap on For you
+       at 3.80, and the seven flicks every 1.0 s from 4.81 (five up to
+       Design, two back to Tech). The way out starts at 3.0 and ends at
+       3.62, before the tap: the way in covers the whole slow drag and
+       the rest is seen from the final framing */
+    until: 3.0,
+    /* 0.62 s to 1.161× (528 → 389) */
+    out: 0.62,
     k2: 1.161,
-    /* la fila de tabs: barra de estado + cabecera + media barra, como
-       fracción del alto del cuerpo */
-    foco: 0.145,
-    focoEnLienzo: 0.33,
-    /* referencia: 52 px de aire en 720 = 7.2 % */
-    aireArriba: 0.072,
-    curvaEntra: { x1: 0.3, y1: 0.05, x2: 0.4, y2: 0.9 },
-    curvaSale: { x1: 0.25, y1: 0.25, x2: 0.2, y2: 0.9 },
+    /* the row of tabs: status bar + header + half the bar, as a
+       fraction of the height of the body */
+    focus: 0.145,
+    focusOnCanvas: 0.33,
+    /* reference: 52 px of air in 720 = 7.2 % */
+    airAbove: 0.072,
+    curveIn: { x1: 0.3, y1: 0.05, x2: 0.4, y2: 0.9 },
+    curveOut: { x1: 0.25, y1: 0.25, x2: 0.2, y2: 0.9 },
   },
-  pantalla: 'clip',
+  screen: 'clip',
   clip: 'clip.mp4',
-  bisel: 'bisel.png',
-  clipAncho: 1320,
-  clipAlto: 2868,
+  bezel: 'bezel.png',
+  clipWidth: 1320,
+  clipHeight: 2868,
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   HOLD TO COMMIT — la segunda pieza App, y la primera que obliga a que
-   este mockup deje de ser de una sola. Lo único que cambia es la
-   CÁMARA: la acción de swipeable-tabs es una fila de tabs arriba, y la
-   de acá es una píldora al pie. Todo lo demás —bisel, tamaño, sombra,
-   fondos, curvas, zooms— es lo medido en la referencia y no se toca.
+   HOLD TO COMMIT: the second App piece, and the first one that forces
+   this mockup to stop being the mockup of a single piece. The only
+   thing that changes is the CAMERA: the action of swipeable-tabs is a
+   row of tabs at the top, and the action here is a pill at the foot.
+   Everything else, bezel, size, shadow, backgrounds, curves, zooms, is
+   what was measured on the reference and does not get touched.
 
-   `foco` es la fracción del alto del CUERPO donde mira la entrada. El
-   centro de la píldora está a 2650 de 2868 px en la captura, o sea al
-   92.40 % de la PANTALLA; con el hueco del bisel medido en
-   `geometria.ts` (cuerpo y 27 alto 2706, pantalla y 69 alto 2621), eso
-   es el 91.05 % del cuerpo.
+   `focus` is the fraction of the height of the BODY the way in looks
+   at. The center of the pill sits at 2650 of 2868 px in the capture,
+   that is at 92.40 % of the SCREEN; with the slot of the bezel measured
+   in `geometry.ts` (body y 27 height 2706, screen y 69 height 2621),
+   that is 91.05 % of the body.
 
-   `focoEnLienzo` baja de 0.33 a 0.58, y el número está MEDIDO, no
-   elegido a ojo. La píldora vive abajo, así que el encuadre se corre
-   para abajo hasta donde se pueda sin perder el canto del teléfono ni
-   su sombra: el criterio es dejar abajo el mismo aire que la referencia
-   deja arriba en la salida (`aireArriba`, 7.2 %). Medido sobre el
-   cuadro del commit, la sombra termina al 84.4 / 89.4 / 92.5 / 96.4 /
-   99.9 % del lienzo con focoEnLienzo 0.50 / 0.55 / 0.58 / 0.62 / 0.67:
-   0.58 deja 7.5 % de aire y es el que más ficha muestra encima de la
-   píldora, que es el contexto que hace entender qué se está comprando.
+   `focusOnCanvas` drops from 0.33 to 0.58, and the number is MEASURED,
+   not picked by eye. The pill lives at the bottom, so the framing moves
+   down as far as it can without losing the edge of the phone or its
+   shadow: the criterion is to leave the same air below that the
+   reference leaves above on the way out (`airAbove`, 7.2 %). Measured
+   over the frame of the commit, the shadow ends at 84.4 / 89.4 / 92.5 /
+   96.4 / 99.9 % of the canvas with focusOnCanvas 0.50 / 0.55 / 0.58 /
+   0.62 / 0.67: 0.58 leaves 7.5 % of air and is the one that shows the
+   most of the card above the pill, which is the context that makes you
+   understand what is being bought.
 
-   `hasta` es el final de la historia, y EL VIDEO TERMINA CUANDO TERMINA
-   LA ANIMACIÓN. En el máster (cortado 1.2 s antes del gesto) el hold
-   arranca a 1.47 s y la ráfaga cae a 2.20. RUNTIME: midiendo la
-   diferencia entre cuadros consecutivos en la banda del pill y su
-   entorno, las dos apariencias se quedan quietas a los 3.00 s, cuando
-   "✓ Order Placed" terminó de enfocar y la ráfaga se apagó, y siguen
-   quietas hasta los 4.33, que es cuando el reinicio empieza a moverse.
-   El clip se corta a 4.10: 1.10 s con el resultado en pantalla, y 0.23
-   de margen contra el reinicio. La salida de la cámara arranca a 3.00,
-   o sea en el cuadro en que la animación termina, y llega abierta a
-   3.62: el final se ve con el teléfono entero.
+   `until` is the end of the story, and THE VIDEO ENDS WHEN THE
+   ANIMATION ENDS. In the master (cut 1.2 s before the gesture) the hold
+   starts at 1.47 s and the burst lands at 2.20. RUNTIME: measuring the
+   difference between consecutive frames in the band of the pill and its
+   surroundings, the two appearances go still at 3.00 s, when "✓ Order
+   Placed" has finished coming into focus and the burst has gone out,
+   and they stay still until 4.33, which is when the reset starts to
+   move. The clip is cut at 4.10: 1.10 s with the result on screen, and
+   0.23 of margin against the reset. The camera starts its way out at
+   3.00, that is on the frame where the animation ends, and gets there
+   open at 3.62: the ending is seen with the whole phone.
 
-   EL AIRE DEL FINAL ES UN PEDIDO, no una medida. Primero se cortó a
-   3.25, con 0.25 s, y Vito (2026-09-08): "que haya más tiempo luego que
-   termine". Lo que la medición fija es el techo, no el gusto: más de
-   4.33 y entra el reinicio.
+   THE AIR AT THE END IS A REQUEST, not a measurement. It was cut at
+   3.25 first, with 0.25 s, and Vito (2026-09-08): "give it more time
+   after it ends". What the measurement fixes is the ceiling, not the
+   taste: past 4.33 the reset comes in.
 
-   NO SE ESPERA AL REINICIO. Vito, 2026-09-08: "hacé que el video se
-   corte antes, o sea cuando termina la animación y listo, bien natural,
-   que no se espere a volver". El fundido de vuelta al reposo sigue en la
-   pieza; en el video, dos segundos y medio esperando que el botón se
-   destrabe no son la pieza. Antes eran 6.35 con un hold abandonado
-   abriendo la toma, y 4.65 sin él. */
-export const HOLD_TO_COMMIT: Parametros = {
-  ...PARAMETROS,
-  clip: 'hold-to-commit-oscuro.mp4',
-  camara: {
-    ...PARAMETROS.camara,
-    foco: 0.9105,
-    focoEnLienzo: 0.58,
-    hasta: 3.0,
+   IT DOES NOT WAIT FOR THE RESET. Vito, 2026-09-08: "make the video cut
+   earlier, that is, when the animation ends and that is it, nice and
+   natural, do not wait for it to go back". The fade back to rest is
+   still in the piece; in the video, two and a half seconds waiting for
+   the button to unlock are not the piece. Before it was 6.35 with an
+   abandoned hold opening the take, and 4.65 without it. */
+export const HOLD_TO_COMMIT: Parameters = {
+  ...PARAMETERS,
+  clip: 'hold-to-commit-dark.mp4',
+  camera: {
+    ...PARAMETERS.camera,
+    focus: 0.9105,
+    focusOnCanvas: 0.58,
+    until: 3.0,
   },
 }
 
-/* LOS PARÁMETROS DE LA EXHIBITION, derivados de los de cada pieza.
-   Existen como composición propia y no como props del render porque
-   Remotion mezcla las input props con las defaultProps SÓLO en el
-   primer nivel: pasarle un `camara` parcial borra el resto del objeto
-   —el foco, el zoom, las curvas— y el esquema de zod lo rechaza. Con
-   una composición por pieza, el script de render sólo pisa el clip,
-   que es de primer nivel. */
-export const paraExhibition = (p: Parametros, focoEnLienzo = p.camara.focoEnLienzo): Parametros => ({
+/* THE PARAMETERS OF THE EXHIBITION, derived from the ones of each
+   piece. They exist as their own composition and not as props of the
+   render because Remotion merges the input props with the defaultProps
+   ONLY at the first level: passing it a partial `camera` erases the
+   rest of the object, the focus, the zoom, the curves, and the zod
+   schema rejects it. With one composition per piece, the render script
+   only overrides the clip, which is at the first level. */
+export const forExhibition = (p: Parameters, focusOnCanvas = p.camera.focusOnCanvas): Parameters => ({
   ...p,
-  fondo: 'transparent',
-  sombra: [],
-  /* 92 %: el video es la caja entera de la card y el usuario lo pidió
-     más cerca; benji va al 85 % */
-  altura: 0.92,
-  camara: {
-    ...p.camara,
-    /* `hasta` fuera del clip: la cámara entra al gesto y SE QUEDA ahí
-       hasta el final. "Así se ve lo que estoy mostrando" (usuario,
-       2026-09-05). El video de X sí sale. */
-    hasta: 9999,
+  background: 'transparent',
+  shadow: [],
+  /* 92 %: the video is the whole box of the card and the user asked for
+     it closer; benji goes to 85 % */
+  height: 0.92,
+  camera: {
+    ...p.camera,
+    /* `until` outside the clip: the camera comes in to the gesture and
+       STAYS there until the end. "That way you see what I am showing"
+       (the user, 2026-09-05). The video for X does go out. */
+    until: 9999,
     k2: 1.0,
-    aireArriba: 0.04,
-    /* EN LA EXHIBITION EL VIDEO ES LA CAJA ENTERA de la card, así que el
-       teléfono tiene que LLENARLA: el corte cae en el borde de la caja,
-       que es donde tiene que caer. Una pieza cuyo gesto vive abajo
-       necesita su propio valor, porque el que sirve para el video de X
-       —pensado para que no se pierdan el canto ni la sombra— acá deja un
-       tercio de card vacío. Medido sobre el cuadro del commit de
-       hold-to-commit: con 0.58 el cuerpo llega al 70.9 % de la caja y
-       queda 29.1 % de vacío; con 0.70 al 82.9 %; con 0.78 al 90.9 %;
-       con 0.85 al 97.9 % y con 0.92 al 99.9 %. Va 0.85: llena la caja y
-       deja la píldora entera adentro. */
-    focoEnLienzo,
+    airAbove: 0.04,
+    /* IN THE EXHIBITION THE VIDEO IS THE WHOLE BOX of the card, so the
+       phone has to FILL IT: the crop falls on the edge of the box,
+       which is where it has to fall. A piece whose gesture lives at the
+       bottom needs its own value, because the one that works for the
+       video on X, thought out so that neither the edge nor the shadow
+       gets lost, leaves a third of the card empty here. Measured over
+       the frame of the commit of hold-to-commit: with 0.58 the body
+       reaches 70.9 % of the box and 29.1 % is left empty; with 0.70,
+       82.9 %; with 0.78, 90.9 %; with 0.85, 97.9 %; and with 0.92,
+       99.9 %. It goes 0.85: it fills the box and leaves the whole pill
+       inside. */
+    focusOnCanvas,
   },
 })

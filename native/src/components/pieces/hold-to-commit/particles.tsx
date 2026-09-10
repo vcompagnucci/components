@@ -2,49 +2,51 @@ import { memo } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
 
-import { PARTICULAS, PILL } from './measurements'
+import { PARTICLES, PILL } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   LA RÁFAGA — 46 puntos que salen del perímetro del pill al completar.
+   THE BURST — 46 dots that come out of the pill's perimeter on
+   completion.
 
-   TODAS LAS PARTÍCULAS ESTÁN MONTADAS DESDE EL PRINCIPIO, invisibles, y
-   se mueven con UN solo shared value (`estallido`, 0→1) que cada una lee
-   en su `useAnimatedStyle`. Así el momento del commit no hace ningún
-   render de React: el hilo de JS puede estar ocupado con la háptica y
-   la ráfaga sale igual en el cuadro exacto. 46 estilos animados por
-   cuadro durante 700 ms es trabajo del hilo de UI y Reanimated lo
-   despacha en un solo commit.
+   EVERY PARTICLE IS MOUNTED FROM THE START, invisible, and they all move
+   off ONE shared value (`burst`, 0→1) that each of them reads in its
+   `useAnimatedStyle`. That way the moment of the commit does no React
+   render at all: the JS thread can be busy with the haptics and the
+   burst still comes out on the exact frame. 46 animated styles per frame
+   for 700 ms is UI thread work and Reanimated dispatches it in a single
+   commit.
 
-   LA NUBE SE INFLA DESDE EL CENTRO. Cada punto nace sobre la normal de
-   la cápsula (en las puntas, radial al arco) a 2.2 pt del borde y viaja
-   por esa normal su `viaje`; y además se corre en x proporcional a su
-   distancia al centro del pill (`expansion`), que es lo que se midió en
-   las pistas del clip: la ráfaga se ABRE, no tiembla. Las dos
-   componentes comparten el mismo ease-out.
+   THE CLOUD INFLATES FROM THE CENTER. Each dot is born on the capsule's
+   normal (at the tips, radial to the arc) 2.2 pt from the edge and
+   travels its `travel` along that normal; and on top of that it moves in
+   x proportionally to its distance from the center of the pill
+   (`expansion`), which is what was measured in the clip's tracks: the
+   burst OPENS, it does not shake. Both components share the same
+   ease-out.
 
-   LA TABLA ES DETERMINISTA: un generador congruencial con semilla fija,
-   así dos grabaciones de la pieza tienen la misma ráfaga y se pueden
-   comparar cuadro a cuadro — la misma razón por la que los labels no
-   escalan con Dynamic Type.
+   THE TABLE IS DETERMINISTIC: a congruential generator with a fixed
+   seed, so that two recordings of the piece have the same burst and can
+   be compared frame by frame — the same reason the labels do not scale
+   with Dynamic Type.
 
-   Los valores (cantidad, viaje, tamaños, colores, tiempos) están
-   medidos cuadro a cuadro del clip; el recibo está en `PARTICULAS`.
+   The values (count, travel, sizes, colors, timings) are measured frame
+   by frame off the clip; the receipt is in `PARTICLES`.
    ═══════════════════════════════════════════════════════════════ */
 
-type Particula = {
-  u: number        // posición a lo largo del pill, 0..1
-  lado: -1 | 1     // arriba (-1) o abajo (+1)
-  viaje: number    // pt, por la normal
-  fraccionViaje: number // parte de la vida que dura el viaje
-  diametro: number // pt
-  ruido: number    // pt de ruido lateral al final del viaje
+type Particle = {
+  u: number             // position along the pill, 0..1
+  side: -1 | 1          // above (-1) or below (+1)
+  travel: number        // pt, along the normal
+  travelFraction: number // the part of the life the travel lasts
+  diameter: number      // pt
+  noise: number         // pt of lateral noise at the end of the travel
   color: string
-  brillo: number   // 0.6..1, propio de cada punto
+  brightness: number    // 0.6..1, each dot's own
 }
 
-/* Park–Miller: bastante para 46 números que sólo tienen que parecer
-   desordenados y ser los mismos cada vez. */
-const azar = (() => {
+/* Park–Miller: plenty for 46 numbers that only have to look unordered
+   and be the same every time. */
+const random = (() => {
   let s = 20260902
   return () => {
     s = (s * 48271) % 2147483647
@@ -52,103 +54,103 @@ const azar = (() => {
   }
 })()
 
-const entre = (min: number, max: number) => min + (max - min) * azar()
-const POR_LADO = PARTICULAS.cantidad / 2
+const between = (min: number, max: number) => min + (max - min) * random()
+const PER_SIDE = PARTICLES.count / 2
 
-const TABLA: Particula[] = Array.from({ length: PARTICULAS.cantidad }, (_, i) => ({
-  u: PARTICULAS.desde + (PARTICULAS.hasta - PARTICULAS.desde) * (((i % POR_LADO) + 0.5) / POR_LADO) + entre(-0.018, 0.018),
-  lado: i < POR_LADO ? -1 : 1,
-  viaje: PARTICULAS.viaje.min + (PARTICULAS.viaje.max - PARTICULAS.viaje.min) * Math.pow(azar(), PARTICULAS.viaje.sesgo),
-  fraccionViaje: entre(PARTICULAS.duracionViaje.min, PARTICULAS.duracionViaje.max) / PARTICULAS.duracionVida,
-  diametro: PARTICULAS.diametro.min + (PARTICULAS.diametro.max - PARTICULAS.diametro.min) * Math.pow(azar(), PARTICULAS.diametro.sesgo),
-  ruido: entre(-PARTICULAS.ruidoLateral, PARTICULAS.ruidoLateral),
-  color: PARTICULAS.colores[Math.floor(azar() * PARTICULAS.colores.length)]!,
-  brillo: entre(PARTICULAS.brillo.min, PARTICULAS.brillo.max),
+const TABLE: Particle[] = Array.from({ length: PARTICLES.count }, (_, i) => ({
+  u: PARTICLES.from + (PARTICLES.to - PARTICLES.from) * (((i % PER_SIDE) + 0.5) / PER_SIDE) + between(-0.018, 0.018),
+  side: i < PER_SIDE ? -1 : 1,
+  travel: PARTICLES.travel.min + (PARTICLES.travel.max - PARTICLES.travel.min) * Math.pow(random(), PARTICLES.travel.bias),
+  travelFraction: between(PARTICLES.travelDuration.min, PARTICLES.travelDuration.max) / PARTICLES.lifetime,
+  diameter: PARTICLES.diameter.min + (PARTICLES.diameter.max - PARTICLES.diameter.min) * Math.pow(random(), PARTICLES.diameter.bias),
+  noise: between(-PARTICLES.lateralNoise, PARTICLES.lateralNoise),
+  color: PARTICLES.colors[Math.floor(random() * PARTICLES.colors.length)]!,
+  brightness: between(PARTICLES.brightness.min, PARTICLES.brightness.max),
 }))
 
-/* El punto del borde de la cápsula para una x, y su normal exterior (sin
-   escala). En el tramo recto la normal es vertical; en los arcos de las
-   puntas, radial al centro del arco. */
-const R = PILL.alto / 2
-function borde(x: number, ancho: number, lado: -1 | 1) {
-  const cx = x < R ? R : x > ancho - R ? ancho - R : x
+/* The point on the capsule's edge for a given x, and its outward normal
+   (unscaled). On the straight stretch the normal is vertical; on the arcs
+   at the tips, radial to the center of the arc. */
+const R = PILL.height / 2
+function edge(x: number, width: number, side: -1 | 1) {
+  const cx = x < R ? R : x > width - R ? width - R : x
   const dx = x - cx
-  const dy = lado * Math.sqrt(Math.max(0, R * R - dx * dx))
+  const dy = side * Math.sqrt(Math.max(0, R * R - dx * dx))
   return { x: cx + dx, y: R + dy, nx: dx / R, ny: dy / R }
 }
 
-/* La exponencial del apagado, en unidades de t (0..1 de la vida). */
-const K_APAGADO = PARTICULAS.duracionVida / PARTICULAS.tau
+/* The exponential of the fade, in units of t (0..1 of the life). */
+const K_FADE = PARTICLES.lifetime / PARTICLES.tau
 
-const suave = (v: number, a: number, b: number) => {
+const smoothstep = (v: number, a: number, b: number) => {
   'worklet'
   const t = Math.min(1, Math.max(0, (v - a) / (b - a)))
   return t * t * (3 - 2 * t)
 }
 
 type Props = {
-  ancho: number
-  estallido: SharedValue<number>
-  /** Un solo color para todos los puntos (modo claro: el del pill). Sin él, la tabla medida. */
+  width: number
+  burst: SharedValue<number>
+  /** One single color for every dot (light mode: the pill's). Without it, the measured table. */
   color?: string
 }
 
-function Punto({ p, ancho, estallido, color }: { p: Particula } & Props) {
-  const b = borde(p.u * ancho, ancho, p.lado)
-  /* El desplazamiento total, calculado una vez: la normal por el viaje,
-     más la expansión desde el centro y el ruido, en x. */
-  const finX = b.nx * p.viaje + PARTICULAS.expansion * (b.x - ancho / 2) + p.ruido
-  const finY = b.ny * p.viaje
-  const estilo = useAnimatedStyle(() => {
-    const t = estallido.get()
+function Dot({ p, width, burst, color }: { p: Particle } & Props) {
+  const b = edge(p.u * width, width, p.side)
+  /* The total displacement, worked out once: the normal times the travel,
+     plus the expansion from the center and the noise, in x. */
+  const endX = b.nx * p.travel + PARTICLES.expansion * (b.x - width / 2) + p.noise
+  const endY = b.ny * p.travel
+  const style = useAnimatedStyle(() => {
+    const t = burst.get()
     if (t <= 0 || t >= 1) return { opacity: 0, transform: [{ translateX: 0 }, { translateY: 0 }, { scale: 1 }] }
-    const v = Math.min(1, t / p.fraccionViaje)
-    const eo = 1 - (1 - v) * (1 - v) // ease-out cuadrático, medido
-    /* Apagado exponencial desde el brillo propio del punto, y un cierre
-       suave desde `apagadoDesde` para que la vida termine en cero. */
-    const apagado = Math.exp(-K_APAGADO * t) * (1 - suave(t, PARTICULAS.apagadoDesde, 1))
+    const v = Math.min(1, t / p.travelFraction)
+    const eo = 1 - (1 - v) * (1 - v) // quadratic ease-out, measured
+    /* Exponential fade from the dot's own brightness, and a soft close
+       from `fadeFrom` so that the life ends at zero. */
+    const fade = Math.exp(-K_FADE * t) * (1 - smoothstep(t, PARTICLES.fadeFrom, 1))
     return {
-      opacity: PARTICULAS.brilloMaximo * p.brillo * apagado,
+      opacity: PARTICLES.maxBrightness * p.brightness * fade,
       transform: [
-        { translateX: finX * eo },
-        { translateY: finY * eo },
-        { scale: 1 - (1 - PARTICULAS.escalaFinal) * t },
+        { translateX: endX * eo },
+        { translateY: endY * eo },
+        { scale: 1 - (1 - PARTICLES.finalScale) * t },
       ],
     }
   })
-  /* El centro del punto nace `desdeElBorde` afuera, por la normal. */
-  const cx = b.x + b.nx * PARTICULAS.desdeElBorde
-  const cy = b.y + b.ny * PARTICULAS.desdeElBorde
+  /* The dot's center is born `fromEdge` outside, along the normal. */
+  const cx = b.x + b.nx * PARTICLES.fromEdge
+  const cy = b.y + b.ny * PARTICLES.fromEdge
   return (
     <Animated.View
       style={[
-        css.punto,
+        css.dot,
         {
-          left: cx - p.diametro / 2,
-          top: cy - p.diametro / 2,
-          width: p.diametro,
-          height: p.diametro,
-          borderRadius: p.diametro / 2,
+          left: cx - p.diameter / 2,
+          top: cy - p.diameter / 2,
+          width: p.diameter,
+          height: p.diameter,
+          borderRadius: p.diameter / 2,
           backgroundColor: color ?? p.color,
         },
-        estilo,
+        style,
       ]}
     />
   )
 }
 
-/* `memo` con props primitivas y un shared value de identidad estable:
-   este árbol de 46 vistas no tiene por qué volver a renderizar nunca. */
-export const Particulas = memo(function Particulas({ ancho, estallido, color }: Props) {
+/* `memo` with primitive props and a shared value with a stable identity:
+   this tree of 46 views has no reason to ever render again. */
+export const Particles = memo(function Particles({ width, burst, color }: Props) {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {TABLA.map((p, i) => (
-        <Punto key={i} p={p} ancho={ancho} estallido={estallido} color={color} />
+      {TABLE.map((p, i) => (
+        <Dot key={i} p={p} width={width} burst={burst} color={color} />
       ))}
     </View>
   )
 })
 
 const css = StyleSheet.create({
-  punto: { position: 'absolute', opacity: 0 },
+  dot: { position: 'absolute', opacity: 0 },
 })

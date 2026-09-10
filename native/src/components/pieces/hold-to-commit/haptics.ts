@@ -1,49 +1,51 @@
 import * as Haptics from 'expo-haptics'
 
 /* ═══════════════════════════════════════════════════════════════
-   LA PISTA HÁPTICA — en un solo lugar, porque es lo único de la pieza
-   que NO se puede medir: el clip es video y no tiene pista háptica.
-   Todo lo de acá es SIN RECIBO y se ajusta con el teléfono en la mano
-   (el simulador no vibra).
+   THE HAPTIC TRACK — in one place, because it is the only thing in the
+   piece that CANNOT be measured: the clip is video and has no haptic
+   track. Everything here is NO RECEIPT and gets tuned with the phone in
+   hand (the simulator does not vibrate).
 
-   SIGUE LA TABLA DE `animate-expo` § 8 (pedido del 2026-09-04):
+   IT FOLLOWS THE TABLE IN `animate-expo` § 8 (asked for on 2026-09-04):
 
-     un valor pasa un detente     →  selectionAsync()
-     la operación terminó bien    →  notificationAsync(Success)
+     a value ticks past a detent  →  selectionAsync()
+     the operation succeeded      →  notificationAsync(Success)
 
-   y nada más. Apretar y soltar no están en la tabla —un botón de iOS
-   no vibra al tocarlo, y soltar antes no es un error: el usuario
-   decidió— así que no tienen háptica. Lo que había antes (2026-09-02:
-   Light al apretar, Soft al soltar, doce impactos crecientes de Soft a
-   Medium en los detentes) queda en la bitácora por si el teléfono pide
-   volver.
+   and nothing else. Pressing and releasing are not in the table (an iOS
+   button does not vibrate when you touch it, and releasing early is not
+   an error: the user decided) so they have no haptics. What was there
+   before (2026-09-02: Light on press, Soft on release, twelve growing
+   impacts from Soft to Medium at the detents) stays in the log in case
+   the phone asks for it back.
 
-   Las tres reglas absolutas del skill: cada tic va en el mismo cuadro
-   que lo visual (el progreso cruzando un umbral, en
-   `useAnimatedReaction` sobre el MISMO shared value que mueve el
-   frente), nunca hay un tic por cuadro (doce por hold, como un picker
-   pasando doce filas: la excepción de la tabla), y nada de esto es el
-   único feedback — el relleno se ve con la háptica apagada.
+   The skill's three absolute rules: every tick lands in the same frame
+   as the visual (the progress crossing a threshold, in
+   `useAnimatedReaction` over the SAME shared value that moves the
+   front), there is never a tick per frame (twelve per hold, like a
+   picker running past twelve rows: the exception in the table), and
+   none of this is the only feedback. The fill is visible with the
+   haptics off.
    ═══════════════════════════════════════════════════════════════ */
 
-/* SIN RECIBO · completar: el patrón de éxito del sistema, el "da-dum"
-   que iOS usa cuando algo se confirmó. Va en el mismo cuadro que la
-   ráfaga de partículas, que es el evento causal. */
-export const alCompletar = () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+/* NO RECEIPT · complete: the system's success pattern, the "da-dum" iOS
+   uses when something has been confirmed. It lands in the same frame as
+   the burst of particles, which is the causal event. */
+export const onComplete = () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
 
-/* LOS DETENTES, en progreso 0..1 (o sea en fracción de `HOLD.duracion`).
-   Con el hold de 2 s los intervalos iban 300, 300, 240, 220, 180, 160,
-   140, 120, 100, 80, 70, 60 ms; con 1 s, la mitad de eso. La
-   aceleración es lo que cuenta "falta poco": con un solo tipo de tic,
-   la cadencia es la única perilla que queda.
+/* THE DETENTS, in progress 0..1 (that is, in fractions of
+   `HOLD.duration`). With the 2 s hold the intervals ran 300, 300, 240,
+   220, 180, 160, 140, 120, 100, 80, 70, 60 ms; with 1 s, half of that.
+   The acceleration is what says "almost there": with a single kind of
+   tick, the cadence is the only knob left.
 
-   DÓNDE CAEN LOS DOS ÚLTIMOS. El anteúltimo (0.955) cae justo antes del
-   salto a negro del label, que arranca en `HOLD.negroEn` 0.965 y
-   termina en 0.977 (`hold-to-commit.tsx`, sobre el MISMO `progreso` lineal). El
-   último (0.985) cae en el último cuadro del hold, pegado al patrón de
-   éxito del commit. Acá decía que el último caía antes del salto a
-   negro: el que cae ahí es el anteúltimo. SIN RECIBO. */
-export const DETENTES = [0.15, 0.3, 0.42, 0.53, 0.62, 0.7, 0.77, 0.83, 0.88, 0.92, 0.955, 0.985] as const
+   WHERE THE LAST TWO FALL. The second to last (0.955) falls just before
+   the label's jump to black, which starts at `HOLD.blackAt` 0.965 and
+   ends at 0.977 (`hold-to-commit.tsx`, over the SAME linear `progress`).
+   The last one (0.985) falls on the last frame of the hold, right up
+   against the commit's success pattern. This used to say the last one
+   fell before the jump to black: the one that falls there is the second
+   to last. NO RECEIPT. */
+export const DETENTS = [0.15, 0.3, 0.42, 0.53, 0.62, 0.7, 0.77, 0.83, 0.88, 0.92, 0.955, 0.985] as const
 
-/* Un detente: `selectionAsync`, el de "a value ticks past a step". */
-export const tic = () => Haptics.selectionAsync()
+/* A detent: `selectionAsync`, the one for "a value ticks past a step". */
+export const tick = () => Haptics.selectionAsync()

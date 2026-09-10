@@ -1,47 +1,49 @@
-import type { Carga } from './load'
+import type { Load } from './load'
 
-/* LA SONDA DE DESARROLLO — un estado fijo por recarga.
+/* THE DEVELOPMENT PROBE — one fixed state per reload.
  *
- * `xcrun simctl openurl` con `?parcar=` pide confirmación ("Open in
- * Taller?") en iOS 26 y no se puede tocar desde la terminal; y una sonda
- * con timers corre una carrera contra el bundle. Así que el estado se
- * escribe ACÁ, Fast Refresh recarga la pieza, y la captura es
- * determinista: `sed` del valor + recarga + screenshot.
+ * `xcrun simctl openurl` with `?park=` asks for confirmation ("Open in
+ * Workshop?") on iOS 26 and there is no way to tap it from the terminal;
+ * and a probe with timers races the bundle. So the state is written
+ * HERE, Fast Refresh reloads the piece, and the capture is
+ * deterministic: `sed` the value + reload + screenshot.
  *
- *   undefined             la pieza real, sin sonda (y vuelve al reposo)
- *   '0.5'                 quieto a mitad del hold (número = progreso)
- *   'commit'              terminado
- *   'rafaga=0.2'          la ráfaga quieta a esa fracción de su vida
- *   'cruce=120'           el press, 120 ms después del touch (curvas reales)
- *   'cruce-commit=300'    300 ms después de la ráfaga: label, blanqueo y partículas
- *   'cruce-suelta=150'    150 ms después de soltar a un tercio del hold
- *   'auto'                aprieta solo a los 700 ms y sostiene hasta el final
- *   'auto-suelta'         aprieta solo y suelta a los 400 ms
- *   'demo'                la coreografía de la GRABACIÓN: reposo, un hold
- *                         abandonado, un hold completo y el reinicio
- *                         adelantado a los 2 s (la timeline está arriba
- *                         de su rama en `hold-to-commit.tsx`)
- *   'tilde=0.5'           el commit con "✓ Order Placed" a mitad de su presencia
+ *   undefined                 the real piece, no probe (and back to rest)
+ *   '0.5'                     parked halfway through the hold (number = progress)
+ *   'commit'                  finished
+ *   'burst=0.2'               the burst held at that fraction of its life
+ *   'crossfade=120'           the press, 120 ms after the touch (real curves)
+ *   'crossfade-commit=300'    300 ms after the burst: label, whitening and particles
+ *   'crossfade-release=150'   150 ms after releasing a third of the way in
+ *   'auto'                    presses on its own at 700 ms and holds to the end
+ *   'auto-release'            presses on its own and releases at 400 ms
+ *   'demo'                    the RECORDING choreography: rest, one abandoned
+ *                             hold, one full hold and the reset pulled
+ *                             forward to 2 s (the timeline is above its
+ *                             branch in `hold-to-commit.tsx`)
+ *   'checkmark=0.5'           the commit with "✓ Order Placed" halfway through
+ *                             its presence
  *
- * Reproducen las curvas y los tiempos de la receta 'clip' (`receta.ts`):
- * con 'skill' puesta no miden nada.
+ * They reproduce the curves and timings of the 'clip' recipe
+ * (`recipe.ts`): with 'skill' on they measure nothing.
  *
- * Tiene que quedar en `undefined` en el repo.
+ * It has to stay `undefined` in the repo.
  *
- * Al lado, las otras dos perillas de desarrollo, con la misma regla
- * (por URL: `?carga=todo`, `?medir=1`):
- *   CARGA   'js' | 'render' | 'todo': la carga de una app real (`carga.tsx`)
- *   MEDIR   true: el medidor de cuadros y latencias (`medidor.tsx`), que
- *           reporta por `console.log` a los 9 s. Se combina con
- *           SONDA='auto' para medir la secuencia entera sin tocar.
- *   RECEPTOR  una URL a la que el medidor además hace POST del informe.
- *           Hace falta con un bundle de producción (`--no-dev`): ahí el
- *           `console.log` de la app no llega a Metro. Un receptor de una
- *           línea: `node -e "require('http').createServer((q,r)=>{let b='';
+ * Next to it, the other two development knobs, with the same rule (by
+ * URL: `?load=all`, `?measure=1`):
+ *   LOAD    'js' | 'render' | 'all': the load of a real app (`load.tsx`)
+ *   MEASURE true: the frame and latency meter (`meter.tsx`), which
+ *           reports through `console.log` at 9 s. Combine it with
+ *           PROBE='auto' to measure the whole sequence without touching
+ *           anything.
+ *   RECEIVER  a URL the meter also POSTs the report to. You need it with
+ *           a production bundle (`--no-dev`): there the app's
+ *           `console.log` never reaches Metro. A one-line receiver:
+ *           `node -e "require('http').createServer((q,r)=>{let b='';
  *           q.on('data',c=>b+=c);q.on('end',()=>{require('fs').appendFileSync(
- *           '/tmp/medidor.jsonl',b+'\n');r.end()})}).listen(8090)"`.
+ *           '/tmp/meter.jsonl',b+'\n');r.end()})}).listen(8090)"`.
  */
-export const SONDA: string | undefined = undefined
-export const CARGA: Carga | undefined = undefined
-export const MEDIR = false
-export const RECEPTOR: string | undefined = undefined
+export const PROBE: string | undefined = undefined
+export const LOAD: Load | undefined = undefined
+export const MEASURE = false
+export const RECEIVER: string | undefined = undefined

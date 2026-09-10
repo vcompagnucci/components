@@ -1,203 +1,209 @@
 import { useCallback, useEffect, useState } from "react";
 
 /* ═══════════════════════════════════════════════════════════════
-   LOS CLIPS — lo que el puente encuentra en tu carpeta.
+   THE CLIPS. What the bridge finds in your folder.
 
-   El servidor devuelve HECHOS DEL SISTEMA DE ARCHIVOS y nada más: qué
-   es, cuánto pesa, cuándo entró. Acá se le da SIGNIFICADO, y todo lo
-   que se deriva sale del archivo mismo. No hay una base de datos ni un
-   JSON que mantener a mano: soltás el clip en la carpeta y aparece.
+   The server returns FACTS FROM THE FILE SYSTEM and nothing else: what
+   it is, how big it is, when it arrived. Meaning is given here, and
+   everything derived comes out of the file itself. There is no
+   database and no JSON to keep by hand: you drop the clip in the
+   folder and it shows up.
 
-     el nombre     sale del nombre del archivo
-     nativo o web  sale de en qué carpeta lo soltaste
-     la fecha      sale del sistema de archivos
+     the name       comes from the file name
+     native or web  comes from which folder you dropped it in
+     the date       comes from the file system
 
-   Eso es a propósito. Un manifiesto escrito a mano se desincroniza el
-   día que arrastrás un archivo sin acordarte de editarlo, y entonces el
-   vault miente. Acá no puede: la carpeta ES el manifiesto.
+   That is on purpose. A hand-written manifest goes out of sync the day
+   you drag a file in and forget to edit it, and then the vault lies.
+   Here it cannot: the folder IS the manifest.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Lo que manda el servidor, tal cual. */
-export type ClipCrudo = {
-  ruta: string;
-  archivo: string;
-  carpeta: string;
+/* What the server sends, as it comes. */
+export type RawClip = {
+  path: string;
+  file: string;
+  folder: string;
   ext: string;
-  clase: "video" | "imagen";
+  medium: "video" | "image";
   bytes: number;
-  creado: string;
-  modificado: string;
-  /* Leídos del contenedor por el puente. Van en null cuando es una
-     imagen o cuando el archivo no se pudo parsear, y hay que
-     contemplarlo: sin cuadro exacto el paso con las flechas deja de ser
-     un cuadro y pasa a ser una estimación, y entonces contar cuadros
-     para sacar una duración no sirve. Ver scripts/cuadros.mjs. */
-  cuadro: number | null;
+  created: string;
+  modified: string;
+  /* Read out of the container by the bridge. They come as null when it
+     is an image or when the file could not be parsed, and that has to
+     be handled: without an exact frame, stepping with the arrow keys
+     stops being a frame and becomes an estimate, and then counting
+     frames to get a duration is useless. See scripts/frames.mjs. */
+  frameStep: number | null;
   fps: number | null;
-  cuadros: number | null;
-  cuadroVariable: boolean | null;
-  /* LO QUE ESCRIBÍS VOS sobre el clip. Va en null cuando no escribiste
-     nada — no en un objeto vacío— porque el servidor borra la ficha
-     entera si vaciás todos los campos.
+  frameCount: number | null;
+  variableFrameRate: boolean | null;
+  /* WHAT YOU WRITE about the clip. It comes as null when you wrote
+     nothing, not as an empty object, because the server deletes the
+     whole details entry if you empty every field.
 
-     El servidor lo viene mandando desde que existe el endpoint y acá
-     NO estaba declarado, así que el dato llegaba al navegador y se
-     tiraba en silencio: el `.map` de abajo copia lo que conoce y esto
-     no estaba en la lista. Media función perdida por un campo faltante
-     en un tipo. */
-  ficha: Ficha | null;
+     The server had been sending it since the endpoint existed and it
+     was NOT declared here, so the data reached the browser and got
+     thrown away in silence: the `.map` below copies what it knows
+     about, and this was not on the list. Half a feature lost to a
+     missing field in a type. */
+  details: Details | null;
 };
 
-/* Los tres campos, y son los mismos que valida el servidor. Si acá se
-   agrega uno, allá hay que agregarlo a FICHA_CAMPOS o se descarta al
-   guardar sin decir nada. */
-export type Ficha = {
+/* The three fields, and they are the same ones the server validates.
+   If one gets added here, it has to be added to DETAILS_FIELDS over
+   there or it gets dropped on save without a word. */
+export type Details = {
   notes?: string;
   source?: string;
   device?: string;
 };
 
-export type Fuente = "native" | "web";
+/* Which of the two vault folders the clip lives in. Not to be confused
+   with `details.source`, which is where you wrote down that the
+   recording came from. */
+export type Source = "native" | "web";
 
-/* Lo que usa la interfaz. */
-export type Clip = ClipCrudo & {
-  nombre: string;
-  fuente: Fuente | null;
-  fecha: Date;
+/* What the interface uses. */
+export type Clip = RawClip & {
+  name: string;
+  source: Source | null;
+  date: Date;
   url: string;
 };
 
-export type Estado =
-  | { cargando: true }
-  | { cargando: false; conectado: false; motivo: string }
-  | { cargando: false; conectado: true; carpeta: string; clips: Clip[] };
+export type Status =
+  | { loading: true }
+  | { loading: false; connected: false; reason: string }
+  | { loading: false; connected: true; folder: string; clips: Clip[] };
 
-/* "sheet-que-se-estira" → "Sheet que se estira".
+/* "sheet-that-stretches" → "Sheet that stretches".
 
-   Sólo la primera en mayúscula, no cada palabra: un nombre de clip es
-   una frase —"Sheet que se estira al arrastrar"— y no un título. Es lo
-   que hacen las dos referencias con los suyos. */
-const aFrase = (s: string) => {
-  const limpio = s.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
-  return limpio ? limpio[0].toUpperCase() + limpio.slice(1) : s;
+   Only the first letter capitalized, not every word: a clip's name is
+   a phrase, "Sheet that stretches when you drag it", and not a title.
+   It is what both references do with theirs. */
+const toSentence = (s: string) => {
+  const clean = s.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  return clean ? clean[0].toUpperCase() + clean.slice(1) : s;
 };
 
-/* "web/sheet-que-se-estira.png" → "Sheet que se estira".
+/* "web/sheet-that-stretches.png" → "Sheet that stretches".
 
-   ES LA MISMA CUENTA QUE `nombre`, pero partiendo de la ruta en vez del
-   índice, y existe para UN caso: el lienzo del playground guarda en cada
-   frame la RUTA del clip, así que cuando el archivo ya no está —lo
-   renombraste, lo mandaste a la papelera— lo único que queda para
-   mostrar es esa ruta. Y una ruta cruda en pantalla es un dato de disco,
-   no un nombre.
+   IT IS THE SAME COUNT AS `name`, but starting from the path instead
+   of the index, and it exists for ONE case: the playground canvas
+   stores the clip's PATH in each frame, so when the file is no longer
+   there, because you renamed it or sent it to the trash, that path is
+   the only thing left to show. And a raw path on screen is a fact
+   about a disk, not a name.
 
-   Con esto el clip que falta se sigue llamando como se llamaba. */
-export const nombreDeRuta = (ruta: string) =>
-  aFrase((ruta.split("/").pop() ?? ruta).replace(/\.[^.]+$/, ""));
+   With this, the clip that is missing is still called what it was
+   called. */
+export const nameOfPath = (path: string) =>
+  toSentence((path.split("/").pop() ?? path).replace(/\.[^.]+$/, ""));
 
-/* La carpeta clasifica. El primer nivel y nada más: "native/2026/x.mp4"
-   sigue siendo native. Lo que no cae en ninguna queda sin clasificar en
-   vez de inventarle una — así se ve que hay un clip suelto en la raíz y
-   se puede acomodar.
+/* The folder classifies. The first level and nothing else:
+   "native/2026/x.mp4" is still native. Anything that falls in none of
+   them stays unclassified instead of getting one invented for it, so
+   you can see there is a loose clip at the root and go tidy it up.
 
-   Se aceptan LAS DOS ORTOGRAFÍAS, "native" y "nativo". La interfaz está
-   en inglés, pero la carpeta la nombrás vos en tu disco —y si el vault
-   es tu Obsidian, puede llamarse como ya se llamaba—. Que la app te
-   obligue a renombrar una carpeta tuya para poder leerla sería el
-   sentido equivocado de la dependencia. */
-const CARPETAS: Record<string, Fuente> = {
+   BOTH SPELLINGS ARE ACCEPTED, "native" and "nativo". The interface is
+   in English, but the folder is one you named on your own disk, and if
+   the vault is your Obsidian it can keep the name it already had.
+   Having the app force you to rename a folder of yours before it can
+   read it would be the dependency pointing the wrong way. */
+const FOLDERS: Record<string, Source> = {
   native: "native",
   nativo: "native",
   web: "web",
 };
 
-const fuenteDe = (carpeta: string): Fuente | null =>
-  CARPETAS[carpeta.split("/")[0].toLowerCase()] ?? null;
+const sourceOf = (folder: string): Source | null =>
+  FOLDERS[folder.split("/")[0].toLowerCase()] ?? null;
 
-/* SUBIR UN CLIP. Los bytes van crudos en el cuerpo y los metadatos en
-   la query: `fetch` acepta un File como body y lo manda en streaming, así
-   que un video de 400MB no pasa por memoria de este lado tampoco.
+/* UPLOAD A CLIP. The bytes go raw in the body and the metadata in the
+   query: `fetch` accepts a File as a body and streams it, so a 400MB
+   video does not pass through memory on this side either.
 
-   La fuente es la CARPETA donde cae, que es lo mismo que dice si el clip
-   es nativo o web. Por eso al soltar hay que elegir una: no se adivina
-   mirando la forma del video. */
-export async function subirClip(
-  archivo: File,
-  fuente: Fuente,
+   The source is the FOLDER it lands in, which is the same thing as
+   saying whether the clip is native or web. That is why you have to
+   pick one when you drop it: it cannot be guessed from the shape of
+   the video. */
+export async function uploadClip(
+  file: File,
+  source: Source,
 ): Promise<string> {
-  const q = new URLSearchParams({ fuente, nombre: archivo.name });
-  const r = await fetch(`/vault-media/__subir?${q}`, {
+  const q = new URLSearchParams({ source, name: file.name });
+  const r = await fetch(`/vault-media/__upload?${q}`, {
     method: "POST",
-    body: archivo,
+    body: file,
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
-  return d.ruta as string;
+  return d.path as string;
 }
 
-/* GUARDAR UNA FICHA. Devuelve la que quedó — que puede ser null, si
-   vaciaste todos los campos. */
-export async function guardarFicha(
-  ruta: string,
-  ficha: Ficha,
-): Promise<Ficha | null> {
-  const r = await fetch("/vault-media/__ficha", {
+/* SAVE THE DETAILS. Returns the ones that ended up stored, which can
+   be null if you emptied every field. */
+export async function saveDetails(
+  path: string,
+  details: Details,
+): Promise<Details | null> {
+  const r = await fetch("/vault-media/__details", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ruta, ficha }),
+    body: JSON.stringify({ path, details }),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
-  return d.ficha ?? null;
+  return d.details ?? null;
 }
 
-/* PUBLICAR una grabación como pieza App. Se dispara desde el TABLERO
-   —el clic derecho sobre el frame— porque publicar es el final del
-   taller, no un gesto del vault. El servidor copia el video a
-   public/piezas/ y anota la entrada en pieces.ts, las dos cosas o
-   ninguna. Devuelve el slug, que es a dónde navegar: la pieza ya está
-   en la exhibition. */
-export async function publicarClip(
-  ruta: string,
-  nombre: string,
+/* PUBLISH a recording as an App piece. It is fired from the BOARD, the
+   right click on the frame, because publishing is the end of the
+   workshop and not a gesture of the vault. The server copies the video
+   to public/pieces/ and writes the entry in pieces.ts, both or
+   neither. It returns the slug, which is where to navigate: the piece
+   is already in the exhibition. */
+export async function publishClip(
+  path: string,
+  name: string,
   desc: string,
 ): Promise<string> {
-  const r = await fetch("/vault-media/__publicar", {
+  const r = await fetch("/vault-media/__publish", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ tipo: "clip", ruta, nombre, desc }),
+    body: JSON.stringify({ kind: "clip", path, name, desc }),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
   return d.slug as string;
 }
 
-/* RENOMBRAR. El servidor sólo acepta un nombre PARA LEER: la extensión
-   la pone él, copiándola del archivo, así que renombrar no puede
-   cambiar el tipo. Devuelve la ruta nueva, que es distinta — la ruta ES
-   el nombre. */
-export async function renombrarClip(
-  ruta: string,
-  nombre: string,
+/* RENAME. The server only accepts a name TO READ: it puts the
+   extension on itself, copying it from the file, so renaming cannot
+   change the type. It returns the new path, which is a different one,
+   because the path IS the name. */
+export async function renameClip(
+  path: string,
+  name: string,
 ): Promise<string> {
-  const r = await fetch("/vault-media/__renombrar", {
+  const r = await fetch("/vault-media/__rename", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ruta, nombre }),
+    body: JSON.stringify({ path, name }),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
-  return d.ruta as string;
+  return d.path as string;
 }
 
-/* A LA PAPELERA, no borrar. El servidor mueve el archivo a la papelera
-   del sistema en vez de hacer unlink: desde una app de estudio un
-   borrado no tiene undo que lo salve, y así se recupera desde Finder. */
-export async function aPapelera(ruta: string): Promise<void> {
-  const r = await fetch("/vault-media/__papelera", {
+/* TO THE TRASH, not deleted. The server moves the file to the system
+   trash instead of calling unlink: from a studio app a delete has no
+   undo to save it, and this way you get it back from Finder. */
+export async function trashClip(path: string): Promise<void> {
+  const r = await fetch("/vault-media/__trash", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ruta }),
+    body: JSON.stringify({ path }),
   });
   if (!r.ok) {
     const d = await r.json().catch(() => ({}));
@@ -205,34 +211,35 @@ export async function aPapelera(ruta: string): Promise<void> {
   }
 }
 
-/* ─── LA TARJETA DE UN LINK ───
-   El título y el favicon de una URL pegada en una nota. Lo busca el
-   servidor porque desde el navegador no se puede: leer github.com por
-   fetch choca contra CORS. El porqué completo, las guardas y el orden
-   de ícono medido están en scripts/tarjeta-link.mjs.
+/* ─── THE CARD FOR A LINK ───
+   The title and the favicon of a URL pasted into a note. The server
+   looks it up because the browser cannot: reading github.com over
+   fetch runs into CORS. The whole reason, the guards and the measured
+   icon order are in scripts/link-card.mjs.
 
-   NUNCA TIRA. Un link que no se pudo resolver igual se dibuja y se
-   abre — con el host como etiqueta— así que acá el fracaso vuelve como
-   null y no como excepción: no hay ninguna decisión que tomar con el
-   motivo, y obligar a cada llamador a envolver esto en un try sería
-   pedir ceremonia por algo que ya tiene respuesta. */
-export type Tarjeta = {
-  titulo: string | null;
-  icono: string | null;
-  /* A dónde llegó después de los redirects. Sirve para NOMBRAR un
-     acortador —un t.co de X no dice nada— y nunca para navegar: el
-     ancla siempre apunta a lo que escribiste. */
+   IT NEVER THROWS. A link that could not be resolved still gets drawn
+   and still opens, with the host as its label, so failure comes back
+   here as null and not as an exception: there is no decision to make
+   with the reason, and forcing every caller to wrap this in a try
+   would be asking for ceremony over something that already has an
+   answer. */
+export type LinkCard = {
+  title: string | null;
+  icon: string | null;
+  /* Where it ended up after the redirects. It is good for NAMING a
+     shortener, since a t.co from X says nothing, and never for
+     navigating: the anchor always points at what you wrote. */
   final: string | null;
 };
 
-export async function tarjetaDeLink(url: string): Promise<Tarjeta | null> {
+export async function linkCardOf(url: string): Promise<LinkCard | null> {
   try {
     const r = await fetch(`/vault-media/__link?url=${encodeURIComponent(url)}`);
     const d = await r.json();
     if (!r.ok) return null;
     return {
-      titulo: d?.titulo ?? null,
-      icono: d?.icono ?? null,
+      title: d?.title ?? null,
+      icon: d?.icon ?? null,
       final: d?.final ?? null,
     };
   } catch {
@@ -241,67 +248,68 @@ export async function tarjetaDeLink(url: string): Promise<Tarjeta | null> {
 }
 
 export function useClips() {
-  const [estado, setEstado] = useState<Estado>({ cargando: true });
-  /* Se incrementa para volver a pedir el índice. Es lo que hace aparecer
-     un clip recién subido sin recargar la página. */
-  const [ronda, setRonda] = useState(0);
+  const [status, setStatus] = useState<Status>({ loading: true });
+  /* Bumped to ask for the index again. It is what makes a clip you
+     just uploaded show up without reloading the page. */
+  const [round, setRound] = useState(0);
 
   useEffect(() => {
-    let vivo = true;
-    fetch("/vault-media/__indice")
+    let alive = true;
+    fetch("/vault-media/__index")
       .then((r) => r.json())
       .then((d) => {
-        if (!vivo) return;
-        if (!d.conectado) {
-          setEstado({ cargando: false, conectado: false, motivo: d.motivo });
+        if (!alive) return;
+        if (!d.connected) {
+          setStatus({ loading: false, connected: false, reason: d.reason });
           return;
         }
-        const clips: Clip[] = d.clips.map((c: ClipCrudo) => ({
+        const clips: Clip[] = d.clips.map((c: RawClip) => ({
           ...c,
-          nombre: aFrase(c.archivo),
-          fuente: fuenteDe(c.carpeta),
-          fecha: new Date(c.creado),
+          name: toSentence(c.file),
+          source: sourceOf(c.folder),
+          date: new Date(c.created),
           url:
             "/vault-media/" +
-            c.ruta.split("/").map(encodeURIComponent).join("/"),
+            c.path.split("/").map(encodeURIComponent).join("/"),
         }));
-        /* De la más reciente a la menos, que es el orden que pediste y
-           el que tienen las dos referencias. */
-        clips.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
-        setEstado({
-          cargando: false,
-          conectado: true,
-          carpeta: d.carpeta,
+        /* Newest first, which is the order you asked for and the one
+           both references have. */
+        clips.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setStatus({
+          loading: false,
+          connected: true,
+          folder: d.folder,
           clips,
         });
       })
       .catch((e) => {
-        if (vivo)
-          setEstado({ cargando: false, conectado: false, motivo: String(e) });
+        if (alive)
+          setStatus({ loading: false, connected: false, reason: String(e) });
       });
     return () => {
-      vivo = false;
+      alive = false;
     };
-  }, [ronda]);
+  }, [round]);
 
-  /* La ficha se actualiza EN EL LUGAR y no volviendo a pedir el índice
-     entero: el servidor ya devolvió la que quedó, y releer 16 clips para
-     cambiar tres campos de uno haría parpadear la grilla. */
-  const anotar = useCallback((ruta: string, ficha: Ficha | null) => {
-    setEstado((e) =>
-      e.cargando || !e.conectado
-        ? e
+  /* The details are updated IN PLACE and not by asking for the whole
+     index again: the server already returned the ones that ended up
+     stored, and re-reading 16 clips to change three fields of one
+     would make the grid flicker. */
+  const annotate = useCallback((path: string, details: Details | null) => {
+    setStatus((s) =>
+      s.loading || !s.connected
+        ? s
         : {
-            ...e,
-            clips: e.clips.map((c) => (c.ruta === ruta ? { ...c, ficha } : c)),
+            ...s,
+            clips: s.clips.map((c) => (c.path === path ? { ...c, details } : c)),
           },
     );
   }, []);
 
-  return { estado, recargar: () => setRonda((n) => n + 1), anotar };
+  return { status, reload: () => setRound((n) => n + 1), annotate };
 }
 
-/* Hubo acá un formateador de fecha —"Aug 18, 2026", el de las dos
-   referencias— y se fue con el epígrafe: la card muestra sólo el
-   nombre. `fecha` se queda igual porque sigue ORDENANDO la grilla, de
-   la más reciente a la menos; lo que ya no existe es mostrarla. */
+/* There was a date formatter here once, "Aug 18, 2026", the one both
+   references use, and it left with the caption: the card shows only
+   the name. `date` stays because it still ORDERS the grid, newest
+   first; what no longer exists is showing it. */

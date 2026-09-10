@@ -1,33 +1,35 @@
 import { Redirect, type Href } from 'expo-router'
 
 import { PieceList } from '@/components/piece-list'
-import { ABRIR } from '@/components/pieces/open'
+import { OPEN_IN } from '@/components/pieces/open'
 import { SLUGS } from '@/components/pieces/registry'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL ÍNDICE DEL TALLER — la ruta. Decide si hay índice; la lista la
-   dibuja `components/piece-list.tsx` y las piezas salen del registro,
-   derivado de las carpetas de `components/pieces/` (ver su
-   `registry.ts`): una lista escrita a mano se desincroniza el día que
-   agregás una pieza sin acordarte de anotarla, y entonces el índice
-   miente. Acá no puede.
+   THE INDEX OF THE WORKSHOP — the route. It decides whether there is
+   an index; `components/piece-list.tsx` draws the list, and the pieces
+   come out of the registry, derived from the folders of
+   `components/pieces/` (see its `registry.ts`): a list written by hand
+   falls out of sync the day you add a piece and forget to write it
+   down, and then the index lies. Here it cannot.
    ═══════════════════════════════════════════════════════════════ */
-export default function Indice() {
-  /* CON UNA SOLA PIEZA NO HAY ÍNDICE: el taller abre directo en lo que
-     estás construyendo. Un menú de un ítem no es una ayuda, es un peaje
-     —y encima aparece en la pantalla que después vas a mirar mil veces.
+export default function Index() {
+  /* WITH A SINGLE PIECE THERE IS NO INDEX: the workshop opens straight
+     into whatever you are building. A one-item menu is not help, it is
+     a toll, and on top of that it shows up on the screen you are going
+     to look at a thousand times.
 
-     El índice vuelve solo cuando hay dos o más y recién ahí sirve para
-     algo, que es elegir. Sale del MISMO registro que la lista, así que
-     no hay ninguna lista ni ningún flag que mantener: agregás una
-     carpeta y el taller cambia de modo solo.
+     The index comes back on its own when there are two or more, and
+     only then is it good for something, which is choosing. It comes out
+     of the SAME registry as the list, so there is no list and no flag
+     to maintain: you add a folder and the workshop changes mode by
+     itself.
 
-     Va antes que cualquier hook a propósito — este componente no tiene
-     ninguno, así que el early return no puede desordenarlos. Si algún
-     día se le agrega uno, va ARRIBA de esta línea. */
+     It goes before any hook on purpose. This component has none, so the
+     early return cannot put them out of order. If one is ever added, it
+     goes ABOVE this line. */
   if (SLUGS.length === 1) return <Redirect href={`/${SLUGS[0]}` as Href} />
-  /* Y con la perilla de desarrollo puesta (`components/pieces/abrir.ts`),
-     en esa. */
-  if (ABRIR && SLUGS.includes(ABRIR)) return <Redirect href={`/${ABRIR}` as Href} />
+  /* And with the development knob set (`components/pieces/open.ts`),
+     into that one. */
+  if (OPEN_IN && SLUGS.includes(OPEN_IN)) return <Redirect href={`/${OPEN_IN}` as Href} />
   return <PieceList />
 }

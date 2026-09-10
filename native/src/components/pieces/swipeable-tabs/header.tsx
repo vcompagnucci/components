@@ -1,48 +1,48 @@
 import { Image, StyleSheet, View } from 'react-native'
 
-import { CABECERA } from './measurements'
-import { usePaleta } from './theme'
+import { HEADER } from './measurements'
+import { usePalette } from './theme'
 
-/* La foto de perfil del usuario (pedido del 2026-09-02): 400×400 de
-   origen, guardada a 192 px = el círculo de 32 pt a 3x, con margen. */
-const PERFIL = require('./media/profile.jpg')
+/* The user's profile photo (request of 2026-09-02): 400×400 at the
+   source, saved at 192 px = the 32 pt circle at 3x, with margin. */
+const PROFILE = require('./media/profile.jpg')
 
 /* ═══════════════════════════════════════════════════════════════
-   LA CABECERA — la franja que va arriba de los tabs.
+   THE HEADER — the strip that goes above the tabs.
 
-   En la referencia tiene la foto de perfil a la izquierda y el logo de
-   X en el medio. Acá va sólo la foto: el logo es de ellos, y una pieza
-   de estudio que lo copia deja de ser una pieza de estudio.
+   In the reference it has the profile photo on the left and X's logo in
+   the middle. Here it carries only the photo: the logo is theirs, and a
+   study piece that copies it stops being a study piece.
 
-   Pero la franja SÍ tiene que estar, y no es decoración. Sin ella los
-   tabs quedan pegados a la barra de estado y el subrayado arranca
-   contra el borde de la pantalla — que no es lo que se está
-   estudiando. El alto está medido: el avatar y el logo comparten
-   centro vertical en 83.8 pt, el tab bar arranca en 106, y de ahí sale
-   una franja de 44, el mismo alto que la barra de tabs.
+   But the strip DOES have to be there, and it is not decoration.
+   Without it the tabs end up flush against the status bar and the
+   underline starts against the edge of the screen, which is not what is
+   being studied. The height is measured: the avatar and the logo share
+   a vertical center at 83.8 pt, the tab bar starts at 106, and out of
+   that comes a strip of 44, the same height as the tab bar.
 
-   La foto es la del usuario, fija, recortada al mismo círculo de 32 pt
-   que mide el avatar de la referencia. Debajo va el gris del divisor
-   mientras carga, que es el mismo bloque que usan los avatares del feed.
+   The photo is the user's, fixed, cropped to the same 32 pt circle the
+   reference's avatar measures. Underneath goes the divider's grey while
+   it loads, which is the same block the feed's avatars use.
    ═══════════════════════════════════════════════════════════════ */
-export function Cabecera() {
-  const paleta = usePaleta()
+export function Header() {
+  const palette = usePalette()
   return (
-    <View style={css.cabecera}>
-      <Image source={PERFIL} style={[css.avatar, { backgroundColor: paleta.divisor }]} />
+    <View style={css.header}>
+      <Image source={PROFILE} style={[css.avatar, { backgroundColor: palette.divider }]} />
     </View>
   )
 }
 
 const css = StyleSheet.create({
-  cabecera: {
-    height: CABECERA.alto,
+  header: {
+    height: HEADER.height,
     justifyContent: 'center',
-    paddingHorizontal: CABECERA.inset,
+    paddingHorizontal: HEADER.inset,
   },
   avatar: {
-    width: CABECERA.avatar,
-    height: CABECERA.avatar,
-    borderRadius: CABECERA.avatar / 2,
+    width: HEADER.avatar,
+    height: HEADER.avatar,
+    borderRadius: HEADER.avatar / 2,
   },
 })

@@ -9,7 +9,7 @@
     "still": "remotion still SwipeableTabs",
     "verify": "node scripts/verify.mjs",
     "typecheck": "tsc --noEmit",
-    "render:dark": "remotion render SwipeableTabs out/swipeable-tabs-dark.mp4 --crf=17 --props='{\"fondo\":\"#1C181A\"}'",
+    "render:dark": "remotion render SwipeableTabs out/swipeable-tabs-dark.mp4 --crf=17 --props='{\"background\":\"#1C181A\"}'",
     "render:both": "pnpm render && pnpm render:dark",
     "render:exhibition": "node scripts/exhibition.mjs"
   },

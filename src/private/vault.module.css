@@ -1,167 +1,172 @@
 /* ═══════════════════════════════════════════════════════════════
-   LA GRILLA DEL VAULT
+   THE VAULT GRID
 
-   ES LA DE OPENAI /news, medida entera con /web-clone. Los números y sus
-   recibos están abajo, en .grilla y en .media; el CSS servido está
-   guardado en .context/recon/vault/grillas/.
+   IT IS OPENAI'S /news GRID, measured whole with /web-clone. The
+   numbers and their receipts are below, in .grid and in .media; the
+   served CSS is kept in .context/recon/vault/grillas/.
 
-   ─── LO QUE HABÍA ANTES, Y POR QUÉ SE FUE ───
-   La card era la de benji en family-values: 550 de ancho, padding 40 60,
-   el clip centrado adentro con `contain` y la caja en un alto fijo.
+   ─── WHAT WAS HERE BEFORE, AND WHY IT LEFT ───
+   The card was benji's from family-values: 550 wide, padding 40 60, the
+   clip centered inside with `contain` and the box at a fixed height.
 
-   Se cayó por una razón sola y medible: SU CARD ES PARA CONTENIDO
-   ANGOSTO Y ALTO. Sus 53 clips de family-values son verticales
-   (762×1502) y sus 60 de aire por lado son holgados justamente por eso.
-   Su caja usa el 41% del ancho y el 84% del alto.
+   It fell for one measurable reason: HIS CARD IS FOR NARROW, TALL
+   CONTENT. His 53 family-values clips are vertical (762×1502) and his
+   60 of air per side are generous precisely because of that. His box
+   uses 41% of the width and 84% of the height.
 
-   Con una grabación de pantalla adentro la relación se da vuelta: 70%
-   del ancho y 31% del alto, y una captura de 1440×900 terminaba dibujada
-   a 285×178 — el 22% del área de la card, con 316px de caja vacía.
+   With a screen recording inside, the relation flips: 70% of the width
+   and 31% of the height, and a 1440×900 capture ended up drawn at
+   285×178, 22% of the card's area, with 316px of empty box.
 
-   Y la referencia no podía resolverlo porque no tiene el problema: en
-   las tres páginas suyas que se midieron aparece UN solo clip apaisado,
-   y lo dibuja al 100% del ancho de su contenedor, sin caja y sin aire.
+   And the reference could not solve it because it does not have the
+   problem: across the three pages of his that were measured, ONE
+   landscape clip shows up, and he draws it at 100% of the width of its
+   container, with no box and no air.
 
-   ─── LO QUE DICEN LAS TRES REFERENCIAS ───
-   openai/news, linear/blog y linear/customers coinciden en dos cosas, y
-   las dos contradecían lo que teníamos:
+   ─── WHAT THE THREE REFERENCES SAY ───
+   openai/news, linear/blog and linear/customers agree on two things,
+   and both of them contradicted what we had:
 
-     el medio declara una PROPORCIÓN, nunca un alto en píxeles
-       openai 1/1 · linear 16/9 en sus dos páginas
-     el medio va A SANGRE
-       padding 0 y sangría 0/0 en las tres
+     the medium declares a RATIO, never a height in pixels
+       openai 1/1 · linear 16/9 on both of its pages
+     the medium goes FULL BLEED
+       padding 0 and inset 0/0 in all three
 
-   Los dos además RECORTAN, y eso es lo que se copió: la decisión tomada
-   es que la vista del componente ocupe toda la card.
+   Both of them also CROP, and that is what got copied: the decision
+   taken is that the component's view fills the whole card.
 
-   ─── LO QUE NO SE COPIA ───
-   El borde. La card de benji lleva box-shadow:0 0 0 1px #f2f2f2 sobre
-   #fcfcfc. Nuestro sistema ya decidió lo contrario —la regla de josh: la
-   card se define por contraste contra el canvas, sin anillo ni sombra—
-   y está resuelto en tokens.css.
+   ─── WHAT DOES NOT GET COPIED ───
+   The border. benji's card carries box-shadow:0 0 0 1px #f2f2f2 over
+   #fcfcfc. Our system already decided the opposite (josh's rule: the
+   card is defined by contrast against the canvas, with no ring and no
+   shadow) and it is settled in tokens.css.
    ═══════════════════════════════════════════════════════════════ */
-/* El riel de openai: tope de 1440 y 32 de aire, los dos declarados en
-   privado.module.css para que la barra y la grilla queden en la misma x.
-   Con border-box, 1440 − 32 − 32 deja el contenido en 1376, que es el
-   número que él tiene medido en cuatro ventanas distintas. */
+/* openai's rail: a maximum of 1440 and 32 of air, both declared in
+   private.module.css so the bar and the grid land on the same x. With
+   border-box, 1440 − 32 − 32 leaves the content at 1376, which is the
+   number he has measured in four different windows. */
 .vault {
-  /* ─── LA FORMA DE LA CAJA: UNA SOLA, LA DE BENJI ───
-     TODAS LAS CARDS MIDEN LO MISMO. Es la restricción dura, y es la que
-     manda sobre todo lo demás de este bloque: la proporción NO puede
-     seguir al clip, porque los clips tienen dos formas.
+  /* ─── THE SHAPE OF THE BOX: ONE ONLY, BENJI'S ───
+     EVERY CARD MEASURES THE SAME. It is the hard constraint, and it is
+     the one that rules over everything else in this block: the ratio
+     CANNOT follow the clip, because clips come in two shapes.
 
-     Hubo antes una por fuente —8/5 al web y 9/19.5 al teléfono— y cada
-     clip llenaba su card sin recortarse, pero eso daba dos cards: 443×277
-     y 443×959 a 1440. La de teléfono ocupaba casi una pantalla entera y
-     en "All" las filas quedaban desparejas. Se descartó por eso.
+     There used to be one per source (8/5 for web and 9/19.5 for the
+     phone) and each clip filled its card without cropping, but that
+     gave two cards: 443×277 and 443×959 at 1440. The phone one took up
+     almost a whole screen and in "All" the rows ended up uneven. That
+     is why it was dropped.
 
-     El número es el de benji, medido en family-values y ya anotado en
-     tokens.css:
+     The number is benji's, measured in family-values and already
+     written down in tokens.css:
 
-       caja       550 × 532.42
-       teléfono   227.5 × 448.42   (natural 762×1502)
+       box        550 × 532.42
+       phone      227.5 × 448.42   (natural 762×1502)
        padding    40px 60px
 
-     532.42 = 40 + 448.42 + 4.42 + 40, donde el 4.42 es el hueco de línea
-     que deja su display:inline-block. Nuestro equivalente limpio son 528,
-     que además es múltiplo de 4. De ahí 550/528, o sea 25/24.
+     532.42 = 40 + 448.42 + 4.42 + 40, where the 4.42 is the line gap
+     left by his display:inline-block. Our clean equivalent is 528,
+     which is also a multiple of 4. Hence 550/528, that is 25/24.
 
-     Y NO es la de openai. Su 1/1 es para imágenes cuadradas que él mismo
-     produce; la de benji está dimensionada para que un teléfono entre
-     parado con aire, que es exactamente el caso que acá no se podía
-     resolver. Se le toma a openai la grilla —columnas, canaleta, fila,
-     riel, tope— y a benji la card.
+     And it is NOT openai's. Their 1/1 is for square images they produce
+     themselves; benji's is sized so a phone fits standing up with air
+     around it, which is exactly the case that could not be solved here.
+     From openai we take the grid (columns, gutter, row, rail, maximum)
+     and from benji the card.
 
-     SE DECLARA EN `.marco` (privado.module.css), no acá: subió el día
-     que el playground dibujó su propia grilla con la misma forma, porque
-     una custom property se hereda y no se busca — desde `.playground`,
-     hermano de `.vault`, esta declaración no resolvía. Y NO está en
-     tokens.css a propósito: ahí se filtraban los cuatro nombres al
-     bundle de producción (medido, grep en dist); `.marco` nunca se
-     publica. La medición y el porqué se quedan acá, que es donde
-     valen. */
+     IT IS DECLARED IN `.frame` (private.module.css), not here: it moved
+     up the day the playground drew its own grid with the same shape,
+     because a custom property is inherited and not looked up. From
+     `.playground`, a sibling of `.vault`, this declaration did not
+     resolve. And it is NOT in tokens.css on purpose: over there the
+     four names leaked into the production bundle (measured, grep on
+     dist/); `.frame` is never published. The measurement and the why
+     stay here, which is where they are worth something. */
 
-  /* EL HUECO DEL CLIP A SU RÓTULO. figma 16 · linear 24; gana figma,
-     porque su tarjeta tampoco tiene descripción y el bloque de texto es
-     igual de corto. También en `.marco`, por lo mismo:
-     --vault-media-titulo. */
+  /* THE GAP FROM THE CLIP TO ITS LABEL. figma 16 · linear 24; figma
+     wins, because its card has no description either and the text block
+     is just as short. Also in `.frame`, for the same reason:
+     --vault-media-title. */
 
-  /* LOS DOS VIVEN ACÁ Y NO EN .grilla, y es el mismo motivo: los leen dos
-     cosas que NO son parientes —la card de la grilla y la card del
-     diálogo, que cuelga del vault— y una custom property se hereda, no
-     se busca.
+  /* THE TWO LIVE HERE AND NOT IN .grid, and it is the same reason: two
+     things that are NOT relatives read them (the grid's card and the
+     dialog's card, which hangs off the vault) and a custom property is
+     inherited, not looked up.
 
-     Declarado en .grilla, en el diálogo no resolvía: el aspect-ratio
-     caía en `auto` y el margen del rótulo en 0. Eso último es lo que
-     dejaba el "Native" pegado al clip a 1.5px en vez de 17.5, medido.
+     Declared in .grid, it did not resolve inside the dialog: the
+     aspect-ratio fell back to `auto` and the label's margin to 0. That
+     last one is what left the "Native" stuck to the clip at 1.5px
+     instead of 17.5, measured.
 
-     Ninguna de las dos avisó. Una custom property que no existe no es un
-     error: la declaración entera se descarta y la regla queda como si
-     nunca se hubiera escrito. */
+     Neither one said a word. A custom property that does not exist is
+     not an error: the whole declaration is discarded and the rule ends
+     up as if it had never been written. */
 
-  max-width: var(--privado-ancho);
+  max-width: var(--private-width);
   width: 100%;
   margin-inline: auto;
-  padding-inline: var(--privado-inline);
+  padding-inline: var(--private-inline);
 }
 
-/* ─── EL FILTRO ───
-   Vive DENTRO de la barra, en la otra punta de su fila. El porqué está
-   en vault.tsx: había dos filas que se leían igual, y la salida elegida
-   fue que dejara de haber dos.
+/* ─── THE FILTER ───
+   It lives INSIDE the bar, at the other end of its row. The why is in
+   vault.tsx: there were two rows that read the same, and the way out
+   chosen was for there to stop being two.
 
-   Texto pelado, sin píldoras ni cajas: es lo que hacen las dos
-   referencias (linear "All · Changelog · Product launches…", figma
-   "All · Product · Company…") y también lo que mide linear en /now, con
-   radio 0, sin fondo y sin padding. El activo se pinta y el resto queda
-   en gris — el par --type-nav-c → --activo-c que ya gobierna el índice
-   de la página. */
-.filtros {
-  /* 16 entre los tres filtros: es lo que separa dos palabras cortas sin
-     que se lean como una, el mismo que hay entre Vault y Playground. */
-  --vault-filtro-gap: 16px;
+   Bare text, no pills and no boxes: it is what both references do
+   (linear "All · Changelog · Product launches…", figma "All · Product ·
+   Company…") and also what linear measures on /now, with radius 0, no
+   background and no padding. The active one gets painted and the rest
+   stays gray, the --type-nav-c → --active-c pair that already governs
+   the page index. */
+.filters {
+  /* 16 between the three filters: it is what separates two short words
+     without their reading as one, the same as between Vault and
+     Playground. */
+  --vault-filter-gap: 16px;
 
-  /* ─── EL + NO ES UN CUARTO FILTRO ───
-     La fila son TRES ESTADOS y UNA ACCIÓN. Estaban los cuatro huecos en
-     16 idénticos —medido— y con eso "All Native Web +" se lee como una
-     sola lista de cuatro cosas del mismo tipo.
+  /* ─── THE + IS NOT A FOURTH FILTER ───
+     The row is THREE STATES and ONE ACTION. The four gaps were an
+     identical 16 (measured) and with that "All Native Web +" reads as
+     one list of four things of the same kind.
 
-     32 es el doble del hueco de adentro del grupo, que es la relación
-     más simple que se lee como "esto es otra cosa" sin abrir un número
-     nuevo: ya es el riel de la página, y es múltiplo de 4. La misma
-     cuenta que hace la grilla, cuyos 160 de aire son 2× los 80 del
-     marco. */
-  --vault-mas-gap: 32px;
+     32 is double the gap inside the group, which is the simplest
+     relation that reads as "this is something else" without opening a
+     new number: it is already the page rail, and it is a multiple of 4.
+     The same arithmetic the grid does, whose 160 of air is 2× the 80 of
+     the frame. */
+  --vault-plus-gap: 32px;
 
   display: flex;
-  gap: var(--vault-filtro-gap);
+  gap: var(--vault-filter-gap);
 }
-.filtro {
-  /* El blanco, igual que las solapas y desde el mismo token: es el
-     mismo tipo de control —una palabra clickeable sin caja— en la misma
-     fila. El porqué está en privado.module.css, en --privado-blanco-*. */
-  padding: var(--privado-blanco-y) var(--privado-blanco-x);
-  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+.filter {
+  /* The padding, the same as the tabs and from the same token: it is
+     the same kind of control (a clickable word with no box) in the same
+     row. The why is in private.module.css, in --private-padding-*. */
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
   border: 0;
   background: transparent;
-  /* La inicial en mayúscula. Va en CSS y no en el texto porque los
-     valores —"all", "native", "web"— son DATOS: "native" y "web" son
-     los nombres de las carpetas del vault y se comparan contra ellos.
-     Capitalizarlos en el origen obligaría a bajar la caja en cada
-     comparación, que es la clase de detalle que se olvida una vez y
-     rompe el filtro sin decir nada. */
+  /* The first letter capitalized. It goes in CSS and not in the text
+     because the values ("all", "native", "web") are DATA: "native" and
+     "web" are the names of the vault's folders and they get compared
+     against them. Capitalizing them at the source would force lowering
+     the case at every comparison, which is the kind of detail you
+     forget once and it breaks the filter without saying anything. */
   text-transform: capitalize;
-  /* EL MISMO JUEGO QUE LAS SOLAPAS, no uno propio. Estuvo a 14 contra
-     los 13 de ellas, buscando un escalón de presencia — y un píxel de
-     diferencia no es una jerarquía: se lee como una inconsistencia.
+  /* THE SAME SET AS THE TABS, not one of its own. It sat at 14 against
+     their 13, looking for a step of presence, and one pixel of
+     difference is not a hierarchy: it reads as an inconsistency.
 
-     Desde que los dos están en las puntas de UNA fila, la POSICIÓN ya
-     hace la distinción, así que ese píxel no tenía trabajo. La fila es
-     una sola cosa —el chrome del área privada— y una sola cosa lleva un
-     solo juego de tipografía.
+     Since the two of them sit at the ends of ONE row, the POSITION
+     already makes the distinction, so that pixel had no work to do. The
+     row is one single thing, the chrome of the private area, and one
+     thing carries one set of typography.
 
-     El activo sube a --activo-c, igual que la solapa activa: el mismo
-     token, que es el que el sistema nombró para decir "ésta". */
+     The active one goes up to --active-c, the same as the active tab:
+     the same token, which is the one the system named to say "this
+     one". */
   font-size: var(--type-nav-fs);
   font-weight: var(--type-nav-fw);
   letter-spacing: var(--type-nav-ls);
@@ -171,99 +176,101 @@
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
 }
-/* PROBADO Y CONFIRMADO (2026-09-03): sólo contraste, sin segunda señal.
-   Se puso en la página real con `prototype` contra cuatro alternativas
-   —peso 600 en el activo (HIG sidebar), subrayado de 1px (Vercel/Stripe),
-   pastilla (Apple.com/Dribbble) y la lógica invertida— y Vito eligió
-   ésta. Queda medido lo que cuesta, para quien vuelva: en claro el
-   inactivo (negro al 34.4%) está a 2.39:1 del fondo, bajo el 4.5:1 de
-   texto; en oscuro los dos estados están a 2.62:1 entre sí, bajo el 3:1
-   que WCAG pide para distinguir estados sin otra señal. Es la misma
-   apuesta que Linear (nav y filtros, sólo contraste) y se acepta a
-   sabiendas. */
-.filtro[data-activo] {
-  color: var(--activo-c);
+/* TRIED AND CONFIRMED (2026-09-03): contrast only, no second signal. It
+   was put on the real page with `prototype` against four alternatives
+   (weight 600 on the active one (HIG sidebar), a 1px underline
+   (Vercel/Stripe), a pill (Apple.com/Dribbble) and the inverted logic)
+   and Vito picked this one. What it costs is measured here, for
+   whoever comes back: in light the inactive one (black at 34.4%) is at
+   2.39:1 against the background, under the 4.5:1 for text; in dark the
+   two states are at 2.62:1 from each other, under the 3:1 WCAG asks for
+   to tell states apart with no other signal. It is the same bet Linear
+   makes (nav and filters, contrast only) and it is accepted knowingly. */
+.filter[data-active] {
+  color: var(--active-c);
 }
-.filtro:hover {
-  color: var(--activo-c);
+.filter:hover {
+  color: var(--active-c);
 }
-/* Hubo acá una cuenta ("16 de 16") alineada a la derecha y se fue: en
-   una pared de referencias el total no es un dato que se consulte, y
-   ocupaba la esquina más visible de la página para decirlo. */
+/* There used to be a count here ("16 of 16") aligned to the right and
+   it left: on a wall of references the total is not something you look
+   up, and it took the most visible corner of the page to say it. */
 
-/* La jerarquía de la cabecera quedó DECIDIDA: una sola fila, las
-   solapas a la izquierda y el filtro a la derecha. Se probaron cuatro
-   con /prototype —la banda de linear, este par en los extremos, pills, y
-   un título grande que habría abierto la escala tipográfica— y ganó
-   ésta. El andamio se fue con la decisión; el razonamiento está en
-   vault.tsx.
+/* The header's hierarchy is DECIDED: one row, the tabs on the left and
+   the filter on the right. Four were tried with /prototype (linear's
+   band, this pair at the ends, pills, and a big title that would have
+   opened up the type scale) and this one won. The scaffolding left with
+   the decision; the reasoning is in vault.tsx.
 
 */
 
-/* ─── LA GRILLA ES LA DE OPENAI ───
-   Medida con /web-clone en ocho ventanas. Los recibos están en
+/* ─── THE GRID IS OPENAI'S ───
+   Measured with /web-clone in eight windows. The receipts are in
    .context/recon/vault/grillas/.
 
-   SOURCE · openai-news.css.txt + la clase del nodo
+   SOURCE · openai-news.css.txt + the node's class
      grid gap-x-6 gap-y-20 @sm:grid-cols-2 @md:grid-cols-3
      .gap-x-6{column-gap:calc(var(--spacing) * 6)}   → 24
      .gap-y-20{row-gap:calc(var(--spacing) * 20)}    → 80
      grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
      .max-w-container{max-width:1440px}  padding: 0 32px
 
-   RUNTIME · sus columnas y su canaleta no cambian nunca
-     2560 · 1920 · 1728 · 1440  →  contenedor 1376, 3 col   CLAVADO
-     1280 → 1216 · 1024 → 960 · 768 → 704   3 col, aire 32
-      744 → 696 ... 570 → 522               2 col, aire 24
-      560 → 512 ... 430 → 382               1 col, aire 24
-     canaleta 24 y fila 80 en LOS OCHO anchos
+   RUNTIME · their columns and their gutter never change
+     2560 · 1920 · 1728 · 1440  →  container 1376, 3 col   PINNED
+     1280 → 1216 · 1024 → 960 · 768 → 704   3 col, air 32
+      744 → 696 ... 570 → 522               2 col, air 24
+      560 → 512 ... 430 → 382               1 col, air 24
+     gutter 24 and row 80 at ALL EIGHT widths
 
-   LO QUE CAMBIÓ CONTRA LO QUE HABÍA
-     canaleta   32 → 24
-     fila       64 → 80
-     el riel    80 sin tope → 32 con tope de 1440 (está en privado.module.css)
+   WHAT CHANGED AGAINST WHAT WAS HERE
+     gutter     32 → 24
+     row        64 → 80
+     the rail   80 with no maximum → 32 with a maximum of 1440
+                (it is in private.module.css)
 
-   La fila de 80 es más del triple que la canaleta de 24, y eso no es un
-   descuido suyo: separa las filas mucho más de lo que separa las
-   columnas, así que la grilla se lee como filas y no como una malla. La
-   nuestra estaba en 32/64, que es la mitad de esa relación. */
-.grilla {
-  --vault-columnas: 3;
-  /* La canaleta (24) y la fila (80) también se fueron a `.marco`: las
-     lee la grilla del playground, que no cuelga de acá. Medidas de
-     openai.com/news en ocho ventanas — ver arriba. */
+   The row of 80 is more than triple the gutter of 24, and that is not
+   an oversight on his part: it separates the rows much more than it
+   separates the columns, so the grid reads as rows and not as a mesh.
+   Ours was at 32/64, which is half that relation. */
+.grid {
+  --vault-columns: 3;
+  /* The gutter (24) and the row (80) also moved to `.frame`: the
+     playground's grid reads them, and it does not hang off here.
+     Measured on openai.com/news in eight windows, see above. */
 
-  /* EL AIRE HASTA LA GRILLA.
+  /* THE AIR DOWN TO THE GRID.
 
-     160, y no los 64 de --section-gap que había. Con el filtro mudado a
-     la barra, la segunda fila desapareció y con ella su aire: la grilla
-     trepaba hasta y=160 y arrancaba pegada al borde de arriba.
+     160, and not the 64 of --section-gap that was here. With the filter
+     moved into the bar, the second row disappeared and its air went
+     with it: the grid climbed up to y=160 and started stuck to the top
+     edge.
 
-     El número es 2× el aire superior del marco —80, que ya es del
-     sistema— así que la banda de arriba y el hueco que sigue quedan en
-     relación simple. Deja la grilla en y=256 a 1440; linear, en la misma
-     ventana, arranca la suya en 290. */
+     The number is 2× the frame's top air (80, which is already the
+     system's) so the band above and the gap that follows stay in a
+     simple relation. It leaves the grid at y=256 at 1440; linear, in
+     the same window, starts its own at 290. */
   margin-top: 160px;
   display: grid;
-  grid-template-columns: repeat(var(--vault-columnas), minmax(0, 1fr));
-  column-gap: var(--vault-canaleta);
-  row-gap: var(--vault-fila);
+  grid-template-columns: repeat(var(--vault-columns), minmax(0, 1fr));
+  column-gap: var(--vault-gutter);
+  row-gap: var(--vault-row);
   align-items: start;
 }
 
-/* Sus cortes de columna, en viewport. Él los hace con container queries
-   —2 columnas mientras el contenedor mida más de 512— y acá se expresan
-   contra la ventana, que es lo que usa el resto del sistema. El 560 sale
-   de su misma cuenta, 512 + 24 + 24, y el corte va EN 560 y no en 559:
-   medido, a 570 él da 2 columnas y a 560 exacto ya da 1. */
+/* Their column breakpoints, in viewport. They do it with container
+   queries (2 columns while the container is more than 512) and here
+   they are written against the window, which is what the rest of the
+   system uses. The 560 comes out of their own arithmetic, 512 + 24 +
+   24, and the breakpoint goes AT 560 and not at 559: measured, at 570
+   they give 2 columns and at exactly 560 they already give 1. */
 @media (max-width: 767px) {
-  .grilla {
-    --vault-columnas: 2;
+  .grid {
+    --vault-columns: 2;
   }
 }
 @media (max-width: 560px) {
-  .grilla {
-    --vault-columnas: 1;
+  .grid {
+    --vault-columns: 1;
   }
 }
 
@@ -274,54 +281,55 @@
   cursor: pointer;
 }
 
-/* ─── LA CAJA ───
-   La card de benji. El fondo es --surface, el mismo de la card del
-   producto: cuando el clip no la llena, lo que se ve es la superficie
-   del sistema y no un agujero. */
-/* TODAS LA MISMA ALTURA. Es una decisión tomada CONTRA benji, y queda
-   dicho: él deja que el contenido mande y por eso sus 45 cards tienen
-   cinco alturas distintas. Se lo puede permitir porque tiene una sola
-   columna; en tres, la altura variable deja las filas desparejas —la
-   peor medía 209px— y eso en una grilla se lee como error y no como
-   variedad.
+/* ─── THE BOX ───
+   benji's card. The background is --surface, the same as the product's
+   card: when the clip does not fill it, what you see is the system's
+   surface and not a hole. */
+/* ALL THE SAME HEIGHT. It is a decision taken AGAINST benji, and let it
+   be said: he lets the content rule and that is why his 45 cards have
+   five different heights. He can afford it because he has a single
+   column; in three, variable height leaves the rows uneven (the worst
+   one measured 209px) and in a grid that reads as an error and not as
+   variety.
 
-   El precio se paga en el clip apaisado, que queda con aire arriba y
-   abajo. Se acepta a cambio de que la grilla sea una grilla.
+   The price is paid by the landscape clip, which ends up with air above
+   and below. That is accepted in exchange for the grid being a grid.
 
-   El número está en --vault-caja-alto, arriba. */
+   The number is in --vault-box-height, above. */
 .media {
-  /* LA PROPORCIÓN MANDA, NO UN ALTO EN PÍXELES. Es lo que hacen las tres
-     referencias medidas —openai declara 1/1, linear 16/9 en dos páginas
-     distintas— y ninguna clava un alto. Con la proporción sobre una
-     columna de ancho fijo el alto sale solo y todas las cards de una
-     fila miden lo mismo, que es lo único que --vault-caja-alto protegía.
+  /* THE RATIO RULES, NOT A HEIGHT IN PIXELS. It is what the three
+     measured references do (openai declares 1/1, linear 16/9 on two
+     different pages) and none of them pins a height. With the ratio
+     over a column of fixed width the height comes out on its own and
+     every card in a row measures the same, which is the only thing
+     --vault-box-height was protecting.
 
-     openai.com/news, RUNTIME en ocho ventanas: aspect-ratio 1/1 en
-     todas, sin excepción. */
-  aspect-ratio: var(--vault-proporcion);
+     openai.com/news, RUNTIME in eight windows: aspect-ratio 1/1 in all
+     of them, no exception. */
+  aspect-ratio: var(--vault-aspect-ratio);
 
-  /* SIN AIRE Y SIN RADIO, como ellos: padding 0 y sangría 0/0 medidas en
-     su card, y border-radius 0. El clip llega al borde.
+  /* NO AIR AND NO RADIUS, like them: padding 0 and inset 0/0 measured
+     on their card, and border-radius 0. The clip reaches the edge.
 
-     Esto es lo que reemplaza a --card-app-padding (40 60), que era de
-     benji pero de otra card: 550 de ancho con un teléfono de 228
-     adentro. Sus 60 por lado eran holgados porque su contenido es
-     angosto y alto; acá dejaban una grabación de 1440×900 dibujada a
-     285×178, el 22% del área de la card. */
+     This is what replaces --card-app-padding (40 60), which was benji's
+     but from another card: 550 wide with a 228 phone inside. His 60 per
+     side were generous because his content is narrow and tall; here
+     they left a 1440×900 recording drawn at 285×178, 22% of the card's
+     area. */
   padding: 0;
-  /* Contenedor de posicionamiento: el clip de teléfono se cuelga de acá
-     con `inset` para conseguir una caja de alto DEFINIDO. Ver abajo. */
+  /* Positioning container: the phone clip hangs off here with `inset`
+     to get a box of DEFINED height. See below. */
   position: relative;
-  /* EL RADIO ES EL DEL SISTEMA y no el de ellos. Openai la deja en 0 y
-     linear en 5; nuestro --card-radio son 8 y ya gobierna la card del
-     producto. Copiar el 0 metería una card con esquina viva al lado de
-     una redondeada en la misma app.
-     Es la misma regla con la que no se le copió el borde a benji: la
-     geometría se cita, las decisiones ya tomadas del sistema se
-     respetan. `overflow: hidden` es lo que hace que un clip que llega al
-     borde —la grabación de web lo hace a lo ancho— se recorte contra ese
-     radio en vez de asomar en las esquinas. */
-  border-radius: var(--card-radio);
+  /* THE RADIUS IS THE SYSTEM'S and not theirs. Openai leaves it at 0
+     and linear at 5; our --card-radius is 8 and it already governs the
+     product's card. Copying the 0 would put a card with a sharp corner
+     next to a rounded one in the same app.
+     It is the same rule by which benji's border did not get copied: the
+     geometry gets quoted, the system's decisions that are already taken
+     get respected. `overflow: hidden` is what makes a clip that reaches
+     the edge (the web recording does, across its width) get cut against
+     that radius instead of poking out at the corners. */
+  border-radius: var(--card-radius);
   overflow: hidden;
   background: var(--surface);
   display: flex;
@@ -329,98 +337,100 @@
   justify-content: center;
   transition: background-color var(--dur-surface) var(--ease-surface);
 }
-/* EL CLIP LLENA SU HUECO Y `contain` HACE EL RESTO.
+/* THE CLIP FILLS ITS SLOT AND `contain` DOES THE REST.
 
-   Con la caja de alto fijo, el elemento ocupa el hueco entero y
-   object-fit dibuja la imagen adentro respetando su proporción. La
-   franja que sobra queda transparente y como el fondo es --surface, no
-   se ve: la imagen parece flotar centrada en la caja.
+   With the box at a fixed height, the element takes the whole slot and
+   object-fit draws the image inside it respecting its ratio. The strip
+   left over stays transparent and since the background is --surface,
+   you do not see it: the image looks like it floats centered in the
+   box.
 
-   O sea que la caja del ELEMENTO puede ser más grande que la imagen que
-   se ve. Es intencional y es lo que evita el otro problema: sin un
-   tamaño explícito, un clip más chico que la caja se dibujaba a su
-   tamaño natural y encogía la card — una imagen de 1×1 daba una caja de
-   81px de alto. Medido, no supuesto. Ninguna de las 45 cards de benji
-   deja que el archivo decida su tamaño: su <img> declara width:227.5px. */
-/* ─── CORREGIDO: `cover` RECORTABA JUSTO LO QUE HAY QUE VER ───
-   Acá decía `cover`, citando a openai en /news y a linear en /customers.
-   Las dos referencias son buenas y la cita es cierta, pero el contenido
-   no es el mismo: ellos recortan FOTOS, donde el borde es paisaje y el
-   centro es el tema. Un clip del vault es una GRABACIÓN DE PANTALLA, y
-   en una grabación de pantalla el borde es la interfaz.
+   Which means the ELEMENT's box can be bigger than the image you see.
+   That is intentional and it is what avoids the other problem: with no
+   explicit size, a clip smaller than the box was drawn at its natural
+   size and shrank the card. A 1×1 image gave a box 81px tall. Measured,
+   not assumed. None of benji's 45 cards lets the file decide its size:
+   his <img> declares width:227.5px. */
+/* ─── CORRECTED: `cover` WAS CROPPING EXACTLY WHAT YOU NEED TO SEE ───
+   This said `cover`, quoting openai on /news and linear on /customers.
+   Both references are good and the quote is true, but the content is
+   not the same: they crop PHOTOS, where the edge is landscape and the
+   center is the subject. A vault clip is a SCREEN RECORDING, and in a
+   screen recording the edge is the interface.
 
-   Lo que costaba, medido sobre "Copy text animation from Apple
-   Passwords" (1666×800 antes de recortarlo) en la card de 443×425:
+   What it cost, measured on "Copy text animation from Apple Passwords"
+   (1666×800 before cropping it) in the 443×425 card:
 
-     escala de cover     425 / 800 = 0.53125
-     ancho visible       443 / 0.53125 = 834 de 1666  →  el 50%
-     lo que sobrevivía   el ícono de wifi y el "23"
-     lo que se perdía    Name · Password · Copied · Type · QR Code
+     cover's scale      425 / 800 = 0.53125
+     visible width      443 / 0.53125 = 834 of 1666  →  50%
+     what survived      the wifi icon and the "23"
+     what was lost      Name · Password · Copied · Type · QR Code
 
-   O sea: de un clip que se llama "copy text animation" no se veía ni el
-   texto ni el botón de copiar. La miniatura mostraba la parte muda.
+   That is: in a clip called "copy text animation" you could see neither
+   the text nor the copy button. The thumbnail showed the mute part.
 
-   `contain` da la garantía que hacía falta: LO QUE ESTÁ EN EL ARCHIVO SE
-   VE, siempre, sin que la card decida por su cuenta qué tirar. Lo que
-   entra en el archivo pasa a ser una decisión de encuadre, tomada una
-   vez sobre el clip, donde se puede mirar el resultado.
+   `contain` gives the guarantee that was needed: WHAT IS IN THE FILE IS
+   SEEN, always, without the card deciding on its own what to throw
+   away. What goes into the file becomes a framing decision, taken once
+   over the clip, where you can look at the result.
 
-   Y esa es la parte que importa: `contain` no es "verlo todo lejos", es
-   MOVER EL RECORTE de la CSS al archivo. En este clip el encuadre
-   terminó siendo la fila del Password —450×432, la razón 25/24 de la
-   card— y entonces `contain` no deja ninguna franja: el clip llena la
-   card ENTERA y encima está el triple de cerca. RUNTIME a 1440: caja
-   442.7×425, clip pintado 442.7×425, franja 0.
+   And that is the part that matters: `contain` is not "see it all from
+   far away", it is MOVING THE CROP from the CSS to the file. In this
+   clip the framing ended up being the Password row (450×432, the card's
+   25/24 ratio) and then `contain` leaves no strip at all: the clip
+   fills the WHOLE card and on top of that it is three times closer.
+   RUNTIME at 1440: box 442.7×425, clip painted 442.7×425, strip 0.
 
-   Con `cover` ese encuadre habría sido imposible de ver: la card habría
-   vuelto a recortar el recorte.
+   With `cover` that framing would have been impossible to see: the card
+   would have cropped the crop again.
 
-   Va en `.media > *` y no en una regla por fuente porque es la misma
-   respuesta para las tres: el teléfono ya venía en `contain` acá abajo,
-   la grabación de web lo necesita, y un clip suelto sin clasificar es
-   justo cuando más falta hace verlo entero para saber qué es. */
-/* ─── CORREGIDO: UN SOLO ENCUADRE PARA TODAS LAS FUENTES ───
-   Acá decía width/height 100% —el clip llena la caja— y sólo `native`
-   llevaba el hueco con aire. Ahora el hueco es de todos, y no por
-   gusto: Vito pidió que "el rectángulo blanco dentro de cada card tenga
-   el mismo tamaño", y con dos reglas eso era imposible — `Shelf to card`
-   (web) dibujaba su bandeja a 442.6×424.9 al lado de las de `native` a
-   295.1×295.1.
+   It goes in `.media > *` and not in a rule per source because it is
+   the same answer for all three: the phone already came in `contain`
+   down here, the web recording needs it, and a loose unclassified clip
+   is exactly when you most need to see it whole to know what it is. */
+/* ─── CORRECTED: ONE FRAMING FOR EVERY SOURCE ───
+   This said width/height 100% (the clip fills the box) and only
+   `native` carried the slot with air. Now the slot belongs to all of
+   them, and not out of taste: Vito asked for "the white rectangle
+   inside every card to be the same size", and with two rules that was
+   impossible. `Shelf to card` (web) drew its tray at 442.6×424.9 next
+   to the `native` ones at 295.1×295.1.
 
-   La regla sola no alcanza: con `contain`, el tamaño de la bandeja lo
-   decide la proporción del ARCHIVO. Por eso los dos clips con bandeja
-   que no eran cuadrados se rellenaron con su propio fondo hasta 1:1
-   —`Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 →
-   2868×2868— y así todas las bandejas caen en 295.11×295.11 a 1440.
+   The rule alone is not enough: with `contain`, the size of the tray is
+   decided by the FILE's ratio. That is why the two clips with a tray
+   that were not square got padded with their own background up to 1:1
+   (`Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 →
+   2868×2868) and that way every tray lands at 295.11×295.11 at 1440.
 
-   Lo que cuesta y queda dicho: `Copy text` (web, recorte oscuro a 25/24
-   hecho para llenar la card) pasa a 295.1×283.3 con superficie
-   alrededor; y el diálogo de subir muestra Native y Web iguales, porque
-   ya no hay nada visual que los distinga. Los valores están abajo, con
-   su recibo. */
-/* ─── LA CAJA MIDE LO QUE SE PINTA, y por eso puede llevar radio ───
-   Antes la caja era fija —66.6667% × 84.8485%— y `contain` centraba la
-   imagen adentro: para un archivo 1:1 la caja medía 295×360 y la bandeja
-   pintada 295×295, con 32px de caja vacía arriba y abajo. Un
-   `border-radius` ahí redondea la CAJA, o sea nada visible.
+   What it costs, and let it be said: `Copy text` (web, a dark crop at
+   25/24 made to fill the card) goes to 295.1×283.3 with surface around
+   it; and the upload dialog shows Native and Web as identical, because
+   there is no longer anything visual telling them apart. The values are
+   below, with their receipt. */
+/* ─── THE BOX MEASURES WHAT GETS PAINTED, and that is why it can carry
+   a radius ───
+   The box used to be fixed (66.6667% × 84.8485%) and `contain` centered
+   the image inside it: for a 1:1 file the box measured 295×360 and the
+   painted tray 295×295, with 32px of empty box above and below. A
+   `border-radius` there rounds the BOX, that is, nothing visible.
 
-   Ahora width/height van en `auto` y los dos números pasan a ser TOPES.
-   Un elemento reemplazado con tamaño auto usa su tamaño intrínseco —eso
-   es lo que falló en el intento anotado más abajo, que no tenía topes—
-   y con max-width/max-height lo escala proporcional hasta que entra. La
-   caja queda EXACTAMENTE del tamaño de la imagen, `inset: 0` + `margin:
-   auto` la centra, y el centro es el mismo de antes: 16.6667 + 33.3333
-   = 50 y 7.5758 + 42.4242 = 50. Medido en runtime: ninguna bandeja se
-   movió un décimo de píxel.
+   Now width/height go to `auto` and the two numbers become MAXIMUMS. A
+   replaced element with auto size uses its intrinsic size (that is what
+   failed in the attempt written down further below, which had no
+   maximums) and with max-width/max-height it scales it proportionally
+   until it fits. The box ends up EXACTLY the size of the image, `inset:
+   0` + `margin: auto` centers it, and the center is the same as before:
+   16.6667 + 33.3333 = 50 and 7.5758 + 42.4242 = 50. Measured at
+   runtime: not one tray moved a tenth of a pixel.
 
-   EL RADIO ES EL DEL SISTEMA, 8, y es una decisión de /better-ui, no un
-   gusto: "outer = inner + padding" vale para capas pegadas; pasados los
-   24px de aire las dos son superficies independientes y cada una toma su
-   token. Acá el aire es de 64.9 a 73.8, así que la bandeja es una
-   superficie aparte, y la única que hay es --card-radio. Es exactamente
-   lo que ya hace la grabación en la card del producto (app.module.css,
-   .demo): una grabación cruda tiene esquinas vivas y dentro de una
-   superficie ya redondeada se lee como sin terminar. */
+   THE RADIUS IS THE SYSTEM'S, 8, and it is a /better-ui decision, not a
+   taste: "outer = inner + padding" holds for layers that touch; past
+   24px of air the two are independent surfaces and each takes its own
+   token. Here the air is between 64.9 and 73.8, so the tray is a
+   separate surface, and the only one there is is --card-radius. It is
+   exactly what the recording in the product's card already does
+   (app.module.css, .demo): a raw recording has sharp corners and inside
+   an already rounded surface it reads as unfinished. */
 .media > * {
   display: block;
   position: absolute;
@@ -431,405 +441,423 @@
   max-width: 66.6667%;
   max-height: 84.8485%; /* 448 / 528, benji */
   object-fit: contain;
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
 }
-/* EL TOPE DE 228 DEL TELÉFONO SE FUE. Existía para que un clip vertical
-   no se comiera la pantalla cuando la caja medía 574 de alto. Ahora la
-   caja tiene proporción y el `inset` de acá abajo ya le da al teléfono
-   su ancho, así que un tope de 228 encima sólo lograría achicarlo dos
-   veces.
+/* THE PHONE'S 228 MAXIMUM IS GONE. It existed so a vertical clip would
+   not eat the screen when the box measured 574 tall. Now the box has a
+   ratio and the `inset` down here already gives the phone its width, so
+   a 228 maximum on top would only shrink it twice.
 
-   Queda anotado que la regla venía escrita 'nativo' contra el 'native'
-   que emite el TSX, o sea que nunca matcheó.
-   (era .card[data-fuente='native'] .media > * { max-width: 228px }) */
+   Let it be written down that the rule said 'nativo' against the
+   'native' the TSX emits, that is, it never matched.
+   (it was .card[data-source='native'] .media > * { max-width: 228px }) */
 
-/* ─── EL TELÉFONO, COMO LO HACE BENJI ───
-   Adentro de la card y con aire alrededor, no llenándola. Es la única
-   regla que mira la fuente, y ya no existe por el recorte —eso lo
-   resolvió `contain` arriba, para todos— sino por el AIRE: una card con
-   el teléfono pegado a los cuatro bordes es la de él sin sus 40/60.
+/* ─── THE PHONE, THE WAY BENJI DOES IT ───
+   Inside the card and with air around it, not filling it. It is the
+   only rule that looks at the source, and it no longer exists because
+   of the crop (that got solved by `contain` above, for everyone) but
+   because of the AIR: a card with the phone stuck to all four edges is
+   his card without his 40/60.
 
-   EL AIRE ESTÁ EN PORCENTAJE Y NO EN PÍXELES a propósito. Un padding en
-   porcentaje se resuelve SIEMPRE contra el ancho, en los cuatro lados,
-   así que 40/550 y 60/550 reproducen su proporción exacta en cualquier
-   ancho de columna sin una sola media query — que es también lo que hace
-   su card, que no tiene ninguna.
+   THE AIR IS IN PERCENT AND NOT IN PIXELS, on purpose. A padding in
+   percent ALWAYS resolves against the width, on all four sides, so
+   40/550 and 60/550 reproduce his exact proportion at any column width
+   without a single media query, which is also what his card does, since
+   it has none.
 
      40 / 550 = 7.2727%     60 / 550 = 10.909%
 
-   Se aplica con `inset` sobre el clip y no con `padding` sobre la caja,
-   por una razón que está explicada abajo y que costó dos intentos. */
-/* EL AIRE VA EN `inset` Y NO EN `padding`, y costó dos intentos.
+   It is applied with `inset` on the clip and not with `padding` on the
+   box, for a reason that is explained below and that cost two
+   attempts. */
+/* THE AIR GOES IN `inset` AND NOT IN `padding`, and it cost two
+   attempts.
 
-   Con la caja midiendo por aspect-ratio, un hijo en flujo NO puede
-   resolver ningún porcentaje contra ese alto. Medido, las dos formas:
+   With the box measured by aspect-ratio, a child in flow CANNOT resolve
+   any percentage against that height. Measured, both ways:
 
-     height: 100%       WebKit lo resuelve contra la caja de BORDE, así
-                        que el clip daba 346×425 en un hueco de 346×361:
-                        se comía el aire y quedaba cortado contra el
-                        borde por el overflow:hidden
-     max-height: 100%   directamente no ata: el clip daba 346×750 dentro
-                        de una card de 425. El 138% de la caja
+     height: 100%       WebKit resolves it against the BORDER box, so
+                        the clip came out 346×425 in a 346×361 slot: it
+                        ate the air and got cut against the edge by the
+                        overflow:hidden
+     max-height: 100%   it simply does not bind: the clip came out
+                        346×750 inside a 425 card. 138% of the box
 
-   La salida es sacarlo del flujo. Para un absoluto, el bloque
-   contenedor es la caja de relleno del ancestro posicionado, y ESA sí
-   tiene un alto conocido, así que un porcentaje resuelve.
+   The way out is taking it out of flow. For an absolute, the containing
+   block is the padding box of the positioned ancestor, and THAT one
+   does have a known height, so a percentage resolves.
 
-   Y el tamaño va explícito, no en auto: hubo un tercer intento con
-   `inset` en los cuatro lados y width/height en auto, y también falló
-   —el clip volvió a dibujarse en 886×1920, el 904% de la caja— porque
-   un elemento REEMPLAZADO con width:auto usa su tamaño intrínseco y no
-   el que le dictan los inset. Eso vale para <img> y <video> y no para
-   un <div>, que es de donde viene la intuición equivocada.
+   And the size goes explicit, not auto: there was a third attempt with
+   `inset` on all four sides and width/height auto, and it failed too
+   (the clip went back to being drawn at 886×1920, 904% of the box)
+   because a REPLACED element with width:auto uses its intrinsic size
+   and not the one the insets dictate. That holds for <img> and <video>
+   and not for a <div>, which is where the wrong intuition comes from.
 
-   Los porcentajes son los de benji, y cada uno contra el eje que le
-   corresponde —los verticales resuelven contra el alto y los
-   horizontales contra el ancho, que es la regla de `inset`—:
+   The percentages are benji's, and each one against the axis it belongs
+   to (the vertical ones resolve against the height and the horizontal
+   ones against the width, which is the rule of `inset`):
 
      40 / 528 = 7.5758%     60 / 550 = 10.909%
 
-   A 1440 da 32 y 48 sobre una card de 443×425, y deja el hueco en
-   346×361 con el teléfono en 167×361. Igual que él, lo que lo ata es el
-   ALTO: su teléfono mide 448.42 en un hueco de 452.42. */
-/* ─── EL ANCHO YA NO ES EL DE BENJI: 78.1818% → 66.6667% ───
-   Lo pidió Vito mirando la grilla, y el motivo se ve medido. El 78.1818%
-   sólo ATA cuando el archivo es más ancho que alto, y la mayoría de lo
-   que hay en `nativo/` no tiene forma de teléfono: es un recorte
-   cuadrado. RUNTIME a 1440, card de 442.66 × 424.94:
+   At 1440 that gives 32 and 48 over a 443×425 card, and it leaves the
+   slot at 346×361 with the phone at 167×361. Same as him, what binds it
+   is the HEIGHT: his phone measures 448.42 in a 452.42 slot. */
+/* ─── THE WIDTH IS NO LONGER BENJI'S: 78.1818% → 66.6667% ───
+   Vito asked for it looking at the grid, and the reason shows up when
+   you measure. The 78.1818% only BINDS when the file is wider than it
+   is tall, and most of what is in `nativo/` is not phone-shaped: it is
+   a square crop. RUNTIME at 1440, card of 442.66 × 424.94:
 
-     Photo picker · Mini player · Swipe to pay    1:1    346.06 de ancho
+     Photo picker · Mini player · Swipe to pay    1:1    346.06 wide
      Attach morph · Hold to commit               ~0.96   346.06
      Swipeable tabs                               1.05   346.06
 
-   Seis de ocho salían al MISMO ancho, el máximo, con 48.3 de aire al
-   costado contra 39.4 arriba: el marco más flaco justo donde la card
-   tiene más lugar. A 2/3 el tope baja a 295.11 y el aire lateral sube a
-   73.78.
+   Six out of eight came out at the SAME width, the maximum, with 48.3
+   of air at the side against 39.4 above: the thinnest frame right where
+   the card has the most room. At 2/3 the maximum drops to 295.11 and
+   the side air goes up to 73.78.
 
-   El 2/3 no tiene referencia detrás y conviene decirlo. Es el número
-   redondo que cumple las dos condiciones que sí se verifican: achica lo
-   cuadrado, y NO toca lo que de verdad tiene forma de teléfono, porque a
-   esos los ata el ALTO y quedan debajo del tope —
+   The 2/3 has no reference behind it and that is worth saying. It is
+   the round number that meets the two conditions that can be verified:
+   it shrinks the square ones, and it does NOT touch the ones that
+   really are phone-shaped, because those are bound by the HEIGHT and
+   stay under the maximum:
 
-     Swipe actions  1320×1772 → 268.57 de ancho   (< 295.11, intacto)
-     Floating bar   1320×2868 → 165.85            (intacto)
+     Swipe actions  1320×1772 → 268.57 wide   (< 295.11, untouched)
+     Floating bar   1320×2868 → 165.85        (untouched)
 
-   Por eso el alto NO se toca: 84.8485% sigue siendo 448/528 de benji, y
-   es lo que sostiene a esos dos. Lo único que se le retiró es el ancho.
-   Verificado a 1440, 900, 700, 500 y 390: proporcional en los cinco.
+   That is why the height is NOT touched: 84.8485% is still benji's
+   448/528, and it is what holds those two up. The only thing taken away
+   from him is the width. Verified at 1440, 900, 700, 500 and 390:
+   proportional in all five.
 
-   LA REGLA VIVÍA ACÁ, SÓLO PARA `native`, y se mudó a `.media > *` (más
-   arriba) el día que la bandeja tuvo que medir lo mismo en todas las
-   cards. Hubo una ida y vuelta antes y queda dicha: se unificó, se
-   revirtió porque nadie lo había pedido y achicaba los clips de web, y
-   volvió cuando sí se pidió. Las dos verticales siguen siendo el hueco
-   de benji sobre su card —arriba 40/528 = 7.5758%, alto 448/528 =
-   84.8485%—; las horizontales eran las suyas (60/550 y 430/550) y las
-   reemplaza el 2/3. */
+   THE RULE USED TO LIVE HERE, ONLY FOR `native`, and it moved to
+   `.media > *` (further up) the day the tray had to measure the same in
+   every card. There was a back and forth before that and it is written
+   down: it got unified, it got reverted because nobody had asked for it
+   and it shrank the web clips, and it came back when it was asked for.
+   The two vertical ones are still benji's slot over his card (top
+   40/528 = 7.5758%, height 448/528 = 84.8485%); the horizontal ones
+   were his (60/550 and 430/550) and 2/3 replaces them. */
 
-/* ─── CORREGIDO: EL DE WEB SÍ LLEVA REGLA, LA MISMA QUE TODOS ───
-   Lo de abajo decía lo contrario y era una decisión. Se deja entera
-   porque su segunda mitad —el encuadre de una grabación se hace en el
-   archivo, no acá— sigue valiendo; lo que cayó es la primera línea. El
-   porqué está en el bloque de `.media > *`.
+/* ─── CORRECTED: THE WEB ONE DOES CARRY A RULE, THE SAME AS EVERYONE ───
+   What is below said the opposite and it was a decision. It is kept
+   whole because its second half (the framing of a recording is done in
+   the file, not here) still holds; what fell is the first line. The why
+   is in the `.media > *` block.
 
-   Lo que decía:
+   What it said:
 
-   EL DE WEB NO LLEVA REGLA, y eso es la decisión y no un olvido. Con
-   `contain` arriba ya entra entero y todo lo grande que la card permite.
-   Un `inset` como el del teléfono sólo lo achicaría.
+   THE WEB ONE CARRIES NO RULE, and that is the decision and not an
+   oversight. With `contain` above it already fits whole and as large as
+   the card allows. An `inset` like the phone's would only shrink it.
 
-   EL ENCUADRE DE UNA GRABACIÓN DE PANTALLA SE HACE EN EL ARCHIVO, no
-   acá, y la razón es que acá no hay con qué. Una grabación llega con
-   basura de la captura —banda negra, márgenes desparejos, el rectángulo
-   de selección de macOS al final— y además llega ENCUADRADA EN LA
-   VENTANA cuando lo que se guarda es un gesto que ocupa un rincón. Las
-   dos cosas se arreglan recortando, y el recorte de cada clip es un
-   número distinto.
+   THE FRAMING OF A SCREEN RECORDING IS DONE IN THE FILE, not here, and
+   the reason is that here there is nothing to do it with. A recording
+   arrives with capture garbage (a black band, uneven margins, macOS's
+   selection rectangle at the end) and it also arrives FRAMED IN THE
+   WINDOW when what is being kept is a gesture that takes up one corner.
+   Both things get fixed by cropping, and each clip's crop is a
+   different number.
 
-   Ponerlo en CSS pediría un rectángulo por clip: cuatro valores escritos
-   a mano que hoy no existen en ningún lado. El vault es explícitamente lo
-   contrario —"la carpeta ES el manifiesto", clips.ts— así que un dato de
-   encuadre por clip sería justo el manifiesto a mano que ese archivo
-   evita, y se desincronizaría el día que recortes el clip afuera.
+   Putting it in CSS would ask for one rectangle per clip: four
+   hand-written values that today do not exist anywhere. The vault is
+   explicitly the opposite ("the folder IS the manifest", clips.ts) so a
+   framing value per clip would be exactly the hand-written manifest
+   that file avoids, and it would go out of sync the day you crop the
+   clip outside.
 
-   Recortando el archivo el dato vive en el único lugar que no puede
-   mentir: el tamaño del video. Lo paga el reproductor, que muestra menos
-   píxeles reales y por lo tanto más blandos — es el precio del zoom
-   sobre una captura a 1×, y no hay forma de esquivarlo desde la CSS. */
+   By cropping the file the value lives in the only place that cannot
+   lie: the size of the video. The player pays for it, since it shows
+   fewer real pixels and therefore softer ones. That is the price of
+   zooming on a 1× capture, and there is no way around it from the CSS. */
 
-/* El hover de la superficie, el mismo de la card del producto: oscurece
-   el relleno y nada más. Ni sombra, ni escala, ni movimiento. */
+/* The surface hover, the same as the product's card: it darkens the
+   fill and nothing else. No shadow, no scale, no movement. */
 .card:hover .media {
   background: var(--surface-hover);
 }
 
-/* ─── EL TEXTO ───
-   Nuestro sistema es de UN tamaño y la jerarquía la hace el peso. Las
-   referencias usan tamaños distintos (linear 20 el título y 13 la
-   meta), y acá eso no se copia: el título va en 500 —el mismo peso que
-   el título de una pieza— y el caption en 460. */
-/* El aire lo reclama el título, no lo empuja la caja — es la regla del
-   sistema, la misma por la que .streamItem > * + * lleva el hueco del
-   lado de abajo. Vivía en un .cuerpo que envolvía título y epígrafe;
-   sin epígrafe, ese envoltorio era un div que no hacía nada. */
-.titulo {
-  margin-top: var(--vault-media-titulo);
+/* ─── THE TEXT ───
+   Our system is ONE size and the hierarchy is made by the weight. The
+   references use different sizes (linear 20 for the title and 13 for
+   the meta), and that does not get copied here: the title goes at 500,
+   the same weight as a piece's title, and the caption at 460. */
+/* The air is claimed by the title, not pushed by the box. It is the
+   system's rule, the same one by which .streamItem > * + * carries the
+   gap on its bottom side. It used to live in a .body that wrapped the
+   title and the caption; with no caption, that wrapper was a div doing
+   nothing. */
+.title {
+  margin-top: var(--vault-media-title);
   font-size: var(--type-h3-fs);
   font-weight: var(--type-h3-fw);
   letter-spacing: var(--type-h3-ls);
   line-height: var(--type-h3-lh);
   color: var(--type-h3-c);
 }
-/* NO HAY EPÍGRAFE. Ni fecha ni categoría debajo de la card: sólo el
-   nombre. Las dos referencias sí lo llevan —linear pone autor y fecha,
-   figma pone categoría y fecha— y acá se va igual.
+/* THERE IS NO CAPTION. No date and no category under the card: only the
+   name. Both references do carry it (linear puts author and date, figma
+   puts category and date) and here it goes anyway.
 
-   El motivo es que en un vault ninguna de las dos anota nada útil. La
-   categoría ya está dicha por el filtro de arriba, que es donde la
-   usás; y la fecha no distingue nada, porque todos los clips entran el
-   día que los arrastrás. En sus páginas son artículos con autor y con
-   fecha de publicación, y ahí sí dicen algo.
+   The reason is that in a vault neither one records anything useful.
+   The category is already said by the filter above, which is where you
+   use it; and the date tells nothing apart, because every clip arrives
+   the day you drag it in. On their pages these are articles with an
+   author and a publication date, and there they do say something.
 
-   La fecha NO se fue del modelo: sigue ordenando la grilla de la más
-   reciente a la menos. Lo que se fue es mostrarla.
+   The date did NOT leave the model: it still orders the grid from the
+   most recent to the least. What left is showing it.
 
-   Y TAMPOCO HAY FLECHA EN EL HOVER. Era la de linear —opacity 0→1 y
-   translateX −2→0 en 100ms, medida—, pero su tarjeta la necesita porque
-   NADA MÁS le cambia al pasar el puntero: sin la flecha no habría
-   ninguna señal de que es clickeable. La nuestra oscurece la superficie
-   entera, que es la regla de josh y ya estaba en el sistema, así que la
-   flecha era una segunda señal diciendo lo mismo. */
+   AND THERE IS NO ARROW ON HOVER EITHER. It was linear's (opacity 0→1
+   and translateX −2→0 in 100ms, measured), but their card needs it
+   because NOTHING ELSE changes when the pointer goes over it: without
+   the arrow there would be no signal that it is clickable. Ours darkens
+   the whole surface, which is josh's rule and was already in the
+   system, so the arrow was a second signal saying the same thing. */
 
-/* ─── EL ESCALÓN ───
-   Abajo de 768 la grilla es de una columna: tres columnas de 100px no
-   son una grilla. Y la caja pierde el padding lateral de 60, que a ese
-   ancho se come más de la mitad. */
-/* Acá vivía un @media (max-width: 768px) que forzaba UNA columna, ponía
-   la canaleta en 0 y le devolvía a la caja el padding de 40 24 con alto
-   automático. Era coherente con la card vieja —alto fijo de 574, aire de
-   benji— y contradice a la de openai en los tres puntos.
+/* ─── THE STEP ───
+   Below 768 the grid is one column: three columns of 100px are not a
+   grid. And the box loses the 60 side padding, which at that width eats
+   more than half. */
+/* A @media (max-width: 768px) used to live here that forced ONE column,
+   put the gutter at 0 and gave the box back its 40 24 padding with
+   automatic height. It was consistent with the old card (fixed height
+   of 574, benji's air) and it contradicts openai's on all three points.
 
-   Lo que él hace abajo de 768 ya está declarado arriba, junto a las
-   columnas, y está medido: 2 columnas hasta 560 y 1 abajo, con la misma
-   canaleta de 24 y la misma fila de 80 que arriba. No cambia nada más. */
+   What he does below 768 is already declared above, next to the
+   columns, and it is measured: 2 columns down to 560 and 1 below, with
+   the same gutter of 24 and the same row of 80 as above. Nothing else
+   changes. */
 
-/* ═══════════ EL DETALLE DE UN CLIP ═══════════
-   Misma forma que el detalle de una pieza en el producto: flecha de
-   volver, título, y el contenido abajo. No se inventa una vista nueva —
-   es el mismo par lista/detalle que la página ya tiene resuelto, y por
-   eso reusa el mismo componente de la flecha.
+/* ═══════════ THE DETAIL OF A CLIP ═══════════
+   Same shape as the detail of a piece in the product: back arrow,
+   title, and the content below. No new view gets invented. It is the
+   same list/detail pair the page already has settled, and that is why
+   it reuses the same arrow component.
 
-   DOS COSAS QUE ANTES ESTABAN MAL:
+   TWO THINGS THAT USED TO BE WRONG:
 
-   1 · SE ABRÍA PEGADO A LA IZQUIERDA. El clip arrancaba en el margen y
-       dejaba media pantalla vacía a la derecha. Ahora el escenario
-       centra en los dos ejes: el clip es lo único que hay para mirar,
-       así que va en el medio.
+   1 · IT OPENED STUCK TO THE LEFT. The clip started at the margin and
+       left half a screen empty on the right. Now the stage centers on
+       both axes: the clip is the only thing there is to look at, so it
+       goes in the middle.
 
-   2 · SE CORTABA. Había un tope de 72vh, pero SÓLO sobre <video>, así
-       que una foto vertical se dibujaba a su tamaño natural y se iba
-       abajo de la ventana. Y aun con el tope, 72vh es un número
-       inventado que no sabe cuánto ocupan la barra, la flecha y el
-       título de arriba.
+   2 · IT GOT CUT OFF. There was a 72vh maximum, but ONLY on <video>, so
+       a vertical photo was drawn at its natural size and ran off the
+       bottom of the window. And even with the maximum, 72vh is an
+       invented number that does not know how much the bar, the arrow
+       and the title above take up.
 
-       La solución no es otro número: es que el alto BAJE por la
-       estructura. El marco mide la ventana, el detalle toma lo que
-       queda, el escenario toma lo que queda de eso, y el clip se acomoda
-       adentro. Si mañana la cabecera crece, el clip se achica solo. */
-.detalle {
-  /* ─── SIN MARGEN ARRIBA: EL AIRE ES 80, EL DEL MARCO Y NADA MÁS ───
-     Acá había `margin-top: var(--section-content-gap)`, o sea 40, y su
-     motivo era separarse de la barra de solapas. Pero EN EL DETALLE LA
-     BARRA NO SE RENDERIZA —ver `sinSolapas` en privado.tsx, que la saca
-     entera— así que esos 40 separaban de nada. La flecha caía en 120 y
-     el resto de la app en 80. Señalado en uso.
+       The solution is not another number: it is that the height COMES
+       DOWN through the structure. The frame measures the window, the
+       detail takes what is left, the stage takes what is left of that,
+       and the clip fits inside. If tomorrow the header grows, the clip
+       shrinks on its own. */
+.detail {
+  /* ─── NO TOP MARGIN: THE AIR IS 80, THE FRAME'S AND NOTHING ELSE ───
+     There was a `margin-top: var(--section-content-gap)` here, that is
+     40, and its reason was to separate from the tab bar. But IN THE
+     DETAIL THE BAR IS NOT RENDERED (see `noTabs` in private.tsx, which
+     takes it out whole) so those 40 separated from nothing. The arrow
+     landed at 120 and the rest of the app at 80. Pointed out in use.
 
-     LA REGLA ES DE BENJI Y SE MIDIÓ DE NUEVO PARA ESTO. Su
-     .styles_container__YJPlC lleva `padding: 80px 16px 40px` y es EL
-     MISMO en todas sus páginas: verificado en vivo a 1728×900 en su
-     home y en /liveline, /drawesome y /honkish. Lo primero que hay cae
-     en top 80 en las cuatro — en la home su <h1>, en un detalle su link
-     "Index". O sea: no hay un aire de lista y otro de detalle. Hay uno.
+     THE RULE IS BENJI'S AND IT WAS MEASURED AGAIN FOR THIS. His
+     .styles_container__YJPlC carries `padding: 80px 16px 40px` and it
+     is THE SAME on all his pages: verified live at 1728×900 on his home
+     and on /liveline, /drawesome and /honkish. The first thing there is
+     lands at top 80 in all four: on the home his <h1>, in a detail his
+     "Index" link. That is, there is no one air for a list and another
+     for a detail. There is one.
 
-     Del lado nuestro eso ya lo cumplían la exhibition (80), el detalle de
-     una pieza (.page pone 64 y el .content:first-child los 16 que
-     faltan) y la grilla del vault (80). El detalle del clip era el
-     único fuera. */
-  /* La geometría de la ficha, acá porque la leen DOS subárboles: el
-     escenario reserva el hueco con padding y la hoja se da su ancho.
-     Declararla más abajo repetiría el error de --vault-proporcion — una
-     custom property se hereda, no se busca. */
-  --ficha-panel: 280px;
-  --ficha-aire: 32px;
+     On our side that was already met by the exhibition (80), the detail
+     of a piece (.page puts 64 and the .content:first-child the missing
+     16) and the vault grid (80). The clip's detail was the only one
+     outside. */
+  /* The geometry of the details panel, here because TWO subtrees read
+     it: the stage reserves the slot with padding and the panel gives
+     itself its width. Declaring it further down would repeat the
+     --vault-aspect-ratio mistake: a custom property is inherited, not
+     looked up. */
+  --details-panel: 280px;
+  --details-gap: 32px;
 
   /* ═══════════════════════════════════════════════════════════════
-     EL AIRE VERTICAL DEL ESCENARIO — 44 arriba, 52 abajo.
+     THE STAGE'S VERTICAL AIR — 44 above, 52 below.
 
-     LOS DOS NÚMEROS HACEN DOS TRABAJOS DISTINTOS y por eso no son uno:
+     THE TWO NUMBERS DO TWO DIFFERENT JOBS and that is why they are not
+     one:
 
-     SU SUMA (96) FIJA EL TAMAÑO DEL CLIP. El escenario reparte lo que
-     sobra, así que todo lo que se reserva acá se lo saca al video. 96
-     es lo que deja el clip en 536 a 1728×900, que es el tamaño elegido
-     mirando —ver el bloque de .escenario—. Antes vivía entero abajo.
+     THEIR SUM (96) FIXES THE SIZE OF THE CLIP. The stage hands out what
+     is left over, so everything reserved here is taken from the video.
+     96 is what leaves the clip at 536 at 1728×900, which is the size
+     chosen by looking (see the .stage block). It used to live entirely
+     at the bottom.
 
-     SU DIFERENCIA (8) LO CENTRA EN LA PÁGINA. El video estaba alto:
-     medido, su centro caía en 406 contra los 450 de la ventana. La
-     causa es que arriba y abajo del video no hay lo mismo:
+     THEIR DIFFERENCE (8) CENTERS IT ON THE PAGE. The video sat high:
+     measured, its center landed at 406 against the window's 450. The
+     cause is that above and below the video there is not the same
+     thing:
 
-       arriba   80 del marco + 58 de cabecera (34 + 24)  = 138
-       abajo    80 del marco + 50 de la barra de transporte = 130
+       above   80 of frame + 58 of header (34 + 24)     = 138
+       below   80 of frame + 50 of the transport bar    = 130
 
-     Ocho de más arriba. Devolviéndoselos al padding de abajo, el video
-     queda centrado — y la cuenta se sostiene sola: si el aire de arriba
-     es `p` y el de abajo `p + 8`, entonces 138 + p = 130 + (p + 8).
+     Eight too many above. Giving them back to the bottom padding, the
+     video ends up centered, and the arithmetic holds on its own: if the
+     air above is `p` and the one below is `p + 8`, then 138 + p = 130 +
+     (p + 8).
 
-     LOS 8 NO DEPENDEN DEL ALTO DE LA VENTANA, y ésa es la gracia: salen
-     de la estructura, no de una medición. Verificado a 700, 900 y 1000
-     de alto — desvío 0 en las tres.
+     THE 8 DOES NOT DEPEND ON THE WINDOW'S HEIGHT, and that is the
+     point: it comes out of the structure, not out of a measurement.
+     Verified at 700, 900 and 1000 of height: 0 deviation in all three.
 
-     PERO SOLOS NO ALCANZAN, y hace falta decir por qué. Esta cuenta
-     supone que el clip está atado por el ALTO, o sea que se come todo
-     lo que el escenario le deja. Arriba de cierta altura deja de estar
-     atado por el alto y pasa a estarlo por el ANCHO: el escenario
-     reserva --ficha-panel + --ficha-aire a CADA lado, así que de los
-     1376 del riel le quedan 752 útiles. Medido: el umbral está en ~1116
-     de ventana, y de ahí para arriba el clip se queda en 752 y el aire
-     que sobra reaparece.
+     BUT ON THEIR OWN THEY ARE NOT ENOUGH, and it is worth saying why.
+     This arithmetic assumes the clip is bound by the HEIGHT, that is,
+     that it eats everything the stage leaves it. Above a certain height
+     it stops being bound by the height and starts being bound by the
+     WIDTH: the stage reserves --details-panel + --details-gap on EACH
+     side, so of the rail's 1376 it has 752 usable. Measured: the
+     threshold is at ~1116 of window, and from there up the clip stays
+     at 752 and the leftover air reappears.
 
-     Por eso además va `align-items: center` (abajo, en .escenario). En
-     el régimen normal no hace nada —no sobra nada que repartir, así que
-     el clip sigue arrancando donde arranca la ficha, que es la
-     alineación que ese bloque decidió— y arriba del umbral reparte lo
-     que sobra en vez de dejarlo colgando abajo. Medido a 1200: sin él
-     el desvío era 86, con la asimetría sola 42, con las dos cosas 0.
+     That is also why `align-items: center` goes in (below, in .stage).
+     In the normal regime it does nothing (there is nothing left over to
+     hand out, so the clip still starts where the details panel starts,
+     which is the alignment that block decided) and above the threshold
+     it hands out what is left over instead of leaving it hanging at the
+     bottom. Measured at 1200: without it the deviation was 86, with the
+     asymmetry alone 42, with both things 0.
 
-     Y SE CENTRA EL VIDEO, no el conjunto con su barra: la masa que el
-     ojo centra es el cuadro. La barra es chrome colgado abajo — es lo
-     mismo que hace QuickTime. Centrando el conjunto el cuadro quedaría
-     19px alto, medido.
+     AND IT IS THE VIDEO THAT GETS CENTERED, not the whole thing with
+     its bar: the mass the eye centers is the frame. The bar is chrome
+     hanging below. It is the same thing QuickTime does. Centering the
+     whole thing would leave the frame 19px high, measured.
      ═══════════════════════════════════════════════════════════════ */
-  --escenario-arriba: 44px;
-  --escenario-abajo: 52px;
-  /* El mismo riel que la grilla, para que el título del clip abierto
-     arranque en la misma x que la card de la que salió. */
-  max-width: var(--privado-ancho);
+  --stage-top: 44px;
+  --stage-bottom: 52px;
+  /* The same rail as the grid, so the title of the open clip starts at
+     the same x as the card it came from. */
+  max-width: var(--private-width);
   width: 100%;
   margin-inline: auto;
-  /* Toma todo el alto que le deja el marco. */
+  /* It takes all the height the frame leaves it. */
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding-inline: var(--privado-inline);
+  padding-inline: var(--private-inline);
 
-  /* ─── LA ENTRADA ───
-     Abrir un clip no enciende la vista de golpe: sube 8px y funde, con
-     la curva de las superficies que aparecen. Es la misma pareja
-     opacity+transform de todo el sistema —compositor puro— y
-     @starting-style hace la entrada sin JS. Al volver a la grilla el
-     desmontaje es inmediato: la salida de una navegación no se
-     escenifica, el usuario ya decidió irse. */
+  /* ─── THE ENTRANCE ───
+     Opening a clip does not switch the view on all at once: it rises
+     8px and fades, with the curve of surfaces that appear. It is the
+     same opacity+transform pair as the whole system (pure compositor)
+     and @starting-style does the entrance with no JS. On the way back
+     to the grid the unmount is immediate: the exit of a navigation does
+     not get staged, the user already decided to leave. */
   opacity: 1;
   transform: none;
   transition:
-    opacity 240ms var(--ease-dialogo),
-    transform 240ms var(--ease-dialogo);
+    opacity 240ms var(--ease-dialog),
+    transform 240ms var(--ease-dialog);
 }
 @starting-style {
-  .detalle {
+  .detail {
     opacity: 0;
     transform: translateY(8px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .detalle {
+  .detail {
     transition: opacity 200ms var(--ease-text);
   }
   @starting-style {
-    .detalle {
+    .detail {
       transform: none;
     }
   }
 }
 /* ═══════════════════════════════════════════════════════════════
-   LA CABECERA DEL DETALLE — UNA FILA: flecha · título · inspector.
+   THE DETAIL'S HEADER — ONE ROW: arrow · title · inspector.
 
-   Es el orden que describe la HIG de Apple en Toolbars › Item
-   groupings, y no una lectura nuestra: en el borde inicial van los
-   elementos que devuelven al documento anterior y los que muestran u
-   ocultan un panel, "followed by the view title"; en el borde final,
-   los botones que abren inspectores cercanos. La ficha es un
-   inspector, así que el toggle va a la derecha.
+   It is the order Apple's HIG describes in Toolbars › Item groupings,
+   and not a reading of ours: on the leading edge go the elements that
+   return you to the previous document and the ones that show or hide a
+   panel, "followed by the view title"; on the trailing edge, the
+   buttons that open nearby inspectors. The details panel is an
+   inspector, so the toggle goes on the right.
 
-   ─── LO QUE HABÍA, Y POR QUÉ SE FUE ───
-   La flecha vivía sola en una fila y el toggle bajaba a la del título.
-   No era ninguno de los dos patrones de Apple: los dos ponen la flecha
-   y el toggle JUNTOS, y en el de título grande lo único que baja es el
-   título. Además el toggle, pegado al título, se leía como si actuara
-   sobre el nombre — y no hace nada con el nombre: abre la ficha.
+   ─── WHAT WAS HERE, AND WHY IT LEFT ───
+   The arrow lived alone in a row and the toggle dropped down to the
+   title's row. That was neither of Apple's two patterns: both of them
+   put the arrow and the toggle TOGETHER, and in the large-title one the
+   only thing that drops is the title. On top of that the toggle, stuck
+   to the title, read as if it acted on the name, and it does nothing
+   with the name: it opens the details panel.
 
-   Medido, el cambio: la cabecera pasa de 114px a 58px, y esos 56px se
-   los lleva el clip en cualquier ventana de menos de ~1000px de alto
-   (arriba de eso el clip está limitado por el ancho y no cambia).
+   Measured, the change: the header goes from 114px to 58px, and those
+   56px are taken by the clip in any window under ~1000px of height
+   (above that the clip is limited by the width and does not change).
 
-   ─── LO QUE CUESTA, Y ESTÁ ACEPTADO ───
-   EL TÍTULO YA NO ARRANCA EN EL RIEL. Antes caía en la misma x que la
-   card de la que salió —176px— y ahora arranca después de la flecha,
-   42px más a la derecha (34 de la flecha + 8 de hueco). Esa alineación
-   estaba anotada como decisión en .detalle, y se rompe a sabiendas: en
-   una barra de una fila el título va después del control de volver, y
-   eso es justamente lo que la HIG describe. Queda dicho para que nadie
-   lo "arregle" sin saber que se eligió.
+   ─── WHAT IT COSTS, AND IT IS ACCEPTED ───
+   THE TITLE NO LONGER STARTS ON THE RAIL. Before it landed at the same
+   x as the card it came from (176px) and now it starts after the arrow,
+   42px further right (34 of arrow + 8 of gap). That alignment was
+   written down as a decision in .detail, and it gets broken knowingly:
+   in a one-row bar the title goes after the back control, and that is
+   exactly what the HIG describes. Said here so nobody "fixes" it
+   without knowing it was chosen.
 
-   ─── EL DESCARTADO ───
-   Hubo una tercera variante con el título centrado en la fila, que la
-   HIG también permite. Se cayó por medición: un <input> no se
-   dimensiona por su contenido, así que centrado necesita que le claven
-   el ancho o que se lo calculen por JS, y al ser editable tampoco puede
-   elipsizar. Era la única que pedía maquinaria propia.
+   ─── THE ONE THAT WAS DROPPED ───
+   There was a third variant with the title centered in the row, which
+   the HIG also allows. It fell on measurement: an <input> is not sized
+   by its content, so centered it needs the width pinned or computed by
+   JS, and being editable it cannot ellipsize either. It was the only
+   one that asked for machinery of its own.
 
-   El hueco de 8 es el mismo que separa los controles del reproductor.
+   The gap of 8 is the same one that separates the player's controls.
    ═══════════════════════════════════════════════════════════════ */
-.detalleCabeza {
+.detailHeader {
   flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 24px;
 }
-/* El margin-bottom de .back es para cuando la flecha va sola encima de
-   un título. Acá va EN la fila, así que se apaga: si no, empuja el alto
-   de la fila y la flecha queda descentrada respecto del título. */
-.volverEnFila {
+/* .back's margin-bottom is for when the arrow sits alone above a title.
+   Here it goes IN the row, so it gets turned off: otherwise it pushes
+   the row's height and the arrow ends up off-center against the
+   title. */
+.backInRow {
   margin-bottom: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EL BORDE FINAL — el ··· y el toggle del inspector.
+   THE TRAILING EDGE — the ··· and the inspector toggle.
 
-   Es un GRUPO y no dos controles sueltos, y por eso el
-   `margin-left: auto` está acá y ya no en el toggle: cuando el toggle
-   era el único del extremo se empujaba solo, pero con un vecino ese
-   auto lo empujaría a él nada más y dejaría al ··· pegado al título.
+   It is a GROUP and not two loose controls, and that is why the
+   `margin-left: auto` is here and no longer on the toggle: when the
+   toggle was the only one at the end it pushed itself, but with a
+   neighbour that auto would push only it and leave the ··· stuck to the
+   title.
 
-   ─── EL HUECO ES 8, EL MISMO DE LA FILA ───
-   Hubo una versión con 16 y estaba mal leída. El argumento era de Item
-   groupings —agrupar por función, meter espacio donde corresponda— y
-   servía para decidir que son dos grupos, pero no para elegir el
-   número: 16 en este sistema es el hueco entre PALABRAS del chrome
-   (--privado-solapa-gap, las solapas de la barra), y esto son dos
-   CONTROLES.
+   ─── THE GAP IS 8, THE SAME AS THE ROW'S ───
+   There was a version with 16 and it was misread. The argument came
+   from Item groupings (group by function, put space where it belongs)
+   and it worked to decide that these are two groups, but not to pick
+   the number: 16 in this system is the gap between chrome WORDS
+   (--private-tab-gap, the bar's tabs), and these are two CONTROLS.
 
-   Para controles el sistema tiene un solo número y es 8: el de esta
-   misma cabecera, el --rep-gap del reproductor —medido de benji— y el
-   --index-item-gap del índice. Usar el de las palabras metía una
-   distinción que el sistema no hace.
+   For controls the system has one number and it is 8: the one in this
+   same header, the player's --player-gap (measured from benji) and the
+   index's --index-item-gap. Using the one for words introduced a
+   distinction the system does not make.
 
-   Lo que separa a los dos glifos no es el aire, entonces: es que uno
-   abre un menú y el otro prende un panel. Eso ya lo dicen los dibujos.
+   So what separates the two glyphs is not the air: it is that one opens
+   a menu and the other turns on a panel. The drawings already say
+   that.
    ═══════════════════════════════════════════════════════════════ */
-.detalleAcciones {
+.detailActions {
   margin-left: auto;
   flex: none;
   display: flex;
@@ -838,79 +866,81 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EL AIRE BAJO EL CLIP — 56px, y el clip NO llena su caja.
+   THE AIR UNDER THE CLIP — 56px, and the clip does NOT fill its box.
 
-   El escenario reparte lo que sobra: con `align-items: flex-start` el
-   aire que queda se junta abajo, y el clip se dimensiona desde el alto
-   disponible. Sin esta reserva se lo come todo y termina empujando
-   contra el borde de lo que hay.
+   The stage hands out what is left over: with `align-items: flex-start`
+   the remaining air collects at the bottom, and the clip is sized from
+   the available height. Without this reserve it eats everything and
+   ends up pushing against the edge of what there is.
 
-   ─── DE DÓNDE SALE EL NÚMERO, DICHO COMO ES ───
-   No es un valor derivado: son los 56px que medía la cabecera vieja de
-   dos filas. Al pasar a una fila el clip se los quedó automáticamente
-   —de 417×396 a 476×452 a 1728×760, medido— y esa versión más grande se
-   miró contra ésta en la página real, con la cabecera congelada para
-   que el tamaño del clip fuera la única variable. Ganó ésta.
+   ─── WHERE THE NUMBER COMES FROM, SAID AS IT IS ───
+   It is not a derived value: it is the 56px the old two-row header
+   measured. Moving to one row the clip took them automatically (from
+   417×396 to 476×452 at 1728×760, measured) and that larger version was
+   looked at against this one on the real page, with the header frozen
+   so the clip's size was the only variable. This one won.
 
-   O sea: el número llegó por herencia y se quedó por comparación. Es la
-   misma clase de recibo que --surface-hover ("elegido a ojo entre tres
-   con scrubber sobre la página real"), y se anota igual de explícito
-   para que nadie lo confunda con una derivación.
+   That is: the number arrived by inheritance and stayed by comparison.
+   It is the same kind of receipt as --surface-hover ("chosen by eye
+   among three with a scrubber over the real page"), and it gets written
+   down just as explicitly so nobody confuses it with a derivation.
 
-   Cumple la regla de layout —múltiplo de 4— pero NO es uno de los pasos
-   verticales con nombre del sistema (40 · 48 · 64): cae entre los dos
-   últimos. Si algún día se lo quiere sobre esa escala, 48 agranda el
-   clip 8px y 64 lo achica otros 8.
+   It meets the layout rule (a multiple of 4) but it is NOT one of the
+   system's named vertical steps (40 · 48 · 64): it falls between the
+   last two. If one day it should sit on that scale, 48 grows the clip
+   8px and 64 shrinks it another 8.
 
-   ─── POR QUÉ ACÁ Y NO EN EL REPRODUCTOR ───
-   `.escenario` es `container-type: size`, así que el 100cqh con el que
-   el video se mide es su caja de CONTENIDO: el padding le quita alto al
-   clip sin que ninguna otra regla se entere. Y el reproductor se queda
-   sin saber nada de esto — su trabajo es repartir el alto que recibe,
-   no decidir cuánto recibe.
+   ─── WHY HERE AND NOT IN THE PLAYER ───
+   `.stage` is `container-type: size`, so the 100cqh the video measures
+   itself with is its CONTENT box: the padding takes height away from
+   the clip without any other rule finding out. And the player is left
+   knowing nothing about this. Its job is to hand out the height it
+   receives, not to decide how much it receives.
 
-   NO ES SIMÉTRICO con el aire de arriba, y es a propósito: arriba está
-   la cabecera, que es contenido. Esto de abajo es el respiro. */
-/* EL AIRE VA REPARTIDO, no todo abajo. Fue 56 abajo, después 96 abajo, y
-   ahora 44/52. La suma es la misma —es la que fija el tamaño del clip— y
-   lo que cambió es que ya no cuelga de una sola punta, así que el video
-   queda centrado en la página. Los dos números y su derivación viven en
-   .detalle, arriba, porque también los lee la ficha. */
-.escenario {
-  padding-block: var(--escenario-arriba) var(--escenario-abajo);
+   IT IS NOT SYMMETRIC with the air above, and that is on purpose: above
+   there is the header, which is content. This below is the breathing
+   room. */
+/* THE AIR IS SPLIT, not all at the bottom. It was 56 below, then 96
+   below, and now 44/52. The sum is the same (it is what fixes the size
+   of the clip) and what changed is that it no longer hangs off one end,
+   so the video ends up centered on the page. The two numbers and their
+   derivation live in .detail, above, because the details panel reads
+   them too. */
+.stage {
+  padding-block: var(--stage-top) var(--stage-bottom);
 }
 /* ═══════════════════════════════════════════════════════════════
-   EL TÍTULO — ahora es el disparador del menú del documento.
+   THE TITLE — it is now the trigger of the document's menu.
 
-   Era un <input> que se editaba al tocarlo. El porqué del cambio está
-   en TituloMenu, en vault.tsx.
+   It was an <input> you edited by touching it. The why of the change is
+   in TitleMenu, in vault.tsx.
 
-   ─── SE ENCOGE, Y ESO ES NUEVO ───
-   El input era `width:100%` dentro de un `flex:1`, así que ocupaba
-   toda la fila y el chevron habría quedado flotando en el vacío a 1200
-   píxeles del texto. Ahora la caja abraza su contenido —`flex:0 1 auto`
-   con `min-width:0` para que igual pueda achicarse y recortar— y el
-   chevron va detrás de la palabra, que es de quien es. */
-.detalleTituloMarco {
+   ─── IT SHRINKS, AND THAT IS NEW ───
+   The input was `width:100%` inside a `flex:1`, so it took the whole
+   row and the chevron would have been left floating in the void 1200
+   pixels from the text. Now the box hugs its content (`flex:0 1 auto`
+   with `min-width:0` so it can still shrink and clip) and the chevron
+   goes right behind the word, which is whose it is. */
+.detailTitleFrame {
   margin: 0;
   font: inherit;
-  /* Que el h1 tampoco se estire: si él ocupa la fila, el botón adentro
-     puede abrazar todo lo que quiera y la caja sigue midiendo de más.
-     Y que TAMPOCO SE ENCOJA: ver .detalleTituloTexto abajo. */
+  /* The h1 should not stretch either: if it takes the row, the button
+     inside can hug all it wants and the box still measures too much.
+     And it should NOT SHRINK either: see .detailTitleText below. */
   flex: none;
 }
-.detalleTitulo {
+.detailTitle {
   display: flex;
   align-items: center;
-  /* EL BLANCO CRECE Y EL TEXTO NO SE MUEVE. El padding agranda el área
-     de clic y un margen negativo del mismo tamaño la devuelve al
-     layout, así que el título sigue arrancando exactamente donde
-     arrancaba. Son los dos números del área privada —ver
-     --privado-blanco-* en privado.module.css— y existen por la misma
-     razón: el chrome son PALABRAS, y una palabra sin blanco propio no
-     llega al mínimo de 24. */
-  padding: var(--privado-blanco-y) var(--privado-blanco-x);
-  margin: calc(var(--privado-blanco-y) * -1) calc(var(--privado-blanco-x) * -1);
+  /* THE PADDING GROWS AND THE TEXT DOES NOT MOVE. The padding grows the
+     click area and a negative margin of the same size gives it back to
+     the layout, so the title still starts exactly where it started.
+     They are the private area's two numbers (see --private-padding-* in
+     private.module.css) and they exist for the same reason: the chrome
+     is WORDS, and a word with no padding of its own does not reach the
+     24 minimum. */
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
   border: 0;
   border-radius: 6px;
   background: transparent;
@@ -921,274 +951,283 @@
   font-family: inherit;
   color: var(--type-h1-c);
   cursor: pointer;
-  /* SIN TRANSFORM: acá no hay press. Ver abajo. */
+  /* NO TRANSFORM: there is no press here. See below. */
   transition: color var(--dur-text) var(--ease-text);
 }
-.detalleTitulo:hover,
-.detalleTitulo[aria-expanded="true"] {
-  color: var(--activo-c);
+.detailTitle:hover,
+.detailTitle[aria-expanded="true"] {
+  color: var(--active-c);
 }
-/* ─── ACÁ NO VA EL PRESS, Y HAY DOS RAZONES ───
-   Tuvo el scale(0.97) de .glifo y se veía mal: el título se hundía al
-   apretarlo. Señalado en uso.
+/* ─── THE PRESS DOES NOT GO HERE, AND THERE ARE TWO REASONS ───
+   It had .glyph's scale(0.97) and it looked wrong: the title sank when
+   you pressed it. Pointed out in use.
 
-   1 · EL TAMAÑO. Un press "se siente en el dedo, no se ve", y eso
-       depende de cuánto se mueve la tinta. Medido a 1728×900:
-         el título   83px de ancho → cada borde viaja 1.25px
-         un glifo    16px          → cada borde viaja 0.24px
-       Sub-píxel en el glifo, un píxel y cuarto en el texto. El mismo
-       0.97 es invisible en uno y un temblor en el otro.
+   1 · THE SIZE. A press "is felt in the finger, not seen", and that
+       depends on how much the ink moves. Measured at 1728×900:
+         the title   83px wide → each edge travels 1.25px
+         a glyph     16px      → each edge travels 0.24px
+       Sub-pixel on the glyph, a pixel and a quarter on the text. The
+       same 0.97 is invisible on one and a tremor on the other.
 
-   2 · YA HAY ACUSE. El press existe para confirmar un clic cuyo
-       resultado no se ve solo. Acá el resultado ES que baja un menú,
-       justo debajo y escalando desde el título. Sumar un hundimiento
-       le pone dos movimientos al mismo gesto, compitiendo.
+   2 · THERE IS ALREADY AN ACKNOWLEDGEMENT. The press exists to confirm
+       a click whose result is not visible on its own. Here the result
+       IS that a menu drops, right below and scaling from the title.
+       Adding a sink puts two movements on the same gesture, competing.
 
-   Y es lo que ya hacía el resto del chrome sin que estuviera escrito:
-   .solapa y .filtro son palabras y no tienen :active — sólo cambian de
-   color. El press del sistema vive en botones con caja (.accion) y en
-   glifos (.glifo). El título es una palabra. */
-/* CON EL ANILLO PUESTO, y es lo contrario de lo que había. La regla del
-   área privada apaga el anillo donde se edita texto sin caja, porque lo
-   reemplaza el caret. Acá ya no se edita nada: es un botón, no hay
-   caret, y la premisa de la excepción dejó de cumplirse. Es el mismo
-   razonamiento que devolvió el anillo a la vista de lectura de Notes. */
+   And it is what the rest of the chrome already did without its being
+   written: .tab and .filter are words and they have no :active, they
+   only change color. The system's press lives in buttons with a box
+   (.action) and in glyphs (.glyph). The title is a word. */
+/* WITH THE RING ON, and it is the opposite of what was here. The
+   private area's rule turns the ring off where you edit text with no
+   box, because the caret replaces it. Here nothing is edited any more:
+   it is a button, there is no caret, and the exception's premise
+   stopped holding. It is the same reasoning that gave the ring back to
+   the reading view in Notes. */
 
-/* ─── EL NOMBRE SE VE ENTERO, SIEMPRE ───
-   Hubo una versión que lo recortaba con puntos suspensivos cuando no
-   entraba. Está retirada a pedido, y el argumento es bueno: acá el
-   título ES EL NOMBRE DEL ARCHIVO en tu disco, y un nombre a medias no
-   sirve para lo único que se hace con él, que es reconocerlo. Los "…"
-   de un link son otra cosa —ahí lo que se recorta es una etiqueta que
-   nadie escribió— y por eso ahí sí se recorta.
+/* ─── THE NAME IS SEEN WHOLE, ALWAYS ───
+   There was a version that clipped it with an ellipsis when it did not
+   fit. It is withdrawn by request, and the argument is good: here the
+   title IS THE NAME OF THE FILE on your disk, and half a name is no use
+   for the only thing you do with it, which is recognize it. The "…" of
+   a link is another matter (there what gets clipped is a label nobody
+   wrote) and that is why it does get clipped there.
 
-   `nowrap` se queda: sin él un nombre largo pasa a dos renglones y la
-   cabecera cambia de alto, que se lo come al clip.
+   `nowrap` stays: without it a long name goes to two lines and the
+   header changes height, which is taken from the clip.
 
-   Si un nombre no entra, EMPUJA. Es feo a propósito: la convención de
-   los 15 caracteres deja de ser una nota del README y se ve. */
-.detalleTituloTexto {
+   If a name does not fit, it PUSHES. It is ugly on purpose: the
+   15-character convention stops being a note in the README and becomes
+   visible. */
+.detailTitleText {
   white-space: nowrap;
 }
-/* 8 DE TINTA, no de caja. El chevron son 16 de dibujo sin blanco
-   propio —el blanco lo pone el botón entero, que ya incluye el texto—
-   así que acá el margen ES el hueco que se ve, y es el mismo 8 con el
-   que la fila separa todo lo demás. */
-.detalleTituloChevron {
+/* 8 OF INK, not of box. The chevron is 16 of drawing with no padding of
+   its own (the padding is put there by the whole button, which already
+   includes the text) so here the margin IS the gap you see, and it is
+   the same 8 the row separates everything else with. */
+.detailTitleChevron {
   flex: none;
   margin-left: 8px;
 }
-/* min-height:0 es LA pieza que hace que esto funcione. Por defecto un
-   ítem de flex no se encoge por debajo de su contenido, así que sin
-   esto el escenario crecería con el clip y el desbordamiento volvería
-   exactamente igual. */
-.escenario {
+/* min-height:0 is THE piece that makes this work. By default a flex
+   item does not shrink below its content, so without this the stage
+   would grow with the clip and the overflow would come back exactly the
+   same. */
+.stage {
   flex: 1;
   min-height: 0;
   display: flex;
-  /* AL CENTRO, y era `flex-start`. El motivo de aquel arriba sigue
-     siendo bueno —con el clip centrado su tope caía por debajo del de
-     la ficha y las dos columnas no compartían línea— pero desde que el
-     aire se reparte 44/52 ese motivo casi nunca aplica: en el régimen
-     normal el clip se come TODO el hueco, no sobra nada que repartir, y
-     centrar da idénticamente lo mismo que arrancar arriba. La ficha
-     baja con él leyendo --escenario-arriba.
+  /* CENTERED, and it was `flex-start`. The reason for that one above is
+     still good (with the clip centered its top landed below the details
+     panel's and the two columns did not share a line) but since the air
+     is split 44/52 that reason almost never applies: in the normal
+     regime the clip eats the WHOLE slot, there is nothing left over to
+     hand out, and centering gives identically the same result as
+     starting at the top. The details panel comes down with it by
+     reading --stage-top.
 
-     Donde sí cambia es arriba de ~1116 de ventana, cuando el clip pasa
-     a estar atado por el ancho y deja de crecer: ahí sobra alto de
-     verdad, y con `flex-start` se juntaba abajo dejando el video
-     descentrado. Medido a 1200: 86 de desvío antes, 42 con la
-     asimetría sola, 0 con las dos. */
+     Where it does change is above ~1116 of window, when the clip
+     becomes bound by the width and stops growing: there height is
+     genuinely left over, and with `flex-start` it collected at the
+     bottom leaving the video off-center. Measured at 1200: 86 of
+     deviation before, 42 with the asymmetry alone, 0 with both. */
   align-items: center;
   justify-content: center;
-  /* EL HUECO DE LA FICHA, RESERVADO EN LOS DOS LADOS. Con el padding
-     sólo a la derecha el clip se centraba en el espacio sobrante y se
-     veía corrido a la izquierda respecto de la página — señalado sobre
-     una captura. Simétrico, el clip cae en el centro exacto del riel y
-     no puede tocar la ficha jamás, porque el lado de ella reserva lo
-     mismo que el otro.
+  /* THE DETAILS PANEL'S SLOT, RESERVED ON BOTH SIDES. With the padding
+     only on the right the clip centered in the leftover space and
+     looked shifted to the left against the page, pointed out over a
+     capture. Symmetric, the clip lands at the exact center of the rail
+     and it can never touch the panel, because its side reserves the
+     same as the other.
 
-     LO QUE CUESTA, dicho: un clip apaisado en ventana corta pierde el
-     ancho de la reserva izquierda. Hoy no muerde: todos los clips del
-     vault están atados por el alto en estas ventanas. */
-  padding-inline: calc(var(--ficha-panel) + var(--ficha-aire));
-  /* La ficha se cuelga de acá con position:absolute. */
+     WHAT IT COSTS, said: a landscape clip in a short window loses the
+     width of the left reserve. Today it does not bite: every clip in
+     the vault is bound by the height at these windows. */
+  padding-inline: calc(var(--details-panel) + var(--details-gap));
+  /* The details panel hangs off here with position:absolute. */
   position: relative;
-  /* CONTENEDOR DE TAMAÑO. El video se mide con 100cqh para saber cuánto
-     alto le queda una vez descontada la barra; un `%` dentro de `width`
-     resolvería contra el ancho. Ver .video en reproductor.module.css. */
+  /* SIZE CONTAINER. The video measures itself with 100cqh to know how
+     much height it has left once the bar is subtracted; a `%` inside
+     `width` would resolve against the width. See .video in
+     player.module.css. */
   container-type: size;
 }
-/* La foto: entra entera y centrada, sin caja fija. */
-.foto {
+/* The photo: it fits whole and centered, with no fixed box. */
+.photo {
   display: block;
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
 }
 
-/* ─── ESTADOS ───
-   El vault sin conectar. No es un error de la app: falta un dato de
-   configuración, y el mensaje dice exactamente cuál y dónde ponerlo. */
-.aviso {
+/* ─── STATES ───
+   The vault not connected. It is not an error in the app: a piece of
+   configuration is missing, and the message says exactly which one and
+   where to put it. */
+.notice {
   margin-top: var(--section-content-gap);
   font-size: var(--type-body-fs);
   font-weight: var(--type-body-fw);
   line-height: var(--type-body-lh);
   color: var(--type-body-c);
 }
-.aviso code {
+.notice code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   color: var(--ink);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DÓNDE VA EL CLIP — el diálogo
+   WHERE THE CLIP GOES — the dialog
 
-   Acá pasaron dos cosas antes de ésta, y las dos se fueron: un panel que
-   partía la pantalla al medio, y un menú colgado del +. Queda anotado
-   para no volver a proponerlas.
+   Two things happened here before this one, and both left: a panel that
+   split the screen down the middle, and a menu hanging off the +.
+   Written down so they do not get proposed again.
 
-   ─── LA ANIMACIÓN, decidida con /animate ───
-   Cada valor sale de una regla suya, no de un gusto:
+   ─── THE ANIMATION, decided with /animate ───
+   Every value comes out of one of its rules, not out of a taste:
 
-     "¿tiene que animarse?"   sí: subir un clip es ocasional, y ése es
-                              justo el renglón que la tabla marca como
-                              "standard animation". Lo que NO se anima
-                              es lo que hacés cien veces por día
-     el propósito             evitar un cambio brusco: un diálogo que
-                              aparece de golpe con un velo encima da un
-                              respingo
-     la curva                 ease-out para lo que ENTRA a la pantalla, y
-                              custom: las curvas con nombre "casi nunca
-                              son suficientemente fuertes". Es la
-                              --ease-out-expo del curso
-     la duración              200ms, adentro de su rango de 200–500 para
-                              modales
-     la salida                150ms — "las salidas son más cortas y más
-                              simples que las entradas: el usuario ya
-                              decidió, salí del camino"
-     desde dónde              scale(0.95), NUNCA scale(0). "Nada aparece
-                              de la nada"
-     el origen                center, y es una excepción explícita suya:
-                              "los modales están exentos — aparecen
-                              centrados"
+     "does it have to animate?"  yes: uploading a clip is occasional,
+                                 and that is exactly the line the table
+                                 marks as "standard animation". What
+                                 does NOT get animated is what you do a
+                                 hundred times a day
+     the purpose                 avoid an abrupt change: a dialog that
+                                 appears all at once with a scrim on top
+                                 makes you flinch
+     the curve                   ease-out for what ENTERS the screen,
+                                 and custom: the named curves "are
+                                 almost never strong enough". It is the
+                                 course's --ease-out-expo
+     the duration                200ms, inside its 200–500 range for
+                                 modals
+     the exit                    150ms: "exits are shorter and simpler
+                                 than entrances: the user already
+                                 decided, get out of the way"
+     from where                  scale(0.95), NEVER scale(0). "Nothing
+                                 appears out of nothing"
+     the origin                  center, and it is an explicit exception
+                                 of theirs: "modals are exempt, they
+                                 appear centered"
 
-   Y una regla del sistema por encima de todas: sólo se animan `transform`
-   y `opacity`, que son las dos que corren en la GPU.
+   And one system rule above all of them: only `transform` and `opacity`
+   get animated, which are the two that run on the GPU.
 
-   ─── POR QUÉ <dialog> Y NO UN DIV ───
-   showModal() trae gratis y bien hechas cuatro cosas que a mano salen
-   mal: el foco atrapado adentro, Escape, el resto de la página inerte
-   para teclado y lector de pantalla, y el ::backdrop sin un nodo extra.
+   ─── WHY <dialog> AND NOT A DIV ───
+   showModal() brings four things for free and done right that come out
+   wrong by hand: focus trapped inside, Escape, the rest of the page
+   inert for keyboard and screen reader, and the ::backdrop with no
+   extra node.
 
-   `overlay` y `display` van en la transición con allow-discrete: son
-   propiedades discretas, y sin eso el diálogo desaparece de golpe en el
-   primer cuadro de la salida en vez de animarse.
+   `overlay` and `display` go in the transition with allow-discrete:
+   they are discrete properties, and without that the dialog disappears
+   all at once on the first frame of the exit instead of animating.
    ═══════════════════════════════════════════════════════════════ */
-.dialogo {
-  /* --ease-out-expo. Es andamio de nadie: es LA curva del curso para una
-     entrada, y vive acá porque es la primera del sistema. Si aparece una
-     segunda, sube a tokens.css. */
-  --dialogo-curva: var(--ease-dialogo);
+.dialog {
+  /* --ease-out-expo. It is nobody's scaffolding: it is THE curve of the
+     course for an entrance, and it lives here because it is the
+     system's first. If a second one shows up, it moves to tokens.css. */
+  --dialog-curve: var(--ease-dialog);
 
   margin: auto;
   border: 0;
   padding: 32px;
-  /* Era de 203 × 124 y estaba dimensionado por su contenido, que era un
-     nombre de archivo. Ahora lo dimensiona el VISTAZO, que es lo que de
-     verdad se mira para decidir. */
-  /* LAS CARDS VAN AL TAMAÑO REAL DE LA GRILLA: 443 cada una, que es
-     exactamente lo que mide una card a 1440. Deja de ser una miniatura
-     de lo que va a pasar y pasa a ser lo que va a pasar.
+  /* It used to be 203 × 124 and it was sized by its content, which was
+     a file name. Now it is sized by the LOOK AT IT, which is what you
+     really look at to decide. */
+  /* THE CARDS GO AT THE GRID'S REAL SIZE: 443 each, which is exactly
+     what a card measures at 1440. It stops being a thumbnail of what is
+     going to happen and becomes what is going to happen.
 
-     974 = 443 + 24 + 443 + 32 + 32, o sea las dos cards, la canaleta de
-     la grilla y el aire del diálogo. Ningún número nuevo. */
+     974 = 443 + 24 + 443 + 32 + 32, that is the two cards, the grid's
+     gutter and the dialog's air. No new number. */
   width: min(974px, calc(100vw - 48px));
-  border-radius: var(--card-radio);
+  border-radius: var(--card-radius);
   background: var(--canvas);
   color: var(--ink);
 
-  /* El estado CERRADO, que es también el de salida. La duración de la
-     salida se declara acá, en el destino de esa transición. */
+  /* The CLOSED state, which is also the exit one. The exit's duration is
+     declared here, at the destination of that transition. */
   opacity: 0;
   transform: scale(0.95);
   transition:
-    opacity 180ms var(--dialogo-curva),
-    transform 180ms var(--dialogo-curva),
+    opacity 180ms var(--dialog-curve),
+    transform 180ms var(--dialog-curve),
     overlay 180ms allow-discrete,
     display 180ms allow-discrete;
 }
-.dialogo[open] {
+.dialog[open] {
   opacity: 1;
   transform: scale(1);
-  /* 240 y no 200: la caja creció de 608 a 974, y la duración escala con
-     el tamaño y la distancia que recorre —"un elemento más grande pesa
-     más"—. Sigue adentro del rango de 200–500 para modales.
-     La salida son 180: más corta que la entrada, siempre. */
+  /* 240 and not 200: the box grew from 608 to 974, and the duration
+     scales with the size and the distance it travels ("a bigger element
+     weighs more"). It is still inside the 200–500 range for modals.
+     The exit is 180: shorter than the entrance, always. */
   transition:
-    opacity 240ms var(--dialogo-curva),
-    transform 240ms var(--dialogo-curva),
+    opacity 240ms var(--dialog-curve),
+    transform 240ms var(--dialog-curve),
     overlay 240ms allow-discrete,
     display 240ms allow-discrete;
 }
-/* De dónde arranca la entrada. Sin @starting-style el navegador no tiene
-   un valor anterior desde el cual transicionar —el elemento acaba de
-   pasar de display:none— y la entrada no se anima. */
+/* Where the entrance starts from. Without @starting-style the browser
+   has no previous value to transition from (the element has just come
+   out of display:none) and the entrance does not animate. */
 @starting-style {
-  .dialogo[open] {
+  .dialog[open] {
     opacity: 0;
     transform: scale(0.95);
   }
 }
 
-/* EL VELO. Su trabajo es empujar la página para atrás, así que es negro
-   con alfa —la misma forma que --hairline, que también es negro puro con
-   alfa— y no un gris teñido, que levantaría el color de lo que tapa.
+/* THE SCRIM. Its job is to push the page back, so it is black with
+   alpha (the same shape as --hairline, which is also pure black with
+   alpha) and not a tinted gray, which would raise the color of what it
+   covers.
 
-   En oscuro sube a 0.5: sobre un canvas que ya es casi negro, 0.28 no
-   separa nada. */
-.dialogo::backdrop {
+   In dark it goes up to 0.5: over a canvas that is already almost
+   black, 0.28 separates nothing. */
+.dialog::backdrop {
   background: rgb(0 0 0 / 0.28);
   opacity: 0;
   transition:
-    opacity 180ms var(--dialogo-curva),
+    opacity 180ms var(--dialog-curve),
     overlay 180ms allow-discrete,
     display 180ms allow-discrete;
 }
-.dialogo[open]::backdrop {
+.dialog[open]::backdrop {
   opacity: 1;
   transition:
-    opacity 240ms var(--dialogo-curva),
+    opacity 240ms var(--dialog-curve),
     overlay 240ms allow-discrete,
     display 240ms allow-discrete;
 }
 @starting-style {
-  .dialogo[open]::backdrop {
+  .dialog[open]::backdrop {
     opacity: 0;
   }
 }
 @media (prefers-color-scheme: dark) {
-  .dialogo::backdrop {
+  .dialog::backdrop {
     background: rgb(0 0 0 / 0.5);
   }
 }
 
-/* "Reduced motion means gentler, not zero": se va el movimiento —la
-   escala— y se queda el desvanecido, que es lo que evita el respingo. */
+/* "Reduced motion means gentler, not zero": the movement goes (the
+   scale) and the fade stays, which is what stops the flinch. */
 @media (prefers-reduced-motion: reduce) {
-  .dialogo,
-  .dialogo[open] {
+  .dialog,
+  .dialog[open] {
     transform: none;
   }
 }
 
-/* QUÉ estás subiendo. Va en el gris secundario porque ANOTA: no es la
-   decisión, es contra qué la estás tomando. */
-.dialogoQue {
+/* WHAT you are uploading. It goes in the secondary gray because it
+   ANNOTATES: it is not the decision, it is what you are taking it
+   against. */
+.dialogWhat {
   margin: 0 0 16px;
   max-width: 32ch;
   overflow-wrap: anywhere;
@@ -1199,16 +1238,17 @@
   color: var(--type-body-c);
 }
 
-/* 24 entre las dos cards, la misma canaleta que la grilla del vault:
-   son las mismas cards, así que se separan igual. */
-.dialogoOpciones {
+/* 24 between the two cards, the same gutter as the vault grid: they are
+   the same cards, so they get separated the same. */
+.dialogOptions {
   display: flex;
-  gap: var(--vault-canaleta, 24px);
+  gap: var(--vault-gutter, 24px);
 }
 
-/* El reset de <button> y nada más: todo lo que se ve sale de .card, que
-   es la clase de la grilla. Lo único propio es que reparte el ancho. */
-.dialogoCard {
+/* The <button> reset and nothing else: everything you see comes out of
+   .card, which is the grid's class. The only thing of its own is that
+   it splits the width. */
+.dialogCard {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -1216,24 +1256,25 @@
   background: transparent;
   font: inherit;
   text-align: left;
-  transition: transform 150ms var(--dialogo-curva);
+  transition: transform 150ms var(--dialog-curve);
 }
-/* El apretón. 0.97 y no menos: la respuesta al apretar se SIENTE, no se
-   ve — con 0.9 la card se desploma a la vista. */
-.dialogoCard:active {
+/* The press. 0.97 and no less: the answer to pressing is FELT, not
+   seen. With 0.9 the card collapses in front of you. */
+.dialogCard:active {
   transform: scale(0.97);
 }
 @media (prefers-reduced-motion: reduce) {
-  .dialogoCard:active {
+  .dialogCard:active {
     transform: none;
   }
 }
 
-/* Mientras sube. Va donde va todo lo que ANOTA en este sistema —el gris
-   secundario— y fijo abajo, para no empujar la grilla mientras mirás. */
-.subiendo {
+/* While it uploads. It goes where everything that ANNOTATES goes in this
+   system (the secondary gray) and fixed at the bottom, so it does not
+   push the grid while you look. */
+.uploading {
   position: fixed;
-  left: var(--privado-inline);
+  left: var(--private-inline);
   bottom: var(--page-padding-bottom);
   z-index: 2;
   margin: 0;
@@ -1245,72 +1286,79 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EL + · un círculo relleno de 32×32
+   THE + · a filled circle of 32×32
 
-   ─── EL TAMAÑO ───
-   Era un carácter de texto de 20.6 × 32.0, y el mínimo es 24 × 24: el
-   único control de su fila que no llegaba. "Web", al lado, mide 39.8.
-   Ahora son 32 × 32, el alto que ya tienen todos los demás.
+   ─── THE SIZE ───
+   It was a text character of 20.6 × 32.0, and the minimum is 24 × 24:
+   the only control in its row that did not reach it. "Web", next to it,
+   measures 39.8. Now it is 32 × 32, the height every other one already
+   has.
 
-   No llega a 44 × 44, que es el mínimo TÁCTIL. Queda dicho: esto es una
-   herramienta de escritorio con puntero, y 44 obligaría a agrandar la
-   fila entera.
+   It does not reach 44 × 44, which is the TOUCH minimum. Said here:
+   this is a desktop tool with a pointer, and 44 would force growing the
+   whole row.
 
-   ─── EL RELLENO: EL BOTÓN ESTÁ HECHO DEL MISMO MATERIAL QUE LA CARD ───
-   --surface en reposo y --surface-hover al pasar por encima. No es "un
-   gris parecido al de la card": son LOS MISMOS DOS TOKENS que declara
-   .media, y las dos transiciones ya eran la misma de antes
-   (--dur-surface · --ease-surface). El botón y la card cambian de
-   estado con el mismo color, en el mismo tiempo y con la misma curva.
+   ─── THE FILL: THE BUTTON IS MADE OF THE SAME MATERIAL AS THE CARD ───
+   --surface at rest and --surface-hover when you go over it. It is not
+   "a gray similar to the card's": they are THE SAME TWO TOKENS .media
+   declares, and the two transitions were already the same as before
+   (--dur-surface · --ease-surface). The button and the card change
+   state with the same color, in the same time and with the same curve.
 
-   ESTE VALOR YA HABÍA ESTADO ACÁ Y SE HABÍA DESCARTADO. Vale contar por
-   qué vuelve, porque el motivo no es que el número cambiara de opinión:
+   THIS VALUE HAD ALREADY BEEN HERE AND HAD BEEN DROPPED. It is worth
+   telling why it comes back, because the reason is not that the number
+   changed its mind:
 
-     se descartó   "sobre --canvas son 5 unidades, un 2%: prácticamente
-                   no se veía" — juzgado contra el canvas PELADO
-     vuelve        juzgado contra la página REAL, que tiene una grilla
-                   de cards. Ahí el mismo −5 dejó de leerse como "un
-                   gris que no se ve" y pasó a leerse como "esto es de
-                   lo mismo que las cards". Elegido mirando las dos
-                   variantes en el picker, sobre la fila de verdad
+     it was dropped   "over --canvas it is 5 units, 2%: practically
+                      invisible", judged against the BARE canvas
+     it comes back    judged against the REAL page, which has a grid of
+                      cards. There the same −5 stopped reading as "a
+                      gray you cannot see" and started reading as "this
+                      is made of the same thing as the cards". Chosen by
+                      looking at the two variants in the picker, over
+                      the real row
 
-   O sea que lo que estaba mal era el banco de pruebas, no el valor.
+   That is, what was wrong was the test bench, not the value.
 
-   EN EL MEDIO SE MIDIERON LAS REFERENCIAS y quedan anotadas, aunque no
-   ganaron. Las dos coinciden en la FORMA —negro o blanco PURO con alfa
-   baja, nunca un gris opaco:
+   IN BETWEEN THE REFERENCES WERE MEASURED and they are written down,
+   even though they did not win. Both agree on the SHAPE: PURE black or
+   white with low alpha, never an opaque gray:
 
-     RUNTIME · openai.com, botón redondo de 36×36, border-radius 9999
-       rgba(0, 0, 0, 0.04) sobre blanco. Su píldora "Log in", lo mismo
-     SOURCE · su CSS lo llama --color-primary-4
-       o sea "la tinta al 4%", no un gris de una escala aparte
-     RUNTIME · linear.app, círculo de 24×24, border-radius 50%
-       rgba(255, 255, 255, 0.03) con hairline de 0.08; sus píldoras, 0.05
+     RUNTIME · openai.com, round button of 36×36, border-radius 9999
+       rgba(0, 0, 0, 0.04) over white. Their "Log in" pill, the same
+     SOURCE · their CSS calls it --color-primary-4
+       that is "the ink at 4%", not a gray from a separate scale
+     RUNTIME · linear.app, circle of 24×24, border-radius 50%
+       rgba(255, 255, 255, 0.03) with a hairline at 0.08; their pills,
+       0.05
 
-   De ahí salió una tanda de alfas propias —8%, después 4.7%— y las dos
-   tenían el mismo defecto de fondo: eran NÚMEROS SIN NOMBRE. La regla de
-   tokens.css es que cada número decidido tiene un nombre que dice qué
-   separa, y "rgb(0 0 0 / 0.047)" no dice nada. Tentaba usar --hairline,
-   que vale casi exactamente eso (5.1%) — y habría sido peor: una
-   hairline es una LÍNEA, y un token no se toma prestado porque su valor
-   sirva hoy. El día que las líneas se aclaren, el botón se va con ellas.
+   Out of that came a batch of alphas of our own (8%, then 4.7%) and
+   both had the same underlying defect: they were NUMBERS WITH NO NAME.
+   The rule in tokens.css is that every decided number has a name that
+   says what it separates, and "rgb(0 0 0 / 0.047)" says nothing. It was
+   tempting to use --hairline, which is worth almost exactly that
+   (5.1%), and it would have been worse: a hairline is a LINE, and a
+   token does not get borrowed because its value happens to work today.
+   The day the lines get lighter, the button goes with them.
 
-   Con --surface no hay número que nombrar: el rol ya existía.
+   With --surface there is no number to name: the role already existed.
 
-   ─── Y POR ESO NO HAY BLOQUE DE MODO OSCURO ───
-   Acá vivía un @media (prefers-color-scheme: dark) que redefinía las dos
-   alfas dadas vuelta. Se borró entero, y no por descuido: --surface y
-   --surface-hover YA cambian con el tema (+5 y +9 sobre el canvas
-   oscuro, el espejo exacto del claro). El botón dejó de tener lógica de
-   color propia — hereda la del sistema, como la card. */
-.mas {
+   ─── AND THAT IS WHY THERE IS NO DARK MODE BLOCK ───
+   A @media (prefers-color-scheme: dark) used to live here redefining
+   the two alphas the other way around. It was deleted whole, and not by
+   oversight: --surface and --surface-hover ALREADY change with the
+   theme (+5 and +9 over the dark canvas, the exact mirror of the
+   light). The button stopped having color logic of its own. It inherits
+   the system's, like the card. */
+.plus {
   width: 32px;
   height: 32px;
   padding: 0;
-  /* El botón YA ES la caja visible, así que no hay blanco invisible que
-     devolver al layout. Lo único que hace el margen izquierdo es abrir la
-     separación contra el grupo de filtros — ver --vault-mas-gap. */
-  margin: 0 0 0 calc(var(--vault-mas-gap) - var(--vault-filtro-gap));
+  /* The button ALREADY IS the visible box, so there is no invisible
+     padding to give back to the layout. The only thing the left margin
+     does is open the separation against the group of filters. See
+     --vault-plus-gap. */
+  margin: 0 0 0 calc(var(--vault-plus-gap) - var(--vault-filter-gap));
   border: 0;
   border-radius: 50%;
   background: var(--surface);
@@ -1323,15 +1371,16 @@
     background-color var(--dur-surface) var(--ease-surface),
     color var(--dur-text) var(--ease-text);
 }
-.mas:hover {
+.plus:hover {
   background: var(--surface-hover);
-  color: var(--activo-c);
+  color: var(--active-c);
 }
 
-/* El <input type=file> de verdad. No se usa display:none: eso lo saca
-   del árbol de accesibilidad y, en algunos navegadores, hace que .click()
-   deje de abrir el selector. Se lo esconde del ojo dejándolo en el DOM. */
-.oculto {
+/* The real <input type=file>. display:none is not used: that takes it
+   out of the accessibility tree and, in some browsers, makes .click()
+   stop opening the picker. It is hidden from the eye while staying in
+   the DOM. */
+.hidden {
   position: absolute;
   width: 1px;
   height: 1px;

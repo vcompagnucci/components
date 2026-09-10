@@ -14,995 +14,1021 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { SFSymbol } from 'sf-symbols-typescript'
 
-import { BARRA, BORDE, CHIP, ICONO, LABEL, SUBRAYADO, extraDelTab } from './measurements'
-import { usePaleta } from './theme'
+import { TAB_BAR, EDGE, CHIP, ICON, LABEL, UNDERLINE, tabExtra } from './measurements'
+import { usePalette } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   LA BARRA — la fila de tabs, el subrayado, el degradé y el `+`.
+   THE BAR — the row of tabs, the underline, the gradient and the `+`.
 
-   No tiene estado de selección y no sabe qué tab está elegido: recibe
-   un `Tramo` —`d`, `h` y `t` (0..1)— y TODO lo que dibuja sale de ahí.
-   Ese es el hallazgo de la referencia y la razón de que la pieza se
-   sienta bien: en el clip, el subrayado y el contenido van juntos cuadro
-   a cuadro —0.233/0.262, 0.589/0.604, 0.794/0.800— así que el subrayado
-   no anima por su cuenta, es una función del arrastre.
+   It has no selection state and does not know which tab is chosen: it
+   receives a `Segment` (`d`, `h` and `t`, 0..1) and EVERYTHING it draws
+   comes out of that. That is the finding from the reference and the
+   reason the piece feels right: in the clip the underline and the
+   content go together frame by frame (0.233/0.262, 0.589/0.604,
+   0.794/0.800), so the underline does not animate on its own, it is a
+   function of the drag.
 
-   `t` y no la posición del pager, porque las dos dejaron de ser lo
-   mismo: un toque lejano mueve el CONTENIDO una sola página aunque el
-   salto sea de cuatro tabs (la referencia hace eso, está medido en el
-   pager). El pager sabe cuál es cuál; la barra sólo quiere el 0..1.
+   `t` and not the pager's position, because the two stopped being the
+   same thing: a far tap moves the CONTENT a single page even if the
+   jump is four tabs wide (the reference does that, it is measured in
+   the pager). The pager knows which is which; the bar only wants the
+   0..1.
 
    ────────────────────────────────────────────────────────────────
-   EL TAB ACTIVO ES MÁS ANCHO, Y ESO ES TODO EL PROBLEMA.
+   THE ACTIVE TAB IS WIDER, AND THAT IS THE WHOLE PROBLEM.
 
-   Cuando un tab se activa le aparece un símbolo —chevron a la derecha
-   en los feeds, ícono a la izquierda en los temas— y el tab crece 18 pt
-   (medido). Si eso fuera un flex row, cada cuadro del arrastre sería un
-   pase de layout de Yoga sobre los siete tabs.
+   When a tab becomes active a symbol appears on it, a chevron on the
+   right in the feeds and an icon on the left in the topics, and the tab
+   grows 18 pt (measured). If that were a flex row, every frame of the
+   drag would be a Yoga layout pass over the seven tabs.
 
-   Así que la fila NO es un flex row. Se calcula el layout entero —una
-   `x` y un ancho por tab— para cada uno de los n estados de reposo, y
-   se interpola **entre dos de ellos**: el de donde sale la transición y
-   el de a dónde va (la `d` y la `h` del `Tramo`). Cada tab es un hijo
-   absoluto con un `translateX`, o sea puro transform: cero layout por
-   cuadro.
+   So the row is NOT a flex row. The whole layout is computed, an `x`
+   and a width per tab, for each of the n rest states, and it
+   interpolates **between two of them**: the one the transition leaves
+   and the one it goes to (the `d` and the `h` of the `Segment`). Each
+   tab is an absolute child with a `translateX`, so pure transform: zero
+   layout per frame.
 
-   Interpolar entre DOS y no sobre los n importa sólo cuando esos dos no
-   son vecinos, o sea al TOCAR un tab lejano. La primera versión
-   interpolaba sobre todos los estados y un toque del 2 al 6 pasaba por
-   el 3, el 4 y el 5: cada uno abría su ícono y se ponía blanco al pasar,
-   y volvía atrás. Con dos extremos, el layout va del 2 al 6 derecho y
-   los del medio ni se enteran.
+   Interpolating between TWO and not over the n only matters when those
+   two are not neighbours, that is, on TAPPING a far tab. The first
+   version interpolated over every state and a tap from 2 to 6 went
+   through 3, 4 and 5: each one opened its icon and went white on the
+   way past, and then went back. With two ends, the layout goes from 2
+   to 6 straight and the ones in the middle never find out.
 
-   Dos consecuencias que valen la pena:
+   Two consequences worth stating:
 
-   · La caja de cada tab tiene su ancho MÁXIMO fijo (con símbolo), y los
-     tabs se dibujan en orden. El que viene después tapa al anterior
-     justo en lo que le sobra, así que el área tocable de cada tab
-     termina siendo exactamente [x_i, x_i+1] — su ancho real en ese
-     estado, sin animar ni un `width`.
+   · Each tab's box has its MAXIMUM width fixed (with symbol), and the
+     tabs are drawn in order. The one that comes after covers the
+     previous one over exactly what it has to spare, so each tab's
+     touchable area ends up being exactly [x_i, x_i+1], its real width
+     in that state, without animating a single `width`.
 
-   · Adentro del tab, el label también está absoluto y colocado como si
-     el símbolo estuviera. Cuando no está, el label se corre con un
-     `translateX` negativo — la ranura entera si el símbolo va a la
-     izquierda, y además TODO label inactivo lleva la inclinación
-     (`apartado`), alejándose del tab activo. Por eso "For you" también
-     se mueve al perder el chevron, como en la referencia.
+   · Inside the tab, the label is absolute too and placed as if the
+     symbol were there. When it is not, the label shifts with a negative
+     `translateX`, the whole slot if the symbol goes on the left, and on
+     top of that EVERY inactive label carries the lean (`leanOffset`),
+     moving away from the active tab. That is why "For you" also moves
+     when it loses its chevron, as in the reference.
 
-   LAS MEDIDAS DEL TEXTO SE MIDEN, NO SE CALCULAN: cada label reporta su
-   ancho con `onLayout`, porque depende de la fuente del sistema y del
-   largo de la palabra. Una tabla escrita a mano se desincroniza con el
-   primer label que cambie, y miente en otro idioma o con Dynamic Type.
+   THE TEXT'S MEASUREMENTS ARE MEASURED, NOT CALCULATED: each label
+   reports its width with `onLayout`, because it depends on the system
+   font and on the length of the word. A table written by hand goes out
+   of sync with the first label that changes, and it lies in another
+   language or with Dynamic Type.
 
-   Y ESAS MEDIDAS VIVEN EN ESTADO DE REACT, no en un shared value. La
-   primera versión guardaba el array en un `useSharedValue` y no
-   funcionaba: con una sonda en el `onLayout` se vio que los tabs
-   reportaban su caja bien, pero `medidas.get().length` leído justo
-   después de asignar daba **0**. Estado de React además es lo correcto
-   acá: una medida cambia una vez al montar y después nunca más.
+   AND THOSE MEASUREMENTS LIVE IN REACT STATE, not in a shared value.
+   The first version kept the array in a `useSharedValue` and it did not
+   work: with a probe in the `onLayout` you could see the tabs reporting
+   their box correctly, but reading `.length` off the shared value right
+   after assigning gave **0**. React state is also the right thing here:
+   a measurement changes once on mount and then never again.
    ═══════════════════════════════════════════════════════════════ */
 
 export type Tab = {
   id: string
   label: string
-  /** El símbolo que aparece cuando el tab está activo. */
-  simbolo?: SFSymbol
-  /** De qué lado del label va. `derecha` es el chevron de los feeds. */
-  lado?: 'izquierda' | 'derecha'
-  /** El símbolo va adentro de un contorno redondeado, como el chip de
-   *  Stocks de la referencia. El recibo está arriba de `CHIP`. */
+  /** The symbol that appears when the tab is active. */
+  symbol?: SFSymbol
+  /** Which side of the label it goes on. `right` is the feeds' chevron. */
+  side?: 'left' | 'right'
+  /** The symbol goes inside a rounded outline, like the reference's
+   *  Stocks chip. The receipt is above `CHIP`. */
   chip?: boolean
 }
 
-/* ═══ EL TRAMO: LOS TRES NÚMEROS VAN JUNTOS, Y ESO ES EL ARREGLO ═══
+/* ═══ THE SEGMENT: THE THREE NUMBERS GO TOGETHER, AND THAT IS THE FIX ═══
 
-   De dónde sale la transición en curso (`d`), a dónde va (`h`) y cuánto
-   se avanzó (`t`, 0..1). UN SOLO valor compartido, no tres.
+   Where the transition under way comes from (`d`), where it goes (`h`)
+   and how far it has got (`t`, 0..1). ONE single shared value, not
+   three.
 
-   ESTO ERA EL TITILEO DE LOS ÍCONOS, y está medido. Antes eran tres
-   shared values: `desde` y `hasta` los escribía un `useAnimatedReaction`
-   y `avance` era un `useDerivedValue`. Cada cruce de página dejaba a los
-   estilos leyendo un trío que nunca existió —los extremos NUEVOS con el
-   avance VIEJO, que en ese momento vale 1 porque está saturado— y el
-   ícono que entraba prendía del todo por un cuadro antes de empezar su
-   fundido. La traza de un barrido de seis páginas, sacada del propio
-   mapper del estilo:
+   THIS WAS THE ICONS' FLICKER, and it is measured. Before there were
+   three shared values: `from` and `to` were written by a
+   `useAnimatedReaction` and `progress` was a `useDerivedValue`. Every
+   page crossing left the styles reading a trio that never existed, the
+   NEW ends with the OLD progress, which at that moment is 1 because it
+   is saturated, and the incoming icon lit up all the way for one frame
+   before starting its fade. The trace of a six-page sweep, taken from
+   the style's own mapper:
 
-     ms       d h   avance   ícono del tab 2
-     1350.0   0 1   0.6485   0.00
-     1366.7   1 2   1.0000   1.00   ← el destello
-     1383.2   1 2   0.0076   0.01   ← y vuelve
+     ms       d h   progress   tab 2's icon
+     1350.0   0 1   0.6485     0.00
+     1366.7   1 2   1.0000     1.00   ← the flash
+     1383.2   1 2   0.0076     0.01   ← and back again
 
-   Los seis tabs del barrido hicieron lo mismo: 0.000 → 1.000 → 0.008.
+   All six tabs in the sweep did the same: 0.000 → 1.000 → 0.008.
 
-   POR QUÉ PASABA, en una línea: `useAnimatedReaction` llama a
-   `startMapper(fun, inputs)` SIN lista de salidas (SOURCE:
+   WHY IT HAPPENED, in one line: `useAnimatedReaction` calls
+   `startMapper(fun, inputs)` WITH NO list of outputs (SOURCE:
    `react-native-reanimated@4.5.1`, `src/hook/useAnimatedReaction.ts:68`;
-   compará con `useDerivedValue.ts:71`, que sí la pasa). El orden
-   topológico de Reanimated arma sus aristas con esas salidas, así que
-   una reacción es invisible para el orden: nadie garantiza que corra
-   antes de quien lee lo que escribe.
+   compare it with `useDerivedValue.ts:71`, which does pass one).
+   Reanimated's topological order builds its edges out of those outputs,
+   so a reaction is invisible to the ordering: nobody guarantees it runs
+   before whoever reads what it writes.
 
-   Con un solo valor no queda ningún orden que equivocar: los tres
-   números nacen en el mismo worklet, y como sale de un `useDerivedValue`
-   sí declara su salida y el sort lo pone antes de todos sus lectores.
+   With a single value there is no order left to get wrong: the three
+   numbers are born in the same worklet, and since it comes out of a
+   `useDerivedValue` it does declare its output and the sort puts it
+   before all of its readers.
 
-   La regla, para la próxima: si dos números tienen que ser ciertos AL
-   MISMO TIEMPO, son un valor, no dos. */
-export type Tramo = { d: number; h: number; t: number }
+   The rule, for next time: if two numbers have to be true AT THE SAME
+   TIME, they are one value, not two. */
+export type Segment = { d: number; h: number; t: number }
 
-/* Lo que hay que interpolar: por cada tab, dónde está y cuánto mide en
-   cada uno de los n estados de reposo. `subX`/`subAncho` son los del
-   subrayado, que es el tab activo de cada estado. */
-type Plano = {
-  equis: number[][]
-  anchos: number[][]
-  subX: number[]
-  subAncho: number[]
-  destinos: number[]
-  minimos: number[]
-  maximos: number[]
-  topes: number[]
-  contenido: number
+/* What has to be interpolated: for each tab, where it is and how wide
+   it is in each of the n rest states. `underlineX`/`underlineWidth` are
+   the underline's, which is each state's active tab. */
+type Layout = {
+  x: number[][]
+  widths: number[][]
+  underlineX: number[]
+  underlineWidth: number[]
+  targets: number[]
+  minimums: number[]
+  maximums: number[]
+  limits: number[]
+  contentWidth: number
 }
 
-/* LA LÍNEA DEL CHIP, hecha de barras rotadas: una por segmento del
-   esqueleto medido (el recibo está arriba de `CHIP` en `medidas.ts`).
-   Se calculan una sola vez; los hijos de un View con borde se
-   posicionan DESPUÉS del borde, por eso se resta `CHIP.trazo`. Los
-   extremos se alargan medio trazo por punta —capas redondas— para que
-   las uniones no muestren costura y las puntas se fundan con el borde
-   del chip, como en la referencia. El color no va acá: lo pone la
-   paleta en el render. */
+/* THE CHIP'S LINE, made of rotated bars: one per segment of the
+   measured skeleton (the receipt is above `CHIP` in `measurements.ts`).
+   They are computed once; the children of a View with a border are
+   positioned AFTER the border, which is why `CHIP.stroke` is
+   subtracted. The ends are lengthened by half a stroke per tip (round
+   caps) so the joins do not show a seam and the tips blend into the
+   chip's border, as in the reference. The color does not go here: the
+   palette puts it in at render time. */
 const ZIGZAG = CHIP.vertices.slice(0, -1).map((v, i) => {
   const [x1, y1] = v
   const [x2, y2] = CHIP.vertices[i + 1]
-  const largo = Math.hypot(x2 - x1, y2 - y1) + CHIP.linea
+  const length = Math.hypot(x2 - x1, y2 - y1) + CHIP.line
   return {
     position: 'absolute' as const,
-    width: largo,
-    height: CHIP.linea,
-    borderRadius: CHIP.linea / 2,
-    left: (x1 + x2) / 2 - largo / 2 - CHIP.trazo,
-    top: (y1 + y2) / 2 - CHIP.linea / 2 - CHIP.trazo,
+    width: length,
+    height: CHIP.line,
+    borderRadius: CHIP.line / 2,
+    left: (x1 + x2) / 2 - length / 2 - CHIP.stroke,
+    top: (y1 + y2) / 2 - CHIP.line / 2 - CHIP.stroke,
     transform: [{ rotate: `${Math.atan2(y2 - y1, x2 - x1)}rad` }],
   }
 })
 
-/* Qué está moviendo el contenido ahora mismo. La fila necesita saberlo
-   porque hace tres cosas distintas según el caso. */
-export const MOVIMIENTO = { quieto: 0, arrastre: 1, toque: 2 } as const
+/* What is moving the content right now. The row needs to know because
+   it does three different things depending on the case. */
+export const MOTION = { still: 0, drag: 1, tap: 2 } as const
 
-/* El fundido del ícono de tema: r^1.5 (medido) arrancando en `piso`
-   (perilla). El chevron no pasa por acá — es lineal puro. */
-function fundidoTema(r: number) {
+/* The topic icon's fade: r^1.5 (measured) starting at `floor` (a knob).
+   The chevron does not come through here, it is purely linear. */
+function topicFade(r: number) {
   'worklet'
-  const rr = Math.max(0, (r - ICONO.piso) / (1 - ICONO.piso))
+  const rr = Math.max(0, (r - ICON.floor) / (1 - ICON.floor))
   return rr * Math.sqrt(rr)
 }
 
-/* Interpola entre los dos estados de la transición en curso, y no sobre
-   los n. `t` es cuánto se avanzó de `d` a `h`. */
-function entre(valores: number[], d: number, h: number, t: number) {
+/* Interpolates between the two states of the transition under way, and
+   not over the n. `t` is how far it has got from `d` to `h`. */
+function between(values: number[], d: number, h: number, t: number) {
   'worklet'
-  const a = valores[d] ?? 0
-  const b = valores[h] ?? a
+  const a = values[d] ?? 0
+  const b = values[h] ?? a
   return a + (b - a) * t
 }
 
-/* LA INCLINACIÓN DEL LABEL: toda palabra que no es la activa se aparta
-   `BARRA.apartar` del tab activo (a la izquierda si el activo está a la
-   derecha, y al revés), interpolando entre los dos extremos del tramo.
-   Es SOLO del label y de lo que viaja con él —velo y símbolo—: las
-   cajas y el subrayado no la llevan. El recibo, con la tabla de las
-   seis palabras en los seis reposos de X, está arriba de `apartar` en
-   `medidas.ts`. Es lo que hace que "For you" también se corra cuando
-   pierde el chevron (antes acá no se movía nunca) y que la palabra que
-   se apaga viaje un poco más que su ranura, como en la referencia. */
-function apartado(indice: number, d: number, h: number, t: number) {
+/* THE LABEL'S LEAN: every word that is not the active one leans
+   `TAB_BAR.lean` away from the active tab (to the left if the active
+   one is to the right, and the other way round), interpolating between
+   the segment's two ends. It belongs ONLY to the label and to what
+   travels with it, the veil and the symbol: the boxes and the underline
+   do not carry it. The receipt, with the table of the six words in X's
+   six rest states, is above `lean` in `measurements.ts`. It is what
+   makes "For you" shift when it loses its chevron (before, it never
+   moved here) and what makes the word going dark travel a bit more than
+   its slot, as in the reference. */
+function leanOffset(index: number, d: number, h: number, t: number) {
   'worklet'
-  const c = (a: number) => (indice === a ? 0 : indice < a ? -BARRA.apartar : BARRA.apartar)
+  const c = (a: number) => (index === a ? 0 : index < a ? -TAB_BAR.lean : TAB_BAR.lean)
   return c(d) + (c(h) - c(d)) * t
 }
 
 type Props = {
   tabs: Tab[]
-  /** La transición en curso, entera. Lo calcula el pager: arrastrando `t`
-   *  sale de la posición del scroll, y tocando de su propia animación
-   *  —que no es lo mismo, porque un toque lejano mueve el contenido UNA
-   *  página aunque el salto sea de cuatro. */
-  tramo: SharedValue<Tramo>
-  /** Uno de `MOVIMIENTO`. Con el contenido quieto la fila es del dedo del
-   *  usuario y nadie la toca. */
-  movimiento: SharedValue<number>
-  /** El ancho visible de la fila — la pantalla. */
+  /** The transition under way, whole. The pager computes it: dragging,
+   *  `t` comes out of the scroll's position, and tapping, out of its
+   *  own animation, which is not the same thing, because a far tap
+   *  moves the content ONE page even if the jump is four tabs wide. */
+  segment: SharedValue<Segment>
+  /** One of `MOTION`. With the content still the row belongs to the
+   *  user's finger and nobody touches it. */
+  motion: SharedValue<number>
+  /** The visible width of the row: the screen. */
   viewport: number
-  alTocar: (indice: number) => void
+  onTap: (index: number) => void
 }
 
-/* ═══ `memo`: NO ERA EL PARPADEO, PERO SE QUEDA ═══
+/* ═══ `memo`: IT WAS NOT THE FLICKER, BUT IT STAYS ═══
 
-   ACLARACIÓN, PORQUE ACÁ ANTES DECÍA OTRA COSA. Este bloque afirmaba que
-   el `memo` era lo que arreglaba el titileo de los íconos. Era falso: el
-   titileo estaba en el hilo de UI —ver el recibo arriba de `Tramo`— y
-   sobrevivió intacto a esta memoización. La medición que lo probó está
-   en `MEDICIONES.md`.
+   A CORRECTION, BECAUSE THIS USED TO SAY SOMETHING ELSE. This block
+   claimed the `memo` was what fixed the icons' flicker. That was false:
+   the flicker was on the UI thread (see the receipt above `Segment`)
+   and it survived this memoization untouched. The measurement that
+   proved it is in `MEDICIONES.md`.
 
-   Lo que sí es cierto, y por eso se queda: `SymbolView` es una vista
-   NATIVA, y cada render de este componente le da props nuevas a los
-   siete símbolos para que iOS los reconfigure. Quien disparaba el render
-   era el pager, que hasta el 2026-09-07 bloqueaba su propio scroll
-   mientras duraba un toque lejano con un `useState` que cambiaba dos
-   veces por toque; hoy el pager no tiene estado de React, pero
-   cualquier render del padre haría lo mismo, y la barra no depende de
-   él para nada. Es trabajo que no hay razón para hacer.
+   What is true, and why it stays: `SymbolView` is a NATIVE view, and
+   every render of this component hands the seven symbols new props for
+   iOS to reconfigure them. What fired the render was the pager, which
+   until 2026-09-07 blocked its own scroll for as long as a far tap
+   lasted with a `useState` that changed twice per tap; today the pager
+   has no React state, but any render of the parent would do the same,
+   and the bar does not depend on it for anything. It is work there is
+   no reason to do.
 
-   Para que `memo` corte de verdad, las props tienen que ser estables:
-   `tabs` es constante del módulo, los shared values no cambian de
-   identidad, y `alTocar` va con `useCallback` del otro lado. Es la
-   regla 4 del AGENTS de la carpeta. */
-export const Barra = memo(function Barra({ tabs, tramo, movimiento, viewport, alTocar }: Props) {
-  const [labels, setLabels] = useState<number[]>([])
-  const filaRef = useAnimatedRef<Animated.ScrollView>()
-  const paleta = usePaleta()
+   For `memo` to really cut, the props have to be stable: `tabs` is a
+   module constant, the shared values do not change identity, and
+   `onTap` goes with a `useCallback` on the other side. It is rule 4 of
+   the folder's AGENTS. */
+export const TabBar = memo(function TabBar({ tabs, segment, motion, viewport, onTap }: Props) {
+  const [labelWidths, setLabelWidths] = useState<number[]>([])
+  const rowRef = useAnimatedRef<Animated.ScrollView>()
+  const palette = usePalette()
 
-  /* Los colores de la barra, separados de la geometría: cambian sólo
-     con el tema. Los degradés van acá y no en `StyleSheet` porque
-     llevan `paleta.fondo` adentro del string. */
-  const tinte = useMemo(
+  /* The bar's colors, kept apart from the geometry: they change only
+     with the theme. The gradients go here and not in `StyleSheet`
+     because they carry `palette.background` inside the string. */
+  const tint = useMemo(
     () => ({
-      subrayado: { backgroundColor: paleta.subrayado },
-      rampaIzq: {
-        experimental_backgroundImage: `linear-gradient(to right, ${paleta.fondo} 0%, ${paleta.fondo}00 100%)`,
+      underline: { backgroundColor: palette.underline },
+      leftRamp: {
+        experimental_backgroundImage: `linear-gradient(to right, ${palette.background} 0%, ${palette.background}00 100%)`,
       },
-      rampa: {
-        experimental_backgroundImage: `linear-gradient(to right, ${paleta.fondo}00 0%, ${paleta.fondo} 100%)`,
+      ramp: {
+        experimental_backgroundImage: `linear-gradient(to right, ${palette.background}00 0%, ${palette.background} 100%)`,
       },
-      mas: { backgroundColor: paleta.fondo },
+      plus: { backgroundColor: palette.background },
     }),
-    [paleta],
+    [palette],
   )
 
-  /* Dónde está la fila de verdad, leído del scroll. Lo usa el degradé
-     para saber cuánto queda por recorrer. */
-  const fila = useSharedValue(0)
+  /* Where the row really is, read off the scroll. The gradient uses it
+     to know how much is left to cover. */
+  const row = useSharedValue(0)
 
-  /* Dónde estaba la fila cuando el contenido empezó a moverse (`origen`)
-     y cuánto se había apartado de su destino natural (`desvio`, cero si
-     el usuario no la descentró a mano). Los dos se capturan UNA vez al
-     arrancar el movimiento, y no leyendo la posición mientras uno mismo
-     la comanda: eso es una realimentación, y oscila. La regla 'visible'
-     usa el origen; 'centrar', el desvío (ver `objetivo`). */
-  const origen = useSharedValue(0)
-  const desvio = useSharedValue(0)
+  /* Where the row was when the content started moving (`origin`) and
+     how far it had moved away from its natural target (`deviation`,
+     zero if the user did not push it off center by hand). Both are
+     captured ONCE when the movement starts, and not by reading the
+     position while we are the ones commanding it: that is feedback, and
+     it oscillates. The 'visible' rule uses the origin; 'center' uses
+     the deviation (see `target`). */
+  const origin = useSharedValue(0)
+  const deviation = useSharedValue(0)
 
-  /* `useCallback` para que `memo` de `Etiqueta` corte: una función nueva
-     en cada render hace que la comparación dé distinto siempre. */
-  const medir = useCallback((indice: number, ancho: number) => {
-    setLabels((previos) => {
-      if (previos[indice] === ancho) return previos
-      const proximos = previos.slice()
-      proximos[indice] = ancho
-      return proximos
+  /* `useCallback` so `TabItem`'s `memo` cuts: a new function on every
+     render makes the comparison always come out different. */
+  const measure = useCallback((index: number, width: number) => {
+    setLabelWidths((previous) => {
+      if (previous[index] === width) return previous
+      const next = previous.slice()
+      next[index] = width
+      return next
     })
   }, [])
 
-  /* `useMemo` explícito y no confiando en el React Compiler: de la
-     identidad de este objeto dependen las dependencias que el plugin de
-     worklets le calcula a los estilos animados. Si cambiara en cada
-     render, los estilos se reconstruirían en cada render. */
-  const plano = useMemo<Plano | null>(() => {
-    /* Con un solo tab no hay nada que interpolar, y `interpolate` pide
-       dos puntos como mínimo. */
+  /* An explicit `useMemo` and not trusting the React Compiler: the
+     dependencies the worklets plugin computes for the animated styles
+     hang off this object's identity. If it changed on every render, the
+     styles would be rebuilt on every render. */
+  const layout = useMemo<Layout | null>(() => {
+    /* With a single tab there is nothing to interpolate, and
+       `interpolate` needs two points at minimum. */
     if (tabs.length < 2) return null
-    for (let i = 0; i < tabs.length; i++) if (labels[i] === undefined) return null
+    for (let i = 0; i < tabs.length; i++) if (labelWidths[i] === undefined) return null
 
     const n = tabs.length
-    const base = tabs.map((_, i) => labels[i] + BARRA.padding * 2)
-    const extra = tabs.map((tab) => extraDelTab(tab.lado))
+    const base = tabs.map((_, i) => labelWidths[i] + TAB_BAR.padding * 2)
+    const extra = tabs.map((tab) => tabExtra(tab.side))
 
-    /* El layout completo de un estado: el tab `activo` lleva su símbolo
-       y los demás no. */
-    const estado = (activo: number) => {
-      const anchos = base.map((b, i) => b + (i === activo ? extra[i] : 0))
-      const equis: number[] = []
-      let x = BARRA.inset
+    /* The complete layout of one state: the `active` tab carries its
+       symbol and the rest do not. */
+    const state = (active: number) => {
+      const widths = base.map((b, i) => b + (i === active ? extra[i] : 0))
+      const x: number[] = []
+      let cursor = TAB_BAR.inset
       for (let i = 0; i < n; i++) {
-        equis.push(x)
-        x += anchos[i] + BARRA.separacion
+        x.push(cursor)
+        cursor += widths[i] + TAB_BAR.separation
       }
-      x -= BARRA.separacion // la separación va ENTRE cajas, no después de la última
-      /* El cierre lleva `respiro` y no `inset`: la fila NO es simétrica.
-         A la izquierda el inset separa del borde de la pantalla; a la
-         derecha ya está el `+` haciendo de tope, y en la referencia el
-         último tab le queda a 3.6 pt. */
-      return { equis, anchos, total: x + BORDE.respiro }
+      cursor -= TAB_BAR.separation // the separation goes BETWEEN boxes, not after the last one
+      /* The closing edge carries `slack` and not `inset`: the row is
+         NOT symmetric. On the left the inset separates it from the edge
+         of the screen; on the right the `+` is already acting as the
+         stop, and in the reference the last tab ends up 3.6 pt from
+         it. */
+      return { x, widths, total: cursor + EDGE.slack }
     }
 
-    const estados = Array.from({ length: n }, (_, a) => estado(a))
-    const indices = estados.map((_, a) => a)
+    const states = Array.from({ length: n }, (_, a) => state(a))
+    const indices = states.map((_, a) => a)
 
-    /* EL VIEWPORT ÚTIL TERMINA DONDE EMPIEZA EL `+`, no antes.
+    /* THE USABLE VIEWPORT ENDS WHERE THE `+` STARTS, not before.
 
-       Esto pasó por dos versiones equivocadas. Primero el tope se
-       calculaba contra el ancho de la pantalla, y la fila se frenaba con
-       el último tab abajo del `+`. Después se corrigió contra el borde
-       del degradé, y quedó 84 pt corta — el último tab entraba, pero con
-       un hueco enorme al lado.
+       This went through two wrong versions. First the limit was
+       computed against the width of the screen, and the row stopped
+       with the last tab under the `+`. Then it was corrected against
+       the edge of the gradient, and it came out 84 pt short: the last
+       tab fitted, but with an enormous gap beside it.
 
-       Lo que hace la referencia está medido: con el scroll al tope, la
-       caja del último tab termina en 391.7 pt de una pantalla de 440, y
-       el `+` arranca en 396. O sea que la fila corre hasta pegarse al
-       `+`, y el degradé no es problema porque en ese estado está
-       apagado (ver `restantes`). */
-    const util = viewport - BORDE.mas
-    const topes = estados.map(({ total }) => Math.max(0, total - util))
+       What the reference does is measured: with the scroll at its
+       limit, the last tab's box ends at 391.7 pt of a 440 screen, and
+       the `+` starts at 396. So the row runs until it is flush with the
+       `+`, and the gradient is no problem because in that state it is
+       off (see `remaining`). */
+    const usable = viewport - EDGE.plus
+    const limits = states.map(({ total }) => Math.max(0, total - usable))
 
-    /* LA FILA CENTRA EL TAB ACTIVO EN LA PANTALLA ENTERA, Y DESPUÉS SE
-       CHOCA CONTRA EL TOPE. Ahí está todo el comportamiento que la
-       referencia tiene y esto no tenía: con los primeros tabs el centrado
-       pide un número negativo, el clamp lo deja en 0 y la fila NO SE
-       MUEVE; del cuarto en adelante pide más de lo que hay, el clamp lo
-       deja en el tope y la fila SE VA ENTERA hasta el final. Eso es el
-       "o se queda quieta o se mueve bastante".
+    /* THE ROW CENTERS THE ACTIVE TAB IN THE WHOLE SCREEN, AND THEN IT
+       RUNS INTO THE LIMIT. There is the entire behaviour the reference
+       has and this did not have: with the first tabs the centering asks
+       for a negative number, the clamp leaves it at 0 and the row DOES
+       NOT MOVE; from the fourth on it asks for more than there is, the
+       clamp leaves it at the limit and the row GOES ALL THE WAY to the
+       end. That is the "either it stays still or it moves quite a bit".
 
-       Los cinco estados en reposo del clip, medidos: la posición de la
-       caja activa sale del subrayado (blanco puro, sin sesgo de umbral) y
-       el desplazamiento de la fila sale de comparar tabs que están
-       apagados en los DOS estados —ahí el ancho extra del activo se
-       cancela y queda sólo el scroll:
+       The clip's five rest states, measured: the active box's position
+       comes out of the underline (pure white, with no threshold bias)
+       and the row's displacement comes out of comparing tabs that are
+       dark in BOTH states, where the active one's extra width cancels
+       out and only the scroll is left:
 
-         activo      fila medida   centrado en 440   centrado en 396
+         active      row measured   centered in 440   centered in 396
          For you          0            −161 → 0         −140 → 0
          Following        0             −76 → 0          −58 → 0
          Stocks           0            −0.3 → 0        **21.7**  ✗
-         Tech          45.4             63 → tope        85 → tope
-         AI            45.4            118 → tope       139 → tope
+         Tech          45.4             63 → limit       85 → limit
+         AI            45.4            118 → limit      139 → limit
 
-       Stocks es el único estado que distingue los dos modelos, y cae del
-       lado del centrado en la pantalla ENTERA por tres décimas. No es
-       casualidad numérica: el `+` no achica la fila, la tapa. La fila
-       ocupa los 440 y lo que reserva para el botón es un inset al final
-       —por eso el tope sí se calcula contra `util`.
+       Stocks is the only state that tells the two models apart, and it
+       falls on the side of centering in the WHOLE screen by three
+       tenths. It is not a numerical coincidence: the `+` does not
+       shrink the row, it covers it. The row occupies the 440 and what
+       it reserves for the button is an inset at the end, which is why
+       the limit IS computed against `usable`.
 
-       Y el tope está verificado por su lado: con Tech activo, la caja del
-       último tab termina en 396.0 pt, o sea EXACTAMENTE donde arranca el
-       `+`. La fila corre hasta pegarse al botón y ni un punto más.
+       And the limit is verified on its own: with Tech active, the last
+       tab's box ends at 396.0 pt, which is EXACTLY where the `+`
+       starts. The row runs until it is flush with the button and not
+       one point further.
 
-       ─── Y SÓLO AL TOCAR ───
-       La fila se mueve cuando TOCÁS un tab. Arrastrando se queda quieta,
-       y eso también está medido: el clip del vault tiene cuatro
-       transiciones, todas entre vecinos, y la fila no se corre en
-       ninguna —ni con Tech activo, donde el centrado pediría 45 pt—. Que
-       son arrastres y no toques se ve normalizando las cuatro curvas al
-       mismo tiempo: en el paso 4/24 dan 0.071, 0.120, 0.053 y 0.110. Un
-       `withTiming` daría el mismo número las cuatro veces. Eso es un
-       dedo.
+       ─── AND ONLY ON TAP ───
+       The row moves when you TAP a tab. Dragging it stays still, and
+       that is measured too: the vault clip has four transitions, all
+       between neighbours, and the row does not shift in any of them,
+       not even with Tech active, where the centering would ask for
+       45 pt. That they are drags and not taps shows when you normalize
+       the four curves to the same time: at step 4/24 they give 0.071,
+       0.120, 0.053 and 0.110. A `withTiming` would give the same number
+       all four times. That is a finger.
 
-       ─── Y TAMBIÉN AL ARRASTRAR, QUE ES LO QUE ESTABA MAL ───
-       La primera versión dejaba la fila QUIETA durante el arrastre (el
-       clip del vault no la movía en sus cuatro transiciones — todas
-       entre tabs cuyo destino es el mismo 0). Las grabaciones nuevas
-       (2026-09-01) muestran el caso que el vault no mostraba: en el
-       arrastre Tech→AI de X la fila se corre ~6 pt DURANTE el gesto,
-       siguiendo la diferencia entre los reposos de los dos estados
-       (45.6 → 39.6 medidos). O sea: la fila sigue `destinos`
-       interpolado con el MISMO avance del contenido, se arrastre o se
-       toque. Lo que el usuario haya descentrado a mano se respeta como
-       desvío (ver `desvio`), y el clamp a [minimo, maximo] garantiza
-       que el activo entre entero igual.
+       ─── AND ON DRAG TOO, WHICH IS WHAT WAS WRONG ───
+       The first version left the row STILL during the drag (the vault
+       clip did not move it in its four transitions, all of them between
+       tabs whose target is the same 0). The new recordings
+       (2026-09-01) show the case the vault did not show: in X's Tech→AI
+       drag the row shifts ~6 pt DURING the gesture, following the
+       difference between the two states' rest positions (45.6 → 39.6
+       measured). So: the row follows `targets` interpolated with the
+       SAME progress as the content, whether it is dragged or tapped.
+       Whatever the user pushed off center by hand is honoured as
+       deviation (see `deviation`), and the clamp to [minimum, maximum]
+       guarantees the active one fits whole anyway.
 
-       ─── STOCKS→TECH, EL CASO GRANDE (v1, cuadros 203–221) ───
-       Es la única transición entre vecinos donde el centrado pide un
-       salto entero (0 → 45.6), y X lo da: arrastrando con el dedo, la
-       palabra "AI" —inactiva y del mismo lado en los dos estados, o sea
-       testigo limpio de la fila— va 342.3 → 296.7 mientras el contenido
-       avanza, y la razón fila/avance da 44.5 en los trece cuadros
-       intermedios (0.15 → 6.6, 0.54 → 24.0, 0.90 → 39.6). Lineal, en
-       sincronía, sin esperar a que el dedo suelte. "For you" sale por
-       la izquierda y "Design" entra por la derecha.
+       ─── STOCKS→TECH, THE BIG CASE (v1, frames 203-221) ───
+       It is the only transition between neighbours where the centering
+       asks for a whole jump (0 → 45.6), and X gives it: dragging with
+       the finger, the word "AI", inactive and on the same side in both
+       states, so a clean witness for the row, goes 342.3 → 296.7 while
+       the content advances, and the row/progress ratio gives 44.5
+       across the thirteen intermediate frames (0.15 → 6.6, 0.54 → 24.0,
+       0.90 → 39.6). Linear, in sync, without waiting for the finger to
+       let go. "For you" leaves on the left and "Design" comes in on the
+       right.
 
-       Las siete transiciones de las tres grabaciones (tres toques, cuatro
-       arrastres, ida y vuelta) caen en el centrado; el modelo "sólo si
-       no entra" falla en cinco. Y sin embargo la pieza HOY no usa esto
-       por defecto: `BARRA.fila` elige entre 'centrar' (esto) y
-       'visible' (pedido del usuario, 2026-09-02) — el recibo del pedido
-       está en medidas.ts. `destinos` se calcula igual, para que volver
-       sea cambiar una palabra. */
-    const destinos = indices.map((a) => {
-      const { equis, anchos } = estados[a]
-      const centro = equis[a] + anchos[a] / 2
-      return Math.min(Math.max(0, centro - viewport / 2), topes[a])
+       The seven transitions of the three recordings (three taps, four
+       drags, there and back) all fall in the centering; the "only if it
+       does not fit" model fails on five. And even so the piece TODAY
+       does not use this by default: `TAB_BAR.row` chooses between
+       'center' (this) and 'visible' (the user's request, 2026-09-02);
+       the receipt for the request is in measurements.ts. `targets` is
+       computed anyway, so going back is a matter of one word. */
+    const targets = indices.map((a) => {
+      const { x, widths } = states[a]
+      const center = x[a] + widths[a] / 2
+      return Math.min(Math.max(0, center - viewport / 2), limits[a])
     })
 
-    /* EL RANGO EN EL QUE EL TAB `a` SE VE ENTERO. Con 'centrar' es el
-       clamp del arrastre: la fila no se mueve mientras el tab entre, y
-       si no entra, se corre lo justo — sin esto, arrastrar hasta el
-       último tab deja el subrayado fuera de pantalla. Con 'visible' es
-       LA regla entera: la fila se queda en su origen y estos dos números
-       son lo único que la empuja. */
-    /* "Entrar entero" incluye el aire propio de la fila: `respiro` del
-       lado del `+` y el `inset` del otro. Sin el inset, volver al primer
-       tab arrastrando dejaba la fila corrida 12 pt y "For you" pegado al
-       borde de la pantalla — medido, la caja arrancaba en 0.0 en vez de
-       en 12.0. */
-    const minimos = indices.map((a) =>
-      Math.max(0, estados[a].equis[a] + estados[a].anchos[a] + BORDE.respiro - util),
+    /* THE RANGE IN WHICH TAB `a` IS SEEN WHOLE. With 'center' it is the
+       drag's clamp: the row does not move while the tab fits, and if it
+       does not fit, it shifts just enough. Without this, dragging to
+       the last tab leaves the underline off screen. With 'visible' it
+       is THE entire rule: the row stays at its origin and these two
+       numbers are the only thing that pushes it. */
+    /* "Fitting whole" includes the row's own breathing room: `slack` on
+       the `+` side and the `inset` on the other. Without the inset,
+       coming back to the first tab by dragging left the row shifted
+       12 pt and "For you" flush against the edge of the screen.
+       Measured: the box started at 0.0 instead of at 12.0. */
+    const minimums = indices.map((a) =>
+      Math.max(0, states[a].x[a] + states[a].widths[a] + EDGE.slack - usable),
     )
-    const maximos = indices.map((a) =>
-      Math.max(minimos[a], Math.min(estados[a].equis[a] - BARRA.inset, topes[a])),
+    const maximums = indices.map((a) =>
+      Math.max(minimums[a], Math.min(states[a].x[a] - TAB_BAR.inset, limits[a])),
     )
 
-    /* EL ANCHO DEL CONTENIDO NO CAMBIA CON EL TAB ACTIVO, a propósito.
-       El total real varía 3 pt entre estados —es la diferencia entre el
-       extra del chevron (18) y el del ícono (21)— y un `contentSize` que
-       se mueve hace saltar el offset de un UIScrollView cada vez que se
-       encoge estando al final. Se usa el máximo y listo: los 3 pt de más
-       quedan pasando el último tab, abajo del `+`, donde no se ven.
+    /* THE CONTENT'S WIDTH DOES NOT CHANGE WITH THE ACTIVE TAB, on
+       purpose. The real total varies by 3 pt between states, which is
+       the difference between the chevron's extra (18) and the icon's
+       (21), and a `contentSize` that moves makes a UIScrollView's
+       offset jump every time it shrinks while at the end. The maximum
+       is used and that is that: the 3 extra pt end up past the last
+       tab, under the `+`, where they are not seen.
 
-       Y LLEVA EL ANCHO DEL `+` DE COLA. El ScrollView ocupa los 440 —el
-       botón lo tapa, no lo achica— así que su tope natural es
-       `contenido − 440`, y eso deja al último tab 44 pt corto: medido, el
-       subrayado de Design frenaba en 272.3 en vez de 223.3. Con la cola,
-       el tope pasa a ser `contenido − 396`, que es exactamente `topes`.
-       Es el mismo modelo que la referencia: una fila de 440 con 44 de
-       inset al final. */
-    const contenido = Math.max(...estados.map((e) => e.total)) + BORDE.mas
+       AND IT CARRIES THE `+`'S WIDTH AS A TAIL. The ScrollView occupies
+       the 440 (the button covers it, it does not shrink it) so its
+       natural limit is `contentWidth − 440`, and that leaves the last
+       tab 44 pt short: measured, Design's underline stopped at 272.3
+       instead of 223.3. With the tail, the limit becomes
+       `contentWidth − 396`, which is exactly `limits`. It is the same
+       model as the reference: a 440 row with 44 of inset at the end. */
+    const contentWidth = Math.max(...states.map((e) => e.total)) + EDGE.plus
 
     return {
-      equis: tabs.map((_, i) => estados.map((e) => e.equis[i])),
-      anchos: tabs.map((_, i) => estados.map((e) => e.anchos[i])),
-      subX: indices.map((a) => estados[a].equis[a]),
-      subAncho: indices.map((a) => estados[a].anchos[a]),
-      destinos,
-      minimos,
-      maximos,
-      topes,
-      contenido,
+      x: tabs.map((_, i) => states.map((e) => e.x[i])),
+      widths: tabs.map((_, i) => states.map((e) => e.widths[i])),
+      underlineX: indices.map((a) => states[a].x[a]),
+      underlineWidth: indices.map((a) => states[a].widths[a]),
+      targets,
+      minimums,
+      maximums,
+      limits,
+      contentWidth,
     }
-  }, [labels, tabs, viewport])
+  }, [labelWidths, tabs, viewport])
 
   /* ───────────────────────────────────────────────────────────────
-     A DÓNDE QUIERE IR LA FILA, cuadro a cuadro. La regla la elige
-     `BARRA.fila` (el recibo de cada una está en medidas.ts):
+     WHERE THE ROW WANTS TO GO, frame by frame. `TAB_BAR.row` picks the
+     rule (each one's receipt is in measurements.ts):
 
-     · 'visible'  — se queda donde estaba cuando el contenido arrancó
-                    (`origen`), clampeada al rango en que el tab activo
-                    entra entero, interpolado con el mismo avance que
-                    todo lo demás. Sólo se corre cuando hace falta, y lo
-                    justo. Tocando y arrastrando por igual.
-     · 'centrar'  — sigue `destinos` (lo que hace X, medido) con el mismo
-                    avance; arrastrando suma el DESVÍO que el usuario
-                    haya dejado a mano y clampea a que el activo entre.
-     · QUIETO     — no existe: con el contenido quieto la fila es del
-                    dedo del usuario y esto no la toca (ver la reacción).
+     · 'visible' — it stays where it was when the content started
+                   (`origin`), clamped to the range in which the active
+                   tab fits whole, interpolated with the same progress
+                   as everything else. It only shifts when it has to,
+                   and only as much as it has to. Tapping and dragging
+                   alike.
+     · 'center'  — it follows `targets` (what X does, measured) with the
+                   same progress; dragging, it adds the DEVIATION the
+                   user left by hand and clamps so the active one fits.
+     · STILL     — does not exist: with the content still the row
+                   belongs to the user's finger and this does not touch
+                   it (see the reaction).
      ─────────────────────────────────────────────────────────────── */
-  const objetivo = useDerivedValue(() => {
-    if (!plano) return 0
-    const { d, h, t } = tramo.get()
-    const minimo = entre(plano.minimos, d, h, t)
-    const maximo = entre(plano.maximos, d, h, t)
-    if (BARRA.fila === 'visible') return Math.min(Math.max(origen.get(), minimo), maximo)
-    if (movimiento.get() === MOVIMIENTO.toque) return entre(plano.destinos, d, h, t)
-    const sigue = entre(plano.destinos, d, h, t) + desvio.get()
-    return Math.min(Math.max(sigue, minimo), maximo)
+  const target = useDerivedValue(() => {
+    if (!layout) return 0
+    const { d, h, t } = segment.get()
+    const minimum = between(layout.minimums, d, h, t)
+    const maximum = between(layout.maximums, d, h, t)
+    if (TAB_BAR.row === 'visible') return Math.min(Math.max(origin.get(), minimum), maximum)
+    if (motion.get() === MOTION.tap) return between(layout.targets, d, h, t)
+    const followed = between(layout.targets, d, h, t) + deviation.get()
+    return Math.min(Math.max(followed, minimum), maximum)
   })
 
-  /* El origen y el desvío se toman en el cuadro en que el contenido
-     arranca. El tab "actual" es la punta más cercana del tramo:
-     arrancando hacia adelante `t` nace cerca de 0 y es `d`; hacia atrás
-     nace cerca de 1 y es `h`. */
+  /* The origin and the deviation are taken on the frame the content
+     starts on. The "current" tab is the nearest end of the segment:
+     starting forward, `t` is born near 0 and it is `d`; backward it is
+     born near 1 and it is `h`. */
   useAnimatedReaction(
-    () => movimiento.get(),
-    (m, anterior) => {
-      if (m !== MOVIMIENTO.quieto && anterior === MOVIMIENTO.quieto) {
-        const { d, h, t } = tramo.get()
-        const actual = t < 0.5 ? d : h
-        origen.set(fila.get())
-        desvio.set(fila.get() - (plano ? (plano.destinos[actual] ?? 0) : 0))
+    () => motion.get(),
+    (m, previous) => {
+      if (m !== MOTION.still && previous === MOTION.still) {
+        const { d, h, t } = segment.get()
+        const current = t < 0.5 ? d : h
+        origin.set(row.get())
+        deviation.set(row.get() - (layout ? (layout.targets[current] ?? 0) : 0))
       }
     },
   )
 
-  /* Y ACÁ ESTÁ TODO EL REPARTO: mientras el contenido se mueve, la fila
-     la comanda la pieza; con el contenido quieto, no se la toca y el
-     ScrollView queda enteramente del usuario —con el rebote y la
-     deceleración de iOS, que son gratis y no hay forma de igualarlos a
-     mano. */
+  /* AND HERE IS THE WHOLE SPLIT: while the content moves, the piece
+     commands the row; with the content still, it is not touched and the
+     ScrollView belongs entirely to the user, with iOS's bounce and
+     deceleration, which are free and which there is no way to match by
+     hand. */
   useAnimatedReaction(
-    () => (movimiento.get() === MOVIMIENTO.quieto ? Number.NaN : objetivo.get()),
+    () => (motion.get() === MOTION.still ? Number.NaN : target.get()),
     (x) => {
-      if (!Number.isNaN(x)) scrollTo(filaRef, x, 0, false)
+      if (!Number.isNaN(x)) scrollTo(rowRef, x, 0, false)
     },
   )
 
-  /* El degradé mide lo que le QUEDA a la fila por recorrer, y por eso
-     compara el tope del estado actual contra dónde está parada de
-     verdad. Con el último tab activo da 0 y el degradé desaparece: un
-     degradé que promete contenido que no existe es una mentira, y en la
-     referencia efectivamente no está. */
-  /* LA RAMPA IZQUIERDA — el espejo de la del `+`, y con la misma
-     semántica: dice "hay contenido escondido para este lado". Aparece
-     recién cuando la fila está scrolleada (`fila > 0`) y entra sobre la
-     misma ventana `desvanece` que la derecha. Sin esto, la palabra que
-     sale de pantalla se corta seca contra el borde — medido en la
-     referencia del usuario: las letras se apagan en una rampa de ~21 pt
-     conservando las astas nítidas, o sea un degradé multiplicativo como
-     el del otro lado, no un blur de verdad. */
-  const estiloRampaIzq = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.max(0, fila.get() / BORDE.desvanece)),
+  /* The gradient measures what the row has LEFT to cover, which is why
+     it compares the current state's limit against where it is really
+     standing. With the last tab active it gives 0 and the gradient
+     disappears: a gradient that promises content that does not exist is
+     a lie, and in the reference it is indeed not there. */
+  /* THE LEFT RAMP — the mirror of the `+`'s, and with the same meaning:
+     it says "there is content hidden this way". It only appears once
+     the row is scrolled (`row > 0`) and it comes in over the same
+     `fade` window as the right one. Without it, the word leaving the
+     screen is cut off dead against the edge. Measured in the user's
+     reference: the letters go dark over a ramp of ~21 pt while keeping
+     their stems sharp, so a multiplicative gradient like the one on the
+     other side, not a real blur. */
+  const leftRampStyle = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, row.get() / EDGE.fade)),
   }))
 
-  const estiloDegradado = useAnimatedStyle(() => {
-    if (!plano) return { opacity: 0 }
-    const { d, h, t } = tramo.get()
-    const restante = entre(plano.topes, d, h, t) - fila.get()
-    return { opacity: Math.min(1, Math.max(0, restante / BORDE.desvanece)) }
+  const rampStyle = useAnimatedStyle(() => {
+    if (!layout) return { opacity: 0 }
+    const { d, h, t } = segment.get()
+    const remaining = between(layout.limits, d, h, t) - row.get()
+    return { opacity: Math.min(1, Math.max(0, remaining / EDGE.fade)) }
   })
 
-  /* El subrayado es el único `width` animado de la pieza, y está
-     permitido: es un hijo absoluto sin hijos propios, así que no
-     re-acomoda a nadie, y animar el ancho le conserva las puntas que un
-     `scaleX` le aplastaría. */
-  const estiloSubrayado = useAnimatedStyle(() => {
-    if (!plano) return { opacity: 0, width: 0, transform: [{ translateX: 0 }] }
-    const { d, h, t } = tramo.get()
+  /* The underline is the only animated `width` in the piece, and it is
+     allowed: it is an absolute child with no children of its own, so it
+     re-arranges nobody, and animating the width keeps the ends that a
+     `scaleX` would flatten. */
+  const underlineStyle = useAnimatedStyle(() => {
+    if (!layout) return { opacity: 0, width: 0, transform: [{ translateX: 0 }] }
+    const { d, h, t } = segment.get()
     return {
       opacity: 1,
-      width: entre(plano.subAncho, d, h, t),
-      transform: [{ translateX: entre(plano.subX, d, h, t) }],
+      width: between(layout.underlineWidth, d, h, t),
+      transform: [{ translateX: between(layout.underlineX, d, h, t) }],
     }
   })
 
-  const alScrollearFila = useAnimatedScrollHandler({
+  const onRowScroll = useAnimatedScrollHandler({
     onScroll: (e) => {
-      fila.set(e.contentOffset.x)
+      row.set(e.contentOffset.x)
     },
-    /* El dedo en la fila siempre gana: corta cualquier corrección en
-       curso y devuelve el scroll al usuario. */
+    /* The finger on the row always wins: it cuts off any correction
+       under way and gives the scroll back to the user. */
     onBeginDrag: () => {
-      movimiento.set(MOVIMIENTO.quieto)
+      motion.set(MOTION.still)
     },
   })
 
   return (
-    <View style={css.barra}>
+    <View style={css.bar}>
       <Animated.ScrollView
-        ref={filaRef}
+        ref={rowRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        onScroll={alScrollearFila}
+        onScroll={onRowScroll}
         scrollEventThrottle={16}
-        /* El alto va EXPLÍCITO: los tabs son hijos absolutos con
-           `top/bottom: 0`, y un contenedor de contenido que colapsa a
-           cero los dejaría sin caja donde apoyarse. */
-        contentContainerStyle={{ width: plano?.contenido, height: BARRA.alto }}
-        style={css.pista}
+        /* The height is EXPLICIT: the tabs are absolute children with
+           `top/bottom: 0`, and a content container that collapsed to
+           zero would leave them with no box to sit in. */
+        contentContainerStyle={{ width: layout?.contentWidth, height: TAB_BAR.height }}
+        style={css.track}
       >
-        {tabs.map((tab, indice) => (
-          <Etiqueta
+        {tabs.map((tab, index) => (
+          <TabItem
             key={tab.id}
             tab={tab}
-            indice={indice}
-            tramo={tramo}
-            equis={plano?.equis[indice]}
-            medir={medir}
-            alTocar={alTocar}
+            index={index}
+            segment={segment}
+            x={layout?.x[index]}
+            measure={measure}
+            onTap={onTap}
           />
         ))}
-        <Animated.View style={[css.subrayado, tinte.subrayado, estiloSubrayado]} />
+        <Animated.View style={[css.underline, tint.underline, underlineStyle]} />
       </Animated.ScrollView>
 
-      {/* El degradé va después de la fila para quedar encima, y no
-          intercepta toques: los tabs que tape siguen siendo tocables.
-          Se apaga cuando no queda nada para scrollear — un degradé que
-          promete contenido que no existe es una mentira, y en la
-          referencia efectivamente no está. */}
-      <Animated.View style={[css.rampa, tinte.rampa, estiloDegradado]} pointerEvents="none" />
-      <Animated.View style={[css.rampaIzq, tinte.rampaIzq, estiloRampaIzq]} pointerEvents="none" />
+      {/* The gradient goes after the row so it sits on top, and it does
+          not intercept taps: the tabs it covers are still tappable. It
+          turns off when there is nothing left to scroll. A gradient
+          that promises content that does not exist is a lie, and in the
+          reference it is indeed not there. */}
+      <Animated.View style={[css.ramp, tint.ramp, rampStyle]} pointerEvents="none" />
+      <Animated.View style={[css.leftRamp, tint.leftRamp, leftRampStyle]} pointerEvents="none" />
 
-      <Pressable style={[css.mas, tinte.mas]} onPress={() => {}} accessibilityLabel="Agregar tab">
-        <SymbolView name="plus" size={BORDE.simboloMas} tintColor={paleta.mas} />
+      <Pressable style={[css.plus, tint.plus]} onPress={() => {}} accessibilityLabel="Add tab">
+        <SymbolView name="plus" size={EDGE.plusSymbol} tintColor={palette.plus} />
       </Pressable>
     </View>
   )
 })
 
-/* Cada label es su propio componente y no una llamada a hook adentro
-   del `.map`: así el orden de hooks no depende de cuántos tabs haya. */
-const Etiqueta = memo(function Etiqueta({
+/* Each tab is its own component and not a hook call inside the `.map`,
+   so the order of hooks does not depend on how many tabs there are. */
+const TabItem = memo(function TabItem({
   tab,
-  indice,
-  tramo,
-  equis,
-  medir,
-  alTocar,
+  index,
+  segment,
+  x,
+  measure,
+  onTap,
 }: {
   tab: Tab
-  indice: number
-  tramo: SharedValue<Tramo>
-  equis: number[] | undefined
-  medir: (indice: number, ancho: number) => void
-  alTocar: (indice: number) => void
+  index: number
+  segment: SharedValue<Segment>
+  x: number[] | undefined
+  measure: (index: number, width: number) => void
+  onTap: (index: number) => void
 }) {
-  const extra = extraDelTab(tab.lado)
-  const izquierda = tab.lado === 'izquierda'
-  const desliz = izquierda ? ICONO.desliz.izquierda : ICONO.desliz.derecha
-  const paleta = usePaleta()
+  const extra = tabExtra(tab.side)
+  const onLeft = tab.side === 'left'
+  const slide = onLeft ? ICON.slide.left : ICON.slide.right
+  const palette = usePalette()
 
-  /* Los colores de la etiqueta, separados de la geometría. `useMemo`
-     por la misma razón de siempre: `SymbolView` y los velos son vistas
-     nativas y un objeto nuevo por render las reconfigura — esto cambia
-     sólo con el tema. Los degradés llevan `paleta.fondo` en el string y
-     por eso no pueden vivir en `StyleSheet`. */
-  const tinte = useMemo(
+  /* The tab's colors, kept apart from the geometry. `useMemo` for the
+     usual reason: `SymbolView` and the veils are native views and a new
+     object per render reconfigures them, and this changes only with the
+     theme. The gradients carry `palette.background` in the string and
+     that is why they cannot live in `StyleSheet`. */
+  const tint = useMemo(
     () => ({
-      label: { backgroundColor: paleta.fondo },
-      veloTema: {
-        experimental_backgroundImage: `linear-gradient(to right, ${paleta.fondo}00 0%, ${paleta.fondo} 100%)`,
+      label: { backgroundColor: palette.background },
+      topicVeil: {
+        experimental_backgroundImage: `linear-gradient(to right, ${palette.background}00 0%, ${palette.background} 100%)`,
       },
-      veloChevron: {
-        experimental_backgroundImage: `linear-gradient(to right, ${paleta.fondo} 0%, ${paleta.fondo}00 100%)`,
+      chevronVeil: {
+        experimental_backgroundImage: `linear-gradient(to right, ${palette.background} 0%, ${palette.background}00 100%)`,
       },
-      chip: { borderColor: paleta.icono },
-      zigzag: { backgroundColor: paleta.icono },
+      chip: { borderColor: palette.icon },
+      zigzag: { backgroundColor: palette.icon },
     }),
-    [paleta],
+    [palette],
   )
 
-  /* CUÁNTO DE "ACTIVO" TIENE ESTE TAB AHORA MISMO, y sale de los dos
-     extremos de la transición, no de la distancia a `progreso`.
+  /* HOW MUCH "ACTIVE" THIS TAB HAS RIGHT NOW, and it comes out of the
+     transition's two ends, not out of the distance to `progress`.
 
-     Sólo participan el tab del que se sale y el tab al que se va. Un
-     tab que no es ninguno de los dos vale 0 aunque el pager le pase por
-     encima — que es justo lo que arreglaba esto: tocando del 2 al 6,
-     los del medio abrían su ícono y se ponían blancos al pasar.
+     Only the tab you leave and the tab you go to take part. A tab that
+     is neither of the two is worth 0 even if the pager passes over it,
+     which is exactly what this fixed: tapping from 2 to 6, the ones in
+     the middle opened their icon and went white on the way past.
 
-     Arrastrando, `desde` y `hasta` son vecinos y los dos suman 1 en el
-     medio del gesto, que es lo que hace el clip: durante el arrastre se
-     ven los dos chevrons a la vez. */
-  const revelado = (d: number, h: number, t: number) => {
+     Dragging, `from` and `to` are neighbours and together they add up
+     to 1 in the middle of the gesture, which is what the clip does:
+     during the drag you see both chevrons at once. */
+  const revealed = (d: number, h: number, t: number) => {
     'worklet'
-    /* SIN TRANSICIÓN EN CURSO —los dos extremos son el mismo tab— el
-       activo está revelado del todo. Sin esta línea, `t` vale 0 cuando
-       `d === h` y el tab activo se quedaba en 0: gris y sin ícono. Pasa
-       en el ÚLTIMO tab en reposo, porque ahí `h` no puede avanzar y
-       queda igual a `d`. */
-    if (d === h) return indice === d ? 1 : 0
-    if (indice === h) return t
-    if (indice === d) return 1 - t
+    /* WITH NO TRANSITION UNDER WAY, both ends being the same tab, the
+       active one is fully revealed. Without this line, `t` is 0 when
+       `d === h` and the active tab stayed at 0: grey and with no icon.
+       It happens on the LAST tab at rest, because there `h` cannot
+       advance and ends up equal to `d`. */
+    if (d === h) return index === d ? 1 : 0
+    if (index === h) return t
+    if (index === d) return 1 - t
     return 0
   }
 
-  const estiloCaja = useAnimatedStyle(() => {
-    if (!equis) return { opacity: 0, transform: [{ translateX: 0 }] }
-    const { d, h, t } = tramo.get()
+  const boxStyle = useAnimatedStyle(() => {
+    if (!x) return { opacity: 0, transform: [{ translateX: 0 }] }
+    const { d, h, t } = segment.get()
     return {
       opacity: 1,
-      transform: [{ translateX: entre(equis, d, h, t) }],
+      transform: [{ translateX: between(x, d, h, t) }],
     }
   })
 
-  /* El label está colocado como si el símbolo estuviera siempre. Cuando
-     no está, se corre a la izquierda lo que el símbolo ocupaba — y sólo
-     si el símbolo va de ese lado. */
-  const estiloLabel = useAnimatedStyle(() => {
-    const { d, h, t } = tramo.get()
-    const r = revelado(d, h, t)
+  /* The label is placed as if the symbol were always there. When it is
+     not, it shifts left by what the symbol occupied, and only if the
+     symbol goes on that side. */
+  const labelStyle = useAnimatedStyle(() => {
+    const { d, h, t } = segment.get()
+    const r = revealed(d, h, t)
     return {
-      /* Lo ÚNICO que cambia entre activo e inactivo es el color. Está
-         verificado contra la referencia a nivel sub-píxel: el asta de la
-         misma letra mide 5.03 px en los dos estados (ver `medidas.ts`).
-         Y sale del MISMO `revelado` que el ícono, así que un tab que no
-         es punta de la transición no se aclara ni un poco. */
-      /* `gamma: 1` NO es un descuido: X interpola el color del label en
-         sRGB crudo y está medido — a r=0.348 su label da 181, que es la
-         lerp cruda (142+113·0.348=181.3); la lerp en espacio lineal
-         —el default de Reanimated— daría 191. Verificado en tres
-         cuadros más: 222@0.734, 241@0.876 contra 224.9 y 241. */
-      color: interpolateColor(r, [0, 1], [paleta.inactivo, paleta.activo], 'RGB', { gamma: 1 }),
+      /* The ONLY thing that changes between active and inactive is the
+         color. It is verified against the reference at the sub-pixel
+         level: the stem of the same letter measures 5.03 px in both
+         states (see `measurements.ts`). And it comes out of the SAME
+         `revealed` as the icon, so a tab that is not an end of the
+         transition does not lighten one bit. */
+      /* `gamma: 1` is NOT an oversight: X interpolates the label's
+         color in raw sRGB and it is measured. At r=0.348 its label
+         gives 181, which is the raw lerp (142+113·0.348=181.3); the
+         lerp in linear space, Reanimated's default, would give 191.
+         Verified on three more frames: 222@0.734, 241@0.876 against
+         224.9 and 241. */
+      color: interpolateColor(r, [0, 1], [palette.inactive, palette.active], 'RGB', { gamma: 1 }),
       transform: [
-        { translateX: (izquierda ? -extra * (1 - r) : 0) + apartado(indice, d, h, t) },
+        { translateX: (onLeft ? -extra * (1 - r) : 0) + leanOffset(index, d, h, t) },
       ],
     }
   })
 
-  /* EL SÍMBOLO SALE DE ATRÁS DE LA PALABRA, no se enciende en su lugar.
-     Arranca `desliz` a la izquierda —eso lo mete abajo de la última
-     letra si es chevron, y lo saca de las primeras si es ícono— y se
-     corre a su lugar mientras se enciende. El recibo de las distancias y
-     del signo está en `medidas.ts`, Y TAMBIÉN el de por qué esto es así
-     y no de otra forma: la ventana con recorte y la pluma ya se probaron
-     y se volvieron atrás (2026-09-01) — el spec final es una captura de
-     X con el glifo ENTERO, apenas apagado, pegado a la palabra.
+  /* THE SYMBOL COMES OUT FROM BEHIND THE WORD, it does not light up in
+     place. It starts `slide` to the left, which tucks it under the last
+     letter if it is a chevron and pulls it out of the first ones if it
+     is an icon, and it shifts to its place while it lights up. The
+     receipt for the distances and for the sign is in
+     `measurements.ts`, AND SO IS the one for why it is like this and
+     not some other way: the clipping window and the feather were tried
+     and rolled back (2026-09-01). The final spec is a screenshot of X
+     with the WHOLE glyph, barely dimmed, flush against the word.
 
-     La escala desde 0.9 se queda: nada en el mundo real aparece de
-     tamaño cero. */
-  const estiloSimbolo = useAnimatedStyle(() => {
-    const { d, h, t } = tramo.get()
-    const r = revelado(d, h, t)
+     The scale from 0.9 stays: nothing in the real world appears at size
+     zero. */
+  const symbolStyle = useAnimatedStyle(() => {
+    const { d, h, t } = segment.get()
+    const r = revealed(d, h, t)
     return {
-      /* DOS CURVAS DISTINTAS, y las dos medidas del clip (el recibo con
-         la tabla está en `medidas.ts`): el ícono blanco funde con r^1.5
-         y el chevron gris funde lineal. Sin escala: el ancho de la
-         tinta de la referencia es constante durante toda la transición.
+      /* TWO DIFFERENT CURVES, and both measured off the clip (the
+         receipt with the table is in `measurements.ts`): the white icon
+         fades with r^1.5 and the grey chevron fades linearly. No scale:
+         the width of the reference's ink is constant through the whole
+         transition.
 
-         El ícono además tiene un PISO (`ICONO.piso`): por debajo no
-         existe, y la curva se re-mapea al tramo restante — es el
-         "disolverse un poquito antes" pedido a mano, para que cerca de
-         la palabra nunca quede ni el fantasma.
+         The icon also has a FLOOR (`ICON.floor`): below it the icon
+         does not exist, and the curve is remapped onto the remaining
+         stretch. It is the "dissolve a little earlier" that was asked
+         for by hand, so that near the word not even the ghost is ever
+         left.
 
-         Y viaja con la inclinación del label (`apartado`): en la
-         referencia el ícono que muere acompaña a su palabra, no se
-         queda clavado en la ranura (el cpu de Tech se corre con la
-         palabra mientras se funde — medido en la grabación nueva). */
-      opacity: izquierda ? fundidoTema(r) : r,
-      transform: [{ translateX: -desliz * (1 - r) + apartado(indice, d, h, t) }],
+         And it travels with the label's lean (`leanOffset`): in the
+         reference the dying icon goes along with its word, it does not
+         stay pinned in the slot (Tech's cpu shifts with the word while
+         it fades, measured in the new recording). */
+      opacity: onLeft ? topicFade(r) : r,
+      transform: [{ translateX: -slide * (1 - r) + leanOffset(index, d, h, t) }],
     }
   })
 
-  /* La pluma del borde de oclusión viaja CON el fondo del label: del
-     lado del ícono el label se mueve, así que el velo comparte su
-     translateX; del lado del chevron todo es quieto y el velo es un
-     View estático anclado desde la derecha (no necesita el ancho del
-     label). En reposo los dos velos pintan degradé sobre negro puro —
-     invisibles: el techo de `pluma` garantiza que nunca alcanzan la
-     tinta del símbolo en reposo (recibo en `medidas.ts`). */
-  const estiloVelo = useAnimatedStyle(() => {
-    const { d, h, t } = tramo.get()
-    const r = revelado(d, h, t)
+  /* The feather on the occlusion edge travels WITH the label's
+     background: on the icon side the label moves, so the veil shares
+     its translateX; on the chevron side everything is still and the
+     veil is a static View anchored from the right (it does not need the
+     label's width). At rest both veils paint gradient over pure black,
+     invisible: the ceiling on `feather` guarantees they never reach the
+     symbol's ink at rest (receipt in `measurements.ts`). */
+  const veilStyle = useAnimatedStyle(() => {
+    const { d, h, t } = segment.get()
+    const r = revealed(d, h, t)
     return {
       transform: [
-        { translateX: (izquierda ? -extra * (1 - r) : 0) + apartado(indice, d, h, t) },
+        { translateX: (onLeft ? -extra * (1 - r) : 0) + leanOffset(index, d, h, t) },
       ],
     }
   })
 
-  /* EL GLIFO SE DESBORDA DE SU RANURA, y es a propósito: la referencia
-     pinta 16 pt de ícono en un lugar que ocupa 11. La ranura es lo que
-     el layout reserva —y por lo tanto lo que engorda el tab— y el glifo
-     es lo que se ve. Centrado, sobra por los dos lados por igual.
+  /* THE GLYPH OVERFLOWS ITS SLOT, and it is on purpose: the reference
+     paints 16 pt of icon in a place that occupies 11. The slot is what
+     the layout reserves, and therefore what fattens the tab, and the
+     glyph is what you see. Centered, it spills over both sides equally.
 
-     LA CAJA ES DEL GLIFO Y EL MARGEN NEGATIVO HACE LA RANURA, y no al
-     revés. La primera versión ponía una caja del tamaño de la ranura y
-     dejaba al glifo asomar por `overflow: visible`: geométricamente da
-     lo mismo, pero deja una vista NATIVA dibujando fuera de los límites
-     de su padre, y ese padre tiene la opacidad animada. Con la caja del
-     tamaño del glifo no hay nada afuera de nada, y el layout es idéntico
-     —20 de caja menos 4.5 de margen a cada lado son los 11 de ranura.
+     THE BOX IS THE GLYPH'S AND THE NEGATIVE MARGIN MAKES THE SLOT, not
+     the other way around. The first version put a box the size of the
+     slot and let the glyph stick out through `overflow: visible`:
+     geometrically it comes out the same, but it leaves a NATIVE view
+     drawing outside its parent's bounds, and that parent has its
+     opacity animated. With the box the size of the glyph there is
+     nothing outside anything, and the layout is identical: 20 of box
+     minus 4.5 of margin on each side is the 11 of the slot.
 
-     TODOS LOS ESTILOS SALEN DE `StyleSheet`, incluso los dos que
-     dependen del lado. Un objeto nuevo en cada render le da props nuevas
-     a `SymbolView`, que es una vista nativa: iOS la reconfigura y en
-     medio de una animación de opacidad eso se ve como un parpadeo. */
-  const simbolo = (tab.simbolo || tab.chip) && (
-    <Animated.View style={[izquierda ? css.ranuraTema : css.ranuraChevron, estiloSimbolo]}>
+     ALL THE STYLES COME OUT OF `StyleSheet`, including the two that
+     depend on the side. A new object on every render hands `SymbolView`
+     new props, and it is a native view: iOS reconfigures it and in the
+     middle of an opacity animation that reads as a flicker. */
+  const symbol = (tab.symbol || tab.chip) && (
+    <Animated.View style={[onLeft ? css.topicSlot : css.chevronSlot, symbolStyle]}>
       {tab.chip ? (
-        <View style={[css.chip, tinte.chip]}>
-          {ZIGZAG.map((tramoChip, i) => (
-            <View key={i} style={[tramoChip, tinte.zigzag]} />
+        <View style={[css.chip, tint.chip]}>
+          {ZIGZAG.map((bar, i) => (
+            <View key={i} style={[bar, tint.zigzag]} />
           ))}
         </View>
       ) : (
         <SymbolView
-          name={tab.simbolo!}
-          size={izquierda ? ICONO.glifo.tema : ICONO.glifo.chevron}
-          tintColor={izquierda ? paleta.icono : paleta.chevron}
+          name={tab.symbol!}
+          size={onLeft ? ICON.glyph.topic : ICON.glyph.chevron}
+          tintColor={onLeft ? palette.icon : palette.chevron}
           weight="semibold"
           resizeMode="scaleAspectFit"
-          style={izquierda ? css.glifoTema : css.glifoChevron}
+          style={onLeft ? css.topicGlyph : css.chevronGlyph}
         />
       )}
     </Animated.View>
   )
 
-  /* El símbolo va EN FLUJO, no absoluto, y por eso el tab mide solo lo
-     que tiene que medir: padding + hueco + aire + label. Su lugar queda
-     reservado aunque esté transparente, así que apagarlo no re-acomoda
-     nada — lo único que se mueve es el label, y se mueve con un
-     transform. */
+  /* The symbol goes IN FLOW, not absolute, and that is why the tab
+     measures exactly what it has to: padding + slot + gap + label. Its
+     place stays reserved even while it is transparent, so turning it
+     off re-arranges nothing. The only thing that moves is the label,
+     and it moves with a transform. */
   return (
-    <Animated.View style={[css.tab, estiloCaja]}>
+    <Animated.View style={[css.tab, boxStyle]}>
       <Pressable
-        style={css.golpe}
-        /* Sin `onPressIn`: la háptica vive en `alTocar` (el toque
-           consumado). Acá vivía un tick al apretar, y tenía un costo
-           que no se vio hasta el teléfono: empezar a ARRASTRAR la fila
-           apoya el dedo sobre un tab y el tick sonaba en cada arrastre
-           ("saca el haptic", 2026-09-01). El scroll cancela el press,
-           así que `onPress` no dispara al arrastrar — el tick queda
-           solo en los toques de verdad. */
-        onPress={() => alTocar(indice)}
-        /* Un dedo que se corre unos píxeles no tendría que cancelar un
-           toque que quisiste dar. */
+        style={css.hitArea}
+        /* No `onPressIn`: the haptic lives in `onTap` (the completed
+           tap). A tick on press used to live here, and it had a cost
+           that did not show up until the phone: starting to DRAG the
+           row puts the finger down on a tab and the tick fired on every
+           drag ("take the haptic out", 2026-09-01). The scroll cancels
+           the press, so `onPress` does not fire while dragging. The
+           tick is left only on real taps. */
+        onPress={() => onTap(index)}
+        /* A finger that slides a few pixels should not cancel a tap you
+           meant to give. */
         pressRetentionOffset={12}
         accessibilityRole="tab"
         accessibilityLabel={tab.label}
       >
-        {izquierda && simbolo}
-        {/* Los dos velos son animados: viajan con el label — el de tema
-            por el corrimiento de la ranura, y los dos por la
-            inclinación (`apartado`). */}
-        {!!simbolo && (
+        {onLeft && symbol}
+        {/* Both veils are animated: they travel with the label, the
+            topic one because of the slot's shift, and both of them
+            because of the lean (`leanOffset`). */}
+        {!!symbol && (
           <Animated.View
             style={[
-              izquierda ? css.veloTema : css.veloChevron,
-              izquierda ? tinte.veloTema : tinte.veloChevron,
-              estiloVelo,
+              onLeft ? css.topicVeil : css.chevronVeil,
+              onLeft ? tint.topicVeil : tint.chevronVeil,
+              veilStyle,
             ]}
           />
         )}
-        {/* `allowFontScaling={false}` — ver la nota en `medidas.ts`. La
-            referencia no escala sus tabs con Dynamic Type y la pieza
-            tampoco, o la comparación cuadro a cuadro deja de valer. */}
+        {/* `allowFontScaling={false}`, see the note in
+            `measurements.ts`. The reference does not scale its tabs
+            with Dynamic Type and the piece does not either, or the
+            frame by frame comparison stops being worth anything. */}
         <Animated.Text
-          style={[css.label, tinte.label, estiloLabel]}
-          onLayout={(e) => medir(indice, e.nativeEvent.layout.width - 2 * ICONO.brecha)}
+          style={[css.label, tint.label, labelStyle]}
+          onLayout={(e) => measure(index, e.nativeEvent.layout.width - 2 * ICON.clearance)}
           numberOfLines={1}
-          allowFontScaling={LABEL.escala}
+          allowFontScaling={LABEL.fontScaling}
         >
           {tab.label}
         </Animated.Text>
-        {!izquierda && simbolo}
+        {!onLeft && symbol}
       </Pressable>
     </Animated.View>
   )
 })
 
 const css = StyleSheet.create({
-  /* `overflow: hidden` para que los tabs que quedan afuera no se vean
-     al costado cuando la fila se corre. */
-  barra: { height: BARRA.alto, overflow: 'hidden' },
-  /* La pista es un ScrollView horizontal de verdad, así que el rebote y
-     la deceleración son los de iOS. Ocupa la barra entera y les presta a
-     los tabs su borde izquierdo como cero. */
-  pista: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  /* `overflow: hidden` so the tabs left outside are not seen at the
+     side when the row shifts. */
+  bar: { height: TAB_BAR.height, overflow: 'hidden' },
+  /* The track is a real horizontal ScrollView, so the bounce and the
+     deceleration are iOS's. It fills the whole bar and lends the tabs
+     its left edge as zero. */
+  track: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
 
 
-  /* Sin `width`: absoluto con top/bottom/left fijados y el ancho libre,
-     Yoga lo hace medir su contenido. Y su contenido incluye el hueco del
-     símbolo esté visible o no, así que la caja SIEMPRE tiene el ancho
-     del estado activo. El tab que viene después se dibuja encima y le
-     recorta lo que le sobra, con lo cual el área tocable queda exacta
-     —[x_i, x_i+1]— sin animar ni un `width`. */
+  /* No `width`: absolute with top/bottom/left pinned and the width
+     free, Yoga makes it measure its content. And its content includes
+     the symbol's slot whether it is visible or not, so the box ALWAYS
+     has the active state's width. The tab that comes after is drawn on
+     top and clips off what it has to spare, which leaves the touchable
+     area exact, [x_i, x_i+1], without animating a single `width`. */
   tab: { position: 'absolute', top: 0, bottom: 0, left: 0 },
-  golpe: {
+  hitArea: {
     height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: BARRA.padding,
-    /* El subrayado se come 2 pt abajo: sin esto el texto quedaría
-       centrado en la barra entera y apoyado sobre la línea. */
-    paddingBottom: SUBRAYADO.alto,
-    gap: ICONO.aire,
+    paddingHorizontal: TAB_BAR.padding,
+    /* The underline eats 2 pt at the bottom: without this the text
+       would be centered in the whole bar and resting on the line. */
+    paddingBottom: UNDERLINE.height,
+    gap: ICON.gap,
   },
-  /* `zIndex` y no el orden de los hijos: el símbolo va a un lado o al
-     otro según el tab, así que el orden en el árbol no puede garantizar
-     que la palabra quede arriba. Y tiene que quedar arriba SIEMPRE,
-     porque el símbolo arranca metido atrás de ella.
+  /* `zIndex` and not the order of the children: the symbol goes on one
+     side or the other depending on the tab, so the order in the tree
+     cannot guarantee the word stays on top. And it has to stay on top
+     ALWAYS, because the symbol starts tucked behind it.
 
-     EL FONDO DEL COLOR DE LA PIEZA ES LA OCLUSIÓN. La palabra viaja con
-     su propio fondo (`tinte.label`, del color del fondo de la paleta) y
-     eso es lo que hace verdad el "se esconde atrás": el símbolo tapado
-     no se mezcla entre las letras — desaparece abajo de un borde
-     limpio. El padding infla la caja del fondo (`brecha` a los
-     costados, 3 pt arriba y abajo para cubrir el glifo entero) y el
-     margen negativo la desinfla para el layout, así ni la fila ni el
-     centrado se enteran; `medir` descuenta la brecha del onLayout. */
+     THE BACKGROUND IN THE PIECE'S COLOR IS THE OCCLUSION. The word
+     travels with its own background (`tint.label`, the color of the
+     palette's background) and that is what makes "it hides behind"
+     true: the covered symbol does not mix in among the letters, it
+     disappears under a clean edge. The padding inflates the
+     background's box (`clearance` on the sides, 3 pt top and bottom to
+     cover the whole glyph) and the negative margin deflates it for the
+     layout, so neither the row nor the centering finds out; `measure`
+     subtracts the clearance from the onLayout. */
   label: {
-    fontSize: LABEL.tamano,
-    fontWeight: LABEL.peso,
+    fontSize: LABEL.size,
+    fontWeight: LABEL.weight,
     zIndex: 1,
-    paddingHorizontal: ICONO.brecha,
-    marginHorizontal: -ICONO.brecha,
+    paddingHorizontal: ICON.clearance,
+    marginHorizontal: -ICON.clearance,
     paddingVertical: 3,
     marginVertical: -3,
   },
 
-  /* La caja mide lo que mide el GLIFO, y el margen negativo la encoge a
-     la RANURA a los ojos del layout. Ver la nota arriba del símbolo. */
-  ranuraTema: {
-    width: ICONO.glifo.tema,
-    height: ICONO.glifo.tema,
-    marginHorizontal: (ICONO.ranura.tema - ICONO.glifo.tema) / 2,
+  /* The box measures what the GLYPH measures, and the negative margin
+     shrinks it to the SLOT in the layout's eyes. See the note above the
+     symbol. */
+  topicSlot: {
+    width: ICON.glyph.topic,
+    height: ICON.glyph.topic,
+    marginHorizontal: (ICON.slot.topic - ICON.glyph.topic) / 2,
   },
-  ranuraChevron: {
-    width: ICONO.glifo.chevron,
-    height: ICONO.glifo.chevron,
-    marginHorizontal: (ICONO.ranura.chevron - ICONO.glifo.chevron) / 2,
+  chevronSlot: {
+    width: ICON.glyph.chevron,
+    height: ICON.glyph.chevron,
+    marginHorizontal: (ICON.slot.chevron - ICON.glyph.chevron) / 2,
   },
-  glifoTema: { width: ICONO.glifo.tema, height: ICONO.glifo.tema },
-  glifoChevron: { width: ICONO.glifo.chevron, height: ICONO.glifo.chevron },
+  topicGlyph: { width: ICON.glyph.topic, height: ICON.glyph.topic },
+  chevronGlyph: { width: ICON.glyph.chevron, height: ICON.glyph.chevron },
 
-  /* LOS VELOS: la pluma del borde de oclusión. Cada uno arranca donde
-     termina el fondo del label (a `brecha` de la tinta) y desvanece
-     hacia el lado por el que el símbolo emerge. zIndex 1 para quedar
-     sobre el símbolo, igual que el label; el label, que viene después
-     en el árbol, queda encima de los dos. */
-  /* OJO CON YOGA: los hijos ABSOLUTOS se posicionan desde el border
-     box — el padding del `golpe` no les corre el cero como a los hijos
-     en flujo. Por eso el padding se suma acá a mano; sin él, el velo
-     cae 12 pt a la izquierda (medido con un velo rojo de sonda). */
-  veloTema: {
+  /* THE VEILS: the feather on the occlusion edge. Each one starts where
+     the label's background ends (`clearance` away from the ink) and
+     fades toward the side the symbol emerges from. zIndex 1 so it sits
+     over the symbol, same as the label; the label, which comes later in
+     the tree, ends up on top of both. */
+  /* WATCH OUT FOR YOGA: ABSOLUTE children are positioned from the
+     border box, so the `hitArea`'s padding does not move their zero the
+     way it does for children in flow. That is why the padding is added
+     here by hand; without it, the veil lands 12 pt to the left
+     (measured with a red probe veil). */
+  topicVeil: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    left: BARRA.padding + ICONO.ranura.tema + ICONO.aire - ICONO.brecha - ICONO.pluma,
-    width: ICONO.pluma,
+    left: TAB_BAR.padding + ICON.slot.topic + ICON.gap - ICON.clearance - ICON.feather,
+    width: ICON.feather,
     zIndex: 1,
   },
-  veloChevron: {
+  chevronVeil: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    right: BARRA.padding + ICONO.ranura.chevron + ICONO.aire - ICONO.brecha - ICONO.pluma,
-    width: ICONO.pluma,
+    right: TAB_BAR.padding + ICON.slot.chevron + ICON.gap - ICON.clearance - ICON.feather,
+    width: ICON.feather,
     zIndex: 1,
   },
 
-  /* El chip de Stocks: contorno medido del clip (ver `CHIP`), centrado
-     en el marco de 20 del glifo — el margen es la diferencia. */
+  /* The Stocks chip: outline measured off the clip (see `CHIP`),
+     centered in the glyph's frame of 20; the margin is the
+     difference. */
   chip: {
-    width: CHIP.lado,
-    height: CHIP.lado,
-    margin: (ICONO.glifo.tema - CHIP.lado) / 2,
-    borderWidth: CHIP.trazo,
-    borderRadius: CHIP.radio,
+    width: CHIP.side,
+    height: CHIP.side,
+    margin: (ICON.glyph.topic - CHIP.side) / 2,
+    borderWidth: CHIP.stroke,
+    borderRadius: CHIP.radius,
   },
 
-  /* Pegado abajo, que es donde el clip lo tiene: el subrayado ocupa las
-     últimas 6 filas de píxeles de la barra y el divisor viene justo
-     después. Las puntas son CÁPSULA (radio = alto/2), medidas en cuatro
-     reposos de la referencia — el recibo está arriba de `radio`. Animar
-     el `width` en vez de escalar conserva el radio en las puntas. */
-  subrayado: {
+  /* Flush to the bottom, which is where the clip has it: the underline
+     occupies the last 6 rows of pixels in the bar and the divider comes
+     right after. The ends are a CAPSULE (radius = height/2), measured
+     in four rest states of the reference; the receipt is above
+     `radius`. Animating the `width` instead of scaling keeps the radius
+     at the ends. */
+  underline: {
     position: 'absolute',
     left: 0,
     bottom: 0,
-    height: SUBRAYADO.alto,
-    borderRadius: SUBRAYADO.radio,
+    height: UNDERLINE.height,
+    borderRadius: UNDERLINE.radius,
   },
 
-  /* LA RAMPA TERMINA DONDE EMPIEZA EL `+`, no en el borde de la
-     pantalla: por eso el `right` es `BORDE.mas` y no 0. Lo que va abajo
-     del botón es negro macizo, y eso lo pone el propio botón con su
-     `backgroundColor`.
+  /* THE RAMP ENDS WHERE THE `+` STARTS, not at the edge of the screen:
+     that is why the `right` is `EDGE.plus` and not 0. What goes under
+     the button is solid black, and the button itself puts that there
+     with its `backgroundColor`.
 
-     `experimental_backgroundImage` es de React Native 0.86 y toma la
-     misma sintaxis que CSS. Vale la pena decir por qué no hay una
-     dependencia acá: `expo-linear-gradient` es un módulo NATIVO, y
-     agregarlo obligaría a reconstruir el dev client de todos los
-     worktrees por un degradé. */
-  /* El ancho es EL MISMO de la rampa derecha a propósito: la referencia
-     del usuario mide ~21 pt y la derecha, reconstruida del clip, 23 —
-     dentro del error de una contra la otra. Un solo número para las dos
-     puntas de la misma idea. */
-  rampaIzq: {
+     `experimental_backgroundImage` is from React Native 0.86 and takes
+     the same syntax as CSS. It is worth saying why there is no
+     dependency here: `expo-linear-gradient` is a NATIVE module, and
+     adding it would force a rebuild of every worktree's dev client for
+     one gradient. */
+  /* The width is THE SAME as the right ramp's on purpose: the user's
+     reference measures ~21 pt and the right one, reconstructed from the
+     clip, 23, within the error of one against the other. A single
+     number for both ends of the same idea. */
+  leftRamp: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
-    width: BORDE.rampa,
+    width: EDGE.ramp,
   },
-  rampa: {
+  ramp: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    right: BORDE.mas,
-    width: BORDE.rampa,
+    right: EDGE.plus,
+    width: EDGE.ramp,
   },
-  /* Fondo opaco, no transparente (lo pone `tinte.mas`): en el clip, de
-     396 a 408 pt no aparece tinta en ningún cuadro. Abajo del `+` no se
-     ve nada, nunca. Ocupa todo el alto de la barra —subrayado
-     incluido— porque tampoco pasa ningún subrayado por atrás. */
-  mas: {
+  /* Opaque background, not transparent (`tint.plus` puts it there): in
+     the clip, from 396 to 408 pt no ink appears in any frame. Under the
+     `+` nothing is ever seen. It fills the whole height of the bar,
+     underline included, because no underline passes behind it either. */
+  plus: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     right: 0,
-    width: BORDE.mas,
+    width: EDGE.plus,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: SUBRAYADO.alto,
+    paddingBottom: UNDERLINE.height,
   },
 })

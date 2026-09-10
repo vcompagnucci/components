@@ -1,35 +1,35 @@
-/* EL FONDO — qué hay detrás del botón.
+/* THE BACKGROUND — what is behind the button.
  *
- * El botón es la pieza; lo de atrás es contexto. Vito pidió el
- * 2026-09-03 sacar la pantalla de Opal y dejar un fondo liso y neutro,
- * sin decidir todavía cuál. Así que el fondo es una VARIANTE, no un
- * valor, y se elige mirándolo: con `'elegir'` la pieza muestra un
- * selector arriba para pasar de una a otra en vivo (en el teléfono
- * también). Cuando haya ganador, se escribe acá y el selector
- * desaparece; las variantes que pierdan se borran, salvo `'opal'`, que
- * es la pantalla medida del clip y queda recuperable.
+ * The button is the piece; what is behind it is context. On 2026-09-03
+ * Vito asked to drop the Opal screen and leave a plain, neutral
+ * background, without deciding yet which one. So the background is a
+ * VARIANT, not a value, and you pick it by looking: with `'choose'` the
+ * piece shows a selector at the top to go from one to another live (on
+ * the phone too). When there is a winner, it gets written here and the
+ * selector disappears; the variants that lose get deleted, except
+ * `'opal'`, which is the measured screen from the clip and stays
+ * recoverable.
  *
- *   'liso'      nada más que el botón, donde el clip lo tiene (al pie)
- *   'centrado'  nada más que el botón, en el centro de la pantalla
- *   'bloques'   la pantalla de Opal como esqueleto: misma grilla y
- *               alturas, barras grises por texto, siluetas por
- *               controles — el contexto sin el contenido. ELEGIDO el
- *               2026-09-03 sobre el tablero de las cuatro.
- *   'opal'      la pantalla medida del clip, con sus manchas
- *   'accion'    la ficha de un activo de una app financiera, como
- *               esqueleto: título, precio, variación, gráfico y rango,
- *               medidos de la captura oficial de Robinhood; el botón
- *               pasa a "Hold to Buy". ELEGIDO el 2026-09-04 ("tipo
- *               Robinhood, todo skeletons").
+ *   'plain'     nothing but the button, where the clip has it (at the foot)
+ *   'centered'  nothing but the button, in the middle of the screen
+ *   'blocks'    the Opal screen as a skeleton: same grid and heights,
+ *               grey bars for text, silhouettes for controls. The
+ *               context without the content. CHOSEN on 2026-09-03 over
+ *               the board of all four.
+ *   'opal'      the measured screen from the clip, with its blotches
+ *   'stock'     the detail page of an asset in a finance app, as a
+ *               skeleton: title, price, change, chart and range,
+ *               measured from Robinhood's official screenshot; the
+ *               button becomes "Hold to Buy". CHOSEN on 2026-09-04
+ *               ("Robinhood style, all skeletons").
  *
- * Cada una es una dirección distinta, no un matiz de la misma: vacío
- * al pie / vacío centrado / contexto mudo / la copia fiel.
+ * Each one is a different direction, not a shade of the same one: empty
+ * at the foot / empty centered / mute context / the faithful copy.
  *
- * El DERRAME —la luz que se escapa por debajo del pill, medida en la
- * pantalla de Opal— sólo se dibuja con `'opal'`: sobre un fondo neutro
- * se lee como una caja detrás del botón (Vito, 2026-09-04, en el
- * teléfono).
+ * The SPILL, the light that escapes under the pill, measured on the
+ * Opal screen, is only drawn with `'opal'`: over a neutral background it
+ * reads as a box behind the button (Vito, 2026-09-04, on the phone).
  */
-export type Fondo = 'liso' | 'centrado' | 'bloques' | 'opal' | 'accion'
-export const FONDOS: readonly Fondo[] = ['liso', 'centrado', 'bloques', 'opal', 'accion']
-export const FONDO: Fondo | 'elegir' = 'accion'
+export type Background = 'plain' | 'centered' | 'blocks' | 'opal' | 'stock'
+export const BACKGROUNDS: readonly Background[] = ['plain', 'centered', 'blocks', 'opal', 'stock']
+export const BACKGROUND: Background | 'choose' = 'stock'

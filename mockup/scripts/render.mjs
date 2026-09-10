@@ -1,67 +1,68 @@
-/* LOS VIDEOS DE UNA PIEZA PARA X.
+/* THE VIDEOS OF A PIECE FOR X.
  *
- *     node scripts/render.mjs HoldToCommit hold-to-commit --modos=oscuro,claro
+ *     node scripts/render.mjs HoldToCommit hold-to-commit --modes=dark,light
  *     node scripts/render.mjs SwipeableTabs swipeable-tabs
  *
- * CADA VIDEO SALE DOS VECES, sobre fondo claro y sobre fondo oscuro
- * (regla del usuario, 2026-09-04: "a cada video hay que hacerle dos
- * fondos, uno para light mode y uno para dark mode").
+ * EVERY VIDEO COMES OUT TWICE, over a light background and over a dark
+ * one (the user's rule, 2026-09-04: "every video needs two backgrounds,
+ * one for light mode and one for dark mode").
  *
- * Y DESDE HOLD TO COMMIT, ADEMÁS, UNA VEZ POR APARIENCIA DE LA APP.
- * Swipeable tabs se grabó en una sola; esta pieza cambia de verdad con
- * el modo del sistema —en claro la píldora pierde el brillo teal que
- * tiene en oscuro— así que hay dos grabaciones y el producto son cuatro
- * archivos: <slug>-<apariencia de la app>-<fondo>.mp4. Los nombres
- * dicen las dos cosas porque las dos se eligen por separado: una app en
- * claro sobre fondo oscuro es una combinación legítima y hay que poder
- * pedirla.
+ * AND SINCE HOLD TO COMMIT, ALSO ONCE PER APPEARANCE OF THE APP.
+ * Swipeable tabs was recorded in a single one; this piece really does
+ * change with the mode of the system. In light the pill loses the teal
+ * sheen it has in dark, so there are two recordings and the product is
+ * four files: <slug>-<appearance of the app>-<background>.mp4. The names
+ * say both things because both are chosen separately: an app in light
+ * over a dark background is a legitimate combination and you have to be
+ * able to ask for it.
  *
- * El fondo oscuro no está medido (ninguna referencia del vault está
- * sobre fondo oscuro): es el neutro medido bajado al 11 % con el mismo
- * tinte. El recibo está en `parametros.ts`, FONDO_OSCURO. */
+ * The dark background is not measured (no reference in the vault sits on
+ * a dark background): it is the measured neutral taken down to 11 % with
+ * the same tint. The receipt is in `parameters.ts`, DARK_BACKGROUND. */
 import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const AQUI = fileURLToPath(new URL('../', import.meta.url))
-const OUT = path.join(AQUI, 'out')
+const MOCKUP = fileURLToPath(new URL('../', import.meta.url))
+const OUT = path.join(MOCKUP, 'out')
 fs.mkdirSync(OUT, { recursive: true })
 
-const [composicion, slug] = process.argv.slice(2).filter((a) => !a.startsWith('--'))
-if (!composicion || !slug) {
-  console.error('Uso: node scripts/render.mjs <Composicion> <slug> [--modos=oscuro,claro]')
+const [composition, slug] = process.argv.slice(2).filter((a) => !a.startsWith('--'))
+if (!composition || !slug) {
+  console.error('Usage: node scripts/render.mjs <Composition> <slug> [--modes=dark,light]')
   process.exit(1)
 }
-const opciones = Object.fromEntries(
+const options = Object.fromEntries(
   process.argv.slice(2).filter((a) => a.startsWith('--')).map((a) => {
     const [k, ...v] = a.slice(2).split('=')
     return [k, v.length ? v.join('=') : 'true']
   }),
 )
-/* Sin `--modos`, la pieza tiene una sola grabación y el clip es el que
-   trae la composición por defecto. */
-const modos = opciones.modos ? opciones.modos.split(',') : [null]
+/* Without `--modes`, the piece has a single recording and the clip is
+   the one the composition brings by default. */
+const modes = options.modes ? options.modes.split(',') : [null]
 
-/* Los dos fondos. El claro es el medido en la referencia; el oscuro, el
-   mismo neutro al 11 % (FONDO_OSCURO en parametros.ts, que no se puede
-   importar desde acá sin compilar TypeScript: si cambia allá, cambia
-   acá, y por eso el valor va con su nombre al lado). */
-const FONDOS = [
-  { nombre: 'claro', color: '#EBE6E8' },
-  { nombre: 'oscuro', color: '#1C181A' },
+/* The two backgrounds. The light one is the one measured on the
+   reference; the dark one, the same neutral at 11 % (DARK_BACKGROUND in
+   parameters.ts, which cannot be imported from here without compiling
+   TypeScript: if it changes there, it changes here, and that is why the
+   value travels with its name next to it). */
+const BACKGROUNDS = [
+  { name: 'light', color: '#EBE6E8' },
+  { name: 'dark', color: '#1C181A' },
 ]
 
-for (const modo of modos) {
-  for (const fondo of FONDOS) {
-    const partes = [slug, modo, fondo.nombre].filter(Boolean)
-    const archivo = `out/${partes.join('-')}.mp4`
-    const props = { fondo: fondo.color }
-    if (modo) props.clip = `${slug}-${modo}.mp4`
-    const etiqueta = modo ? `app ${modo} sobre fondo ${fondo.nombre}` : `fondo ${fondo.nombre}`
-    console.log(`→ ${archivo}   (${etiqueta})`)
-    execFileSync('npx', ['remotion', 'render', composicion, archivo, '--crf=17', `--props=${JSON.stringify(props)}`, '--log=error'], {
-      cwd: AQUI,
+for (const mode of modes) {
+  for (const background of BACKGROUNDS) {
+    const parts = [slug, mode, background.name].filter(Boolean)
+    const file = `out/${parts.join('-')}.mp4`
+    const props = { background: background.color }
+    if (mode) props.clip = `${slug}-${mode}.mp4`
+    const label = mode ? `app in ${mode} over a ${background.name} background` : `${background.name} background`
+    console.log(`→ ${file}   (${label})`)
+    execFileSync('npx', ['remotion', 'render', composition, file, '--crf=17', `--props=${JSON.stringify(props)}`, '--log=error'], {
+      cwd: MOCKUP,
       stdio: 'inherit',
     })
   }
@@ -71,4 +72,4 @@ for (const f of fs.readdirSync(OUT).filter((f) => f.startsWith(slug) && f.endsWi
   const mb = (fs.statSync(path.join(OUT, f)).size / 1024 / 1024).toFixed(1)
   console.log(`   ${f}  ${mb} MB`)
 }
-console.log('listo')
+console.log('done')

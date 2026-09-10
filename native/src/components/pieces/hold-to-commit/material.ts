@@ -1,39 +1,42 @@
-/* EL MATERIAL DEL BOTÓN — de qué está hecho el pill.
+/* THE BUTTON'S MATERIAL — what the pill is made of.
  *
- * Vito pidió (2026-09-04) "ver una opción de cómo sería esto con botón
- * liquid glass". Como el fondo y la receta, es una VARIANTE detrás de un
- * selector: se mira en vivo, en el simulador y en el teléfono, y cuando
- * haya decisión se escribe acá y el selector se va.
+ * Vito asked (2026-09-04) to "see an option for how this would look with
+ * a liquid glass button". Like the background and the recipe, it is a
+ * VARIANT behind a selector: you look at it live, in the simulator and
+ * on the phone, and when there is a decision it gets written here and
+ * the selector goes away.
  *
- *   'opaco'   el pill medido del clip de Opal: cápsula #1E1E1E con el
- *             brillo de reposo y la punta velada, y una sombra de dos
- *             capas que lo levanta sobre las páginas claras. (El clip
- *             tiene además un anillo de 1 pt y nosotros no lo dibujamos:
- *             el recibo está donde estaba `COLOR.anillo`, en
- *             `medidas.ts`.)
- *   'vidrio'  la misma cápsula en Liquid Glass nativo (`expo-glass-effect`
- *             sobre `UIGlassEffect`), lanzado como lo haría una app
- *             seria: `regular` sin tinte (el vidrio de los controles, el
- *             que refracta), INTERACTIVO (responde al dedo con su propio
- *             abultado, así que no lleva la escala del press de Opal),
- *             flotando sobre el contenido, que scrollea por debajo, y sin
- *             nada de Opal encima: ni brillo de reposo ni punta velada.
- *             El relleno blanco del hold barre encima igual:
- *             es el gesto. El label sigue al esquema, como todo control
- *             de vidrio: negro en claro, blanco en oscuro.
+ *   'opaque'  the pill measured from the Opal clip: a #1E1E1E capsule
+ *             with the resting sheen and the veiled tip, and a
+ *             two-layer shadow that lifts it off light pages. (The clip
+ *             also has a 1 pt ring and we do not draw it: the receipt
+ *             is where `COLOR.ring` used to be, in `measurements.ts`.)
+ *   'glass'   the same capsule in native Liquid Glass
+ *             (`expo-glass-effect` over `UIGlassEffect`), shipped the
+ *             way a serious app would: `regular` with no tint (the
+ *             glass of controls, the one that refracts), INTERACTIVE
+ *             (it answers the finger with its own bulge, so it does not
+ *             carry Opal's press scale), floating over the content,
+ *             which scrolls underneath, and nothing of Opal's on top:
+ *             no resting sheen, no veiled tip. The white fill of the
+ *             hold sweeps over it all the same: that is the gesture.
+ *             The label follows the color scheme, like every glass
+ *             control: black in light, white in dark.
  *
- * Hubo un tercero, 'claro' (el mismo vidrio con el estilo `clear` de
- * Apple, más transparente), agregado y sacado el 2026-09-07: entró al
- * preguntar si el vidrio tenía intensidad (no la tiene: dos estilos y un
- * tinte) y salió por pedido ("sacá la opción de claro"). Si vuelve a
- * hacer falta, es `glassEffectStyle="clear"` en la cápsula de `hold-to-commit.tsx`.
+ * There was a third one, 'light' (the same glass with Apple's `clear`
+ * style, more transparent), added and removed on 2026-09-07: it came in
+ * while asking whether the glass had an intensity (it does not: two
+ * styles and a tint) and it went out on request ("drop the light
+ * option"). If it is ever needed again, it is `glassEffectStyle="clear"`
+ * on the capsule in `hold-to-commit.tsx`.
  *
- * Lo que NO cambia entre materiales: el gesto, las curvas, el relleno, el
- * label, las chispas, la ráfaga y la háptica. Las trampas del vidrio
- * están en `nativo/VIDRIO.md`; la que importa acá: nadie lo recorta, ni
- * él ni sus ancestros, así que el vidrio es el CONTENEDOR del pill y la
- * vista que recorta las texturas va adentro, transparente.
+ * What does NOT change between materials: the gesture, the curves, the
+ * fill, the label, the sparks, the burst and the haptics. The glass
+ * traps are in `native/GLASS.md`; the one that matters here: nobody
+ * clips it, neither it nor its ancestors, so the glass is the CONTAINER
+ * of the pill and the view that clips the textures goes inside it,
+ * transparent.
  */
-export type Material = 'opaco' | 'vidrio'
-export const MATERIALES: readonly Material[] = ['opaco', 'vidrio']
-export const MATERIAL: Material | 'elegir' = 'opaco'
+export type Material = 'opaque' | 'glass'
+export const MATERIALS: readonly Material[] = ['opaque', 'glass']
+export const MATERIAL: Material | 'choose' = 'opaque'

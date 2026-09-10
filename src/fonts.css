@@ -1,45 +1,49 @@
 /* ═══════════════════════════════════════════════════════════════
-   LA FUENTE — InterVariable, self-hosteada.
+   THE FONT. InterVariable, self-hosted.
 
-   Es el archivo oficial de rsms.me (Rasmus Andersson, el autor de
-   Inter), bajado y subseteado, NO la versión de Google Fonts. La
-   diferencia es concreta y verificada: **Google Fonts no sirve el eje
-   opsz de Inter**. Pidiéndole explícitamente
-   `family=Inter:opsz,wght@14..32,100..900` devuelve CSS con cero
-   menciones de opsz — ignora el eje y manda sólo pesos. Nuestro body
-   usa font-optical-sizing:auto, que sin ese eje no hace nada.
+   This is the official file from rsms.me (Rasmus Andersson, who wrote
+   Inter), downloaded and subset. It is NOT the Google Fonts version.
+   The difference is concrete and verified: **Google Fonts does not
+   serve Inter's opsz axis**. Ask it explicitly for
+   `family=Inter:opsz,wght@14..32,100..900` and it answers with CSS that
+   mentions opsz zero times. It ignores the axis and sends weights only.
+   Our body uses font-optical-sizing:auto, which does nothing without
+   that axis.
 
-   (Benji usa la de Google vía next/font: sus 8 subsets coinciden
-   exactamente con los unicode-range de Google Fonts. O sea que él NO
-   tiene opsz y nosotros sí.)
+   (Benji uses the Google one through next/font: his 8 subsets match the
+   unicode-range values of Google Fonts exactly. Which means he does NOT
+   have opsz and we do.)
 
-   POR QUÉ SELF-HOSTEADA y no el <link> a rsms.me:
-   - El modo de falla es feo y está documentado: si InterVariable no
-     carga, el matching de CSS convierte 460→500 y 560→600, el cuerpo
-     pasa a pesar igual que el nombre de pieza y la jerarquía se cae.
-     Servida desde nuestro origen, si falla la fuente ya falló todo.
-   - rsms.me es el sitio personal del autor, no un CDN de producción.
-   - Era un <link> bloqueante a otro origen: DNS + TLS a un tercero
-     antes de que se pinte una letra.
-   - Y los dos referentes self-hostean. Ninguno carga de un CDN.
+   WHY SELF-HOSTED and not a <link> to rsms.me:
+   - The failure mode is ugly, and it is documented: if InterVariable
+     does not load, CSS matching turns 460 into 500 and 560 into 600,
+     the body text ends up as heavy as the name of a piece and the
+     hierarchy collapses. Served from our own origin, if the font fails
+     then everything already failed.
+   - rsms.me is the author's personal site, not a production CDN.
+   - It was a blocking <link> to another origin: DNS + TLS to a third
+     party before a single letter gets painted.
+   - And both references self-host. Neither one loads from a CDN.
 
-   EL SUBSET: cuatro archivos, partidos por unicode-range como hacen
-   benji y Google, así el navegador baja sólo el alfabeto que necesita.
-   Con la página en inglés eso es un solo archivo de 102 KB contra los
-   343 KB del original.
+   THE SUBSET: four files, split by unicode-range the way benji and
+   Google do it, so the browser downloads only the alphabet it needs.
+   With the page in English that is one file of 102 KB against the
+   343 KB of the original.
 
-   Los dos ejes sobreviven al subset —verificado leyendo fvar de cada
-   archivo: opsz 14–32, wght 100–900— que es lo que hace que 460 y 560
-   sean pesos reales y no interpolaciones falsas. Mantener opsz cuesta
-   36 KB (102 contra 66 si se pinnea en 14); se paga a propósito.
+   Both axes survive the subset (verified by reading fvar in each file:
+   opsz 14-32, wght 100-900), which is what makes 460 and 560 real
+   weights and not fake interpolations. Keeping opsz costs 36 KB (102
+   against 66 if it is pinned at 14); we pay it on purpose.
 
-   La cursiva va aunque hoy no se use: el body lleva font-synthesis:none,
-   así que sin una itálica de verdad un <em> renderizaría derecho y
-   nadie se enteraría. Por unicode-range el navegador no la baja hasta
-   que aparezca texto en cursiva, así que no cuesta nada.
+   The italic ships even though nothing uses it today: the body carries
+   font-synthesis:none, so without a real italic an <em> would render
+   upright and nobody would find out. Because of unicode-range the
+   browser does not download it until italic text shows up, so it costs
+   nothing.
 
-   Regenerar: bajar de rsms.me/inter/font-files/ y correr fontTools
-   subset con --flavor=woff2 --layout-features='*' --no-hinting.
+   To regenerate: download from rsms.me/inter/font-files/ and run
+   fontTools subset with --flavor=woff2 --layout-features='*'
+   --no-hinting.
    ═══════════════════════════════════════════════════════════════ */
 
 @font-face {

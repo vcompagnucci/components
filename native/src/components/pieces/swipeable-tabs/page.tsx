@@ -4,42 +4,42 @@ import Animated from 'react-native-reanimated'
 
 import { MEDIA } from './media'
 import { LABEL } from './measurements'
-import { useScrollPlegable } from './collapse'
-import { usePaleta } from './theme'
+import { useCollapsingScroll } from './collapse'
+import { usePalette } from './theme'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL CONTENIDO DE CADA PÁGINA.
+   THE CONTENT OF EACH PAGE.
 
-   Lorem ipsum de texto — se mira sin leerse, que es lo que hace falta
-   cuando lo que se estudia es la barra — y MEDIA REAL: las imágenes
-   las asignó el usuario tab por tab (2026-09-01, ver `media.ts`), como
-   mockup de tweets de verdad. Las seis páginas tienen fotos; una
-   página sin lista (si se agrega un tab) conserva los bloques grises
-   del mock original.
+   Lorem ipsum for the text (you look at it without reading it, which is
+   what you need when the thing under study is the bar) and REAL MEDIA:
+   the user assigned the images tab by tab (2026-09-01, see `media.ts`),
+   as a mockup of real tweets. All six pages have photos; a page with no
+   list (if a tab is added) keeps the grey blocks of the original mock.
 
-   Las fotos van en las filas IMPARES (1, 3, 5…), en el orden de la
-   lista: cada página abre con un tweet de texto y después alterna,
-   determinístico como todo lo demás — dos tomas del mismo gesto tienen
-   que ser comparables.
+   The photos go in the ODD rows (1, 3, 5…), in the order of the list:
+   each page opens with a text tweet and then alternates, deterministic
+   like everything else. Two takes of the same gesture have to be
+   comparable.
 
-   La página ocupa la pantalla entera y deja libre arriba el alto del
-   bloque plegable; su scroll vertical es lo que pliega la cabecera
-   (`useScrollPlegable`, recibo en `pliegue.tsx`). Sin separador
-   superior propio, a propósito: X tiene uno pegado al borde de abajo de
-   su bloque (dos filas: el borde, que se apaga, y el separador, que
-   no), pero su borde está 64 pt abajo del divisor de los tabs y acá
-   el borde ES el divisor — un separador debajo haría el divisor de
-   2 px en reposo, y el reposo está medido en 1. Se probó y se sacó.
+   The page fills the whole screen and leaves the height of the
+   collapsing block free at the top; its vertical scroll is what
+   collapses the header (`useCollapsingScroll`, receipt in
+   `collapse.tsx`). With no top separator of its own, on purpose: X has
+   one flush against the bottom edge of its block (two rows: the edge,
+   which fades out, and the separator, which does not), but their edge
+   is 64 pt below the tabs' divider and here the edge IS the divider. A
+   separator underneath would make the divider 2 px at rest, and the
+   rest state is measured at 1. It was tried and taken out.
 
-   DE DÓNDE SALE CADA MEDIDA:
-   · avatar 40 pt — MEDIDO en el clip: 123 px a 3x = 41 pt, el punto de
-     más los bordes suavizados. 40 es el valor limpio.
-   · el ratio de cada foto viaja medido en `media.ts` y acá se CLAMPEA
-     a [3:4, 16:9] — decisión nuestra, SIN RECIBO: el recorte real de
-     X cambió entre versiones; 3:4 mantiene hojeable el feed con las
-     capturas verticales (la más alta es 9:16).
-   · el resto de los espaciados y el radio de los bloques son DECISIÓN
-     NUESTRA, no medición. Quedan dichos como lo que son.
+   WHERE EACH MEASUREMENT COMES FROM:
+   · avatar 40 pt — MEASURED in the clip: 123 px at 3x = 41 pt, the
+     extra point being the softened edges. 40 is the clean value.
+   · each photo's ratio travels measured in `media.ts` and here it is
+     CLAMPED to [3:4, 16:9], which is our decision, NO RECEIPT: X's real
+     crop changed between versions; 3:4 keeps the feed browsable with
+     the vertical screenshots (the tallest is 9:16).
+   · the rest of the spacing and the blocks' radius are OUR DECISION,
+     not measurement. They are stated as what they are.
    ═══════════════════════════════════════════════════════════════ */
 
 const LOREM =
@@ -47,63 +47,65 @@ const LOREM =
     ' ',
   )
 
-/* Un corte determinístico del lorem. Determinístico y no al azar para
-   que la página se vea igual en cada render y en cada grabación: si el
-   texto cambiara solo, dos tomas del mismo gesto no serían comparables. */
-const palabras = (semilla: number, cuantas: number) => {
-  const desde = (semilla * 7) % (LOREM.length - cuantas)
-  return LOREM.slice(desde, desde + cuantas).join(' ')
+/* A deterministic slice of the lorem. Deterministic and not random so
+   the page looks the same in every render and in every recording: if
+   the text changed on its own, two takes of the same gesture would not
+   be comparable. */
+const words = (seed: number, count: number) => {
+  const from = (seed * 7) % (LOREM.length - count)
+  return LOREM.slice(from, from + count).join(' ')
 }
 
-const enMayuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-const RENGLONES = 12
+const ROWS = 12
 
-export function Pagina({ id, indice }: { id: string; indice: number }) {
-  const paleta = usePaleta()
-  const fotos = MEDIA[id]
-  const { handler, alto } = useScrollPlegable(indice)
-  /* Los colores van aparte de la geometría: la paleta cambia con el
-     tema del sistema y esto es lo único que se recalcula. */
-  const tinte = useMemo(
+export function Page({ id, index }: { id: string; index: number }) {
+  const palette = usePalette()
+  const photos = MEDIA[id]
+  const { handler, height } = useCollapsingScroll(index)
+  /* The colors are kept apart from the geometry: the palette changes
+     with the system color scheme and this is the only thing that gets
+     recalculated. */
+  const tint = useMemo(
     () => ({
-      fila: { borderBottomColor: paleta.divisor },
-      bloque: { backgroundColor: paleta.divisor },
-      nombre: { color: paleta.activo },
-      secundario: { color: paleta.inactivo },
-      texto: { color: paleta.activo },
+      row: { borderBottomColor: palette.divider },
+      block: { backgroundColor: palette.divider },
+      name: { color: palette.active },
+      secondary: { color: palette.inactive },
+      text: { color: palette.active },
     }),
-    [paleta],
+    [palette],
   )
   return (
     <Animated.ScrollView
-      style={css.pagina}
-      contentContainerStyle={[css.columna, { paddingTop: alto }]}
+      style={css.page}
+      contentContainerStyle={[css.column, { paddingTop: height }]}
       showsVerticalScrollIndicator={false}
       onScroll={handler}
       scrollEventThrottle={16}
     >
-      {Array.from({ length: RENGLONES }, (_, fila) => {
-        const semilla = indice * 31 + fila
-        /* Las fotos ocupan las filas impares en orden; pasada la lista,
-           filas de texto solo. Sin fotos asignadas, el bloque gris del
-           mock original con su ritmo de siempre. */
-        const foto = fotos && fila % 2 === 1 ? fotos[(fila - 1) / 2] : undefined
+      {Array.from({ length: ROWS }, (_, row) => {
+        const seed = index * 31 + row
+        /* The photos take the odd rows in order; past the end of the
+           list, text rows only. With no photos assigned, the grey block
+           of the original mock with its usual rhythm. */
+        const photo = photos && row % 2 === 1 ? photos[(row - 1) / 2] : undefined
         return (
-          <View key={fila} style={[css.fila, tinte.fila]}>
-            <View style={[css.avatar, tinte.bloque]} />
-            <View style={css.cuerpo}>
-              <View style={css.encabezado}>
-                <Text style={[css.nombre, tinte.nombre]} allowFontScaling={LABEL.escala}>{enMayuscula(palabras(semilla, 2))}</Text>
-                <Text style={[css.secundario, tinte.secundario]} allowFontScaling={LABEL.escala}>@{palabras(semilla + 3, 1)}</Text>
+          <View key={row} style={[css.row, tint.row]}>
+            <View style={[css.avatar, tint.block]} />
+            <View style={css.body}>
+              <View style={css.heading}>
+                <Text style={[css.name, tint.name]} allowFontScaling={LABEL.fontScaling}>{capitalize(words(seed, 2))}</Text>
+                <Text style={[css.secondary, tint.secondary]} allowFontScaling={LABEL.fontScaling}>@{words(seed + 3, 1)}</Text>
               </View>
-              <Text style={[css.texto, tinte.texto]} allowFontScaling={LABEL.escala}>{palabras(semilla, 12 + (semilla % 14))}</Text>
-              {foto ? (
-                <View style={[css.media, { aspectRatio: Math.min(Math.max(foto.ratio, 3 / 4), 16 / 9) }]}>
-                  <Image source={foto.fuente} style={css.fotografia} resizeMode="cover" />
+              <Text style={[css.text, tint.text]} allowFontScaling={LABEL.fontScaling}>{words(seed, 12 + (seed % 14))}</Text>
+              {photo ? (
+                <View style={[css.media, { aspectRatio: Math.min(Math.max(photo.ratio, 3 / 4), 16 / 9) }]}>
+                  <Image source={photo.source} style={css.photo} resizeMode="cover" />
                 </View>
               ) : (
-                !fotos && semilla % 3 === 0 && <View style={[css.media, tinte.bloque]} />
+                !photos && seed % 3 === 0 && <View style={[css.media, tint.block]} />
               )}
             </View>
           </View>
@@ -114,31 +116,32 @@ export function Pagina({ id, indice }: { id: string; indice: number }) {
 }
 
 const css = StyleSheet.create({
-  pagina: { flex: 1 },
-  columna: { paddingBottom: 48 },
-  fila: {
+  page: { flex: 1 },
+  column: { paddingBottom: 48 },
+  row: {
     flexDirection: 'row',
     gap: 12,
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  cuerpo: { flex: 1, gap: 4 },
-  encabezado: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  body: { flex: 1, gap: 4 },
+  heading: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
 
-  /* Los dos bloques grises usan el ÚNICO gris de superficie que la
-     referencia dejó medido —el divisor— porque agregar un gris nuevo
-     sería inventar un valor para algo que ni siquiera es el tema de la
-     pieza. El color concreto lo pone `tinte` según la paleta. */
+  /* The two grey blocks use the ONLY surface grey the reference left
+     measured, the divider, because adding a new grey would mean
+     inventing a value for something that is not even the subject of the
+     piece. The concrete color comes from `tint`, per the palette. */
   avatar: { width: 40, height: 40, borderRadius: 20 },
 
-  /* `borderCurve: 'continuous'` es el detalle que hace que un rectángulo
-     redondeado se vea de iOS y no de la web: iOS no dibuja un arco de
-     círculo en la esquina, dibuja una squircle, y RN expone eso desde
-     0.76. Sin esto el radio "correcto" igual se ve ajeno.
-     `overflow: hidden` porque adentro va la foto de verdad y el clip al
-     squircle lo hace la caja, no la imagen. El 16/9 es el fallback del
-     bloque gris; con foto, el ratio clampeado lo pisa. */
+  /* `borderCurve: 'continuous'` is the detail that makes a rounded
+     rectangle look like iOS and not like the web: iOS does not draw an
+     arc of a circle in the corner, it draws a squircle, and RN exposes
+     that from 0.76 on. Without this, even the "correct" radius looks
+     foreign. `overflow: hidden` because the real photo goes inside and
+     it is the box that clips to the squircle, not the image. The 16/9
+     is the grey block's fallback; with a photo, the clamped ratio
+     overrides it. */
   media: {
     marginTop: 8,
     aspectRatio: 16 / 9,
@@ -146,9 +149,9 @@ const css = StyleSheet.create({
     borderCurve: 'continuous',
     overflow: 'hidden',
   },
-  fotografia: { width: '100%', height: '100%' },
+  photo: { width: '100%', height: '100%' },
 
-  nombre: { fontSize: LABEL.tamano, fontWeight: LABEL.peso },
-  secundario: { fontSize: LABEL.tamano },
-  texto: { fontSize: LABEL.tamano, lineHeight: 20 },
+  name: { fontSize: LABEL.size, fontWeight: LABEL.weight },
+  secondary: { fontSize: LABEL.size },
+  text: { fontSize: LABEL.size, lineHeight: 20 },
 })

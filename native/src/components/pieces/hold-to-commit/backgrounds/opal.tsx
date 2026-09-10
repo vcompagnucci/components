@@ -2,92 +2,94 @@ import { SymbolView } from 'expo-symbols'
 import { useRouter } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { BadgePro, CabeceraSeccion, Card, Circulos, Derecha, FilaHora, Label, Mancha, Secundario, Toggle, Valor } from './cards'
-import { ARRIBA, CARD, COLOR, HUECO, PANTALLA, SECCION, SIMBOLO } from '../measurements'
+import { ProBadge, SectionHeader, Card, DayCircles, ValueAndSymbol, TimeRow, Label, Blotch, Secondary, Toggle, Value } from './cards'
+import { TOP, CARD, COLOR, GAP, SCREEN, SECTION, SYMBOL } from '../measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL FONDO "OPAL" — la pantalla del clip, medida, con el botón al pie.
+   THE "OPAL" BACKGROUND — the clip's screen, measured, with the button at
+   the foot.
 
-   EL BLOQUE MEDIDO VA ANCLADO ABAJO. El clip muestra la mitad inferior
-   de la pantalla (desde la fila "To" hasta el botón) y cada distancia
-   entre esas cosas está medida; la parte de arriba no existe en el
-   clip. Así que lo medido se apila desde el pill hacia arriba con sus
-   separaciones exactas, y lo SUPUESTO (título y descripción) va arriba
-   con un espacio flexible en el medio. Si hubiera que elegir qué
-   sacrificar, se sacrifica lo inventado.
+   THE MEASURED BLOCK IS ANCHORED TO THE BOTTOM. The clip shows the bottom
+   half of the screen (from the "To" row down to the button) and every
+   distance between those things is measured; the top part does not exist
+   in the clip. So what was measured is stacked from the pill upwards with
+   its exact separations, and what is ASSUMED (title and description) goes
+   at the top with a flexible space in between. If something had to be
+   sacrificed, what gets sacrificed is what was invented.
 
-   Las manchas del fondo están en el clip: cuatro restos de color por el
-   margen izquierdo (rojo, marrón, gris, gris azulado), medidos en
-   posición y color. No decoran: sin ellas el fondo es más limpio que el
-   de la referencia, y la pieza deja de ser una copia.
+   The blotches in the background are in the clip: four remnants of color
+   down the left margin (red, brown, grey, blue-grey), measured in position
+   and color. They do not decorate: without them the background is cleaner
+   than the reference's, and the piece stops being a copy.
 
-   Es una variante de `fondo.ts`: el botón no sabe de ella.
+   It is a variant from `background.ts`: the button knows nothing about it.
    ═══════════════════════════════════════════════════════════════ */
 
 type Props = {
-  /** Altura del borde superior del pill desde el borde inferior de la pantalla. */
-  pillArriba: number
+  /** Height of the pill's top edge from the bottom edge of the screen. */
+  pillTop: number
   paddingTop: number
 }
 
-export function FondoOpal({ pillArriba, paddingTop }: Props) {
+export function OpalBackground({ pillTop, paddingTop }: Props) {
   const router = useRouter()
   return (
     <>
-      {/* Las manchas se ubican desde el borde superior del pill, que es el
-          punto fijo del bloque medido (RUNTIME: centros a 383, 311, 235 y
-          444 pt por encima; a 18.5, 11, 13 y 11 pt del borde izquierdo). */}
-      <Mancha x={11} y={pillArriba + 444} radio={11} color="rgba(220,70,0,0.13)" />
-      <Mancha x={18.5} y={pillArriba + 383} radio={15} color="rgba(180,0,50,0.30)" />
-      <Mancha x={11} y={pillArriba + 311} radio={11} color="rgba(255,255,255,0.04)" />
-      <Mancha x={13} y={pillArriba + 235} radio={22} color="rgba(80,120,140,0.14)" />
+      {/* The blotches are placed from the top edge of the pill, which is
+          the fixed point of the measured block (RUNTIME: centers at 383,
+          311, 235 and 444 pt above it; at 18.5, 11, 13 and 11 pt from the
+          left edge). */}
+      <Blotch x={11} y={pillTop + 444} radius={11} color="rgba(220,70,0,0.13)" />
+      <Blotch x={18.5} y={pillTop + 383} radius={15} color="rgba(180,0,50,0.30)" />
+      <Blotch x={11} y={pillTop + 311} radius={11} color="rgba(255,255,255,0.04)" />
+      <Blotch x={13} y={pillTop + 235} radius={22} color="rgba(80,120,140,0.14)" />
 
-      {/* SUPUESTO: la cabeza de la pantalla. */}
-      <View style={[css.arriba, { paddingTop }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={css.volver} accessibilityRole="button" accessibilityLabel="Back">
-          <SymbolView name={SIMBOLO.volver.nombre} scale="large" weight="semibold" tintColor={COLOR.texto} style={css.chevronVolver} />
+      {/* ASSUMED: the head of the screen. */}
+      <View style={[css.top, { paddingTop }]}>
+        <Pressable onPress={() => router.back()} hitSlop={12} style={css.back} accessibilityRole="button" accessibilityLabel="Back">
+          <SymbolView name={SYMBOL.back.name} scale="large" weight="semibold" tintColor={COLOR.text} style={css.backChevron} />
         </Pressable>
-        <Text allowFontScaling={false} style={css.titulo}>
-          {ARRIBA.titulo}
+        <Text allowFontScaling={false} style={css.title}>
+          {TOP.title}
         </Text>
-        <Secundario>{ARRIBA.descripcion}</Secundario>
+        <Secondary>{TOP.description}</Secondary>
       </View>
 
-      <View style={css.estirar} />
+      <View style={css.stretch} />
 
-      <View style={css.bloque}>
-        <CabeceraSeccion simbolo="reloj" texto="Schedule" />
-        <View style={{ height: SECCION.abajo }} />
+      <View style={css.block}>
+        <SectionHeader symbol="clock" text="Schedule" />
+        <View style={{ height: SECTION.below }} />
         <Card style={{ paddingVertical: 0 }}>
-          <FilaHora texto="From" hora={ARRIBA.horaDesde} lleno conector={false} />
-          <FilaHora texto="To" hora={ARRIBA.horaHasta} lleno={false} conector />
+          <TimeRow text="From" time={TOP.timeFrom} filled connector={false} />
+          <TimeRow text="To" time={TOP.timeTo} filled={false} connector />
         </Card>
-        <View style={{ height: CARD.separacion }} />
+        <View style={{ height: CARD.separation }} />
         <Card>
-          <View style={css.fila}>
+          <View style={css.row}>
             <Label>On these days:</Label>
-            <Valor suelto>Everyday</Valor>
+            <Value loose>Everyday</Value>
           </View>
-          <Circulos />
+          <DayCircles />
         </Card>
-        <View style={{ height: SECCION.arriba }} />
-        <CabeceraSeccion simbolo="candado" texto="Apps are blocked" />
-        <View style={{ height: SECCION.abajo }} />
+        <View style={{ height: SECTION.above }} />
+        <SectionHeader symbol="lock" text="Apps are blocked" />
+        <View style={{ height: SECTION.below }} />
         <Card>
-          <View style={css.fila}>
+          <View style={css.row}>
             <Label>Selected Apps</Label>
-            <Derecha valor="5 Apps" simbolo="chevron" />
+            <ValueAndSymbol value="5 Apps" symbol="chevron" />
           </View>
         </Card>
-        <View style={{ height: CARD.separacion }} />
-        <Card style={{ paddingVertical: CARD.paddingVerticalDosLineas }}>
-          <View style={css.fila}>
-            <View style={css.dosLineas}>
-              <View style={css.filaBadge}>
+        <View style={{ height: CARD.separation }} />
+        <Card style={{ paddingVertical: CARD.paddingVerticalTwoLines }}>
+          <View style={css.row}>
+            <View style={css.twoLines}>
+              <View style={css.badgeRow}>
                 <Label>Hard Mode</Label>
-                <BadgePro />
+                <ProBadge />
               </View>
-              <Secundario>No unblocks allowed</Secundario>
+              <Secondary>No unblocks allowed</Secondary>
             </View>
             <Toggle />
           </View>
@@ -98,13 +100,13 @@ export function FondoOpal({ pillArriba, paddingTop }: Props) {
 }
 
 const css = StyleSheet.create({
-  arriba: { paddingHorizontal: PANTALLA.margen, gap: 6 },
-  volver: { width: 44, height: 44, justifyContent: 'center', marginLeft: -12, marginBottom: 2 },
-  chevronVolver: { width: SIMBOLO.volver.caja.ancho, height: SIMBOLO.volver.caja.alto },
-  titulo: { fontSize: ARRIBA.tituloTamano, fontWeight: '700', color: COLOR.texto, letterSpacing: 0.4 },
-  estirar: { flex: 1 },
-  bloque: { paddingHorizontal: PANTALLA.margen },
-  fila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dosLineas: { gap: CARD.entreLineas },
-  filaBadge: { flexDirection: 'row', alignItems: 'center', gap: HUECO.labelABadge },
+  top: { paddingHorizontal: SCREEN.margin, gap: 6 },
+  back: { width: 44, height: 44, justifyContent: 'center', marginLeft: -12, marginBottom: 2 },
+  backChevron: { width: SYMBOL.back.box.width, height: SYMBOL.back.box.height },
+  title: { fontSize: TOP.titleSize, fontWeight: '700', color: COLOR.text, letterSpacing: 0.4 },
+  stretch: { flex: 1 },
+  block: { paddingHorizontal: SCREEN.margin },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  twoLines: { gap: CARD.betweenLines },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: GAP.labelToBadge },
 })

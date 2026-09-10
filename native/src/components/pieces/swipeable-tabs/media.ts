@@ -1,69 +1,70 @@
 /* ═══════════════════════════════════════════════════════════════
-   LAS IMÁGENES DEL MOCK — asignadas a mano por el usuario (2026-09-01),
-   una lista por tab, EN SU ORDEN. No hay nada que derivar acá: es
-   contenido editorial, no mecanismo.
+   THE MOCK'S IMAGES — assigned by hand by the user (2026-09-01), one
+   list per tab, IN ITS ORDER. There is nothing to derive here: it is
+   editorial content, not mechanism.
 
-   · En Stocks, las tres de Berry van PRIMERO (pedido explícito:
-     "primero las de Berry").
-   · La tarjeta de Lex Fridman llegó sin tab en el mensaje; se asignó a
-     `tech` por tema — es la única decisión nuestra.
-   · `ai` llegó al final (2026-09-02, cuatro adjuntos): tres fotos
-     distintas — el tercero y el cuarto eran EL MISMO archivo, byte a
-     byte (sha256 28d61a40…), así que entra una sola vez. Las tres son
-     verticales de 904×1200 (0.7533, apenas por encima del piso 3:4).
-   · REORDENADO el 2026-09-02, pedido por pedido: For you abre con el
-     sketch azul sobre fondo claro; Following con el jinete de la
-     bandera; Stocks con el gráfico de Figma y la de "pre-market"
-     segunda; Tech con los tres grabados azules (el de los cipreses
-     primero) y después las dos tarjetas; Design con el Empire State.
-     Los archivos no se renombraron: el número es el del orden en que
-     llegaron, el orden del feed es el de esta lista.
+   · In Stocks, the three Berry ones go FIRST (explicit request: "the
+     Berry ones first").
+   · The Lex Fridman card arrived with no tab in the message; it was
+     assigned to `tech` by subject, and that is the only decision of
+     ours.
+   · `ai` arrived last (2026-09-02, four attachments): three different
+     photos. The third and the fourth were THE SAME file, byte for byte
+     (sha256 28d61a40…), so it goes in once. All three are 904×1200
+     verticals (0.7533, just above the 3:4 floor).
+   · REORDERED on 2026-09-02, request by request: For you opens with the
+     blue sketch on a light background; Following with the rider
+     carrying the flag; Stocks with the Figma chart and the "pre-market"
+     one second; Tech with the three blue engravings (the cypresses one
+     first) and then the two cards; Design with the Empire State. The
+     files were not renamed: the number is the order they arrived in,
+     the feed's order is the one in this list.
 
-   El `ratio` (ancho/alto) viene medido de cada archivo al convertirlo
-   (ffmpeg, ancho máx. 1300 px ≈ el ancho del bloque de media a 3x) y
-   viaja acá para que el layout no tenga que esperar a decodificar la
-   imagen para saber su alto. La página lo CLAMPEA a [3:4, 16:9] —
-   decisión nuestra, SIN RECIBO de X: el recorte real de X cambió entre
-   versiones y no está medido; 3:4 mantiene el feed hojeable con las
-   capturas verticales (la más alta es 9:16).
+   The `ratio` (width/height) comes measured from each file when it was
+   converted (ffmpeg, max width 1300 px ≈ the width of the media block
+   at 3x) and it travels here so the layout does not have to wait for
+   the image to decode to know its height. The page CLAMPS it to
+   [3:4, 16:9], which is our decision, NO RECEIPT from X: X's real crop
+   changed between versions and it is not measured; 3:4 keeps the feed
+   browsable with the vertical screenshots (the tallest is 9:16).
    ═══════════════════════════════════════════════════════════════ */
 
-export type Foto = { fuente: number; ratio: number }
+export type Photo = { source: number; ratio: number }
 
-export const MEDIA: Record<string, Foto[]> = {
+export const MEDIA: Record<string, Photo[]> = {
   'for-you': [
-    { fuente: require('./media/for-you-2.jpg'), ratio: 1.3274 },
-    { fuente: require('./media/for-you-1.jpg'), ratio: 1.0 },
-    { fuente: require('./media/for-you-3.jpg'), ratio: 1.7808 },
+    { source: require('./media/for-you-2.jpg'), ratio: 1.3274 },
+    { source: require('./media/for-you-1.jpg'), ratio: 1.0 },
+    { source: require('./media/for-you-3.jpg'), ratio: 1.7808 },
   ],
   following: [
-    { fuente: require('./media/following-4.jpg'), ratio: 1.7804 },
-    { fuente: require('./media/following-1.jpg'), ratio: 1.7804 },
-    { fuente: require('./media/following-2.jpg'), ratio: 1.7804 },
-    { fuente: require('./media/following-3.jpg'), ratio: 1.7751 },
+    { source: require('./media/following-4.jpg'), ratio: 1.7804 },
+    { source: require('./media/following-1.jpg'), ratio: 1.7804 },
+    { source: require('./media/following-2.jpg'), ratio: 1.7804 },
+    { source: require('./media/following-3.jpg'), ratio: 1.7751 },
   ],
   stocks: [
-    { fuente: require('./media/stocks-2.jpg'), ratio: 0.8 },
-    { fuente: require('./media/stocks-1.jpg'), ratio: 1.3333 },
-    { fuente: require('./media/stocks-3.jpg'), ratio: 1.3333 },
-    { fuente: require('./media/stocks-4.jpg'), ratio: 0.6667 },
-    { fuente: require('./media/stocks-5.jpg'), ratio: 0.5625 },
+    { source: require('./media/stocks-2.jpg'), ratio: 0.8 },
+    { source: require('./media/stocks-1.jpg'), ratio: 1.3333 },
+    { source: require('./media/stocks-3.jpg'), ratio: 1.3333 },
+    { source: require('./media/stocks-4.jpg'), ratio: 0.6667 },
+    { source: require('./media/stocks-5.jpg'), ratio: 0.5625 },
   ],
   tech: [
-    { fuente: require('./media/tech-5.jpg'), ratio: 1.776 },
-    { fuente: require('./media/tech-3.jpg'), ratio: 1.776 },
-    { fuente: require('./media/tech-4.jpg'), ratio: 1.776 },
-    { fuente: require('./media/tech-1.jpg'), ratio: 1.4254 },
-    { fuente: require('./media/tech-2.jpg'), ratio: 1.7751 },
+    { source: require('./media/tech-5.jpg'), ratio: 1.776 },
+    { source: require('./media/tech-3.jpg'), ratio: 1.776 },
+    { source: require('./media/tech-4.jpg'), ratio: 1.776 },
+    { source: require('./media/tech-1.jpg'), ratio: 1.4254 },
+    { source: require('./media/tech-2.jpg'), ratio: 1.7751 },
   ],
   design: [
-    { fuente: require('./media/design-3.jpg'), ratio: 0.7483 },
-    { fuente: require('./media/design-1.jpg'), ratio: 1.3274 },
-    { fuente: require('./media/design-2.jpg'), ratio: 2.0619 },
+    { source: require('./media/design-3.jpg'), ratio: 0.7483 },
+    { source: require('./media/design-1.jpg'), ratio: 1.3274 },
+    { source: require('./media/design-2.jpg'), ratio: 2.0619 },
   ],
   ai: [
-    { fuente: require('./media/ai-1.jpg'), ratio: 0.7533 },
-    { fuente: require('./media/ai-2.jpg'), ratio: 0.7533 },
-    { fuente: require('./media/ai-3.jpg'), ratio: 0.7533 },
+    { source: require('./media/ai-1.jpg'), ratio: 0.7533 },
+    { source: require('./media/ai-2.jpg'), ratio: 0.7533 },
+    { source: require('./media/ai-3.jpg'), ratio: 0.7533 },
   ],
 }

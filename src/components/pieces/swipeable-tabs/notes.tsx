@@ -1,232 +1,239 @@
-import { Seccion } from '../../../notes'
+import { Section } from '../../../notes'
 
-/* Las notas de Swipeable tabs. Todo lo de acá está en el registro: el
-   README (§ La primera pieza App), medidas.ts de la pieza y la planilla
-   .context/recon/swipeable-tabs/MEDICIONES.md. Si una frase de acá deja
-   de ser cierta, se corrige acá Y allá — el texto público no es un
-   resumen libre, es la misma evidencia contada para alguien que llega
-   de afuera.
+/* The notes of Swipe between tabs. Everything here is in the record:
+   the README (§ The first App piece), the piece's measurements.ts and
+   the sheet .context/recon/swipeable-tabs/MEDICIONES.md. If a sentence
+   here stops being true, it gets fixed here AND there. The public text
+   is not a free summary, it is the same evidence told for someone
+   arriving from outside.
 
-   VA EN PRIMERA PERSONA DEL SINGULAR. Acá adentro hay una sola persona,
-   y el plural sonaba a equipo que no existe. Es además lo que hace josh
-   cuando cuenta lo suyo —"I've applied an SVG filter", "I'll never
-   forget"— y deja el "we" sólo para llevar al lector de la mano por un
-   método. El "you" para el lector se queda: es suyo también.
+   IT GOES IN THE FIRST PERSON SINGULAR. There is a single person in
+   here, and the plural sounded like a team that does not exist. It is
+   also what josh does when he tells his own story ("I've applied an SVG
+   filter", "I'll never forget"), and he keeps the "we" only for walking
+   the reader through a method. The "you" for the reader stays: it is
+   his too.
 
-   EL TONO ES EL DE JOSH PUCKETT, medido en sus páginas (Bloom, Pasito,
-   Melt Effect, 2026-09-05): una línea bajo el título que dice qué es
-   ("An iOS inspired pull down menu for the web"), secciones cortas con
-   títulos llanos ("Anatomy", "A note on performance"), dos o tres
-   oraciones por párrafo, verbos directos, "you" cuando te habla. Benji
-   escribe ensayos largos por principios; de él se toma el pie de un
-   renglón bajo cada demo y la forma de su "How it works" en /liveline:
-   prosa corrida de oraciones cortas que conecta lo que se siente con el
-   mecanismo ("When a new value arrives, nothing jumps. […] That's why
-   it feels like one thing breathing"). La versión anterior de estas
-   notas era un ensayo: el usuario pidió "bien simple y conciso, tal
-   cual el tono de josh".
+   THE TONE IS JOSH PUCKETT'S, measured on his pages (Bloom, Pasito,
+   Melt Effect, 2026-09-05): one line under the title that says what it
+   is ("An iOS inspired pull down menu for the web"), short sections
+   with plain titles ("Anatomy", "A note on performance"), two or three
+   sentences per paragraph, direct verbs, "you" when he talks to you.
+   Benji writes long essays about principles; from him comes the
+   one-line caption under each demo and the shape of his "How it works"
+   in /liveline: running prose of short sentences that connects what you
+   feel with the mechanism ("When a new value arrives, nothing jumps.
+   [...] That's why it feels like one thing breathing"). The previous
+   version of these notes was an essay: the user asked for "nice and
+   simple and concise, exactly josh's tone".
 
-   TRES SECCIONES, NO MÁS: "Anatomy", "Performance" y, cuando la pieza
-   lo pide, "Use cases". Es la regla para todas las notas (pedido del
-   usuario, 2026-09-05: "mucho menos secciones"); las seis de la
-   versión anterior eran demasiadas.
+   THREE SECTIONS, NO MORE: "Anatomy", "Performance" and, when the piece
+   calls for it, "Use cases". It is the rule for every note (the user's
+   request, 2026-09-05: "far fewer sections"); the six of the previous
+   version were too many.
 
-   ANATOMY ES PARA QUIEN ACABA DE VER EL VIDEO: qué está mirando y con
-   qué está hecho. Habla sólo de la animación que da nombre a la pieza
-   —los tabs—; el header que colapsa, las listas y el avatar están en la
-   grabación pero no acá ("que se hable solo de la animación de los
-   tabs", 2026-09-07). Se escribe desde lo que se ve —el subrayado que
-   va con el contenido, el tab que se ensancha, el contenido que cruza
-   una sola página— y de ahí al cómo, no al revés: la versión que
-   contaba la implementación (un valor derivado, el pager que le pasa un
-   tramo a la barra) fue rechazada por inútil ("no siento que sea
-   útil", mismo día). Es prosa, sin subtítulos: se probó un h3 por
-   parte, la forma de josh en /bloom, y el usuario lo rechazó en la
-   página ("no me gusta esta estructura"). Y ACÁ SE NOMBRA LA
-   REFERENCIA: que salió de X se cuenta donde se cuenta cómo se midió.
-   NO SE DICE DE DÓNDE SON LOS SÍMBOLOS ni la háptica (pedido del
-   usuario, 2026-09-07). LA PIEZA NO TIENE LÍNEA DE DESCRIPCIÓN: la tuvo
-   ("Top tabs for React Native & Expo.") y el usuario la borró el mismo
-   día —"ya está la de arriba que dice swipeable tabs"—; el título es la
-   entrada y estas notas lo que sigue.
+   ANATOMY IS FOR WHOEVER JUST WATCHED THE VIDEO: what they are looking
+   at and what it is made with. It talks only about the animation the
+   piece is named after, the tabs. The header that collapses, the lists
+   and the avatar are in the recording but not here ("have it talk about
+   the tabs animation only", 2026-09-07). It is written from what you
+   see (the underline that goes with the content, the tab that widens,
+   the content that crosses a single page) and from there to the how,
+   not the other way around: the version that told the implementation (a
+   derived value, the pager handing a segment to the bar) was rejected
+   as useless ("I don't feel this is useful", same day). It is prose,
+   with no subheads: an h3 per part was tried, josh's shape in /bloom,
+   and the user rejected it on the page ("I don't like this structure").
+   And THE REFERENCE IS NAMED HERE: that it came from X is told where
+   how it was measured is told. IT DOES NOT SAY WHERE THE SYMBOLS COME
+   FROM, nor the haptics (the user's request, 2026-09-07). THE PIECE HAS
+   NO DESCRIPTION LINE: it had one ("Top tabs for React Native &
+   Expo.") and the user deleted it the same day, "the one above already
+   says swipeable tabs". The title is the way in and these notes are
+   what follows.
 
-   SE DICE "REACT NATIVE", NO EL NOMBRE DE UNA LIBRERÍA. Ni Reanimated
-   ni worklets: "no se suele decir eso" (usuario, 2026-09-07), y quien
-   lee no tiene por qué conocerlos. Lo que esas palabras querían decir
-   se dice en llano: la animación corre en el hilo de UI, no en
-   JavaScript. Las únicas marcas que quedan son las que el lector
-   reconoce: React Native, Expo, iOS.
+   IT SAYS "REACT NATIVE", NOT THE NAME OF A LIBRARY. Neither Reanimated
+   nor worklets: "you don't usually say that" (the user, 2026-09-07),
+   and whoever reads has no reason to know them. What those words meant
+   is said plainly: the animation runs on the UI thread, not in
+   JavaScript. The only brands left are the ones the reader recognizes:
+   React Native, Expo, iOS.
 
-   LAS REGLAS QUE ENUMERAN EL TERCER Y EL CUARTO PÁRRAFO —partidas en
-   dos el 2026-09-07 porque un solo párrafo tenía siete oraciones y la
-   forma pide de dos a cuatro: lo que se anima y cómo, y lo que lo
-   acompaña— son las de los skills
-   `animate-expo`, `interface-craft` y `better-ui`, y entran SÓLO las
-   que el código cumple, verificadas el 2026-09-07 (pedido del usuario:
-   "aclará reglas que sigan a /animate-expo y /interface-craft y
-   /better-ui si cumplen con el código"). Sin frase que las anuncie:
-   el párrafo arranca por la primera regla, como el "How it works" de
-   benji ("It follows the library's rules for motion" se rechazó: "no
-   me gusta esta frase", mismo día). Cada una con su recibo:
-   · Transform, opacity y EL COLOR DEL LABEL; el único `width` animado
-     es el subrayado, hijo absoluto sin hijos — la excepción que la
-     regla permite (animate-expo § 4; barra.tsx, `estiloSubrayado`).
-     El inventario de los trece estilos animados de la pieza, contado
-     el 2026-09-08 recorriendo cada `useAnimatedStyle`: transform ×6,
-     opacity ×5, width ×1 (el subrayado), color ×1 (`estiloLabel`,
-     barra.tsx, aplicado al label). Hasta ese día el texto decía "Only
-     transform and opacity animate", que era FALSO, y falso justo
-     sobre el hallazgo de la pieza: el label activo no es más grueso,
-     es más blanco (142 → 255, interpolado en sRGB crudo; el asta de
-     la misma letra mide 5.03 px en los dos estados).
-     EL CÓDIGO NO CAMBIA, y la pregunta la hizo el usuario en serio
-     ("¿pero es una buena práctica el color?", 2026-09-08):
-     · `animate-expo` NO pide "sólo transform y opacity". Su § 4 y la
-       tabla *Never Ship* enumeran propiedades de LAYOUT —width,
-       height, margin, padding, flex, top, gap, las que re-corren
-       Yoga—, y `color` no está en ninguna de las dos. Está, en
-       cambio, como caso de uso en § 3 ("press, toggle, color, a value
-       flipping") y en § 9 como lo que hay que CONSERVAR bajo reduced
+   THE RULES THAT THE THIRD AND FOURTH PARAGRAPHS ENUMERATE (split in
+   two on 2026-09-07 because a single paragraph had seven sentences and
+   the shape asks for two to four: what animates and how, and what goes
+   with it) are the ones from the skills `animate-expo`,
+   `interface-craft` and `better-ui`, and ONLY the ones the code meets
+   go in, checked on 2026-09-07 (the user's request: "spell out rules
+   that follow /animate-expo and /interface-craft and /better-ui if the
+   code meets them"). With no sentence announcing them: the paragraph
+   starts on the first rule, like benji's "How it works" ("It follows
+   the library's rules for motion" was rejected: "I don't like this
+   sentence", same day). Each one with its receipt:
+   · Transform, opacity and THE LABEL COLOR; the only animated `width`
+     is the underline, an absolutely positioned child with no children,
+     which is the exception the rule allows (animate-expo § 4;
+     tab-bar.tsx, `underlineStyle`).
+     The inventory of the piece's thirteen animated styles, counted on
+     2026-09-08 by walking every `useAnimatedStyle`: transform ×6,
+     opacity ×5, width ×1 (the underline), color ×1 (`labelStyle`,
+     tab-bar.tsx, applied to the label). Until that day the text said
+     "Only transform and opacity animate", which was FALSE, and false
+     about the very finding of the piece: the active label is not
+     thicker, it is whiter (142 → 255, interpolated in raw sRGB; the
+     stem of the same letter measures 5.03 px in both states).
+     THE CODE DOES NOT CHANGE, and the user asked the question in
+     earnest ("but is the color a good practice?", 2026-09-08):
+     · `animate-expo` does NOT ask for "transform and opacity only".
+       Its § 4 and the *Never Ship* table list LAYOUT properties
+       (width, height, margin, padding, flex, top, gap, the ones that
+       re-run Yoga), and `color` is in neither of the two. It is
+       there, instead, as a use case in § 3 ("press, toggle, color, a
+       value flipping") and in § 9 as what must be KEPT under reduced
        motion ("keep opacity and color changes that explain a state
        change").
-     · El color igual no es gratis: transform y opacity son
-       composición y el color es pintura —el nodo se redibuja, y con
-       texto se re-rasterizan los glifos—. Un escalón más caro que
-       transform, varios más barato que layout.
-     · La salida estándar para una propiedad de pintura cara es la que
-       el propio skill receta para las sombras de Android y el blur:
-       apilar dos capas estáticas y cruzar opacidades — acá, un label
-       gris y uno blanco. NO SE HACE: dos textos antialiaseados
-       superpuestos suman cobertura en el borde de cada glifo y se
-       leen más gruesos en el medio del cruce, que es exactamente lo
-       que la medición dice que X no hace. Cambiaría un costo que no
-       se nota por un artefacto que sí.
-     · Y el costo está acotado: seis labels cortos, sólo mientras dura
-       una transición, con 60 fps medidos en el teléfono y la traza de
-       492 cuadros sin titileo.
-   · El gesto interrumpe la animación, también un toque lejano:
-     `onBeginDrag` cancela el toque en vuelo y, si hay página prestada,
-     el préstamo sigue vivo hasta que no se ve (animate-expo,
-     "interruptibility is the baseline"; tabs-deslizables.tsx,
-     `alScrollear`, `asentarPrestamo`). Hasta el 2026-09-07 el toque
-     lejano bloqueaba el pager; se retiró para cumplir la regla sin
-     tocar la animación ni el video. SIN RECIBO en pantalla todavía.
-   · Ease-out, nunca ease-in: `Easing.out(Easing.cubic)`, 300 ms
-     medidos (animate-expo § 5; tabs-deslizables.tsx, `EASE_SETTLE`).
-   · Una háptica por acción, en el cuadro del cambio, nunca la única
-     señal: `useAnimatedReaction` en el umbral y `scheduleOnRN` sólo
-     ahí (animate-expo § 8; tabs-deslizables.tsx).
-   · Reduced motion en la propia animación: `ReduceMotion.System` en
-     la config del toque (animate-expo § 9; tabs-deslizables.tsx, `CFG`).
-   · 120 fps habilitado en ProMotion: `CADisableMinimumFrameDurationOnPhone`
-     (animate-expo § 120fps; nativo/app.json). SOURCE, no medido en
-     pantalla: la grabación es a 60.
-   · Cada valor es una constante con nombre y con su fuente al lado
-     (interface-craft, "tunable by default"; medidas.ts), y un solo
-     valor guía toda la transición (interface-craft, "stage-driven";
-     `Tramo` en tabs-deslizables.tsx).
-   · El movimiento nunca es la única señal: label blanco, subrayado,
-     símbolo (better-ui, "motion restraint"; barra.tsx).
-   LA QUE NO CUMPLE, A PROPÓSITO, y por eso no está en el texto: la
-   puerta de animate-expo "tab switches never slide". Acá el contenido
-   se desliza porque la referencia lo hace y está medido cuadro a
-   cuadro; la regla apunta a los tabs de abajo con `animation: 'none'`.
+     · Color is not free either: transform and opacity are compositing
+       and color is paint. The node is redrawn, and with text the
+       glyphs are re-rasterized. One step more expensive than
+       transform, several steps cheaper than layout.
+     · The standard way out of an expensive paint property is the one
+       the skill itself prescribes for Android shadows and for blur:
+       stack two static layers and cross their opacities, here a grey
+       label and a white one. IT IS NOT DONE: two antialiased texts on
+       top of each other add coverage at the edge of every glyph and
+       read thicker in the middle of the crossing, which is exactly
+       what the measurement says X does not do. It would trade a cost
+       nobody notices for an artifact everybody does.
+     · And the cost is bounded: six short labels, only while a
+       transition lasts, with 60 fps measured on the phone and the
+       trace of 492 frames with no flicker.
+   · The gesture interrupts the animation, a far tap included:
+     `onBeginDrag` cancels the tap in flight and, if there is a page on
+     loan, the loan stays alive until it cannot be seen (animate-expo,
+     "interruptibility is the baseline"; swipeable-tabs.tsx, `onScroll`,
+     `settleLoan`). Until 2026-09-07 the far tap blocked the pager; it
+     was withdrawn to meet the rule without touching the animation or
+     the video. NO RECEIPT on screen yet.
+   · Ease-out, never ease-in: `Easing.out(Easing.cubic)`, 300 ms
+     measured (animate-expo § 5; swipeable-tabs.tsx, `EASE_SETTLE`).
+   · One haptic per action, in the frame of the change, never the only
+     signal: `useAnimatedReaction` at the threshold and `scheduleOnRN`
+     only there (animate-expo § 8; swipeable-tabs.tsx).
+   · Reduced motion in the animation itself: `ReduceMotion.System` in
+     the tap's config (animate-expo § 9; swipeable-tabs.tsx, `CFG`).
+   · 120 fps enabled on ProMotion: `CADisableMinimumFrameDurationOnPhone`
+     (animate-expo § 120fps; native/app.json). SOURCE, not measured on
+     screen: the recording is at 60.
+   · Every value is a named constant with its source next to it
+     (interface-craft, "tunable by default"; measurements.ts), and a
+     single value drives the whole transition (interface-craft,
+     "stage-driven"; `Segment` in swipeable-tabs.tsx).
+   · Motion is never the only signal: white label, underline, symbol
+     (better-ui, "motion restraint"; tab-bar.tsx).
+   THE ONE IT DOES NOT MEET, ON PURPOSE, and that is why it is not in
+   the text: the animate-expo gate "tab switches never slide". Here the
+   content slides because the reference does and it is measured frame by
+   frame; the rule is aimed at the bottom tabs with `animation: 'none'`.
 
-   PERFORMANCE SIGUE EL MISMO MÉTODO (pedido del usuario, 2026-09-07:
-   "como mejoramos tanto anatomy, hay que mejorar performance, con las
-   mismas reglas"): por dónde corre y qué se midió, desde lo que se
-   nota —nunca se traba— hacia el cómo, sin nombres de librerías. Cada
-   afirmación con su recibo:
-   · Todo en el hilo de UI y ninguna vuelta a JavaScript por cuadro:
-     el scroll escribe shared values, los estilos derivan de ahí;
-     `scheduleOnRN` sólo en la reacción del umbral (háptica), y el
-     pager no tiene estado de React desde el 2026-09-07 (antes,
-     `setQuieto` dos veces por toque lejano) (animate-expo § 6;
-     tabs-deslizables.tsx, `alScrollear`, `alTocar`).
-   · Cero layout por cuadro: la fila no es un flex row; `plano`
-     precalcula x y ancho de cada tab para cada estado de reposo una
-     vez, después de medir los labels con `onLayout`, y `entre`
-     interpola entre dos estados por cuadro; cada tab es absoluto con
-     `translateX` (animate-expo § 4; barra.tsx, `plano`, `entre`,
-     `css.tab`).
-   · Las páginas memoizadas, con la medición del tirón: primer cuadro
-     quieto y el segundo saltando 0.195 donde el ease pedía 0.128 y
-     0.252 (tabs-deslizables.tsx, "LAS PÁGINAS SE MEMOIZAN").
-   · Un solo valor, `Tramo`, del que derivan subrayado, labels y
-     símbolos en el mismo cuadro (interface-craft, "stage-driven";
-     better-ui, "cohesion / single entity": "moves as one object").
-     RUNTIME: traza del propio mapper del estilo, barrido de seis
-     páginas, 492 cuadros, cero cambios de dirección espurios
-     (pantalla.tsx, "No tocar sin volver a medir").
-   · 60 fps sostenidos: en el teléfono, medición del usuario ("lo medí
-     en el teléfono real y está en 60 fps siempre", 2026-09-07); la
-     completitud de cuadros de la grabación del simulador —100.7 %,
-     101.1 % y 100.2 % dentro de cada gesto en tres tomas (README § El
-     video para X)— es el recibo de la toma, no del teléfono.
-   · Revisión "como un buen ingeniero" (2026-09-07): "not in
-     JavaScript" → "not the JavaScript thread" (los worklets también son
-     JavaScript, corren en el runtime de UI); el scroll es nativo y se
-     dice; las seis páginas van montadas desde el principio (`hojas`,
-     todas en el ScrollView) y memoizadas por el costo de reconstruir
-     seis listas de doce filas (`RENGLONES` en pagina.tsx); y el
-     mecanismo del "one derived value": ningún estilo puede leer parte
-     de la transición del cuadro anterior.
+   PERFORMANCE FOLLOWS THE SAME METHOD (the user's request, 2026-09-07:
+   "since we improved anatomy so much, performance has to be improved,
+   with the same rules"): where it runs and what was measured, from what
+   you notice (it never stalls) towards the how, with no library names.
+   Every claim with its receipt:
+   · Everything on the UI thread and no round trip to JavaScript per
+     frame: the scroll writes shared values, the styles derive from
+     there; `scheduleOnRN` only in the threshold's reaction (the
+     haptic), and the pager has had no React state since 2026-09-07
+     (before that, `setStill` twice per far tap) (animate-expo § 6;
+     swipeable-tabs.tsx, `onScroll`, `onTap`).
+   · Zero layout per frame: the row is not a flex row; `layout`
+     precomputes x and width of every tab for each resting state once,
+     after measuring the labels with `onLayout`, and `between`
+     interpolates between two states per frame; each tab is absolute
+     with `translateX` (animate-expo § 4; tab-bar.tsx, `layout`,
+     `between`, `css.tab`).
+   · The pages memoized, with the measurement of the jerk: first frame
+     still and the second one jumping 0.195 where the ease asked for
+     0.128 and 0.252 (swipeable-tabs.tsx, "THE PAGES ARE MEMOIZED").
+   · A single value, `Segment`, from which the underline, the labels
+     and the symbols derive in the same frame (interface-craft,
+     "stage-driven"; better-ui, "cohesion / single entity": "moves as
+     one object"). RUNTIME: trace of the style's own mapper, sweep of
+     six pages, 492 frames, zero spurious direction changes
+     (swipeable-tabs-screen.tsx, "Do not touch without measuring
+     again").
+   · 60 fps sustained: on the phone, the user's measurement ("I
+     measured it on the real phone and it's at 60 fps the whole time",
+     2026-09-07); the frame completeness of the simulator recording
+     (100.7 %, 101.1 % and 100.2 % inside each gesture across three
+     takes, README § The video for X) is the receipt of the take, not
+     of the phone.
+   · Review "like a good engineer" (2026-09-07): "not in JavaScript" →
+     "not the JavaScript thread" (worklets are JavaScript too, they run
+     on the UI runtime); the scroll is native and it says so; the six
+     pages are mounted from the start (`sheets`, all of them in the
+     ScrollView) and memoized because of the cost of rebuilding six
+     lists of twelve rows (`ROWS` in page.tsx); and the mechanism of
+     the "one derived value": no style can read part of the previous
+     frame's transition.
 
-   VERIFICACIÓN DE VERACIDAD (2026-09-07, pedido del usuario: "chequeá
-   que toda esa información sea verdadera y correcta"). Se releyó cada
-   afirmación contra el código, y tres eran imprecisas y se corrigieron:
-   · "A drag cancels a tap animation in progress" → en ese momento sólo
-     un toque al tab vecino se interrumpía; el lejano bloqueaba el
-     pager. Esa misma tarde el bloqueo se retiró (ver arriba) y la frase
-     volvió a ser cierta para cualquier toque: "at any point, however
-     far the tab is".
-   · "React does not render during a gesture" → valía para el ARRASTRE;
-     el toque lejano renderizaba dos veces. Sin el bloqueo ya no hay
-     estado de React en el pager: "during a gesture or a tap".
-   · "the second one catching up in a single jump" → el segundo cuadro
-     saltó 0.195 donde el ease pedía 0.252: no alcanzó. Lo medido es un
-     cuadro entero perdido, y eso dice el texto.
-   · "No layout runs while the content moves" → "for the tabs": el
-     ancho del subrayado es layout de su propio nodo, fuera de flujo.
-   Confirmado sin cambios: la fila se corre con `scrollTo` desde un
-   worklet (barra.tsx); `plano` depende de [labels, tabs, viewport];
-   las páginas son `hojas = useMemo(..., [tabs, pagina])`; el único
-   `width` animado entre 13 estilos animados es el del subrayado.
-   Segunda relectura (misma tarde, después del cambio del toque
-   lejano), tres precisiones más:
-   · "It is never animated on its own" → en un toque el subrayado SÍ
-     lleva su propia animación (`avanceToque`, misma config que el
-     contenido): ahora "a tap moves both with the same timing".
-   · "One haptic per action" → es una por CRUCE: ir y volver sobre el
-     mismo límite en un gesto vibra cada vez, como cambia el label. Un
-     arrastre no llega a cruzar dos tabs (el segundo cruce queda a una
-     pantalla y media de recorrido del dedo; con paging el momentum
-     sólo alcanza la página vecina): "un arrastre de tres tabs vibra
-     tres veces" fue un ejemplo mal dado, corregido por el usuario.
-     Ahora "once per change".
-   · "JavaScript takes part only twice" → se leía como una cuenta:
-     ahora "at two moments only".
+   TRUTHFULNESS CHECK (2026-09-07, the user's request: "check that all
+   that information is true and correct"). Every claim was reread
+   against the code, and three were imprecise and got fixed:
+   · "A drag cancels a tap animation in progress" → at that moment only
+     a tap on a neighbouring tab was interrupted; the far one blocked
+     the pager. That same afternoon the block was withdrawn (see above)
+     and the sentence became true again for any tap: "at any point,
+     however far the tab is".
+   · "React does not render during a gesture" → it held for the DRAG;
+     the far tap rendered twice. Without the block there is no React
+     state left in the pager: "during a gesture or a tap".
+   · "the second one catching up in a single jump" → the second frame
+     jumped 0.195 where the ease asked for 0.252: it did not catch up.
+     What was measured is a whole frame lost, and that is what the text
+     says.
+   · "No layout runs while the content moves" → "for the tabs": the
+     width of the underline is layout of its own node, out of flow.
+   Confirmed with no changes: the row is moved with `scrollTo` from a
+   worklet (tab-bar.tsx); `layout` depends on [labels, tabs, viewport];
+   the pages are `sheets = useMemo(..., [tabs, page])`; the only
+   animated `width` among 13 animated styles is the underline's.
+   Second reread (same afternoon, after the far tap change), three more
+   precisions:
+   · "It is never animated on its own" → on a tap the underline DOES
+     carry its own animation (`tapProgress`, the same config as the
+     content): now "a tap moves both with the same timing".
+   · "One haptic per action" → it is one per CROSSING: going back and
+     forth over the same boundary in one gesture buzzes every time, the
+     way the label changes. A drag does not get to cross two tabs (the
+     second crossing is a screen and a half of finger travel away; with
+     paging the momentum only reaches the neighbouring page): "a drag
+     across three tabs buzzes three times" was a badly chosen example,
+     corrected by the user. Now "once per change".
+   · "JavaScript takes part only twice" → it read like a count: now "at
+     two moments only".
 
-   USE CASES DICE CUÁNDO SÍ Y CUÁNDO NO, Y LO DICE CON LAS PALABRAS DE
-   APPLE (pedido del usuario, 2026-09-08: "en use cases usá lo que
-   pondría Apple resources"). Tres párrafos: cuándo sí, los ejemplos,
-   cuándo no.
+   USE CASES SAYS WHEN YES AND WHEN NO, AND IT SAYS IT WITH APPLE'S
+   WORDS (the user's request, 2026-09-08: "in use cases use what Apple
+   resources would put"). Three paragraphs: when yes, the examples, when
+   no.
 
-   LA HIG ENTRA COMO EXPLICACIÓN, NUNCA COMO AUTORIDAD, y NO SE LA
-   NOMBRA. Regla del usuario, el mismo día, después de leer el cierre
-   que sí la nombraba: "no menciones Apple guidelines […] usalas pero
-   para explicar algo mejor, no para decir algo que no es". O sea que
-   de la guía se toman los conceptos y los números —"closely related",
-   la regla de los paneles autocontenidos, "about five", "top-level
-   sections", los labels cortos— y se dicen en llano como propios, con
-   la cita en este comentario. La palabra "Apple" no aparece en el
-   texto público.
+   THE HIG COMES IN AS EXPLANATION, NEVER AS AUTHORITY, AND IT IS NOT
+   NAMED. The user's rule, the same day, after reading the closing that
+   did name it: "don't mention Apple guidelines [...] use them, but to
+   explain something better, not to say something that isn't so". So
+   from the guide come the concepts and the numbers ("closely related",
+   the rule of self-contained panes, "about five", "top-level sections",
+   the short labels) and they are said plainly as our own, with the
+   quotation in this comment. The word "Apple" does not appear in the
+   public text.
 
-   SOURCE — las tres páginas de la HIG, servidas el 2026-09-08 y leídas
-   por la API de documentación de Apple, `developer.apple.com/tutorials/
-   data/design/human-interface-guidelines/<slug>.json` (la página HTML
-   se arma con JavaScript y no se puede leer con `curl`; WebFetch
-   devuelve sólo el título). Cada frase del texto con su cita:
+   SOURCE: the three HIG pages, served on 2026-09-08 and read through
+   Apple's documentation API, `developer.apple.com/tutorials/
+   data/design/human-interface-guidelines/<slug>.json` (the HTML page is
+   assembled with JavaScript and cannot be read with `curl`; WebFetch
+   returns the title only). Each sentence of the text with its
+   quotation:
    · "closely related lists" ← segmented controls › iOS, iPadOS:
      "Consider a segmented control to switch between closely related
      subviews"; tab views: "Use a tab view to present closely related
@@ -235,181 +242,185 @@ import { Seccion } from '../../../notes'
      tab views: "Make sure the controls within a pane affect content
      only in the same pane. Panes are mutually exclusive, so ensure
      they're fully self-contained."
-   · "more lists than a segmented control should hold" y "About five
+   · "more lists than a segmented control should hold" and "About five
      lists or fewer belong in a segmented control" ← segmented
-     controls: "Limit the number of segments in a control. […] Aim for
+     controls: "Limit the number of segments in a control. [...] Aim for
      no more than about five to seven segments in a wide interface and
-     no more than about five segments on iPhone." El "about" es de
-     Apple y se conserva: no es un tope duro.
-   · "a hierarchy" ← es la palabra de Apple para esto (aparece cuatro
-     veces en tab bars, ninguna vez "drill" ni "back button" en las
-     tres páginas): "As a representation of your app's hierarchy".
+     no more than about five segments on iPhone." The "about" is
+     Apple's and it is kept: it is not a hard ceiling.
+   · "a hierarchy" ← it is Apple's word for this (it appears four
+     times in tab bars, and neither "drill" nor "back button" appears
+     once in the three pages): "As a representation of your app's
+     hierarchy".
    · "the top-level sections of an app belong in the tab bar at the
      bottom" ← tab bars: "A tab bar lets people navigate between
      top-level sections of your app" + iOS: "A tab bar floats above
      content at the bottom of the screen".
    · "Both of those ask for short labels" ← tab bars: "Include tab
-     labels to help with navigation. […] Use single words whenever
+     labels to help with navigation. [...] Use single words whenever
      possible"; segmented controls: "Use nouns or noun phrases for
-     segment labels" y "As much as possible, use content with a similar
-     size in each segment".
-   EL CUARTO PÁRRAFO SE BORRÓ, Y ESTABA MAL DE DOS FORMAS. Decía: "On
-   the Mac, Apple's guidelines call this a tab view: mutually exclusive
-   panes of content in one area, switched with a row of tabs. There is
-   no tab view on iPhone; for the same job the guidelines point to a
-   segmented control." Vivió unas horas el 2026-09-08 y lo bajó el
-   usuario ("está mal esa parte"). Tenía razón:
-   · "There is no tab view on iPhone" es FALSO para quien programa. El
-     "Not supported in iOS" de la HIG habla del componente de DISEÑO de
-     macOS, la caja con solapas arriba; pero `TabView` existe en
-     SwiftUI en iOS, es el contenedor del tab bar, y con
-     `.tabViewStyle(.page)` es literalmente un pager que se desliza,
-     o sea lo más parecido del sistema a esta pieza. Escribir que no
-     existe es exactamente "decir algo que no es".
+     segment labels" and "As much as possible, use content with a
+     similar size in each segment".
+   THE FOURTH PARAGRAPH WAS DELETED, AND IT WAS WRONG IN TWO WAYS. It
+   said: "On the Mac, Apple's guidelines call this a tab view: mutually
+   exclusive panes of content in one area, switched with a row of tabs.
+   There is no tab view on iPhone; for the same job the guidelines point
+   to a segmented control." It lived a few hours on 2026-09-08 and the
+   user took it down ("that part is wrong"). He was right:
+   · "There is no tab view on iPhone" is FALSE for whoever writes the
+     code. The HIG's "Not supported in iOS" talks about the macOS
+     DESIGN component, the box with tabs on top; but `TabView` exists
+     in SwiftUI on iOS, it is the tab bar's container, and with
+     `.tabViewStyle(.page)` it is literally a pager that slides, which
+     is the closest thing in the system to this piece. Writing that it
+     does not exist is exactly "saying something that isn't so".
    · "For the same job the guidelines point to a segmented control"
-     CONTRADICE al párrafo de arriba, que dice que un segmented control
-     es para cinco listas o menos. Los dos juntos afirmaban que esta
-     pieza tendría que ser un segmented control, que es lo contrario de
-     todo lo que argumenta la sección.
-   Lo que el párrafo quería aportar —que el patrón vive entre un
-   segmented control y un tab bar— ya lo dice el tercer párrafo sin
-   nombrar a nadie y sin afirmar de más. La lección para las próximas
-   piezas: una guía sirve para afilar una explicación, no para pedirle
-   permiso; en el momento en que el texto necesita el nombre de quien
-   la escribió para sostenerse, la afirmación no se sostiene sola.
-   TAMPOCO se cita "Avoid providing more than six tabs in a tab view"
-   (tab views), aunque X tenga seis: es guía de macOS y usarla para
-   iPhone sería estirarla.
-   LO QUE NO SALE DE APPLE, y es de la pieza, verificado en el código:
-   el tab activo se ensancha para su símbolo y la fila sólo se corre
-   cuando un tab no entra (`BARRA.fila = 'visible'`, barra.tsx); y
-   "two feeds and four topics in one row" son los seis de `TABS` en
-   pantalla.tsx (For you, Following · Stocks, Tech, AI, Design).
-   VA A LLEVAR VIDEO: un video por caso con un pie de un renglón como
-   los de benji en /liveline ("Resting heart rate. Custom formatter,
-   exaggerated Y-axis.": qué es y qué cambia). Hasta que existan, la
-   sección es prosa (pedido del usuario, 2026-09-07: "pienso incluir
-   más videos y demás").
-   LO QUE NO SE HIZO, y espera decisión: la sección "Resources" con la
-   que Apple cierra cada página de la HIG (Related · Developer
-   documentation · Videos). "Apple resources" también se puede leer
-   así, pero meter un bloque de links cambia la forma de las notas de
-   TODAS las piezas, y eso es otra mini-decisión.
+     CONTRADICTS the paragraph above it, which says a segmented control
+     is for five lists or fewer. The two together claimed that this
+     piece ought to be a segmented control, which is the opposite of
+     everything the section argues.
+   What the paragraph meant to add, that the pattern lives between a
+   segmented control and a tab bar, the third paragraph already says
+   without naming anyone and without claiming too much. The lesson for
+   the next pieces: a guide is good for sharpening an explanation, not
+   for asking it permission; the moment the text needs the name of
+   whoever wrote it to hold up, the claim does not hold up on its own.
+   NEITHER is "Avoid providing more than six tabs in a tab view" quoted
+   (tab views), even though X has six: it is macOS guidance and using it
+   for iPhone would be stretching it.
+   WHAT DOES NOT COME FROM APPLE, and belongs to the piece, checked in
+   the code: the active tab widens for its symbol and the row moves only
+   when a tab does not fit (`TAB_BAR.row = 'visible'`, tab-bar.tsx); and
+   "two feeds and four topics in one row" are the six in `TABS` in
+   swipeable-tabs-screen.tsx (For you, Following · Stocks, Tech, AI,
+   Design).
+   IT WILL CARRY VIDEO: one video per case with a one-line caption like
+   benji's in /liveline ("Resting heart rate. Custom formatter,
+   exaggerated Y-axis.": what it is and what changes). Until those
+   exist, the section is prose (the user's request, 2026-09-07: "I plan
+   to include more videos and so on").
+   WHAT WAS NOT DONE, and is waiting for a decision: the "Resources"
+   section Apple closes every HIG page with (Related · Developer
+   documentation · Videos). "Apple resources" can be read that way too,
+   but dropping in a block of links changes the shape of the notes of
+   EVERY piece, and that is another mini-decision.
 
-   NÚMERO Y UNIDAD VAN CON ESPACIO INDIVISIBLE (U+00A0): "300 ms",
-   "60 fps", "120 fps", "492 frames". Es la regla de better-typography
-   (`&nbsp;` para que "16 px" no se parta en un corte de línea); hoy
-   ninguno caía en un corte, pero cualquier cambio de texto o de ancho
-   los podía partir (2026-09-07).
+   NUMBER AND UNIT GO WITH A NON-BREAKING SPACE (U+00A0): "300 ms",
+   "60 fps", "120 fps", "492 frames". It is the better-typography rule
+   (`&nbsp;` so that "16 px" does not split at a line break); today none
+   of them landed on a break, but any change of text or of width could
+   split them (2026-09-07).
 
-   LOS NOMBRES SON LOS TÉRMINOS TÉCNICOS —tab, underline, label,
-   symbol, page; "select", no "jump"—, por la regla de nombres del repo
-   (AGENTS.md › Método de trabajo): la palabra que iría en una
-   especificación, no la graciosa.
+   THE NAMES ARE THE TECHNICAL TERMS (tab, underline, label, symbol,
+   page; "select", not "jump"), by the repo's naming rule (AGENTS.md ›
+   Working method): the word that would go in a specification, not the
+   funny one.
 
-   Y LA REDACCIÓN PASA POR `better-writing` (2026-09-07, pedido del
-   usuario: que todo respete la regla de vocabulario y mejorar la
-   redacción como benji o josh): palabras que un lector cansado entiende
-   a la primera, sin modismos, y cada palabra que no trabaja se borra.
-   Lo que salió en esa pasada: "mid-flight" → "in progress"; "tied to"
-   → "bound to"; "never runs ahead or lags behind" → "It is never
-   animated on its own"; "cue" → "feedback"; "in step" →
+   AND THE WRITING GOES THROUGH `better-writing` (2026-09-07, the
+   user's request: that everything respect the vocabulary rule and that
+   the writing improve like benji's or josh's): words a tired reader
+   gets on the first pass, no idioms, and every word that does no work
+   deleted. What came out of that pass: "mid-flight" → "in progress";
+   "tied to" → "bound to"; "never runs ahead or lags behind" → "It is
+   never animated on its own"; "cue" → "feedback"; "in step" →
    "synchronized"; "absolute element" → "absolutely positioned";
-   "ProMotion screens" → "ProMotion displays" (el nombre de Apple);
+   "ProMotion screens" → "ProMotion displays" (Apple's name);
    "first-level filters" → "top-level sections"; "React never renders a
-   frame" → "React does not render" (React no renderiza cuadros); y la
-   frase "one value drives the whole transition", que estaba dos veces,
-   quedó sólo en Performance.
+   frame" → "React does not render" (React does not render frames); and
+   the sentence "one value drives the whole transition", which was there
+   twice, stayed only in Performance.
 
-   SEGUNDA PASADA DE `better-writing`, sobre las TRES secciones (pedido
-   del usuario, 2026-09-08: "fijate que todo cumpla /better-writing").
-   La regla que las encontró es "one voice, flexible tone": un solo
-   nombre por cosa en toda la página. Tres cambios, y todos son de
-   consistencia, no de gusto:
-   · "the bar" → "the row" (Performance, dos veces). La fila se llamaba
-     "row" en Anatomy y en Use cases, y "bar" sólo acá — era el nombre
-     interno del archivo (`barra.tsx`) filtrándose al texto público.
+   SECOND `better-writing` PASS, over the THREE sections (the user's
+   request, 2026-09-08: "check that everything meets /better-writing").
+   The rule that caught them is "one voice, flexible tone": one name per
+   thing across the whole page. Three changes, and all three are about
+   consistency, not taste:
+   · "the bar" → "the row" (Performance, twice). The row was called
+     "row" in Anatomy and in Use cases, and "bar" only here. It was the
+     internal file name (`barra.tsx`) leaking into the public text.
    · "the chosen tab doesn't fit" → "the active tab does not fit"
-     (Anatomy). Dos cosas: "chosen" y "active" eran la misma cosa con
-     dos nombres en el mismo párrafo ("it becomes the active one"), y
-     "doesn't" era la ÚNICA contracción de la página, contra "does not
-     render", "is not a flex row", "must not rebuild".
+     (Anatomy). Two things: "chosen" and "active" were the same thing
+     with two names in the same paragraph ("it becomes the active
+     one"), and "doesn't" was the page's ONLY contraction, against
+     "does not render", "is not a flex row", "must not rebuild".
    · "its offset is read" → "the scroll offset is read" (Performance).
-     El "its" más cercano apuntaba a "deceleration", no al scroll view.
-   REVISADO Y NO CAMBIADO: "however far away the tab is" (Anatomy § 2) y
-   "however far the tab is" (§ 3) se repiten a dos párrafos. El eco es
-   real, pero las dos cláusulas dicen cosas distintas —el contenido
-   cruza UNA página cualquiera sea la distancia; y el arrastre
-   interrumpe el toque también cuando el tab está lejos, que es lo que
-   se ganó al sacar el bloqueo del pager— y borrar cualquiera de las
-   dos pierde una afirmación que costó un cambio de código.
-   Y EN USE CASES: "people" para quien usa la app del lector (es lo que
-   usa la HIG, y acá el lector es quien construye) y "you" sólo cuando
-   se le habla a él ("Use them when…"); la primera oración esquiva las
-   dos ("what happens in one"). Anatomy sigue con "you" porque ahí el
-   lector ES quien toca la pieza del video.
+     The nearest "its" pointed at "deceleration", not at the scroll
+     view.
+   REVIEWED AND NOT CHANGED: "however far away the tab is" (Anatomy § 2)
+   and "however far the tab is" (§ 3) repeat two paragraphs apart. The
+   echo is real, but the two clauses say different things (the content
+   crosses ONE page whatever the distance; and the drag interrupts the
+   tap even when the tab is far away, which is what was gained by
+   removing the pager's block), and deleting either one loses a claim
+   that cost a code change.
+   AND IN USE CASES: "people" for whoever uses the reader's app (it is
+   what the HIG uses, and here the reader is whoever builds) and "you"
+   only when it talks to him ("Use them when..."); the first sentence
+   dodges both ("what happens in one"). Anatomy keeps "you" because
+   there the reader IS whoever touches the piece in the video.
 
-   PASADA DE CONCISIÓN, 2026-09-08 ("ya teniendo todo, usando buenas
-   prácticas, dejá todo mucho más conciso"). 703 → 583 palabras, 17 %
-   menos, MISMAS doce párrafos y MISMAS afirmaciones: es la regla de
-   `better-writing` "delete every word that does no work", aplicada
-   palabra por palabra, no recorte de contenido. Lo que se cortó, por
-   tipo:
-   · REDUNDANCIA INTERNA. "one value that describes the whole
-     transition […] It is one derived value" decía lo mismo dos veces:
-     ahora "one derived value" y basta. "not the JavaScript thread […]
-     is involved at two moments only […] Never per frame" eran tres
-     formas de una idea: quedó una. "always agree, and the row moves as
-     one object" también: quedó "move as one object", que es la frase
-     de better-ui que el usuario aprobó.
-   · REDUNDANCIA ENTRE SECCIONES. "the row scrolls only when a tab does
-     not fit" estaba en Anatomy Y en Use cases; queda en Anatomy. Y
-     "however far the tab is" estaba en dos párrafos de Anatomy; queda
-     en el que lo necesita, el del contenido que cruza una sola página.
-     El otro era el del arrastre que interrumpe, y "at any point" ya lo
-     dice sin la distancia.
-   · PERÍFRASIS POR EL VERBO. "Tap a tab and it becomes the active one"
-     → "A tap makes a tab active". "When one did, the recording showed
-     the first frame after a tap standing still" → "Unmemoized, the
-     first frame after a tap stood still". "several lists of equal
-     standing" → "several peer lists" ("peers, not a hierarchy" es el
-     término de animate-expo, y engancha con la jerarquía del párrafo
-     siguiente). "so the drag and its deceleration run natively" → "the
-     system runs the drag and its deceleration", que además dice QUIÉN.
-   · LO QUE SE PERDIÓ A PROPÓSITO, y hay que saberlo: el cierre de
-     Anatomy decía "from four recordings at 60 fps" y ahora dice sólo
-     "at 60 fps". El número se fue con el recorte y está bien que se
-     haya ido: el registro dice el clip del vault Y DESPUÉS cuatro
-     grabaciones del usuario, o sea cinco, así que "four" contaba de
-     menos (hallazgo del 2026-09-08, ver README).
-   LO QUE SIGUE SIENDO CANDIDATO A CORTE, si algún día se pide otra
-   vuelta: "Every value is a named constant with its source" es la
-   única oración de Anatomy que habla del código fuente y no de lo que
-   se ve. Está porque el usuario pidió las reglas de interface-craft en
-   el texto; sale el día que eso cambie.
+   CONCISION PASS, 2026-09-08 ("now that we have everything, using good
+   practices, leave it all much more concise"). 703 → 583 words, 17 %
+   less, the SAME twelve paragraphs and the SAME claims: it is the
+   `better-writing` rule "delete every word that does no work", applied
+   word by word, not a cut of content. What was cut, by kind:
+   · INTERNAL REDUNDANCY. "one value that describes the whole
+     transition [...] It is one derived value" said the same thing
+     twice: now "one derived value" and that is it. "not the JavaScript
+     thread [...] is involved at two moments only [...] Never per
+     frame" were three shapes of one idea: one was left. "always agree,
+     and the row moves as one object" too: "move as one object" was
+     left, which is the better-ui phrase the user approved.
+   · REDUNDANCY BETWEEN SECTIONS. "the row scrolls only when a tab does
+     not fit" was in Anatomy AND in Use cases; it stays in Anatomy. And
+     "however far the tab is" was in two paragraphs of Anatomy; it
+     stays in the one that needs it, the one about the content crossing
+     a single page. The other was the one about the drag that
+     interrupts, and "at any point" already says it without the
+     distance.
+   · PERIPHRASIS FOR THE VERB. "Tap a tab and it becomes the active
+     one" → "A tap makes a tab active". "When one did, the recording
+     showed the first frame after a tap standing still" → "Unmemoized,
+     the first frame after a tap stood still". "several lists of equal
+     standing" → "several peer lists" ("peers, not a hierarchy" is
+     animate-expo's term, and it hooks into the hierarchy of the next
+     paragraph). "so the drag and its deceleration run natively" → "the
+     system runs the drag and its deceleration", which also says WHO.
+   · WHAT WAS LOST ON PURPOSE, and has to be known: the closing of
+     Anatomy said "from four recordings at 60 fps" and now says only
+     "at 60 fps". The number went with the cut and it is good that it
+     went: the record says the vault clip AND THEN four recordings by
+     the user, that is five, so "four" was undercounting (found on
+     2026-09-08, see README).
+   WHAT IS STILL A CANDIDATE FOR CUTTING, if another round is ever
+   asked for: "Every value is a named constant with its source" is the
+   only sentence in Anatomy that talks about the source code and not
+   about what you see. It is there because the user asked for the
+   interface-craft rules in the text; it goes the day that changes.
 
-   SIN RAYA, NI EM DASH NI EN DASH, EN EL TEXTO PÚBLICO. Pedido del
-   usuario, 2026-09-08: "no uses –". La pasada de concisión había
-   metido dos, las dos en Performance, y las dos salieron sin perder
-   nada: "React does not render during a gesture or a tap — the
-   JavaScript thread…" se partió en dos oraciones, que es más llano y
-   más corto; y "stood still — a whole frame lost" pasa a dos puntos,
-   que es el signo que ya hace ese trabajo en los otros once párrafos.
-   Los guiones de palabra compuesta se quedan: ease-out, ease-in,
-   six-page, top-level. La regla vale para el texto público, no para
-   estos comentarios, donde la raya es puntuación normal del español.
-   Está en AGENTS.md › Cómo se escriben la línea y las notas. */
-export default function Notas() {
+   NO DASH, NEITHER EM DASH NOR EN DASH, IN THE PUBLIC TEXT. The user's
+   request, 2026-09-08: "don't use –". The concision pass had put in
+   two, both in Performance, and both came out without losing anything:
+   "React does not render during a gesture or a tap — the JavaScript
+   thread…" was split into two sentences, which is plainer and
+   shorter; and "stood still — a whole frame lost" moves to a colon,
+   which is the mark that already does that job in the other eleven
+   paragraphs. Hyphens inside a compound word stay: ease-out, ease-in,
+   six-page, top-level. The rule holds for the public text, not for
+   these comments, which were written in Spanish, where the dash is
+   ordinary punctuation. It is in AGENTS.md › How the line and the notes
+   are written. */
+export default function Notes() {
   return (
     <>
-      <Seccion titulo="Anatomy">
+      <Section title="Anatomy">
         <p>
           React Native, with Expo. The content is a paged scroll view, one page per tab; above it,
           a row of labels with an underline. The underline is bound to the content: it follows a
           drag and its deceleration, and a tap moves both on one timing.
         </p>
         <p>
-          A tap makes a tab active in 300 ms: it widens for its symbol, the other labels move
+          A tap makes a tab active in 300 ms: it widens for its symbol, the other labels move
           aside, and the content crosses one page, however far the tab is. The row moves on its own
           only when the active tab does not fit. A light haptic marks each change.
         </p>
@@ -420,15 +431,15 @@ export default function Notas() {
         </p>
         <p>
           The haptic fires in the frame the tab changes, once per change, never as the only
-          feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
+          feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
           Every value is a named constant with its source.
         </p>
         <p>
-          The reference is the home tabs of X on iOS, measured frame by frame at 60 fps.
+          The reference is the home tabs of X on iOS, measured frame by frame at 60 fps.
         </p>
-      </Seccion>
+      </Section>
 
-      <Seccion titulo="Performance">
+      <Section title="Performance">
         <p>
           Everything that moves is computed on the UI thread. The content is a native scroll view:
           the system runs the drag and its deceleration, and the scroll offset and every style
@@ -446,12 +457,12 @@ export default function Notas() {
         <p>
           The row reads one derived value: where the transition starts, where it ends and how far
           along it is. No style can read part of it from the previous frame, so the underline, the
-          labels and the symbols move as one object. Measured on the phone: 60 fps through every
-          gesture. A trace of the symbols across a six-page sweep, 492 frames, shows no flicker.
+          labels and the symbols move as one object. Measured on the phone: 60 fps through every
+          gesture. A trace of the symbols across a six-page sweep, 492 frames, shows no flicker.
         </p>
-      </Seccion>
+      </Section>
 
-      <Seccion titulo="Use cases">
+      <Section title="Use cases">
         <p>
           Swipeable tabs fit one screen whose content splits into closely related lists that do
           not affect each other. Use them when there are more lists than a segmented control
@@ -469,7 +480,7 @@ export default function Notas() {
           bottom. Both ask for short labels, and so do these: the active tab widens for its
           symbol.
         </p>
-      </Seccion>
+      </Section>
     </>
   )
 }

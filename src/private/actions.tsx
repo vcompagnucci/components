@@ -1,268 +1,272 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import css from "./actions.module.css";
 import dlg from "./vault.module.css";
-import { aPapelera, renombrarClip, type Clip } from "./clips";
+import { trashClip, renameClip, type Clip } from "./clips";
 
 /* ═══════════════════════════════════════════════════════════════
-   RENOMBRAR Y MANDAR A LA PAPELERA, con el clic derecho.
+   RENAME AND MOVE TO THE TRASH, with the right click.
 
-   Antes de esto las dos cosas vivían en el Finder. La señal de que
-   faltaban era literal: en una captura del detalle se veía el tooltip
-   de "click to rename" del SISTEMA OPERATIVO encima del video.
+   Before this the two of them lived in the Finder. The sign that they
+   were missing was literal: in a capture of the detail you could see
+   the OPERATING SYSTEM's "click to rename" tooltip on top of the video.
 
-   BORRAR MUEVE A LA PAPELERA. Ver el endpoint __papelera: desde una app
-   de estudio un unlink no tiene undo que lo salve.
+   DELETE MOVES TO THE TRASH. See the __trash endpoint: from a studio
+   app an unlink has no undo to save it.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════
-   DE DÓNDE SALE UN MENÚ — las dos formas, y por qué son dos.
+   WHERE A MENU COMES FROM — the two forms, and why they are two.
 
-   El clic derecho lo abre en un PUNTO: el menú aparece donde apretaste
-   y no hay nada más a lo que engancharse.
+   The right click opens it at a POINT: the menu appears where you
+   pressed and there is nothing else to hook onto.
 
-   El ··· de la barra lo abre desde un BOTÓN, y ahí el punto no alcanza:
-   un popover tiene que crecer desde su disparador y quedar alineado con
-   él, no con el píxel exacto donde cayó el cursor adentro del botón.
+   The ··· in the bar opens it from a BUTTON, and there the point is not
+   enough: a popover has to grow from its trigger and end up aligned
+   with it, not with the exact pixel where the cursor landed inside the
+   button.
 
-   Están escritas como dos casos y no como uno con un rectángulo de
-   tamaño cero a propósito: el hueco al disparador es 4 y el hueco al
-   cursor es 0, así que colapsarlas obligaría a un parámetro más para
-   distinguir justo lo que las distingue.
+   They are written as two cases and not as one with a zero-sized
+   rectangle on purpose: the gap to the trigger is 4 and the gap to the
+   cursor is 0, so collapsing them would force one more parameter to
+   tell apart exactly what tells them apart.
    ═══════════════════════════════════════════════════════════════ */
-export type Donde =
+export type Where =
   | { x: number; y: number }
-  /* `alinear` es POR QUÉ BORDE se pega el menú al botón. El ··· vive
-     contra el riel derecho, así que su menú se alinea a la derecha y
-     cae para adentro; alineado a la izquierda se saldría de la página. */
-  | { ancla: DOMRect; alinear: 'izq' | 'der' }
+  /* `align` is BY WHICH EDGE the menu sticks to the button. The ··· sits
+     against the right rail, so its menu aligns to the right and falls
+     inward; aligned to the left it would run off the page. */
+  | { anchor: DOMRect; align: 'left' | 'right' }
   | null;
 
 /* ═══════════════════════════════════════════════════════════════
-   MIENTRAS ALGO SE VA, TODAVÍA HAY QUE SABER QUÉ ERA.
+   WHILE SOMETHING LEAVES, YOU STILL HAVE TO KNOW WHAT IT WAS.
 
-   Todas las salidas del área privada estaban escritas y NINGUNA corría.
-   Medido cuadro a cuadro: el menú desaparecía del DOM en el primer
-   cuadro después del clic, y el diálogo pasaba de opacity 1 a no
-   existir. Los 120ms del menú y los 180 del diálogo nunca existieron.
+   Every exit in the private area was written and NONE of them ran.
+   Measured frame by frame: the menu disappeared from the DOM on the
+   first frame after the click, and the dialog went from opacity 1 to
+   not existing. The menu's 120ms and the dialog's 180 never existed.
 
-   La causa no estaba en el CSS —que está bien— sino en quién lo
-   monta. La capa de menús y diálogos se renderiza sólo si hay sujeto:
+   The cause was not in the CSS (which is fine) but in what mounts it.
+   The layer of menus and dialogs renders only if there is a subject:
 
-     const sujeto = menu?.clip ?? renombrando ?? borrando
-     const capa = sujeto ? (<><Menu …/><Dialogo …/></>) : null
+     const subject = menu?.clip ?? renaming ?? deleting
+     const layer = subject ? (<><Menu …/><Dialog …/></>) : null
 
-   y el sujeto se vuelve null EXACTAMENTE en el instante en que la
-   salida tendría que empezar. React arranca el nodo, y un nodo que no
-   está no puede animarse. Es la misma trampa que ya había resuelto a
-   mano el diálogo de subir, con su lista `mostrados`: "lo último que
-   hubo se queda hasta que llegue otra cosa".
+   and the subject becomes null EXACTLY at the instant the exit would
+   have to start. React pulls the node, and a node that is not there
+   cannot animate. It is the same trap the upload dialog had already
+   solved by hand, with its `shown` list: "the last thing there was
+   stays until something else arrives".
 
-   Esto es esa idea, una sola vez y para todos: devuelve lo que hay, y
-   si no hay nada, lo último que hubo. El sujeto sobrevive a su propia
-   salida y recién ahí se puede animar.
+   This is that idea, once and for everyone: it returns what there is,
+   and if there is nothing, the last thing there was. The subject
+   outlives its own exit and only then can it animate.
 
-   Se ajusta el estado DURANTE el render —el patrón que documenta React
-   para derivar de props— y no en un efecto: en un efecto habría un
-   cuadro con el sujeto ya en null, que es el respingo que venimos a
-   sacar.
+   The state is adjusted DURING the render (the pattern React documents
+   for deriving from props) and not in an effect: in an effect there
+   would be one frame with the subject already null, which is the flinch
+   we came to take out.
 
-   LO QUE LE ENTRA TIENE QUE SER ESTABLE ENTRE RENDERS mientras no
-   cambie de verdad: compara por identidad. Un valor que viene de
-   useState —que es el caso de los tres que lo usan— lo es. Un objeto
-   armado en el render no, y ahí React corta con "Too many re-renders";
-   falla fuerte y a la vista, no en silencio. */
-export function useUltimo<T>(v: T | null | undefined): T | null {
-  const [ultimo, setUltimo] = useState<T | null>(v ?? null);
-  if (v != null && v !== ultimo) setUltimo(v);
-  return v ?? ultimo;
+   WHAT GOES IN HAS TO BE STABLE BETWEEN RENDERS while it does not
+   really change: it compares by identity. A value coming from useState
+   (which is the case for all three that use it) is. An object built in
+   the render is not, and there React cuts in with "Too many
+   re-renders"; it fails loudly and visibly, not in silence. */
+export function useLast<T>(v: T | null | undefined): T | null {
+  const [last, setLast] = useState<T | null>(v ?? null);
+  if (v != null && v !== last) setLast(v);
+  return v ?? last;
 }
 
-/* Dónde se abre el menú. Si no entra hacia abajo o hacia la derecha, se
-   da vuelta — y el ORIGEN DE LA ESCALA se da vuelta con él, para que
-   siga creciendo desde el punto donde apretaste y no desde una esquina
-   que quedó del otro lado.
+/* Where the menu opens. If it does not fit downward or rightward, it
+   flips, and THE SCALE'S ORIGIN flips with it, so it keeps growing from
+   the point where you pressed and not from a corner that ended up on
+   the other side.
 
-   Las dos formas de `Donde` se resuelven acá y en ningún otro lado: el
-   que llama pasa de dónde salió y no dónde va. */
-const MARGEN = 8;
-/* Lo que separa el menú de su disparador. Es el mismo hueco con el que
-   el selector de Device se despega de su valor, en ficha.tsx. */
-const HUECO = 4;
+   The two forms of `Where` are resolved here and nowhere else: the
+   caller passes where it came from, not where it goes. */
+const MARGIN = 8;
+/* What separates the menu from its trigger. It is the same gap the
+   Device picker uses to come off its value, in details.tsx. */
+const GAP = 4;
 
-/* ─── SE ALINEA LA TINTA, NO LA CAJA ───
-   El menú se pegaba al borde del disparador y se veía corrido. Medido:
-   el título arranca en 208, el menú en 208 — y el TEXTO del primer ítem
-   en 222. Los 14 son el relleno del menú más el del ítem, o sea blanco
-   que el ojo no cuenta pero el layout sí.
+/* ─── THE INK GETS ALIGNED, NOT THE BOX ───
+   The menu stuck to the trigger's edge and looked shifted. Measured:
+   the title starts at 208, the menu at 208, and the first item's TEXT
+   at 222. The 14 is the menu's padding plus the item's, that is,
+   whitespace the eye does not count but the layout does.
 
-   Es exactamente el error que ya arreglan .play con su margen negativo y
-   el chevron del título con el suyo: "lo que el ojo alinea es la TINTA".
-   Acá el número no se escribe, se mide del DOM, así que si mañana cambia
-   el relleno del ítem esto se corrige solo. */
-function sangriaDe(menu: HTMLElement): number {
+   It is exactly the mistake .play already fixes with its negative
+   margin and the title's chevron with its own: "what the eye aligns is
+   the INK". Here the number is not written, it is measured from the
+   DOM, so if tomorrow the item's padding changes this corrects itself. */
+function indentOf(menu: HTMLElement): number {
   const item = menu.querySelector<HTMLElement>('[role="menuitem"]');
   if (!item) return 0;
   return item.offsetLeft + parseFloat(getComputedStyle(item).paddingLeft);
 }
 
-function ubicar(d: NonNullable<Donde>, ancho: number, alto: number, sangria = 0) {
-  if ("ancla" in d) {
-    const r = d.ancla;
-    /* Debajo del botón; si no entra, arriba. Alineado por el borde que
-       pidió el llamador, y descontando la sangría para que lo que quede
-       a plomo sea el texto. */
-    const arriba = r.bottom + HUECO + alto + MARGEN > window.innerHeight;
-    const izquierda =
-      d.alinear === "der" ? r.right - ancho + sangria : r.left - sangria;
+function place(w: NonNullable<Where>, width: number, height: number, indent = 0) {
+  if ("anchor" in w) {
+    const r = w.anchor;
+    /* Below the button; if it does not fit, above. Aligned by the edge
+       the caller asked for, and subtracting the indent so what ends up
+       plumb is the text. */
+    const above = r.bottom + GAP + height + MARGIN > window.innerHeight;
+    const left =
+      w.align === "right" ? r.right - width + indent : r.left - indent;
     return {
-      left: Math.max(MARGEN, Math.min(izquierda, window.innerWidth - MARGEN - ancho)),
-      top: arriba ? Math.max(MARGEN, r.top - HUECO - alto) : r.bottom + HUECO,
-      /* EL ORIGEN TAMBIÉN VA SOBRE LA TINTA. El menú escala desde su
-         disparador —lo piden /animate y /apple-design— y el disparador
-         es la palabra, no el blanco que la rodea. Sin esto crecería
-         desde una esquina 14px afuera del título.
+      left: Math.max(MARGIN, Math.min(left, window.innerWidth - MARGIN - width)),
+      top: above ? Math.max(MARGIN, r.top - GAP - height) : r.bottom + GAP,
+      /* THE ORIGIN ALSO GOES ON THE INK. The menu scales from its
+         trigger (/animate and /apple-design both ask for it) and the
+         trigger is the word, not the whitespace around it. Without this
+         it would grow from a corner 14px outside the title.
 
-         EL ORDEN ES `x y` Y NO AL REVÉS. La primera versión decía
-         `top 14px` y era DECLARACIÓN INVÁLIDA: cuando uno de los dos
-         valores no es palabra clave, el primero tiene que ser el
-         horizontal, y `top` no lo es. El navegador la descartaba entera
-         y el origen volvía al default. */
-      origen: `${d.alinear === "der" ? ancho - sangria : sangria}px ${
-        arriba ? "bottom" : "top"
+         THE ORDER IS `x y` AND NOT THE OTHER WAY AROUND. The first
+         version said `top 14px` and it was an INVALID DECLARATION: when
+         one of the two values is not a keyword, the first one has to be
+         the horizontal, and `top` is not. The browser discarded the
+         whole thing and the origin went back to the default. */
+      origin: `${w.align === "right" ? width - indent : indent}px ${
+        above ? "bottom" : "top"
       }`,
     };
   }
-  const derecha = d.x + ancho + MARGEN > window.innerWidth;
-  const abajo = d.y + alto + MARGEN > window.innerHeight;
+  const flipX = w.x + width + MARGIN > window.innerWidth;
+  const flipY = w.y + height + MARGIN > window.innerHeight;
   return {
-    left: derecha ? Math.max(MARGEN, d.x - ancho) : d.x,
-    top: abajo ? Math.max(MARGEN, d.y - alto) : d.y,
-    origen: `${abajo ? "bottom" : "top"} ${derecha ? "right" : "left"}`,
+    left: flipX ? Math.max(MARGIN, w.x - width) : w.x,
+    top: flipY ? Math.max(MARGIN, w.y - height) : w.y,
+    origin: `${flipY ? "bottom" : "top"} ${flipX ? "right" : "left"}`,
   };
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EL MENÚ, SIN SABER SOBRE QUÉ SE ABRIÓ.
+   THE MENU, WITHOUT KNOWING WHAT IT OPENED OVER.
 
-   Acá vive TODO lo que hace que un menú flotante sea un menú flotante:
-   dónde se ubica, hacia dónde se da vuelta cuando no entra, desde qué
-   esquina crece, y las tres formas de cerrarlo. Lo que NO sabe es qué
-   dicen sus ítems ni sobre qué objeto son — eso lo pone el que lo usa.
+   Here lives EVERYTHING that makes a floating menu a floating menu:
+   where it sits, which way it flips when it does not fit, from which
+   corner it grows, and the three ways to close it. What it does NOT
+   know is what its items say or what object they are about. Whoever
+   uses it puts that in.
 
-   Se separó cuando apareció el segundo cliente: el clic derecho sobre
-   una card del PLAYGROUND quiere el mismo menú con otras dos palabras.
-   Copiarlo habría dejado dos superficies que se parecen hasta el día en
-   que una se toque.
+   It got separated when the second client showed up: the right click
+   over a card in the PLAYGROUND wants the same menu with two other
+   words. Copying it would have left two surfaces that look alike until
+   the day one of them gets touched.
    ═══════════════════════════════════════════════════════════════ */
-/* Un ítem del menú. `destructivo` no es sólo un color: además de pintar
-   el ítem en --destructivo, hace que el menú le ponga una hairline
-   delante. Las dos cosas son la misma decisión —ver .item[data-
-   destructivo] en acciones.module.css— así que se piden juntas con una
-   sola bandera y no con dos. */
-export type ItemMenu = {
-  texto: string;
-  hacer: () => void;
-  destructivo?: boolean;
+/* An item in the menu. `destructive` is not only a color: besides
+   painting the item in --destructive, it makes the menu put a hairline
+   in front of it. Both things are the same decision (see
+   .item[data-destructive] in actions.module.css) so they are asked for
+   together with a single flag and not with two. */
+export type MenuItem = {
+  text: string;
+  action: () => void;
+  destructive?: boolean;
 };
 
 export function Menu({
-  donde,
-  etiqueta,
+  where,
+  label,
   items,
-  onCerrar,
+  onClose,
 }: {
-  donde: Donde;
-  /* Para quien lo escucha en vez de verlo: sobre qué se abrió. */
-  etiqueta: string;
-  items: ItemMenu[];
-  onCerrar: () => void;
+  where: Where;
+  /* For whoever hears it instead of seeing it: what it opened over. */
+  label: string;
+  items: MenuItem[];
+  onClose: () => void;
 }) {
-  const caja = useRef<HTMLDivElement | null>(null);
-  const [pos, setPos] = useState({ left: 0, top: 0, origen: "top left" });
+  const box = useRef<HTMLDivElement | null>(null);
+  const [pos, setPos] = useState({ left: 0, top: 0, origin: "top left" });
 
-  /* Se mide DESPUÉS de montar y antes de pintar: el alto depende de
-     cuántos ítems tenga, y sin eso no se sabe si entra hacia abajo.
+  /* It is measured AFTER mounting and before painting: the height
+     depends on how many items it has, and without that you do not know
+     whether it fits downward.
 
-     CON offsetWidth/Height Y NO CON getBoundingClientRect: el menú en
-     reposo está en scale(0.96), y el rect devuelve la caja YA ESCALADA
-     —un 4% chico—. Con el menú del clic derecho casi no se notaba
-     porque su borde izquierdo es el cursor y no se resta nada; el de la
-     barra se alinea restando el ancho al borde del botón, así que ahí el
-     4% son 7px de menú colgando afuera. Medido.
+     WITH offsetWidth/Height AND NOT WITH getBoundingClientRect: the
+     menu at rest is at scale(0.96), and the rect returns the box
+     ALREADY SCALED, 4% small. With the right-click menu you almost
+     could not tell, because its left edge is the cursor and nothing
+     gets subtracted; the bar's menu aligns by subtracting the width
+     from the button's edge, so there the 4% is 7px of menu hanging
+     outside. Measured.
 
-     offsetWidth es de layout: ignora los transforms por definición, así
-     que no hay que apagar nada ni forzar un reflow para leerlo. */
+     offsetWidth is layout: it ignores transforms by definition, so
+     nothing has to be turned off and no reflow forced to read it. */
   useEffect(() => {
-    const el = caja.current;
-    if (!el || !donde) return;
-    setPos(ubicar(donde, el.offsetWidth, el.offsetHeight, sangriaDe(el)));
-  }, [donde]);
+    const el = box.current;
+    if (!el || !where) return;
+    setPos(place(where, el.offsetWidth, el.offsetHeight, indentOf(el)));
+  }, [where]);
 
-  /* Cerrar con Escape, con un clic afuera, y al scrollear: un menú
-     anclado a un punto de la pantalla que se queda mientras el
-     contenido se mueve deja de estar anclado a nada. */
+  /* Close with Escape, with a click outside, and on scroll: a menu
+     anchored to a point on the screen that stays while the content
+     moves stops being anchored to anything. */
   useEffect(() => {
-    if (!donde) return;
-    const tecla = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
-    const fuera = (e: MouseEvent) => {
+    if (!where) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const outside = (e: MouseEvent) => {
       const t = e.target as Element;
-      /* EL DISPARADOR NO CUENTA COMO AFUERA. Sin esto, apretar el ···
-         con el menú abierto lo cierra en el pointerdown y el click que
-         viene atrás lo vuelve a abrir: se cierra y se abre en el mismo
-         gesto, y a la vista no pasa nada. El toggle es del click del
-         disparador; este handler mira el resto de la página.
+      /* THE TRIGGER DOES NOT COUNT AS OUTSIDE. Without this, pressing
+         the ··· with the menu open closes it on the pointerdown and the
+         click behind it opens it again: it closes and opens in the same
+         gesture, and nothing happens on screen. The toggle belongs to
+         the trigger's click; this handler looks at the rest of the page.
 
-         Es la misma línea que ya tenía el selector de Device en
-         ficha.tsx, con el otro rol de popup. El clic derecho no tiene
-         disparador, así que para él esto no existe. */
+         It is the same line the Device picker already had in
+         details.tsx, with the other popup role. The right click has no
+         trigger, so for it this does not exist. */
       if (t.closest?.('[aria-haspopup="menu"]')) return;
-      if (!caja.current?.contains(t)) onCerrar();
+      if (!box.current?.contains(t)) onClose();
     };
-    document.addEventListener("keydown", tecla);
-    document.addEventListener("pointerdown", fuera, true);
-    window.addEventListener("scroll", onCerrar, true);
-    window.addEventListener("resize", onCerrar);
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", outside, true);
+    window.addEventListener("scroll", onClose, true);
+    window.addEventListener("resize", onClose);
     return () => {
-      document.removeEventListener("keydown", tecla);
-      document.removeEventListener("pointerdown", fuera, true);
-      window.removeEventListener("scroll", onCerrar, true);
-      window.removeEventListener("resize", onCerrar);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", outside, true);
+      window.removeEventListener("scroll", onClose, true);
+      window.removeEventListener("resize", onClose);
     };
-  }, [donde, onCerrar]);
+  }, [where, onClose]);
 
-  /* NO SE DESMONTA AL CERRAR: se apaga. Antes era `if (!donde) return
-     null` y por eso los 120ms de salida que están escritos en el CSS no
-     corrían nunca —el nodo ya no estaba—. Ahora el que manda es
-     `data-abierto`, que es contra lo que el CSS ya estaba escrito.
-     `pos` no se toca al cerrar (el efecto de arriba sale temprano si no
-     hay `donde`), así que el menú se va desde donde estaba y no salta
-     a la esquina. */
+  /* IT DOES NOT UNMOUNT ON CLOSE: it turns off. It used to be `if
+     (!where) return null` and that is why the 120ms of exit written in
+     the CSS never ran, the node was already gone. Now what rules is
+     `data-open`, which is what the CSS was already written against.
+     `pos` is not touched on close (the effect above returns early if
+     there is no `where`) so the menu leaves from where it was and does
+     not jump to the corner. */
   return (
     <div
-      ref={caja}
+      ref={box}
       className={css.menu}
-      data-abierto={donde ? "" : undefined}
+      data-open={where ? "" : undefined}
       role="menu"
-      aria-label={etiqueta}
-      style={{ left: pos.left, top: pos.top, transformOrigin: pos.origen }}
+      aria-label={label}
+      style={{ left: pos.left, top: pos.top, transformOrigin: pos.origin }}
     >
       {items.map((it) => (
-        /* El Fragment existe para la hairline: es hermana del ítem, no
-           parte de él, porque separa DOS ítems y no pertenece a
-           ninguno. Con un ::before adentro del botón el hover la
-           pintaría también. */
-        <Fragment key={it.texto}>
-          {it.destructivo && <div className={css.regla} aria-hidden="true" />}
+        /* The Fragment exists for the hairline: it is the item's
+           sibling, not part of it, because it separates TWO items and
+           belongs to neither. With a ::before inside the button the
+           hover would paint it too. */
+        <Fragment key={it.text}>
+          {it.destructive && <div className={css.separator} aria-hidden="true" />}
           <button
             className={css.item}
             role="menuitem"
-            data-destructivo={it.destructivo ? "" : undefined}
+            data-destructive={it.destructive ? "" : undefined}
             onClick={() => {
-              onCerrar();
-              it.hacer();
+              onClose();
+              it.action();
             }}
           >
-            {it.texto}
+            {it.text}
           </button>
         </Fragment>
       ))}
@@ -271,45 +275,46 @@ export function Menu({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EL ↗ DE LA BARRA — la única acción del clip que se promueve a ícono.
+   THE ↗ IN THE BAR — the only clip action promoted to an icon.
 
-   Las tres cosas que se pueden hacer con un clip vivían sólo en el clic
-   derecho, o sea que no existían: un menú contextual no anuncia nada,
-   hay que saber que está. Dos de las tres se resolvieron poniendo el
-   menú en el título; ésta sube a control permanente.
+   The three things you can do with a clip lived only in the right
+   click, that is, they did not exist: a context menu announces nothing,
+   you have to know it is there. Two of the three got solved by putting
+   the menu in the title; this one goes up to a permanent control.
 
-   ─── POR QUÉ ÉSTA Y NO OTRA ───
-   Es la única que no es sobre la identidad ni la existencia del
-   archivo: renombrar y la papelera son del documento, y por eso viven
-   en su menú. Ésta te LLEVA a otro lado, y además es la única de las
-   tres que no tiene consecuencia — mandarla mil veces no rompe nada.
-   Un ícono permanente es para lo que se aprieta sin pensar.
+   ─── WHY THIS ONE AND NOT ANOTHER ───
+   It is the only one that is not about the file's identity or its
+   existence: renaming and the trash belong to the document, and that is
+   why they live in its menu. This one TAKES YOU somewhere else, and it
+   is also the only one of the three with no consequence. Sending it a
+   thousand times breaks nothing. A permanent icon is for what you press
+   without thinking.
 
-   ─── EL BORDE FINAL ───
-   Al lado del toggle del inspector, y no es una lectura nuestra: la HIG
-   de Apple lista qué vive ahí —Toolbars › Item groupings, "Trailing
-   edge"—, los ítems importantes que tienen que seguir disponibles y los
-   botones que abren inspectores cercanos. Las dos cosas que hay ahí
-   están en esa oración, y son además las únicas que NO se colapsan al
-   menú de desborde cuando la ventana se achica.
+   ─── THE TRAILING EDGE ───
+   Next to the inspector toggle, and it is not a reading of ours:
+   Apple's HIG lists what lives there (Toolbars › Item groupings,
+   "Trailing edge"), the important items that have to stay available and
+   the buttons that open nearby inspectors. The two things that are
+   there are in that sentence, and they are also the only ones that do
+   NOT collapse into the overflow menu when the window shrinks.
 
-   El toggle va último, contra el riel: la misma página ancla el de
-   sidebar al "far leading edge", y éste es su espejo. Y es el que se
-   aprieta repetido, así que es el que no puede moverse de lugar.
+   The toggle goes last, against the rail: that same page anchors the
+   sidebar one to the "far leading edge", and this is its mirror. And it
+   is the one you press repeatedly, so it is the one that cannot move.
 
-   ─── EL DIBUJO ───
-   arrow.up.forward.square: una caja abierta por la esquina y una flecha
-   que se va. Dice las dos cosas que hace la acción — llevar el clip y
-   llevarte a vos. Sin borde alrededor, que es lo que pide la HIG porque
-   la sección ya hace de contenedor.
+   ─── THE DRAWING ───
+   arrow.up.forward.square: a box open at the corner and an arrow
+   leaving. It says the two things the action does, take the clip and
+   take you. With no border around it, which is what the HIG asks for
+   because the section already acts as a container.
    ═══════════════════════════════════════════════════════════════ */
-export function BotonPlayground({ onIr }: { onIr: () => void }) {
+export function PlaygroundButton({ onOpen }: { onOpen: () => void }) {
   return (
     <button
-      className={css.disparador}
+      className={css.trigger}
       aria-label="Open in playground"
       title="Open in playground"
-      onClick={onIr}
+      onClick={onOpen}
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <g
@@ -327,361 +332,369 @@ export function BotonPlayground({ onIr }: { onIr: () => void }) {
   );
 }
 
-export function MenuClip({
+export function ClipMenu({
   clip,
-  donde,
-  onCerrar,
+  where,
+  onClose,
   onPlayground,
-  onRenombrar,
-  onPapelera,
+  onRename,
+  onTrash,
 }: {
   clip: Clip;
-  donde: Donde;
-  onCerrar: () => void;
-  /* OPCIONAL, y su ausencia es la que saca el ítem. No hay un booleano
-     aparte porque serían dos verdades sobre lo mismo: si no hay a quién
-     llamar, no hay nada que ofrecer.
+  where: Where;
+  onClose: () => void;
+  /* OPTIONAL, and its absence is what takes the item out. There is no
+     separate boolean because they would be two truths about the same
+     thing: if there is nobody to call, there is nothing to offer.
 
-     Quién no lo pasa: el detalle, donde mandar al playground ya es un
-     botón permanente de la barra —ver BotonPlayground—. Repetirlo en el
-     menú sería ofrecer dos veces lo mismo a diez píxeles de distancia.
-     La grilla sí lo pasa: ahí no hay barra, y el clic derecho es el
-     único camino. */
+     Who does not pass it: the detail, where sending to the playground is
+     already a permanent button in the bar (see PlaygroundButton).
+     Repeating it in the menu would be offering the same thing twice ten
+     pixels apart. The grid does pass it: there is no bar there, and the
+     right click is the only way. */
   onPlayground?: () => void;
-  onRenombrar: () => void;
-  onPapelera: () => void;
+  onRename: () => void;
+  onTrash: () => void;
 }) {
-  /* EL ORDEN ES POR CONSECUENCIA, de la más liviana a la más pesada:
-     mandar el clip a un lienzo no lo toca, renombrarlo cambia el
-     archivo, y la papelera se lo lleva. Así lo destructivo queda
-     siempre último y lejos del cursor cuando el menú se abre hacia
-     abajo. La hairline que lo separa la pone el Menu, por la bandera.
+  /* THE ORDER IS BY CONSEQUENCE, from the lightest to the heaviest:
+     sending the clip to a canvas does not touch it, renaming it changes
+     the file, and the trash takes it away. That way the destructive one
+     is always last and far from the cursor when the menu opens
+     downward. The hairline that separates it is put there by the Menu,
+     from the flag.
 
-     ADD TO EXHIBITION NO ESTÁ, y estuvo: publicar vivió un día en este
-     menú y se movió al tablero. El vault es lo EXTERNO —referencias que
-     mirás— y publicar es el final del taller, así que el gesto vive
-     donde está tu trabajo: el clic derecho sobre un frame del
-     playground. Ver DialogoPublicar, abajo. */
+     ADD TO EXHIBITION IS NOT HERE, and it was: publishing lived in this
+     menu for a day and moved to the board. The vault is what is
+     EXTERNAL (references you look at) and publishing is the end of the
+     workshop, so the gesture lives where your work is: the right click
+     over a frame in the playground. See PublishDialog, below. */
   return (
     <Menu
-      donde={donde}
-      etiqueta={clip.nombre}
-      onCerrar={onCerrar}
+      where={where}
+      label={clip.name}
+      onClose={onClose}
       items={[
-        /* "Open in playground" y no "Add to playground": lo que hace de
-           verdad es LLEVARTE ahí, con el clip ya puesto. Prometer sólo
-           la mitad del gesto haría que la navegación se sintiera un
-           salto que no pediste. */
+        /* "Open in playground" and not "Add to playground": what it
+           really does is TAKE YOU there, with the clip already placed.
+           Promising only half the gesture would make the navigation
+           feel like a jump you did not ask for. */
         ...(onPlayground
-          ? [{ texto: "Open in Playground", hacer: onPlayground }]
+          ? [{ text: "Open in Playground", action: onPlayground }]
           : []),
-        /* SIN ELIPSIS, Y ES UNA DIVERGENCIA CONSCIENTE.
-           Menus › Labels la pide: "Append an ellipsis to a menu item's
-           label when the action requires more information before it can
-           complete". Renombrar abre un diálogo que pide el nombre, así
-           que le correspondería.
+        /* NO ELLIPSIS, AND IT IS A CONSCIOUS DIVERGENCE.
+           Menus › Labels asks for it: "Append an ellipsis to a menu
+           item's label when the action requires more information before
+           it can complete". Renaming opens a dialog that asks for the
+           name, so it would qualify.
 
-           Se retira igual, por decisión del dueño (2026-08-25). Lo que
-           la elipsis compra —avisar que va a hacer falta un paso más—
-           acá vale poco: este menú tiene DOS ítems y los dos son
-           evidentes, así que el signo agrega ruido tipográfico sin
-           resolver ninguna duda.
+           It is withdrawn anyway, by the owner's decision (2026-08-25).
+           What the ellipsis buys (warning that one more step is going
+           to be needed) is worth little here: this menu has TWO items
+           and both are obvious, so the mark adds typographic noise
+           without settling any doubt.
 
-           Queda anotado porque es lo único de esta barra que sabemos
-           que se aparta de la HIG a propósito, junto con nada más. */
-        { texto: "Rename", hacer: onRenombrar },
-        { texto: "Move to Trash", hacer: onPapelera, destructivo: true },
+           Written down because it is the only thing in this bar that we
+           know departs from the HIG on purpose, along with nothing
+           else. */
+        { text: "Rename", action: onRename },
+        { text: "Move to Trash", action: onTrash, destructive: true },
       ]}
     />
   );
 }
 
-/* Un <dialog> nativo: el foco atrapado, Escape, el fondo inerte y el
-   ::backdrop salen gratis. La animación es la misma del diálogo de
-   subir — overlay y display con allow-discrete más @starting-style.
+/* A native <dialog>: trapped focus, Escape, the inert background and the
+   ::backdrop come free. The animation is the upload dialog's, overlay
+   and display with allow-discrete plus @starting-style.
 
-   Exportado por la misma razón que Menu: los diálogos de la vista del
-   playground son esta caja con otro contenido adentro. La superficie
-   vive acá; lo que dice, en cada uno. */
-export function Dialogo({
-  abierto,
-  onCerrar,
+   Exported for the same reason as Menu: the playground view's dialogs
+   are this box with other content inside. The surface lives here; what
+   it says, in each one. */
+export function Dialog({
+  open,
+  onClose,
   children,
 }: {
-  abierto: boolean;
-  onCerrar: () => void;
+  open: boolean;
+  onClose: () => void;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement | null>(null);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (abierto && !d.open) d.showModal();
-    if (!abierto && d.open) d.close();
-  }, [abierto]);
-  /* Lo que el diálogo DICE también tiene que sobrevivir a su salida.
-     Con `{abierto && children}` el contenido se iba en el primer cuadro
-     y la caja se desvanecía vacía: 180ms de tarjeta en blanco. */
-  const dentro = useUltimo(abierto ? children : null);
+    if (open && !d.open) d.showModal();
+    if (!open && d.open) d.close();
+  }, [open]);
+  /* What the dialog SAYS also has to outlive its exit. With `{open &&
+     children}` the content left on the first frame and the box faded
+     out empty: 180ms of a blank card. */
+  const inside = useLast(open ? children : null);
 
   return (
     <dialog
-      className={`${dlg.dialogo} ${css.corto}`}
+      className={`${dlg.dialog} ${css.narrow}`}
       ref={ref}
-      /* CLIC AFUERA CIERRA. Es el light dismiss del navegador
-         —`closedby="any"`, Chrome 134 / Safari 26 / Firefox 141— y no
-         un listener nuestro: la plataforma ya sabe que un clic que
-         EMPIEZA afuera y TERMINA afuera cierra, y que uno que empieza
-         adentro y se arrastra afuera (seleccionar texto hasta pasarse
-         del borde) no. Escrito a mano eso siempre sale mal.
+      /* A CLICK OUTSIDE CLOSES. It is the browser's light dismiss
+         (`closedby="any"`, Chrome 134 / Safari 26 / Firefox 141) and
+         not a listener of ours: the platform already knows that a click
+         that STARTS outside and ENDS outside closes, and that one that
+         starts inside and gets dragged outside (selecting text past the
+         edge) does not. Written by hand that always comes out wrong.
 
-         Y cierra por el mismo camino que Escape y que el botón Cancel:
-         dispara `close`, que es lo que escucha onClose. Una sola salida
-         para las cuatro formas de cerrar, y la animación es la misma
-         para todas. */
+         And it closes by the same path as Escape and as the Cancel
+         button: it fires `close`, which is what onClose listens to. One
+         single exit for the four ways of closing, and the animation is
+         the same for all of them. */
       closedby="any"
-      onClose={onCerrar}
+      onClose={onClose}
     >
-      {dentro}
+      {inside}
     </dialog>
   );
 }
 
-export function DialogoRenombrar({
+export function RenameDialog({
   clip,
-  abierto,
-  onCerrar,
-  onListo,
+  open,
+  onClose,
+  onDone,
 }: {
   clip: Clip;
-  abierto: boolean;
-  onCerrar: () => void;
-  onListo: (ruta: string) => void;
+  open: boolean;
+  onClose: () => void;
+  onDone: (path: string) => void;
 }) {
-  const [nombre, setNombre] = useState(clip.archivo);
+  const [name, setName] = useState(clip.file);
   const [error, setError] = useState<string | null>(null);
-  const [yendo, setYendo] = useState(false);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (abierto) {
-      setNombre(clip.archivo);
+    if (open) {
+      setName(clip.file);
       setError(null);
     }
-  }, [abierto, clip.archivo]);
+  }, [open, clip.file]);
 
-  const guardar = async () => {
-    if (yendo) return;
-    setYendo(true);
+  const save = async () => {
+    if (busy) return;
+    setBusy(true);
     setError(null);
     try {
-      onListo(await renombrarClip(clip.ruta, nombre));
-      onCerrar();
+      onDone(await renameClip(clip.path, name));
+      onClose();
     } catch (e) {
       setError(String((e as Error).message));
     } finally {
-      setYendo(false);
+      setBusy(false);
     }
   };
 
   return (
-    <Dialogo abierto={abierto} onCerrar={onCerrar}>
-      <h2 className={css.titulo}>Rename clip</h2>
-      {/* La extensión no se muestra ni se edita: la pone el servidor
-          copiándola del archivo, así que renombrar no puede cambiar el
-          tipo. Enseñar un campo que no hace nada sería mentir. */}
-      <p className={css.dice}>
+    <Dialog open={open} onClose={onClose}>
+      <h2 className={css.title}>Rename clip</h2>
+      {/* The extension is neither shown nor edited: the server puts it
+          there copying it from the file, so renaming cannot change the
+          type. Showing a field that does nothing would be lying. */}
+      <p className={css.message}>
         The file keeps its {clip.ext.replace(".", "")} extension.
       </p>
       <input
-        className={css.campo}
-        value={nombre}
+        className={css.field}
+        value={name}
         autoFocus
         aria-label="New name"
-        onChange={(e) => setNombre(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && guardar()}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && save()}
       />
       {error && <p className={css.error}>{error}</p>}
-      <div className={css.pie}>
-        <button className={css.accion} onClick={onCerrar}>
+      <div className={css.footer}>
+        <button className={css.action} onClick={onClose}>
           Cancel
         </button>
         <button
-          className={css.accion}
-          data-fuerte=""
-          disabled={yendo || !nombre.trim() || nombre === clip.archivo}
-          onClick={guardar}
+          className={css.action}
+          data-primary=""
+          disabled={busy || !name.trim() || name === clip.file}
+          onClick={save}
         >
           Rename
         </button>
       </div>
-    </Dialogo>
+    </Dialog>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PUBLICAR — la parte de "esto ya está" del recorrido.
+   PUBLISH — the "this one is done" part of the path.
 
-   Vive en el TABLERO, no en el vault: el vault es lo externo —lo que
-   mirás— y lo que se publica es lo tuyo, que es lo que está en el
-   playground. El clic derecho sobre un frame ofrece Add to Exhibition, y
-   qué pieza sale lo dice el frame: un boceto publica Web viva, una
-   grabación publica App. Por eso NO hay selector de plataforma.
+   It lives on the BOARD, not in the vault: the vault is what is
+   external (what you look at) and what gets published is yours, which
+   is what is in the playground. The right click over a frame offers Add
+   to Exhibition, and which piece comes out is said by the frame: a
+   sketch publishes a live Web one, a recording publishes an App one.
+   That is why there is NO platform picker.
 
-   El formulario es el molde de la pieza y nada más: nombre y una línea
-   de descripción, exactamente los dos renglones del detalle público. El
-   nombre llega puesto —el del boceto o el del clip—; la descripción
-   arranca vacía a propósito, es el único dato que el archivo no sabe de
-   sí mismo.
+   The form is the piece's mold and nothing else: a name and one line of
+   description, exactly the two lines of the public detail. The name
+   arrives filled in (the sketch's or the clip's); the description
+   starts empty on purpose, it is the only value the file does not know
+   about itself.
 
-   AL TERMINAR TE LLEVA A LA PIEZA. No hay toast en este sistema; la
-   confirmación es la página real de la exhibition con el demo andando.
-   Navegación dura a propósito: pieces.ts acaba de cambiar en el disco
-   y recargar es la forma de que TODOS los módulos la vean, sin
-   depender de en qué orden llegue el hot update.
+   WHEN IT FINISHES IT TAKES YOU TO THE PIECE. There is no toast in this
+   system; the confirmation is the real exhibition page with the demo
+   running. A hard navigation on purpose: pieces.ts has just changed on
+   disk and reloading is how ALL the modules see it, without depending
+   on what order the hot update arrives in.
 
-   Este componente no sabe QUÉ publica: recibe el verbo por prop, como
-   Menu recibe sus ítems. Lo que cambia entre las dos ramas —el endpoint
-   y la oración que anticipa qué va a pasar— lo pone el tablero. */
-export function DialogoPublicar({
-  abierto,
-  nombreInicial,
-  dice,
-  hacer,
-  onCerrar,
+   This component does not know WHAT it publishes: it gets the verb by
+   prop, the way Menu gets its items. What changes between the two
+   branches (the endpoint and the sentence that says in advance what is
+   going to happen) is put there by the board. */
+export function PublishDialog({
+  open,
+  initialName,
+  message,
+  publish,
+  onClose,
 }: {
-  abierto: boolean;
-  nombreInicial: string;
-  /* La oración bajo el título: qué va a pasar, dicho antes. */
-  dice: string;
-  hacer: (nombre: string, desc: string) => Promise<string>;
-  onCerrar: () => void;
+  open: boolean;
+  initialName: string;
+  /* The sentence under the title: what is going to happen, said
+     beforehand. */
+  message: string;
+  publish: (name: string, desc: string) => Promise<string>;
+  onClose: () => void;
 }) {
-  const [nombre, setNombre] = useState(nombreInicial);
+  const [name, setName] = useState(initialName);
   const [desc, setDesc] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [yendo, setYendo] = useState(false);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (abierto) {
-      setNombre(nombreInicial);
+    if (open) {
+      setName(initialName);
       setDesc("");
       setError(null);
     }
-  }, [abierto, nombreInicial]);
+  }, [open, initialName]);
 
-  const listo = !yendo && !!nombre.trim() && !!desc.trim();
-  const publicar = async () => {
-    if (!listo) return;
-    setYendo(true);
+  const ready = !busy && !!name.trim() && !!desc.trim();
+  const submit = async () => {
+    if (!ready) return;
+    setBusy(true);
     setError(null);
     try {
-      const slug = await hacer(nombre.trim(), desc.trim());
+      const slug = await publish(name.trim(), desc.trim());
       location.assign("/" + slug);
     } catch (e) {
       setError(String((e as Error).message));
-      setYendo(false);
+      setBusy(false);
     }
   };
 
   return (
-    <Dialogo abierto={abierto} onCerrar={onCerrar}>
-      <h2 className={css.titulo}>Add to Exhibition</h2>
-      <p className={css.dice}>{dice}</p>
+    <Dialog open={open} onClose={onClose}>
+      <h2 className={css.title}>Add to Exhibition</h2>
+      <p className={css.message}>{message}</p>
       <input
-        className={css.campo}
-        value={nombre}
+        className={css.field}
+        value={name}
         autoFocus
         aria-label="Piece name"
-        onChange={(e) => setNombre(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && publicar()}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && submit()}
       />
-      {/* La descripción es el subtítulo del detalle, y el placeholder
-          empuja hacia la regla del copy del sistema: decir qué es o
-          para quién es, nunca lo bien hecha que está. */}
+      {/* The description is the subtitle of the detail, and the
+          placeholder pushes toward the system's copy rule: say what it
+          is or who it is for, never how well made it is. */}
       <input
-        className={css.campo}
+        className={css.field}
         value={desc}
         aria-label="Description"
         placeholder="What it does"
         onChange={(e) => setDesc(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && publicar()}
+        onKeyDown={(e) => e.key === "Enter" && submit()}
       />
       {error && <p className={css.error}>{error}</p>}
-      <div className={css.pie}>
-        <button className={css.accion} onClick={onCerrar}>
+      <div className={css.footer}>
+        <button className={css.action} onClick={onClose}>
           Cancel
         </button>
-        <button className={css.accion} data-fuerte="" disabled={!listo} onClick={publicar}>
+        <button className={css.action} data-primary="" disabled={!ready} onClick={submit}>
           Add
         </button>
       </div>
-    </Dialogo>
+    </Dialog>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MANDAR A LA PAPELERA — SIN PREGUNTAR.
+   MOVE TO THE TRASH — WITHOUT ASKING.
 
-   ─── ACÁ HABÍA UNA CONFIRMACIÓN Y SE RETIRÓ ───
-   Era un <dialog> con "Move «X» to Trash?" y sus dos botones. Lo tira
-   abajo Alerts › Best practices, que es explícito y usa NUESTRO caso de
-   ejemplo: no muestres un alert para acciones destructivas COMUNES Y
-   REVERSIBLES — su ejemplo es borrar un archivo, porque la gente lo hace
-   con la intención de descartar y lo puede deshacer.
+   ─── THERE WAS A CONFIRMATION HERE AND IT WAS WITHDRAWN ───
+   It was a <dialog> with "Move «X» to Trash?" and its two buttons. What
+   knocks it down is Alerts › Best practices, which is explicit and uses
+   OUR case as the example: do not show an alert for destructive actions
+   that are COMMON AND REVERSIBLE. Its example is deleting a file,
+   because people do it meaning to discard and they can undo it.
 
-   El clip va a la papelera del SISTEMA (ver el endpoint __papelera): no
-   se pierde, se mueve. La premisa se cumple, y la pregunta era un peaje
-   sin causa.
+   The clip goes to the SYSTEM trash (see the __trash endpoint): it is
+   not lost, it is moved. The premise holds, and the question was a toll
+   with no cause.
 
-   Y LA ADVERTENCIA NO DESAPARECIÓ, CAMBIÓ DE MOMENTO: antes llegaba
-   después del clic; ahora llega antes, porque el ítem se ve rojo en el
-   menú. Eso es lo que hace que sacar el diálogo no sea sacar el aviso.
+   AND THE WARNING DID NOT DISAPPEAR, IT CHANGED MOMENT: before it
+   arrived after the click; now it arrives before, because the item
+   looks red in the menu. That is what makes taking the dialog out not
+   the same as taking the warning out.
 
-   ─── LO QUE NO ES CEREMONIA Y SE QUEDA ───
-   El error. La misma página dice que un alert SÍ sirve para contar un
-   problema, y aPapelera puede fallar —permisos, el archivo movido por
-   abajo, el servidor caído—. Sin esto un fallo sería silencioso, que es
-   peor que preguntar de más: creerías que borraste algo que sigue ahí.
+   ─── WHAT IS NOT CEREMONY AND STAYS ───
+   The error. That same page says an alert IS good for telling you about
+   a problem, and trashClip can fail (permissions, the file moved
+   underneath, the server down). Without this a failure would be silent,
+   which is worse than asking too much: you would believe you deleted
+   something that is still there.
 
-   Por eso lo que queda NO es el diálogo de confirmación con otro texto:
-   es otra cosa, con un solo botón y sin decisión que tomar.
+   That is why what stays is NOT the confirmation dialog with different
+   text: it is another thing, with one button and no decision to take.
 
-   ─── DÓNDE NOS QUEDAMOS CORTOS, DICHO ───
-   El criterio de Apple es "¿lo pueden deshacer?", y acá se deshace en
-   el FINDER, no en la app. El patrón completo sería borrar sin preguntar
-   Y ofrecer un undo adentro — que hoy no tiene dónde vivir, porque este
-   sistema no tiene toast ni barra de estado. Cuando exista esa
-   superficie, éste es su primer cliente.
+   ─── WHERE WE FALL SHORT, SAID OUT LOUD ───
+   Apple's criterion is "can they undo it?", and here you undo it in the
+   FINDER, not in the app. The complete pattern would be deleting
+   without asking AND offering an undo inside, which today has nowhere
+   to live, because this system has no toast and no status bar. When
+   that surface exists, this is its first client.
    ═══════════════════════════════════════════════════════════════ */
-export function AvisoPapelera({
+export function TrashNotice({
   error,
-  onCerrar,
+  onClose,
 }: {
   error: string | null;
-  onCerrar: () => void;
+  onClose: () => void;
 }) {
   return (
-    <Dialogo abierto={!!error} onCerrar={onCerrar}>
-      {/* EL TÍTULO DICE QUÉ PASÓ, no "Error": la HIG pide describir la
-          situación y advierte contra los títulos que no informan nada
-          —"Error", "Error 329347 occurred"—. */}
-      <h2 className={css.titulo}>Couldn't move the clip to Trash</h2>
-      <p className={css.dice}>{error}</p>
-      <div className={css.pie}>
-        {/* Un solo botón, y dice Done y no OK: la HIG pide Done cuando
-            hay una sola salida y nada que decidir. */}
-        <button className={css.accion} data-fuerte="" onClick={onCerrar}>
+    <Dialog open={!!error} onClose={onClose}>
+      {/* THE TITLE SAYS WHAT HAPPENED, not "Error": the HIG asks you to
+          describe the situation and warns against titles that inform
+          nothing ("Error", "Error 329347 occurred"). */}
+      <h2 className={css.title}>Couldn't move the clip to Trash</h2>
+      <p className={css.message}>{error}</p>
+      <div className={css.footer}>
+        {/* One button, and it says Done and not OK: the HIG asks for
+            Done when there is a single way out and nothing to decide. */}
+        <button className={css.action} data-primary="" onClick={onClose}>
           Done
         </button>
       </div>
-    </Dialogo>
+    </Dialog>
   );
 }
 
-/* El gesto en sí. Vive acá y no en el vault porque es de este archivo
-   —lo que se puede hacer con un clip— y porque el que llama sólo
-   necesita saber una cosa: si hubo error. Nunca tira. */
-export async function mandarAPapelera(clip: Clip): Promise<string | null> {
+/* The gesture itself. It lives here and not in the vault because it
+   belongs to this file (what you can do with a clip) and because the
+   caller only needs to know one thing: whether there was an error. It
+   never throws. */
+export async function sendToTrash(clip: Clip): Promise<string | null> {
   try {
-    await aPapelera(clip.ruta);
+    await trashClip(clip.path);
     return null;
   } catch (e) {
     return String((e as Error).message);

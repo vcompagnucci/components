@@ -1,72 +1,72 @@
 /* ═══════════════════════════════════════════════════════════════
-   EL PUENTE AL VAULT — sirve una carpeta que vive FUERA del repo.
+   THE BRIDGE TO THE VAULT. It serves a folder that lives OUTSIDE the
+   repo.
 
-   Los clips no entran a git. Ni uno. Viven en una carpeta tuya —puede
-   ser tu Obsidian— y este plugin la sirve en /vault-media/ mientras
-   corre el servidor de desarrollo.
+   The clips do not go into git. Not one. They live in a folder of
+   yours, which can be your Obsidian, and this plugin serves it at
+   /vault-media/ while the development server is running.
 
-   apply:'serve' es la puerta: vite build ni siquiera instancia el
-   plugin, así que en producción /vault-media/ no existe. Es el mismo
-   mecanismo que la puerta de src/privado/, del lado del servidor.
+   apply:'serve' is the gate: vite build does not even instantiate the
+   plugin, so in production /vault-media/ does not exist. It is the
+   same mechanism as the gate on src/private/, on the server side.
 
-   LA CARPETA SALE DE .env.local, en VAULT_DIR. Sin prefijo VITE_ a
-   propósito: con ese prefijo Vite la hornearía en el bundle del
-   cliente, y la ruta de tu disco no tiene por qué viajar a ningún
-   lado. Acá sólo la lee Node.
+   THE FOLDER COMES FROM .env.local, in VAULT_DIR. Without the VITE_
+   prefix on purpose: with that prefix Vite would bake it into the
+   client bundle, and the path on your disk has no business travelling
+   anywhere. Here only Node reads it.
 
-   ─── LAS TRES GUARDAS ───
+   ─── THE THREE GUARDS ───
 
-   1 · LISTA BLANCA DE EXTENSIONES, no lista negra. Sólo se sirve lo
-       que está en TIPOS: video e imagen. Esto importa de verdad si
-       VAULT_DIR apunta a tu Obsidian, porque ahí adentro están todas
-       tus notas: un .md no se sirve nunca, y no porque lo bloquee una
-       regla sino porque no está en la lista de lo que sí.
+   1 · AN ALLOWLIST OF EXTENSIONS, not a blocklist. Only what is in
+       MEDIA_TYPES gets served: video and image. This matters for real
+       if VAULT_DIR points at your Obsidian, because all your notes are
+       in there: a .md is never served, and not because a rule blocks
+       it but because it is not on the list of what does get served.
 
-   2 · NADA OCULTO. Cualquier cosa que empiece con punto queda afuera,
-       en la lista y al servir: .obsidian/, .trash/, .git/, .DS_Store.
+   2 · NOTHING HIDDEN. Anything starting with a dot is out, both in the
+       listing and when serving: .obsidian/, .trash/, .git/, .DS_Store.
 
-   3 · LA RUTA REAL TIENE QUE SEGUIR ADENTRO. Se resuelve con
-       realpathSync —no con resolve a secas— así que un symlink que
-       apunte afuera de la carpeta tampoco pasa. El costo es que un
-       symlink legítimo hacia adentro tampoco funciona; se prefirió
-       que falle de forma visible antes que exponer de forma
-       silenciosa.
+   3 · THE REAL PATH HAS TO STAY INSIDE. It is resolved with
+       realpathSync, not with plain resolve, so a symlink pointing out
+       of the folder does not get through either. The cost is that a
+       legitimate symlink pointing inward does not work either; failing
+       visibly was preferred over exposing silently.
 
-   ─── POR QUÉ HAY SOPORTE DE RANGE ───
+   ─── WHY THERE IS RANGE SUPPORT ───
 
-   Sin él el reproductor no sirve para lo que se lo quiere usar. Un
-   <video> pide bytes sueltos para buscar; si el servidor contesta
-   siempre el archivo entero desde el byte cero, Chrome no puede
-   saltar a un momento y Safari directamente no reproduce. Y todo el
-   punto del vault es poder ir al cuadro exacto donde arranca un
-   gesto. Por eso el rango se implementa acá y no en la fase 4: es
-   condición del transporte, no del reproductor.
+   Without it the player is useless for what it is meant for. A <video>
+   asks for loose bytes to seek; if the server always answers with the
+   whole file from byte zero, Chrome cannot jump to a moment and Safari
+   does not play at all. And the whole point of the vault is being able
+   to reach the exact frame where a gesture starts. That is why the
+   range is implemented here and not in phase 4: it is a condition of
+   the transport, not of the player.
    ═══════════════════════════════════════════════════════════════ */
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { cuadroDe } from './frames.mjs'
-import { tarjetaDe } from './link-card.mjs'
-/* La MISMA cuenta que usan la página y rutas.mjs. Publicar nombra el
-   archivo del video con el slug de la pieza, así que si acá viviera
-   una copia, la URL y el archivo podrían divergir en silencio. */
-import { slug as slugDePieza } from '../src/pieces.ts'
+import { frameStepOf } from './frames.mjs'
+import { linkCardOf } from './link-card.mjs'
+/* The SAME count the page and routes.mjs use. Publishing names the
+   video file with the piece's slug, so if a copy lived here the URL
+   and the file could drift apart in silence. */
+import { slug } from '../src/pieces.ts'
 
-/* Los cuadros se leen del contenedor UNA vez por archivo. La clave lleva
-   tamaño y mtime, así que reemplazar un clip lo vuelve a leer solo y no
-   hay forma de quedarse con el dato viejo. */
-const cacheCuadros = new Map()
-function cuadrosDe(abs, s) {
-  const clave = `${abs}:${s.size}:${s.mtimeMs}`
-  if (cacheCuadros.has(clave)) return cacheCuadros.get(clave)
-  const r = cuadroDe(abs)
-  cacheCuadros.set(clave, r)
+/* The frames are read out of the container ONCE per file. The key
+   carries size and mtime, so replacing a clip re-reads it by itself
+   and there is no way to keep the stale value. */
+const frameStepCache = new Map()
+function readFrameStep(abs, stats) {
+  const key = `${abs}:${stats.size}:${stats.mtimeMs}`
+  if (frameStepCache.has(key)) return frameStepCache.get(key)
+  const r = frameStepOf(abs)
+  frameStepCache.set(key, r)
   return r
 }
 
-/* La lista blanca. Lo que no está acá no se sirve. */
-const TIPOS = {
+/* The allowlist. What is not here does not get served. */
+const MEDIA_TYPES = {
   '.mp4': 'video/mp4',
   '.m4v': 'video/x-m4v',
   '.mov': 'video/quicktime',
@@ -81,347 +81,400 @@ const TIPOS = {
 
 const VIDEO = new Set(['.mp4', '.m4v', '.mov', '.webm'])
 
-/* Hasta acá baja el recorrido. Es un tope contra un árbol
-   patológico —un Obsidian grande, un symlink circular— no una
-   decisión de diseño: cuatro niveles alcanzan de sobra para
-   nativo/2026/algo.mp4. */
-const HONDO = 4
+/* This is as far down as the walk goes. It is a stop against a
+   pathological tree, a big Obsidian, a circular symlink, and not a
+   design decision: four levels are plenty for
+   nativo/2026/something.mp4. */
+const MAX_DEPTH = 4
 
-const oculto = (nombre) => nombre.startsWith('.')
+const isHidden = (name) => name.startsWith('.')
 
-/* ═══════════ LAS FICHAS ═══════════
-   Lo que escribís vos sobre un clip: qué es, de dónde salió, en qué
-   dispositivo. Va en UN SOLO archivo en la raíz del vault, y no en un
-   sidecar por clip, por dos razones:
+/* ═══════════ THE DETAILS ═══════════
+   What you write about a clip: what it is, where it came from, on
+   which device. It goes in ONE file at the root of the vault, and not
+   in a sidecar per clip, for two reasons:
 
-     1. si el vault es tu Obsidian, un .json al lado de cada video te
-        duplica la carpeta y te aparece en las búsquedas
-     2. empieza con punto, así que ya está afuera de todo lo que se
-        sirve — la misma guarda que cierra .obsidian y .trash
+     1. if the vault is your Obsidian, a .json next to every video
+        doubles your folder and shows up in your searches
+     2. it starts with a dot, so it is already outside everything that
+        gets served, the same guard that shuts out .obsidian and .trash
 
-   La clave es la ruta relativa del clip. Si movés un archivo de
-   carpeta, su ficha queda huérfana: es el costo de no meter metadatos
-   adentro del archivo, y se prefiere a tocar tus originales. */
-const FICHAS = '.lima-vault.json'
+   The key is the clip's relative path. If you move a file to another
+   folder, its details are orphaned: that is the price of not putting
+   metadata inside the file, and it is preferred over touching your
+   originals. */
+const DETAILS_FILE = '.lima-vault.json'
 
-const FICHA_CAMPOS = ['notes', 'source', 'device']
+const DETAILS_FIELDS = ['notes', 'source', 'device']
 
-/* ═══════════ LAS VISTAS DEL PLAYGROUND ═══════════
-   Un archivo aparte de las fichas, y no un campo más adentro de ellas:
-   una ficha describe UN clip y vive atada a su ruta, mientras que una
-   vista es un lienzo con varias cosas encima. Meterlas juntas ataría el
-   borrado de un clip al borrado de un lienzo.
+/* ═══════════ THE PLAYGROUND VIEWS ═══════════
+   A separate file from the details, and not one more field inside
+   them: the details describe ONE clip and live tied to its path, while
+   a view is a canvas with several things on it. Putting them together
+   would tie deleting a clip to deleting a canvas.
 
-   Va al lado, en la raíz del vault y empezando con punto, por las mismas
-   dos razones que las fichas: no ensucia tu carpeta y ya queda afuera de
-   todo lo que se sirve.
+   It goes right next to it, at the root of the vault and starting with
+   a dot, for the same two reasons as the details: it does not litter
+   your folder and it is already outside everything that gets served.
 
-   EL CLIENTE MANDA EL DOCUMENTO ENTERO y el servidor lo sanea. Es la
-   forma más simple que funciona para una herramienta de un solo usuario
-   en desarrollo; con dos pestañas abiertas, la última que guarda gana.
-   Queda dicho para el día que moleste. */
-const VISTAS = '.lima-playground.json'
-const TIPOS_FRAME = new Set(['pieza', 'clip', 'boceto'])
-const MAX_VISTAS = 200
+   THE CLIENT SENDS THE WHOLE DOCUMENT and the server sanitizes it. It
+   is the simplest thing that works for a single-user tool in
+   development; with two tabs open, the last one to save wins. Written
+   down here for the day it starts to hurt. */
+const VIEWS_FILE = '.lima-playground.json'
+const FRAME_KINDS = new Set(['piece', 'clip', 'sketch'])
+const MAX_VIEWS = 200
 const MAX_FRAMES = 60
-const LARGO_REF = 600
+const MAX_REF_LENGTH = 600
 
-/* Todo lo que entra pasa por acá. Lo que no se reconoce NO se guarda: es
-   la misma regla que la ficha, que descarta los campos de más en vez de
-   escribirlos. */
-const num = (v, min, max, porDefecto) =>
-  typeof v === 'number' && Number.isFinite(v) ? Math.min(Math.max(v, min), max) : porDefecto
-const texto = (v, largo) => (typeof v === 'string' ? v.slice(0, largo) : '')
+/* ─── ON DISK THE KEYS ARE STILL IN SPANISH ───
+   The file is yours and it was written before the repo was translated.
+   Renaming its keys would rewrite a document nobody asked to have
+   rewritten, and the only thing it would buy is two names matching.
+   So the translation happens here, at the edge: what leaves this file
+   is English, and what lands on disk is what was already there. */
+const KIND_FROM_DISK = { pieza: 'piece', clip: 'clip', boceto: 'sketch' }
+const KIND_TO_DISK = { piece: 'pieza', clip: 'clip', sketch: 'boceto' }
 
-function sanearVistas(d) {
+const viewFromDisk = (v) => ({
+  id: v?.id,
+  name: v?.nombre,
+  created: v?.creada,
+  frames: (Array.isArray(v?.frames) ? v.frames : []).map((f) => ({
+    id: f?.id,
+    kind: KIND_FROM_DISK[f?.tipo],
+    ref: f?.ref,
+    x: f?.x,
+    y: f?.y,
+    width: f?.ancho,
+    height: f?.alto,
+  })),
+})
+
+const viewsFromDisk = (d) => (Array.isArray(d) ? d.map(viewFromDisk) : [])
+
+const viewToDisk = (v) => ({
+  id: v.id,
+  nombre: v.name,
+  creada: v.created,
+  frames: v.frames.map((f) => ({
+    id: f.id,
+    tipo: KIND_TO_DISK[f.kind],
+    ref: f.ref,
+    x: f.x,
+    y: f.y,
+    ancho: f.width,
+    alto: f.height,
+  })),
+})
+
+/* Everything coming in goes through here. What is not recognised does
+   NOT get stored: it is the same rule as the details, which drop the
+   extra fields instead of writing them. */
+const clampNumber = (v, min, max, fallback) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(Math.max(v, min), max) : fallback
+const clampText = (v, length) => (typeof v === 'string' ? v.slice(0, length) : '')
+
+function sanitizeViews(d) {
   if (!Array.isArray(d)) return []
-  return d.slice(0, MAX_VISTAS).map((v) => ({
-    id: texto(v?.id, 64),
-    nombre: texto(v?.nombre, 200),
-    creada: num(v?.creada, 0, Number.MAX_SAFE_INTEGER, 0),
+  return d.slice(0, MAX_VIEWS).map((v) => ({
+    id: clampText(v?.id, 64),
+    name: clampText(v?.name, 200),
+    created: clampNumber(v?.created, 0, Number.MAX_SAFE_INTEGER, 0),
     frames: (Array.isArray(v?.frames) ? v.frames : []).slice(0, MAX_FRAMES).map((f) => ({
-      id: texto(f?.id, 64),
-      tipo: TIPOS_FRAME.has(f?.tipo) ? f.tipo : 'clip',
-      ref: texto(f?.ref, LARGO_REF),
-      /* El lienzo es infinito pero no tanto: un valor absurdo mandado a
-         mano dejaría un frame imposible de encontrar. */
-      x: num(f?.x, -100000, 100000, 0),
-      y: num(f?.y, -100000, 100000, 0),
-      ancho: num(f?.ancho, 40, 8000, 400),
-      alto: num(f?.alto, 40, 8000, 300),
+      id: clampText(f?.id, 64),
+      kind: FRAME_KINDS.has(f?.kind) ? f.kind : 'clip',
+      ref: clampText(f?.ref, MAX_REF_LENGTH),
+      /* The canvas is infinite but not that infinite: an absurd value
+         sent by hand would leave a frame impossible to find. */
+      x: clampNumber(f?.x, -100000, 100000, 0),
+      y: clampNumber(f?.y, -100000, 100000, 0),
+      width: clampNumber(f?.width, 40, 8000, 400),
+      height: clampNumber(f?.height, 40, 8000, 300),
     })),
   })).filter((v) => v.id)
 }
-const LARGO_MAX = 4000
+const MAX_FIELD_LENGTH = 4000
 
-/* ═══════════ SUBIR UN CLIP ═══════════
-   El único camino del puente que crea archivos NUEVOS en tu carpeta, así
-   que las guardas van todas ANTES de tocar el disco y en este orden:
+/* ═══════════ UPLOAD A CLIP ═══════════
+   The only path in the bridge that creates NEW files in your folder,
+   so the guards all go BEFORE touching the disk, and in this order:
 
-     1. la fuente sale de una lista de dos, no del cliente
-     2. el nombre pasa por basename, que le arranca cualquier separador
-     3. nada que empiece con punto — la misma regla que ya esconde
-        .obsidian y .trash, ahora del lado de la escritura
-     4. la extensión tiene que estar en la MISMA lista blanca con la que
-        se sirve. Si no se puede servir, no se puede subir
-     5. el tamaño se corta mientras entra, no cuando ya está en memoria
-     6. no se pisa nada nunca: si el nombre está tomado, se numera
-     7. escritura atómica, igual que los .json
+     1. the source comes from a list of two, not from the client
+     2. the name goes through basename, which strips any separator
+     3. nothing starting with a dot, the same rule that already hides
+        .obsidian and .trash, now on the writing side
+     4. the extension has to be on the SAME allowlist used to serve. If
+        it cannot be served, it cannot be uploaded
+     5. the size is cut while it comes in, not once it is in memory
+     6. nothing is ever overwritten: if the name is taken, it gets
+        numbered
+     7. atomic write, same as the .json files
 
-   `dentro()` NO sirve para el destino: usa realpathSync y el archivo
-   todavía no existe. Lo que se valida es la CARPETA —que existe, o se
-   crea— y que el nombre no pueda salirse de ella.
+   `inside()` is NO good for the target: it uses realpathSync and the
+   file does not exist yet. What gets validated is the FOLDER, that it
+   exists or gets created, and that the name cannot escape it.
 
-   LA FUENTE ES UNA DE DOS y el servidor la traduce a la carpeta que YA
-   tengas: si tu vault dice "nativo" se escribe ahí, y no se te crea una
-   "native" al lado. La app se adapta a tu disco y no al revés — la misma
-   razón por la que el índice acepta las dos ortografías. */
-const FUENTES = {
+   THE SOURCE IS ONE OF TWO and the server translates it to the folder
+   you ALREADY have: if your vault says "nativo" it writes there, and
+   you do not get a "native" created next to it. The app adapts to your
+   disk and not the other way around, the same reason the index accepts
+   both spellings. */
+const SOURCE_FOLDERS = {
   native: ['native', 'nativo'],
   web: ['web'],
 }
-const PESO_MAX = 512 * 1024 * 1024
+const MAX_UPLOAD_BYTES = 512 * 1024 * 1024
 
-/* La carpeta donde va a caer, creándola si hace falta. Devuelve null si
-   la fuente no es una de las dos. */
-function carpetaDe(raiz, fuente) {
-  const opciones = FUENTES[fuente]
-  if (!opciones) return null
-  for (const nombre of opciones) {
-    const abs = path.join(raiz, nombre)
-    if (dentro(raiz, abs) && fs.statSync(abs).isDirectory()) return abs
+/* The folder it is going to land in, created if needed. Returns null
+   if the source is not one of the two. */
+function folderOfSource(root, source) {
+  const options = SOURCE_FOLDERS[source]
+  if (!options) return null
+  for (const name of options) {
+    const abs = path.join(root, name)
+    if (inside(root, abs) && fs.statSync(abs).isDirectory()) return abs
   }
-  /* Ninguna existe todavía: se crea la canónica, la primera de la lista. */
-  const abs = path.join(raiz, opciones[0])
+  /* None of them exists yet: the canonical one gets created, the first
+     on the list. */
+  const abs = path.join(root, options[0])
   fs.mkdirSync(abs, { recursive: true })
-  return dentro(raiz, abs)
+  return inside(root, abs)
 }
 
-/* El nombre, saneado. Devuelve null si no queda nada usable.
+/* The name, sanitized. Returns null if nothing usable is left.
 
-   basename se lleva puesto cualquier separador, así que "../../x.mp4"
-   queda en "x.mp4" y "/etc/passwd.mp4" en "passwd.mp4". Después se
-   rechaza lo que empiece con punto, que cubre "..", ".env" y el
-   "..\\..\\x" que en posix basename no toca porque la barra invertida
-   no es separador acá. */
-function nombreSano(crudo) {
-  if (typeof crudo !== 'string') return null
-  const base = path.basename(crudo.replace(/\0/g, '')).trim()
+   basename takes any separator with it, so "../../x.mp4" ends up as
+   "x.mp4" and "/etc/passwd.mp4" as "passwd.mp4". Then anything
+   starting with a dot is rejected, which covers "..", ".env" and the
+   "..\\..\\x" that posix basename leaves alone because the backslash
+   is not a separator here. */
+function safeFileName(raw) {
+  if (typeof raw !== 'string') return null
+  const base = path.basename(raw.replace(/\0/g, '')).trim()
   if (!base || base.startsWith('.')) return null
   if (base.includes('/') || base.includes('\\')) return null
   if (base.length > 200) return null
-  if (!TIPOS[path.extname(base).toLowerCase()]) return null
+  if (!MEDIA_TYPES[path.extname(base).toLowerCase()]) return null
   return base
 }
 
-/* Un nombre libre en esa carpeta. No se pisa NUNCA: subir dos veces algo
-   que se llama igual te deja los dos, y el que ya estaba no se toca. */
-/* EL NOMBRE QUE ESCRIBÍS AL RENOMBRAR.
-   Distinto de nombreSano: eso valida un archivo entrante y exige una
-   extensión de la lista blanca. Acá lo que llega es un NOMBRE PARA
-   LEER, sin extensión, y la extensión la pone el servidor copiándola
-   del archivo original. Así renombrar no puede cambiar el tipo de un
-   archivo — que es exactamente el agujero que abriría dejar pasar la
-   extensión del cliente. */
-function baseSana(crudo) {
-  if (typeof crudo !== 'string') return null
-  const crudoLimpio = crudo.replace(/\0/g, '').trim()
-  /* El separador se rechaza ANTES de normalizar, no después. Con
-     basename primero, "../fuera" se convertía en "fuera" y pasaba: el
-     archivo no escapaba —la normalización lo impide— pero aceptar en
-     silencio un nombre con traversal adentro es sorprender al que lo
-     escribió. Si trae separadores, es un no. */
-  if (crudoLimpio.includes('/') || crudoLimpio.includes('\\')) return null
-  let base = path.basename(crudoLimpio).trim()
+/* A free name in that folder. Nothing is EVER overwritten: uploading
+   the same thing twice leaves you both, and the one already there is
+   not touched. */
+/* THE NAME YOU TYPE WHEN RENAMING.
+   Different from safeFileName: that one validates an incoming file and
+   demands an extension from the allowlist. What arrives here is a NAME
+   TO READ, without an extension, and the extension is put on by the
+   server, copied from the original file. That way renaming cannot
+   change the type of a file, which is exactly the hole that letting
+   the client's extension through would open. */
+function safeBaseName(raw) {
+  if (typeof raw !== 'string') return null
+  const clean = raw.replace(/\0/g, '').trim()
+  /* The separator is rejected BEFORE normalizing, not after. With
+     basename first, "../outside" turned into "outside" and got
+     through: the file did not escape, normalization prevents that, but
+     silently accepting a name with traversal inside it surprises the
+     person who typed it. If it brings separators, it is a no. */
+  if (clean.includes('/') || clean.includes('\\')) return null
+  let base = path.basename(clean).trim()
   if (!base || base.startsWith('.')) return null
-  /* Si escribiste la extensión igual, se saca: si no, "sheet.mov"
-     terminaría siendo "sheet.mov.mov". */
+  /* If you typed the extension too, it comes off: otherwise
+     "sheet.mov" would end up as "sheet.mov.mov". */
   const ext = path.extname(base).toLowerCase()
-  if (TIPOS[ext]) base = base.slice(0, -ext.length).trim()
+  if (MEDIA_TYPES[ext]) base = base.slice(0, -ext.length).trim()
   if (!base || base.startsWith('.')) return null
   if (base.length > 180) return null
   return base
 }
 
-function libre(carpeta, base) {
+function freeName(folder, base) {
   const ext = path.extname(base)
-  const raiz = path.basename(base, ext)
+  const stem = path.basename(base, ext)
   for (let i = 0; i < 1000; i++) {
-    const nombre = i === 0 ? base : `${raiz} ${i + 1}${ext}`
-    if (!fs.existsSync(path.join(carpeta, nombre))) return nombre
+    const name = i === 0 ? base : `${stem} ${i + 1}${ext}`
+    if (!fs.existsSync(path.join(folder, name))) return name
   }
   return null
 }
 
-function leerJson(raiz, archivo) {
+function readJson(root, file) {
   try {
-    const t = fs.readFileSync(path.join(raiz, archivo), 'utf8')
+    const t = fs.readFileSync(path.join(root, file), 'utf8')
     const d = JSON.parse(t)
     return d && typeof d === 'object' ? d : {}
   } catch {
-    /* No existe todavía, o alguien lo dejó roto a mano. En los dos
-       casos se arranca de cero en vez de tumbar el índice entero. */
+    /* It does not exist yet, or somebody left it broken by hand. In
+       both cases we start from zero instead of taking down the whole
+       index. */
     return {}
   }
 }
 
-/* Escritura ATÓMICA: a un temporal y después rename. Un write directo
-   que se corta a la mitad —se cierra el servidor, se queda sin disco—
-   deja el archivo truncado y te comés todas las fichas. rename es
-   atómico en el mismo sistema de archivos, así que o está la versión
-   vieja entera o la nueva entera. */
-function escribirJson(raiz, archivo, datos) {
-  const destino = path.join(raiz, archivo)
-  const temp = destino + '.tmp'
-  fs.writeFileSync(temp, JSON.stringify(datos, null, 2) + '\n')
-  fs.renameSync(temp, destino)
+/* ATOMIC write: to a temporary file and then rename. A direct write
+   that gets cut in half, because the server is closed or the disk runs
+   out, leaves the file truncated and you lose all your details. rename
+   is atomic within the same file system, so you get either the whole
+   old version or the whole new one. */
+function writeJson(root, file, data) {
+  const target = path.join(root, file)
+  const temp = target + '.tmp'
+  fs.writeFileSync(temp, JSON.stringify(data, null, 2) + '\n')
+  fs.renameSync(temp, target)
 }
 
-/* LA GUARDA, escrita UNA vez. Devuelve la ruta real si cae adentro del
-   vault, y null si no.
+/* THE GUARD, written ONCE. It returns the real path if it falls inside
+   the vault, and null if it does not.
 
-   Va con realpathSync y no con resolve: resolve normaliza los ".." pero
-   no sigue los symlinks, así que un enlace adentro de la carpeta
-   apuntando afuera lo pasaría de largo.
+   It goes with realpathSync and not with resolve: resolve normalizes
+   the ".." but does not follow symlinks, so a link inside the folder
+   pointing outward would sail past it.
 
-   El separador final del startsWith importa: sin él "/vault-malicioso"
-   pasaría la prueba de "/vault".
+   The trailing separator in the startsWith matters: without it
+   "/vault-malicious" would pass the test for "/vault".
 
-   La usan LOS DOS caminos —listar y servir— y eso no es prolijidad. Al
-   principio sólo la tenía el de servir, y el índice llegó a listar un
-   symlink a /etc/hosts como si fuera un mp4 de 213 bytes: no se podía
-   descargar, pero el tamaño y la fecha del otro lado del enlace ya
-   estaban publicados. Una guarda que no cubre todas las salidas no es
-   una guarda. */
-function dentro(raiz, abs) {
+   BOTH paths use it, listing and serving, and that is not tidiness. At
+   first only serving had it, and the index went as far as listing a
+   symlink to /etc/hosts as if it were a 213-byte mp4: it could not be
+   downloaded, but the size and date from the far side of the link were
+   already published. A guard that does not cover every exit is not a
+   guard. */
+function inside(root, abs) {
   try {
     const r = fs.realpathSync(abs)
-    return r === raiz || r.startsWith(raiz + path.sep) ? r : null
+    return r === root || r.startsWith(root + path.sep) ? r : null
   } catch {
     return null
   }
 }
 
-/* Recorre la carpeta y devuelve un plano de lo que hay. Sólo hechos
-   del sistema de archivos: qué es, cuánto pesa y cuándo entró. Lo que
-   significa cada clip —el nombre que se lee, si es nativo o web, de
-   dónde salió— es de la fase 3 y no se inventa acá. */
-function recorrer(raiz, rel = '', nivel = 0) {
-  if (nivel > HONDO) return []
-  let entradas
+/* Walks the folder and returns a map of what is there. Only facts from
+   the file system: what it is, how big it is and when it arrived. What
+   each clip MEANS, the name you read, whether it is native or web,
+   where it came from, belongs to phase 3 and does not get invented
+   here. */
+function walk(root, rel = '', depth = 0) {
+  if (depth > MAX_DEPTH) return []
+  let entries
   try {
-    entradas = fs.readdirSync(path.join(raiz, rel), { withFileTypes: true })
+    entries = fs.readdirSync(path.join(root, rel), { withFileTypes: true })
   } catch {
     return []
   }
-  const salida = []
-  for (const e of entradas) {
-    if (oculto(e.name)) continue
+  const found = []
+  for (const e of entries) {
+    if (isHidden(e.name)) continue
     const r = rel ? `${rel}/${e.name}` : e.name
-    /* La misma guarda que al servir, y ANTES de mirar nada más: si el
-       nombre es un enlace que sale del vault, acá se termina. */
-    const abs = dentro(raiz, path.join(raiz, r))
+    /* The same guard as when serving, and BEFORE looking at anything
+       else: if the name is a link that leaves the vault, it ends
+       here. */
+    const abs = inside(root, path.join(root, r))
     if (!abs) continue
     if (e.isDirectory()) {
-      salida.push(...recorrer(raiz, r, nivel + 1))
+      found.push(...walk(root, r, depth + 1))
       continue
     }
     const ext = path.extname(e.name).toLowerCase()
-    if (!TIPOS[ext]) continue
-    let s
+    if (!MEDIA_TYPES[ext]) continue
+    let stats
     try {
-      s = fs.statSync(abs)
+      stats = fs.statSync(abs)
     } catch {
       continue
     }
-    /* Los cuadros salen del contenedor y no de una estimación: es lo que
-       hace posible que las flechas muevan UN cuadro exacto. Se resuelve
-       acá, en el servidor, porque el navegador no expone el dato —
-       requestVideoFrameCallback lo daría sólo reproduciendo, y para eso
-       ya sería tarde. Validado contra 9 archivos: cuadros × duración de
-       cuadro reproduce la duración que reporta el navegador. */
-    const c = VIDEO.has(ext) ? cuadrosDe(abs, s) : null
+    /* The frames come out of the container and not out of an estimate:
+       that is what makes it possible for the arrow keys to move ONE
+       exact frame. It is resolved here, on the server, because the
+       browser does not expose the data.
+       requestVideoFrameCallback would only give it while playing, and
+       by then it would be too late. Validated against 9 files: frames
+       × frame step reproduces the duration the browser reports. */
+    const c = VIDEO.has(ext) ? readFrameStep(abs, stats) : null
 
-    salida.push({
-      ruta: r,
-      /* null cuando es una imagen o cuando el contenedor no se pudo
-         leer. Quien lo use tiene que contemplar que no esté, en vez de
-         recibir un número inventado. */
-      cuadro: c?.cuadro ?? null,
+    found.push({
+      path: r,
+      /* null when it is an image or when the container could not be
+         read. Whoever uses it has to handle it being absent, instead of
+         getting an invented number. */
+      frameStep: c?.step ?? null,
       fps: c?.fps ?? null,
-      cuadros: c?.cuadros ?? null,
-      cuadroVariable: c?.variable ?? null,
-      /* El nombre del archivo sin extensión. Es materia prima para la
-         fase 3, no el nombre final que se muestra. */
-      archivo: path.basename(e.name, ext),
-      /* La carpeta que lo contiene, que es como se va a saber si es
-         nativo o web: lo clasifica dónde lo soltaste. */
-      carpeta: path.dirname(r) === '.' ? '' : path.dirname(r),
+      frameCount: c?.samples ?? null,
+      variableFrameRate: c?.variable ?? null,
+      /* The file name without the extension. It is raw material for
+         phase 3, not the final name that gets shown. */
+      file: path.basename(e.name, ext),
+      /* The folder holding it, which is how we will know whether it is
+         native or web: where you dropped it is what classifies it. */
+      folder: path.dirname(r) === '.' ? '' : path.dirname(r),
       ext,
-      clase: VIDEO.has(ext) ? 'video' : 'imagen',
-      bytes: s.size,
-      /* Las dos fechas, sin elegir. "Más reciente" puede querer decir
-         cuándo entró al vault (birthtime) o cuándo se tocó por última
-         vez (mtime); en macOS las dos existen. Cuál manda lo decide la
-         fase 3, mirando datos de verdad. */
-      creado: (s.birthtime?.getTime() ? s.birthtime : s.mtime).toISOString(),
-      modificado: s.mtime.toISOString(),
+      medium: VIDEO.has(ext) ? 'video' : 'image',
+      bytes: stats.size,
+      /* Both dates, without choosing. "Most recent" can mean when it
+         entered the vault (birthtime) or when it was last touched
+         (mtime); on macOS both exist. Which one wins is decided by
+         phase 3, looking at real data. */
+      created: (stats.birthtime?.getTime() ? stats.birthtime : stats.mtime).toISOString(),
+      modified: stats.mtime.toISOString(),
     })
   }
-  return salida
+  return found
 }
 
-/* bytes=0-499 · bytes=500- · bytes=-500 (el sufijo son los últimos N).
-   Devuelve null si no hay rango pedido, 'imposible' si lo pedido cae
-   fuera del archivo —que en HTTP es un 416 y no un 404. */
-function pedirRango(cabecera, total) {
-  const m = /^bytes=(\d*)-(\d*)$/.exec((cabecera ?? '').trim())
+/* bytes=0-499 · bytes=500- · bytes=-500 (the suffix means the last N).
+   Returns null if no range was asked for, 'unsatisfiable' if what was
+   asked for falls outside the file, which in HTTP is a 416 and not a
+   404. */
+function parseRange(header, total) {
+  const m = /^bytes=(\d*)-(\d*)$/.exec((header ?? '').trim())
   if (!m) return null
   const [, a, b] = m
   if (a === '' && b === '') return null
-  let inicio, fin
+  let start, end
   if (a === '') {
-    const largo = Number(b)
-    if (!largo) return 'imposible'
-    inicio = Math.max(0, total - largo)
-    fin = total - 1
+    const length = Number(b)
+    if (!length) return 'unsatisfiable'
+    start = Math.max(0, total - length)
+    end = total - 1
   } else {
-    inicio = Number(a)
-    fin = b === '' ? total - 1 : Math.min(Number(b), total - 1)
+    start = Number(a)
+    end = b === '' ? total - 1 : Math.min(Number(b), total - 1)
   }
-  if (!Number.isFinite(inicio) || !Number.isFinite(fin)) return 'imposible'
-  if (inicio > fin || inicio >= total) return 'imposible'
-  return { inicio, fin }
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return 'unsatisfiable'
+  if (start > end || start >= total) return 'unsatisfiable'
+  return { start, end }
 }
 
-const json = (res, codigo, cuerpo) => {
-  res.statusCode = codigo
+const json = (res, code, body) => {
+  res.statusCode = code
   res.setHeader('content-type', 'application/json; charset=utf-8')
   res.setHeader('cache-control', 'no-store')
-  res.end(JSON.stringify(cuerpo))
+  res.end(JSON.stringify(body))
 }
 
-/* ═══════════ LOS BOCETOS ═══════════
-   El único endpoint de este archivo que NO toca el vault: escribe
-   adentro del repo, en src/privado/bocetos/. Va dicho fuerte porque
-   rompe la simetría de todo lo demás, y la razón es que un boceto es
-   código —tiene que estar donde Vite lo compile y donde tu editor y un
-   agente lo puedan abrir— y no un medio.
+/* ═══════════ THE SKETCHES ═══════════
+   The only endpoint in this file that does NOT touch the vault: it
+   writes inside the repo, in src/private/sketches/. This is said out
+   loud because it breaks the symmetry of everything else, and the
+   reason is that a sketch is code. It has to be where Vite compiles it
+   and where your editor and an agent can open it, and it is not a
+   medium.
 
-   LA CARPETA ES FIJA Y SALE DE ESTE ARCHIVO, no de nada que mande el
-   cliente: se deriva de import.meta.url, así que no depende ni del
-   cwd. Lo único que llega de afuera es el nombre, y de él sólo
-   sobreviven letras, números y guiones. Con ese alfabeto no hay ".."
-   que construir: el path traversal no se bloquea, no se puede escribir.
+   THE FOLDER IS FIXED AND COMES FROM THIS FILE, not from anything the
+   client sends: it is derived from import.meta.url, so it does not
+   even depend on the cwd. The only thing arriving from outside is the
+   name, and only letters, numbers and hyphens survive from it. With
+   that alphabet there is no ".." to build: path traversal is not
+   blocked, it cannot be written.
 
-   NO PISA NADA. Si el archivo existe se devuelve 409 y el que llama se
-   entera: un botón que silenciosamente reemplaza lo que escribiste no
-   es un botón, es una trampa. */
-const BOCETOS_DIR = fileURLToPath(new URL('../src/private/sketches/', import.meta.url))
+   IT OVERWRITES NOTHING. If the file exists it returns 409 and the
+   caller finds out: a button that silently replaces what you wrote is
+   not a button, it is a trap. */
+const SKETCHES_DIR = fileURLToPath(new URL('../src/private/sketches/', import.meta.url))
 
-const refDeBoceto = (crudo) => {
-  if (typeof crudo !== 'string') return null
-  const s = crudo
+const sketchRefOf = (raw) => {
+  if (typeof raw !== 'string') return null
+  const s = raw
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -430,116 +483,117 @@ const refDeBoceto = (crudo) => {
   return s && s.length <= 60 ? s : null
 }
 
-/* "sheet-que-se-estira" → "SheetQueSeEstira". Un componente de React
-   tiene que empezar en mayúscula o JSX lo trata como una etiqueta HTML.
-   Y si el nombre arranca con número —"3-puntos"— se le antepone una
-   letra, porque un identificador no puede. */
-const identificadorDe = (ref) => {
+/* "sheet-that-stretches" → "SheetThatStretches". A React component has
+   to start with a capital letter or JSX treats it as an HTML tag. And
+   if the name starts with a number, "3-dots", a letter is put in front
+   of it, because an identifier cannot. */
+const identifierOf = (ref) => {
   const id = ref
     .split('-')
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join('')
-  return /^[0-9]/.test(id) ? 'B' + id : id
+  return /^[0-9]/.test(id) ? 'S' + id : id
 }
 
-/* LA PLANTILLA ES CASI NADA, y es a propósito: lo que se abre tiene que
-   ser una hoja en blanco con el mínimo para que dibuje algo, no un
-   ejemplo que después hay que borrar. El div al 100% existe porque el
-   frame ya tiene el tamaño; sin eso el primer boceto nace de 0 de alto y
-   parece que no funcionó. */
-/* ═══════════ PUBLICAR — del playground a la exhibition ═══════════
-   El segundo endpoint que escribe adentro del repo, con el mismo
-   permiso que __boceto: lo que produce es producto, no un medio del
-   vault. Se publica DESDE EL TABLERO —el clic derecho sobre un frame—
-   porque ahí es donde está tu trabajo; el vault es lo externo y no
-   publica nada.
+/* THE TEMPLATE IS ALMOST NOTHING, and that is on purpose: what opens
+   has to be a blank sheet with the minimum for it to draw something,
+   not an example you then have to delete. The div at 100% is there
+   because the frame already has the size; without it the first sketch
+   is born 0 tall and looks like it did not work. */
+/* ═══════════ PUBLISH: from the playground to the exhibition ═══════════
+   The second endpoint that writes inside the repo, with the same
+   permission as __sketch: what it produces is product, not a medium
+   from the vault. You publish FROM THE BOARD, the right click on a
+   frame, because that is where your work is; the vault is the outside
+   and it publishes nothing.
 
-   Hace DOS cosas y las dos tienen que quedar o ninguna:
+   It does TWO things and either both land or neither does:
 
-     1. copia el archivo del demo al lado público de la frontera:
-          una grabación  →  public/piezas/<slug><ext>                       (pieza App)
-          un boceto      →  src/components/pieces/<slug>/<slug>.tsx         (pieza Web)
-                            + src/components/pieces/<slug>/index.tsx, que
-                            lo exporta: la carpeta tiene la forma de
-                            components/animations/<slug>/ de
-                            react-native-motion, y demos.tsx busca el
-                            index
-        El vault y src/privado/ no viajan al deploy; por eso el copiado
-        existe. Y es COPIA, no mudanza: el frame del tablero sigue
-        apuntando a lo suyo — desde acá, la pieza se edita en su archivo
-        publicado.
-     2. agrega la entrada a src/pieces.ts, que es el inventario real:
-        de ahí salen la página, el índice y el vercel.json del prebuild.
-        Con su `slug`, calculado del nombre ACÁ y una sola vez: desde el
-        2026-09-10 el título de una pieza puede cambiar y su URL no (ver
-        `Piece` en pieces.ts).
+     1. it copies the demo's file to the public side of the boundary:
+          a recording  →  public/pieces/<slug><ext>                      (App piece)
+          a sketch     →  src/components/pieces/<slug>/<slug>.tsx        (Web piece)
+                          + src/components/pieces/<slug>/index.tsx, which
+                          exports it: the folder has the shape of
+                          components/animations/<slug>/ from
+                          react-native-motion, and demos.tsx looks for
+                          the index
+        The vault and src/private/ do not travel to the deploy; that is
+        why the copy exists. And it is a COPY, not a move: the frame on
+        the board still points at its own thing, and from here on the
+        piece is edited in its published file.
+     2. it adds the entry to src/pieces.ts, which is the real
+        inventory: the page, the index and the prebuild's vercel.json
+        all come out of there. With its `slug`, computed from the name
+        HERE and once: since 2026-09-10 a piece's title can change and
+        its URL cannot (see `Piece` in pieces.ts).
 
-   Si el segundo paso falla, el primero se deshace. No se pisa nada
-   nunca: publicar dos veces es un 409, no un reemplazo silencioso.
+   If the second step fails, the first one is undone. Nothing is ever
+   overwritten: publishing twice is a 409, not a silent replacement.
 
-   LA PLATAFORMA LA DICE EL FRAME, no un selector: una grabación ES una
-   pieza App y un boceto ES una pieza Web — es la regla de `platform`
-   (App va en video, Web va viva) leída al revés. */
-const PIEZAS_DIR = fileURLToPath(new URL('../public/pieces/', import.meta.url))
-const PIEZAS_SRC = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
-const PIEZAS_TS = fileURLToPath(new URL('../src/pieces.ts', import.meta.url))
+   THE PLATFORM IS TOLD BY THE FRAME, not by a selector: a recording IS
+   an App piece and a sketch IS a Web piece. It is the rule of
+   `platform` (App goes in video, Web goes live) read backwards. */
+const PIECES_PUBLIC_DIR = fileURLToPath(new URL('../public/pieces/', import.meta.url))
+const PIECES_SRC_DIR = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
+const PIECES_TS = fileURLToPath(new URL('../src/pieces.ts', import.meta.url))
 
-/* Los textos viajan a un archivo .ts entre comillas simples: se escapan
-   la barra y la comilla, y los saltos de línea se vuelven espacio — un
-   nombre o una descripción no tienen renglones. */
-const aLiteral = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\s+/g, ' ').trim()
+/* The texts travel to a .ts file between single quotes: the backslash
+   and the quote get escaped, and line breaks become a space, since a
+   name or a description do not have lines. */
+const toLiteral = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\s+/g, ' ').trim()
 
-function agregarPieza(nombre, s, desc, plataforma, video) {
-  const src = fs.readFileSync(PIEZAS_TS, 'utf8')
+function addPiece(name, pieceSlug, desc, platform, video) {
+  const src = fs.readFileSync(PIECES_TS, 'utf8')
 
-  /* El duplicado se chequea por SLUG y no por nombre: dos nombres
-     distintos que cayeran en la misma URL romperían el rewrite. Se lee
-     el archivo fresco en cada pedido — el import de arriba quedó
-     congelado al arrancar el servidor y no vería lo recién publicado.
-     Y se leen los campos `slug` escritos, no los nombres: un título
-     renombrado ya no coincide con su URL, y la URL es la que no puede
-     repetirse. */
-  const tomados = [...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1])
-  if (tomados.includes(s)) return { error: 'ya hay una pieza con esa URL' }
+  /* The duplicate is checked by SLUG and not by name: two different
+     names landing on the same URL would break the rewrite. The file is
+     read fresh on every request, since the import at the top froze
+     when the server started and would not see what was just published.
+     And the written `slug` fields are read, not the names: a renamed
+     title no longer matches its URL, and the URL is the one that
+     cannot repeat. */
+  const taken = [...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1])
+  if (taken.includes(pieceSlug)) return { error: 'there is already a piece at that URL' }
 
-  const entrada = [
+  const entry = [
     '  {',
-    `    name: '${aLiteral(nombre)}',`,
-    `    slug: '${s}',`,
-    `    platform: '${plataforma}',`,
-    /* La línea es opcional (2026-09-07): vacía, no se escribe el campo,
-       y el detalle no dibuja el párrafo. */
-    ...(desc ? [`    desc: '${aLiteral(desc)}',`] : []),
-    /* Una pieza Web no lleva video: su demo es la carpeta en
-       src/components/pieces/, que se resuelve por slug — ver demos.tsx. */
+    `    name: '${toLiteral(name)}',`,
+    `    slug: '${pieceSlug}',`,
+    `    platform: '${platform}',`,
+    /* The line is optional (2026-09-07): empty, the field is not
+       written, and the detail does not draw the paragraph. */
+    ...(desc ? [`    desc: '${toLiteral(desc)}',`] : []),
+    /* A Web piece carries no video: its demo is the folder in
+       src/components/pieces/, resolved by slug. See demos.tsx. */
     ...(video ? [`    video: '${video}',`] : []),
     '  },',
   ].join('\n')
 
-  /* La lista vacía se reemplaza entera; con piezas, la nueva entra antes
-     del `]` que cierra el array — que es lo último del archivo, así que
-     el último corchete del texto es el suyo. */
-  let siguiente
+  /* The empty list gets replaced whole; with pieces in it, the new one
+     goes in before the `]` closing the array, which is the last thing
+     in the file, so the last bracket in the text is that one. */
+  let next
   if (/PIECES: Piece\[\] = \[\]/.test(src)) {
-    siguiente = src.replace('PIECES: Piece[] = []', `PIECES: Piece[] = [\n${entrada}\n]`)
+    next = src.replace('PIECES: Piece[] = []', `PIECES: Piece[] = [\n${entry}\n]`)
   } else {
-    const cierre = src.lastIndexOf(']')
-    if (cierre < 0) return { error: 'pieces.ts no tiene la forma esperada' }
-    siguiente = src.slice(0, cierre) + entrada + '\n' + src.slice(cierre)
+    const close = src.lastIndexOf(']')
+    if (close < 0) return { error: 'pieces.ts does not have the expected shape' }
+    next = src.slice(0, close) + entry + '\n' + src.slice(close)
   }
 
-  const temp = PIEZAS_TS + '.tmp'
-  fs.writeFileSync(temp, siguiente)
-  fs.renameSync(temp, PIEZAS_TS)
+  const temp = PIECES_TS + '.tmp'
+  fs.writeFileSync(temp, next)
+  fs.renameSync(temp, PIECES_TS)
   return { ok: true }
 }
 
-const plantillaDeBoceto = (ref) => `/* ${identificadorDe(ref)} — un boceto del lienzo.
+const sketchTemplate = (ref) => `/* ${identifierOf(ref)}, a sketch on the canvas.
 
-   Escribí lo que quieras acá y guardá: Vite lo recarga en el frame sin
-   tocar la página. Los tokens del sistema (--ink, --surface, --canvas,
-   las duraciones y las curvas) están disponibles como variables CSS. */
-export default function ${identificadorDe(ref)}() {
+   Write whatever you want here and save. Vite reloads it in the frame
+   without touching the page. The system tokens (--ink, --surface,
+   --canvas, the durations and the curves) are available as CSS
+   variables. */
+export default function ${identifierOf(ref)}() {
   return (
     <div
       style={{
@@ -550,27 +604,27 @@ export default function ${identificadorDe(ref)}() {
         color: 'var(--ink)',
       }}
     >
-      ${identificadorDe(ref)}
+      ${identifierOf(ref)}
     </div>
   )
 }
 `
 
-export function vaultMedia(dirCrudo) {
-  /* Se resuelve UNA vez, al arrancar, y con realpath: la comparación
-     de después es entre rutas reales, así que un symlink no la
-     puede saltear. */
-  let raiz = null
-  let motivo = null
-  if (!dirCrudo) {
-    motivo = 'VAULT_DIR no está definida en .env.local'
+export function vaultMedia(rawDir) {
+  /* It is resolved ONCE, at startup, and with realpath: the comparison
+     that comes later is between real paths, so a symlink cannot skip
+     it. */
+  let root = null
+  let reason = null
+  if (!rawDir) {
+    reason = 'VAULT_DIR is not set in .env.local'
   } else {
     try {
-      const abs = fs.realpathSync(path.resolve(dirCrudo))
-      if (!fs.statSync(abs).isDirectory()) motivo = `VAULT_DIR no es una carpeta: ${abs}`
-      else raiz = abs
+      const abs = fs.realpathSync(path.resolve(rawDir))
+      if (!fs.statSync(abs).isDirectory()) reason = `VAULT_DIR is not a folder: ${abs}`
+      else root = abs
     } catch {
-      motivo = `VAULT_DIR apunta a algo que no existe: ${dirCrudo}`
+      reason = `VAULT_DIR points at something that does not exist: ${rawDir}`
     }
   }
 
@@ -578,61 +632,63 @@ export function vaultMedia(dirCrudo) {
     name: 'vault-media',
     apply: 'serve',
     configureServer(server) {
-      /* Se dice en el arranque del servidor, que es donde se mira
-         cuando algo no aparece. */
+      /* It is said at server startup, which is where you look when
+         something does not show up. */
       const log = server.config.logger
-      if (raiz) log.info(`  vault    ${raiz}`, { timestamp: false })
-      else log.warn(`  vault    sin conectar — ${motivo}`, { timestamp: false })
+      if (root) log.info(`  vault    ${root}`, { timestamp: false })
+      else log.warn(`  vault    not connected: ${reason}`, { timestamp: false })
 
       server.middlewares.use('/vault-media', (req, res, next) => {
-        /* ─── ESCRIBIR UNA FICHA ───
-           El único camino de escritura de todo el puente, y está
-           acotado a más no poder: un solo destino posible —el archivo
-           de fichas en la raíz— y una sola forma de clave, la ruta de
-           un clip QUE YA EXISTE en el índice.
+        /* ─── WRITE THE DETAILS ───
+           The only write path in the whole bridge, and it is as narrow
+           as it gets: one possible destination, the details file at
+           the root, and one shape of key, the path of a clip THAT
+           ALREADY EXISTS in the index.
 
-           Esa validación es la guarda: no se resuelve ninguna ruta con
-           lo que llega del cliente, así que no hay traversal posible
-           por construcción, no porque haya un filtro que lo atrape. */
-        /* ─── SUBIR UN CLIP ───
-           Los bytes van CRUDOS en el cuerpo y los metadatos en la query,
-           no en un multipart. Un multipart habría que parsearlo —o traer
-           una dependencia para hacerlo— y lo único que se sube acá es un
-           archivo por vez: el sobre no aporta nada y sí agrega superficie.
+           That validation is the guard: no path is resolved from what
+           arrives from the client, so traversal is impossible by
+           construction, not because there is a filter catching it. */
+        /* ─── UPLOAD A CLIP ───
+           The bytes go RAW in the body and the metadata in the query,
+           not in a multipart. A multipart would have to be parsed, or a
+           dependency brought in to parse it, and the only thing
+           uploaded here is one file at a time: the envelope adds
+           nothing and does add surface.
 
-           Se escribe en streaming a un temporal. Nunca se junta el
-           archivo entero en memoria: un video de 400MB no tiene por qué
-           pasar por el heap para llegar al disco. */
-        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__subir') {
-          if (!raiz) return json(res, 409, { error: motivo })
+           It is written streaming to a temporary file. The whole file
+           is never gathered in memory: a 400MB video has no reason to
+           pass through the heap to get to the disk. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__upload') {
+          if (!root) return json(res, 409, { error: reason })
 
           const q = new URLSearchParams((req.url || '').split('?')[1] ?? '')
-          const base = nombreSano(q.get('nombre'))
-          if (!base) return json(res, 400, { error: 'nombre no admitido' })
+          const base = safeFileName(q.get('name'))
+          if (!base) return json(res, 400, { error: 'name not allowed' })
 
-          let carpeta
+          let folder
           try {
-            carpeta = carpetaDe(raiz, q.get('fuente'))
+            folder = folderOfSource(root, q.get('source'))
           } catch (e) {
             return json(res, 500, { error: String(e?.message ?? e) })
           }
-          if (!carpeta) return json(res, 400, { error: 'fuente no admitida' })
+          if (!folder) return json(res, 400, { error: 'source not allowed' })
 
-          const nombre = libre(carpeta, base)
-          if (!nombre) return json(res, 409, { error: 'demasiados con ese nombre' })
+          const name = freeName(folder, base)
+          if (!name) return json(res, 409, { error: 'too many with that name' })
 
-          /* El temporal va en la MISMA carpeta que el destino: rename
-             sólo es atómico dentro del mismo sistema de archivos, y
-             /tmp puede estar en otro. Empieza con punto, así que si algo
-             sale mal lo que queda tirado ya está afuera de todo lo que
-             se sirve y de todo lo que se lista. */
-          const temp = path.join(carpeta, `.subiendo-${process.pid}-${Date.now()}`)
-          const destino = path.join(carpeta, nombre)
-          const flujo = fs.createWriteStream(temp)
+          /* The temporary file goes in the SAME folder as the target:
+             rename is only atomic within the same file system, and
+             /tmp can be on another one. It starts with a dot, so if
+             something goes wrong whatever is left lying around is
+             already outside everything that gets served and everything
+             that gets listed. */
+          const temp = path.join(folder, `.uploading-${process.pid}-${Date.now()}`)
+          const target = path.join(folder, name)
+          const stream = fs.createWriteStream(temp)
           let bytes = 0
-          let cortado = false
+          let aborted = false
 
-          const limpiar = () => {
+          const removeTemp = () => {
             try {
               fs.unlinkSync(temp)
             } catch {}
@@ -640,476 +696,490 @@ export function vaultMedia(dirCrudo) {
 
           req.on('data', (c) => {
             bytes += c.length
-            if (bytes > PESO_MAX && !cortado) {
-              cortado = true
-              flujo.destroy()
+            if (bytes > MAX_UPLOAD_BYTES && !aborted) {
+              aborted = true
+              stream.destroy()
               req.destroy()
-              limpiar()
+              removeTemp()
             }
           })
           req.on('error', () => {
-            if (!cortado) {
-              cortado = true
-              flujo.destroy()
-              limpiar()
+            if (!aborted) {
+              aborted = true
+              stream.destroy()
+              removeTemp()
             }
           })
-          flujo.on('error', () => {
-            if (!cortado) {
-              cortado = true
-              limpiar()
-              json(res, 500, { error: 'no se pudo escribir' })
+          stream.on('error', () => {
+            if (!aborted) {
+              aborted = true
+              removeTemp()
+              json(res, 500, { error: 'could not write' })
             }
           })
-          req.pipe(flujo)
+          req.pipe(stream)
 
-          flujo.on('finish', () => {
-            if (cortado) return
-            /* Un cuerpo vacío deja un archivo de 0 bytes que después
-               aparece en la grilla como un clip roto. Mejor no crearlo. */
+          stream.on('finish', () => {
+            if (aborted) return
+            /* An empty body leaves a 0-byte file that later shows up
+               in the grid as a broken clip. Better not to create it. */
             if (!bytes) {
-              limpiar()
-              return json(res, 400, { error: 'cuerpo vacío' })
+              removeTemp()
+              return json(res, 400, { error: 'empty body' })
             }
             try {
-              fs.renameSync(temp, destino)
+              fs.renameSync(temp, target)
             } catch (e) {
-              limpiar()
+              removeTemp()
               return json(res, 500, { error: String(e?.message ?? e) })
             }
-            const rel = path.relative(raiz, destino).split(path.sep).join('/')
-            return json(res, 200, { ok: true, ruta: rel, bytes })
+            const rel = path.relative(root, target).split(path.sep).join('/')
+            return json(res, 200, { ok: true, path: rel, bytes })
           })
           return
         }
 
-        /* Las vistas del playground. Mismo esqueleto que la ficha —cuerpo
-           acotado, JSON o 400, saneado antes de tocar el disco, escritura
-           atómica— y por eso la lectura del cuerpo se comparte. */
-        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__vistas') {
-          if (!raiz) return json(res, 409, { error: motivo })
-          let cuerpo = ''
+        /* The playground views. Same skeleton as the details, bounded
+           body, JSON or 400, sanitized before touching the disk,
+           atomic write, and that is why reading the body is shared. */
+        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__views') {
+          if (!root) return json(res, 409, { error: reason })
+          let body = ''
           req.setEncoding('utf8')
           req.on('data', (c) => {
-            cuerpo += c
-            if (cuerpo.length > 512 * 1024) req.destroy()
+            body += c
+            if (body.length > 512 * 1024) req.destroy()
           })
           req.on('end', () => {
             let d
             try {
-              d = JSON.parse(cuerpo)
+              d = JSON.parse(body)
             } catch {
-              return json(res, 400, { error: 'json inválido' })
+              return json(res, 400, { error: 'invalid json' })
             }
-            const vistas = sanearVistas(d?.vistas)
+            const views = sanitizeViews(d?.views)
             try {
-              escribirJson(raiz, VISTAS, { vistas })
+              writeJson(root, VIEWS_FILE, { vistas: views.map(viewToDisk) })
             } catch (e) {
               return json(res, 500, { error: String(e?.message ?? e) })
             }
-            return json(res, 200, { ok: true, vistas })
+            return json(res, 200, { ok: true, views })
           })
           return
         }
 
-        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__ficha') {
-          if (!raiz) return json(res, 409, { error: motivo })
-          let cuerpo = ''
+        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__details') {
+          if (!root) return json(res, 409, { error: reason })
+          let body = ''
           req.setEncoding('utf8')
           req.on('data', (c) => {
-            cuerpo += c
-            /* Un cuerpo desmedido se corta acá y no cuando ya está en
-               memoria. */
-            if (cuerpo.length > 64 * 1024) req.destroy()
+            body += c
+            /* An outsized body is cut here and not once it is already
+               in memory. */
+            if (body.length > 64 * 1024) req.destroy()
           })
           req.on('end', () => {
             let d
             try {
-              d = JSON.parse(cuerpo)
+              d = JSON.parse(body)
             } catch {
-              return json(res, 400, { error: 'json inválido' })
+              return json(res, 400, { error: 'invalid json' })
             }
-            const ruta = typeof d?.ruta === 'string' ? d.ruta : ''
-            const existe = recorrer(raiz).some((c) => c.ruta === ruta)
-            if (!existe) return json(res, 404, { error: 'ese clip no está en el vault' })
+            const clipPath = typeof d?.path === 'string' ? d.path : ''
+            const exists = walk(root).some((c) => c.path === clipPath)
+            if (!exists) return json(res, 404, { error: 'that clip is not in the vault' })
 
-            /* Sólo los campos conocidos, recortados. Lo que venga de más
-               se descarta en vez de guardarse. */
-            const limpia = {}
-            for (const k of FICHA_CAMPOS) {
-              const v = d?.ficha?.[k]
-              if (typeof v === 'string' && v.trim()) limpia[k] = v.slice(0, LARGO_MAX)
+            /* Only the known fields, trimmed. Anything extra gets
+               dropped instead of stored. */
+            const clean = {}
+            for (const k of DETAILS_FIELDS) {
+              const v = d?.details?.[k]
+              if (typeof v === 'string' && v.trim()) clean[k] = v.slice(0, MAX_FIELD_LENGTH)
             }
 
-            const todas = leerJson(raiz, FICHAS)
-            /* Una ficha vacía se BORRA en vez de quedar como un objeto
-               sin nada: si vaciás los campos, el archivo queda como si
-               nunca la hubieras escrito. */
-            if (Object.keys(limpia).length) todas[ruta] = limpia
-            else delete todas[ruta]
+            const all = readJson(root, DETAILS_FILE)
+            /* Empty details get DELETED instead of staying as an
+               object with nothing in it: if you empty the fields, the
+               file ends up as if you had never written them. */
+            if (Object.keys(clean).length) all[clipPath] = clean
+            else delete all[clipPath]
 
             try {
-              escribirJson(raiz, FICHAS, todas)
+              writeJson(root, DETAILS_FILE, all)
             } catch (e) {
               return json(res, 500, { error: String(e?.message ?? e) })
             }
-            return json(res, 200, { ok: true, ficha: todas[ruta] ?? null })
+            return json(res, 200, { ok: true, details: all[clipPath] ?? null })
           })
           return
         }
 
-        /* ─── RENOMBRAR ───
-           La ruta NUNCA sale del cliente: se busca el clip en el índice
-           y se usa la que el servidor ya conoce. El cliente sólo aporta
-           un nombre, y ese nombre no puede traer separadores, ni
-           empezar con punto, ni cambiar la extensión.
+        /* ─── RENAME ───
+           The path NEVER comes from the client: the clip is looked up
+           in the index and the one the server already knows is used.
+           The client only brings a name, and that name cannot carry
+           separators, or start with a dot, or change the extension.
 
-           No pisa: si ya existe uno así, devuelve 409 en vez de
-           sobreescribir. Un renombre que se come otro archivo es
-           exactamente la clase de error que no tiene vuelta. */
-        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__renombrar') {
-          if (!raiz) return json(res, 409, { error: motivo })
-          let cuerpo = ''
+           It does not overwrite: if one like that already exists, it
+           returns 409 instead of writing over it. A rename that eats
+           another file is exactly the class of error there is no
+           coming back from. */
+        if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__rename') {
+          if (!root) return json(res, 409, { error: reason })
+          let body = ''
           req.setEncoding('utf8')
           req.on('data', (c) => {
-            cuerpo += c
-            if (cuerpo.length > 8 * 1024) req.destroy()
+            body += c
+            if (body.length > 8 * 1024) req.destroy()
           })
           req.on('end', () => {
             let d
             try {
-              d = JSON.parse(cuerpo)
+              d = JSON.parse(body)
             } catch {
-              return json(res, 400, { error: 'json inválido' })
+              return json(res, 400, { error: 'invalid json' })
             }
-            const ruta = typeof d?.ruta === 'string' ? d.ruta : ''
-            const clip = recorrer(raiz).find((c) => c.ruta === ruta)
-            if (!clip) return json(res, 404, { error: 'ese clip no está en el vault' })
+            const clipPath = typeof d?.path === 'string' ? d.path : ''
+            const clip = walk(root).find((c) => c.path === clipPath)
+            if (!clip) return json(res, 404, { error: 'that clip is not in the vault' })
 
-            const base = baseSana(d?.nombre)
-            if (!base) return json(res, 400, { error: 'nombre no admitido' })
+            const base = safeBaseName(d?.name)
+            if (!base) return json(res, 400, { error: 'name not allowed' })
 
-            const desde = dentro(raiz, path.join(raiz, ruta))
-            if (!desde) return json(res, 404, { error: 'ese clip no está en el vault' })
-            const carpeta = path.dirname(desde)
-            const destino = path.join(carpeta, base + path.extname(ruta))
-            if (path.dirname(destino) !== carpeta) return json(res, 400, { error: 'nombre no admitido' })
-            if (destino === desde) return json(res, 200, { ok: true, ruta })
-            if (fs.existsSync(destino)) return json(res, 409, { error: 'ya hay uno con ese nombre' })
+            const from = inside(root, path.join(root, clipPath))
+            if (!from) return json(res, 404, { error: 'that clip is not in the vault' })
+            const folder = path.dirname(from)
+            const to = path.join(folder, base + path.extname(clipPath))
+            if (path.dirname(to) !== folder) return json(res, 400, { error: 'name not allowed' })
+            if (to === from) return json(res, 200, { ok: true, path: clipPath })
+            if (fs.existsSync(to)) return json(res, 409, { error: 'there is already one with that name' })
 
             try {
-              fs.renameSync(desde, destino)
+              fs.renameSync(from, to)
             } catch (e) {
               return json(res, 500, { error: String(e?.message ?? e) })
             }
 
-            /* LA FICHA VIAJA CON EL ARCHIVO. Está indexada por ruta, así
-               que sin esto renombrar te borraba lo que habías escrito. */
-            const nuevaRuta = path.relative(raiz, destino).split(path.sep).join('/')
-            const todas = leerJson(raiz, FICHAS)
-            if (todas[ruta]) {
-              todas[nuevaRuta] = todas[ruta]
-              delete todas[ruta]
+            /* THE DETAILS TRAVEL WITH THE FILE. They are indexed by
+               path, so without this renaming deleted what you had
+               written. */
+            const newPath = path.relative(root, to).split(path.sep).join('/')
+            const all = readJson(root, DETAILS_FILE)
+            if (all[clipPath]) {
+              all[newPath] = all[clipPath]
+              delete all[clipPath]
               try {
-                escribirJson(raiz, FICHAS, todas)
+                writeJson(root, DETAILS_FILE, all)
               } catch {
-                /* el archivo ya se renombró; la ficha se recupera sola
-                   la próxima vez que la escribas */
+                /* the file is already renamed; the details come back on
+                   their own the next time you write them */
               }
             }
-            return json(res, 200, { ok: true, ruta: nuevaRuta })
+            return json(res, 200, { ok: true, path: newPath })
           })
           return
         }
 
-        /* ─── A LA PAPELERA ───
-           MUEVE, no borra. Un unlink desde una app de estudio es
-           irreversible y no hay undo que lo salve; la papelera es lo que
-           hace Finder y te deja recuperarlo. Cuesta más código y vale la
-           pena.
+        /* ─── TO THE TRASH ───
+           It MOVES, it does not delete. An unlink from a studio app is
+           irreversible and there is no undo to save it; the trash is
+           what Finder does and it lets you get it back. It costs more
+           code and it is worth it.
 
-           Si la papelera no está donde se espera —otro sistema, o el
-           vault en otro volumen, que hace fallar el rename con EXDEV—
-           se responde con el error en vez de caer a borrar de verdad.
-           Fallar es mejor que borrar algo que no se puede recuperar. */
-        /* CREAR UN BOCETO. No pide `raiz`: un boceto es código del repo y
-           no tiene nada que ver con tu carpeta de clips, así que se puede
-           escribir uno con el vault desconectado. Ver BOCETOS_DIR. */
-        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__boceto') {
+           If the trash is not where it is expected, another system, or
+           the vault on another volume, which makes the rename fail
+           with EXDEV, the error is returned instead of falling back to
+           deleting for real. Failing beats deleting something you
+           cannot get back. */
+        /* CREATE A SKETCH. It does not need `root`: a sketch is code
+           from the repo and has nothing to do with your folder of
+           clips, so one can be written with the vault disconnected.
+           See SKETCHES_DIR. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__sketch') {
           const q = new URLSearchParams((req.url || '').split('?')[1] ?? '')
-          const ref = refDeBoceto(q.get('nombre'))
-          if (!ref) return json(res, 400, { error: 'nombre no admitido' })
+          const ref = sketchRefOf(q.get('name'))
+          if (!ref) return json(res, 400, { error: 'name not allowed' })
 
-          const destino = path.join(BOCETOS_DIR, ref + '.tsx')
+          const target = path.join(SKETCHES_DIR, ref + '.tsx')
           try {
-            fs.mkdirSync(BOCETOS_DIR, { recursive: true })
-            /* 'wx' falla si existe, y esa es toda la guarda: el chequeo y
-               la escritura son la misma operación, así que no hay ventana
-               entre "no está" y "lo escribo". */
-            fs.writeFileSync(destino, plantillaDeBoceto(ref), { flag: 'wx' })
+            fs.mkdirSync(SKETCHES_DIR, { recursive: true })
+            /* 'wx' fails if it exists, and that is the whole guard: the
+               check and the write are the same operation, so there is
+               no window between "it is not there" and "I write it". */
+            fs.writeFileSync(target, sketchTemplate(ref), { flag: 'wx' })
           } catch (e) {
-            if (e?.code === 'EEXIST') return json(res, 409, { error: 'ya existe', ref })
+            if (e?.code === 'EEXIST') return json(res, 409, { error: 'already exists', ref })
             return json(res, 500, { error: String(e?.message ?? e) })
           }
           return json(res, 200, { ok: true, ref })
         }
 
-        /* PUBLICAR UN FRAME COMO PIEZA. El porqué y las dos escrituras
-           están arriba, en el bloque de PIEZAS_DIR. Dos ramas por el
-           tipo del frame: `boceto` publica Web, lo demás es un clip del
-           vault y publica App. */
-        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__publicar') {
-          let cuerpo = ''
+        /* PUBLISH A FRAME AS A PIECE. The reason and the two writes are
+           above, in the PIECES_PUBLIC_DIR block. Two branches by the
+           frame's kind: `sketch` publishes Web, anything else is a clip
+           from the vault and publishes App. */
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__publish') {
+          let body = ''
           req.setEncoding('utf8')
           req.on('data', (c) => {
-            cuerpo += c
-            if (cuerpo.length > 8 * 1024) req.destroy()
+            body += c
+            if (body.length > 8 * 1024) req.destroy()
           })
           req.on('end', () => {
             let d
             try {
-              d = JSON.parse(cuerpo)
+              d = JSON.parse(body)
             } catch {
-              return json(res, 400, { error: 'json inválido' })
+              return json(res, 400, { error: 'invalid json' })
             }
 
-            const nombre = String(d?.nombre ?? '').trim()
+            const name = String(d?.name ?? '').trim()
             const desc = String(d?.desc ?? '').trim()
-            if (!nombre || nombre.length > 80) return json(res, 400, { error: 'nombre no admitido' })
-            if (desc.length > 200) return json(res, 400, { error: 'descripción demasiado larga' })
-            const s = slugDePieza(nombre)
-            if (!s) return json(res, 400, { error: 'con ese nombre no se puede armar una URL' })
+            if (!name || name.length > 80) return json(res, 400, { error: 'name not allowed' })
+            if (desc.length > 200) return json(res, 400, { error: 'description too long' })
+            const pieceSlug = slug(name)
+            if (!pieceSlug) return json(res, 400, { error: 'that name cannot make a URL' })
 
-            /* Resuelto el origen, las dos ramas terminan igual: copiar
-               con EXCL, anotar en pieces.ts, y deshacer la copia si la
-               anotación no entró. La pieza Web lleva además su
-               `index.tsx` —`acompanante`—, y deshacer es borrar los dos
-               y la carpeta que se creó para ellos. */
-            const publicar = (origen, destino, plataforma, video, acompanante) => {
+            /* With the origin resolved, the two branches end the same
+               way: copy with EXCL, write it down in pieces.ts, and
+               undo the copy if the entry did not go in. The Web piece
+               also carries its `index.tsx`, the `companion`, and
+               undoing means deleting both and the folder created for
+               them. */
+            const publish = (sourcePath, target, platform, video, companion) => {
               try {
-                fs.mkdirSync(path.dirname(destino), { recursive: true })
-                /* COPYFILE_EXCL: chequeo y copia en una sola operación,
-                   igual que el 'wx' de los bocetos. */
-                fs.copyFileSync(origen, destino, fs.constants.COPYFILE_EXCL)
+                fs.mkdirSync(path.dirname(target), { recursive: true })
+                /* COPYFILE_EXCL: check and copy in a single operation,
+                   same as the 'wx' of the sketches. */
+                fs.copyFileSync(sourcePath, target, fs.constants.COPYFILE_EXCL)
               } catch (e) {
                 if (e?.code === 'EEXIST')
-                  return json(res, 409, { error: 'ya hay una pieza publicada con esa URL' })
+                  return json(res, 409, { error: 'a piece is already published at that URL' })
                 return json(res, 500, { error: String(e?.message ?? e) })
               }
-              const deshacer = () => {
+              const undo = () => {
                 try {
-                  fs.unlinkSync(destino)
+                  fs.unlinkSync(target)
                 } catch {}
-                if (!acompanante) return
+                if (!companion) return
                 try {
-                  fs.unlinkSync(acompanante.ruta)
+                  fs.unlinkSync(companion.path)
                 } catch {}
                 try {
-                  fs.rmdirSync(path.dirname(destino))
+                  fs.rmdirSync(path.dirname(target))
                 } catch {}
               }
-              if (acompanante) {
+              if (companion) {
                 try {
-                  fs.writeFileSync(acompanante.ruta, acompanante.contenido, { flag: 'wx' })
+                  fs.writeFileSync(companion.path, companion.content, { flag: 'wx' })
                 } catch (e) {
-                  deshacer()
+                  undo()
                   return json(res, 500, { error: String(e?.message ?? e) })
                 }
               }
               try {
-                const r = agregarPieza(nombre, s, desc, plataforma, video)
+                const r = addPiece(name, pieceSlug, desc, platform, video)
                 if (r.error) {
-                  deshacer()
+                  undo()
                   return json(res, 409, { error: r.error })
                 }
               } catch (e) {
-                deshacer()
+                undo()
                 return json(res, 500, { error: String(e?.message ?? e) })
               }
-              return json(res, 200, { ok: true, slug: s })
+              return json(res, 200, { ok: true, slug: pieceSlug })
             }
 
-            /* ─── UN BOCETO → PIEZA WEB ───
-               No pide el vault: el archivo vive en el repo. El ref pasa
-               por el mismo alfabeto con el que se creó, así que no hay
-               ruta que armar hacia afuera de la carpeta. */
-            if (d?.tipo === 'boceto') {
-              const ref = refDeBoceto(d?.ref)
-              if (!ref) return json(res, 400, { error: 'ref no admitido' })
-              const origen = path.join(BOCETOS_DIR, ref + '.tsx')
-              if (!fs.existsSync(origen)) return json(res, 404, { error: 'no existe' })
-              const carpeta = path.join(PIEZAS_SRC, s)
-              return publicar(origen, path.join(carpeta, s + '.tsx'), 'Web', null, {
-                ruta: path.join(carpeta, 'index.tsx'),
-                contenido: `export { default } from './${s}'\n`,
+            /* ─── A SKETCH → WEB PIECE ───
+               It does not need the vault: the file lives in the repo.
+               The ref goes through the same alphabet it was created
+               with, so there is no path to build out of the folder. */
+            if (d?.kind === 'sketch') {
+              const ref = sketchRefOf(d?.ref)
+              if (!ref) return json(res, 400, { error: 'ref not allowed' })
+              const sourcePath = path.join(SKETCHES_DIR, ref + '.tsx')
+              if (!fs.existsSync(sourcePath)) return json(res, 404, { error: 'does not exist' })
+              const folder = path.join(PIECES_SRC_DIR, pieceSlug)
+              return publish(sourcePath, path.join(folder, pieceSlug + '.tsx'), 'Web', null, {
+                path: path.join(folder, 'index.tsx'),
+                content: `export { default } from './${pieceSlug}'\n`,
               })
             }
 
-            /* ─── UN CLIP → PIEZA APP ─── */
-            if (!raiz) return json(res, 409, { error: motivo })
-            const origen = dentro(raiz, path.join(raiz, String(d?.ruta ?? '')))
-            if (!origen) return json(res, 404, { error: 'no existe' })
-            const ext = path.extname(origen).toLowerCase()
+            /* ─── A CLIP → APP PIECE ─── */
+            if (!root) return json(res, 409, { error: reason })
+            const sourcePath = inside(root, path.join(root, String(d?.path ?? '')))
+            if (!sourcePath) return json(res, 404, { error: 'does not exist' })
+            const ext = path.extname(sourcePath).toLowerCase()
             if (!VIDEO.has(ext))
-              return json(res, 400, { error: 'una pieza App se demuestra con una grabación' })
-            return publicar(origen, path.join(PIEZAS_DIR, s + ext), 'App', `/pieces/${s}${ext}`)
+              return json(res, 400, { error: 'an App piece is shown with a recording' })
+            return publish(
+              sourcePath,
+              path.join(PIECES_PUBLIC_DIR, pieceSlug + ext),
+              'App',
+              `/pieces/${pieceSlug}${ext}`,
+            )
           })
           return
         }
 
-        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__papelera') {
-          if (!raiz) return json(res, 409, { error: motivo })
-          let cuerpo = ''
+        if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__trash') {
+          if (!root) return json(res, 409, { error: reason })
+          let body = ''
           req.setEncoding('utf8')
           req.on('data', (c) => {
-            cuerpo += c
-            if (cuerpo.length > 8 * 1024) req.destroy()
+            body += c
+            if (body.length > 8 * 1024) req.destroy()
           })
           req.on('end', () => {
             let d
             try {
-              d = JSON.parse(cuerpo)
+              d = JSON.parse(body)
             } catch {
-              return json(res, 400, { error: 'json inválido' })
+              return json(res, 400, { error: 'invalid json' })
             }
-            const ruta = typeof d?.ruta === 'string' ? d.ruta : ''
-            if (!recorrer(raiz).some((c) => c.ruta === ruta)) {
-              return json(res, 404, { error: 'ese clip no está en el vault' })
+            const clipPath = typeof d?.path === 'string' ? d.path : ''
+            if (!walk(root).some((c) => c.path === clipPath)) {
+              return json(res, 404, { error: 'that clip is not in the vault' })
             }
-            const desde = dentro(raiz, path.join(raiz, ruta))
-            if (!desde) return json(res, 404, { error: 'ese clip no está en el vault' })
+            const from = inside(root, path.join(root, clipPath))
+            if (!from) return json(res, 404, { error: 'that clip is not in the vault' })
 
-            const papelera = path.join(os.homedir(), '.Trash')
+            const trash = path.join(os.homedir(), '.Trash')
             let stat
             try {
-              stat = fs.statSync(papelera)
+              stat = fs.statSync(trash)
             } catch {
-              return json(res, 501, { error: 'no hay papelera en este sistema' })
+              return json(res, 501, { error: 'there is no trash on this system' })
             }
-            if (!stat.isDirectory()) return json(res, 501, { error: 'no hay papelera en este sistema' })
+            if (!stat.isDirectory()) return json(res, 501, { error: 'there is no trash on this system' })
 
-            const nombre = libre(papelera, path.basename(desde))
-            if (!nombre) return json(res, 409, { error: 'demasiados con ese nombre en la papelera' })
+            const name = freeName(trash, path.basename(from))
+            if (!name) return json(res, 409, { error: 'too many with that name in the trash' })
             try {
-              fs.renameSync(desde, path.join(papelera, nombre))
+              fs.renameSync(from, path.join(trash, name))
             } catch (e) {
               return json(res, 500, { error: String(e?.message ?? e) })
             }
 
-            const todas = leerJson(raiz, FICHAS)
-            if (todas[ruta]) {
-              delete todas[ruta]
+            const all = readJson(root, DETAILS_FILE)
+            if (all[clipPath]) {
+              delete all[clipPath]
               try {
-                escribirJson(raiz, FICHAS, todas)
+                writeJson(root, DETAILS_FILE, all)
               } catch {}
             }
-            return json(res, 200, { ok: true, a: nombre })
+            return json(res, 200, { ok: true, to: name })
           })
           return
         }
 
         if (req.method !== 'GET' && req.method !== 'HEAD') return next()
 
-        let pedido
+        let requested
         try {
-          pedido = decodeURIComponent((req.url || '/').split('?')[0])
+          requested = decodeURIComponent((req.url || '/').split('?')[0])
         } catch {
-          return json(res, 400, { error: 'ruta mal codificada' })
+          return json(res, 400, { error: 'badly encoded path' })
         }
 
-        /* El índice: qué hay en el vault, y si el vault existe. */
-        /* Se sanea también AL LEER y no sólo al escribir: el archivo se
-           puede editar a mano, y un valor roto ahí no tiene que poder
-           romper el lienzo. */
-        if (pedido === '/__vistas') {
-          if (!raiz) return json(res, 200, { conectado: false, motivo, vistas: [] })
-          return json(res, 200, { conectado: true, vistas: sanearVistas(leerJson(raiz, VISTAS)?.vistas) })
+        /* The index: what is in the vault, and whether the vault
+           exists. */
+        /* It is sanitized ON READ as well and not only on write: the
+           file can be edited by hand, and a broken value in there must
+           not be able to break the canvas. */
+        if (requested === '/__views') {
+          if (!root) return json(res, 200, { connected: false, reason, views: [] })
+          const stored = viewsFromDisk(readJson(root, VIEWS_FILE)?.vistas)
+          return json(res, 200, { connected: true, views: sanitizeViews(stored) })
         }
 
-        if (pedido === '/__indice') {
-          if (!raiz) return json(res, 200, { conectado: false, motivo, clips: [] })
-          const fichas = leerJson(raiz, FICHAS)
-          const clips = recorrer(raiz).map((c) => ({ ...c, ficha: fichas[c.ruta] ?? null }))
-          return json(res, 200, { conectado: true, carpeta: raiz, clips })
+        if (requested === '/__index') {
+          if (!root) return json(res, 200, { connected: false, reason, clips: [] })
+          const allDetails = readJson(root, DETAILS_FILE)
+          const clips = walk(root).map((c) => ({ ...c, details: allDetails[c.path] ?? null }))
+          return json(res, 200, { connected: true, folder: root, clips })
         }
 
-        /* ─── EL TÍTULO Y EL ÍCONO DE UN LINK ───
-           El porqué entero está en tarjeta-link.mjs. Acá sólo hay dos
-           decisiones de ruteo:
+        /* ─── THE TITLE AND THE ICON OF A LINK ───
+           The whole reason is in link-card.mjs. There are only two
+           routing decisions here:
 
-           VA ANTES DEL CORTE DE `raiz` porque es el único camino del
-           puente que NO toca el vault. Una nota con un link se tiene
-           que poder leer igual con VAULT_DIR desconectada: el link no
-           es un archivo tuyo.
+           IT GOES BEFORE THE `root` CUTOFF because it is the only path
+           in the bridge that does NOT touch the vault. A note with a
+           link has to be readable with VAULT_DIR disconnected: the
+           link is not a file of yours.
 
-           Y NO VALIDA LA URL ACÁ. La valida tarjetaDe, que es la que
-           sale a buscarla — dos validaciones de lo mismo en dos
-           archivos se separan solas. */
-        if (pedido === '/__link') {
+           AND IT DOES NOT VALIDATE THE URL HERE. linkCardOf validates
+           it, since it is the one that goes out to fetch it. Two
+           validations of the same thing in two files come apart on
+           their own. */
+        if (requested === '/__link') {
           const url = new URLSearchParams((req.url || '').split('?')[1] ?? '').get('url')
-          if (!url) return json(res, 400, { error: 'falta url' })
-          tarjetaDe(url).then(
-            (t) => json(res, 200, t),
+          if (!url) return json(res, 400, { error: 'url missing' })
+          linkCardOf(url).then(
+            (card) => json(res, 200, card),
             (e) => json(res, 500, { error: String(e?.message ?? e) }),
           )
           return
         }
 
-        if (!raiz) return json(res, 404, { error: motivo })
+        if (!root) return json(res, 404, { error: reason })
 
-        const rel = pedido.replace(/^\/+/, '')
-        if (!rel) return json(res, 404, { error: 'sin ruta' })
-        if (rel.split('/').some(oculto)) return json(res, 404, { error: 'no' })
+        const rel = requested.replace(/^\/+/, '')
+        if (!rel) return json(res, 404, { error: 'no path' })
+        if (rel.split('/').some(isHidden)) return json(res, 404, { error: 'no' })
 
         const ext = path.extname(rel).toLowerCase()
-        const tipo = TIPOS[ext]
-        /* La lista blanca decide ANTES de tocar el disco. Un .md no
-           llega ni a existir para este servidor. */
-        if (!tipo) return json(res, 404, { error: 'extensión no servida' })
+        const contentType = MEDIA_TYPES[ext]
+        /* The allowlist decides BEFORE touching the disk. A .md never
+           even gets to exist for this server. */
+        if (!contentType) return json(res, 404, { error: 'extension not served' })
 
-        const abs = dentro(raiz, path.resolve(raiz, rel))
-        if (!abs) return json(res, 404, { error: 'fuera del vault o no existe' })
+        const abs = inside(root, path.resolve(root, rel))
+        if (!abs) return json(res, 404, { error: 'outside the vault, or it does not exist' })
 
-        let s
+        let stats
         try {
-          s = fs.statSync(abs)
+          stats = fs.statSync(abs)
         } catch {
-          return json(res, 404, { error: 'no existe' })
+          return json(res, 404, { error: 'does not exist' })
         }
-        if (!s.isFile()) return json(res, 404, { error: 'no es un archivo' })
+        if (!stats.isFile()) return json(res, 404, { error: 'not a file' })
 
-        res.setHeader('content-type', tipo)
+        res.setHeader('content-type', contentType)
         res.setHeader('accept-ranges', 'bytes')
-        res.setHeader('last-modified', s.mtime.toUTCString())
-        /* no-store y no un ETag: en este vault los archivos se
-           REEMPLAZAN —regrabás el clip y querés ver el nuevo—, y en
-           localhost volver a pedirlo no cuesta nada. Un caché acá sólo
-           podría hacer que mires la versión vieja sin enterarte. */
+        res.setHeader('last-modified', stats.mtime.toUTCString())
+        /* no-store and not an ETag: in this vault the files get
+           REPLACED, you re-record the clip and you want to see the new
+           one, and on localhost asking for it again costs nothing. A
+           cache here could only make you look at the old version
+           without noticing. */
         res.setHeader('cache-control', 'no-store')
 
-        const r = pedirRango(req.headers.range, s.size)
-        if (r === 'imposible') {
+        const r = parseRange(req.headers.range, stats.size)
+        if (r === 'unsatisfiable') {
           res.statusCode = 416
-          res.setHeader('content-range', `bytes */${s.size}`)
+          res.setHeader('content-range', `bytes */${stats.size}`)
           return res.end()
         }
 
         if (r) {
           res.statusCode = 206
-          res.setHeader('content-range', `bytes ${r.inicio}-${r.fin}/${s.size}`)
-          res.setHeader('content-length', r.fin - r.inicio + 1)
+          res.setHeader('content-range', `bytes ${r.start}-${r.end}/${stats.size}`)
+          res.setHeader('content-length', r.end - r.start + 1)
         } else {
           res.statusCode = 200
-          res.setHeader('content-length', s.size)
+          res.setHeader('content-length', stats.size)
         }
 
         if (req.method === 'HEAD') return res.end()
-        const flujo = r
-          ? fs.createReadStream(abs, { start: r.inicio, end: r.fin })
+        const stream = r
+          ? fs.createReadStream(abs, { start: r.start, end: r.end })
           : fs.createReadStream(abs)
-        flujo.on('error', () => res.destroy())
-        res.on('close', () => flujo.destroy())
-        flujo.pipe(res)
+        stream.on('error', () => res.destroy())
+        res.on('close', () => stream.destroy())
+        stream.pipe(res)
       })
     },
   }

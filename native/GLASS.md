@@ -1,143 +1,151 @@
-# El vidrio
+# The glass
 
-Cómo se usa `expo-glass-effect` sin chocarse. Es una referencia, no un
-procedimiento: el orden de trabajo está en el
-[`AGENTS.md` de la raíz](../AGENTS.md#el-proceso-paso-a-paso).
+How to use `expo-glass-effect` without crashing into it. This is a
+reference, not a procedure: the order of work is in the
+[root `AGENTS.md`](../AGENTS.md), in the section on the process step by
+step.
 
-**De dónde salió.** Leído el 2026-08-28 de la implementación de
-`chatgpt-attachments` en
+**Where it came from.** Read on 2026-08-28 from the
+`chatgpt-attachments` implementation in
 [SchroederNathan/react-native-motion](https://github.com/SchroederNathan/react-native-motion),
-y contrastado contra los tipos del paquete que tenemos instalado. Su repo
-no tiene licencia, así que acá no hay código suyo: hay lo que aprendí
-leyéndolo, escrito de nuevo.
+and checked against the types of the package we have installed. His repo
+has no license, so there is no code of his here: there is what I learned
+reading it, written again.
 
-Es una implementación seria — el ChatGPT attachments son 2913 líneas con
-cada color sacado de mirar la referencia cuadro a cuadro y el porqué
-escrito arriba. Lo que sigue son sus conclusiones, no mis hipótesis.
+It is a serious implementation. The ChatGPT attachments are 2913 lines
+with every color taken from watching the reference frame by frame and
+the why written above it. What follows are his conclusions, not my
+hypotheses.
 
 ---
 
-## La trampa central: no se puede animar por opacidad
+## The central trap: it cannot be animated by opacity
 
-Poné un `GlassView` abajo de una opacidad animada y **no dibuja nada, ni
-siquiera en `1`**. No se ve tenue: desaparece.
+Put a `GlassView` under an animated opacity and **it draws nothing, not
+even at `1`**. It does not look faint: it disappears.
 
-Tiene su propia transición nativa justamente para esto. El patrón es
-montar la superficie a opacidad fija y **cambiarle el estilo** —`regular`
-⇄ `none`— con su `animationDuration`, en vez de fundirla.
+It has its own native transition for exactly this. The pattern is to
+mount the surface at a fixed opacity and **change its style**, `regular`
+⇄ `none`, with its `animationDuration`, instead of fading it.
 
-Un detalle que hay que saber de antemano: **el primer render tiene que
-arrancar en `none`** aunque quieras `regular`, para que la transición
-tenga de dónde salir. Si montás directo en `regular`, no hay transición,
-hay un salto.
+One detail you have to know beforehand: **the first render has to start
+at `none`** even if what you want is `regular`, so the transition has
+somewhere to come from. Mount straight into `regular` and there is no
+transition, there is a jump.
 
-Cuando lo que necesitás fundir es algo *encima* del vidrio, eso sí se
-funde normal: una vista común apoyada arriba, cargando el radio del
-vidrio.
+When what you need to fade is something *on top of* the glass, that does
+fade normally: an ordinary view resting above, carrying the glass's
+radius.
 
-## No lo recortes
+## Do not clip it
 
-Nada de `overflow: 'hidden'` sobre un `GlassView` **ni sobre ninguno de
-sus ancestros**. La vista nativa se redondea sola con su `borderRadius`,
-y recortarla es exactamente lo que mata el bulto que hace el material
-bajo un dedo. Lo que va encima lleva su propio radio.
+No `overflow: 'hidden'` over a `GlassView` **or over any of its
+ancestors**. The native view rounds itself with its `borderRadius`, and
+clipping it is exactly what kills the bulge the material makes under a
+finger. What goes on top carries its own radius.
 
-Corolario: el `borderCurve: 'continuous'` va en la vista de vidrio, no en
-un contenedor que la recorte.
+Corollary: the `borderCurve: 'continuous'` goes on the glass view, not
+on a container that clips it.
 
-**Y al revés con la caída:** un `BlurView` sí hay que recortarlo. Es un
-desenfoque, no un material nativo — no se redondea solo. Las dos ramas
-del mismo componente llevan reglas opuestas, y ésa es la que se olvida.
+**And the other way around with the fallback:** a `BlurView` does have to
+be clipped. It is a blur, not a native material, and it does not round
+itself. The two branches of the same component carry opposite rules, and
+that is the one people forget.
 
-## `isInteractive`: control sí, contenedor no
+## `isInteractive`: yes on a control, no on a container
 
 | | |
 | --- | --- |
-| **Control** — un botón, una píldora | prendido: el material reacciona al dedo como todo control de iOS 26 |
-| **Contenedor** — un panel con cosas adentro | apagado, o el panel se abulta cuando el dedo iba a algo de adentro |
+| **Control**, a button, a pill | on: the material answers the finger like every iOS 26 control |
+| **Container**, a panel with things inside | off, or the panel bulges when the finger was going to something inside it |
 
-Con una consecuencia que conviene tener presente: un panel interactivo
-**queda en el camino del toque**, así que un tap en su propio padding
-deja de caer al backdrop de atrás. Si tu panel se cierra al tocar afuera,
-eso es lo que querés y no un efecto lateral.
+With one consequence worth keeping in mind: an interactive panel **gets
+in the way of the touch**, so a tap on its own padding stops falling
+through to the backdrop behind. If your panel closes when you tap
+outside, that is what you want and not a side effect.
 
-## La escalera de caída
+## The ladder down
 
-`isLiquidGlassAvailable()` dice si el material está disponible. Abajo de
-iOS 26 hay que poner otra cosa.
+`isLiquidGlassAvailable()` says whether the material is available. Below
+iOS 26 you have to put something else.
 
-La caída es un `BlurView` de `expo-blur` con un tinte medido encima para
-llegar al mismo color; y en Android —donde el blur no ve nada, ver el
-punto 8 de [`AGENTS.md`](AGENTS.md#lo-que-ya-sabemos-que-muerde)— un
-color plano.
+The step down is a `BlurView` from `expo-blur` with a measured tint on
+top to reach the same color; and on Android, where the blur sees nothing
+(see item 8 of [`AGENTS.md`](AGENTS.md#what-we-already-know-bites)), a
+flat color.
 
-**`expo-blur` 57.0.2 está instalado** desde el 2026-08-28, y el dev
-client se reconstruyó para incorporarlo. Es la única dependencia del
-taller que entró sin que una pieza la pidiera: sin ella la escalera no
-tiene último escalón, y descubrirlo el día que haga falta cuesta un
-`pnpm ios:build` en el peor momento.
+**`expo-blur` 57.0.2 is installed** since 2026-08-28, and the dev client
+was rebuilt to take it in. It is the only dependency of the workshop
+that came in without a piece asking for it: without it the ladder has no
+last step, and finding that out on the day you need it costs a
+`pnpm ios:build` at the worst moment.
 
-## Dos banderas más
+## Two more flags
 
-**1. `isLiquidGlassAvailable()` no mira la accesibilidad.** Devuelve
-`true` igual si el usuario tiene *Reducir transparencia* prendido. SOURCE:
-la doc del propio paquete, `build/isLiquidGlassAvailable.d.ts` —
+**1. `isLiquidGlassAvailable()` does not look at accessibility.** It
+returns `true` all the same if the user has *Reduce transparency* on.
+SOURCE: the package's own docs,
+`build/isLiquidGlassAvailable.d.ts`:
 
 > *"The value may also be `true` if the user has enabled accessibility
 > settings that limit the Liquid Glass effect."*
 
-y manda a chequear `AccessibilityInfo.isReduceTransparencyEnabled()`
-aparte. Si una pieza depende del vidrio para que algo se lea, esto no es
-opcional.
+and it sends you to check
+`AccessibilityInfo.isReduceTransparencyEnabled()` separately. If a piece
+depends on the glass for something to be readable, this is not optional.
 
-**2. `isGlassEffectAPIAvailable()`** también está exportada (SOURCE:
-`expo-glass-effect@57.0.1`, `build/index.d.ts:6`). Vale mirarla antes de
-asumir que una sola bandera alcanza.
+**2. `isGlassEffectAPIAvailable()`** is exported too (SOURCE:
+`expo-glass-effect@57.0.1`, `build/index.d.ts:6`). Worth a look before
+assuming one flag is enough.
 
-## El color no se elige, se mide
+## The color is not chosen, it is measured
 
-Lo más copiable de todo esto no es el código, es el método: cada color
-del material salió de mirar la referencia cuadro a cuadro. Su panel
-medido sobre negro da `rgb(30,30,30)`; el blur solo llega a 19, así que
-el tinte de encima existe **para cerrar los 11 que faltan**. No es un
-`rgba` que quedó lindo — es una resta.
+The most copyable thing in all of this is not the code, it is the
+method: every color of the material came out of watching the reference
+frame by frame. His panel measured over black gives `rgb(30,30,30)`; the
+blur alone only reaches 19, so the tint on top exists **to close the 11
+that are missing**. It is not an `rgba` that happened to look nice. It
+is a subtraction.
 
-Es la primera de nuestras cuatro reglas, encontrada en otro repo sin
-habernos puesto de acuerdo. Buena señal para las dos partes.
+It is the first of our four rules, found in another repo without our
+having agreed on anything. A good sign for both sides.
 
-## Cómo lo usa el botón de hold-to-commit (2026-09-04)
+## How the hold-to-commit button uses it (2026-09-04)
 
-La variante `vidrio` (`components/pieces/hold-to-commit/material.ts`) es el mismo
-botón con la cápsula en `GlassView` estilo `regular`. Tres decisiones que
-salen de las trampas de arriba:
+The `glass` variant
+(`src/components/pieces/hold-to-commit/material.ts`) is the same button
+with the capsule in a `GlassView` with style `regular`. Three decisions
+come out of the traps above:
 
-- **El vidrio es el contenedor, y el hijo se recorta a sí mismo.** Las
-  texturas del relleno se recortan a la cápsula con `overflow: 'hidden'`,
-  y eso no puede envolver al vidrio. Entonces el `GlassView` es el padre,
-  `absoluteFill`, con su `borderRadius` circular (como el pill medido;
-  sin `continuous`) e `isInteractive`, y ADENTRO va la vista que recorta,
-  con fondo transparente. Un `overflow: hidden` en un hijo no toca al
-  vidrio. Primero se probó al revés —vidrio hermano detrás del recorte—
-  y funcionaba, pero el dedo caía en las texturas y no en el material,
-  que no reaccionaba.
-- **Interactivo, y sin la escala del press.** Un control de vidrio
-  responde al dedo con su propio abultado; sumarle la escala medida de
-  Opal era feedback doble. Con `vidrio`, `escalaPropia` es false.
-- **Contenido que pase por debajo.** Sobre un fondo plano el vidrio es
-  indistinguible de una cápsula pintada: el fondo scrollea debajo del
-  botón, que flota.
-- **Nada suyo se funde por opacidad.** El único ancestro animado es la
-  escala del press, que es un transform. Lo que sí se funde —el relleno,
-  el velo blanco, los labels— está encima, en vistas comunes.
-- **El módulo se pide con un `require` dentro de un `try`.** Un `import`
-  estático ejecuta `requireNativeViewManager` al cargar y, si el binario
-  no lo linkea, tira abajo la pieza entera. Sin módulo o sin iOS 26 la
-  opción cae a una cápsula translúcida plana.
+- **The glass is the container, and the child clips itself.** The fill's
+  textures are clipped to the capsule with `overflow: 'hidden'`, and
+  that cannot wrap the glass. So the `GlassView` is the parent,
+  `absoluteFill`, with its circular `borderRadius` (like the measured
+  pill; no `continuous`) and `isInteractive`, and INSIDE it goes the
+  view that clips, with a transparent background. An
+  `overflow: hidden` on a child does not touch the glass. It was first
+  tried the other way around, with the glass as a sibling behind the
+  clip, and it worked, but the finger landed on the textures and not on
+  the material, which did not react.
+- **Interactive, and with no press scale.** A glass control answers the
+  finger with its own bulge; adding Opal's measured scale on top was
+  double feedback. With `glass`, `ownScale` is false.
+- **Content that passes underneath.** Over a flat background the glass
+  is indistinguishable from a painted capsule: the background scrolls
+  under the button, which floats.
+- **Nothing of its own fades by opacity.** The only animated ancestor is
+  the press scale, which is a transform. What does fade, the fill, the
+  white veil, the labels, sits on top, in ordinary views.
+- **The module is asked for with a `require` inside a `try`.** A static
+  `import` runs `requireNativeViewManager` at load time and, if the
+  binary does not link it, brings the whole piece down. With no module
+  or without iOS 26 the option falls back to a flat translucent capsule.
 
-Y una que no está arriba: **nada de Opal encima del vidrio**. El brillo
-de reposo tiñe el material (la textura tiene alfa, 0..153, media 42) y
-en la primera versión se dejó; pero un vidrio bien lanzado no lleva
-adornos: ni brillo, ni anillo (trae su borde), ni la punta velada (es del
-color del pill opaco). Sólo el relleno blanco del hold, que es el gesto.
-En modo claro el label de reposo arranca negro (`useColorScheme`), como
-el label de todo control de vidrio.
+And one that is not above: **nothing of Opal's on top of the glass**. The
+resting sheen tints the material (the texture has alpha, 0..153, mean
+42) and it was left in for the first version; but a glass shipped
+properly carries no ornaments: no sheen, no ring (it brings its own
+border), no veiled tip (that one is the color of the opaque pill). Only
+the white fill of the hold, which is the gesture. In light mode the
+resting label starts black (`useColorScheme`), like the label of every
+glass control.

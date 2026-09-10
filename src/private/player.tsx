@@ -3,53 +3,53 @@ import css from './player.module.css'
 import type { Clip } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
-   EL REPRODUCTOR
+   THE PLAYER
 
-   Existe para UNA cosa: llegar al cuadro exacto donde arranca un gesto,
-   contar hasta donde termina, y sacar la duración en milisegundos. Todo
-   lo demás está al servicio de eso.
+   It exists for ONE thing: reaching the exact frame where a gesture
+   starts, counting up to where it ends, and getting the duration in
+   milliseconds. Everything else is in service of that.
 
-   LO MEDIDO está en .context/recon/vault/REPRODUCTOR.md:
+   WHAT WAS MEASURED is in .context/recon/vault/REPRODUCTOR.md:
 
-     de apple   el botón de play/pausa — 38×38, icono de 20, y sus
-                colores exactos en claro y en oscuro. 28 videos suyos
-                lo usan, así que renderiza de verdad
-     de benji   el toggle de velocidad — dos estados (1.0x y 0.5x), NO
-                un menú, con los dos textos cruzándose por opacidad para
-                que el botón no cambie de ancho. 45 elementos
+     from apple   the play/pause button: 38×38, a 20 icon, and its exact
+                  colors in light and in dark. 28 videos of theirs use
+                  it, so it renders for real
+     from benji   the speed toggle: two states (1.0x and 0.5x), NOT a
+                  menu, with the two texts crossing over by opacity so
+                  the button does not change width. 45 elements
 
-   LO QUE NO TIENE REFERENCIA es la barra de tiempo. Los controles
-   nativos de Safari tienen el shadow root cerrado, el reproductor
-   completo de apple-events no monta sus controles fuera de una sesión
-   real, y Podcasts y x.com piden login. Así que la pista es NUESTRA y
-   se dice así, en vez de atribuírsela a alguien.
+   WHAT HAS NO REFERENCE is the time track. Safari's native controls
+   have the shadow root closed, apple-events' full player does not mount
+   its controls outside a real session, and Podcasts and x.com ask for a
+   login. So the track is OURS and it gets said that way, instead of
+   being attributed to somebody.
 
-   EL PASO DE CUADRO no se estima: sale de leer el contenedor del
-   archivo (scripts/cuadros.mjs), y está validado contra el navegador en
-   9 de 9 clips.
+   THE FRAME STEP is not estimated: it comes from reading the file's
+   container (scripts/frames.mjs), and it is validated against the
+   browser in 9 out of 9 clips.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Los dos de benji, y en ese orden: su botón arranca en 1x. */
-export const VELOCIDADES = [1, 0.5] as const
+/* benji's two, and in that order: his button starts at 1x. */
+export const SPEEDS = [1, 0.5] as const
 
-/* SIEMPRE UN DECIMAL: "1.0x", no "1x".
-   No es cosmética, es lo que hace que los dos estados midan lo mismo.
-   Con cifras tabulares —las que ya usa la lectura de al lado— "1.0x" y
-   "0.5x" dan 25.06px las dos, medido, así que el botón puede tomar el
-   ancho de su contenido sin que la fila salte ni cambie el aire al
-   alternar. La explicación larga está en .velocidad, en el CSS.
-   Y de paso es como escribe un instrumento que mide: 0:00, 0/255,
-   1.0x, todos con la misma cantidad de dígitos siempre. */
-const etiqueta = (v: number) => `${v.toFixed(1)}x`
+/* ALWAYS ONE DECIMAL: "1.0x", not "1x".
+   It is not cosmetic, it is what makes the two states measure the same.
+   With tabular figures (the ones the readout next to it already uses)
+   "1.0x" and "0.5x" both give 25.06px, measured, so the button can take
+   the width of its content without the row jumping or the air changing
+   when it toggles. The long explanation is in .speed, in the CSS.
+   And along the way it is how an instrument that measures writes: 0:00,
+   0/255, 1.0x, all with the same number of digits every time. */
+const label = (v: number) => `${v.toFixed(1)}x`
 
-/* Los iconos son nuestros —dos formas triviales— y no los de Apple: se
-   copian sus medidas, no su dibujo. Van con `currentColor` en vez de la
-   máscara que usa él; el efecto es el mismo (el color del icono es una
-   propiedad CSS, tematizable y animable) con una pieza menos. */
-function Glifo({ pausa }: { pausa: boolean }) {
+/* The icons are ours (two trivial shapes) and not apple's: we copy
+   their measurements, not their drawing. They go with `currentColor`
+   instead of the mask he uses; the effect is the same (the icon's color
+   is a CSS property, themeable and animatable) with one piece less. */
+function Glyph({ pause }: { pause: boolean }) {
   return (
-    <svg className={css.glifo} viewBox="0 0 20 20" aria-hidden focusable="false">
-      {pausa ? (
+    <svg className={css.glyph} viewBox="0 0 20 20" aria-hidden focusable="false">
+      {pause ? (
         <>
           <rect x="5.5" y="4" width="3.5" height="12" rx="1.25" />
           <rect x="11" y="4" width="3.5" height="12" rx="1.25" />
@@ -61,181 +61,184 @@ function Glifo({ pausa }: { pausa: boolean }) {
   )
 }
 
-const reloj = (s: number) => {
+const clock = (s: number) => {
   if (!Number.isFinite(s)) return '0:00'
   const m = Math.floor(s / 60)
   const r = Math.floor(s % 60)
   return `${m}:${String(r).padStart(2, '0')}`
 }
 
-export function Reproductor({ clip }: { clip: Clip }) {
+export function Player({ clip }: { clip: Clip }) {
   const video = useRef<HTMLVideoElement | null>(null)
-  /* La proporción del clip. El CSS la necesita para que el elemento SEA
-     la imagen en vez de una caja con la imagen adentro y una franja al
-     costado; ver .video en reproductor.module.css. Sale de los
-     metadatos, que es el único lugar donde está: el índice no la trae. */
+  /* The clip's ratio. The CSS needs it so the element IS the image
+     instead of a box with the image inside and a strip at the side; see
+     .video in player.module.css. It comes from the metadata, which is
+     the only place it exists: the index does not bring it. */
   const [ratio, setRatio] = useState<number | null>(null)
-  const [corriendo, setCorriendo] = useState(false)
-  const [t, setT] = useState(0)
-  const [dur, setDur] = useState(0)
-  const [vel, setVel] = useState<number>(1)
-  const [arrastrando, setArrastrando] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [time, setTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [speed, setSpeed] = useState<number>(1)
+  const [dragging, setDragging] = useState(false)
 
-  const cuadro = clip.cuadro
-  const totalCuadros = clip.cuadros
+  const frameStep = clip.frameStep
+  const frameCount = clip.frameCount
 
-  /* El tiempo se lee en cada cuadro de pantalla y no con `timeupdate`,
-     que dispara unas 4 veces por segundo: con eso la pista avanza a
-     saltos visibles y el número de cuadro miente casi siempre. */
+  /* The time is read on every screen frame and not with `timeupdate`,
+     which fires about 4 times per second: with that the track advances
+     in visible jumps and the frame number lies almost always. */
   useEffect(() => {
-    let pedido = 0
-    const leer = () => {
+    let request = 0
+    const read = () => {
       const v = video.current
-      if (v && !arrastrando) setT(v.currentTime)
-      pedido = requestAnimationFrame(leer)
+      if (v && !dragging) setTime(v.currentTime)
+      request = requestAnimationFrame(read)
     }
-    pedido = requestAnimationFrame(leer)
-    return () => cancelAnimationFrame(pedido)
-  }, [arrastrando])
+    request = requestAnimationFrame(read)
+    return () => cancelAnimationFrame(request)
+  }, [dragging])
 
-  const alternar = useCallback(() => {
+  const toggle = useCallback(() => {
     const v = video.current
     if (!v) return
     if (v.paused) v.play().catch(() => {})
     else v.pause()
   }, [])
 
-  /* UN CUADRO EXACTO. Se calcula el índice del cuadro actual, se suma la
-     dirección, y se busca el MEDIO del cuadro destino en vez de su
-     borde: pedir exactamente N·cuadro cae justo en la frontera entre dos
-     cuadros y el navegador puede resolver para cualquiera de los dos.
-     Con el medio no hay ambigüedad. */
-  const mover = useCallback(
+  /* ONE EXACT FRAME. It computes the index of the current frame, adds
+     the direction, and looks for the MIDDLE of the target frame instead
+     of its edge: asking for exactly N·step lands right on the border
+     between two frames and the browser can resolve to either of them.
+     With the middle there is no ambiguity. */
+  const step = useCallback(
     (dir: number) => {
       const v = video.current
-      if (!v || !cuadro) return
+      if (!v || !frameStep) return
       v.pause()
-      const i = Math.floor(v.currentTime / cuadro)
-      const destino = Math.min(Math.max(i + dir, 0), (totalCuadros ?? Infinity) - 1)
-      v.currentTime = (destino + 0.5) * cuadro
+      const i = Math.floor(v.currentTime / frameStep)
+      const target = Math.min(Math.max(i + dir, 0), (frameCount ?? Infinity) - 1)
+      v.currentTime = (target + 0.5) * frameStep
     },
-    [cuadro, totalCuadros],
+    [frameStep, frameCount],
   )
 
-  /* A LOS BORDES. Mismo criterio que `mover`: se cae en el MEDIO del
-     primer o del último cuadro, no en el borde del clip. Pedir
-     exactamente `duration` deja el video en estado terminado y qué
-     cuadro muestra ahí depende del navegador; pedir 0 sí es seguro
-     —no hay frontera por debajo— pero se usa el medio igual para que
-     el número de cuadro salga por el mismo camino en los dos extremos.
+  /* TO THE EDGES. Same criterion as `step`: it lands in the MIDDLE of
+     the first or the last frame, not on the clip's edge. Asking for
+     exactly `duration` leaves the video in the ended state and which
+     frame it shows there depends on the browser; asking for 0 is safe
+     (there is no border below it) but the middle is used anyway so the
+     frame number comes out by the same path at both ends.
 
-     Sin metadatos de cuadro se cae a la duración menos un pelo, que es
-     lo mejor que se puede decir sin saber cuánto dura un cuadro. */
-  const extremo = useCallback(
+     With no frame metadata it falls back to the duration minus a hair,
+     which is the best that can be said without knowing how long a frame
+     lasts. */
+  const toEdge = useCallback(
     (dir: number) => {
       const v = video.current
       if (!v) return
       v.pause()
       if (dir < 0) {
-        v.currentTime = cuadro ? cuadro * 0.5 : 0
+        v.currentTime = frameStep ? frameStep * 0.5 : 0
         return
       }
-      const fin = Number.isFinite(v.duration) ? Math.max(v.duration - 0.001, 0) : 0
-      /* Se acota contra la duración: `cuadros` sale de redondear y puede
-         quedar medio cuadro más allá del final real del archivo. */
+      const end = Number.isFinite(v.duration) ? Math.max(v.duration - 0.001, 0) : 0
+      /* It is bounded against the duration: `frameCount` comes from
+         rounding and can end up half a frame past the file's real
+         end. */
       v.currentTime =
-        cuadro && totalCuadros ? Math.min((totalCuadros - 0.5) * cuadro, fin) : fin
+        frameStep && frameCount ? Math.min((frameCount - 0.5) * frameStep, end) : end
     },
-    [cuadro, totalCuadros],
+    [frameStep, frameCount],
   )
 
-  /* EL TECLADO ESCUCHA EN EL DOCUMENTO, no en el marco.
+  /* THE KEYBOARD LISTENS ON THE DOCUMENT, not on the player.
 
-     Estaba atado al foco del reproductor, y así fallaba justo en el caso
-     que más se usa: clickeás el video para pausarlo —lo que NO le da el
-     foco al marco, porque el clic cae en el <video>— y a partir de ahí
-     las flechas no hacen nada. Quedabas pausado y sin teclado.
+     It was tied to the player's focus, and that way it failed exactly
+     in the case that gets used most: you click the video to pause it
+     (which does NOT give focus to the player, because the click lands
+     on the <video>) and from then on the arrows do nothing. You were
+     left paused and with no keyboard.
 
-     Ahora que las flechas visibles se fueron, el teclado es el ÚNICO
-     camino al cuadro a cuadro, así que no puede depender de dónde quedó
-     el foco. Y el listener sólo existe mientras hay un clip abierto.
+     Now that the visible arrows are gone, the keyboard is the ONLY way
+     to frame-by-frame, so it cannot depend on where the focus ended up.
+     And the listener only exists while a clip is open.
 
-     LAS FLECHAS SON CUATRO GESTOS:
+     THE ARROWS ARE FOUR GESTURES:
 
-       sola      un cuadro
-       option    diez cuadros — el salto grueso para cruzar un gesto
-                 entero sin soltar la tecla. shift hace lo mismo y se
-                 queda: ya estaba y no cuesta nada
-       command   al principio o al final del clip
+       alone     one frame
+       option    ten frames, the coarse jump to cross a whole gesture
+                 without letting go of the key. shift does the same and
+                 it stays: it was already there and it costs nothing
+       command   to the beginning or the end of the clip
 
-     command+flecha es back/forward del navegador, así que el
-     `preventDefault` de esa rama no es cosmético: sin él te vas de la
-     página en vez de saltar al final del video.
+     command+arrow is the browser's back/forward, so the
+     `preventDefault` in that branch is not cosmetic: without it you
+     leave the page instead of jumping to the end of the video.
 
-     Y JUSTO POR ESO EL FOCO SÍ IMPORTA PARA LAS FLECHAS. La ficha de al
-     lado tiene el título, la fuente y las notas: campos de texto donde
-     option+flecha salta de palabra y command+flecha va al principio o
-     al final de la línea. Robárselas mientras escribís rompe lo que en
-     mac hace todo el mundo sin pensarlo, así que en un campo el
-     reproductor no toca las flechas. En un BOTÓN sí las toca —los
-     botones no usan flechas— para que después de apretar play sigas
-     yendo cuadro a cuadro.
+     AND THAT IS EXACTLY WHY FOCUS DOES MATTER FOR THE ARROWS. The
+     details panel next to it has the title, the source and the notes:
+     text fields where option+arrow jumps by word and command+arrow goes
+     to the beginning or the end of the line. Stealing them while you
+     type breaks what everyone on a mac does without thinking, so in a
+     field the player does not touch the arrows. In a BUTTON it does
+     touch them (buttons do not use arrows) so that after pressing play
+     you go on stepping frame by frame.
 
-     El espacio se saltea en cualquier control, botones incluidos: si
-     estás sobre el de play, el espacio ya lo activa el navegador y
-     hacerlo dos veces sería volver al estado anterior. */
+     The space bar is skipped in any control, buttons included: if you
+     are on the play one, the browser already activates it with the
+     space and doing it twice would go back to the previous state. */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey) return
-      const t = e.target as HTMLElement | null
-      const foco = (sel: string) =>
-        t instanceof HTMLElement && (!!t.closest(sel) || t.isContentEditable)
+      const target = e.target as HTMLElement | null
+      const focusIn = (sel: string) =>
+        target instanceof HTMLElement && (!!target.closest(sel) || target.isContentEditable)
 
       const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
       if (dir) {
-        if (foco('input, textarea, select')) return
+        if (focusIn('input, textarea, select')) return
         e.preventDefault()
-        if (e.metaKey) extremo(dir)
-        else mover(dir * (e.altKey || e.shiftKey ? 10 : 1))
+        if (e.metaKey) toEdge(dir)
+        else step(dir * (e.altKey || e.shiftKey ? 10 : 1))
         return
       }
 
       if (e.metaKey || e.altKey) return
-      if ((e.key === ' ' || e.key === 'k') && !foco('button, input, textarea, select')) {
+      if ((e.key === ' ' || e.key === 'k') && !focusIn('button, input, textarea, select')) {
         e.preventDefault()
-        alternar()
+        toggle()
       }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [mover, extremo, alternar])
+  }, [step, toEdge, toggle])
 
   useEffect(() => {
     const v = video.current
-    if (v) v.playbackRate = vel
-  }, [vel])
+    if (v) v.playbackRate = speed
+  }, [speed])
 
-  const indice = cuadro ? Math.floor(t / cuadro) : null
-  const avance = dur > 0 ? t / dur : 0
+  const index = frameStep ? Math.floor(time / frameStep) : null
+  const progress = duration > 0 ? time / duration : 0
 
-  const buscar = (e: React.PointerEvent<HTMLDivElement>) => {
+  const seek = (e: React.PointerEvent<HTMLDivElement>) => {
     const v = video.current
-    const caja = e.currentTarget.getBoundingClientRect()
-    if (!v || !caja.width) return
-    const p = Math.min(Math.max((e.clientX - caja.left) / caja.width, 0), 1)
+    const box = e.currentTarget.getBoundingClientRect()
+    if (!v || !box.width) return
+    const p = Math.min(Math.max((e.clientX - box.left) / box.width, 0), 1)
     v.currentTime = p * (v.duration || 0)
-    setT(v.currentTime)
+    setTime(v.currentTime)
   }
 
   return (
-    /* Sin tabIndex: el marco ya no necesita el foco porque el teclado
-       escucha en el documento. Los controles que sí son interactivos
-       —play y velocidad— son botones y entran solos al orden de
-       tabulación. */
+    /* No tabIndex: the player no longer needs focus because the keyboard
+       listens on the document. The controls that are interactive (play
+       and speed) are buttons and they enter the tab order on their
+       own. */
     <div
-      className={css.marco}
-      data-corriendo={corriendo ? '' : undefined}
-      style={ratio ? ({ '--rep-ratio': String(ratio) } as React.CSSProperties) : undefined}
+      className={css.player}
+      data-playing={playing ? '' : undefined}
+      style={ratio ? ({ '--player-ratio': String(ratio) } as React.CSSProperties) : undefined}
     >
       <video
         className={css.video}
@@ -244,80 +247,82 @@ export function Reproductor({ clip }: { clip: Clip }) {
         muted
         playsInline
         preload="metadata"
-        onClick={alternar}
-        onPlay={() => setCorriendo(true)}
-        onPause={() => setCorriendo(false)}
+        onClick={toggle}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onLoadedMetadata={(e) => {
-          setDur(e.currentTarget.duration)
+          setDuration(e.currentTarget.duration)
           const { videoWidth: w, videoHeight: h } = e.currentTarget
           if (w && h) setRatio(w / h)
         }}
       />
 
-      <div className={css.controles}>
-        {/* NO HAY BOTONES DE CUADRO. El paso vive sólo en las flechas del
-            teclado: son más precisas —podés mantenerlas apretadas, con
-            option saltás de a diez y con command a los bordes— y no hay
-            que apuntarle a un botón de 24px mientras mirás otra cosa.
-            Estuvieron y se sacaron. */}
+      <div className={css.controls}>
+        {/* THERE ARE NO FRAME BUTTONS. Stepping lives only in the
+            keyboard arrows: they are more precise (you can hold them
+            down, with option you jump by ten and with command to the
+            edges) and you do not have to aim at a 24px button while
+            looking at something else. They were there and they were
+            taken out. */}
         <button
           className={css.play}
-          onClick={alternar}
-          aria-label={corriendo ? 'Pause' : 'Play'}
+          onClick={toggle}
+          aria-label={playing ? 'Pause' : 'Play'}
         >
-          <Glifo pausa={corriendo} />
+          <Glyph pause={playing} />
         </button>
 
         <div
-          className={css.pista}
+          className={css.track}
           onPointerDown={(e) => {
-            setArrastrando(true)
+            setDragging(true)
             e.currentTarget.setPointerCapture(e.pointerId)
-            buscar(e)
+            seek(e)
           }}
-          onPointerMove={(e) => arrastrando && buscar(e)}
+          onPointerMove={(e) => dragging && seek(e)}
           onPointerUp={(e) => {
-            setArrastrando(false)
+            setDragging(false)
             e.currentTarget.releasePointerCapture(e.pointerId)
           }}
           role="slider"
           aria-label="Time"
           aria-valuemin={0}
-          aria-valuemax={Math.round(dur * 1000)}
-          aria-valuenow={Math.round(t * 1000)}
+          aria-valuemax={Math.round(duration * 1000)}
+          aria-valuenow={Math.round(time * 1000)}
         >
-          {/* Sin perilla: con el riel en 2px la posición la dice el
-              llenado, y un círculo encima de una línea así de fina pesa
-              más que la línea entera. */}
-          <span className={css.riel} />
-          <span className={css.lleno} style={{ transform: `scaleX(${avance})` }} />
+          {/* No knob: with the rail at 2px the position is said by the
+              fill, and a circle on top of a line that thin weighs more
+              than the whole line. */}
+          <span className={css.rail} />
+          <span className={css.fill} style={{ transform: `scaleX(${progress})` }} />
         </div>
 
-        {/* El número de cuadro es el dato que se viene a buscar: con él
-            contás de dónde a dónde dura un gesto. El tiempo va al lado
-            porque es lo que después escribís en el CSS. */}
-        <div className={css.lectura}>
-          <span className={css.tiempo}>{reloj(t)}</span>
-          {indice !== null && (
-            <span className={css.cuadro}>
-              {indice}
-              {totalCuadros ? `/${totalCuadros - 1}` : ''}
+        {/* The frame number is the value you come here for: with it you
+            count from where to where a gesture lasts. The time goes next
+            to it because it is what you write into the CSS
+            afterwards. */}
+        <div className={css.readout}>
+          <span className={css.time}>{clock(time)}</span>
+          {index !== null && (
+            <span className={css.frameNumber}>
+              {index}
+              {frameCount ? `/${frameCount - 1}` : ''}
             </span>
           )}
         </div>
 
-        {/* El toggle de benji: dos estados, y los dos textos apilados en
-            la misma celda cruzándose por opacidad. Las etiquetas van con
-            un decimal para que los dos estados midan igual — ver
-            `etiqueta` arriba. */}
+        {/* benji's toggle: two states, and the two texts stacked in the
+            same cell crossing over by opacity. The labels go with one
+            decimal so the two states measure the same, see `label`
+            above. */}
         <button
-          className={css.velocidad}
-          onClick={() => setVel((v) => (v === 1 ? 0.5 : 1))}
-          aria-label={`Speed ${etiqueta(vel)}`}
+          className={css.speed}
+          onClick={() => setSpeed((v) => (v === 1 ? 0.5 : 1))}
+          aria-label={`Speed ${label(speed)}`}
         >
-          {VELOCIDADES.map((v) => (
-            <span key={v} data-activo={v === vel ? '' : undefined}>
-              {etiqueta(v)}
+          {SPEEDS.map((v) => (
+            <span key={v} data-active={v === speed ? '' : undefined}>
+              {label(v)}
             </span>
           ))}
         </button>

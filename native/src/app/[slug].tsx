@@ -1,31 +1,32 @@
 import { Redirect, useLocalSearchParams } from 'expo-router'
 
-import { PIEZAS } from '@/components/pieces/registry'
+import { PIECES } from '@/components/pieces/registry'
 
 /* ═══════════════════════════════════════════════════════════════
-   LA RUTA DE UNA PIEZA — una sola para todas, como
-   `app/animations/[slug].tsx` en react-native-motion: busca la pantalla
-   en el registro y la monta. Nada más.
+   THE ROUTE OF A PIECE — one route for all of them, like
+   `app/animations/[slug].tsx` in react-native-motion: it looks the
+   screen up in the registry and mounts it. Nothing else.
 
-   FLACA A PROPÓSITO, y ahora única: Expo Router convierte en ruta todo
-   `.tsx` que cuelgue de `src/app/` (su doc: "Non-navigation components
-   live outside the src/app directory"), así que el código de una pieza
-   vive en `src/components/pieces/<slug>/` y acá no hay una carpeta por
-   pieza que mantener. Hasta el 2026-09-10 había un puntero por pieza
-   —`src/app/<slug>/index.tsx`, que sólo re-exportaba la pantalla— y el
-   índice se derivaba de esas carpetas; ahora se deriva de las carpetas
-   de las piezas, que es de donde tenía que salir (ver `registry.ts`).
+   THIN ON PURPOSE, and now the only one: Expo Router turns every `.tsx`
+   hanging off `src/app/` into a route (their doc: "Non-navigation
+   components live outside the src/app directory"), so the code of a
+   piece lives in `src/components/pieces/<slug>/` and there is no folder
+   per piece to maintain here. Until 2026-09-10 there was one pointer
+   per piece, `src/app/<slug>/index.tsx`, which only re-exported the
+   screen, and the index was derived from those folders; now it is
+   derived from the folders of the pieces, which is where it had to come
+   from (see `registry.ts`).
 
-   Las perillas de una pieza (`?parcar=`, `?fondo=`, `?demo=1`) las lee
-   su propia pantalla con `useLocalSearchParams`: la ruta no sabe qué
-   pieza es, y no tiene por qué.
+   The knobs of a piece (`?park=`, `?background=`, `?demo=1`) are read by
+   its own screen with `useLocalSearchParams`: the route does not know
+   which piece this is, and it has no reason to.
 
-   Un slug que no existe vuelve al índice: en el taller no hay 404 que
-   valga la pena dibujar.
+   A slug that does not exist goes back to the index: in the workshop
+   there is no 404 worth drawing.
    ═══════════════════════════════════════════════════════════════ */
-export default function Pieza() {
+export default function Piece() {
   const { slug } = useLocalSearchParams<{ slug: string }>()
-  const Pantalla = slug ? PIEZAS[slug] : undefined
-  if (!Pantalla) return <Redirect href="/" />
-  return <Pantalla />
+  const Screen = slug ? PIECES[slug] : undefined
+  if (!Screen) return <Redirect href="/" />
+  return <Screen />
 }

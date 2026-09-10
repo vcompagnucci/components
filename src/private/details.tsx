@@ -3,45 +3,45 @@ import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import css from "./details.module.css";
 import menu from "./actions.module.css";
-import { guardarFicha, type Clip, type Ficha } from "./clips";
-import { Enlace } from "./link";
-import { partir, type Tramo } from "./links";
+import { saveDetails, type Clip, type Details } from "./clips";
+import { NoteLink } from "./link";
+import { split, type Segment } from "./links";
 
 /* ═══════════════════════════════════════════════════════════════
-   LA FICHA TÉCNICA. Siempre visible, cuatro datos, editar es tocar y
-   escribir. Ver ficha.module.css para por qué ya no se pliega.
+   THE DETAILS. Always visible, four values, editing is touching and
+   typing. See details.module.css for why it no longer collapses.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Las cuatro clases de dispositivo. Es un SELECTOR y no un campo libre
-   porque el dato sirve para filtrar y comparar, y "iPhone", "iphone" y
-   "mobile" a mano son tres valores distintos que significan lo mismo. */
-/* ─── EL RESORTE ───
-   El de siempre: bounce 0 —críticamente amortiguado, sin impulso que
-   devolver porque el disparador es un botón— y 0.35 de respuesta. Un
-   resorte arranca del valor ACTUAL, así que revertir a mitad de camino
-   es continuo. Lo usan el panel y el relleno del glifo, para que los
-   dos se lean como una sola cosa. */
-export const RESORTE = { type: "spring" as const, bounce: 0, duration: 0.35 };
+/* The four classes of device. It is a PICKER and not a free field
+   because the value is used to filter and compare, and "iPhone",
+   "iphone" and "mobile" typed by hand are three different values that
+   mean the same thing. */
+/* ─── THE SPRING ───
+   The usual one: bounce 0 (critically damped, with no impulse to give
+   back because the trigger is a button) and 0.35 of response. A spring
+   starts from the CURRENT value, so reverting halfway is continuous.
+   The panel and the glyph's fill use it, so the two read as one thing. */
+export const SPRING = { type: "spring" as const, bounce: 0, duration: 0.35 };
 
-/* ─── EL GLIFO DEL PANEL ───
-   Un rectángulo con el tercio derecho separado: es la pantalla, y ese
-   tercio es la ficha. Se rellena cuando está abierta. Sin rotación y
-   sin espejo — un relleno que sube y baja no tiene ningún cuadro
-   intermedio que pueda leerse mal. 16×16 y trazo 1.5, las medidas del
-   + de la grilla. */
-export function BotonFicha({
-  abierta,
+/* ─── THE PANEL'S GLYPH ───
+   A rectangle with the right third separated: it is the screen, and
+   that third is the details panel. It fills in when the panel is open.
+   No rotation and no mirror: a fill that rises and falls has no
+   intermediate frame that can be misread. 16×16 and stroke 1.5, the
+   measurements of the grid's +. */
+export function DetailsButton({
+  open,
   onToggle,
 }: {
-  abierta: boolean;
+  open: boolean;
   onToggle: () => void;
 }) {
   return (
     <button
-      className={css.boton}
+      className={css.button}
       onClick={onToggle}
-      aria-expanded={abierta}
-      aria-label={abierta ? "Hide details" : "Show details"}
+      aria-expanded={open}
+      aria-label={open ? "Hide details" : "Show details"}
     >
       <svg
         width="16"
@@ -59,119 +59,122 @@ export function BotonFicha({
           stroke="currentColor"
           strokeWidth="1.5"
         />
-        {/* De filo interno a filo interno: el color es semitransparente
-            y donde el divisor se metía en el trazo el alfa se sumaba. */}
+        {/* From inner edge to inner edge: the color is semitransparent
+            and where the divider crossed into the stroke the alpha
+            added up. */}
         <path d="M9.5 3.75V12.25" stroke="currentColor" strokeWidth="1.5" />
-        {/* El relleno TRAZA el compartimento con el radio interno del
-            marco (2.5 − 0.75 de medio trazo): un rect suelto dejaba
-            muescas donde cortaba la curva. */}
+        {/* The fill TRACES the compartment with the frame's inner radius
+            (2.5 − 0.75 of half a stroke): a loose rect left notches
+            where it cut across the curve. */}
         <motion.path
           d="M10.25 3.75 H11.5 A1.75 1.75 0 0 1 13.25 5.5 V10.5 A1.75 1.75 0 0 1 11.5 12.25 H10.25 Z"
           fill="currentColor"
-          /* Mismo motivo que la hoja: al montar el ícono tiene que
-             aparecer ya en su estado, no vaciarse a la vista. */
+          /* Same reason as the panel: on mount the icon has to appear
+             already in its state, not empty itself in front of you. */
           initial={false}
-          animate={{ opacity: abierta ? 1 : 0 }}
-          transition={RESORTE}
+          animate={{ opacity: open ? 1 : 0 }}
+          transition={SPRING}
         />
       </svg>
     </button>
   );
 }
 
-const DISPOSITIVOS = [
+const DEVICES = [
   "Mobile web",
   "Mobile app",
   "Desktop web",
   "Desktop app",
 ] as const;
 
-/* Si lo que escribiste en Source es una URL, se puede abrir. */
-const esLink = (v: string) => /^https?:\/\//i.test(v.trim());
+/* If what you wrote in Source is a URL, it can be opened. */
+const isLink = (v: string) => /^https?:\/\//i.test(v.trim());
 
-/* ─── GUARDAR ───
-   Escribís y se guarda solo: 400ms sin teclear, el mismo debounce que
-   las vistas del playground. Y se descarga al desmontar, porque cerrar
-   el detalle es exactamente cuando estás por perder lo último. */
-const ESPERA = 400;
+/* ─── SAVING ───
+   You type and it saves itself: 400ms without typing, the same debounce
+   as the playground views. And it flushes on unmount, because closing
+   the detail is exactly when you are about to lose the last of it. */
+const SAVE_DELAY = 400;
 
-function useGuardado(
+function useSavedDetails(
   clip: Clip,
-  anotar: (ruta: string, f: Ficha | null) => void,
+  annotate: (path: string, d: Details | null) => void,
 ) {
-  const [local, setLocal] = useState<Ficha>(clip.ficha ?? {});
-  const reloj = useRef<number | null>(null);
-  const ultima = useRef<{ ruta: string; ficha: Ficha } | null>(null);
+  const [local, setLocal] = useState<Details>(clip.details ?? {});
+  const timer = useRef<number | null>(null);
+  const pending = useRef<{ path: string; details: Details } | null>(null);
 
-  /* Cambiar de clip descarta el borrador anterior: son fichas de
-     archivos distintos y mezclarlas sería escribir en el equivocado. */
+  /* Changing clips discards the previous draft: they are the details of
+     different files and mixing them would mean writing into the wrong
+     one. */
   useEffect(() => {
-    setLocal(clip.ficha ?? {});
-  }, [clip.ruta, clip.ficha]);
+    setLocal(clip.details ?? {});
+  }, [clip.path, clip.details]);
 
-  const mandar = () => {
-    const p = ultima.current;
+  const send = () => {
+    const p = pending.current;
     if (!p) return;
-    ultima.current = null;
-    guardarFicha(p.ruta, p.ficha)
-      .then((q) => anotar(p.ruta, q))
+    pending.current = null;
+    saveDetails(p.path, p.details)
+      .then((q) => annotate(p.path, q))
       .catch(() => {
-        /* Lo escrito se queda en pantalla: perder texto por un fallo de
-           red sería peor que quedar desincronizado un rato. */
+        /* What you wrote stays on screen: losing text to a network
+           failure would be worse than being out of sync for a while. */
       });
   };
 
   useEffect(() => {
     return () => {
-      if (reloj.current) window.clearTimeout(reloj.current);
-      mandar();
+      if (timer.current) window.clearTimeout(timer.current);
+      send();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const cambiar = (f: Ficha) => {
-    setLocal(f);
-    ultima.current = { ruta: clip.ruta, ficha: f };
-    if (reloj.current) window.clearTimeout(reloj.current);
-    reloj.current = window.setTimeout(mandar, ESPERA);
+  const change = (d: Details) => {
+    setLocal(d);
+    pending.current = { path: clip.path, details: d };
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(send, SAVE_DELAY);
   };
 
-  return [local, cambiar] as const;
+  return [local, change] as const;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   LA NOTA — se lee con los links dibujados, se edita en texto plano.
+   THE NOTE — you read it with the links drawn, you edit it in plain
+   text.
 
-   ─── POR QUÉ HAY DOS VISTAS Y NO UN EDITOR RICO ───
-   Un textarea no puede dibujar nada: es texto plano y punto. Para que
-   un link se vea como un link había dos caminos, y el otro era un
-   contentEditable — o sea un editor de texto rico, con su modelo de
-   documento, su manejo de IME, su pila de deshacer propia y su forma
-   nueva de romperse al pegar. Para un campo de notas de tres renglones
-   eso es traer un submarino a un charco.
+   ─── WHY THERE ARE TWO VIEWS AND NOT A RICH EDITOR ───
+   A textarea cannot draw anything: it is plain text and that is that.
+   For a link to look like a link there were two paths, and the other
+   one was a contentEditable, that is, a rich text editor, with its
+   document model, its IME handling, its own undo stack and its new way
+   of breaking on paste. For a three-line notes field that is bringing a
+   submarine to a puddle.
 
-   Acá la nota SIGUE SIENDO UN STRING en todos lados —en el disco, en
-   la ficha, en el textarea— y lo que cambia es cómo se dibuja cuando
-   no la estás editando. No hay un segundo modelo que pueda quedar
-   desincronizado, porque no hay un segundo modelo.
+   Here the note IS STILL A STRING everywhere (on disk, in the details,
+   in the textarea) and what changes is how it gets drawn when you are
+   not editing it. There is no second model that can go out of sync,
+   because there is no second model.
 
-   ─── EL INTERCAMBIO SÓLO EXISTE SI HAY UN LINK ───
-   Sin links, esto es exactamente el textarea de siempre. Es la
-   propiedad que hace la función barata: el 90% de las notas no cambia
-   de comportamiento ni de árbol.
+   ─── THE SWAP ONLY EXISTS IF THERE IS A LINK ───
+   With no links, this is exactly the usual textarea. It is the property
+   that makes the feature cheap: 90% of the notes change neither their
+   behaviour nor their tree.
 
-   ─── EDITAR ES TOCAR Y ESCRIBIR, TAMBIÉN ACÁ ───
-   Tocar la vista de lectura abre el editor CON EL CURSOR DONDE
-   TOCASTE, no al final. Sin esa cuenta, corregir una palabra en el
-   medio de una nota obliga a navegar con las flechas desde el final, y
-   eso se siente como que el campo te pelea.
+   ─── EDITING IS TOUCHING AND TYPING, HERE TOO ───
+   Touching the reading view opens the editor WITH THE CURSOR WHERE YOU
+   TOUCHED, not at the end. Without that count, fixing a word in the
+   middle of a note forces you to navigate with the arrow keys from the
+   end, and that feels like the field is fighting you.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Chrome y Firefox tienen caretPositionFromPoint; Safari sólo tiene el
-   caretRangeFromPoint viejo. Los dos contestan lo mismo —qué nodo de
-   texto y en qué carácter cayó un punto de la pantalla— con dos formas
-   distintas. */
-type ConCaret = Document & {
+/* Chrome and Firefox have caretPositionFromPoint; Safari only has the
+   old caretRangeFromPoint. Both answer the same thing (which text node
+   and which character a point on the screen fell on) in two different
+   shapes. */
+type WithCaret = Document & {
   caretPositionFromPoint?: (
     x: number,
     y: number,
@@ -179,128 +182,131 @@ type ConCaret = Document & {
   caretRangeFromPoint?: (x: number, y: number) => Range | null;
 };
 
-function caracterEn(x: number, y: number): { nodo: Node; offset: number } | null {
-  const d = document as ConCaret;
+function characterAt(x: number, y: number): { node: Node; offset: number } | null {
+  const d = document as WithCaret;
   const p = d.caretPositionFromPoint?.(x, y);
-  if (p) return { nodo: p.offsetNode, offset: p.offset };
+  if (p) return { node: p.offsetNode, offset: p.offset };
   const r = d.caretRangeFromPoint?.(x, y);
-  if (r) return { nodo: r.startContainer, offset: r.startOffset };
+  if (r) return { node: r.startContainer, offset: r.startOffset };
   return null;
 }
 
-/* De un punto de la pantalla al índice en el texto CRUDO.
+/* From a point on the screen to the index in the RAW text.
 
-   La traducción hace falta porque las dos vistas no miden lo mismo: un
-   link de 101 caracteres se dibuja como una etiqueta de 14, así que el
-   carácter 12 de lo que ves no es el carácter 12 de lo que hay. Cada
-   tramo lleva su `desde` —su posición en el crudo— y cada <span> lleva
-   su índice, así que la cuenta es una suma y no una estimación.
+   The translation is needed because the two views do not measure the
+   same: a 101-character link is drawn as a 14-character label, so
+   character 12 of what you see is not character 12 of what there is.
+   Each segment carries its `offset` (its position in the raw text) and
+   each <span> carries its index, so the count is a sum and not an
+   estimate.
 
-   Cuando el clic no cae sobre ningún tramo —el aire a la derecha del
-   último renglón, que es donde uno hace clic para "entrar" a un campo—
-   el cursor va al final, que es exactamente lo que se espera ahí. */
-function posicionDe(
+   When the click does not land on any segment (the air to the right of
+   the last line, which is where you click to "get into" a field) the
+   cursor goes to the end, which is exactly what you expect there. */
+function positionOf(
   e: React.MouseEvent<HTMLElement>,
-  tramos: Tramo[],
-  largo: number,
+  segments: Segment[],
+  length: number,
 ): number {
-  const p = caracterEn(e.clientX, e.clientY);
-  if (!p) return largo;
-  const desde =
-    p.nodo.nodeType === Node.TEXT_NODE
-      ? p.nodo.parentElement
-      : (p.nodo as Element);
-  const caja = desde?.closest<HTMLElement>("[data-tramo]");
-  if (!caja) return largo;
-  const t = tramos[Number(caja.dataset.tramo)];
-  if (!t) return largo;
-  return t.desde + Math.min(p.offset, t.texto.length);
+  const p = characterAt(e.clientX, e.clientY);
+  if (!p) return length;
+  const element =
+    p.node.nodeType === Node.TEXT_NODE
+      ? p.node.parentElement
+      : (p.node as Element);
+  const box = element?.closest<HTMLElement>("[data-segment]");
+  if (!box) return length;
+  const s = segments[Number(box.dataset.segment)];
+  if (!s) return length;
+  return s.offset + Math.min(p.offset, s.text.length);
 }
 
-function Nota({
-  valor,
-  onValor,
+function Note({
+  value,
+  onChange,
 }: {
-  valor: string;
-  onValor: (v: string) => void;
+  value: string;
+  onChange: (v: string) => void;
 }) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
-  const [editando, setEditando] = useState(false);
-  /* Dónde arranca el cursor al abrir el editor. null = al final. */
+  const [editing, setEditing] = useState(false);
+  /* Where the cursor starts when the editor opens. null = at the end. */
   const cursor = useRef<number | null>(null);
 
-  const tramos = useMemo(() => partir(valor), [valor]);
-  const conLinks = tramos.some((t) => t.tipo === "link");
-  const leyendo = conLinks && !editando;
+  const segments = useMemo(() => split(value), [value]);
+  const hasLinks = segments.some((s) => s.kind === "link");
+  const reading = hasLinks && !editing;
 
-  /* La nota crece con lo que escribís: describir un gesto no entra en
-     un alto fijo de tres líneas. Corre también al entrar en edición,
-     porque ahí el textarea acaba de montarse con el texto ya adentro y
-     todavía mide un renglón. */
+  /* The note grows with what you type: describing a gesture does not
+     fit in a fixed height of three lines. It also runs on entering
+     edit, because there the textarea has just mounted with the text
+     already inside and still measures one line. */
   useEffect(() => {
     const el = ref.current;
-    if (!el || leyendo) return;
+    if (!el || reading) return;
     el.style.height = "0px";
     el.style.height = `${el.scrollHeight}px`;
-  }, [valor, leyendo]);
+  }, [value, reading]);
 
-  /* El foco y el cursor se ponen DESPUÉS de montar el textarea, que es
-     cuando existe. Va en un efecto y no en el manejador del clic por
-     eso mismo: ahí todavía no hay dónde poner el cursor. */
+  /* The focus and the cursor are set AFTER mounting the textarea, which
+     is when it exists. It goes in an effect and not in the click
+     handler for that same reason: there is nowhere to put the cursor
+     yet. */
   useEffect(() => {
-    if (leyendo) return;
+    if (reading) return;
     const el = ref.current;
     if (!el || document.activeElement === el) return;
-    const i = cursor.current ?? valor.length;
+    const i = cursor.current ?? value.length;
     cursor.current = null;
     el.focus();
     el.setSelectionRange(i, i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leyendo]);
+  }, [reading]);
 
-  const aEditar = (i: number | null) => {
+  const startEditing = (i: number | null) => {
     cursor.current = i;
-    setEditando(true);
+    setEditing(true);
   };
 
-  if (leyendo)
+  if (reading)
     return (
       <div
-        className={`${css.nota} ${css.lectura}`}
-        /* CON EL ANILLO DE FOCO PUESTO, y es una excepción razonada a
-           la regla del área privada. Esa regla dice que donde se edita
-           texto sin caja el anillo se apaga porque lo reemplaza el
-           caret — y acá, leyendo, no hay caret que lo reemplace. La
-           premisa no se cumple, así que la excepción tampoco aplica.
-           Al entrar en edición el textarea sí lo apaga, como siempre. */
+        className={`${css.note} ${css.reading}`}
+        /* WITH THE FOCUS RING ON, and it is a reasoned exception to the
+           private area's rule. That rule says that where you edit text
+           with no box the ring turns off because the caret replaces it,
+           and here, reading, there is no caret to replace it. The
+           premise does not hold, so the exception does not apply
+           either. On entering edit the textarea does turn it off, as
+           always. */
         tabIndex={0}
         role="group"
         aria-label="Notes — press Enter to edit"
         onClick={(e) => {
-          /* Arrastrar para seleccionar y copiar NO abre el editor: si
-             hay algo seleccionado, el gesto era otro. Sin esto, copiar
-             un pedazo de la nota la reemplazaba por su versión cruda a
-             mitad del gesto. */
+          /* Dragging to select and copy does NOT open the editor: if
+             something is selected, the gesture was another one. Without
+             this, copying a piece of the note replaced it with its raw
+             version halfway through the gesture. */
           const sel = window.getSelection();
           if (sel && !sel.isCollapsed) return;
-          aEditar(posicionDe(e, tramos, valor.length));
+          startEditing(positionOf(e, segments, value.length));
         }}
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
-          /* Enter ABRE, no escribe: el salto de línea lo pone el
-             textarea recién cuando está adentro. */
+          /* Enter OPENS, it does not type: the line break is put in by
+             the textarea only once you are inside. */
           e.preventDefault();
-          aEditar(null);
+          startEditing(null);
         }}
       >
-        {tramos.map((t, i) =>
-          t.tipo === "link" ? (
-            <Enlace key={i} url={t.url} />
+        {segments.map((s, i) =>
+          s.kind === "link" ? (
+            <NoteLink key={i} url={s.url} />
           ) : (
-            /* data-tramo es lo que hace posible devolver el cursor al
-               carácter que tocaste. Ver posicionDe. */
-            <span key={i} data-tramo={i}>
-              {t.texto}
+            /* data-segment is what makes it possible to give the cursor
+               back to the character you touched. See positionOf. */
+            <span key={i} data-segment={i}>
+              {s.text}
             </span>
           ),
         )}
@@ -310,113 +316,114 @@ function Nota({
   return (
     <textarea
       ref={ref}
-      className={css.nota}
-      value={valor}
+      className={css.note}
+      value={value}
       placeholder="—"
       aria-label="Notes"
       rows={1}
-      onChange={(e) => onValor(e.target.value)}
-      /* Salir del campo vuelve a lectura. Si no hay ningún link, esto
-         no cambia nada visible: `leyendo` sigue siendo false. */
-      onBlur={() => setEditando(false)}
+      onChange={(e) => onChange(e.target.value)}
+      /* Leaving the field goes back to reading. If there is no link,
+         this changes nothing visible: `reading` is still false. */
+      onBlur={() => setEditing(false)}
     />
   );
 }
 
-/* ─── EL SELECTOR DE DEVICE ───
-   La misma superficie flotante que el menú del clic derecho —la única
-   caja del área privada— con su misma entrada: escala desde la esquina
-   del valor que lo abrió, 0.96 → 1, nada aparece de la nada. Escape,
-   clic afuera y scroll lo cierran, igual que el menú. */
-function Selector({
-  valor,
-  onElegir,
-  onCerrar,
-  ancla,
+/* ─── THE DEVICE PICKER ───
+   The same floating surface as the right-click menu (the only box in
+   the private area) with its same entrance: it scales from the corner
+   of the value that opened it, 0.96 → 1, nothing appears out of
+   nothing. Escape, a click outside and scroll close it, the same as the
+   menu. */
+function DevicePicker({
+  value,
+  onChoose,
+  onClose,
+  anchor,
 }: {
-  valor: string;
-  onElegir: (v: string) => void;
-  onCerrar: () => void;
-  ancla: DOMRect;
+  value: string;
+  onChoose: (v: string) => void;
+  onClose: () => void;
+  anchor: DOMRect;
 }) {
-  const caja = useRef<HTMLDivElement | null>(null);
+  const box = useRef<HTMLDivElement | null>(null);
   const [pos, setPos] = useState<{
     left: number;
     top: number;
-    origen: string;
+    origin: string;
   } | null>(null);
 
   useEffect(() => {
-    const el = caja.current;
+    const el = box.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    /* Debajo del valor y alineado a su derecha; si no entra, arriba. El
-       origen de la escala acompaña, para crecer desde el valor. */
-    const abajo = ancla.bottom + 4 + r.height > window.innerHeight - 8;
+    /* Below the value and aligned to its right; if it does not fit,
+       above. The scale's origin follows, so it grows from the value. */
+    const above = anchor.bottom + 4 + r.height > window.innerHeight - 8;
     setPos({
-      left: Math.max(8, ancla.right - r.width),
-      top: abajo ? ancla.top - 4 - r.height : ancla.bottom + 4,
-      origen: `${abajo ? "bottom" : "top"} right`,
+      left: Math.max(8, anchor.right - r.width),
+      top: above ? anchor.top - 4 - r.height : anchor.bottom + 4,
+      origin: `${above ? "bottom" : "top"} right`,
     });
-  }, [ancla]);
+  }, [anchor]);
 
   useEffect(() => {
-    const tecla = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
-    const fuera = (e: MouseEvent) => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const outside = (e: MouseEvent) => {
       const t = e.target as Node;
-      /* El disparador NO cuenta como afuera. Sin esto, apretar el valor
-         con la lista abierta la cerraba en el pointerdown y el click
-         que venía atrás la volvía a abrir: se cerraba y se abría en el
-         mismo gesto. El toggle es del click del disparador; este
-         handler sólo mira el resto de la página. */
+      /* The trigger does NOT count as outside. Without this, pressing
+         the value with the list open closed it on the pointerdown and
+         the click behind it opened it again: it closed and opened in
+         the same gesture. The toggle belongs to the trigger's click;
+         this handler only looks at the rest of the page. */
       if ((t as Element).closest?.('[aria-haspopup="listbox"]')) return;
-      if (!caja.current?.contains(t)) onCerrar();
+      if (!box.current?.contains(t)) onClose();
     };
-    document.addEventListener("keydown", tecla);
-    document.addEventListener("pointerdown", fuera, true);
-    window.addEventListener("scroll", onCerrar, true);
-    window.addEventListener("resize", onCerrar);
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", outside, true);
+    window.addEventListener("scroll", onClose, true);
+    window.addEventListener("resize", onClose);
     return () => {
-      document.removeEventListener("keydown", tecla);
-      document.removeEventListener("pointerdown", fuera, true);
-      window.removeEventListener("scroll", onCerrar, true);
-      window.removeEventListener("resize", onCerrar);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", outside, true);
+      window.removeEventListener("scroll", onClose, true);
+      window.removeEventListener("resize", onClose);
     };
-  }, [onCerrar]);
+  }, [onClose]);
 
-  /* "—" sólo cuando hay algo elegido: sin valor no hay nada que
-     limpiar, y una opción muerta es ruido. */
-  const opciones = valor ? ["—", ...DISPOSITIVOS] : [...DISPOSITIVOS];
+  /* "—" only when something is chosen: with no value there is nothing
+     to clear, and a dead option is noise. */
+  const options = value ? ["—", ...DEVICES] : [...DEVICES];
 
   return (
     <div
-      ref={caja}
+      ref={box}
       className={menu.menu}
-      data-abierto=""
+      data-open=""
       role="listbox"
       aria-label="Device"
       style={
         pos
-          ? { left: pos.left, top: pos.top, transformOrigin: pos.origen }
+          ? { left: pos.left, top: pos.top, transformOrigin: pos.origin }
           : { visibility: "hidden", left: 0, top: 0 }
       }
     >
-      {opciones.map((o) => {
-        const elegida = o === valor;
+      {options.map((o) => {
+        const selected = o === value;
         return (
           <button
             key={o}
-            className={`${menu.item} ${css.opcion}`}
+            className={`${menu.item} ${css.option}`}
             role="option"
-            aria-selected={elegida}
-            autoFocus={elegida || (o === opciones[0] && !valor)}
+            aria-selected={selected}
+            autoFocus={selected || (o === options[0] && !value)}
             onClick={() => {
-              onElegir(o === "—" ? "" : o);
-              onCerrar();
+              onChoose(o === "—" ? "" : o);
+              onClose();
             }}
           >
             {o}
-            {elegida && <span className={css.elegido} aria-hidden="true" />}
+            {selected && <span className={css.selected} aria-hidden="true" />}
           </button>
         );
       })}
@@ -424,53 +431,55 @@ function Selector({
   );
 }
 
-export function FichaTecnica({
+export function ClipDetails({
   clip,
-  abierta,
-  anotar,
+  open,
+  annotate,
 }: {
   clip: Clip;
-  abierta: boolean;
-  anotar: (ruta: string, f: Ficha | null) => void;
+  open: boolean;
+  annotate: (path: string, d: Details | null) => void;
 }) {
-  const [ficha, cambiar] = useGuardado(clip, anotar);
-  const [selector, setSelector] = useState<DOMRect | null>(null);
-  const source = ficha.source ?? "";
+  const [details, change] = useSavedDetails(clip, annotate);
+  const [picker, setPicker] = useState<DOMRect | null>(null);
+  const source = details.source ?? "";
 
   return (
-    <div className={css.hoja}>
-      {/* LO ÚNICO QUE SE ANIMA AL PLEGAR: la ficha funde y se corre 8px
-          — crossfade con insinuación de dirección, no un barrido, porque
-          los valores van contra el borde y un recorte los come primero.
-          El clip no participa: su espacio está reservado siempre.
-          `inert` apaga foco y punteros del panel oculto de una vez. */}
+    <div className={css.panel}>
+      {/* THE ONLY THING THAT ANIMATES ON COLLAPSE: the panel fades and
+          shifts 8px, a crossfade with a hint of direction, not a wipe,
+          because the values run against the edge and a clip would eat
+          them first. The clip does not take part: its space is always
+          reserved. `inert` turns off focus and pointers on the hidden
+          panel in one go. */}
       <motion.div
-        /* `initial={false}` porque al ENTRAR al clip la ficha tiene que
-           estar ya donde va, no animarse hasta ahí. Sin esto motion toma
-           el estilo pintado —opacidad 1, sin correr— como punto de
-           partida y se veía la ficha abrirse y cerrarse sola: 365 ms
-           medidos. Plegarla a mano sigue animando igual. */
+        /* `initial={false}` because on ENTERING the clip the panel has
+           to already be where it goes, not animate its way there.
+           Without this motion takes the painted style (opacity 1, not
+           shifted) as its starting point and you saw the panel open and
+           close on its own: 365 ms measured. Collapsing it by hand
+           still animates the same. */
         initial={false}
-        animate={{ opacity: abierta ? 1 : 0, x: abierta ? 0 : 8 }}
-        transition={RESORTE}
-        inert={!abierta}
+        animate={{ opacity: open ? 1 : 0, x: open ? 0 : 8 }}
+        transition={SPRING}
+        inert={!open}
       >
-        <div className={css.tabla}>
-          {/* De dónde salió la animación. Texto libre —robinhood, apple—
-            y si pegás la URL, la flecha la abre: tocar el texto edita,
-            así que navegar tiene su propio blanco. */}
-          <div className={css.fila}>
-            <span className={css.rotulo}>Source</span>
+        <div className={css.table}>
+          {/* Where the animation came from. Free text (robinhood, apple)
+            and if you paste the URL, the arrow opens it: touching the
+            text edits, so navigating gets its own padding box. */}
+          <div className={css.row}>
+            <span className={css.label}>Source</span>
             <input
-              className={`${css.valor} ${css.campo}`}
+              className={`${css.value} ${css.field}`}
               value={source}
               placeholder="—"
               aria-label="Source"
-              onChange={(e) => cambiar({ ...ficha, source: e.target.value })}
+              onChange={(e) => change({ ...details, source: e.target.value })}
             />
-            {esLink(source) && (
+            {isLink(source) && (
               <a
-                className={css.abrir}
+                className={css.openLink}
                 href={source.trim()}
                 target="_blank"
                 rel="noreferrer"
@@ -481,25 +490,26 @@ export function FichaTecnica({
             )}
           </div>
 
-          <div className={css.fila}>
-            <span className={css.rotulo}>Device</span>
+          <div className={css.row}>
+            <span className={css.label}>Device</span>
             <button
-              className={`${css.valor} ${css.disparador}`}
-              {...(ficha.device ? {} : { "data-vacio": "" })}
+              className={`${css.value} ${css.trigger}`}
+              {...(details.device ? {} : { "data-empty": "" })}
               aria-label="Device"
               aria-haspopup="listbox"
-              aria-expanded={!!selector}
+              aria-expanded={!!picker}
               onClick={(e) => {
                 const r = e.currentTarget.getBoundingClientRect();
-                setSelector((s) => (s ? null : r));
+                setPicker((p) => (p ? null : r));
               }}
             >
-              {/* Un popup DICE que es un popup: palabra cuando está vacío
-                —no un guion, que es un dato ausente, y esto es una
-                acción— y el chevron que anuncia la lista, colgado en el
-                margen como el ↗ de Source para no romper la columna. */}
-              {ficha.device || "Choose"}
-              <span className={css.indicador} aria-hidden="true">
+              {/* A popup SAYS it is a popup: a word when it is empty
+                (not a dash, which is an absent value, and this is an
+                action) and the chevron that announces the list, hanging
+                in the margin like Source's ↗ so the column does not
+                break. */}
+              {details.device || "Choose"}
+              <span className={css.indicator} aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path
                     d="M6.5 4.5L10 8l-3.5 3.5"
@@ -512,35 +522,35 @@ export function FichaTecnica({
               </span>
             </button>
           </div>
-          {/* POR PORTAL, a body. Adentro de la tabla su div —aunque es
-            position:fixed— se metía entre la fila de Device y el bloque
-            de Notes y rompía los selectores de hermanos que reparten
-            los márgenes: al abrir el menú la ficha se recomponía. Un
-            popup no puede vivir en el flujo de lo que tapa. */}
-          {selector &&
+          {/* BY PORTAL, to body. Inside the table its div (even though
+            it is position:fixed) got in between the Device row and the
+            Notes block and broke the sibling selectors that hand out
+            the margins: opening the menu recomposed the panel. A popup
+            cannot live in the flow of what it covers. */}
+          {picker &&
             createPortal(
-              <Selector
-                valor={ficha.device ?? ""}
-                ancla={selector}
-                onCerrar={() => setSelector(null)}
-                onElegir={(v) => cambiar({ ...ficha, device: v })}
+              <DevicePicker
+                value={details.device ?? ""}
+                anchor={picker}
+                onClose={() => setPicker(null)}
+                onChoose={(v) => change({ ...details, device: v })}
               />,
               document.body,
             )}
 
-          <div className={css.bloque}>
-            <span className={css.rotulo}>Notes</span>
-            <Nota
-              valor={ficha.notes ?? ""}
-              onValor={(v) => cambiar({ ...ficha, notes: v })}
+          <div className={css.block}>
+            <span className={css.label}>Notes</span>
+            <Note
+              value={details.notes ?? ""}
+              onChange={(v) => change({ ...details, notes: v })}
             />
           </div>
 
-          {/* Del archivo, no tuyo: no se edita. */}
-          <div className={`${css.fila} ${css.pie}`}>
-            <span className={css.rotulo}>Added</span>
-            <span className={css.valor}>
-              {clip.fecha.toLocaleDateString("en-US", {
+          {/* From the file, not yours: it is not edited. */}
+          <div className={`${css.row} ${css.footer}`}>
+            <span className={css.label}>Added</span>
+            <span className={css.value}>
+              {clip.date.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
               })}

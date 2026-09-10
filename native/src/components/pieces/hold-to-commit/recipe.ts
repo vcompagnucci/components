@@ -1,211 +1,216 @@
 import { Easing, type EasingFunction, type EasingFunctionFactory, ReduceMotion, withSpring, withTiming } from 'react-native-reanimated'
 
-import { COMMIT, CRUCE, HOLD, PRESS, REINICIO } from './measurements'
+import { COMMIT, CROSSFADE, HOLD, PRESS, RESET } from './measurements'
 
-/* LA RECETA — las curvas y los tiempos del botón, en dos versiones.
+/* THE RECIPE — the button's curves and timings, in two versions.
  *
- * Vito pidió (2026-09-04) probar el botón siguiendo las tablas del skill
- * `animate-expo` SIN perder lo medido. Así que, como el fondo, la
- * cinemática es una VARIANTE: con `'elegir'` la pieza muestra un
- * selector para pasar de una a otra en vivo, en el simulador y en el
- * teléfono.
+ * Vito asked (2026-09-04) to try the button following the tables in the
+ * `animate-expo` skill WITHOUT losing what was measured. So, like the
+ * background, the kinematics is a VARIANT: with `'choose'` the piece
+ * shows a selector to go from one to the other live, in the simulator
+ * and on the phone.
  *
- *   'clip'   lo medido cuadro a cuadro en el clip de Opal; cada valor
- *            con su recibo en `medidas.ts`. Es la versión fiel. Todo por
- *            tiempo y curva: Opal no rebota.
- *   'skill'  las tablas de animate-expo a la letra, y desde el 2026-09-07
- *            SPRINGS donde hubo un dedo (§ 5: "If a finger was involved,
- *            use a spring"), con los DOS PARÁMETROS DE APPLE —duración
- *            perceptual y rebote— que son los de `Spring(duration:bounce:)`
- *            de SwiftUI (WWDC23 "Animate with springs") y los que
- *            Reanimated toma como `duration` + `dampingRatio`
- *            (dampingRatio = 1 − rebote). Rebote 0 en todas: es el
- *            `.smooth` de Apple, y el skill lo dice igual, "bounce only
- *            when the gesture carried momentum"; un hold no lo tiene.
- *            Lo que no tiene dedo (un label que cruza, el velo que
- *            blanquea, el fundido del reinicio) sigue por tiempo con los
- *            beziers de la tabla. Y el tilde de "Order Placed" entra
- *            con sus propias capas, con la técnica de ícono contextual
- *            de better-ui, sobre el mismo reloj y la misma escalera de
- *            opacidad que el texto: van de la mano en cada cuadro.
+ *   'clip'   what was measured frame by frame in the Opal clip; every
+ *            value with its receipt in `measurements.ts`. It is the
+ *            faithful version. All by time and curve: Opal does not
+ *            bounce.
+ *   'skill'  the animate-expo tables to the letter, and since 2026-09-07
+ *            SPRINGS where there was a finger (§ 5: "If a finger was
+ *            involved, use a spring"), with APPLE'S TWO PARAMETERS,
+ *            perceptual duration and bounce, which are the ones in
+ *            SwiftUI's `Spring(duration:bounce:)` (WWDC23 "Animate with
+ *            springs") and the ones Reanimated takes as `duration` +
+ *            `dampingRatio` (dampingRatio = 1 − bounce). Bounce 0 in all
+ *            of them: it is Apple's `.smooth`, and the skill says the
+ *            same, "bounce only when the gesture carried momentum"; a
+ *            hold has none. What has no finger (a label crossing, the
+ *            veil whitening, the reset's fade) still runs by time with
+ *            the beziers from the table. And the checkmark in "Order
+ *            Placed" comes in with its own layers, with better-ui's
+ *            contextual icon technique, over the same clock and the same
+ *            opacity staircase as the text: they move together in every
+ *            frame.
  *
- * Lo que NO cambia entre recetas: el relleno lineal (es el gesto, no una
- * animación: "constant motion → linear" en las dos), el color del label
- * por progreso, la geometría del frente, la háptica, y las chispas y la
- * ráfaga (son el presupuesto de deleite del skill y están medidas del
- * clip).
+ * What does NOT change between recipes: the linear fill (it is the
+ * gesture, not an animation: "constant motion → linear" in both), the
+ * label color by progress, the geometry of the front, the haptics, and
+ * the sparks and the burst (they are the skill's delight budget and they
+ * are measured from the clip).
  *
- * Las sondas de estado fijo (`sonda.ts`) reproducen las curvas de 'clip';
- * `auto` anda con cualquiera.
+ * The fixed-state probes (`probe.ts`) reproduce the 'clip' curves;
+ * `auto` works with either.
  *
- * `RECETA` volvió a 'clip' el 2026-09-07, el mismo día en que pasó a
- * 'skill' ("cumplir todo lo que está en amarillo"): con los springs
- * puesta, Vito la vio distinta "sobre todo el final" —el pill vuelve con
- * un spring de 400 ms en vez del salto medido y el tilde entra solo— y
- * pidió dejarla como antes. RUNTIME: con 'clip' activa, las cuatro sondas
- * de estado (reposo, 0.5, commit, cruce-commit=150) dan PSNR infinito
- * contra las capturas de esa mañana, anteriores a la reescritura:
- * píxel por píxel lo mismo. La 'skill' queda entera a un `?receta=skill`;
- * el selector sigue apagado desde el 2026-09-04.
+ * `RECIPE` went back to 'clip' on 2026-09-07, the same day it switched
+ * to 'skill' ("do everything that is in yellow"): with the springs on,
+ * Vito saw it as different "especially the ending" (the pill comes back
+ * with a 400 ms spring instead of the measured jump, and the checkmark
+ * comes in on its own) and asked to leave it the way it was. RUNTIME:
+ * with 'clip' active, the four state probes (rest, 0.5, commit,
+ * crossfade-commit=150) give infinite PSNR against that morning's
+ * captures, taken before the rewrite: pixel for pixel the same. The
+ * 'skill' one is still there in full, one `?recipe=skill` away; the
+ * selector has been off since 2026-09-04.
  */
-export type Curva = EasingFunction | EasingFunctionFactory
+export type Curve = EasingFunction | EasingFunctionFactory
 
-/* UN MOVIMIENTO es por tiempo con curva, o un spring con duración y rebote. */
-export type Movimiento =
-  | { tipo: 'tiempo'; duracion: number; curva: Curva }
-  | { tipo: 'spring'; duracion: number; rebote: number; sinSobrepaso?: boolean }
+/* A MOVEMENT is either by time with a curve, or a spring with a duration and a bounce. */
+export type Movement =
+  | { kind: 'timing'; duration: number; curve: Curve }
+  | { kind: 'spring'; duration: number; bounce: number; overshootClamping?: boolean }
 
-/* Los dos constructores llevan 'worklet': el botón los llama desde el hilo
-   de UI (RUNTIME, 2026-09-07: "Tried to synchronously call a Remote
-   Function. Called 'tiempo' on the UI Runtime" sin la directiva). */
-export const tiempo = (duracion: number, curva: Curva): Movimiento => {
+/* Both constructors carry 'worklet': the button calls them from the UI
+   thread (RUNTIME, 2026-09-07: "Tried to synchronously call a Remote
+   Function. Called 'tiempo' on the UI Runtime" without the directive). */
+export const timing = (duration: number, curve: Curve): Movement => {
   'worklet'
-  return { tipo: 'tiempo', duracion, curva }
+  return { kind: 'timing', duration, curve }
 }
-export const spring = (duracion: number, rebote: number, sinSobrepaso = false): Movimiento => {
+export const spring = (duration: number, bounce: number, overshootClamping = false): Movement => {
   'worklet'
-  return { tipo: 'spring', duracion, rebote, sinSobrepaso }
+  return { kind: 'spring', duration, bounce, overshootClamping }
 }
 
-type AlTerminar = (terminado?: boolean) => void
+type OnFinish = (finished?: boolean) => void
 
-/* TODO MOVIMIENTO DEL BOTÓN PASA POR ACÁ, con `ReduceMotion.Never`:
-   Reanimated 4.5 trae `reduceMotion: System` por defecto y con Reduce
-   Motion prendido salta al final en el primer cuadro (trampa 19 del
-   AGENTS); reduce motion se aplica a mano en el botón. */
-export const mover = (hasta: number, m: Movimiento, alTerminar?: AlTerminar) => {
+/* EVERY MOVEMENT OF THE BUTTON GOES THROUGH HERE, with
+   `ReduceMotion.Never`: Reanimated 4.5 ships `reduceMotion: System` by
+   default and with Reduce Motion on it jumps to the end on the first
+   frame (trap 19 in the AGENTS); reduce motion is applied by hand in the
+   button. */
+export const move = (to: number, m: Movement, onFinish?: OnFinish) => {
   'worklet'
-  if (m.tipo === 'spring') {
+  if (m.kind === 'spring') {
     return withSpring(
-      hasta,
-      { duration: m.duracion, dampingRatio: 1 - m.rebote, overshootClamping: m.sinSobrepaso, reduceMotion: ReduceMotion.Never },
-      alTerminar,
+      to,
+      { duration: m.duration, dampingRatio: 1 - m.bounce, overshootClamping: m.overshootClamping, reduceMotion: ReduceMotion.Never },
+      onFinish,
     )
   }
-  return withTiming(hasta, { duration: m.duracion, easing: m.curva, reduceMotion: ReduceMotion.Never }, alTerminar)
+  return withTiming(to, { duration: m.duration, easing: m.curve, reduceMotion: ReduceMotion.Never }, onFinish)
 }
 
-export type Tiempos = {
-  entrada: number
-  salida: number
-  retardoEntrada: number
-  retardoSalida: number
-  /** la presencia del entrante sube lineal (la escalera de blur pone la curva) */
-  entradaLineal?: boolean
+export type Timings = {
+  enter: number
+  exit: number
+  enterDelay: number
+  exitDelay: number
+  /** the incoming label's presence rises linearly (the blur staircase supplies the curve) */
+  linearEnter?: boolean
 }
 
-export type Cinematica = {
-  /** la curva de los cruces del label (siempre por tiempo: no hay dedo en un texto) */
-  easeOut: Curva
+export type Kinematics = {
+  /** the curve of the label crossfades (always by time: there is no finger in a text) */
+  easeOut: Curve
   press: {
-    escala: number
-    /** el pill achicándose bajo el dedo */
-    entrada: Movimiento
-    /** volviendo al soltar */
-    salida: Movimiento
-    /** volviendo al completar */
-    commit: Movimiento
-    /** cuánto de la vuelta al completar pasa en el primer cuadro (lectura del clip) */
-    saltoCommit: number
+    scale: number
+    /** the pill shrinking under the finger */
+    enter: Movement
+    /** coming back on release */
+    exit: Movement
+    /** coming back on completion */
+    commit: Movement
+    /** how much of the return on completion happens in the first frame (read from the clip) */
+    commitJump: number
   }
-  /** el relleno prendiéndose al apretar */
-  encendido: Movimiento
-  /** al soltar: el frente retrocede (`progreso`) y el relleno se apaga (`fundido`) */
-  retirada: { progreso: Movimiento; fundido: Movimiento }
-  cruce: { press: Tiempos; suelta: Tiempos; commit: Tiempos; reinicio: Tiempos }
-  /** el frente terminando de llegar a la punta derecha después de la ráfaga */
-  desliz: { retardo: number; movimiento: Movimiento }
-  /** el velo blanco del commit */
-  blanqueo: Movimiento
-  /** el fundido del reinicio del taller */
-  reinicio: Movimiento
-  /** desde qué escala entra "✓ Order Placed" */
-  escalaEntrada: number
-  /** el tilde: 'medido' entra pegado al texto (blur-replace, como en el clip);
-      'contextual' entra con sus capas, opacidad, escala y blur (better-ui),
-      sobre la misma presencia y la misma escalera que el texto */
-  tilde: 'medido' | 'contextual'
+  /** the fill turning on when you press */
+  turnOn: Movement
+  /** on release: the front retreats (`progress`) and the fill goes out (`fade`) */
+  retreat: { progress: Movement; fade: Movement }
+  crossfade: { press: Timings; release: Timings; commit: Timings; reset: Timings }
+  /** the front finishing its trip to the right tip after the burst */
+  slide: { delay: number; motion: Movement }
+  /** the commit's white veil */
+  whitening: Movement
+  /** the fade of the workshop's reset */
+  reset: Movement
+  /** what scale "✓ Order Placed" comes in from */
+  enterScale: number
+  /** the checkmark: 'measured' comes in glued to the text (blur-replace, like in the clip);
+      'contextual' comes in with its own layers, opacity, scale and blur (better-ui),
+      over the same presence and the same staircase as the text */
+  checkmark: 'measured' | 'contextual'
 }
 
-export type Receta = 'clip' | 'skill'
-export const RECETAS: readonly Receta[] = ['skill', 'clip']
-export const RECETA: Receta | 'elegir' = 'clip'
+export type Recipe = 'clip' | 'skill'
+export const RECIPES: readonly Recipe[] = ['skill', 'clip']
+export const RECIPE: Recipe | 'choose' = 'clip'
 
-/* RUNTIME · LA CURVA DE LA ESCALA ES UN EASE-OUT CUADRÁTICO, no el bezier
-   fuerte del skill (clip, borde izquierdo del pill al apretar): 16 % a
-   1 cuadro, 52 % a 4, 80 % a 8, 96 % a 13 de 14 — easeOutQuad sobre
-   250 ms da 47 / 78 / 98 en esos puntos. Con bezier(.23,1,.32,1) la
-   grabación del taller cerraba el 92 % en 100 ms, el doble de rápido. */
+/* RUNTIME · THE SCALE CURVE IS A QUADRATIC EASE-OUT, not the skill's
+   strong bezier (clip, left edge of the pill on press): 16 % at 1 frame,
+   52 % at 4, 80 % at 8, 96 % at 13 out of 14. easeOutQuad over 250 ms
+   gives 47 / 78 / 98 at those points. With bezier(.23,1,.32,1) the
+   workshop recording closed 92 % in 100 ms, twice as fast. */
 const OUT_QUAD = Easing.out(Easing.quad)
-const CLIP: Cinematica = {
+const CLIP: Kinematics = {
   easeOut: OUT_QUAD,
   press: {
-    escala: PRESS.escala,
-    entrada: tiempo(PRESS.duracion, OUT_QUAD),
-    salida: tiempo(PRESS.duracion, OUT_QUAD),
-    commit: tiempo(PRESS.duracionCommit, OUT_QUAD),
-    saltoCommit: PRESS.saltoCommit,
+    scale: PRESS.scale,
+    enter: timing(PRESS.duration, OUT_QUAD),
+    exit: timing(PRESS.duration, OUT_QUAD),
+    commit: timing(PRESS.commitDuration, OUT_QUAD),
+    commitJump: PRESS.commitJump,
   },
-  /* RUNTIME · el encendido arranca lento (recibo en HOLD.encendido). */
-  encendido: tiempo(HOLD.encendido, Easing.inOut(Easing.quad)),
-  /* RUNTIME · 1 − 2^(−10t): el apagado exponencial de la retirada, τ = duración/6.93 (recibo en HOLD). */
-  retirada: { progreso: tiempo(HOLD.retirada, OUT_QUAD), fundido: tiempo(HOLD.fundidoRetirada, Easing.out(Easing.exp)) },
-  cruce: CRUCE,
-  desliz: { retardo: COMMIT.deslizRetardo, movimiento: tiempo(COMMIT.deslizDuracion, OUT_QUAD) },
-  blanqueo: tiempo(COMMIT.blanqueo, OUT_QUAD),
-  reinicio: tiempo(REINICIO.fundido, OUT_QUAD),
-  escalaEntrada: COMMIT.escalaEntrada,
-  tilde: 'medido',
+  /* RUNTIME · the turn-on starts slow (receipt in HOLD.turnOn). */
+  turnOn: timing(HOLD.turnOn, Easing.inOut(Easing.quad)),
+  /* RUNTIME · 1 − 2^(−10t): the exponential fade of the retreat, τ = duration/6.93 (receipt in HOLD). */
+  retreat: { progress: timing(HOLD.retreat, OUT_QUAD), fade: timing(HOLD.retreatFade, Easing.out(Easing.exp)) },
+  crossfade: CROSSFADE,
+  slide: { delay: COMMIT.slideDelay, motion: timing(COMMIT.slideDuration, OUT_QUAD) },
+  whitening: timing(COMMIT.whitening, OUT_QUAD),
+  reset: timing(RESET.fade, OUT_QUAD),
+  enterScale: COMMIT.enterScale,
+  checkmark: 'measured',
 }
 
-/* LOS TIEMPOS DEL TEXTO Y DEL FINAL SON LOS MEDIDOS, no los de la tabla.
-   La primera versión de esta receta (2026-09-04) tomaba § 5 a la letra:
-   cruces de 200/150 ms sin retardos, blanqueo 250, desliz 200, fundido
-   200. Puesta como receta activa, Vito (2026-09-07): "el texto cambia
-   muy abrupto y la animación del final es muy rápida". La referencia es
-   piso: los cruces del label, el velo blanco, el deslizamiento del
-   frente y el fundido del reinicio vuelven a los valores del clip
-   (`CRUCE`, `COMMIT`, `REINICIO`), que son los que se habían aprobado.
-   Lo que esta receta agrega es lo que sí pidió: springs donde hay dedo y
-   el tilde contextual. Los de § 5 quedan acá por si vuelven a probarse:
-   { entrada: 200, salida: 150, retardoEntrada: 0, retardoSalida: 0 }. */
+/* THE TEXT AND ENDING TIMINGS ARE THE MEASURED ONES, not the table's.
+   The first version of this recipe (2026-09-04) took § 5 to the letter:
+   crossfades of 200/150 ms with no delays, whitening 250, slide 200,
+   fade 200. With it set as the active recipe, Vito (2026-09-07): "the
+   text changes very abruptly and the animation at the end is very fast".
+   The reference is a floor: the label crossfades, the white veil, the
+   front's slide and the reset's fade go back to the clip's values
+   (`CROSSFADE`, `COMMIT`, `RESET`), which are the ones that had been
+   approved. What this recipe adds is what he did ask for: springs where
+   there is a finger, and the contextual checkmark. The § 5 ones stay
+   here in case they get tried again:
+   { enter: 200, exit: 150, enterDelay: 0, exitDelay: 0 }. */
 
-/* SOURCE · § 5, tabla de springs: "Default settle, no overshoot:
+/* SOURCE · § 5, spring table: "Default settle, no overshoot:
    { duration: 400, dampingRatio: 1 }"; "Press feedback: 100–150ms" (§ 5,
-   duraciones) con "`scale: 0.97`" (§ 7). Rebote 0 = dampingRatio 1 = el
-   `.smooth` de Apple. `sinSobrepaso` donde el valor no puede pasarse de
-   un borde (§ 5: "Must not pass a hard edge → overshootClamping"): el
-   progreso del relleno no puede bajar de 0. */
-const SKILL: Cinematica = {
-  /* la curva de los cruces del label: la medida (con el bezier fuerte del
-     skill el entrante cerraba el doble de rápido) */
+   durations) with "`scale: 0.97`" (§ 7). Bounce 0 = dampingRatio 1 =
+   Apple's `.smooth`. `overshootClamping` where the value cannot go past
+   a hard edge (§ 5: "Must not pass a hard edge → overshootClamping"):
+   the fill's progress cannot go below 0. */
+const SKILL: Kinematics = {
+  /* the curve of the label crossfades: the measured one (with the
+     skill's strong bezier the incoming label closed twice as fast) */
   easeOut: OUT_QUAD,
   press: {
-    escala: 0.97,
-    entrada: spring(150, 0),
-    salida: spring(400, 0),
-    /* Al completar vuelve igual y sin salto: el salto del 25 % es una
-       lectura del clip, no está en ninguna tabla. */
+    scale: 0.97,
+    enter: spring(150, 0),
+    exit: spring(400, 0),
+    /* On completion it comes back the same way and with no jump: the
+       25 % jump is a reading from the clip, it is not in any table. */
     commit: spring(400, 0),
-    saltoCommit: 0,
+    commitJump: 0,
   },
-  /* El relleno prendiéndose es una opacidad, no un dedo: por tiempo, con
-     el encendido medido (recibo en HOLD.encendido). */
-  encendido: tiempo(HOLD.encendido, Easing.inOut(Easing.quad)),
-  /* Al soltar, el frente vuelve con el spring de "snap back" (§ 5), clavado
-     en 0; el relleno se apaga por tiempo con la exponencial medida. */
-  retirada: { progreso: spring(400, 0, true), fundido: tiempo(HOLD.fundidoRetirada, Easing.out(Easing.exp)) },
-  cruce: CRUCE,
-  desliz: { retardo: COMMIT.deslizRetardo, movimiento: tiempo(COMMIT.deslizDuracion, OUT_QUAD) },
-  blanqueo: tiempo(COMMIT.blanqueo, OUT_QUAD),
-  reinicio: tiempo(REINICIO.fundido, OUT_QUAD),
-  escalaEntrada: COMMIT.escalaEntrada,
+  /* The fill turning on is an opacity, not a finger: by time, with the
+     measured turn-on (receipt in HOLD.turnOn). */
+  turnOn: timing(HOLD.turnOn, Easing.inOut(Easing.quad)),
+  /* On release, the front comes back with the "snap back" spring (§ 5),
+     clamped at 0; the fill goes out by time with the measured exponential. */
+  retreat: { progress: spring(400, 0, true), fade: timing(HOLD.retreatFade, Easing.out(Easing.exp)) },
+  crossfade: CROSSFADE,
+  slide: { delay: COMMIT.slideDelay, motion: timing(COMMIT.slideDuration, OUT_QUAD) },
+  whitening: timing(COMMIT.whitening, OUT_QUAD),
+  reset: timing(RESET.fade, OUT_QUAD),
+  enterScale: COMMIT.enterScale,
   /* SOURCE · better-ui "Contextual icon animations": "scale 0.25 to 1,
-     opacity 0 to 1, blur 4px to 0px". Las tres cosas en `etiqueta.tsx`,
-     sobre la presencia del texto y su misma escalera de opacidad, no
-     sobre un spring propio de 300 ms ni sobre una rampa distinta: el
-     tilde y "Order Placed" van de la mano (Vito, 2026-09-07). */
-  tilde: 'contextual',
+     opacity 0 to 1, blur 4px to 0px". All three things in `label.tsx`,
+     over the text's presence and its same opacity staircase, not over a
+     300 ms spring of its own nor over a different ramp: the checkmark
+     and "Order Placed" move together (Vito, 2026-09-07). */
+  checkmark: 'contextual',
 }
 
-export const CINEMATICA: Record<Receta, Cinematica> = { clip: CLIP, skill: SKILL }
+export const KINEMATICS: Record<Recipe, Kinematics> = { clip: CLIP, skill: SKILL }

@@ -1,42 +1,43 @@
-/* LA GRILLA COMPARATIVA: el mismo cuadro de reposo dieciséis veces, con
-   una sombra distinta cada vez y su recibo abajo. Es un Still: se mira
-   en Studio o se renderiza a PNG, y la elegida pasa a `PARAMETROS`. */
+/* THE COMPARISON GRID: the same frame at rest sixteen times, with a
+   different shadow each time and its receipt underneath. It is a Still:
+   you look at it in Studio or render it to PNG, and the chosen one goes
+   into `PARAMETERS`. */
 import { AbsoluteFill } from 'remotion'
 
 import { Mockup } from './Mockup'
-import { PARAMETROS } from './parameters'
-import { FONDOS } from './backgrounds'
-import { SOMBRAS, SOMBRAS_SIMETRICAS, type Variante } from './shadows'
+import { PARAMETERS } from './parameters'
+import { BACKGROUNDS } from './backgrounds'
+import { SHADOWS, SYMMETRIC_SHADOWS, type Variant } from './shadows'
 
 const TILE = 1080
-const COLUMNAS = 4
+const COLUMNS = 4
 
-/* Este archivo se llama `Grilla.tsx` y no Sombras.tsx, que sería el
-   nombre obvio: en un disco que no distingue mayúsculas, `./Sombras`
-   resolvía a `sombras.ts` (las variantes) y la composición recibía
-   `undefined`. */
-type Celda = { nombre: string; nota: string; props: Partial<typeof PARAMETROS> }
+/* This file is called `Grid.tsx` and not Shadows.tsx, which would be
+   the obvious name: on a disk that does not tell case apart,
+   `./Shadows` resolved to `shadows.ts` (the variants) and the
+   composition got `undefined`. */
+type Cell = { name: string; note: string; props: Partial<typeof PARAMETERS> }
 
-export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas' | 'fondos' }> = ({ conjunto = 'referencias' }) => {
-  const celdas: Celda[] =
-    conjunto === 'fondos'
-      ? FONDOS.map((v) => ({ nombre: v.nombre, nota: v.nota, props: { fondo: v.color, fondoEstilo: v.estilo } }))
-      : (conjunto === 'simetricas' ? SOMBRAS_SIMETRICAS : SOMBRAS).map((v: Variante) => ({ nombre: v.nombre, nota: v.nota, props: { sombra: v.sombra } }))
+export const ShadowGrid: React.FC<{ set?: 'references' | 'symmetric' | 'backgrounds' }> = ({ set = 'references' }) => {
+  const cells: Cell[] =
+    set === 'backgrounds'
+      ? BACKGROUNDS.map((v) => ({ name: v.name, note: v.note, props: { background: v.color, backgroundStyle: v.style } }))
+      : (set === 'symmetric' ? SYMMETRIC_SHADOWS : SHADOWS).map((v: Variant) => ({ name: v.name, note: v.note, props: { shadow: v.shadow } }))
   return (
   <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
-    {celdas.map((v, i) => (
+    {cells.map((v, i) => (
       <div
-        key={v.nombre}
+        key={v.name}
         style={{
           position: 'absolute',
-          left: (i % COLUMNAS) * TILE,
-          top: Math.floor(i / COLUMNAS) * TILE,
+          left: (i % COLUMNS) * TILE,
+          top: Math.floor(i / COLUMNS) * TILE,
           width: TILE,
           height: TILE,
           overflow: 'hidden',
         }}
       >
-        <Mockup {...PARAMETROS} {...v.props} lienzo={TILE} />
+        <Mockup {...PARAMETERS} {...v.props} canvas={TILE} />
         <div
           style={{
             position: 'absolute',
@@ -50,9 +51,9 @@ export const GrillaDeSombras: React.FC<{ conjunto?: 'referencias' | 'simetricas'
           }}
         >
           <div style={{ fontSize: 34, fontWeight: 600 }}>
-            {i + 1}. {v.nombre}
+            {i + 1}. {v.name}
           </div>
-          <div style={{ fontSize: 26, color: '#6e6e73', marginTop: 6 }}>{v.nota}</div>
+          <div style={{ fontSize: 26, color: '#6e6e73', marginTop: 6 }}>{v.note}</div>
         </div>
       </div>
     ))}

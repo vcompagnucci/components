@@ -2,120 +2,120 @@ import { memo } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
 
-import { CHISPAS, FRENTE, frenteEn, HOLD } from './measurements'
+import { FRONT, frontAt, HOLD, SPARKS } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
-   LAS CHISPAS — los puntos de luz que viajan ADENTRO del pill durante el
-   hold, delante del frente del relleno (ampliaciones en
-   `.context/hold-to-commit/dentro`, pistas en `chispas2.py`).
+   THE SPARKS — the dots of light that travel INSIDE the pill during the
+   hold, ahead of the fill's front (magnifications in
+   `.context/hold-to-commit/dentro`, tracks in `chispas2.py`).
 
-   SON FUNCIÓN DEL PROGRESO, no de un reloj: cada chispa tiene un
-   progreso de nacimiento p₀ y vive `largo` ms de progreso; su posición
-   es la del frente al nacer, más lo que se adelantó, más lo que viajó
-   desde entonces a una fracción de la velocidad del frente. Así con el
-   botón parqueado a un progreso (sonda) las chispas están donde tienen
-   que estar, y al soltar se van con el relleno (`blob`) en vez de
-   quedar flotando sobre un pill apagado.
+   THEY ARE A FUNCTION OF THE PROGRESS, not of a clock: each spark has a
+   birth progress p₀ and lives `length` ms of progress; its position is
+   where the front was when it was born, plus how far ahead it started,
+   plus how far it has travelled since, at a fraction of the front's
+   speed. That way, with the button parked at a progress (probe) the
+   sparks are where they should be, and on release they leave with the
+   fill (`blob`) instead of floating over a dark pill.
 
-   POCAS VISTAS, VARIAS VIDAS: 12 imágenes, cada una con 3 vidas
-   repartidas en el tiempo (sin solaparse), son 36 chispas por hold con
-   12 estilos animados por cuadro. La textura es una gaussiana blanca
-   (`media/spark@3x.png`); cada vida la escala y la atenúa a lo suyo.
-   Viven debajo del velo blanco del commit y del label: al completar,
-   el velo las tapa; sobre el relleno ya blanco, un blanco al 30 % no
-   se ve — la misma absorción que en el clip.
+   FEW VIEWS, SEVERAL LIVES: 12 images, each with 3 lives spread out over
+   time (never overlapping), are 36 sparks per hold with 12 animated
+   styles per frame. The texture is a white gaussian
+   (`media/spark@3x.png`); each life scales it and dims it to its own
+   values. They live below the commit's white veil and below the label:
+   on completion, the veil covers them; over an already white fill, white
+   at 30 % is invisible — the same absorption as in the clip.
 
-   Todo el recibo está en `CHISPAS`.
+   The whole receipt is in `SPARKS`.
    ═══════════════════════════════════════════════════════════════ */
 
-type Vida = {
-  p0: number         // progreso de nacimiento
-  adelante: number   // pt por delante del frente al nacer
-  y: number          // pt desde arriba del pill
-  velocidad: number  // fracción de la velocidad del frente
-  largo: number      // ms de vida
-  deriva: number     // pt/s en y (negativo = sube)
-  escala: number     // de la caja de la textura
-  alfa: number
+type Life = {
+  p0: number       // birth progress
+  ahead: number    // pt ahead of the front at birth
+  y: number        // pt from the top of the pill
+  speed: number    // fraction of the front's speed
+  length: number   // ms of life
+  drift: number    // pt/s in y (negative = upwards)
+  scale: number    // of the texture's box
+  alpha: number
 }
 
-const azar = (() => {
+const random = (() => {
   let s = 20260903
   return () => {
     s = (s * 48271) % 2147483647
     return (s - 1) / 2147483646
   }
 })()
-const entre = (min: number, max: number) => min + (max - min) * azar()
+const between = (min: number, max: number) => min + (max - min) * random()
 
-const TOTAL = CHISPAS.vistas * CHISPAS.vidasPorVista
-const VIDAS: Vida[] = Array.from({ length: TOTAL }, (_, i) => ({
-  p0: CHISPAS.desde + (CHISPAS.hasta - CHISPAS.desde) * ((i + 0.5) / TOTAL) + entre(-0.008, 0.008),
-  adelante: CHISPAS.adelante.min + (CHISPAS.adelante.max - CHISPAS.adelante.min) * Math.pow(azar(), CHISPAS.adelante.sesgo),
-  y: entre(CHISPAS.y.min, CHISPAS.y.max),
-  velocidad: entre(CHISPAS.velocidad.min, CHISPAS.velocidad.max),
-  largo: entre(CHISPAS.vida.min, CHISPAS.vida.max),
-  deriva: entre(CHISPAS.derivaY.min, CHISPAS.derivaY.max),
-  escala: entre(CHISPAS.escala.min, CHISPAS.escala.max),
-  alfa: entre(CHISPAS.alfa.min, CHISPAS.alfa.max),
+const TOTAL = SPARKS.views * SPARKS.livesPerView
+const LIVES: Life[] = Array.from({ length: TOTAL }, (_, i) => ({
+  p0: SPARKS.from + (SPARKS.to - SPARKS.from) * ((i + 0.5) / TOTAL) + between(-0.008, 0.008),
+  ahead: SPARKS.ahead.min + (SPARKS.ahead.max - SPARKS.ahead.min) * Math.pow(random(), SPARKS.ahead.bias),
+  y: between(SPARKS.y.min, SPARKS.y.max),
+  speed: between(SPARKS.speed.min, SPARKS.speed.max),
+  length: between(SPARKS.life.min, SPARKS.life.max),
+  drift: between(SPARKS.driftY.min, SPARKS.driftY.max),
+  scale: between(SPARKS.scale.min, SPARKS.scale.max),
+  alpha: between(SPARKS.alpha.min, SPARKS.alpha.max),
 }))
-/* La vista j toma las vidas j, j + vistas, j + 2·vistas: separadas
-   (hasta − desde) / vidasPorVista ≈ 0.31 de progreso = 620 ms. */
-const POR_VISTA: Vida[][] = Array.from({ length: CHISPAS.vistas }, (_, j) =>
-  VIDAS.filter((_, i) => i % CHISPAS.vistas === j),
+/* View j takes lives j, j + views, j + 2·views: (to − from) / livesPerView
+   ≈ 0.31 of progress apart = 620 ms. */
+const PER_VIEW: Life[][] = Array.from({ length: SPARKS.views }, (_, j) =>
+  LIVES.filter((_, i) => i % SPARKS.views === j),
 )
 
-const TEXTURA = require('./media/spark.png')
+const TEXTURE = require('./media/spark.png')
 
-const suave = (v: number, a: number, b: number) => {
+const smoothstep = (v: number, a: number, b: number) => {
   'worklet'
   const t = Math.min(1, Math.max(0, (v - a) / (b - a)))
   return t * t * (3 - 2 * t)
 }
 
-type Props = { ancho: number; progreso: SharedValue<number>; blob: SharedValue<number> }
+type Props = { width: number; progress: SharedValue<number>; blob: SharedValue<number> }
 
-function Chispa({ vidas, ancho, progreso, blob }: { vidas: Vida[] } & Props) {
-  const estilo = useAnimatedStyle(() => {
-    const p = progreso.get()
+function Spark({ lives, width, progress, blob }: { lives: Life[] } & Props) {
+  const style = useAnimatedStyle(() => {
+    const p = progress.get()
     let opacity = 0, tx = 0, ty = 0, sc = 1
-    for (let i = 0; i < vidas.length; i++) {
-      const v = vidas[i]!
-      const dt = (p - v.p0) * HOLD.duracion // ms de vida
-      if (dt < 0 || dt > v.largo) continue
-      const f = dt / v.largo
-      const envolvente = suave(f, 0, CHISPAS.entrada) * (1 - suave(f, 1 - CHISPAS.salida, 1))
-      opacity = v.alfa * envolvente * blob.get()
-      /* nace delante del borde geométrico de su nacimiento y avanza a una
-         fracción de la velocidad del frente (recorrido·ancho en HOLD.duracion) */
-      tx = frenteEn(v.p0, ancho) + v.adelante + v.velocidad * (dt / HOLD.duracion) * FRENTE.recorrido * ancho
-      ty = v.y + (v.deriva * dt) / 1000
-      sc = v.escala
+    for (let i = 0; i < lives.length; i++) {
+      const v = lives[i]!
+      const dt = (p - v.p0) * HOLD.duration // ms of life
+      if (dt < 0 || dt > v.length) continue
+      const f = dt / v.length
+      const envelope = smoothstep(f, 0, SPARKS.fadeIn) * (1 - smoothstep(f, 1 - SPARKS.fadeOut, 1))
+      opacity = v.alpha * envelope * blob.get()
+      /* it is born ahead of the geometric edge it was born at, and moves
+         at a fraction of the front's speed (travel·width in HOLD.duration) */
+      tx = frontAt(v.p0, width) + v.ahead + v.speed * (dt / HOLD.duration) * FRONT.travel * width
+      ty = v.y + (v.drift * dt) / 1000
+      sc = v.scale
       break
     }
     return { opacity, transform: [{ translateX: tx }, { translateY: ty }, { scale: sc }] }
   })
-  return <Animated.Image source={TEXTURA} style={[css.chispa, estilo]} />
+  return <Animated.Image source={TEXTURE} style={[css.spark, style]} />
 }
 
-export const Chispas = memo(function Chispas({ ancho, progreso, blob }: Props) {
+export const Sparks = memo(function Sparks({ width, progress, blob }: Props) {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {POR_VISTA.map((vidas, j) => (
-        <Chispa key={j} vidas={vidas} ancho={ancho} progreso={progreso} blob={blob} />
+      {PER_VIEW.map((lives, j) => (
+        <Spark key={j} lives={lives} width={width} progress={progress} blob={blob} />
       ))}
     </View>
   )
 })
 
 const css = StyleSheet.create({
-  /* La caja centrada en el origen: el translate pone el centro donde va. */
-  chispa: {
+  /* The box centered on the origin: the translate puts the center where it goes. */
+  spark: {
     position: 'absolute',
-    left: -CHISPAS.caja / 2,
-    top: -CHISPAS.caja / 2,
-    width: CHISPAS.caja,
-    height: CHISPAS.caja,
+    left: -SPARKS.box / 2,
+    top: -SPARKS.box / 2,
+    width: SPARKS.box,
+    height: SPARKS.box,
     opacity: 0,
   },
 })
