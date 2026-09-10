@@ -51,10 +51,17 @@ export function clicDeLink(accion: () => void) {
    ancla, y los controles del demo, que llaman preventDefault y
    stopPropagation por su cuenta.
 
-   LO QUE SE PIERDE, dicho para que no se descubra después: sobre el
-   preview no hay cmd-click ni menú contextual, porque ahí el ancla no
-   está debajo del puntero. Sobre el título y el resto de la card sí. Es
-   el precio de sacar los <button> del demo de adentro del <a>. */
+   SOBRE EL PREVIEW NO HAY CMD-CLICK NI MENÚ CONTEXTUAL, y es una
+   decisión, no una deuda: ahí el ancla no está debajo del puntero.
+   Sobre el título y el resto de la card sí.
+
+   Las dos salidas se probaron y las dos son peores. Poner el ancla
+   ENCIMA del preview devuelve el cmd-click y mata lo que el preview
+   tiene adentro: los cuatro botones de Buttons separate, las cinco filas
+   de Select summary y el botón de velocidad del video, que son
+   justamente lo que se viene a probar. Y rehacer el cmd-click a mano con
+   window.open contradice la regla de clicDeLink —dejar pasar todo lo que
+   el navegador hace mejor— y ni así devuelve el menú contextual. */
 export function clicDeTarjeta(accion: () => void) {
   return (e: MouseEvent<HTMLElement>) => {
     if (!esClicPelado(e)) return

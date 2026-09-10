@@ -2445,3 +2445,57 @@ refs— son las mismas que ya usaba el archivo.
 
 El texto público quedó en 381 palabras; el comentario de arriba decía 386
 y también se corrigió.
+
+### Los cuatro puntos que quedaban, cerrados
+
+**2026-09-10.** Dos se arreglaron, uno se cerró midiendo y el cuarto pasa
+de deuda a decisión escrita.
+
+**El cuello del goo: la grabación NO PUEDE responderlo, y ahora se sabe
+por qué.** Tres métodos fallaron, cada uno por una razón distinta, hasta
+que el tercero dio la respuesta de verdad: **la ventana en la que los
+huecos podrían diferir cae entera adentro del estado fundido.** Las
+formas se separan en cinco recién a los **368 ms** del disparo, y para
+entonces el abanico ya recorrió **1.048** de su camino —o sea que
+terminó— y los glifos ya valen 0.75 de opacidad. Mientras los huecos
+importan, la silueta es una sola forma: no contiene cuatro botones
+separables, así que no hay nada que medir ahí. Y los glifos, que son el
+otro canal, aparecen cuando el abanico ya se asentó.
+
+Queda cerrado: no es que no pude, es que el dato no está en la
+grabación. Los tres métodos y su porqué están en `cuellos.py`, `pasos.py`,
+`abanico.py` y `centros.py`.
+
+**El CLS de la lista: de 0.0516 variable a 0.0149 fijo.** La causa que
+diagnostiqué era real y está arreglada: el `<video>` no tenía altura
+hasta que llegaban sus metadatos, y cuando llegaban la card cambiaba de
+alto. Ahora `.demo` lleva **`aspect-ratio: auto 1`** — la proporción real
+del archivo manda en cuanto se conoce, y el 1 cubre el hueco hasta
+entonces. Las dos grabaciones son 1120×1120, así que el 1 acierta.
+Cinco cargas dan **0.0149 las cinco**: se acabó la carrera.
+
+Lo que queda **no es de esta pieza y no lo toqué**: el preview de Select
+summary mide **336** contra el piso de 260 de una card, así que cuando
+llega su chunk la card crece 76 px y empuja lo de abajo. Buttons separate
+mide exactamente 260 y no mueve nada. Arreglarlo es decidir entre que la
+pieza entre en el piso, reservar su alto en el registro, o sacar el
+`lazy` de demos.tsx —que le sumaría ~20 kB comprimidos al bundle de 66
+para ahorrar 0.015 de CLS, y no vale—.
+
+**Los links del índice: 16 → 24 de blanco.** Los 44 de Apple no entran,
+porque los links están a 8 px uno de otro y estirarlos hasta ahí les
+haría pisarse el blanco. Los **24 de la norma** (WCAG 2.5.8, AA) sí:
+4 px de cada lado, y los blancos se TOCAN sin superponerse. Medido en la
+página: 99×24, 104×24, 94×24 y 93×24, sin solape. El texto no se movió,
+porque el `::before` no ocupa layout y el hueco de 8 medido contra benji
+sigue siendo el que se ve.
+
+**El cmd-click sobre el preview pasa a ser una decisión.** Probé las dos
+salidas y las dos son peores. Poner el ancla ENCIMA del preview devuelve
+el cmd-click y mata lo que el preview tiene adentro: los cuatro botones
+de Buttons separate, las cinco filas de Select summary y el botón de
+velocidad del video, que son justamente lo que se viene a probar. Y
+rehacer el cmd-click a mano con `window.open` contradice la regla de
+`clicDeLink` —dejar pasar todo lo que el navegador hace mejor— y ni así
+devuelve el menú contextual. Sobre el título y el resto de la card los
+dos siguen andando.

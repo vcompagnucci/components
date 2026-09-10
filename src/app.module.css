@@ -115,7 +115,16 @@
   color: var(--type-nav-c);
   white-space: nowrap;
 }
+/* EL BLANCO LLEGA A 24, que es el mínimo de la norma para un blanco de
+   puntero (WCAG 2.5.8, AA). Los 44 de Apple no entran: los links están a
+   8 px uno de otro, y estirarlos hasta ahí les haría pisarse el blanco
+   entre ellos. Con 4 de cada lado los blancos se TOCAN y no se
+   superponen, que es el máximo que da este ritmo.
+
+   El texto no se mueve: el ::before no ocupa layout, así que el hueco de
+   8 medido contra benji sigue siendo el que se ve. */
 .indexLink {
+  position: relative;
   padding: 0;
   border: 0;
   background: transparent;
@@ -128,6 +137,11 @@
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
+}
+.indexLink::before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
 }
 /* La pieza que estás mirando se pinta. La regla es la de benji: activa
    es la última cuyo borde superior ya pasó una línea a 128px del tope
@@ -247,6 +261,19 @@
 }
 .demo {
   display: block;
+  /* LA CAJA SE RESERVA ANTES DE QUE LLEGUE EL ARCHIVO. Sin esto, con
+     `height: auto` la altura no existe hasta que el video entrega sus
+     metadatos, y cuando entrega, la card cambia de alto y empuja todo lo
+     de abajo. Medido en la home: cinco cargas daban 0.0516, 0, 0.0294, 0
+     y 0.0516 de CLS, y el cero en dos de cinco es la firma de una
+     carrera, no de un layout roto.
+
+     `auto 1` y no `1` a secas: manda la proporción REAL del archivo en
+     cuanto se conoce, y el 1 sólo cubre el hueco hasta entonces. Las dos
+     grabaciones de hoy son 1120×1120 —el lienzo del mockup es cuadrado—
+     así que el 1 acierta y no hay ningún salto; si mañana entra una que
+     no lo sea, la caja se corrige sola en vez de deformar el video. */
+  aspect-ratio: auto 1;
   /* EL VIDEO ES LA CAJA. Con la grabación transparente, el cuadrado del
      mockup ocupa la caja entera —sin el padding de 40/60 que reservaba
      el hueco— y así el borde del video ES el borde de la caja: cuando
