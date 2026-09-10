@@ -52,11 +52,16 @@ import { Seccion } from '../notas'
    LO QUE SE MENCIONA DE LOS SKILLS, Y LO QUE NO. Entra sólo lo que un
    lector puede VER, con su recibo. `animate-expo` no aplica: es de
    React Native y esto corre en el navegador.
-     · `better-ui` › image outlines: cada foto lleva una línea de 1 px a
-       alfa bajo, negro puro en claro y blanco puro en oscuro, nunca un
-       neutro teñido (`--pieza-contorno: var(--hairline)`, y el círculo
-       de `Chip`). Es la regla textual del skill y la pieza la cumple con
-       el token del sistema.
+     · `better-ui` y `emil-surfaces` › image outlines: cada foto lleva
+       una línea de 1 px al 10 %, negro puro en claro y blanco puro en
+       oscuro, nunca un neutro teñido (`--pieza-contorno`, y el círculo
+       de `Chip`). Es la regla textual de los dos, y el valor no se
+       elige: se mira sobre la foto de fondo blanco, que es la que lo
+       necesita.
+     · `emil-surfaces` › depth without borders: el disparador y el panel
+       no llevan `border` sino un anillo `inset 0 0 0 1px`. Además de
+       componer sobre lo que tenga debajo, saca de la cuenta del ancho
+       el único término que estaba en píxeles.
      · `better-ui` › shadows for elevation, borders for structure: cero
        sombras. Las dos líneas que hay separan cosas —el panel de la
        card, la foto de la superficie— y ninguna finge profundidad.
@@ -110,12 +115,39 @@ import { Seccion } from '../notas'
    se quedan. La regla es del texto público; en estos comentarios en
    castellano la raya es puntuación normal.
 
+   MUCHO MÁS CORTA (2026-09-10, "hacela muchísima más concisa, máximo 2
+   párrafos y 4 líneas"). De 293 palabras a 150, y las tres secciones
+   quedaron iguales de largas: dos párrafos y cuatro líneas renderizadas
+   cada una, contadas en la página y no a ojo. Lo que se fue son los
+   hechos que el lector ve solo —el racimo de una, de dos, de tres y de
+   cuatro; el contorno de las fotos; el panel sin sombra— y lo que quedó
+   es lo que hay que decirle.
+
+   Y LA PIEZA APOYA LO QUE DICE `emil-animations`, así que el texto lo
+   dice en una frase: "an animation that answers no question is not
+   here". Es su regla, en llano: «Animate when it adds information […]
+   If the animation answers no question, cut it». Lo que la pieza NO
+   anima está respaldado por ese mismo skill:
+     · el acuse del apretar, que no escala: «Not every button needs it;
+       skip it on high-frequency controls».
+     · el primer pintado, que no anima: «Don't animate initial page load
+       state».
+     · el guion de la lista, que se fue del todo (2026-09-10): una pieza
+       Web que reproduce una secuencia se lee como un video, y lo que
+       tiene que hacer es contestarle al puntero.
+   Lo que la pieza rompe de ese skill queda acá y no en el texto: el chip
+   que entra nace en scale 0 —«Never enter from scale(0)»— porque a 11.8
+   px arrancar en 0.95 son 0.6 px de recorrido, y el racimo viaja 370 ms,
+   arriba de los 300 que pide, porque es la curva medida de la
+   referencia.
+
    LA PASADA DE `emil-unslop-writing`, medida sobre la página servida:
    cero palabras de las que el skill lista, cero rayas, cero comillas
    curvas y ninguna pasiva sin actor. Lo que sí encontró fueron DOS
    PUNTOS: cuatro en 26 oraciones, tres de ellos uniendo una frase que se
    sostenía sola. Quedó uno, el de la línea de descripción, que sí abre
-   una enumeración. También se fueron un "lives in" que era metáfora, un
+   una enumeración. Después del recorte quedan 13 oraciones, media 11.5
+   palabras y desvío 3.9. También se fueron un "lives in" que era metáfora, un
    "carries" que era "has", un "without being opened" que escondía al
    actor y un "land in the same place" que no decía nada.
 
@@ -129,24 +161,8 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          The web, with CSS transitions and no animation library. The summary is in the button, a
-          cluster of photos and a label.
-        </p>
-        <p>
-          Select someone and the cluster rearranges. One photo fills the square. Two sit corner to
-          corner, three stack into a pyramid, and four fill the grid.
-        </p>
-        <p>
-          The first photo never moves. The others shrink from their top left corner and take a new
-          cell when the shape changes. A photo that joins grows from nothing in 90ms.
-        </p>
-        <p>
-          The label changes in a single frame, and the button never resizes. With reduced motion the
-          photos take their places at once.
-        </p>
-        <p>
-          The panel is a surface with a hairline, not a shadow. Each photo has the same line, so a pale
-          one still shows an edge.
+          The summary is in the button. Select someone and the cluster of photos rearranges, and
+          nothing else does. An animation that answers no question is not here.
         </p>
         <p>
           The reference is a select posted on X by @abjt14, measured frame by frame at 60 fps.
@@ -155,28 +171,23 @@ export default function Notas() {
 
       <Seccion titulo="Performance">
         <p>
-          Nothing in this component changes position. The button holds one width across all seven of
-          its labels. The panel keeps its place, open or closed.
+          CSS transitions, no animation library. Only transform, opacity and color animate, so
+          nothing forces the page to lay out again.
         </p>
         <p>
-          Only transform, opacity and color animate, so nothing forces the page to lay out again. In
-          every state, and over seven seconds of the card in the list, nothing moves by a pixel.
-        </p>
-        <p>
-          In the list the component runs on its own. It steps while the pointer is on the card and
-          holds its state when the pointer leaves.
+          The label changes in one frame, the button holds one width, and the press moves nothing. In
+          every state, nothing drifts by a pixel.
         </p>
       </Seccion>
 
       <Seccion titulo="Use cases">
         <p>
-          A summary in the button fits a filter that holds several things at once. The button answers
-          what is on before you open it.
+          A summary in the button fits a filter that holds several things at once. It answers what is
+          on before you open it.
         </p>
         <p>
-          The last row is a checkbox and not a command, because it reports a state instead of starting
-          an action. Selecting nobody and selecting everybody are the same state. Neither one
-          filters.
+          The last row is a checkbox and not a command, because it reports a state. Selecting nobody
+          and selecting everybody are the same state.
         </p>
       </Seccion>
     </>
