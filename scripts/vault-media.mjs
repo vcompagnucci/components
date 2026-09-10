@@ -107,6 +107,48 @@ const DETAILS_FILE = '.lima-vault.json'
 
 const DETAILS_FIELDS = ['notes', 'source', 'device']
 
+/* ─── AND A FOURTH THAT IS NOT FREE TEXT: `piece` ───
+   The slug of the piece this clip produced. It is what turns the clip
+   into a two-way door: from the vault you open the piece it became,
+   and from the piece you come back to the reference you studied.
+
+   It is kept OUT of DETAILS_FIELDS because those three are whatever
+   you typed and this one has to name a piece that exists. A slug that
+   names nothing is a link that 404s, and the whole point of the field
+   is being able to follow it. So it gets checked against the slugs
+   written in pieces.ts, which is the same list `addPiece` reads to
+   refuse a duplicate.
+
+   It is written by hand in the details panel, and on its own when you
+   publish an App piece from a clip: that is the moment the fact comes
+   into being, and asking you to write down again what the server just
+   did is asking you to keep two copies in step. */
+const PIECE_FIELD = 'piece'
+
+function publishedSlugs() {
+  try {
+    const src = fs.readFileSync(PIECES_TS, 'utf8')
+    return new Set([...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1]))
+  } catch {
+    return new Set()
+  }
+}
+
+/* The clip's own details, with the link to its piece written in. It
+   returns what went wrong instead of throwing, because the caller is
+   publishing and a piece that got published is not undone by a link
+   that did not. */
+function linkClipToPiece(root, clipPath, pieceSlug) {
+  try {
+    const all = readJson(root, DETAILS_FILE)
+    all[clipPath] = { ...all[clipPath], [PIECE_FIELD]: pieceSlug }
+    writeJson(root, DETAILS_FILE, all)
+    return null
+  } catch (e) {
+    return String(e?.message ?? e)
+  }
+}
+
 /* ═══════════ THE PLAYGROUND VIEWS ═══════════
    A separate file from the details, and not one more field inside
    them: the details describe ONE clip and live tied to its path, while
@@ -797,6 +839,20 @@ export function vaultMedia(rawDir) {
               if (typeof v === 'string' && v.trim()) clean[k] = v.slice(0, MAX_FIELD_LENGTH)
             }
 
+            /* The piece does not go through that loop: the other three
+               are whatever you typed and this one has to name a piece
+               that exists. Dropping a bad slug in silence is what the
+               loop above does with an unknown field, and it is exactly
+               the failure this field cannot afford: you would save,
+               see nothing, and have no link. So it answers 400. */
+            const linked = d?.details?.[PIECE_FIELD]
+            if (typeof linked === 'string' && linked.trim()) {
+              if (!publishedSlugs().has(linked)) {
+                return json(res, 400, { error: 'no piece has that slug' })
+              }
+              clean[PIECE_FIELD] = linked
+            }
+
             const all = readJson(root, DETAILS_FILE)
             /* Empty details get DELETED instead of staying as an
                object with nothing in it: if you empty the fields, the
@@ -946,7 +1002,7 @@ export function vaultMedia(rawDir) {
                also carries its `index.tsx`, the `companion`, and
                undoing means deleting both and the folder created for
                them. */
-            const publish = (sourcePath, target, platform, video, companion) => {
+            const publish = (sourcePath, target, platform, video, companion, linkFrom) => {
               try {
                 fs.mkdirSync(path.dirname(target), { recursive: true })
                 /* COPYFILE_EXCL: check and copy in a single operation,
@@ -987,7 +1043,18 @@ export function vaultMedia(rawDir) {
                 undo()
                 return json(res, 500, { error: String(e?.message ?? e) })
               }
-              return json(res, 200, { ok: true, slug: pieceSlug })
+              /* THE LINK BACK, WRITTEN HERE AND NOT ASKED FOR LATER.
+                 The piece is already published, so a link that could
+                 not be written does not undo any of it: it comes back
+                 as `linked: false` with its reason, and the details
+                 panel still lets you pick the piece by hand. What it
+                 does not do is fail quietly. */
+              const failed = linkFrom ? linkClipToPiece(root, linkFrom, pieceSlug) : null
+              return json(res, 200, {
+                ok: true,
+                slug: pieceSlug,
+                ...(linkFrom ? { linked: !failed, ...(failed ? { linkError: failed } : {}) } : {}),
+              })
             }
 
             /* ─── A SKETCH → WEB PIECE ───
@@ -1013,11 +1080,17 @@ export function vaultMedia(rawDir) {
             const ext = path.extname(sourcePath).toLowerCase()
             if (!VIDEO.has(ext))
               return json(res, 400, { error: 'an App piece is shown with a recording' })
+            /* The clip's path is the key of its details, so the last
+               argument is what ties the two ends together. A sketch
+               does not pass it: it was written in the repo and there is
+               no reference behind it. */
             return publish(
               sourcePath,
               path.join(PIECES_PUBLIC_DIR, pieceSlug + ext),
               'App',
               `/pieces/${pieceSlug}${ext}`,
+              null,
+              String(d?.path ?? ''),
             )
           })
           return

@@ -9,6 +9,7 @@ import { DetailsButton, ClipDetails } from "./details";
 import {
   TrashNotice,
   PlaygroundButton,
+  ExhibitionButton,
   RenameDialog,
   ClipMenu,
   sendToTrash,
@@ -485,6 +486,17 @@ export function Vault({
     if (id) go("/playground/" + id);
   };
 
+  /* THE OTHER WAY OUT, and it needs no helper: the slug IS the URL, so
+     there is nothing to look up and nothing to write. It is the whole
+     point of storing the slug and not the title.
+
+     There is no guard for the piece not existing, because there cannot
+     be one: the server refuses a slug that names nothing, and the
+     picker only offers the pieces there are. If a piece gets deleted
+     from pieces.ts by hand its clips keep pointing at it, and what you
+     get is the 404 of the exhibition, which is the honest answer. */
+  const openInExhibition = (c: Clip) => go("/" + c.details?.piece);
+
   /* THE FAILURE NOTICE NEEDS NO SUBJECT and that is why it stays
      outside the guard: when the clip left cleanly, `subject` is the
      last one there was; when it failed, what matters is the message and
@@ -504,6 +516,15 @@ export function Vault({
                the difference is decided by the only value that separates
                them: whether there is a clip open. */
             onPlayground={clip ? undefined : () => openInPlayground(subject)}
+            /* IT IS OFFERED IN BOTH VIEWS, unlike the playground's.
+               That one is a permanent button in the detail's bar, so
+               repeating it in the menu would be the same thing twice
+               ten pixels apart; this one is only a button when the clip
+               HAS a piece, so the menu is not repeating a command that
+               may not be there. And the grid has no bar at all. */
+            onExhibition={
+              subject.details?.piece ? () => openInExhibition(subject) : undefined
+            }
             onRename={() => setRenaming(subject)}
             /* WITHOUT ASKING: it leaves and that is it. The why is in
                actions.tsx, above TrashNotice. The HIG advises against
@@ -558,6 +579,19 @@ export function Vault({
             }
           />
           <div className={css.detailActions}>
+            {/* FIRST IN THE ROW SO THAT NOTHING ELSE MOVES. The group
+                is pushed against the rail with `margin-left: auto`, so
+                it grows LEFTWARD: a button added at the head leaves the
+                arrow and the details toggle exactly where they were,
+                and one added at the tail would shift both. Measured in
+                the served detail, with and without the button: the
+                arrow stays at the same x to the pixel.
+
+                Absent when the clip produced nothing, which is most of
+                the vault. */}
+            {clip.details?.piece && (
+              <ExhibitionButton onOpen={() => openInExhibition(clip)} />
+            )}
             <PlaygroundButton onOpen={() => openInPlayground(clip)} />
             <DetailsButton
               open={detailsOpen}

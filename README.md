@@ -3113,3 +3113,78 @@ both pieces inside, and headless Chrome over CDP walking the index, the four
 pages, the 404, the vault, the playground and `/vault-media/__index` with no
 console errors. The mountain still holds, measured in the served index: 45.7,
 117.9, 124.7, 70.6.
+
+## The vault becomes a two-way door
+
+2026-09-10. The vault had one way out: right click → `Open in Playground`,
+and the ↗ in a clip's header, both calling `toPlayground(path)`. The request
+was the second one, and its round trip: from a clip, go to the piece that came
+out of it; from the piece, come back to the reference I studied.
+
+**One field carries both directions.** A fourth entry in `.lima-vault.json`,
+`piece`, with the slug. The slug and not the title, because the slug IS the
+URL: there is nothing to look up and nothing that breaks when a title changes,
+which is the same reason `Piece` got a `slug` field two sections above.
+
+**The gotcha was written down before it bit**, in `AGENTS.md`: three fields
+here, three fields in the server, "adding one here without adding it there
+discards it on save, silently". So the field went in on both sides in the same
+change. But it does not go in the same way on each side, and that is the part
+worth keeping:
+
+| | the three | the fourth |
+| --- | --- | --- |
+| what it is | whatever you typed | a slug that has to name a piece that exists |
+| a bad value | there is no bad value | 400, `no piece has that slug` |
+| an unknown field | dropped in silence | it cannot be unknown |
+
+Dropping a bad slug in silence is exactly what the loop does with an unknown
+field, and it is the one thing this field cannot afford: you would save, see
+nothing, and have no link. A link you cannot follow is worse than no link. So
+it answers 400 and the control that writes it is a picker over the pieces that
+exist, which cannot express the mistake in the first place.
+
+**It writes itself when the fact comes into being.** Publishing an App piece
+from a clip is the moment the clip produces a piece, so that is where the link
+gets written, in the same request. Asking you to write down afterwards what the
+server just did is asking you to keep two copies in step. If the write fails
+the piece stays published and the answer says `linked: false` with its reason:
+a piece that got published is not undone by a link that did not. By hand in the
+details panel is for the clips whose piece was published before the field
+existed, which today is all four.
+
+**The icon goes first in the row, and that is measured.** The actions group is
+pushed against the rail with `margin-left: auto`, so it grows leftward: a
+button added at the head leaves the arrow and the details toggle exactly where
+they were. Measured in the served detail, with the button and without it, the
+arrow stays at **x = 1368** and the toggle at **1408**, and the new one appears
+at 1328. Added at the tail it would have shifted both, and a control that moves
+because a neighbour appeared is a control you have to find again.
+
+It is drawn as the destination and not as a departure: a card of the
+exhibition, the showcase on top and the name underneath. Two arrows side by
+side would be two departures, and they are not the same gesture. The
+playground's takes the clip WITH you and puts it on a canvas; this one takes
+you to something already finished, with nothing travelling.
+
+**The way back is dev-only, and that is the whole constraint.** The exhibition
+is published and the vault is not, so a link from the product to a clip on your
+disk cannot exist in production: it would 404 for everyone and the path of a
+file of yours would travel inside the bundle. `src/private/reference-link.tsx`
+is lazily loaded from `parts.tsx` behind `import.meta.env.DEV`, the same two
+folds that keep the whole private area out of the build. Verified by grepping
+`dist/`: neither the component nor the string `/vault` is in there.
+
+And it asks the VAULT, not the piece. `pieces.ts` is product code and a
+reference is a private note, so the search runs the other way: over the vault's
+index, with the same `useClips` the vault itself uses, so there is no second
+request. With no clip naming the piece it draws nothing, because a dev-only row
+that appears empty is a thing you have to explain on a page you are recording.
+
+**Measured end to end**, on the served page: the grid's menu comes out
+`Open in Playground · Open in Exhibition · Rename · Move to Trash`, the clip
+with a piece shows three buttons in its bar and the one without shows two, the
+piece's foot reads *"Measured against Hold to commit"* and links to
+`/vault/nativo/Hold to commit.mp4`, and the click routes without reloading
+(`pushState` plus a `popstate`, which is what `app.tsx` already listens to).
+Zero console errors on both ends.

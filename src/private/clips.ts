@@ -49,13 +49,23 @@ export type RawClip = {
   details: Details | null;
 };
 
-/* The three fields, and they are the same ones the server validates.
-   If one gets added here, it has to be added to DETAILS_FIELDS over
-   there or it gets dropped on save without a word. */
+/* Four fields, and they are the same ones the server validates. If one
+   gets added here, it has to be added over there or it gets dropped on
+   save without a word: the first three go in DETAILS_FIELDS and the
+   fourth has its own check, because it is the only one that is not
+   free text.
+
+   `piece` is the slug of the piece this clip produced, and it is what
+   turns the clip into a two-way door: from the vault you open the
+   piece it became, and from the piece you come back to the reference.
+   It gets written on its own when you publish an App piece from the
+   clip, and by hand in the details panel for the clips whose piece was
+   published before the field existed. */
 export type Details = {
   notes?: string;
   source?: string;
   device?: string;
+  piece?: string;
 };
 
 /* Which of the two vault folders the clip lives in. Not to be confused

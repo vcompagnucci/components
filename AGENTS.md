@@ -139,6 +139,12 @@ your board.
 What happened behind the scenes in step 8: the video was copied to
 `public/pieces/<slug>.<ext>` (the vault does not travel to the deploy)
 and the entry went into `PIECES` with `platform: 'App'` and its `video`.
+**And the clip got the slug written into its details**, which is what
+leaves the door open both ways afterwards: from that clip, `Open in
+Exhibition`; from the piece, the line back to the reference. If the
+piece got published but the link did not, the answer says so with
+`linked: false` instead of staying quiet, and the details panel still
+lets you pick the piece by hand.
 
 **If the video arrives LATER** (it gets made separately, someone else
 makes it, or the one there was is not the good one), the piece can be
@@ -411,8 +417,17 @@ both sides.
 
 **What you write down yourself** (`notes`, `source`, `device`) lives in
 `.lima-vault.json`, at the root of the vault and next to the clips.
-Three fields, and they are the same ones the server validates: adding
-one here without adding it there discards it on save, silently.
+They are the same ones the server validates: adding one here without
+adding it there discards it on save, silently.
+
+**And a fourth, `piece`**, which is not free text: the slug of the piece
+this clip produced. It is what makes the vault a two-way door. The
+server checks it against the slugs in `pieces.ts` and answers 400 for
+one that names nothing, instead of dropping it like an unknown field,
+because a link you cannot follow is worse than no link. It gets written
+on its own when you publish an App piece from the clip, which is the
+moment the fact comes into being, and by hand in the details panel for
+the clips whose piece was published before the field existed.
 
 **The detail exists for measuring.** The player goes frame by
 frame with the arrows (on its own 1 · option 10 · command to the edges)
@@ -422,6 +437,21 @@ and it reads the step from the mp4's container instead of estimating it
 **The way out to the workshop**: in the grid, right click → `Open in
 Playground`. Inside a clip, the ↗ icon in the header. Both call the same
 thing, `toPlayground(path)` in `views.ts`.
+
+**The way out to the exhibition**, when the clip has a `piece`: right
+click → `Open in Exhibition`, and its own icon beside the ↗. It needs no
+helper, because the slug IS the URL. The icon goes FIRST in that row and
+not last: the group is pushed against the rail with `margin-left: auto`,
+so it grows leftward and a button added at the head leaves the arrow and
+the details toggle where they were. Measured in the served detail, with
+and without it: both stay at the same x.
+
+**And the way back**, from the piece to the reference: at the foot of a
+piece's detail, `src/private/reference-link.tsx` looks for the clip that
+names it and draws one line. It is lazily loaded behind
+`import.meta.env.DEV` from `parts.tsx`, the same two folds as the
+private area, so neither the component nor the string `/vault` reaches
+`dist/`. Verified by grepping the build.
 
 ### 2 · The playground: where things get built
 
