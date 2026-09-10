@@ -15,7 +15,8 @@ export type Piece = {
      detalle y en la pestaña. Es un nombre y nada más que un nombre —la
      URL, la carpeta y los archivos salen de `slug`—, así que renombrar
      una pieza es cambiar esta línea. Cómo se elige está en AGENTS.md ›
-     Cómo se nombra. */
+     Cómo se nombra, y el largo lo decide su lugar en el índice (ver
+     arriba de PIECES). */
   name: string
   /* EL IDENTIFICADOR: la URL pública (`/hold-to-commit`), la carpeta de
      su código —`src/components/pieces/<slug>/` acá y en `nativo/`—, el
@@ -23,7 +24,8 @@ export type Piece = {
      referencia en el vault y el de sus planillas en `.context/`. Se
      asigna UNA vez, al publicar —`slug()` sobre el nombre de ese día, es
      lo que escribe Add to Exhibition— y no se vuelve a tocar: un título
-     puede cambiar y una URL publicada no, porque la que alguien compartió tiene que seguir
+     puede cambiar (el 2026-09-10 cambiaron los cuatro) y una URL
+     publicada no, porque la que alguien compartió tiene que seguir
      abriendo, y todo lo que lleva este string en el nombre seguiría
      llamándose como antes. Es la forma de `data/animations.ts` en
      react-native-motion: `title: 'Stack Toast', slug: 'spring-toast'`.
@@ -92,39 +94,74 @@ export const slug = (name: string) =>
    y lo leen el índice, las secciones del cuerpo y el scrollspy.
 
    La primera de la lista es la que abre la muestra, así que la elige
-   Vito. Hoy es Buttons separate, por pedido del 2026-09-10; antes ocupaba ese lugar Select summary, por el accidente
+   Vito. Hoy es Fan out (entonces Buttons separate), por pedido del
+   2026-09-10; antes ocupaba ese lugar Select summary, por el accidente
    de haberse mergeado primero (PR #26 contra PR #27) y no por una
    decisión. */
+/* LOS NOMBRES DIBUJAN UNA MONTAÑA EN EL ÍNDICE, y es a propósito (pedido
+   del 2026-09-10: "lo más largo en el medio y en las puntas los nombres
+   cortos"). Leídos de arriba abajo, sin tocar el orden —que es editorial,
+   ver arriba—, los de las puntas son cortos y los del medio son los más
+   largos:
+
+       Fan out               7     45.7 px
+       Selection summary    17    117.9 px
+       Swipe between tabs   18    124.7 px
+       Hold to buy          11     70.6 px
+
+   (RUNTIME · el ancho de la tinta de cada link del índice, Inter 13 px
+   peso 460, medido el 2026-09-10 con Chrome headless por CDP sobre la
+   página servida, con la fuente ya cargada.) Una pieza nueva entra con
+   un nombre del largo que le toca por su lugar: corto si abre o cierra
+   la lista, largo si queda en el medio.
+   Los cuatro pasaron por la regla de nombres (AGENTS.md › Cómo se
+   nombra): el término técnico de la parte y el verbo de especificación,
+   y cada uno es una frase que ya está en las notas de su pieza, así el
+   título y la página nombran la cosa igual.
+
+   · Fan out             era Buttons separate. "The four buttons fan out
+                         from where the first one sits" (Anatomy).
+   · Selection summary   era Select summary. Lo que el botón resume es la
+                         selección: el sustantivo donde había un verbo.
+   · Swipe between tabs  era Swipeable tabs. Es la línea que el usuario
+                         aprobó el 2026-09-07 ("Swipe between tabs, tap to
+                         select one"), con el término de la HIG.
+   · Hold to buy         era Hold to commit, el nombre del catálogo de
+                         60fps.design. El label del botón en reposo dice
+                         "Hold to Buy" desde que Vito lo pidió como botón
+                         de compra (2026-09-04); el título dice lo mismo.
+
+   El slug de cada una quedó el de su día: ver `slug` en `Piece`. */
 export const PIECES: Piece[] = [
   /* La primera pieza Web que se construyó, y por eso la primera sin
      `video`: corre viva en la lista y en el detalle, resuelta por slug
-     en demos.tsx. Sin `desc` por la misma regla que Swipeable tabs — el
-     título ya dice cuál es el gesto. */
+     en demos.tsx. Sin `desc` por la misma regla que Swipe between tabs —
+     el título ya dice cuál es el gesto. */
   {
-    name: 'Buttons separate',
+    name: 'Fan out',
     slug: 'buttons-separate',
     platform: 'Web',
   },
   {
-    name: 'Select summary',
+    name: 'Selection summary',
     slug: 'select-summary',
     platform: 'Web',
     /* Sin `desc`: el título ya dice qué es, que es la primera regla de
        AGENTS.md › Cómo se nombra, y es lo que hacen las otras tres
-       piezas. La tuvo un día y se borró por lo mismo que la de Swipeable
-       tabs. */
+       piezas. La tuvo un día y se borró por lo mismo que la de Swipe
+       between tabs. */
   },
   {
-    name: 'Swipeable tabs',
+    name: 'Swipe between tabs',
     slug: 'swipeable-tabs',
     platform: 'App',
     video: '/piezas/swipeable-tabs.webm',
     videoHevc: '/piezas/swipeable-tabs.mov',
   },
   /* Sin `desc`: el título ya dice qué es el gesto, que es la primera
-     regla de AGENTS.md › Cómo se nombra. Catorce caracteres. */
+     regla de AGENTS.md › Cómo se nombra. Once caracteres. */
   {
-    name: 'Hold to commit',
+    name: 'Hold to buy',
     slug: 'hold-to-commit',
     platform: 'App',
     video: '/piezas/hold-to-commit.webm',

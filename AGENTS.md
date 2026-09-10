@@ -187,14 +187,23 @@ nativo, el nombre del archivo de la grabación, la carpeta del demo web,
 y la URL pública. Es el campo `slug` de la entrada en `src/pieces.ts`:
 lo asigna **una vez** quien publica —Add to Exhibition, con `slug()`
 sobre el nombre de ese día; `pnpm nueva` usa la misma cuenta— y no se
-vuelve a tocar. El título puede cambiar después y la URL no: es la forma de `data/animations.ts` en
+vuelve a tocar. El título puede cambiar después (el 2026-09-10 cambiaron
+los cuatro) y la URL no: es la forma de `data/animations.ts` en
 react-native-motion (`title: 'Stack Toast', slug: 'spring-toast'`). Si
 dos divergen, la pieza no encuentra su propio material.
 
-**Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
-HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
-salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
-dice exactamente qué vas a ver. El título y la línea de descripción
+**Cómo se nombra.** El título dice **QUÉ es el gesto**; `Source` dice
+**de dónde salió**. El modelo es `Swipe to pay`: 12 caracteres, no
+nombra la app, y dice exactamente qué vas a ver. **El largo lo decide el
+lugar en el índice** (pedido del 2026-09-10): leídos de arriba abajo,
+sin tocar el orden —que es editorial—, los nombres dibujan una montaña,
+cortos en las puntas y los más largos en el medio. Hoy: Fan out (7) ·
+Selection summary (17) · Swipe between tabs (18) · Hold to buy (11). El
+tope de 15 caracteres (Toolbars › Titles de la HIG) vale para las
+puntas; en el medio se pasa a propósito. Una pieza nueva entra con un
+nombre del largo que le toca por su lugar, y que sea una frase que ya
+esté en sus notas, así el título y la página nombran la cosa igual. El
+título y la línea de descripción
 siguen la regla de nombres (Método de trabajo): el término técnico y el
 verbo de especificación, sin palabras graciosas — "tap to select one",
 no "tap to jump". **La línea de descripción es opcional, y la primera

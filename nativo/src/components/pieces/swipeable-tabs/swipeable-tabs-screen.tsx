@@ -13,7 +13,9 @@ import { Tema } from './theme'
 /* ═══════════════════════════════════════════════════════════════
    SWIPEABLE TABS — la pantalla, autocontenida. Arma los datos, elige la
    paleta y monta la pieza. La ruta (`src/app/[slug].tsx`) la encuentra
-   en el registro por su slug y la monta.
+   en el registro por su slug y la monta. En la exhibition la pieza se
+   llama `Swipe between tabs`: el slug quedó el del día en que se
+   publicó (ver `Piece` en `src/pieces.ts` del repo web).
 
    La referencia es X en iOS: el clip del vault (`Swipeable tabs.mov`) y
    las grabaciones de la cuenta del usuario, medidas cuadro a cuadro. El

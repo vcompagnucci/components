@@ -2927,3 +2927,57 @@ referencia: `title: 'Stack Toast', slug: 'spring-toast'`. La página, el
 scrollspy, `rutas.mjs`, `pieza-video.mjs` y el chequeo de duplicados al
 publicar leen el campo; `slug()` queda para quien asigna. Las cuatro
 URLs de producción siguen abriendo.
+
+### Los nombres, en montaña
+
+Cada título pasó por la regla de nombres (`AGENTS.md › Cómo se nombra`:
+el término técnico de la parte, el verbo de especificación), con dos
+condiciones más: que sea una frase que **ya esté en las notas de su
+pieza** —así el título y la página nombran la cosa igual, que es la
+regla de un solo nombre por cosa— y que el largo lo decida el lugar en
+el índice. El orden no se tocó: es editorial y Vito lo fijó ese mismo
+día (Buttons separate abre la muestra; la captura del pedido mostraba
+el orden anterior).
+
+| | antes | ahora | caracteres | tinta en el índice |
+| --- | --- | ---: | ---: | ---: |
+| Web | Buttons separate | Fan out | 7 | 45.7 px |
+| | Select summary | Selection summary | 17 | 117.9 px |
+| App | Swipeable tabs | Swipe between tabs | 18 | 124.7 px |
+| | Hold to commit | Hold to buy | 11 | 70.6 px |
+
+RUNTIME: el ancho del texto de cada link del índice (Inter 13 px, peso
+460), medido con Chrome headless por CDP sobre la página servida en
+`localhost:3100`, después de `document.fonts.ready`. La tinta sube de
+45.7 a 124.7 y baja a 70.6: una montaña con la cima en el tercero.
+
+- **Fan out** (era Buttons separate, 16). "The four buttons fan out from
+  where the first one sits", dice su Anatomy; es el verbo de
+  especificación del gesto y el más corto que lo dice entero. Se
+  descartaron "Hover to open" (13, no es corto) y "Split buttons" (13,
+  *split button* ya es otro control: el que trae un menú al lado).
+- **Selection summary** (era Select summary, 14). Lo que el botón resume
+  es la selección: el sustantivo donde había un verbo usado de
+  sustantivo, y tres caracteres más para el medio de la lista.
+- **Swipe between tabs** (era Swipeable tabs, 14). Es la línea que Vito
+  aprobó el 2026-09-07 ("Swipe between tabs, tap to select one") con el
+  término de la HIG; dice la acción en vez del adjetivo. La oración de
+  Use cases que empieza "Swipeable tabs fit one screen…" se queda: ahí
+  describe la clase de control, no nombra la pieza.
+- **Hold to buy** (era Hold to commit, 14). "Commit" es palabra de
+  especificación —la de las transacciones— y era el nombre del catálogo
+  de 60fps.design; pero el botón dice "Hold to Buy" desde que Vito lo
+  pidió como botón de compra (2026-09-04), y el título dice lo que el
+  botón dice. Once caracteres para cerrar la lista.
+
+**El tope de 15 caracteres** (Toolbars › Titles de la HIG) nació en el
+vault, donde el título comparte fila con la flecha y el inspector; el
+detalle de la exhibition lo pone solo en su `h1`. Vale para las puntas;
+en el medio se pasa a propósito, y queda dicho en `AGENTS.md`. Una pieza
+nueva entra con el largo que le toque por su lugar.
+
+**Lo que no cambió.** Los slugs y las URLs (sección anterior); los
+títulos de las secciones de las notas; la prosa de las notas, porque los
+cuatro nombres salieron de ella. El taller nativo sigue listando el slug
+en frase ("Hold to commit"): no lee `pieces.ts` del repo web, y es una
+herramienta.

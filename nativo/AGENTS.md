@@ -134,7 +134,7 @@ nombre del archivo de la grabación, y la URL de la pieza publicada. Por
 eso `pnpm nueva` usa la misma cuenta que `slug()` en `src/pieces.ts` del
 repo web. Si divergieran, la pieza publicada no apuntaría a su taller.
 Y se asigna una vez: el título de la exhibition puede cambiar después
-y la carpeta no, porque el slug es
+—el 2026-09-10 cambiaron los cuatro— y la carpeta no, porque el slug es
 un campo de `PIECES` y no una cuenta sobre el nombre.
 
 **La ruta es una sola y la pieza vive en `src/components/pieces/<slug>/`.**

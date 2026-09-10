@@ -20,7 +20,9 @@ import { CARGA, MEDIR, RECEPTOR, SONDA } from './sonda'
    HOLD TO COMMIT — la pantalla, autocontenida: el botón, y detrás lo
    que diga `fondo`. La ruta (`src/app/[slug].tsx`) la encuentra en el
    registro por su slug y la monta; acá se leen las perillas y se
-   compone todo.
+   compone todo. En la exhibition la pieza se llama `Hold to buy`: el
+   slug quedó el del día en que se publicó (ver `Piece` en
+   `src/pieces.ts` del repo web).
 
    La referencia es `VAULT_DIR/nativo/Hold to commit.mp4`: el botón de
    **Opal** (Screen Time Control, Apple Design Award 2025), publicado por
