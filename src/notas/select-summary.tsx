@@ -143,11 +143,27 @@ import { Seccion } from '../notas'
    cuatro; el contorno de las fotos; el panel sin sombra— y lo que quedó
    es lo que hay que decirle.
 
-   Y LA PIEZA APOYA LO QUE DICE `emil-animations`, así que el texto lo
-   dice en una frase: "an animation that answers no question is not
-   here". Es su regla, en llano: «Animate when it adds information […]
-   If the animation answers no question, cut it». Lo que la pieza NO
-   anima está respaldado por ese mismo skill:
+   LO QUE EL TEXTO DICE SOBRE NO ANIMAR sale del curso de animations.dev
+   (`animate`) y de `emil-animations`, y son sus dos pruebas, dichas en
+   llano y como propias:
+
+   · EL PROPÓSITO. «Every animation needs one of: explanation, feedback,
+     spatial consistency, state indication, preventing a jarring change,
+     or delight. "It looks cool" on a frequently-seen element is not a
+     purpose», y «you can answer "why does this animate?" in one
+     sentence». De ahí sale "it is the only thing that answers a
+     question": el racimo contesta quién está adentro del resumen, y las
+     otras tres candidatas no contestaban nada.
+   · LA FRECUENCIA. Su tabla es explícita: 100+ veces por día, «no
+     animation, ever»; decenas de veces por día, «remove or drastically
+     reduce». Un filtro se toca todo el día, y de ahí sale "a control you
+     use all day should sit still".
+
+   Y la frase que gobierna las dos: «If everything animates, nothing
+   stands out. Motion is a spice, not the meal». Está el curso entero
+   atrás de que la pieza tenga UNA animación y no cuatro.
+
+   Lo que la pieza NO anima está respaldado por ese mismo skill:
      · el acuse del apretar, que no escala: «Not every button needs it;
        skip it on high-frequency controls».
      · el primer pintado, que no anima: «Don't animate initial page load
@@ -181,11 +197,12 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          Select someone and the cluster of photos rearranges. That is the only animation here, and
-          deciding what not to move took longer than building what does.
+          Select someone and the cluster of photos rearranges. It is the only thing here that
+          animates, because it is the only thing that answers a question.
         </p>
         <p>
-          The label changes in one frame. The button never resizes. Pressing it moves nothing at all.
+          The label changes in one frame, the button never resizes, and pressing it moves nothing.
+          Leaving those still took longer than building the one that moves.
         </p>
       </Seccion>
 
