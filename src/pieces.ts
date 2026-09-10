@@ -68,6 +68,16 @@ export const slug = (name: string) =>
    saben vivir con cero. */
 export const PIECES: Piece[] = [
   {
+    name: 'Select summary',
+    platform: 'Web',
+    /* La línea dice lo que el título NO dice. "Select summary" ya nombra
+       el control, así que gasta sus palabras en lo único que hay que
+       ver: qué pone el botón adentro según cuántos elegiste. Y no
+       repite la plataforma —la card del detalle ya escribe "Web"
+       arriba—, que es por lo que se borró la de Swipeable tabs. */
+    desc: 'The button shows who you selected: a name for one person, a count for more.',
+  },
+  {
     name: 'Swipeable tabs',
     platform: 'App',
     video: '/piezas/swipeable-tabs.webm',
