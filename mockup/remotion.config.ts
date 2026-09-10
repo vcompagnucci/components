@@ -1,14 +1,16 @@
-/* Los cuadros van al encoder en PNG, no en JPEG: "pixel-close a lo que
-   se sube" empieza acá — el JPEG intermedio de Remotion (calidad 80
-   por default) ablanda los bordes del bisel y el texto de la UI antes
-   de que el h264 los toque. El crf 17 y el yuv420p son los mismos del
-   pipeline de ffmpeg: X acepta 2160² y recomprime lo demás. */
+/* The frames go to the encoder as PNG, not as JPEG: "pixel-close to
+   what gets uploaded" starts here. Remotion's intermediate JPEG (quality
+   80 by default) softens the edges of the bezel and the text of the UI
+   before h264 ever touches them. The crf 17 and the yuv420p are the same
+   ones as in the ffmpeg pipeline: X accepts 2160² and recompresses
+   everything else. */
 import { Config } from '@remotion/cli/config'
 
 Config.setEntryPoint('src/index.ts')
 Config.setVideoImageFormat('png')
 Config.setCodec('h264')
-/* El crf va en cada script y no acá: ProRes (el máster con alfa de la
-   exhibition) no acepta crf y con esta línea global el render se caía. */
+/* The crf goes in each script and not here: ProRes (the exhibition's
+   master with alpha) does not accept crf, and with this line set
+   globally the render crashed. */
 Config.setPixelFormat('yuv420p')
 Config.setOverwriteOutput(true)

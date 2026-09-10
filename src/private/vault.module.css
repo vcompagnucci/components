@@ -1,0 +1,1390 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE VAULT GRID
+
+   IT IS OPENAI'S /news GRID, measured whole with /web-clone. The
+   numbers and their receipts are below, in .grid and in .media; the
+   served CSS is kept in .context/recon/vault/grillas/.
+
+   ─── WHAT WAS HERE BEFORE, AND WHY IT LEFT ───
+   The card was benji's from family-values: 550 wide, padding 40 60, the
+   clip centered inside with `contain` and the box at a fixed height.
+
+   It fell for one measurable reason: HIS CARD IS FOR NARROW, TALL
+   CONTENT. His 53 family-values clips are vertical (762×1502) and his
+   60 of air per side are generous precisely because of that. His box
+   uses 41% of the width and 84% of the height.
+
+   With a screen recording inside, the relation flips: 70% of the width
+   and 31% of the height, and a 1440×900 capture ended up drawn at
+   285×178, 22% of the card's area, with 316px of empty box.
+
+   And the reference could not solve it because it does not have the
+   problem: across the three pages of his that were measured, ONE
+   landscape clip shows up, and he draws it at 100% of the width of its
+   container, with no box and no air.
+
+   ─── WHAT THE THREE REFERENCES SAY ───
+   openai/news, linear/blog and linear/customers agree on two things,
+   and both of them contradicted what we had:
+
+     the medium declares a RATIO, never a height in pixels
+       openai 1/1 · linear 16/9 on both of its pages
+     the medium goes FULL BLEED
+       padding 0 and inset 0/0 in all three
+
+   Both of them also CROP, and that is what got copied: the decision
+   taken is that the component's view fills the whole card.
+
+   ─── WHAT DOES NOT GET COPIED ───
+   The border. benji's card carries box-shadow:0 0 0 1px #f2f2f2 over
+   #fcfcfc. Our system already decided the opposite (josh's rule: the
+   card is defined by contrast against the canvas, with no ring and no
+   shadow) and it is settled in tokens.css.
+   ═══════════════════════════════════════════════════════════════ */
+/* openai's rail: a maximum of 1440 and 32 of air, both declared in
+   private.module.css so the bar and the grid land on the same x. With
+   border-box, 1440 − 32 − 32 leaves the content at 1376, which is the
+   number he has measured in four different windows. */
+.vault {
+  /* ─── THE SHAPE OF THE BOX: ONE ONLY, BENJI'S ───
+     EVERY CARD MEASURES THE SAME. It is the hard constraint, and it is
+     the one that rules over everything else in this block: the ratio
+     CANNOT follow the clip, because clips come in two shapes.
+
+     There used to be one per source (8/5 for web and 9/19.5 for the
+     phone) and each clip filled its card without cropping, but that
+     gave two cards: 443×277 and 443×959 at 1440. The phone one took up
+     almost a whole screen and in "All" the rows ended up uneven. That
+     is why it was dropped.
+
+     The number is benji's, measured in family-values and already
+     written down in tokens.css:
+
+       box        550 × 532.42
+       phone      227.5 × 448.42   (natural 762×1502)
+       padding    40px 60px
+
+     532.42 = 40 + 448.42 + 4.42 + 40, where the 4.42 is the line gap
+     left by his display:inline-block. Our clean equivalent is 528,
+     which is also a multiple of 4. Hence 550/528, that is 25/24.
+
+     And it is NOT openai's. Their 1/1 is for square images they produce
+     themselves; benji's is sized so a phone fits standing up with air
+     around it, which is exactly the case that could not be solved here.
+     From openai we take the grid (columns, gutter, row, rail, maximum)
+     and from benji the card.
+
+     IT IS DECLARED IN `.frame` (private.module.css), not here: it moved
+     up the day the playground drew its own grid with the same shape,
+     because a custom property is inherited and not looked up. From
+     `.playground`, a sibling of `.vault`, this declaration did not
+     resolve. And it is NOT in tokens.css on purpose: over there the
+     four names leaked into the production bundle (measured, grep on
+     dist/); `.frame` is never published. The measurement and the why
+     stay here, which is where they are worth something. */
+
+  /* THE GAP FROM THE CLIP TO ITS LABEL. figma 16 · linear 24; figma
+     wins, because its card has no description either and the text block
+     is just as short. Also in `.frame`, for the same reason:
+     --vault-media-title. */
+
+  /* THE TWO LIVE HERE AND NOT IN .grid, and it is the same reason: two
+     things that are NOT relatives read them (the grid's card and the
+     dialog's card, which hangs off the vault) and a custom property is
+     inherited, not looked up.
+
+     Declared in .grid, it did not resolve inside the dialog: the
+     aspect-ratio fell back to `auto` and the label's margin to 0. That
+     last one is what left the "Native" stuck to the clip at 1.5px
+     instead of 17.5, measured.
+
+     Neither one said a word. A custom property that does not exist is
+     not an error: the whole declaration is discarded and the rule ends
+     up as if it had never been written. */
+
+  max-width: var(--private-width);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--private-inline);
+}
+
+/* ─── THE FILTER ───
+   It lives INSIDE the bar, at the other end of its row. The why is in
+   vault.tsx: there were two rows that read the same, and the way out
+   chosen was for there to stop being two.
+
+   Bare text, no pills and no boxes: it is what both references do
+   (linear "All · Changelog · Product launches…", figma "All · Product ·
+   Company…") and also what linear measures on /now, with radius 0, no
+   background and no padding. The active one gets painted and the rest
+   stays gray, the --type-nav-c → --active-c pair that already governs
+   the page index. */
+.filters {
+  /* 16 between the three filters: it is what separates two short words
+     without their reading as one, the same as between Vault and
+     Playground. */
+  --vault-filter-gap: 16px;
+
+  /* ─── THE + IS NOT A FOURTH FILTER ───
+     The row is THREE STATES and ONE ACTION. The four gaps were an
+     identical 16 (measured) and with that "All Native Web +" reads as
+     one list of four things of the same kind.
+
+     32 is double the gap inside the group, which is the simplest
+     relation that reads as "this is something else" without opening a
+     new number: it is already the page rail, and it is a multiple of 4.
+     The same arithmetic the grid does, whose 160 of air is 2× the 80 of
+     the frame. */
+  --vault-plus-gap: 32px;
+
+  display: flex;
+  gap: var(--vault-filter-gap);
+}
+.filter {
+  /* The padding, the same as the tabs and from the same token: it is
+     the same kind of control (a clickable word with no box) in the same
+     row. The why is in private.module.css, in --private-padding-*. */
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  border: 0;
+  background: transparent;
+  /* The first letter capitalized. It goes in CSS and not in the text
+     because the values ("all", "native", "web") are DATA: "native" and
+     "web" are the names of the vault's folders and they get compared
+     against them. Capitalizing them at the source would force lowering
+     the case at every comparison, which is the kind of detail you
+     forget once and it breaks the filter without saying anything. */
+  text-transform: capitalize;
+  /* THE SAME SET AS THE TABS, not one of its own. It sat at 14 against
+     their 13, looking for a step of presence, and one pixel of
+     difference is not a hierarchy: it reads as an inconsistency.
+
+     Since the two of them sit at the ends of ONE row, the POSITION
+     already makes the distinction, so that pixel had no work to do. The
+     row is one single thing, the chrome of the private area, and one
+     thing carries one set of typography.
+
+     The active one goes up to --active-c, the same as the active tab:
+     the same token, which is the one the system named to say "this
+     one". */
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+/* TRIED AND CONFIRMED (2026-09-03): contrast only, no second signal. It
+   was put on the real page with `prototype` against four alternatives
+   (weight 600 on the active one (HIG sidebar), a 1px underline
+   (Vercel/Stripe), a pill (Apple.com/Dribbble) and the inverted logic)
+   and Vito picked this one. What it costs is measured here, for
+   whoever comes back: in light the inactive one (black at 34.4%) is at
+   2.39:1 against the background, under the 4.5:1 for text; in dark the
+   two states are at 2.62:1 from each other, under the 3:1 WCAG asks for
+   to tell states apart with no other signal. It is the same bet Linear
+   makes (nav and filters, contrast only) and it is accepted knowingly. */
+.filter[data-active] {
+  color: var(--active-c);
+}
+.filter:hover {
+  color: var(--active-c);
+}
+/* There used to be a count here ("16 of 16") aligned to the right and
+   it left: on a wall of references the total is not something you look
+   up, and it took the most visible corner of the page to say it. */
+
+/* The header's hierarchy is DECIDED: one row, the tabs on the left and
+   the filter on the right. Four were tried with /prototype (linear's
+   band, this pair at the ends, pills, and a big title that would have
+   opened up the type scale) and this one won. The scaffolding left with
+   the decision; the reasoning is in vault.tsx.
+
+*/
+
+/* ─── THE GRID IS OPENAI'S ───
+   Measured with /web-clone in eight windows. The receipts are in
+   .context/recon/vault/grillas/.
+
+   SOURCE · openai-news.css.txt + the node's class
+     grid gap-x-6 gap-y-20 @sm:grid-cols-2 @md:grid-cols-3
+     .gap-x-6{column-gap:calc(var(--spacing) * 6)}   → 24
+     .gap-y-20{row-gap:calc(var(--spacing) * 20)}    → 80
+     grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+     .max-w-container{max-width:1440px}  padding: 0 32px
+
+   RUNTIME · their columns and their gutter never change
+     2560 · 1920 · 1728 · 1440  →  container 1376, 3 col   PINNED
+     1280 → 1216 · 1024 → 960 · 768 → 704   3 col, air 32
+      744 → 696 ... 570 → 522               2 col, air 24
+      560 → 512 ... 430 → 382               1 col, air 24
+     gutter 24 and row 80 at ALL EIGHT widths
+
+   WHAT CHANGED AGAINST WHAT WAS HERE
+     gutter     32 → 24
+     row        64 → 80
+     the rail   80 with no maximum → 32 with a maximum of 1440
+                (it is in private.module.css)
+
+   The row of 80 is more than triple the gutter of 24, and that is not
+   an oversight on his part: it separates the rows much more than it
+   separates the columns, so the grid reads as rows and not as a mesh.
+   Ours was at 32/64, which is half that relation. */
+.grid {
+  --vault-columns: 3;
+  /* The gutter (24) and the row (80) also moved to `.frame`: the
+     playground's grid reads them, and it does not hang off here.
+     Measured on openai.com/news in eight windows, see above. */
+
+  /* THE AIR DOWN TO THE GRID.
+
+     160, and not the 64 of --section-gap that was here. With the filter
+     moved into the bar, the second row disappeared and its air went
+     with it: the grid climbed up to y=160 and started stuck to the top
+     edge.
+
+     The number is 2× the frame's top air (80, which is already the
+     system's) so the band above and the gap that follows stay in a
+     simple relation. It leaves the grid at y=256 at 1440; linear, in
+     the same window, starts its own at 290. */
+  margin-top: 160px;
+  display: grid;
+  grid-template-columns: repeat(var(--vault-columns), minmax(0, 1fr));
+  column-gap: var(--vault-gutter);
+  row-gap: var(--vault-row);
+  align-items: start;
+}
+
+/* Their column breakpoints, in viewport. They do it with container
+   queries (2 columns while the container is more than 512) and here
+   they are written against the window, which is what the rest of the
+   system uses. The 560 comes out of their own arithmetic, 512 + 24 +
+   24, and the breakpoint goes AT 560 and not at 559: measured, at 570
+   they give 2 columns and at exactly 560 they already give 1. */
+@media (max-width: 767px) {
+  .grid {
+    --vault-columns: 2;
+  }
+}
+@media (max-width: 560px) {
+  .grid {
+    --vault-columns: 1;
+  }
+}
+
+.card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ─── THE BOX ───
+   benji's card. The background is --surface, the same as the product's
+   card: when the clip does not fill it, what you see is the system's
+   surface and not a hole. */
+/* ALL THE SAME HEIGHT. It is a decision taken AGAINST benji, and let it
+   be said: he lets the content rule and that is why his 45 cards have
+   five different heights. He can afford it because he has a single
+   column; in three, variable height leaves the rows uneven (the worst
+   one measured 209px) and in a grid that reads as an error and not as
+   variety.
+
+   The price is paid by the landscape clip, which ends up with air above
+   and below. That is accepted in exchange for the grid being a grid.
+
+   The number is in --vault-box-height, above. */
+.media {
+  /* THE RATIO RULES, NOT A HEIGHT IN PIXELS. It is what the three
+     measured references do (openai declares 1/1, linear 16/9 on two
+     different pages) and none of them pins a height. With the ratio
+     over a column of fixed width the height comes out on its own and
+     every card in a row measures the same, which is the only thing
+     --vault-box-height was protecting.
+
+     openai.com/news, RUNTIME in eight windows: aspect-ratio 1/1 in all
+     of them, no exception. */
+  aspect-ratio: var(--vault-aspect-ratio);
+
+  /* NO AIR AND NO RADIUS, like them: padding 0 and inset 0/0 measured
+     on their card, and border-radius 0. The clip reaches the edge.
+
+     This is what replaces --card-app-padding (40 60), which was benji's
+     but from another card: 550 wide with a 228 phone inside. His 60 per
+     side were generous because his content is narrow and tall; here
+     they left a 1440×900 recording drawn at 285×178, 22% of the card's
+     area. */
+  padding: 0;
+  /* Positioning container: the phone clip hangs off here with `inset`
+     to get a box of DEFINED height. See below. */
+  position: relative;
+  /* THE RADIUS IS THE SYSTEM'S and not theirs. Openai leaves it at 0
+     and linear at 5; our --card-radius is 8 and it already governs the
+     product's card. Copying the 0 would put a card with a sharp corner
+     next to a rounded one in the same app.
+     It is the same rule by which benji's border did not get copied: the
+     geometry gets quoted, the system's decisions that are already taken
+     get respected. `overflow: hidden` is what makes a clip that reaches
+     the edge (the web recording does, across its width) get cut against
+     that radius instead of poking out at the corners. */
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--dur-surface) var(--ease-surface);
+}
+/* THE CLIP FILLS ITS SLOT AND `contain` DOES THE REST.
+
+   With the box at a fixed height, the element takes the whole slot and
+   object-fit draws the image inside it respecting its ratio. The strip
+   left over stays transparent and since the background is --surface,
+   you do not see it: the image looks like it floats centered in the
+   box.
+
+   Which means the ELEMENT's box can be bigger than the image you see.
+   That is intentional and it is what avoids the other problem: with no
+   explicit size, a clip smaller than the box was drawn at its natural
+   size and shrank the card. A 1×1 image gave a box 81px tall. Measured,
+   not assumed. None of benji's 45 cards lets the file decide its size:
+   his <img> declares width:227.5px. */
+/* ─── CORRECTED: `cover` WAS CROPPING EXACTLY WHAT YOU NEED TO SEE ───
+   This said `cover`, quoting openai on /news and linear on /customers.
+   Both references are good and the quote is true, but the content is
+   not the same: they crop PHOTOS, where the edge is landscape and the
+   center is the subject. A vault clip is a SCREEN RECORDING, and in a
+   screen recording the edge is the interface.
+
+   What it cost, measured on "Copy text animation from Apple Passwords"
+   (1666×800 before cropping it) in the 443×425 card:
+
+     cover's scale      425 / 800 = 0.53125
+     visible width      443 / 0.53125 = 834 of 1666  →  50%
+     what survived      the wifi icon and the "23"
+     what was lost      Name · Password · Copied · Type · QR Code
+
+   That is: in a clip called "copy text animation" you could see neither
+   the text nor the copy button. The thumbnail showed the mute part.
+
+   `contain` gives the guarantee that was needed: WHAT IS IN THE FILE IS
+   SEEN, always, without the card deciding on its own what to throw
+   away. What goes into the file becomes a framing decision, taken once
+   over the clip, where you can look at the result.
+
+   And that is the part that matters: `contain` is not "see it all from
+   far away", it is MOVING THE CROP from the CSS to the file. In this
+   clip the framing ended up being the Password row (450×432, the card's
+   25/24 ratio) and then `contain` leaves no strip at all: the clip
+   fills the WHOLE card and on top of that it is three times closer.
+   RUNTIME at 1440: box 442.7×425, clip painted 442.7×425, strip 0.
+
+   With `cover` that framing would have been impossible to see: the card
+   would have cropped the crop again.
+
+   It goes in `.media > *` and not in a rule per source because it is
+   the same answer for all three: the phone already came in `contain`
+   down here, the web recording needs it, and a loose unclassified clip
+   is exactly when you most need to see it whole to know what it is. */
+/* ─── CORRECTED: ONE FRAMING FOR EVERY SOURCE ───
+   This said width/height 100% (the clip fills the box) and only
+   `native` carried the slot with air. Now the slot belongs to all of
+   them, and not out of taste: Vito asked for "the white rectangle
+   inside every card to be the same size", and with two rules that was
+   impossible. `Shelf to card` (web) drew its tray at 442.6×424.9 next
+   to the `native` ones at 295.1×295.1.
+
+   The rule alone is not enough: with `contain`, the size of the tray is
+   decided by the FILE's ratio. That is why the two clips with a tray
+   that were not square got padded with their own background up to 1:1
+   (`Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 →
+   2868×2868) and that way every tray lands at 295.11×295.11 at 1440.
+
+   What it costs, and let it be said: `Copy text` (web, a dark crop at
+   25/24 made to fill the card) goes to 295.1×283.3 with surface around
+   it; and the upload dialog shows Native and Web as identical, because
+   there is no longer anything visual telling them apart. The values are
+   below, with their receipt. */
+/* ─── THE BOX MEASURES WHAT GETS PAINTED, and that is why it can carry
+   a radius ───
+   The box used to be fixed (66.6667% × 84.8485%) and `contain` centered
+   the image inside it: for a 1:1 file the box measured 295×360 and the
+   painted tray 295×295, with 32px of empty box above and below. A
+   `border-radius` there rounds the BOX, that is, nothing visible.
+
+   Now width/height go to `auto` and the two numbers become MAXIMUMS. A
+   replaced element with auto size uses its intrinsic size (that is what
+   failed in the attempt written down further below, which had no
+   maximums) and with max-width/max-height it scales it proportionally
+   until it fits. The box ends up EXACTLY the size of the image, `inset:
+   0` + `margin: auto` centers it, and the center is the same as before:
+   16.6667 + 33.3333 = 50 and 7.5758 + 42.4242 = 50. Measured at
+   runtime: not one tray moved a tenth of a pixel.
+
+   THE RADIUS IS THE SYSTEM'S, 8, and it is a /better-ui decision, not a
+   taste: "outer = inner + padding" holds for layers that touch; past
+   24px of air the two are independent surfaces and each takes its own
+   token. Here the air is between 64.9 and 73.8, so the tray is a
+   separate surface, and the only one there is is --card-radius. It is
+   exactly what the recording in the product's card already does
+   (app.module.css, .demo): a raw recording has sharp corners and inside
+   an already rounded surface it reads as unfinished. */
+.media > * {
+  display: block;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: auto;
+  height: auto;
+  max-width: 66.6667%;
+  max-height: 84.8485%; /* 448 / 528, benji */
+  object-fit: contain;
+  border-radius: var(--card-radius);
+}
+/* THE PHONE'S 228 MAXIMUM IS GONE. It existed so a vertical clip would
+   not eat the screen when the box measured 574 tall. Now the box has a
+   ratio and the `inset` down here already gives the phone its width, so
+   a 228 maximum on top would only shrink it twice.
+
+   Let it be written down that the rule said 'nativo' against the
+   'native' the TSX emits, that is, it never matched.
+   (it was .card[data-source='native'] .media > * { max-width: 228px }) */
+
+/* ─── THE PHONE, THE WAY BENJI DOES IT ───
+   Inside the card and with air around it, not filling it. It is the
+   only rule that looks at the source, and it no longer exists because
+   of the crop (that got solved by `contain` above, for everyone) but
+   because of the AIR: a card with the phone stuck to all four edges is
+   his card without his 40/60.
+
+   THE AIR IS IN PERCENT AND NOT IN PIXELS, on purpose. A padding in
+   percent ALWAYS resolves against the width, on all four sides, so
+   40/550 and 60/550 reproduce his exact proportion at any column width
+   without a single media query, which is also what his card does, since
+   it has none.
+
+     40 / 550 = 7.2727%     60 / 550 = 10.909%
+
+   It is applied with `inset` on the clip and not with `padding` on the
+   box, for a reason that is explained below and that cost two
+   attempts. */
+/* THE AIR GOES IN `inset` AND NOT IN `padding`, and it cost two
+   attempts.
+
+   With the box measured by aspect-ratio, a child in flow CANNOT resolve
+   any percentage against that height. Measured, both ways:
+
+     height: 100%       WebKit resolves it against the BORDER box, so
+                        the clip came out 346×425 in a 346×361 slot: it
+                        ate the air and got cut against the edge by the
+                        overflow:hidden
+     max-height: 100%   it simply does not bind: the clip came out
+                        346×750 inside a 425 card. 138% of the box
+
+   The way out is taking it out of flow. For an absolute, the containing
+   block is the padding box of the positioned ancestor, and THAT one
+   does have a known height, so a percentage resolves.
+
+   And the size goes explicit, not auto: there was a third attempt with
+   `inset` on all four sides and width/height auto, and it failed too
+   (the clip went back to being drawn at 886×1920, 904% of the box)
+   because a REPLACED element with width:auto uses its intrinsic size
+   and not the one the insets dictate. That holds for <img> and <video>
+   and not for a <div>, which is where the wrong intuition comes from.
+
+   The percentages are benji's, and each one against the axis it belongs
+   to (the vertical ones resolve against the height and the horizontal
+   ones against the width, which is the rule of `inset`):
+
+     40 / 528 = 7.5758%     60 / 550 = 10.909%
+
+   At 1440 that gives 32 and 48 over a 443×425 card, and it leaves the
+   slot at 346×361 with the phone at 167×361. Same as him, what binds it
+   is the HEIGHT: his phone measures 448.42 in a 452.42 slot. */
+/* ─── THE WIDTH IS NO LONGER BENJI'S: 78.1818% → 66.6667% ───
+   Vito asked for it looking at the grid, and the reason shows up when
+   you measure. The 78.1818% only BINDS when the file is wider than it
+   is tall, and most of what is in `nativo/` is not phone-shaped: it is
+   a square crop. RUNTIME at 1440, card of 442.66 × 424.94:
+
+     Photo picker · Mini player · Swipe to pay    1:1    346.06 wide
+     Attach morph · Hold to commit               ~0.96   346.06
+     Swipeable tabs                               1.05   346.06
+
+   Six out of eight came out at the SAME width, the maximum, with 48.3
+   of air at the side against 39.4 above: the thinnest frame right where
+   the card has the most room. At 2/3 the maximum drops to 295.11 and
+   the side air goes up to 73.78.
+
+   The 2/3 has no reference behind it and that is worth saying. It is
+   the round number that meets the two conditions that can be verified:
+   it shrinks the square ones, and it does NOT touch the ones that
+   really are phone-shaped, because those are bound by the HEIGHT and
+   stay under the maximum:
+
+     Swipe actions  1320×1772 → 268.57 wide   (< 295.11, untouched)
+     Floating bar   1320×2868 → 165.85        (untouched)
+
+   That is why the height is NOT touched: 84.8485% is still benji's
+   448/528, and it is what holds those two up. The only thing taken away
+   from him is the width. Verified at 1440, 900, 700, 500 and 390:
+   proportional in all five.
+
+   THE RULE USED TO LIVE HERE, ONLY FOR `native`, and it moved to
+   `.media > *` (further up) the day the tray had to measure the same in
+   every card. There was a back and forth before that and it is written
+   down: it got unified, it got reverted because nobody had asked for it
+   and it shrank the web clips, and it came back when it was asked for.
+   The two vertical ones are still benji's slot over his card (top
+   40/528 = 7.5758%, height 448/528 = 84.8485%); the horizontal ones
+   were his (60/550 and 430/550) and 2/3 replaces them. */
+
+/* ─── CORRECTED: THE WEB ONE DOES CARRY A RULE, THE SAME AS EVERYONE ───
+   What is below said the opposite and it was a decision. It is kept
+   whole because its second half (the framing of a recording is done in
+   the file, not here) still holds; what fell is the first line. The why
+   is in the `.media > *` block.
+
+   What it said:
+
+   THE WEB ONE CARRIES NO RULE, and that is the decision and not an
+   oversight. With `contain` above it already fits whole and as large as
+   the card allows. An `inset` like the phone's would only shrink it.
+
+   THE FRAMING OF A SCREEN RECORDING IS DONE IN THE FILE, not here, and
+   the reason is that here there is nothing to do it with. A recording
+   arrives with capture garbage (a black band, uneven margins, macOS's
+   selection rectangle at the end) and it also arrives FRAMED IN THE
+   WINDOW when what is being kept is a gesture that takes up one corner.
+   Both things get fixed by cropping, and each clip's crop is a
+   different number.
+
+   Putting it in CSS would ask for one rectangle per clip: four
+   hand-written values that today do not exist anywhere. The vault is
+   explicitly the opposite ("the folder IS the manifest", clips.ts) so a
+   framing value per clip would be exactly the hand-written manifest
+   that file avoids, and it would go out of sync the day you crop the
+   clip outside.
+
+   By cropping the file the value lives in the only place that cannot
+   lie: the size of the video. The player pays for it, since it shows
+   fewer real pixels and therefore softer ones. That is the price of
+   zooming on a 1× capture, and there is no way around it from the CSS. */
+
+/* The surface hover, the same as the product's card: it darkens the
+   fill and nothing else. No shadow, no scale, no movement. */
+.card:hover .media {
+  background: var(--surface-hover);
+}
+
+/* ─── THE TEXT ───
+   Our system is ONE size and the hierarchy is made by the weight. The
+   references use different sizes (linear 20 for the title and 13 for
+   the meta), and that does not get copied here: the title goes at 500,
+   the same weight as a piece's title, and the caption at 460. */
+/* The air is claimed by the title, not pushed by the box. It is the
+   system's rule, the same one by which .streamItem > * + * carries the
+   gap on its bottom side. It used to live in a .body that wrapped the
+   title and the caption; with no caption, that wrapper was a div doing
+   nothing. */
+.title {
+  margin-top: var(--vault-media-title);
+  font-size: var(--type-h3-fs);
+  font-weight: var(--type-h3-fw);
+  letter-spacing: var(--type-h3-ls);
+  line-height: var(--type-h3-lh);
+  color: var(--type-h3-c);
+}
+/* THERE IS NO CAPTION. No date and no category under the card: only the
+   name. Both references do carry it (linear puts author and date, figma
+   puts category and date) and here it goes anyway.
+
+   The reason is that in a vault neither one records anything useful.
+   The category is already said by the filter above, which is where you
+   use it; and the date tells nothing apart, because every clip arrives
+   the day you drag it in. On their pages these are articles with an
+   author and a publication date, and there they do say something.
+
+   The date did NOT leave the model: it still orders the grid from the
+   most recent to the least. What left is showing it.
+
+   AND THERE IS NO ARROW ON HOVER EITHER. It was linear's (opacity 0→1
+   and translateX −2→0 in 100ms, measured), but their card needs it
+   because NOTHING ELSE changes when the pointer goes over it: without
+   the arrow there would be no signal that it is clickable. Ours darkens
+   the whole surface, which is josh's rule and was already in the
+   system, so the arrow was a second signal saying the same thing. */
+
+/* ─── THE STEP ───
+   Below 768 the grid is one column: three columns of 100px are not a
+   grid. And the box loses the 60 side padding, which at that width eats
+   more than half. */
+/* A @media (max-width: 768px) used to live here that forced ONE column,
+   put the gutter at 0 and gave the box back its 40 24 padding with
+   automatic height. It was consistent with the old card (fixed height
+   of 574, benji's air) and it contradicts openai's on all three points.
+
+   What he does below 768 is already declared above, next to the
+   columns, and it is measured: 2 columns down to 560 and 1 below, with
+   the same gutter of 24 and the same row of 80 as above. Nothing else
+   changes. */
+
+/* ═══════════ THE DETAIL OF A CLIP ═══════════
+   Same shape as the detail of a piece in the product: back arrow,
+   title, and the content below. No new view gets invented. It is the
+   same list/detail pair the page already has settled, and that is why
+   it reuses the same arrow component.
+
+   TWO THINGS THAT USED TO BE WRONG:
+
+   1 · IT OPENED STUCK TO THE LEFT. The clip started at the margin and
+       left half a screen empty on the right. Now the stage centers on
+       both axes: the clip is the only thing there is to look at, so it
+       goes in the middle.
+
+   2 · IT GOT CUT OFF. There was a 72vh maximum, but ONLY on <video>, so
+       a vertical photo was drawn at its natural size and ran off the
+       bottom of the window. And even with the maximum, 72vh is an
+       invented number that does not know how much the bar, the arrow
+       and the title above take up.
+
+       The solution is not another number: it is that the height COMES
+       DOWN through the structure. The frame measures the window, the
+       detail takes what is left, the stage takes what is left of that,
+       and the clip fits inside. If tomorrow the header grows, the clip
+       shrinks on its own. */
+.detail {
+  /* ─── NO TOP MARGIN: THE AIR IS 80, THE FRAME'S AND NOTHING ELSE ───
+     There was a `margin-top: var(--section-content-gap)` here, that is
+     40, and its reason was to separate from the tab bar. But IN THE
+     DETAIL THE BAR IS NOT RENDERED (see `noTabs` in private.tsx, which
+     takes it out whole) so those 40 separated from nothing. The arrow
+     landed at 120 and the rest of the app at 80. Pointed out in use.
+
+     THE RULE IS BENJI'S AND IT WAS MEASURED AGAIN FOR THIS. His
+     .styles_container__YJPlC carries `padding: 80px 16px 40px` and it
+     is THE SAME on all his pages: verified live at 1728×900 on his home
+     and on /liveline, /drawesome and /honkish. The first thing there is
+     lands at top 80 in all four: on the home his <h1>, in a detail his
+     "Index" link. That is, there is no one air for a list and another
+     for a detail. There is one.
+
+     On our side that was already met by the exhibition (80), the detail
+     of a piece (.page puts 64 and the .content:first-child the missing
+     16) and the vault grid (80). The clip's detail was the only one
+     outside. */
+  /* The geometry of the details panel, here because TWO subtrees read
+     it: the stage reserves the slot with padding and the panel gives
+     itself its width. Declaring it further down would repeat the
+     --vault-aspect-ratio mistake: a custom property is inherited, not
+     looked up. */
+  --details-panel: 280px;
+  --details-gap: 32px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     THE STAGE'S VERTICAL AIR: 44 above, 52 below.
+
+     THE TWO NUMBERS DO TWO DIFFERENT JOBS and that is why they are not
+     one:
+
+     THEIR SUM (96) FIXES THE SIZE OF THE CLIP. The stage hands out what
+     is left over, so everything reserved here is taken from the video.
+     96 is what leaves the clip at 536 at 1728×900, which is the size
+     chosen by looking (see the .stage block). It used to live entirely
+     at the bottom.
+
+     THEIR DIFFERENCE (8) CENTERS IT ON THE PAGE. The video sat high:
+     measured, its center landed at 406 against the window's 450. The
+     cause is that above and below the video there is not the same
+     thing:
+
+       above   80 of frame + 58 of header (34 + 24)     = 138
+       below   80 of frame + 50 of the transport bar    = 130
+
+     Eight too many above. Giving them back to the bottom padding, the
+     video ends up centered, and the arithmetic holds on its own: if the
+     air above is `p` and the one below is `p + 8`, then 138 + p = 130 +
+     (p + 8).
+
+     THE 8 DOES NOT DEPEND ON THE WINDOW'S HEIGHT, and that is the
+     point: it comes out of the structure, not out of a measurement.
+     Verified at 700, 900 and 1000 of height: 0 deviation in all three.
+
+     BUT ON THEIR OWN THEY ARE NOT ENOUGH, and it is worth saying why.
+     This arithmetic assumes the clip is bound by the HEIGHT, that is,
+     that it eats everything the stage leaves it. Above a certain height
+     it stops being bound by the height and starts being bound by the
+     WIDTH: the stage reserves --details-panel + --details-gap on EACH
+     side, so of the rail's 1376 it has 752 usable. Measured: the
+     threshold is at ~1116 of window, and from there up the clip stays
+     at 752 and the leftover air reappears.
+
+     That is also why `align-items: center` goes in (below, in .stage).
+     In the normal regime it does nothing (there is nothing left over to
+     hand out, so the clip still starts where the details panel starts,
+     which is the alignment that block decided) and above the threshold
+     it hands out what is left over instead of leaving it hanging at the
+     bottom. Measured at 1200: without it the deviation was 86, with the
+     asymmetry alone 42, with both things 0.
+
+     AND IT IS THE VIDEO THAT GETS CENTERED, not the whole thing with
+     its bar: the mass the eye centers is the frame. The bar is chrome
+     hanging below. It is the same thing QuickTime does. Centering the
+     whole thing would leave the frame 19px high, measured.
+     ═══════════════════════════════════════════════════════════════ */
+  --stage-top: 44px;
+  --stage-bottom: 52px;
+  /* The same rail as the grid, so the title of the open clip starts at
+     the same x as the card it came from. */
+  max-width: var(--private-width);
+  width: 100%;
+  margin-inline: auto;
+  /* It takes all the height the frame leaves it. */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-inline: var(--private-inline);
+
+  /* ─── THE ENTRANCE ───
+     Opening a clip does not switch the view on all at once: it rises
+     8px and fades, with the curve of surfaces that appear. It is the
+     same opacity+transform pair as the whole system (pure compositor)
+     and @starting-style does the entrance with no JS. On the way back
+     to the grid the unmount is immediate: the exit of a navigation does
+     not get staged, the user already decided to leave. */
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 240ms var(--ease-dialog),
+    transform 240ms var(--ease-dialog);
+}
+@starting-style {
+  .detail {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail {
+    transition: opacity 200ms var(--ease-text);
+  }
+  @starting-style {
+    .detail {
+      transform: none;
+    }
+  }
+}
+/* ═══════════════════════════════════════════════════════════════
+   THE DETAIL'S HEADER: ONE ROW: arrow · title · inspector.
+
+   It is the order Apple's HIG describes in Toolbars › Item groupings,
+   and not a reading of ours: on the leading edge go the elements that
+   return you to the previous document and the ones that show or hide a
+   panel, "followed by the view title"; on the trailing edge, the
+   buttons that open nearby inspectors. The details panel is an
+   inspector, so the toggle goes on the right.
+
+   ─── WHAT WAS HERE, AND WHY IT LEFT ───
+   The arrow lived alone in a row and the toggle dropped down to the
+   title's row. That was neither of Apple's two patterns: both of them
+   put the arrow and the toggle TOGETHER, and in the large-title one the
+   only thing that drops is the title. On top of that the toggle, stuck
+   to the title, read as if it acted on the name, and it does nothing
+   with the name: it opens the details panel.
+
+   Measured, the change: the header goes from 114px to 58px, and those
+   56px are taken by the clip in any window under ~1000px of height
+   (above that the clip is limited by the width and does not change).
+
+   ─── WHAT IT COSTS, AND IT IS ACCEPTED ───
+   THE TITLE NO LONGER STARTS ON THE RAIL. Before it landed at the same
+   x as the card it came from (176px) and now it starts after the arrow,
+   42px further right (34 of arrow + 8 of gap). That alignment was
+   written down as a decision in .detail, and it gets broken knowingly:
+   in a one-row bar the title goes after the back control, and that is
+   exactly what the HIG describes. Said here so nobody "fixes" it
+   without knowing it was chosen.
+
+   ─── THE ONE THAT WAS DROPPED ───
+   There was a third variant with the title centered in the row, which
+   the HIG also allows. It fell on measurement: an <input> is not sized
+   by its content, so centered it needs the width pinned or computed by
+   JS, and being editable it cannot ellipsize either. It was the only
+   one that asked for machinery of its own.
+
+   The gap of 8 is the same one that separates the player's controls.
+   ═══════════════════════════════════════════════════════════════ */
+.detailHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+/* .back's margin-bottom is for when the arrow sits alone above a title.
+   Here it goes IN the row, so it gets turned off: otherwise it pushes
+   the row's height and the arrow ends up off-center against the
+   title. */
+.backInRow {
+  margin-bottom: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE TRAILING EDGE: the ··· and the inspector toggle.
+
+   It is a GROUP and not two loose controls, and that is why the
+   `margin-left: auto` is here and no longer on the toggle: when the
+   toggle was the only one at the end it pushed itself, but with a
+   neighbor that auto would push only it and leave the ··· stuck to the
+   title.
+
+   ─── THE GAP IS 8, THE SAME AS THE ROW'S ───
+   There was a version with 16 and it was misread. The argument came
+   from Item groupings (group by function, put space where it belongs)
+   and it worked to decide that these are two groups, but not to pick
+   the number: 16 in this system is the gap between chrome WORDS
+   (--private-tab-gap, the bar's tabs), and these are two CONTROLS.
+
+   For controls the system has one number and it is 8: the one in this
+   same header, the player's --player-gap (measured from benji) and the
+   index's --index-item-gap. Using the one for words introduced a
+   distinction the system does not make.
+
+   So what separates the two glyphs is not the air: it is that one opens
+   a menu and the other turns on a panel. The drawings already say
+   that.
+   ═══════════════════════════════════════════════════════════════ */
+.detailActions {
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE AIR UNDER THE CLIP: 56px, and the clip does NOT fill its box.
+
+   The stage hands out what is left over: with `align-items: flex-start`
+   the remaining air collects at the bottom, and the clip is sized from
+   the available height. Without this reserve it eats everything and
+   ends up pushing against the edge of what there is.
+
+   ─── WHERE THE NUMBER COMES FROM, SAID AS IT IS ───
+   It is not a derived value: it is the 56px the old two-row header
+   measured. Moving to one row the clip took them automatically (from
+   417×396 to 476×452 at 1728×760, measured) and that larger version was
+   looked at against this one on the real page, with the header frozen
+   so the clip's size was the only variable. This one won.
+
+   That is: the number arrived by inheritance and stayed by comparison.
+   It is the same kind of receipt as --surface-hover ("chosen by eye
+   among three with a scrubber over the real page"), and it gets written
+   down just as explicitly so nobody confuses it with a derivation.
+
+   It meets the layout rule (a multiple of 4) but it is NOT one of the
+   system's named vertical steps (40 · 48 · 64): it falls between the
+   last two. If one day it should sit on that scale, 48 grows the clip
+   8px and 64 shrinks it another 8.
+
+   ─── WHY HERE AND NOT IN THE PLAYER ───
+   `.stage` is `container-type: size`, so the 100cqh the video measures
+   itself with is its CONTENT box: the padding takes height away from
+   the clip without any other rule finding out. And the player is left
+   knowing nothing about this. Its job is to hand out the height it
+   receives, not to decide how much it receives.
+
+   IT IS NOT SYMMETRIC with the air above, and that is on purpose: above
+   there is the header, which is content. This below is the breathing
+   room. */
+/* THE AIR IS SPLIT, not all at the bottom. It was 56 below, then 96
+   below, and now 44/52. The sum is the same (it is what fixes the size
+   of the clip) and what changed is that it no longer hangs off one end,
+   so the video ends up centered on the page. The two numbers and their
+   derivation live in .detail, above, because the details panel reads
+   them too. */
+.stage {
+  padding-block: var(--stage-top) var(--stage-bottom);
+}
+/* ═══════════════════════════════════════════════════════════════
+   THE TITLE: it is now the trigger of the document's menu.
+
+   It was an <input> you edited by touching it. The why of the change is
+   in TitleMenu, in vault.tsx.
+
+   ─── IT SHRINKS, AND THAT IS NEW ───
+   The input was `width:100%` inside a `flex:1`, so it took the whole
+   row and the chevron would have been left floating in the void 1200
+   pixels from the text. Now the box hugs its content (`flex:0 1 auto`
+   with `min-width:0` so it can still shrink and clip) and the chevron
+   goes right behind the word, which is whose it is. */
+.detailTitleFrame {
+  margin: 0;
+  font: inherit;
+  /* The h1 should not stretch either: if it takes the row, the button
+     inside can hug all it wants and the box still measures too much.
+     And it should NOT SHRINK either: see .detailTitleText below. */
+  flex: none;
+}
+.detailTitle {
+  display: flex;
+  align-items: center;
+  /* THE PADDING GROWS AND THE TEXT DOES NOT MOVE. The padding grows the
+     click area and a negative margin of the same size gives it back to
+     the layout, so the title still starts exactly where it started.
+     They are the private area's two numbers (see --private-padding-* in
+     private.module.css) and they exist for the same reason: the chrome
+     is WORDS, and a word with no padding of its own does not reach the
+     24 minimum. */
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  font-family: inherit;
+  color: var(--type-h1-c);
+  cursor: pointer;
+  /* NO TRANSFORM: there is no press here. See below. */
+  transition: color var(--dur-text) var(--ease-text);
+}
+.detailTitle:hover,
+.detailTitle[aria-expanded="true"] {
+  color: var(--active-c);
+}
+/* ─── THE PRESS DOES NOT GO HERE, AND THERE ARE TWO REASONS ───
+   It had .glyph's scale(0.97) and it looked wrong: the title sank when
+   you pressed it. Pointed out in use.
+
+   1 · THE SIZE. A press "is felt in the finger, not seen", and that
+       depends on how much the ink moves. Measured at 1728×900:
+         the title   83px wide → each edge travels 1.25px
+         a glyph     16px      → each edge travels 0.24px
+       Sub-pixel on the glyph, a pixel and a quarter on the text. The
+       same 0.97 is invisible on one and a tremor on the other.
+
+   2 · THERE IS ALREADY AN ACKNOWLEDGEMENT. The press exists to confirm
+       a click whose result is not visible on its own. Here the result
+       IS that a menu drops, right below and scaling from the title.
+       Adding a sink puts two movements on the same gesture, competing.
+
+   And it is what the rest of the chrome already did without its being
+   written: .tab and .filter are words and they have no :active, they
+   only change color. The system's press lives in buttons with a box
+   (.action) and in glyphs (.glyph). The title is a word. */
+/* WITH THE RING ON, and it is the opposite of what was here. The
+   private area's rule turns the ring off where you edit text with no
+   box, because the caret replaces it. Here nothing is edited any more:
+   it is a button, there is no caret, and the exception's premise
+   stopped holding. It is the same reasoning that gave the ring back to
+   the reading view in Notes. */
+
+/* ─── THE NAME IS SEEN WHOLE, ALWAYS ───
+   There was a version that clipped it with an ellipsis when it did not
+   fit. It is withdrawn by request, and the argument is good: here the
+   title IS THE NAME OF THE FILE on your disk, and half a name is no use
+   for the only thing you do with it, which is recognize it. The "…" of
+   a link is another matter (there what gets clipped is a label nobody
+   wrote) and that is why it does get clipped there.
+
+   `nowrap` stays: without it a long name goes to two lines and the
+   header changes height, which is taken from the clip.
+
+   If a name does not fit, it PUSHES. It is ugly on purpose: the
+   15-character convention stops being a note in the README and becomes
+   visible. */
+.detailTitleText {
+  white-space: nowrap;
+}
+/* 8 OF INK, not of box. The chevron is 16 of drawing with no padding of
+   its own (the padding is put there by the whole button, which already
+   includes the text) so here the margin IS the gap you see, and it is
+   the same 8 the row separates everything else with. */
+.detailTitleChevron {
+  flex: none;
+  margin-left: 8px;
+}
+/* min-height:0 is THE piece that makes this work. By default a flex
+   item does not shrink below its content, so without this the stage
+   would grow with the clip and the overflow would come back exactly the
+   same. */
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  /* CENTERED, and it was `flex-start`. The reason for that one above is
+     still good (with the clip centered its top landed below the details
+     panel's and the two columns did not share a line) but since the air
+     is split 44/52 that reason almost never applies: in the normal
+     regime the clip eats the WHOLE slot, there is nothing left over to
+     hand out, and centering gives identically the same result as
+     starting at the top. The details panel comes down with it by
+     reading --stage-top.
+
+     Where it does change is above ~1116 of window, when the clip
+     becomes bound by the width and stops growing: there height is
+     genuinely left over, and with `flex-start` it collected at the
+     bottom leaving the video off-center. Measured at 1200: 86 of
+     deviation before, 42 with the asymmetry alone, 0 with both. */
+  align-items: center;
+  justify-content: center;
+  /* THE DETAILS PANEL'S SLOT, RESERVED ON BOTH SIDES. With the padding
+     only on the right the clip centered in the leftover space and
+     looked shifted to the left against the page, pointed out over a
+     capture. Symmetric, the clip lands at the exact center of the rail
+     and it can never touch the panel, because its side reserves the
+     same as the other.
+
+     WHAT IT COSTS, said: a landscape clip in a short window loses the
+     width of the left reserve. Today it does not bite: every clip in
+     the vault is bound by the height at these windows. */
+  padding-inline: calc(var(--details-panel) + var(--details-gap));
+  /* The details panel hangs off here with position:absolute. */
+  position: relative;
+  /* SIZE CONTAINER. The video measures itself with 100cqh to know how
+     much height it has left once the bar is subtracted; a `%` inside
+     `width` would resolve against the width. See .video in
+     player.module.css. */
+  container-type: size;
+}
+/* The photo: it fits whole and centered, with no fixed box. */
+.photo {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: var(--card-radius);
+}
+
+/* ─── STATES ───
+   The vault not connected. It is not an error in the app: a piece of
+   configuration is missing, and the message says exactly which one and
+   where to put it. */
+.notice {
+  margin-top: var(--section-content-gap);
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+.notice code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WHERE THE CLIP GOES: the dialog
+
+   Two things happened here before this one, and both left: a panel that
+   split the screen down the middle, and a menu hanging off the +.
+   Written down so they do not get proposed again.
+
+   ─── THE ANIMATION, decided with /animate ───
+   Every value comes out of one of its rules, not out of a taste:
+
+     "does it have to animate?"  yes: uploading a clip is occasional,
+                                 and that is exactly the line the table
+                                 marks as "standard animation". What
+                                 does NOT get animated is what you do a
+                                 hundred times a day
+     the purpose                 avoid an abrupt change: a dialog that
+                                 appears all at once with a scrim on top
+                                 makes you flinch
+     the curve                   ease-out for what ENTERS the screen,
+                                 and custom: the named curves "are
+                                 almost never strong enough". It is the
+                                 course's --ease-out-expo
+     the duration                200ms, inside its 200–500 range for
+                                 modals
+     the exit                    150ms: "exits are shorter and simpler
+                                 than entrances: the user already
+                                 decided, get out of the way"
+     from where                  scale(0.95), NEVER scale(0). "Nothing
+                                 appears out of nothing"
+     the origin                  center, and it is an explicit exception
+                                 of theirs: "modals are exempt, they
+                                 appear centered"
+
+   And one system rule above all of them: only `transform` and `opacity`
+   get animated, which are the two that run on the GPU.
+
+   ─── WHY <dialog> AND NOT A DIV ───
+   showModal() brings four things for free and done right that come out
+   wrong by hand: focus trapped inside, Escape, the rest of the page
+   inert for keyboard and screen reader, and the ::backdrop with no
+   extra node.
+
+   `overlay` and `display` go in the transition with allow-discrete:
+   they are discrete properties, and without that the dialog disappears
+   all at once on the first frame of the exit instead of animating.
+   ═══════════════════════════════════════════════════════════════ */
+.dialog {
+  /* --ease-out-expo. It is nobody's scaffolding: it is THE curve of the
+     course for an entrance, and it lives here because it is the
+     system's first. If a second one shows up, it moves to tokens.css. */
+  --dialog-curve: var(--ease-dialog);
+
+  margin: auto;
+  border: 0;
+  padding: 32px;
+  /* It used to be 203 × 124 and it was sized by its content, which was
+     a file name. Now it is sized by the LOOK AT IT, which is what you
+     really look at to decide. */
+  /* THE CARDS GO AT THE GRID'S REAL SIZE: 443 each, which is exactly
+     what a card measures at 1440. It stops being a thumbnail of what is
+     going to happen and becomes what is going to happen.
+
+     974 = 443 + 24 + 443 + 32 + 32, that is the two cards, the grid's
+     gutter and the dialog's air. No new number. */
+  width: min(974px, calc(100vw - 48px));
+  border-radius: var(--card-radius);
+  background: var(--canvas);
+  color: var(--ink);
+
+  /* The CLOSED state, which is also the exit one. The exit's duration is
+     declared here, at the destination of that transition. */
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 180ms var(--dialog-curve),
+    transform 180ms var(--dialog-curve),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+.dialog[open] {
+  opacity: 1;
+  transform: scale(1);
+  /* 240 and not 200: the box grew from 608 to 974, and the duration
+     scales with the size and the distance it travels ("a bigger element
+     weighs more"). It is still inside the 200–500 range for modals.
+     The exit is 180: shorter than the entrance, always. */
+  transition:
+    opacity 240ms var(--dialog-curve),
+    transform 240ms var(--dialog-curve),
+    overlay 240ms allow-discrete,
+    display 240ms allow-discrete;
+}
+/* Where the entrance starts from. Without @starting-style the browser
+   has no previous value to transition from (the element has just come
+   out of display:none) and the entrance does not animate. */
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* THE SCRIM. Its job is to push the page back, so it is black with
+   alpha (the same shape as --hairline, which is also pure black with
+   alpha) and not a tinted gray, which would raise the color of what it
+   covers.
+
+   In dark it goes up to 0.5: over a canvas that is already almost
+   black, 0.28 separates nothing. */
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.28);
+  opacity: 0;
+  transition:
+    opacity 180ms var(--dialog-curve),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+.dialog[open]::backdrop {
+  opacity: 1;
+  transition:
+    opacity 240ms var(--dialog-curve),
+    overlay 240ms allow-discrete,
+    display 240ms allow-discrete;
+}
+@starting-style {
+  .dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+}
+
+/* "Reduced motion means gentler, not zero": the movement goes (the
+   scale) and the fade stays, which is what stops the flinch. */
+@media (prefers-reduced-motion: reduce) {
+  .dialog,
+  .dialog[open] {
+    transform: none;
+  }
+}
+
+/* WHAT you are uploading. It goes in the secondary gray because it
+   ANNOTATES: it is not the decision, it is what you are taking it
+   against. */
+.dialogWhat {
+  margin: 0 0 16px;
+  max-width: 32ch;
+  overflow-wrap: anywhere;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+
+/* 24 between the two cards, the same gutter as the vault grid: they are
+   the same cards, so they get separated the same. */
+.dialogOptions {
+  display: flex;
+  gap: var(--vault-gutter, 24px);
+}
+
+/* The <button> reset and nothing else: everything you see comes out of
+   .card, which is the grid's class. The only thing of its own is that
+   it splits the width. */
+.dialogCard {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  transition: transform 150ms var(--dialog-curve);
+}
+/* The press. 0.97 and no less: the answer to pressing is FELT, not
+   seen. With 0.9 the card collapses in front of you. */
+.dialogCard:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialogCard:active {
+    transform: none;
+  }
+}
+
+/* While it uploads. It goes where everything that ANNOTATES goes in this
+   system (the secondary gray) and fixed at the bottom, so it does not
+   push the grid while you look. */
+.uploading {
+  position: fixed;
+  left: var(--private-inline);
+  bottom: var(--page-padding-bottom);
+  z-index: 2;
+  margin: 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE + · a filled circle of 32×32
+
+   ─── THE SIZE ───
+   It was a text character of 20.6 × 32.0, and the minimum is 24 × 24:
+   the only control in its row that did not reach it. "Web", next to it,
+   measures 39.8. Now it is 32 × 32, the height every other one already
+   has.
+
+   It does not reach 44 × 44, which is the TOUCH minimum. Said here:
+   this is a desktop tool with a pointer, and 44 would force growing the
+   whole row.
+
+   ─── THE FILL: THE BUTTON IS MADE OF THE SAME MATERIAL AS THE CARD ───
+   --surface at rest and --surface-hover when you go over it. It is not
+   "a gray similar to the card's": they are THE SAME TWO TOKENS .media
+   declares, and the two transitions were already the same as before
+   (--dur-surface · --ease-surface). The button and the card change
+   state with the same color, in the same time and with the same curve.
+
+   THIS VALUE HAD ALREADY BEEN HERE AND HAD BEEN DROPPED. It is worth
+   telling why it comes back, because the reason is not that the number
+   changed its mind:
+
+     it was dropped   "over --canvas it is 5 units, 2%: practically
+                      invisible", judged against the BARE canvas
+     it comes back    judged against the REAL page, which has a grid of
+                      cards. There the same −5 stopped reading as "a
+                      gray you cannot see" and started reading as "this
+                      is made of the same thing as the cards". Chosen by
+                      looking at the two variants in the picker, over
+                      the real row
+
+   That is, what was wrong was the test bench, not the value.
+
+   IN BETWEEN THE REFERENCES WERE MEASURED and they are written down,
+   even though they did not win. Both agree on the SHAPE: PURE black or
+   white with low alpha, never an opaque gray:
+
+     RUNTIME · openai.com, round button of 36×36, border-radius 9999
+       rgba(0, 0, 0, 0.04) over white. Their "Log in" pill, the same
+     SOURCE · their CSS calls it --color-primary-4
+       that is "the ink at 4%", not a gray from a separate scale
+     RUNTIME · linear.app, circle of 24×24, border-radius 50%
+       rgba(255, 255, 255, 0.03) with a hairline at 0.08; their pills,
+       0.05
+
+   Out of that came a batch of alphas of our own (8%, then 4.7%) and
+   both had the same underlying defect: they were NUMBERS WITH NO NAME.
+   The rule in tokens.css is that every decided number has a name that
+   says what it separates, and "rgb(0 0 0 / 0.047)" says nothing. It was
+   tempting to use --hairline, which is worth almost exactly that
+   (5.1%), and it would have been worse: a hairline is a LINE, and a
+   token does not get borrowed because its value happens to work today.
+   The day the lines get lighter, the button goes with them.
+
+   With --surface there is no number to name: the role already existed.
+
+   ─── AND THAT IS WHY THERE IS NO DARK MODE BLOCK ───
+   A @media (prefers-color-scheme: dark) used to live here redefining
+   the two alphas the other way around. It was deleted whole, and not by
+   oversight: --surface and --surface-hover ALREADY change with the
+   theme (+5 and +9 over the dark canvas, the exact mirror of the
+   light). The button stopped having color logic of its own. It inherits
+   the system's, like the card. */
+.plus {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  /* The button ALREADY IS the visible box, so there is no invisible
+     padding to give back to the layout. The only thing the left margin
+     does is open the separation against the group of filters. See
+     --vault-plus-gap. */
+  margin: 0 0 0 calc(var(--vault-plus-gap) - var(--vault-filter-gap));
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--type-nav-c);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-surface) var(--ease-surface),
+    color var(--dur-text) var(--ease-text);
+}
+.plus:hover {
+  background: var(--surface-hover);
+  color: var(--active-c);
+}
+
+/* The real <input type=file>. display:none is not used: that takes it
+   out of the accessibility tree and, in some browsers, makes .click()
+   stop opening the picker. It is hidden from the eye while staying in
+   the DOM. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

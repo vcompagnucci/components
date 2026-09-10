@@ -28,7 +28,7 @@
   "overrides": [
     {
       "files": [
-        "src/privado/**"
+        "src/private/**"
       ],
       "rules": {
         "jsx-a11y/no-autofocus": "off",
@@ -41,7 +41,7 @@
     {
       "files": [
         "scripts/**",
-        "nativo/scripts/**",
+        "native/scripts/**",
         "mockup/scripts/**",
         "*.config.*"
       ],

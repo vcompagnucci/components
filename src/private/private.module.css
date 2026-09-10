@@ -1,0 +1,321 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE FRAME OF THE PRIVATE AREA
+
+   It uses THE SAME TOKENS as the product and not one loose number for
+   color, typography or motion. What it does not share are the CLASSES:
+   the page rail is 592px and the vault grid has to be wider, so reusing
+   .content would inherit exactly the part that does not work.
+
+   Shared tokens, its own composition.
+
+   THE FRAME ONLY OWNS THE VERTICAL. The air on the sides is applied by
+   each view, not by the frame, and that is NOT tidiness: the playground
+   is a full-bleed canvas and cannot have margins, while the vault does
+   need them. A padding on the frame would impose it on both.
+
+   ─── THE RAIL IS OPENAI'S: 1440 MAX, 32 OF AIR ───
+   It used to be 80 of air and no maximum, so at 2560 the grid measured
+   2400 and the cards stretched forever. Now it is pinned.
+
+   SOURCE · openai.com/news, the ancestor that sets the maximum
+     .max-w-container{max-width:1440px}   padding: 0 32px
+
+   With box-sizing:border-box that leaves the content at 1376, and
+   1440−64 gives exactly the same: the maximum and the air are the same
+   pair of numbers.
+
+   RUNTIME · their grid measured in eight windows
+     2560 · 1920 · 1728 · 1440   →  1376, PINNED. It never grows
+     1280 → 1216   1024 → 960   768 → 704      air 32, 3 columns
+      744 → 696 ... 570 → 522                  air 24, 2 columns
+      560 → 512 ... 430 → 382                  air 24, 1 column
+   The gutter (24) and the row (80) do NOT change at any width.
+
+   Their breakpoints are container queries on the container (2 columns
+   up to 512 of container) and here they are written against the
+   viewport, which is what the rest of the system uses: 768 and 560. The
+   560 comes out of their own arithmetic, 512 + 24 + 24, and it matches
+   what was measured (570 gives 2 columns, 560 gives 1).
+
+   THE MAXIMUM GOES IN EACH VIEW AND NOT IN THE FRAME, for the same
+   reason as the air: the playground is a full-bleed canvas and a
+   max-width on the frame would impose it. The bar carries it so it sits
+   on the same rail as the grid.
+   ═══════════════════════════════════════════════════════════════ */
+/* THE FRAME MEASURES THE WINDOW. It is what makes it possible for a
+   clip's detail to ALWAYS fit whole: it is the first link in a chain of
+   flex (frame → detail → stage → player → video) where each one passes
+   down the height it has left, and the video fits into what is left
+   over instead of overflowing.
+
+   Without this the clip was drawn at its natural size and a phone
+   recording got cut off at the bottom: you had to scroll to see the end
+   of a gesture, which is the opposite of studying it.
+
+   dvh and not vh: in a browser with bars that appear and disappear, vh
+   measures the LARGEST possible window, so with the bars showing the
+   content is covered right at the bottom. */
+.frame {
+  --private-inline: 32px;
+  --private-width: 1440px;
+
+
+  /* ─── THE PADDING, WITH NO BOX ───
+     The two header rows are WORDS and they stay that way: no pill, no
+     background, no border. What grows is the clickable area, which you
+     cannot see.
+
+     The padding grows the whitespace and a negative margin of the same
+     size gives it back to the layout, so the text does not move one
+     pixel and the gap you see between words is still the same 16.
+
+     MEASURED BEFORE: the five controls were 16px tall ("All" was 15×16)
+     against the 24×24 minimum. With this they end up 32 tall and none
+     of them below 24 wide.
+
+     6 ON THE SIDES AND NO MORE: the gap between words is 16, so 6+6
+     leaves 4px of no man's land between one padding box and the next.
+     With 8 they would touch, and a click right in the middle would land
+     in either one with no way to know which.
+
+     Above and below there is no neighbor, so the 8 comes free.
+
+     It lives here and not in each file because two rows read it (the
+     tabs and the filter) and they live in different modules. Two names
+     for the same number come apart on their own over time. */
+  --private-padding-y: 8px;
+  --private-padding-x: 6px;
+
+  /* ─── THE CONTENT GRID AND THE BOX OF A CARD ───
+     All four were measured for the vault and USED TO LIVE IN
+     vault.module.css. They moved up the day the playground drew its own
+     grid of views with the same shape, and by the rule that always
+     holds in this project: A CUSTOM PROPERTY IS INHERITED, NOT LOOKED
+     UP. Declared in `.vault` or in `.grid` they are not visible to
+     `.playground`, which is a SIBLING and not a descendant, and they do
+     not fail visibly: they resolve to the `var()` fallback. Two matched
+     their fallback by coincidence and the third did not: the label of
+     an option in the playground dialog ended up at 12px where the vault
+     puts it at 16. Measured.
+
+     It is the third time that trap has bitten here. That is why the fix
+     is not another fallback: it is that the value lives where both of
+     them inherit it.
+
+     AND THEY LIVE HERE AND NOT IN tokens.css, which was the other
+     possible place. Two reasons, and the second one decides:
+       · the product draws neither of these two grids, so in :root they
+         would be four declarations nobody reads
+       · tokens.css IS published. Putting "--vault-…" there puts the
+         vocabulary of the private area into the production bundle, and
+         this project has one hard rule about that: the private area
+         does NOT REACH the build. Verified with grep over dist/: with
+         the tokens over there they showed up four times.
+     `.frame` is the common ancestor of the two views and it only exists
+     in development. It is exactly the place.
+
+     The numbers and where they came from are still written down in
+     vault.module.css, which is where they were measured:
+       gutter and row    openai.com/news, eight windows
+       aspect ratio      benji's card in family-values, 550×528
+       media-title       figma, 16 (against linear's 24) */
+  --vault-gutter: 24px;
+  --vault-row: 80px;
+  --vault-aspect-ratio: 550 / 528;
+  --vault-media-title: 16px;
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--page-padding-top) var(--page-padding-bottom);
+}
+/* And with a clip open it gets PINNED. `min-height` bounds nothing (it
+   is a floor, not a ceiling) so with that alone the stage grew with the
+   clip and a `max-height: 100%` inside had nothing to resolve against:
+   the vertical photo ended up 2158px tall in a 1040 window.
+
+   The grid does NOT carry this, because it has to be able to grow and
+   scroll. */
+.frame[data-detail] {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+/* AND WITH A CANVAS OPEN IT ALSO GIVES UP THE AIR. The frame only owns
+   the vertical (that is said above) and here it hands it over whole:
+   the canvas is full bleed on all four sides and the only thing that
+   bounds it is the sidebar, which it puts there itself. Without this
+   there were 80px of canvas above and another 80 below a surface that
+   has to reach the edge of the window.
+   See `inCanvas` in private.tsx: it is the same condition on both
+   sides. */
+.frame[data-canvas] {
+  padding-block: 0;
+}
+/* 767 and not 768: at exactly 768 openai still gives 32 of air and 3
+   columns (measured), so the breakpoint goes one pixel lower. */
+@media (max-width: 767px) {
+  .frame {
+    --private-inline: 24px;
+  }
+}
+
+/* THE BAR: vault and playground.
+
+   It weighs the same as the side index and uses its same set of tokens:
+   13px/460 in the nav gray, and the active one goes up to --active-c.
+   It is exactly the role that token was named for ("this one", because
+   you are pointing at it or because it is where you are) and that is
+   why there is no new color decision here.
+
+   The distance between tabs is the ONLY thing in this file chosen by
+   eye, and it is declared with a name instead of sitting loose in the
+   rule. 16 is a multiple of 4 and it is what separates two short words
+   without their reading as one; with 8 (the one between links in the
+   index, which is vertical) they end up stuck together. It is
+   scaffolding: it gets revisited when the bar has something more than
+   two words. */
+.bar {
+  --private-tab-gap: 16px;
+  /* The same rail as the grid: the maximum and the air come from the
+     frame, so the tabs start at the same x as the first card.
+
+     `width: 100%` is NOT redundant and the first version did not have
+     it. In a column flex the item stretches on its own from the
+     implicit align-items:stretch, but an automatic margin on the cross
+     axis TURNS OFF that stretch: the item goes back to measuring its
+     content. The bar ended up as wide as its two words and centered:
+     measured, 558px to the right of where the first card starts. */
+  max-width: var(--private-width);
+  width: 100%;
+  margin-inline: auto;
+  display: flex;
+  gap: var(--private-tab-gap);
+  padding-inline: var(--private-inline);
+  /* baseline and not center: the tabs are 13/16 and the filter mounted
+     on the right is 14/20, so centering them by box would leave them
+     sitting on two different heights. It is the same rule that aligns
+     the product's index against its first piece. */
+  align-items: baseline;
+}
+
+/* THE ACTIONS SLOT: the other end of the row.
+   The control of whichever view is open mounts here, by portal: the
+   vault's filter. `margin-left:auto` pushes it to the end without
+   needing justify-content, which would affect the tabs too.
+
+   When the window cannot fit both things on one line, the bar wraps and
+   the filter drops below on its own. That is not programmed, it comes
+   out of the filter being INSIDE the bar and not positioned on top of
+   it. */
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+}
+
+/* text-decoration:none turns off the global underline on <a>. It does
+   not apply here: the underline rule is for a link INSIDE PROSE, which
+   needs to stand apart from the text around it. A navigation tab is not
+   inside anything. It is what .streamItem already does, for the same
+   reason. */
+.tab {
+  /* The padding. See --private-padding-* above, in .frame. */
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.tab[data-active] {
+  color: var(--active-c);
+}
+/* No gating behind (hover: hover), the opposite of the index. The stuck
+   touch artifact shows up where tapping does NOT unmount the element;
+   here the tab changes the view and gets repainted on its own. It is
+   the same reasoning that leaves the card and the back arrow ungated. */
+.tab:hover {
+  color: var(--active-c);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   A GLYPH IN THE BAR: 32×32 of padding around a 16 drawing.
+
+   The arithmetic is the one from the grid's + and from the details
+   toggle: the drawing is 16 and the click area 32, so neither ends up
+   below the 24 minimum even though the icon is small.
+
+   IT LIVES HERE BY THE RULE THAT ALWAYS HOLDS: TWO modules read it (the
+   inspector toggle, in details.module.css, and the menu trigger, in
+   actions.module.css) and two copies of the same box come apart on
+   their own over time. It is exactly why --private-padding-* and
+   --vault-* also live in this file.
+
+   What does NOT go in here is the position: the negative margin that
+   puts the drawing on the rail belongs to ONE of the two, and that one
+   applies it. */
+.glyph {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--type-nav-c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* The radius is not visible (there is no background) but it shapes
+     the focus ring, which follows the border-radius. It is the same
+     thing .back does. */
+  border-radius: 8px;
+  /* ─── THE PRESS, WHICH THESE GLYPHS DID NOT HAVE ───
+     A button that reacts to the pointer and does not react to the
+     finger feels dead. It is not a new value: it is the one from
+     .action in actions.module.css, the only thing in the system that
+     has a press today (0.97 and 100ms) with the note that "you feel it
+     in the finger, you do not see it". It applies here the same.
+
+     The card still has no press and that does not change: tokens.css
+     has the count of why (a single live :active across 23 pages of the
+     references, and it belongs to a button). This IS a button. */
+  transition:
+    color var(--dur-text) var(--ease-text),
+    transform 100ms var(--ease-dialog);
+}
+.glyph:hover {
+  color: var(--active-c);
+}
+.glyph:active {
+  transform: scale(0.97);
+}
+/* WITH ITS MENU OPEN THE TRIGGER STAYS LIT. Without this, moving the
+   pointer away to reach an item turns the glyph off and the menu hangs
+   from nothing. --active-c is the color that in this system means "this
+   one" (the hover color and the active piece in the index), so no new
+   color comes in.
+
+   Only for the ones that open a menu. The inspector toggle also carries
+   aria-expanded, but it already says its state by filling the drawing's
+   compartment; adding color would say the same thing twice. */
+.glyph[aria-haspopup='menu'][aria-expanded='true'] {
+  color: var(--active-c);
+}
+@media (prefers-reduced-motion: reduce) {
+  .glyph:active {
+    transform: none;
+  }
+}
+
+/* .empty used to live here, the playground's empty state. It left when
+   the playground stopped being a shell and got its own module: its
+   notice now lives in playground.module.css, next to its list and its
+   canvas. This file keeps what the two views share (the frame, the bar,
+   the tabs) and nothing else. */

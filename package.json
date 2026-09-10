@@ -13,10 +13,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "rutas": "node scripts/rutas.mjs",
-    "referencias": "node scripts/referencias.mjs",
-    "pieza:video": "node scripts/pieza-video.mjs",
-    "prebuild": "node scripts/rutas.mjs"
+    "routes": "node scripts/routes.mjs",
+    "references": "node scripts/references.mjs",
+    "piece:video": "node scripts/piece-video.mjs",
+    "prebuild": "node scripts/routes.mjs"
   },
   "dependencies": {
     "motion": "13.1.1",

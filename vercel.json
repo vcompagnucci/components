@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/:pieza(buttons-separate|select-summary|swipeable-tabs|hold-to-commit)",
+      "source": "/:piece(buttons-separate|select-summary|swipeable-tabs|hold-to-commit)",
       "destination": "/index.html"
     }
   ],
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "source": "/piezas/(.*)",
+      "source": "/pieces/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

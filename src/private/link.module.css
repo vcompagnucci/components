@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE LINK IN A NOTE: favicon + label, in line with the text.
+
+   EVERYTHING HERE IS `inline`, neither flex nor inline-block, and it is
+   a decision and not an omission. A chip in flex aligns badly against
+   the prose around it: the baseline of a flex container comes from its
+   first child, and if that child is an image the baseline becomes the
+   bottom edge of the image. In normal inline flow there is nothing to
+   solve. The text sits where the rest of the note sits, it wraps with
+   it and the underline falls exactly under the letters.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* The anchor is NOT underlined: the label is. If the underline lived on
+   the <a> it would also run under the favicon and its air, and it would
+   read as a long strikethrough with an icon inside. */
+.link {
+  text-decoration: none;
+}
+
+/* ─── THE FAVICON'S SLOT ───
+   14px, not 16: the size of a favicon next to 14px text is that of a
+   capital letter, not that of an interface glyph. The 16 of the chevron
+   and of the panel's glyph is another role (controls in the margin) and
+   here they would compete with the letter.
+
+   The slot exists ALWAYS. `vertical-align: -2px` lowers it until it is
+   optically centered against the x-height: the line is 20px and the
+   drawing 14, so geometric centering and optical centering are not the
+   same point, since the text does not fill its line symmetrically. The
+   2px come from looking at it, which is how an optical alignment gets
+   settled. */
+.icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+/* `contain` and not `cover`: a landscape favicon (there are some) would
+   show up cropped instead of whole, and what matters is recognizing the
+   site. */
+.icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* The system's underline, with its two tokens and its transition. It is
+   the global `a` rule from tokens.css, moved in here because on the
+   anchor we turn it off: the underline belongs to the label.
+
+   The offset lifts the line off the descenders (the 'y' of a title, the
+   'p' of .tsx) without touching the layout. */
+.label {
+  /* `break-word` and not the `anywhere` it inherits from the note. The
+     difference shows when the label is a long title: with `anywhere`
+     the browser breaks wherever it finds convenient and splits words in
+     half even when there was a space two characters away; with
+     `break-word` it only breaks a word that on its own does not fit in
+     the column. The `anywhere` is still alive in the text around it,
+     which is where a long path with no spaces can turn up. */
+  overflow-wrap: break-word;
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: text-decoration-color var(--dur-text) var(--ease-text);
+}
+.link:hover .label {
+  text-decoration-color: var(--link-underline-hover);
+}
+
+/* For screen readers only. Neither display:none nor visibility:hidden,
+   which would also take it out of the accessibility tree: the technique
+   is to clip the box to one pixel and leave it in the flow. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

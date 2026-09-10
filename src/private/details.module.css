@@ -1,0 +1,296 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE DETAILS: what is known about a clip, beside it.
+
+   IT COLLAPSES, BUT THE CLIP NEVER MOVES. The panel's slot is reserved
+   ALWAYS, open or closed (symmetric, so the clip stays centered on the
+   page), and the only thing that animates when you collapse it is the
+   panel itself: it fades and shifts 8px, with the usual spring. There
+   was a version where closing gave the space back and the clip
+   re-centered: it was explicitly dropped, "the video should not move,
+   only the details panel should appear or disappear".
+
+   FOUR VALUES AND NOTHING ELSE: where the animation came from (with a
+   link if you paste a URL), what class of device it runs on, your
+   notes, and when it came in. There were seven measured rows (format,
+   duration, rate, frames, size, weight) and they were taken out by
+   request: what you look up while studying a gesture is already shown
+   by the player.
+   ═══════════════════════════════════════════════════════════════ */
+/* IT COMES DOWN WITH THE CLIP. It was `top: 0` and that was enough,
+   because the stage had no air above and the clip started at its edge.
+   Since the air is split to center the video (see --stage-top in
+   vault.module.css) that stopped being true: an absolute measures `top`
+   against the PADDING box, not against the content one, so the panel
+   stayed stuck to the edge while the clip came down 44 and the two
+   columns stopped sharing a line. That last one is an old and explicit
+   decision of the stage, not an accident, so it holds up by reading the
+   same number. */
+.panel {
+  position: absolute;
+  top: var(--stage-top, 0);
+  right: 0;
+  width: var(--details-panel);
+}
+
+/* ─── THE PANEL'S BUTTON ───
+   It lives in the title's row, at the other end: far from the values
+   (stuck to them was a complaint) and in the classic place for an
+   inspector toggle. The box (32×32 over a 16 drawing, no background,
+   with its hover and its press) is put there by .glyph, which lives in
+   private.module.css because it now shares it with the bar's menu
+   trigger.
+
+   The only thing of its own is the margin, and that is what has to be
+   its own: where this glyph lands is not the box's business. */
+.button {
+  composes: glyph from './private.module.css';
+  /* IN THE MARGIN'S COLUMN OF GLYPHS. To the right of the rail there is
+     already a column of badges (Source's ↗ and Device's ›, centered at
+     rail + 16) and this glyph has to share that axis: aligned to the
+     rail's edge there were two columns of glyphs 16px from each other,
+     pointed out over a capture. A 32 box with a 16 drawing: −32 puts
+     the drawing's center exactly at rail + 16. The click area hangs in
+     the page's margin, like every other padding box.
+
+     `margin-left: auto` LEFT here: it pushed the toggle when it was the
+     only one at the end, and since it has a neighbor (the ···) what
+     gets pushed is the group. That auto now lives in .detailActions, in
+     vault.module.css. */
+  margin-right: -32px;
+}
+
+/* Label on the left and value on the right against a common edge.
+   --type-meta-* is the token that already existed for "the platform, in
+   the detail": it is benji's secondary text decision already ported
+   (his measured ls, -0.09008px, is exactly -0.00563rem at 16px). */
+.table {
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+}
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  /* Anchor for the Source link, which lives in the margin. */
+  position: relative;
+}
+.label {
+  flex: none;
+  color: var(--text-secondary);
+}
+.value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── EDITING IS TOUCHING AND TYPING ───
+   The fields do not look like fields: no border, no background, no box.
+   It is the decision the playground's .name already took. Focus is
+   still marked by the system ring. */
+.field,
+.note {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+  resize: none;
+  overflow: hidden;
+  /* NO RING. The ring is a box, and here you write over something that
+     has no box, requested over a capture. Focus is NOT left mute: it is
+     marked by the label lighting up (below) plus the caret.
+     That ended up being THE RULE of the whole private area, and not an
+     exception of the details panel: where the text you edit has no box
+     (here, the clip's title in the vault, the view's name in the
+     playground) the ring turns off and the caret says it. Where it does
+     have one, like the rename dialog's field, the system ring is still
+     intact. */
+  outline: none;
+}
+.field {
+  text-align: right;
+}
+/* A dash and not a word: "Add" in gray read as a second label, not as
+   an empty slot. */
+.field::placeholder,
+.note::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ─── THE NOTE, BEING READ ───
+   The same box as the textarea (it inherits .note) with what is needed
+   for a div of text to behave like one. They share a class on purpose:
+   they are the two faces of one field, and if the typography or the
+   width came apart, the note would jump when going from reading to
+   editing.
+
+   THIS VIEW ONLY EXISTS WHEN THE NOTE HAS A LINK. With no links it does
+   not mount and the field is the usual textarea. The why is in
+   details.tsx. */
+.reading {
+  /* The line breaks and the spaces are part of what you wrote. The
+     textarea respects them; without this, the note would rearrange
+     itself when you stopped editing it. */
+  white-space: pre-wrap;
+  /* A URL has no spaces to break at. Without this it overflows the
+     column instead of wrapping, which is the defect this feature came
+     to fix. It is still needed with the links already drawn: the text
+     around them can bring a long path with no protocol, which is not a
+     link and nobody is going to shorten. */
+  overflow-wrap: anywhere;
+  cursor: text;
+  /* A one-line note cannot measure zero: with no floor, the gap down to
+     Added would move when entering and leaving edit. */
+  min-height: var(--type-meta-lh);
+}
+/* THE RING COMES BACK HERE, and it is the only exception to the rule
+   that in the private area text with no box carries no ring. That rule
+   leans on the caret marking focus; while reading there is no caret, so
+   keyboard focus would be marked only by the label. The exception lasts
+   as long as the reading does: on entering edit .note rules and the
+   ring turns off, as in every other field. */
+.reading:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ─── THE SOURCE LINK ───
+   If what you wrote is a URL, the arrow that opens it appears. Editing
+   and navigating cannot live in the same click (touching the text
+   edits) so navigating gets its own padding box.
+
+   IT LIVES IN THE MARGIN, not in the row: inside it pushed the URL to
+   the left and the values stopped sharing the right edge, which is the
+   only thing that makes the column readable. Hanging in the air that
+   separates the clip from the panel, the column stays intact and the
+   arrow reads as an annotation of that row. */
+.openLink {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.openLink:hover {
+  color: var(--active-c);
+}
+
+/* ─── THE DEVICE TRIGGER ───
+   It looks exactly like a value (ink, aligned right, no box) and
+   touching it opens the picker. Empty, it shows the same dash as the
+   fields. */
+.trigger {
+  outline: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+  text-align: right;
+  cursor: pointer;
+  /* Anchor for the chevron, which lives in the margin like Source's ↗. */
+  position: relative;
+}
+/* The chevron that announces the list. Secondary at rest; it follows
+   the trigger's hover. */
+.indicator {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: color var(--dur-text) var(--ease-text);
+}
+.trigger:hover .indicator,
+.trigger:focus-visible .indicator {
+  color: var(--active-c);
+}
+/* DISCLOSURE: right at rest, 90° down with the list open, the macOS
+   pattern. A 90° turn is not the 180° that was banned on the panel's
+   glyph: here the intermediate frame IS the movement downward, not an
+   unreadable state. Same duration and curve as the menu's entrance, so
+   the turn and the opening read as one thing. */
+.indicator svg {
+  transition: transform 160ms var(--ease-dialog);
+}
+.trigger[aria-expanded="true"] .indicator svg {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .indicator svg {
+    transition: none;
+  }
+}
+.trigger[data-empty] {
+  color: var(--text-secondary);
+}
+
+/* The picker's options use the surface of the right-click menu (the
+   same floating box, the only one in the private area) and only add the
+   mark of which one is chosen. */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.selected {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Focus shows up in the LABEL: the row you are editing lights its label
+   to ink. It is focus indication with no box, and it works the same
+   arriving with Tab. */
+.row:focus-within .label,
+.block:focus-within .label {
+  color: var(--ink);
+}
+
+.block {
+  margin-top: 16px;
+}
+.row + .row {
+  margin-top: 8px;
+}
+/* Notes is a BLOCK, not a row: the label goes above and the note below,
+   and the two have to read as ONE pair. With 8px above and the 2px the
+   inline label left, the label ended up closer to the Device row than
+   to its own note (measured) and the note read as stuck to the title.
+   Now it ties downward: 16 above, 6 between label and note. */
+.row + .block {
+  margin-top: 16px;
+}
+.block .label {
+  display: block;
+  margin-bottom: 6px;
+}
+/* Added separates itself from what is editable: it belongs to the file,
+   not to you. */
+.footer {
+  margin-top: 24px;
+}

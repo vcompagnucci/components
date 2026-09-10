@@ -1,112 +1,117 @@
-/* EL RENDER PARA LA EXHIBITION: un solo video, transparente y sin sombra,
-   en los dos formatos que hacen falta para que el alfa llegue a todos
-   los navegadores.
+/* THE RENDER FOR THE EXHIBITION: one single video, transparent and with
+   no shadow, in the two formats it takes for the alpha to reach every
+   browser.
 
      pnpm render:exhibition                                 → swipeable-tabs
-     node scripts/exhibition.mjs HoldToCommit hold-to-commit-oscuro
+     node scripts/exhibition.mjs HoldToCommit hold-to-commit-dark
 
-   → out/<salida>.webm  (VP9 con alfa, Chrome y Firefox)
-   → out/<salida>.mov   (HEVC con alfa, Safari)
+   → out/<output>.webm  (VP9 with alpha, Chrome and Firefox)
+   → out/<output>.mov   (HEVC with alpha, Safari)
 
-   Con dos piezas hay que decir cuál: la composición trae la cámara de
-   su pieza y el segundo argumento nombra el clip y la salida. Sin
-   argumentos sigue siendo swipeable-tabs, que es como se llamó hasta
-   la segunda pieza.
+   With two pieces you have to say which one: the composition brings the
+   camera of its piece and the second argument names the clip and the
+   output. With no arguments it is still swipeable-tabs, which is what
+   it was called until the second piece.
 
-   Remotion rinde el WebM con alfa directo (vp9 + yuva420p) y un máster
-   ProRes 4444; el .mov para Safari sale del máster con el encoder de
-   VideoToolbox de macOS, que es el único que escribe HEVC con alfa. El
-   tamaño es 1280², el doble largo del hueco de 448 (la card) y el
-   triple del de 628… no: el hueco mide 440 en las dos cajas (medido),
-   así que 1280 es casi 3×, sobra nitidez. Sin sombra y con fondo
-   transparente: el fondo lo pone la card, en el tema que sea; el
-   teléfono al 92 % (la caja de la card es el video entero); la
-   cámara entra a los tabs y se queda (ver parametros.ts). */
+   Remotion renders the WebM with alpha directly (vp9 + yuva420p) and a
+   ProRes 4444 master; the .mov for Safari comes out of the master with
+   the VideoToolbox encoder of macOS, which is the only one that writes
+   HEVC with alpha. The size is 1280², twice as long as the 448 slot
+   (the card) and three times the 628 one… no: the slot measures 440 in
+   both boxes (measured), so 1280 is almost 3×, sharpness to spare. No
+   shadow and a transparent background: the card supplies the
+   background, in whatever theme; the phone at 92 % (the box of the card
+   is the whole video); the camera comes in to the tabs and stays (see
+   parameters.ts). */
 import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const AQUI = fileURLToPath(new URL('../', import.meta.url))
-const OUT = path.join(AQUI, 'out')
+const MOCKUP = fileURLToPath(new URL('../', import.meta.url))
+const OUT = path.join(MOCKUP, 'out')
 fs.mkdirSync(OUT, { recursive: true })
 
-const [composicion = 'SwipeableTabsExhibition', salida = 'exhibition'] = process.argv.slice(2)
-/* El clip: cada composición trae el suyo; una pieza con dos apariencias
-   nombra cuál por argumento (hold-to-commit-oscuro, -claro). */
-const clip = salida === 'exhibition' ? null : `${salida}.mp4`
+const [composition = 'SwipeableTabsExhibition', output = 'exhibition'] = process.argv.slice(2)
+/* The clip: each composition brings its own; a piece with two
+   appearances names which one by argument (hold-to-commit-dark, -light). */
+const clip = output === 'exhibition' ? null : `${output}.mp4`
 
-/* TODO LO DEMÁS —transparente, sin sombra, teléfono al 92 %, la cámara
-   que entra y se queda— vive en la composición `…Exhibition` de cada pieza
-   (`paraExhibition` en parametros.ts). Acá sólo se pisa el clip, que es de
-   primer nivel: Remotion mezcla las input props con las defaultProps
-   sólo en el primer nivel, así que un `camara` parcial borraría el foco
-   y las curvas de la pieza. */
+/* EVERYTHING ELSE, transparent, no shadow, phone at 92 %, the camera
+   that comes in and stays, lives in the `…Exhibition` composition of each
+   piece (`forExhibition` in parameters.ts). Here only the clip is
+   overridden, which is at the first level: Remotion merges the input
+   props with the defaultProps only at the first level, so a partial
+   `camera` would erase the focus and the curves of the piece. */
 const props = JSON.stringify(clip ? { clip } : {})
-const remotion = (...a) => execFileSync('npx', ['remotion', ...a], { cwd: AQUI, stdio: 'inherit' })
-/* 1120², no 1280: la caja de la card mide 560 y en una pantalla retina
-   son 1120 píxeles de dispositivo, así que 1120 es 1:1 —cada píxel del
-   video cae en uno de la pantalla, sin re-muestreo— y decodifica un 23 %
-   menos que 1280. Medido en Chrome antes del cambio: 0 cuadros caídos a
-   1× y a 0.5×; lo que se ve "con lag" a 0.5× son los 30 cuadros únicos
-   por segundo que da una grabación de 60, y eso no lo arregla ningún
-   códec (se probó interpolar a 120 con minterpolate: fantasmas en el
-   texto en los flicks; descartado). */
-const ESCALA = String(1120 / 2160)
+const remotion = (...a) => execFileSync('npx', ['remotion', ...a], { cwd: MOCKUP, stdio: 'inherit' })
+/* 1120², not 1280: the box of the card measures 560 and on a retina
+   screen that is 1120 device pixels, so 1120 is 1:1, each pixel of the
+   video falls on one of the screen with no resampling, and it decodes
+   23 % less than 1280. Measured in Chrome before the change: 0 dropped
+   frames at 1× and at 0.5×; what looks "laggy" at 0.5× are the 30 unique
+   frames per second that a 60 fps recording gives, and no codec fixes
+   that (interpolating to 120 with minterpolate was tried: ghosts on the
+   text during the flicks; discarded). */
+const SCALE = String(1120 / 2160)
 
-/* CRF 32, Y ANTES ERA 18. El 18 es calidad de máster y acá el archivo
-   se sirve por red en cada carga: `swipeable-tabs.webm` pesaba 8.89 MB
-   y la página de detalle bajaba 9.07 MB, medido en Chrome sin caché.
+/* CRF 32, AND IT USED TO BE 18. The 18 is master quality, and here the
+   file is served over the network on every load: `swipeable-tabs.webm`
+   weighed 8.89 MB and the detail page downloaded 9.07 MB, measured in
+   Chrome with no cache.
 
-   El 32 salió de un barrido con la referencia al lado, no de un gusto.
-   Recortando el peor bloque de 80×80 —el de mayor diferencia contra el
-   original, buscado y no elegido a dedo— y mirándolo al 200 %, el grano
-   del papel de la ilustración sigue entero en 32; recién a 40 se
-   empieza a perder. Queda margen a propósito: la pieza es la vitrina.
+   The 32 came out of a sweep with the reference next to it, not out of a
+   preference. Cropping the worst 80×80 block, the one with the biggest
+   difference against the original, searched for and not picked by hand,
+   and looking at it at 200 %, the grain of the paper in the illustration
+   is still whole at 32; only at 40 does it start to be lost. There is
+   margin left on purpose: the piece is the shop window.
 
-   Una trampa de ffmpeg que costó una vuelta: para volver a codificar un
-   WebM con alfa hay que pedir `-c:v libvpx-vp9` EN LA ENTRADA. El
-   decodificador VP9 por defecto descarta la capa alfa sin avisar y el
-   resultado sale opaco —esquina 255 en vez de 0— aunque la salida diga
+   A trap of ffmpeg that cost a round: to re-encode a WebM with alpha you
+   have to ask for `-c:v libvpx-vp9` ON THE INPUT. The default VP9
+   decoder throws away the alpha layer without warning and the result
+   comes out opaque, corner 255 instead of 0, even though the output says
    yuva420p. */
-console.log('1/3  WebM VP9 con alfa (1280²)')
-remotion('render', composicion, `out/${salida}.webm`, '--codec=vp9', '--pixel-format=yuva420p', '--crf=32', `--scale=${ESCALA}`, `--props=${props}`, '--log=error')
+console.log('1/3  WebM VP9 with alpha (1280²)')
+remotion('render', composition, `out/${output}.webm`, '--codec=vp9', '--pixel-format=yuva420p', '--crf=32', `--scale=${SCALE}`, `--props=${props}`, '--log=error')
 
-console.log('2/3  máster ProRes 4444 con alfa (1280²)')
-/* --pixel-format=yuva444p10le, y no es opcional: sin él Remotion escribe
-   el ProRes 4444 SIN alfa (medido: esquina 255) y el .mov de Safari
-   sale con fondo negro. */
-remotion('render', composicion, `out/${salida}-master.mov`, '--codec=prores', '--prores-profile=4444', '--pixel-format=yuva444p10le', `--scale=${ESCALA}`, `--props=${props}`, '--log=error')
+console.log('2/3  ProRes 4444 master with alpha (1280²)')
+/* --pixel-format=yuva444p10le, and it is not optional: without it
+   Remotion writes the ProRes 4444 WITH NO alpha (measured: corner 255)
+   and the .mov for Safari comes out with a black background. */
+remotion('render', composition, `out/${output}-master.mov`, '--codec=prores', '--prores-profile=4444', '--pixel-format=yuva444p10le', `--scale=${SCALE}`, `--props=${props}`, '--log=error')
 
-console.log('3/3  HEVC con alfa para Safari (VideoToolbox)')
+console.log('3/3  HEVC with alpha for Safari (VideoToolbox)')
 execFileSync(
   'ffmpeg',
-  ['-v', 'error', '-y', '-i', path.join(OUT, `${salida}-master.mov`), '-vf', 'format=bgra',
-    /* BITRATE FIJO Y NO `-q:v`, sin priorizar velocidad: Safari es la
-       mitad de los que miran, y a 0.5× cada cuadro se mira el doble de
-       tiempo. Antes decía `-q:v 85` y `swipeable-tabs.mov` salía de
-       20.60 MB — el archivo más pesado del sitio por lejos.
+  ['-v', 'error', '-y', '-i', path.join(OUT, `${output}-master.mov`), '-vf', 'format=bgra',
+    /* A FIXED BITRATE AND NOT `-q:v`, without prioritizing speed: Safari
+       is half of the people watching, and at 0.5× each frame is looked
+       at for twice as long. It used to say `-q:v 85` and
+       `swipeable-tabs.mov` came out at 20.60 MB, the heaviest file on
+       the site by far.
 
-       El control por bitrate rinde mucho más que la escala de calidad
-       en este encoder: medido sobre los mismos 4 s, `-q:v 65` da
-       2.71 MB con SSIM 0.9948 y `-b:v 3000k` da 1.65 MB con 0.9937.
-       Casi la misma calidad por el 60 % del tamaño. Se eligió 4000k y
-       no 3000k para dejar margen: a 2000k el grano del papel se
-       borronea y se ve al 200 %. */
+       Control by bitrate does far better than the quality scale in this
+       encoder: measured over the same 4 s, `-q:v 65` gives 2.71 MB with
+       SSIM 0.9948 and `-b:v 3000k` gives 1.65 MB with 0.9937. Almost the
+       same quality for 60 % of the size. 4000k was chosen and not 3000k
+       to leave margin: at 2000k the grain of the paper smudges and you
+       see it at 200 %. */
     '-c:v', 'hevc_videotoolbox', '-alpha_quality', '0.95', '-b:v', '4000k', '-realtime', 'false', '-prio_speed', 'false', '-tag:v', 'hvc1', '-an', '-movflags', '+faststart',
-    path.join(OUT, `${salida}.mov`)],
+    path.join(OUT, `${output}.mov`)],
   { stdio: 'inherit' },
 )
-/* El máster tiene que tener alfa de verdad antes de dar nada por hecho. */
-const rgba = execFileSync('ffmpeg', ['-v', 'error', '-i', path.join(OUT, `${salida}-master.mov`), '-frames:v', '1', '-pix_fmt', 'rgba', '-f', 'rawvideo', '-'], { maxBuffer: 1 << 28 })
-const alfaEsquina = rgba[3]
-if (alfaEsquina !== 0) {
-  console.error(`El máster no es transparente: alfa ${alfaEsquina} en la esquina. Revisá --pixel-format.`)
+/* The master has to carry real alpha before anything is taken for
+   granted. */
+const rgba = execFileSync('ffmpeg', ['-v', 'error', '-i', path.join(OUT, `${output}-master.mov`), '-frames:v', '1', '-pix_fmt', 'rgba', '-f', 'rawvideo', '-'], { maxBuffer: 1 << 28 })
+const cornerAlpha = rgba[3]
+if (cornerAlpha !== 0) {
+  console.error(`The master is not transparent: alpha ${cornerAlpha} in the corner. Check --pixel-format.`)
   process.exit(1)
 }
-console.log('   alfa del máster en la esquina: 0 ✓')
-for (const f of [`${salida}.webm`, `${salida}.mov`]) {
+console.log('   alpha of the master in the corner: 0 ✓')
+for (const f of [`${output}.webm`, `${output}.mov`]) {
   const mb = (fs.statSync(path.join(OUT, f)).size / 1024 / 1024).toFixed(1)
   console.log(`   ${f}  ${mb} MB`)
 }
-console.log('listo')
+console.log('done')

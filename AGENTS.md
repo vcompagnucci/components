@@ -1,734 +1,791 @@
-# Interface exhibition — guía para agentes
+# Interface exhibition: guide for agents
 
-Exposición de componentes: piezas web e iOS, cada una perteneciente a UNA
-plataforma, mostradas en una página única. No es una librería instalable.
-No se muestra código. El detalle **es** el producto.
+An exhibition of components: web and iOS pieces, each one belonging to
+ONE platform, shown on a single page. It is not an installable library.
+No code is shown. The detail **is** the product.
 
-Detrás hay un área privada que sólo existe en desarrollo: el **vault**
-—la pared de referencias— y el **playground** —el taller—. Las tres
-cosas son un solo recorrido, y está contado abajo.
+Behind it there is a private area that only exists in development: the
+**vault** (the wall of references) and the **playground** (the
+workshop). The three of them are one single journey, and it is told
+below.
 
-> **¿Venís a construir una pieza?** Andá directo a
-> [**El proceso, paso a paso**](#el-proceso-paso-a-paso): hay un camino
-> para **Web** y otro para **App**, numerados. El resto de este archivo
-> explica POR QUÉ cada paso es así — leelo cuando algo no cierre, o
-> antes de cambiar algo que ya está decidido.
+> **Are you here to build a piece?** Go straight to
+> [**The process, step by step**](#the-process-step-by-step): there is
+> one path for **Web** and another one for **App**, both numbered. The
+> rest of this file explains WHY each step is the way it is. Read it
+> when something does not add up, or before changing something that is
+> already decided.
 
-## Arrancar en un worktree nuevo
+## Starting in a new worktree
 
 ```bash
 pnpm install
-cp .env.example .env.local   # y poné tu VAULT_DIR
+cp .env.example .env.local   # and put your VAULT_DIR in it
 pnpm dev                     # http://localhost:3000
 pnpm typecheck
-pnpm build                   # corre prebuild → regenera vercel.json
+pnpm build                   # runs prebuild → regenerates vercel.json
 ```
 
-Node ≥24, pnpm. Versiones exactas en `package.json`, sin `^` ni `~`.
+Node ≥24, pnpm. Exact versions in `package.json`, no `^` and no `~`.
 
-**El taller nativo se instala aparte**, y sólo cuando vas a tocar una
-pieza App — tiene su propio `package.json`:
+**The native workshop installs separately**, and only when you are going
+to touch an App piece. It has its own `package.json`:
 
 ```bash
-cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
+cd native && pnpm install && pnpm ios:build   # the build is once per machine
 ```
 
-**Lo que NO viaja al worktree.** Están gitignoreados `node_modules/`,
-`dist/`, `.env.local` y **`.context/` entero**. Lo último importa más de
-lo que parece: el README cita `.context/recon/*.md` como la fuente de
-casi todas las mediciones —`TYPE-SYSTEMS.md`, `RESPONSIVE.md`,
-`NAVIGATION.md`, `CARDS.md`, `vault/GRILLA.md`, `vault/REPRODUCTOR.md`—
-y **ninguno de esos archivos existe acá**: se escribieron en otro
-worktree y no se versionan. Las conclusiones sí sobrevivieron, porque
-están en `README.md` y en `DESIGN.md`. Si hace falta el número crudo, se
-vuelve a medir; citar el archivo sin haberlo abierto no vale.
+**What does NOT travel to the worktree.** `node_modules/`, `dist/`,
+`.env.local` and **the whole of `.context/`** are gitignored. That last
+one matters more than it looks: the README cites `.context/recon/*.md`
+as the source of almost every measurement (`TYPE-SYSTEMS.md`,
+`RESPONSIVE.md`, `NAVIGATION.md`, `CARDS.md`, `vault/GRILLA.md`,
+`vault/REPRODUCTOR.md`) and **none of those files exists here**: they
+were written in another worktree and they are not versioned. The
+conclusions did survive, because they are in `README.md` and in
+`DESIGN.md`. If you need the raw number, measure it again. Citing the
+file without having opened it does not count.
 
-**El vault tampoco viaja**: los clips viven en una carpeta tuya fuera del
-repo. Sin `VAULT_DIR`, `/vault` y `/playground` cargan igual y dicen
-*"Vault not connected"*; el resto de la app anda sin enterarse.
+**The vault does not travel either**: the clips live in a folder of
+yours outside the repo. Without `VAULT_DIR`, `/vault` and `/playground`
+load all the same and say *"Vault not connected"*; the rest of the app
+runs without noticing.
 
-## El recorrido de una pieza
+## The journey of a piece
 
-Tres estaciones y una frontera. Va dicho en cada una qué está cableado,
-qué es a mano y qué todavía no existe.
+Three stations and one boundary. Each one says what is wired up, what is
+done by hand and what does not exist yet.
 
 ```
-   tu carpeta            /vault                /playground              /
-  (VAULT_DIR)   ───▶   lo EXTERNO      ───▶   lo TUYO         ───▶   la exposición
-  soltás clips         mirás y anotás         iterás tu pieza        Add to Exhibition
+   your folder              /vault                /playground                 /
+  (VAULT_DIR)   ───▶   what is EXTERNAL   ───▶   what is YOURS   ───▶   the exhibition
+  you drop clips       you watch and note        you iterate your piece   Add to Exhibition
 
-                                              web: boceto vivo   →  pieza Web (corre)
-                                              app: grabación     →  pieza App (video)
-                            ↑
-                    nativo/ + pnpm grabar
-                    (el taller de App escribe
-                     su grabación acá adentro)
+                                                 web: live sketch  →  Web piece (runs)
+                                                 app: recording    →  App piece (video)
+                              ↑
+                      native/ + pnpm record
+                      (the App workshop writes
+                       its recording in here)
 ```
 
-El vault no publica nada — es la pared de referencias. Publicar es el
-final del taller y vive donde está tu trabajo: **elegís un frame del
-tablero y la acción aparece en la sidebar** (clic derecho: atajo).
+The vault publishes nothing. It is the wall of references. Publishing is
+the end of the workshop and it lives where your work is: **you choose a
+frame on the board and the action appears in the sidebar** (right click:
+shortcut).
 
 ---
 
-## El proceso, paso a paso
+## The process, step by step
 
-Lo de arriba es el mapa; esto es el procedimiento. **Dos caminos, y lo
-primero que hay que decidir es cuál** — porque no se cruzan: una pieza
-Web se construye en el navegador y se publica corriendo; una pieza App
-se construye contra el simulador y se publica en video. Lo decide
-`platform`, que a su vez lo decide una sola pregunta: **¿dónde corre la
-cosa que estás mostrando?** Navegador → Web. App instalada → App.
+What is above is the map; this is the procedure. **Two paths, and the
+first thing to decide is which one**, because they do not cross: a Web
+piece is built in the browser and published running; an App piece is
+built against the simulator and published on video. `platform` decides
+it, and one single question decides `platform`: **where does the thing
+you are showing run?** Browser → Web. Installed app → App.
 
-Las tres reglas que valen para los dos caminos, antes de empezar:
+The three rules that hold for both paths, before you start:
 
-1. **Una mini-decisión por vez.** Lo que no está bajo estudio se queda
-   congelado, para que la comparación sea limpia.
-2. **Nada se afirma sin medir** — ni un valor propio ni uno ajeno. Ver
-   *Regla de evidencia*, más abajo.
-3. **El porqué se escribe arriba del archivo y en la bitácora.** Un
-   valor sin recibo es un valor que alguien va a cambiar sin saber qué
-   rompe.
+1. **One mini-decision at a time.** Whatever is not under study stays
+   frozen, so that the comparison is clean.
+2. **Nothing is claimed without measuring it**, neither your own value
+   nor someone else's. See *The evidence rule*, further down.
+3. **The why is written at the top of the file and in the log.** A value
+   with no receipt is a value someone is going to change without knowing
+   what it breaks.
 
-### Camino A · una pieza **Web**
+### Path A: a **Web** piece
 
-| # | Paso | Cómo |
+| # | Step | How |
 | --- | --- | --- |
-| 0 | Levantá el repo | `pnpm install && pnpm dev` → `localhost:3000` |
-| 1 | **Juntá la referencia** *(opcional)* | Soltá el clip en `VAULT_DIR/web/`. Aparece solo en `/vault` |
-| 2 | **Estudiala** *(opcional)* | Abrí el clip: flechas para ir cuadro a cuadro, `option` 10, `command` a los bordes. Anotá `Source` y `Notes` en la ficha |
-| 3 | **Llevala al tablero** *(opcional)* | Clic derecho en la grilla → `Open in Playground`, o el ↗ del detalle |
-| 4 | **Creá el boceto** | En el lienzo: `+` → **New sketch**. Escribe `src/privado/bocetos/<slug>.tsx` y lo pone en la tela |
-| 5 | **Escribí** | Editá ese archivo. Vite lo recarga en el frame **sin recargar la página**. Un boceto roto apaga sólo su frame y se recupera al guardar |
-| 6 | **Probalo** | Clic para elegir el frame → ahí el boceto recibe los clics y podés apretarle los botones. `Escape` para volver a moverlo |
-| 7 | **Publicá** | Con el frame elegido, `Add to Exhibition` en la sidebar → nombre + una línea de descripción (opcional: vacía, no se escribe) → **Add** |
-| 8 | **Verificá** | Te deja en `/<slug>` con el componente **corriendo**. Mirá también la home: el preview vivo va en las dos vistas |
-| 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
+| 0 | Bring the repo up | `pnpm install && pnpm dev` → `localhost:3000` |
+| 1 | **Collect the reference** *(optional)* | Drop the clip into `VAULT_DIR/web/`. It shows up in `/vault` on its own |
+| 2 | **Study it** *(optional)* | Open the clip: arrows to go frame by frame, `option` for 10, `command` to the edges. Write down `Source` and `Notes` in the details |
+| 3 | **Take it to the board** *(optional)* | Right click on the grid → `Open in Playground`, or the ↗ in the detail |
+| 4 | **Create the sketch** | On the canvas: `+` → **New sketch**. It writes `src/private/sketches/<slug>.tsx` and puts it on the canvas |
+| 5 | **Write** | Edit that file. Vite reloads it inside the frame **without reloading the page**. A broken sketch turns off only its own frame, and it comes back when you save |
+| 6 | **Try it** | Click to choose the frame → there the sketch receives the clicks and you can press its buttons. `Escape` to go back to moving it |
+| 7 | **Publish** | With the frame chosen, `Add to Exhibition` in the sidebar → name + one line of description (optional: leave it empty and it is not written) → **Add** |
+| 8 | **Verify** | It leaves you at `/<slug>` with the component **running**. Look at the home too: the live preview goes in both views |
+| 9 | **Write the why** | A comment at the top of the file + an entry in the log (`README.md`) |
 
-Qué pasó por detrás en el paso 7: el archivo se **copió** de
-`src/privado/bocetos/` a `src/piezas/<slug>.tsx` —cruzó la frontera, ver
-abajo— y entró la entrada en `PIECES`. **A partir de ahí el canónico es
-el archivo publicado**; el boceto se queda en tu tablero.
+What happened behind the scenes in step 7: the file was **copied** from
+`src/private/sketches/` to `src/components/pieces/<slug>/<slug>.tsx`,
+with an `index.tsx` next to it that exports it (it crossed the boundary,
+see below) and the entry went into `PIECES`, with its `slug`. **From
+there on the canonical one is the published file**; the sketch stays on
+your board.
 
-> Una pieza publicada **no puede importar nada de `src/privado/`**. El
-> boceto nace autocontenido y tiene que seguir siéndolo.
+> A published piece **cannot import anything from `src/private/`**. The
+> sketch is born self-contained and it has to stay that way.
 
-### Camino B · una pieza **App** (Expo / React Native)
+### Path B: an **App** piece (Expo / React Native)
 
-| # | Paso | Cómo |
+| # | Step | How |
 | --- | --- | --- |
-| 0 | Levantá el taller | `cd nativo && pnpm install`. **La primera vez en la máquina**, además `pnpm ios:build` (compila el dev client). Después alcanza `pnpm ios` |
-| 1 | **Juntá la referencia** *(opcional)* | Soltá la grabación ajena en `VAULT_DIR/native/`, estudiala en `/vault` como en el camino A |
-| 2 | **Creá la pieza** | `pnpm nueva "Swipe to pay"` → `nativo/src/app/swipe-to-pay/index.tsx`. El índice del taller la levanta solo |
-| 3 | **Escribí** | Editá ese archivo. Metro recarga en caliente. Disponibles: Reanimated, Gesture Handler, Skia, expo-haptics |
-| 4 | **Miralo correr** | En el simulador. Para volver al índice, **swipe desde el borde izquierdo** |
-| 5 | **Probalo en el teléfono** | Vale la pena: el simulador **no tiene háptica ni 120Hz**. Expo Go + misma Wi-Fi, o `pnpm start --tunnel` |
-| 6 | **Grabá** | `pnpm grabar swipe-to-pay`. Corta con Enter. Barra en 9:41, `--codec h264`, escribe **directo a `VAULT_DIR/native/`** |
-| 7 | **Llevala al tablero** | La grabación ya está en `/vault`: clic derecho → `Open in Playground` |
-| 8 | **Publicá** | Con el frame elegido, `Add to Exhibition` → nombre + descripción → **Add** |
-| 9 | **Verificá** | Te deja en `/<slug>` con el video autoreproduciendo en el hueco del teléfono |
-| 10 | **Escribí el porqué** | Igual que el camino A |
+| 0 | Bring the workshop up | `cd native && pnpm install`. **The first time on the machine**, also `pnpm ios:build` (it compiles the dev client). After that `pnpm ios` is enough |
+| 1 | **Collect the reference** *(optional)* | Drop someone else's recording into `VAULT_DIR/native/`, study it in `/vault` the way you do in path A |
+| 2 | **Create the piece** | `pnpm new "Swipe to pay"` → `native/src/components/pieces/swipe-to-pay/swipe-to-pay-screen.tsx`, with its `index.tsx`. The workshop's index picks it up on its own |
+| 3 | **Write** | Edit that file. Metro hot reloads. Available: Reanimated, Gesture Handler, Skia, expo-haptics |
+| 4 | **Watch it run** | In the simulator. To go back to the index, **swipe from the left edge** |
+| 5 | **Try it on the phone** | It is worth it: the simulator **has no haptics and no 120Hz**. Expo Go + the same Wi-Fi, or `pnpm start --tunnel` |
+| 6 | **Record** | `pnpm record swipe-to-pay`. Stop it with Enter. Status bar at 9:41, `--codec h264`, it writes **straight into `VAULT_DIR/native/`** |
+| 7 | **Take it to the board** | The recording is already in `/vault`: right click → `Open in Playground` |
+| 8 | **Publish** | With the frame chosen, `Add to Exhibition` → name + description → **Add** |
+| 9 | **Verify** | It leaves you at `/<slug>` with the video autoplaying in the phone slot |
+| 10 | **Write the why** | The same as path A |
 
-Qué pasó por detrás en el paso 8: el video se copió a
-`public/piezas/<slug>.<ext>` —el vault no viaja al deploy— y entró la
-entrada en `PIECES` con `platform: 'App'` y su `video`.
+What happened behind the scenes in step 8: the video was copied to
+`public/pieces/<slug>.<ext>` (the vault does not travel to the deploy)
+and the entry went into `PIECES` with `platform: 'App'` and its `video`.
 
-**Si el video llega DESPUÉS** —se hace aparte, lo hace otro, o el que
-había no era el bueno— la pieza igual puede estar publicada: sin `video`
-la card muestra el hueco del teléfono vacío. Cuando el archivo esté:
+**If the video arrives LATER** (it gets made separately, someone else
+makes it, or the one there was is not the good one), the piece can be
+published all the same: with no `video` the card shows the phone slot
+empty. When the file is there:
 
 ```bash
-pnpm pieza:video swipeable-tabs mockup/out/exhibition --alfa        # el par con alfa de `pnpm render:exhibition` (webm + mov), tal cual, y completa `video` y `videoHevc`
-pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # un video opaco cualquiera: re-encodea para la web y completa `video`
+pnpm piece:video swipeable-tabs mockup/out/exhibition --alpha     # the pair with alpha from `pnpm render:exhibition` (webm + mov), as is, and it fills in `video` and `videoHevc`
+pnpm piece:video swipeable-tabs ~/Downloads/final.mp4             # any opaque video: it re-encodes for the web and fills in `video`
 ```
 
-Una pieza App se muestra **transparente y sin sombra** sobre la
-superficie de la card, como los videos de Family en benji.org: el fondo
-lo pone la exhibition, en el tema que sea. El porqué está en
+An App piece is shown **transparent and with no shadow** on the surface
+of the card, like the Family videos on benji.org: the exhibition puts
+the background there, in whatever theme it is in. The why is in
 `mockup/AGENTS.md`.
 
-**Eso es el FONDO. La GRABACIÓN sí puede ser dos**, y son dos cosas
-distintas que conviene no mezclar. El fondo de la card es uno solo y no
-se hornea ningún tema adentro del video; lo que puede cambiar con el
-tema del lector es lo que se ve ADENTRO del teléfono, cuando la pieza en
-sí se dibuja distinto en claro y en oscuro. Hold to commit es el primer
-caso: en claro la píldora pierde el brillo teal que tiene en oscuro, y
-la ficha de atrás cambia de color. Ahí van **dos tomas y dos pares con
-alfa**, y la card sirve el que corresponde (`videoOscuro` y
-`videoHevcOscuro` en `PIECES`, elegidos con `prefers-color-scheme` en
-`parts.tsx`, que además remonta el `<video>` con `key` al cambiar de
-tema). Si la pieza se ve igual en los dos, una sola toma y listo — es lo
-que hace swipeable-tabs.
+**That is the BACKGROUND. The RECORDING can be two**, and they are two
+different things worth not mixing up. The background of the card is one
+single one and no theme is baked inside the video; what can change with
+the reader's theme is what you see INSIDE the phone, when the piece
+itself draws differently in light and in dark. `hold-to-commit` is the
+first case: in light the pill loses the teal sheen it has in dark, and
+the card behind it changes color. There you need **two takes and two
+pairs with alpha**, and the card serves the one that fits (`videoDark`
+and `videoHevcDark` in `PIECES`, chosen with `prefers-color-scheme` in
+`parts.tsx`, which also remounts the `<video>` with `key` when the theme
+changes). If the piece looks the same in both, one single take and done.
+That is what swipeable-tabs does.
 
 ```bash
-pnpm pieza:video hold-to-commit mockup/out/hold-to-commit-claro --alfa             # el par que ve un lector en CLARO → video / videoHevc
-pnpm pieza:video hold-to-commit mockup/out/hold-to-commit-oscuro --alfa --oscuro   # el par que ve un lector en OSCURO → videoOscuro / videoHevcOscuro
+pnpm piece:video hold-to-commit mockup/out/hold-to-commit-light --alpha           # the pair a reader in LIGHT sees → video / videoHevc
+pnpm piece:video hold-to-commit mockup/out/hold-to-commit-dark --alpha --dark     # the pair a reader in DARK sees → videoDark / videoHevcDark
 ```
 
-Ojo con cuál es cuál: el par **sin** sufijo es la app en claro, que es
-lo que ve alguien con el sistema en claro. El nombre del archivo dice la
-apariencia de la APP, no el tema del lector, y son la misma cosa sólo
-porque la card los aparea así.
+Watch out for which is which: the pair **without** a suffix is the app
+in light, which is what someone with the system in light sees. The name
+of the file says the appearance of the APP, not the reader's theme, and
+they are the same thing only because the card pairs them that way.
 
-No pasa por el vault, y no tiene por qué: el vault es lo ajeno. El
-porqué y las guardas están arriba de `scripts/pieza-video.mjs`.
+It does not go through the vault, and there is no reason it should: the
+vault is what is external. The why and the guards are at the top of
+`scripts/piece-video.mjs`.
 
-**El video para X** —el teléfono en su bisel sobre fondo neutro, con la
-cámara que entra y sale— se hace en `mockup/` (Remotion): `pnpm assets`
-→ `pnpm verificar` → `pnpm studio` → `pnpm render:ambos`. **Cada video
-sale dos veces**, sobre fondo claro y sobre fondo oscuro. El proceso
-entero y cada mini-decisión están en `mockup/AGENTS.md`.
+**The video for X** (the phone in its bezel on a neutral background,
+with the camera coming in and going out) is made in `mockup/`
+(Remotion): `pnpm assets` → `pnpm verify` → `pnpm studio` →
+`pnpm render:both`. **Each video comes out twice**, on a light
+background and on a dark background. The whole process and every
+mini-decision are in `mockup/AGENTS.md`.
 
-### Lo que vale para los dos
+### What applies to both
 
-**El slug es el mismo string en todos lados.** La carpeta del taller
-nativo, el nombre del archivo de la grabación, el archivo del demo web,
-y la URL pública. Sale de `slug()` en `src/pieces.ts`, que es la única
-cuenta que existe. Si dos divergen, la pieza no encuentra su propio
-material.
+**The slug is the same string everywhere.** The folder in the native
+workshop, the name of the recording's file, the folder of the web demo,
+and the public URL. It is the `slug` field of the entry in
+`src/pieces.ts`: whoever publishes assigns it **once** (Add to
+Exhibition, with `slug()` over the name of that day; `pnpm new` uses the
+same calculation) and it is never touched again. The title can change
+later (on 2026-09-10 all four changed) and the URL does not: it is the
+shape of `data/animations.ts` in react-native-motion (`title: 'Stack
+Toast', slug: 'spring-toast'`). If two of them diverge, the piece cannot
+find its own material.
 
-**Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
-HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
-salió**. El modelo es `Swipe to pay`: 12 caracteres, no nombra la app, y
-dice exactamente qué vas a ver. El título y la línea de descripción
-siguen la regla de nombres (Método de trabajo): el término técnico y el
-verbo de especificación, sin palabras graciosas — "tap to select one",
-no "tap to jump". **La línea de descripción es opcional, y la primera
-regla es no tenerla**: si el título ya dice qué es, no hay línea
-(Swipeable tabs tuvo "Top tabs for React Native & Expo." y el usuario
-la borró: "ya está la de arriba que dice swipeable tabs", 2026-09-07;
-`desc?` en `pieces.ts`, y el detalle no dibuja el párrafo). Si hay
-línea: **no nombra la app** —de dónde salió la pieza se cuenta en las
-notas, en Anatomy, donde se cuenta cómo se midió—, y ES CORTA: qué es
-y para qué plataforma, nada más; los detalles van en Anatomy
-("muchísimo más corto esto"). El nombre de la plataforma es "React
-Native", no el de una librería, y las dos van con "&", como las
-escribe el ecosistema ("React Native & Expo").
+**How a piece is named.** The title says **WHAT the gesture is**;
+`Source` says **where it came from**. The model is `Swipe to pay`: 12
+characters, it does not name the app, and it says exactly what you are
+going to see. **The length is decided by the place in the index** (the
+user's request of 2026-09-10): read from top to bottom, without touching
+the order (which is editorial), the names draw a mountain, short at the
+ends and the longest ones in the middle. Today: Fan out (7) · Selection
+summary (17) · Swipe between tabs (18) · Hold to buy (11). The cap of 15
+characters (Toolbars › Titles in the HIG) holds for the ends; in the
+middle you go over it on purpose. A new piece comes in with a name of
+the length its place gives it, and it should be a phrase that is already
+in its notes, so that the title and the page name the thing the same
+way. The title and the line of description follow the naming rule
+(Working method): the technical term and the specification verb, no
+funny words: "tap to select one", not "tap to jump". **The line of
+description is optional, and the first rule is not to have one**: if the
+title already says what it is, there is no line (Swipeable tabs had "Top
+tabs for React Native & Expo." and the user deleted it: "the one above
+already says swipeable tabs", 2026-09-07; `desc?` in `pieces.ts`, and
+the detail does not draw the paragraph). If there is a line: **it does
+not name the app** (where the piece came from is told in the notes, in
+Anatomy, which is where how it was measured is told), and it IS SHORT:
+what it is and for which platform, nothing else; the details go in
+Anatomy ("this one much, much shorter"). The name of the platform is
+"React Native", not the name of a library, and the two of them go with
+"&", the way the ecosystem writes them ("React Native & Expo").
 
-**Cómo se escriben la línea y las notas** (es el paso «Escribí el
-porqué» de los dos caminos; fijado con Swipeable tabs el 2026-09-07, y
-la bitácora tiene cada vuelta y cada rechazo):
+**How the line and the notes are written** (it is the "Write the why"
+step of both paths; fixed with Swipeable tabs on 2026-09-07, and the log
+has every round and every rejection):
 
-1. **Para quién.** Quien acaba de ver el video o el demo: qué está
-   mirando y con qué está hecho. Se escribe desde lo que se ve hacia el
-   cómo, nunca desde la implementación (la versión que contaba "un
-   valor derivado, el pager le pasa un tramo a la barra" se rechazó
-   por inútil).
-2. **La forma.** La línea, primero si hace falta: si el título ya
-   dice qué es, no hay línea (Swipeable tabs no tiene). Si hay: qué es
-   y para qué plataforma, una oración, sin nombrar la app de
-   referencia. Las notas: tres secciones como máximo —`Anatomy`,
-   `Performance` y, sólo si la pieza lo pide, `Use cases`—, en prosa,
-   de dos a cuatro oraciones por párrafo, sin subtítulos adentro de
-   una sección (se probó un h3 por parte, como josh en /bloom, y se
-   rechazó en pantalla). `Anatomy` habla sólo de la animación que da
-   nombre a la pieza, no de lo que la rodea en la grabación, y nombra
-   la referencia en su cierre, junto con cómo se midió. `Performance`:
-   por dónde corre y qué se midió. Ningún párrafo que anuncie lo que
-   sigue: el párrafo arranca por el primer hecho.
-3. **El tono.** Josh Puckett (joshpuckett.me: /bloom, /pasito,
-   /melt-effect) para la línea y las secciones; benji (benji.org:
-   "How it works" de /liveline, "The tools" de /drawesome) para la
-   prosa que conecta lo que se siente con el mecanismo. Sus páginas se
-   leen servidas ese día —WebFetch o Chrome DevTools—, no de memoria,
-   y la cita va en el comentario del archivo.
-4. **El vocabulario.** La regla de nombres de *Método de trabajo*: el
-   término técnico y el verbo de especificación. "React Native", nunca
-   el nombre de una librería (Reanimated, worklets, Yoga) ni de dónde
-   salen los símbolos; lo que esas palabras dicen se dice en llano
-   ("on the UI thread, not in JavaScript"). **En `Use cases`, el
-   vocabulario es el de la HIG de Apple**, con la cita servida ese día
-   y no de memoria (pedido del usuario, 2026-09-08: "usá lo que pondría
-   Apple resources"): sus nombres para los controles vecinos, sus
-   números —con el "about" cuando Apple lo pone— y sus reglas. La
-   página HTML de la HIG se arma con JavaScript, así que `curl` y
-   WebFetch devuelven sólo el título; el texto sale de la API de
-   documentación, `developer.apple.com/tutorials/data/design/
-   human-interface-guidelines/<slug>.json`. **Pero la guía entra como
-   explicación, nunca como autoridad, y no se la nombra** (pedido del
-   usuario, 2026-09-08: "no menciones Apple guidelines… usalas pero
-   para explicar algo mejor, no para decir algo que no es"). Se toman
-   sus conceptos y sus números y se dicen en llano como propios, con la
-   cita en el comentario del archivo. Si una oración necesita el nombre
-   de quien escribió la guía para sostenerse, la afirmación no se
-   sostiene sola: en Swipeable tabs, el párrafo que la citaba afirmaba
-   además dos cosas falsas y se borró entero.
-5. **Las reglas de motion.** Antes de escribir que la pieza cumple
-   algo, auditar el código contra los skills `animate-expo`,
-   `interface-craft` y `better-ui`. Entran sólo las reglas que cumple,
-   cada una con su recibo —archivo y símbolo— en el comentario de
-   `src/notas/<slug>.tsx`; las que no cumple a propósito, por la
-   referencia, quedan en el comentario y no en el texto. Si una se
-   rompe sin razón, se arregla el código primero (así entró la
-   interrupción del toque lejano).
-6. **La redacción.** Pasar el texto por `better-writing`: palabras que
-   un lector cansado entiende a la primera, sin modismos ("mid-flight",
-   "in step", "cue"), y cada palabra que no trabaja se borra. Y por
-   `animation-vocabulary`: los términos del glosario donde no chocan
-   con la regla de nombres (`ease-out`, "reduced motion"; "widens"
-   antes que "morph"). **Sin raya en el texto público**, ni em dash ni
-   en dash (pedido del usuario, 2026-09-08: "no uses –"): donde
-   aparezca una, o son dos oraciones o son dos puntos, y las dos
-   salidas son más llanas que la raya. Los guiones de palabra
-   compuesta se quedan (`ease-out`, `top-level`). La regla es del
-   texto público; en los comentarios en castellano la raya es
-   puntuación normal.
+1. **Who it is for.** Whoever just watched the video or the demo: what
+   they are looking at and what it is made with. You write from what
+   you see towards the how, never from the implementation (the version
+   that told you "a derived value, the pager passes a segment to the
+   tab bar" was rejected as useless).
+2. **The shape.** The line, first, if it is needed: if the title
+   already says what it is, there is no line (Swipeable tabs does not
+   have one). If there is one: what it is and for which platform, one
+   sentence, without naming the reference app. The notes: three
+   sections at most (`Anatomy`, `Performance` and, only if the piece
+   asks for it, `Use cases`), in prose, two to four sentences per
+   paragraph, no subheadings inside a section (an h3 per part was
+   tried, like josh on /bloom, and rejected on screen). `Anatomy`
+   speaks only about the animation the piece is named after, not about
+   what surrounds it in the recording, and it names the reference in
+   its closing sentence, together with how it was measured.
+   `Performance`: where it runs and what was measured. No paragraph
+   that announces what comes next: the paragraph starts on the first
+   fact.
+3. **The tone.** Josh Puckett (joshpuckett.me: /bloom, /pasito,
+   /melt-effect) for the line and the sections; benji (benji.org: "How
+   it works" on /liveline, "The tools" on /drawesome) for the prose
+   that connects what you feel to the mechanism. Their pages are read
+   served that same day (WebFetch or Chrome DevTools), not from memory,
+   and the citation goes in the comment at the top of the file.
+4. **The vocabulary.** The naming rule from *Working method*: the
+   technical term and the specification verb. "React Native", never the
+   name of a library (Reanimated, worklets, Yoga) nor where the symbols
+   come from; what those words say gets said plainly ("on the UI
+   thread, not in JavaScript"). **In `Use cases`, the vocabulary is
+   Apple's HIG**, with the citation served that same day and not from
+   memory (the user's request, 2026-09-08: "use what Apple resources
+   would put"): its names for the neighboring controls, its numbers
+   (with the "about" when Apple puts it there) and its rules. The HIG's
+   HTML page is assembled with JavaScript, so `curl` and WebFetch
+   return only the title; the text comes out of the documentation API,
+   `developer.apple.com/tutorials/data/design/
+   human-interface-guidelines/<slug>.json`. **But the guide comes in as
+   an explanation, never as an authority, and it is not named** (the
+   user's request, 2026-09-08: "do not mention Apple guidelines… use
+   them to explain something better, not to say something that is not
+   true"). You take its concepts and its numbers and say them plainly
+   as your own, with the citation in the comment at the top of the
+   file. If a sentence needs the name of whoever wrote the guide in
+   order to stand up, the claim does not stand on its own: in Swipeable
+   tabs, the paragraph that cited it also claimed two false things and
+   it was deleted whole.
+5. **The motion rules.** Before writing that the piece meets
+   something, audit the code against the skills `animate-expo`,
+   `interface-craft` and `better-ui`. Only the rules it meets go in,
+   each one with its receipt (file and symbol) in the comment of
+   `src/components/pieces/<slug>/notes.tsx`; the ones it breaks on
+   purpose, because of the reference, stay in the comment and not in
+   the text. If one breaks for no reason, you fix the code first (that
+   is how the interruption of the far tap got in).
+6. **The writing.** Run the text through `better-writing`: words a
+   tired reader gets on the first pass, no idioms ("mid-flight", "in
+   step", "cue"), and every word that is not working gets deleted. And
+   through `animation-vocabulary`: the glossary's terms where they do
+   not clash with the naming rule (`ease-out`, "reduced motion";
+   "widens" before "morph"). **No dash in the public text**, neither em
+   dash nor en dash (the user's request, 2026-09-08: "do not use the en
+   dash"): wherever one shows up, it is either two sentences or a
+   colon, and both exits are plainer than the dash. Compound-word
+   hyphens stay (`ease-out`, `top-level`). Since 2026-09-10 the rule
+   covers the source too: the comments went from 197 dashes to 15, and
+   every one that stays is the character itself and not punctuation (the
+   placeholder for an empty value, the dash an empty list draws, the
+   entity table in `scripts/link-card.mjs`, the separator class in the
+   title parser).
 
-   **Un solo nombre por cosa, en TODA la página, no por sección.** Es
-   la regla de `better-writing` que más encuentra acá, y ninguna de sus
-   fallas se ve leyendo una sección sola: en Swipeable tabs la fila era
-   "row" en dos secciones y "bar" en la tercera —el nombre interno del
-   archivo, `barra.tsx`, filtrándose al texto público—, el mismo tab
-   era "chosen" y "active" en un mismo párrafo, y había una sola
-   contracción en once párrafos. Buscar sinónimos del mismo objeto,
-   contracciones sueltas, pronombres cuyo antecedente más cercano es el
-   sustantivo equivocado, y nombres de archivos del repo que se hayan
-   colado. Y decidir quién es "you": si el lector es quien toca la
-   pieza, "you"; si el lector construye para otros, "people" es quien
-   usa su app.
+   **One single name per thing, across the WHOLE page, not per
+   section.** It is the `better-writing` rule that finds the most
+   around here, and none of its failures shows up if you read one
+   section alone: in Swipeable tabs the row was "row" in two sections
+   and "bar" in the third (the file's internal name, `tab-bar.tsx`,
+   leaking into the public text), the same tab was "chosen" and
+   "active" in one same paragraph, and there was one single contraction
+   in eleven paragraphs. Look for synonyms of the same object, stray
+   contractions, pronouns whose nearest antecedent is the wrong noun,
+   and names of files from the repo that slipped in. And decide who
+   "you" is: if the reader is the one who touches the piece, "you"; if
+   the reader builds for others, "people" is whoever uses their app.
 
-   **Y una pasada de concisión al final**, cuando el contenido ya está
-   cerrado y verificado (pedido del usuario, 2026-09-08: "ya teniendo
-   todo… dejá todo mucho más conciso"). Da entre 15 y 20 % sin tocar
-   una sola afirmación, y encuentra siempre lo mismo, en este orden:
-   redundancia interna (la misma idea dos o tres veces en un párrafo),
-   redundancia ENTRE secciones (sólo aparece leyendo la página entera)
-   y perífrasis donde va un verbo ("Tap a tab and it becomes the active
-   one" → "A tap makes a tab active"). Medir en palabras antes y
-   después, y decir el número. Después de esta pasada se vuelve a
-   correr el paso 8, porque el wrap cambió.
-7. **La veracidad.** Releer cada afirmación contra el código y las
-   tablas de medición, antes y después de escribir. Lo que no está
-   medido no se afirma; lo que es SOURCE (una configuración) se marca
-   así en el comentario; cada corrección se registra.
+   **And a concision pass at the end**, when the content is already
+   closed and verified (the user's request, 2026-09-08: "now that you
+   have it all… leave it much more concise"). It gives between 15 and
+   20 % without touching a single claim, and it always finds the same
+   things, in this order: internal redundancy (the same idea two or
+   three times in one paragraph), redundancy BETWEEN sections (it only
+   shows up if you read the whole page) and periphrasis where a verb
+   goes ("Tap a tab and it becomes the active one" → "A tap makes a tab
+   active"). Measure in words before and after, and say the number.
+   After this pass you run step 8 again, because the wrap changed.
+7. **The truthfulness.** Reread every claim against the code and the
+   measurement tables, before and after writing. What is not measured
+   is not claimed; what is SOURCE (a configuration) is marked that way
+   in the comment; every correction gets recorded.
 
-   **`Performance` se relee además "como un ingeniero senior"** antes
-   de cerrar, y esa lectura encuentra otra clase de error que la
-   veracidad literal deja pasar: la imprecisión técnica. Las cuatro de
-   Swipeable tabs valen de plantilla. Decir "not the JavaScript
-   thread", nunca "not in JavaScript" (los worklets también son
-   JavaScript, corren en el runtime de UI). Decir qué hace el sistema y
-   qué hacemos nosotros: si el scroll es nativo, eso es la razón
-   principal de que el gesto no cueste, y callarlo es esconder el
-   mecanismo. Contar una optimización por su COSTO —cuántas listas,
-   cuántas filas, montadas desde cuándo— y no como anécdota. Y decir
-   DÓNDE se midió: `animate-expo` sólo cuenta un release build en el
-   dispositivo más lento, y una grabación del simulador es recibo de la
-   toma, no del teléfono.
-8. **La verificación en pantalla.** Chrome DevTools sobre la página
-   servida: el texto exacto de cada párrafo, la cantidad de párrafos,
-   que no queden nombres de librerías ni frases viejas; claro y oscuro
-   si se tocó el CSS. Y después del merge, la misma lectura en
-   producción.
-9. **El registro.** Cada decisión y cada rechazo en `README.md` y en
-   el comentario arriba de `src/notas/<slug>.tsx`, con la cita del
-   usuario y la fecha. `pnpm typecheck && pnpm build`, un commit por
-   mini-decisión que dice qué y por qué, push, PR con squash.
+   **`Performance` also gets reread "like a senior engineer"** before
+   closing, and that reading finds another class of error that literal
+   truthfulness lets through: technical imprecision. The four from
+   Swipeable tabs work as a template. Say "not the JavaScript thread",
+   never "not in JavaScript" (worklets are JavaScript too, they run in
+   the UI runtime). Say what the system does and what we do: if the
+   scroll is native, that is the main reason the gesture costs nothing,
+   and keeping quiet about it hides the mechanism. Tell an optimization
+   by its COST (how many lists, how many rows, mounted since when) and
+   not as an anecdote. And say WHERE it was measured: `animate-expo`
+   only counts a release build on the slowest device, and a recording
+   of the simulator is a receipt for the take, not for the phone.
+8. **The verification on screen.** Chrome DevTools over the served
+   page: the exact text of every paragraph, the number of paragraphs,
+   that no library names and no old sentences are left; light and dark
+   if the CSS was touched. And after the merge, the same reading in
+   production.
+9. **The record.** Every decision and every rejection in `README.md`
+   and in the comment at the top of
+   `src/components/pieces/<slug>/notes.tsx`, with the user's quotation
+   and the date. `pnpm typecheck && pnpm build`, one commit per
+   mini-decision that says what and why, push, PR with squash.
 
-**Publicar no pisa nada.** Nombre repetido → 409. Y el servidor hace las
-dos escrituras o ninguna: si la entrada en `PIECES` falla, el archivo
-copiado se retira.
+**Publishing overwrites nothing.** A repeated name → 409. And the server
+does both writes or neither: if the entry in `PIECES` fails, the copied
+file is withdrawn.
 
-**Antes de dar algo por terminado**, en los dos caminos:
+**Before calling something finished**, on both paths:
 
 ```bash
-pnpm typecheck && pnpm build          # el repo web
-pnpm --dir nativo typecheck           # el taller, si lo tocaste
+pnpm typecheck && pnpm build          # the web repo
+pnpm --dir native typecheck           # the workshop, if you touched it
 ```
 
-### Qué NO hacer
+### What NOT to do
 
-- **No publicar material ajeno.** Los clips del vault son referencias de
-  otras apps; el inventario lleva sólo piezas construidas de verdad. Si
-  publicás algo para probar, revertilo: borrá la entrada de `PIECES` y
-  el archivo de `public/piezas/` o `src/piezas/`.
-- **No importar de `src/privado/` desde el producto.** La dependencia va
-  en un solo sentido o el área privada termina en el bundle.
-- **No agregar placeholders.** Acá se borraron 18 piezas de scaffolding
-  antes de la primera real, para que nada genérico se confunda con una
-  decisión.
-- **No `npm install` en `nativo/`.** Las versiones las elige
-  `expo install`, que respeta lo que el SDK verificó.
-- **No dejar bocetos de prueba** en `src/privado/bocetos/` ni
-  grabaciones de prueba en el vault.
+- **Do not publish someone else's material.** The vault's clips are
+  references from other apps; the inventory carries only pieces that
+  were really built. If you publish something to try it out, revert it:
+  delete the entry from `PIECES` and the file from `public/pieces/` or
+  the folder from `src/components/pieces/`.
+- **Do not import from `src/private/` in the product.** The dependency
+  goes in one direction only, or the private area ends up in the bundle.
+- **Do not add placeholders.** Around here 18 scaffolding pieces were
+  deleted before the first real one, so that nothing generic gets
+  mistaken for a decision.
+- **No `npm install` inside `native/`.** `expo install` picks the
+  versions, and it respects what the SDK verified.
+- **Do not leave test sketches** in `src/private/sketches/` or test
+  recordings in the vault.
 
 ---
 
-## Las tres estaciones, por dentro
+## The three stations, on the inside
 
-Hasta acá, qué hacer. De acá en adelante, **por qué cada paso es así** y
-qué hay debajo de cada uno — lo que hay que leer antes de cambiar algo
-que ya está decidido.
+Up to here, what to do. From here on, **why each step is the way it is**
+and what sits underneath each one. This is what to read before changing
+something that is already decided.
 
-### 1 · El vault — lo que mirás
+### 1 · The vault: what you look at
 
-**Entra un archivo, no un registro.** Soltás un video o una imagen en
-`VAULT_DIR` y aparece en la grilla. La carpeta **es** el manifiesto: el
-nombre sale del nombre del archivo, `native`/`web` de la subcarpeta donde
-lo soltaste, la fecha del sistema de archivos (`src/privado/clips.ts`).
-No hay JSON que mantener, y por eso el vault no puede mentir — un
-manifiesto a mano se desincroniza el día que arrastrás algo sin editarlo.
+**A file comes in, not a record.** You drop a video or an image into
+`VAULT_DIR` and it shows up in the grid. The folder **is** the manifest:
+the name comes from the name of the file, `native`/`web` from the
+subfolder you dropped it into, the date from the file system
+(`src/private/clips.ts`). There is no JSON to maintain, and that is why
+the vault cannot lie. A manifest kept by hand goes out of sync the day
+you drag something in without editing it.
 
-**El puente es un plugin de Vite**, `scripts/vault-media.mjs`, con
-`apply: 'serve'`: en `vite build` ni se instancia. Sirve los medios en
-`/vault-media/` más siete endpoints —`__indice`, `__ficha`, `__vistas`,
-`__renombrar`, `__papelera`, `__subir`, `__link`— y **tres guardas**,
-porque esto puede estar apuntando a tu Obsidian: lista blanca de
-extensiones, nada que empiece con punto, `realpath` de los dos lados.
+**The bridge is a Vite plugin**, `scripts/vault-media.mjs`, with
+`apply: 'serve'`: in `vite build` it is not even instantiated. It serves
+the media at `/vault-media/` plus seven endpoints (`__index`,
+`__details`, `__views`, `__rename`, `__trash`, `__upload`, `__link`) and
+**three guards**, because this may be pointing at your Obsidian: an
+allowlist of extensions, nothing that starts with a dot, `realpath` on
+both sides.
 
-**Lo que anotás vos** —`notes`, `source`, `device`— vive en
-`.lima-vault.json`, en la raíz del vault y al lado de los clips. Tres
-campos, y son los mismos que valida el servidor: agregar uno acá sin
-agregarlo allá lo descarta al guardar, en silencio.
+**What you write down yourself** (`notes`, `source`, `device`) lives in
+`.lima-vault.json`, at the root of the vault and next to the clips.
+Three fields, and they are the same ones the server validates: adding
+one here without adding it there discards it on save, silently.
 
-**El detalle existe para medir.** El reproductor va cuadro a cuadro con
-las flechas (sola 1 · option 10 · command a los bordes) y el paso lo lee
-del contenedor del mp4, no lo estima (`scripts/cuadros.mjs`).
+**The detail exists for measuring.** The player goes frame by
+frame with the arrows (on its own 1 · option 10 · command to the edges)
+and it reads the step from the mp4's container instead of estimating it
+(`scripts/frames.mjs`).
 
-**La salida al taller**: en la grilla, clic derecho → `Open in
-Playground`. Adentro de un clip, el ícono ↗ de la cabecera. Los dos
-llaman a lo mismo, `alPlayground(ruta)` en `vistas.ts`.
+**The way out to the workshop**: in the grid, right click → `Open in
+Playground`. Inside a clip, the ↗ icon in the header. Both call the same
+thing, `toPlayground(path)` in `views.ts`.
 
-### 2 · El playground — donde se construye
+### 2 · The playground: where things get built
 
-**Vistas = lienzos**, como entrar a distintos archivos de Figma. Al revés
-que los clips, esto **no** se deriva del disco: una vista existe porque
-la creaste, así que sí hay algo que mantener y vive en
-`.lima-playground.json`, también en la raíz del vault. No en
-`localStorage` a propósito: una vista referencia clips por su ruta, así
-que pertenece al mismo lugar que ellos.
+**Views = canvases**, like going into different Figma files. Unlike the
+clips, this is **not** derived from the disk: a view exists because you
+created it, so there is something to maintain and it lives in
+`.lima-playground.json`, also at the root of the vault. Not in
+`localStorage`, on purpose: a view references clips by their path, so it
+belongs in the same place they do.
 
-**Un frame es una cosa puesta en la tela**, y tiene tres tipos: `clip`
-(`ref` = la ruta del archivo en el vault), `boceto` (`ref` = el nombre de
-su archivo en `src/privado/bocetos/`) y `pieza` (`ref` = el nombre de la
-pieza; todavía sin dibujo). Siempre es una **referencia y no una copia**:
-si le cambiás la ficha a un clip o escribís en un boceto, el frame que lo
-muestra ya está actualizado; si el clip se va del vault, el frame se
-queda diciendo a qué apuntaba, en vez de desaparecer sin que nadie lo
-note.
+**A frame is a thing placed on the canvas**, and it has three kinds:
+`clip` (`ref` = the path of the file in the vault), `sketch` (`ref` =
+the name of its file in `src/private/sketches/`) and `piece` (`ref` =
+the name of the piece; not drawn yet). It is always a **reference and
+not a copy**: if you change a clip's details or write in a sketch, the
+frame showing it is already up to date; if the clip leaves the vault,
+the frame stays there saying what it pointed at, instead of disappearing
+without anyone noticing.
 
-**`alPlayground` no abre un selector.** El clip cae en la vista más
-reciente —la de `creada` más alta— y si no hay ninguna, la crea: mandar
-algo al playground tiene que funcionar la primera vez que lo apretás.
-Nace a 480×270 y el lienzo le corrige la proporción cuando el medio
-termina de cargar.
+**`toPlayground` does not open a picker.** The clip lands in the most
+recent view (the one with the highest `created`) and if there is none,
+it creates one: sending something to the playground has to work the
+first time you press it. It is born at 480×270 and the canvas corrects
+its proportion when the media finishes loading.
 
-**⌘Z y ⇧⌘Z deshacen acá**, por snapshots del documento entero: 100 pasos,
-en memoria, se vacían al recargar. En el vault ⌘Z sigue siendo *volver* —
-el playground escucha en captura y el de `privado.tsx` se aparta al ver
-el evento marcado, así que quién gana no depende del orden de montaje.
+**⌘Z and ⇧⌘Z undo in here**, by snapshots of the whole document: 100
+steps, in memory, emptied on reload. In the vault ⌘Z is still *back*.
+The playground listens in the capture phase and the one in `private.tsx`
+steps aside when it sees the event marked, so who wins does not depend
+on the mount order.
 
-**Escribir un componente desde cero: los bocetos.** Un frame `boceto` es
-**un archivo de verdad** en `src/privado/bocetos/`, que exporta un
-componente por defecto. `New sketch`, en el diálogo del `+`, crea el
-archivo y lo pone en la tela; después lo abrís en tu editor —o se lo
-pasás a un agente— y escribís. Vite lo recarga en el frame **sin recargar
-la página**: no se pierde la posición de nada.
+**Writing a component from scratch: the sketches.** A `sketch` frame is
+**a real file** in `src/private/sketches/`, which exports a component by
+default. `New sketch`, in the `+` dialog, creates the file and puts it
+on the canvas; then you open it in your editor (or hand it to an agent)
+and write. Vite reloads it inside the frame **without reloading the
+page**: nothing loses its position.
 
-Eso es a propósito el camino más corto para las dos formas de trabajar:
-un agente escribe archivos, no tipea en un textarea, así que si el boceto
-ES un archivo las dos son la misma y ninguna necesita interfaz. Por eso
-tampoco hay un editor adentro del navegador.
+That is, on purpose, the shortest path for both ways of working: an
+agent writes files, it does not type into a textarea, so if the sketch
+IS a file the two are the same and neither one needs an interface. That
+is also why there is no editor inside the browser.
 
-Tres cosas que conviene saber antes de tocarlo:
+Three things worth knowing before you touch it:
 
-- **Un boceto roto no tira el tablero.** Cada uno va adentro de un límite
-  de error, así que lo único que se apaga es su frame — y se recupera
-  solo en el siguiente guardado, sin recargar.
-- **El puntero se reparte por selección.** Sin elegir, el frame se
-  arrastra; elegido, el boceto recibe los clics y podés probar lo que
-  estás construyendo. Para volver a moverlo, Escape.
-- **Es sólo web.** Una pieza de App no se construye acá: se construye
-  contra el simulador, con el agente al lado, y llega a la exposición
-  como video (ver abajo).
+- **A broken sketch does not take the board down.** Each one goes inside
+  an error boundary, so the only thing that turns off is its frame, and
+  it comes back on its own at the next save, without reloading.
+- **The pointer is shared out by selection.** Without choosing, the
+  frame drags; chosen, the sketch receives the clicks and you can try
+  out what you are building. To go back to moving it, Escape.
+- **It is web only.** An App piece does not get built here: it gets
+  built against the simulator, with the agent alongside, and it reaches
+  the exhibition as a video (see below).
 
-**Y acá se publica.** Con un frame elegido, `Add to Exhibition` aparece en
-la sidebar —debajo del índice, el patrón del panel de selección de Figma
-colapsado en el panel que ya existe— y el clic derecho lo ofrece como
-atajo. Un boceto sale como pieza Web viva, una grabación como pieza App.
-El detalle está en la sección 3.
+**And publishing happens here.** With a frame chosen, `Add to
+Exhibition` appears in the sidebar (below the index, the pattern of
+Figma's selection panel collapsed into the panel that already exists)
+and the right click offers it as a shortcut. A sketch comes out as a
+live Web piece, a recording as an App piece. The detail is in section 3.
 
-**Lo que sigue faltando** es `tipo: 'pieza'`: está en el modelo y nada lo
-crea: si un frame llegara con ese tipo se dibuja un hueco con la palabra
-`Piece`. El andamio está puesto y dicho; falta la pieza que lo estrene.
+**What is still missing** is `kind: 'piece'`: it is in the model and
+nothing creates it: if a frame arrived with that kind, a slot with the
+word `Piece` gets drawn. The scaffolding is in place and written down;
+what is missing is the piece that opens it.
 
-### 3 · La exhibition — lo público
+### 3 · The exhibition: the public part
 
-`src/pieces.ts` es el inventario, y **está vacío a propósito**: los 18
-placeholders se borraron enteros antes de la primera pieza real, para que
-nada genérico se confunda con una decisión. La primera define el molde.
+`src/pieces.ts` is the inventory, and **it is empty on purpose**: the 18
+placeholders were deleted whole before the first real piece, so that
+nothing generic gets mistaken for a decision. The first one defines the
+mold.
 
-**Publicar es un gesto del tablero.** Elegís el frame y `Add to Exhibition`
-aparece en la sidebar (el clic derecho lo repite como atajo): nombre
-(llega puesto) y una línea de descripción, opcional —vacía, no se
-escribe el campo—. Son los dos renglones del detalle público; sin
-línea, el detalle va del preview a las notas (Swipeable tabs, desde el
-2026-09-07). **La plataforma
-la dice el frame**, no un selector:
+**Publishing is a gesture of the board.** You choose the frame and `Add
+to Exhibition` appears in the sidebar (the right click repeats it as a
+shortcut): a name (it arrives filled in) and one line of description,
+optional (empty, and the field is not written). They are the two lines
+of the public detail; with no line, the detail goes from the preview
+straight to the notes (Swipeable tabs, since 2026-09-07). **The frame
+says the platform**, not a selector:
 
-- un frame **boceto** publica una pieza **Web**: su archivo se copia de
-  `src/privado/bocetos/` a `src/piezas/<slug>.tsx` — el lado público de
-  la frontera — y el demo corre **vivo** en la lista y el detalle.
-- un frame **clip** (una grabación tuya que entró por el vault) publica
-  una pieza **App**: el video se copia a `public/piezas/<slug>.<ext>` y
-  autoreproduce en el hueco del teléfono.
+- a **sketch** frame publishes a **Web** piece: its file gets copied
+  from `src/private/sketches/` to
+  `src/components/pieces/<slug>/<slug>.tsx`, with its `index.tsx` (the
+  public side of the boundary) and the demo runs **live** in the list
+  and in the detail.
+- a **clip** frame (a recording of yours that came in through the vault)
+  publishes an **App** piece: the video gets copied to
+  `public/pieces/<slug>.<ext>` and autoplays in the phone slot.
 
-El servidor hace las dos escrituras o ninguna —el archivo del demo y la
-entrada en `PIECES`— y no pisa nada nunca: repetir un nombre es un 409.
-Al terminar te deja parado en la página nueva, que es la confirmación.
+The server does both writes or neither (the demo's file and the entry in
+`PIECES`) and it never overwrites anything: repeating a name is a 409.
+When it finishes it leaves you standing on the new page, which is the
+confirmation.
 
-**Cómo vive una pieza Web**: `src/piezas/<slug>.tsx` exporta el
-componente por defecto y `demos.tsx` lo resuelve **por nombre** — el
-slug es el mapa, no hay registro que mantener. Publicar es COPIA, no
-mudanza: el boceto queda en el tablero; desde ahí la pieza se edita en
-su archivo publicado. Y como es producto, **no puede importar nada de
-`src/privado/`**.
+**How a Web piece lives**: `src/components/pieces/<slug>/<slug>.tsx`
+exports the component by default, `index.tsx` re-exports it and
+`demos.tsx` resolves it **by slug**. The folder is the map, there is no
+registry to maintain. It is the shape of `components/animations/<slug>/`
+in react-native-motion, and the same folder carries the detail's notes
+(`notes.tsx`, see `src/notes.tsx`). Publishing is a COPY, not a move:
+the sketch stays on the board; from then on the piece is edited in its
+published file. And because it is product, **it cannot import anything
+from `src/private/`**.
 
-Alrededor:
+Around it:
 
-1. La entrada en `PIECES` — `name`, `platform`, `desc`, y `video` sólo
-   para App. El `slug` del nombre es su URL: `Photo picker` →
-   `/photo-picker`. También se puede escribir a mano; publicar es el
-   camino corto.
-2. `prebuild` corre `scripts/rutas.mjs`, que **regenera `vercel.json`**
-   con el rewrite de esas rutas — importa `PIECES` y `slug` de verdad
-   (Node ≥24 corre TypeScript), así que si `pieces.ts` no compila, el
-   build frena ahí.
+1. The entry in `PIECES`: `name`, `platform`, `desc`, and `video` only
+   for App. The `slug` of the name is its URL: `Photo picker` →
+   `/photo-picker`. You can also write it by hand; publishing is the
+   short way.
+2. `prebuild` runs `scripts/routes.mjs`, which **regenerates
+   `vercel.json`** with the rewrite for those routes. It imports
+   `PIECES` and `slug` for real (Node ≥24 runs TypeScript), so if
+   `pieces.ts` does not compile, the build stops right there.
 
-El `slug` es **uno solo** y vive en `pieces.ts`: lo comparten la página,
-el generador de rutas y el puente que publica. Acá vivían dos cuentas
-distintas que coincidían de casualidad; quedó una.
+The `slug` is **one single one** and it lives in `pieces.ts`: the page,
+the route generator and the bridge that publishes all share it. Two
+different calculations used to live here and they matched by luck; one
+was left.
 
-**`platform` decide cómo se demuestra, y nada más**: Web va viva en el
-navegador, App va en video. No se decide por pieza — y publicar tampoco
-lo pregunta, lo lee del frame.
+**`platform` decides how a piece is demonstrated, and nothing else**:
+Web goes live in the browser, App goes on video. It is not decided per
+piece, and publishing does not ask for it either, it reads it off the
+frame.
 
-**Y decide también dónde se construye.** Una pieza **Web** se boceta en
-el lienzo del playground. Una pieza **App** no: se escribe con el agente
-mientras la mirás correr en el simulador de iOS, y entra a la exposición
-como **grabación de pantalla**. El playground no intenta simular un
-teléfono, y eso es una decisión y no una carencia — `react-native-web`
-dibujaría la forma y mentiría justo en lo que este vault estudia, que es
-el gesto y el háptico.
+**And it also decides where a piece gets built.** A **Web** piece is
+sketched on the playground's canvas. An **App** piece is not: it is
+written with the agent while you watch it run in the iOS simulator, and
+it enters the exhibition as a **screen recording**. The playground does
+not try to simulate a phone, and that is a decision and not a gap.
+`react-native-web` would draw the shape and would lie about exactly what
+this vault studies, which is the gesture and the haptics.
 
-### El taller nativo — `nativo/`
+### The native workshop: `native/`
 
-Una app de **Expo adentro de este mismo repo**, con su propio toolchain.
-Su guía completa está en [`nativo/AGENTS.md`](nativo/AGENTS.md) —ahí
-están también las convenciones que valen para toda pieza y las trampas
-que ya conocemos— y el material de vidrio tiene su propia referencia en
-[`nativo/VIDRIO.md`](nativo/VIDRIO.md). La recon que fundamenta el taller
-está en `.context/recon/TALLER-NATIVO.md` (gitignoreada, por eso lo
-importante vive acá). En tres comandos:
+An **Expo app inside this same repo**, with its own toolchain. Its full
+guide is in [`native/AGENTS.md`](native/AGENTS.md), which is also where
+the conventions that hold for every piece and the traps we already know
+about are, and the glass material has its own reference in
+[`native/GLASS.md`](native/GLASS.md). The recon the workshop is founded
+on is in `.context/recon/TALLER-NATIVO.md` (gitignored, which is why
+what matters lives here). In three commands:
 
 ```bash
-cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
-pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
-pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
+cd native && pnpm install && pnpm ios:build   # the build is once per machine
+pnpm new "Swipe to pay"       # creates src/components/pieces/swipe-to-pay/
+pnpm record swipe-to-pay      # records into the vault and closes the loop
 ```
 
-- **Una sola app-taller, una carpeta por pieza.** Medido contra lo que
-  hacen los referentes: **nadie arma un repo por demo** — Mangano
-  sostiene 127 animaciones en una app Expo, Candillon una carpeta por
-  episodio, Gitter un `.swift` por interfaz. El repo propio es el premio
-  de la pieza que se volvió librería (Wave, Motion), nunca el punto de
-  partida.
-- **Adentro del repo y no al lado**, y acá nos apartamos de la recon a
-  propósito: la unidad de trabajo es un **worktree**, y todo lo que
-  queda afuera no viaja — ya pasó con el vault y con `.context/`. El
-  taller es código. La frontera la hace la carpeta, como con
-  `src/privado/`: `nativo/` tiene su `package.json` y su `tsconfig`, el
-  `tsc` de la raíz sólo mira `src`, y Vite sólo sigue lo que cuelga de
-  `index.html`. Verificado: con `nativo/` presente, `pnpm typecheck` y
-  `pnpm build` de la raíz no lo tocan.
-- **El índice del taller se deriva de las carpetas** (`require.context`
-  en `nativo/src/app/index.tsx`), igual que el vault se deriva del
-  disco: no hay lista que mantener y no puede mentir.
-- **El slug es el mismo string en tres lados** — la carpeta del taller,
-  el archivo de la grabación, y la URL de la pieza publicada.
-- **El cierre es `pnpm grabar`**: clava la barra de estado en 9:41,
-  graba con `--codec h264` —el default de `simctl` es **HEVC** y puede
-  no reproducirse en el `<video>` de la exposición, que es la trampa más
-  cara del camino porque no falla al grabar sino en la pieza ya
-  publicada— y escribe **directo a `VAULT_DIR/native/`**. Parás y el
-  clip ya está en la grilla → Open in Playground → Add to Exhibition.
-- **Las versiones las elige `expo install`, no npm.** Una dependencia de
-  RN trae código nativo compilado contra el runtime del SDK: la última
-  de npm contra SDK 57 es una combinación que nadie probó, y rompe el
-  build nativo. La regla del repo se cumple donde acá significa algo —
-  **el SDK es el último**, 57. La tabla con las cuatro versiones y su
-  porqué está en `nativo/AGENTS.md`.
-- **El dev build anda, con un parche de dos líneas.** Xcode 26.2 rechaza
-  una anotación que `expo-modules-jsi` 57.0.5 le puso a un constructor;
-  `patches/expo-modules-jsi@57.0.5.patch` la saca y deja el header
-  idéntico al de 57.0.4, que Expo publicó y compila. El porqué completo
-  está en `nativo/AGENTS.md`.
-- **SwiftUI todavía no tiene taller**: espera a la primera pieza que lo
-  pida. Ahí van View por pieza + `#Preview` y los springs de iOS 17.
+- **One single workshop app, one folder per piece.** Measured against
+  what the references do: **nobody builds a repo per demo**. Mangano
+  holds 127 animations in one Expo app, Candillon one folder per
+  episode, Gitter one `.swift` per interface. A repo of its own is the
+  prize for the piece that turned into a library (Wave, Motion), never
+  the starting point.
+- **Inside the repo and not next to it**, and here we depart from the
+  recon on purpose: the unit of work is a **worktree**, and everything
+  left outside does not travel. That already happened with the vault and
+  with `.context/`. The workshop is code. The folder makes the boundary,
+  the same as with `src/private/`: `native/` has its own `package.json`
+  and its own `tsconfig`, the root's `tsc` only looks at `src`, and Vite
+  only follows what hangs off `index.html`. Verified: with `native/`
+  present, the root's `pnpm typecheck` and `pnpm build` do not touch it.
+- **The workshop's index is derived from the folders**
+  (`require.context` in `native/src/components/pieces/registry.ts`), the
+  same way the vault is derived from the disk: there is no list to
+  maintain and it cannot lie.
+- **The slug is the same string in three places**: the workshop's
+  folder, the recording's file, and the URL of the published piece.
+- **The closing step is `pnpm record`**: it pins the status bar at 9:41,
+  records with `--codec h264` (the default of `simctl` is **HEVC** and
+  it may not play in the exhibition's `<video>`, which is the most
+  expensive trap on the way because it does not fail while recording,
+  it fails in the piece that is already published) and writes **straight
+  into `VAULT_DIR/native/`**. You stop and the clip is already in the
+  grid → Open in Playground → Add to Exhibition.
+- **`expo install` picks the versions, not npm.** An RN dependency
+  brings native code compiled against the SDK's runtime: the latest one
+  on npm against SDK 57 is a combination nobody tested, and it breaks
+  the native build. The repo's rule is kept where it means something
+  here: **the SDK is the latest**, 57. The table with the four versions
+  and their why is in `native/AGENTS.md`.
+- **The dev build works, with a two-line patch.** Xcode 26.2 rejects an
+  annotation that `expo-modules-jsi` 57.0.5 put on a constructor;
+  `patches/expo-modules-jsi@57.0.5.patch` takes it out and leaves the
+  header identical to 57.0.4's, which Expo published and which compiles.
+  The full why is in `native/AGENTS.md`.
+- **SwiftUI has no workshop yet**: it is waiting for the first piece
+  that asks for one. That is where a View per piece + `#Preview` and the
+  iOS 17 springs go.
 
-**El stage sabe mostrar las dos.** `Muestra`, en `parts.tsx`, decide por
-`platform`: la grabación de una App en el hueco de teléfono que la caja
-ya reservaba, o el componente de una Web corriendo vivo — resuelto por
-slug en `demos.tsx`. Lo que falta ahora no es mecanismo: es la primera
-pieza real.
+**The stage knows how to show both.** `Showcase`, in `parts.tsx`,
+decides by `platform`: an App's recording in the phone slot the box was
+already reserving, or a Web's component running live, resolved by slug
+in `demos.tsx`. What is missing now is not mechanism: it is the first
+real piece.
 
-### La frontera
+### The boundary
 
-Todo lo que cuelga de `src/privado/` existe **sólo en desarrollo**, y no
-porque el host lo bloquee: el código **no llega al build**. Son dos
-pliegues sobre `import.meta.env.DEV` en `app.tsx` —la lista de rutas a
-`[]`, el componente a `null`— y Rollup borra el import dinámico entero.
-Verificado contando ocurrencias en `dist/`: cero. En producción `/vault`
-cae en la misma rama que cualquier URL inventada.
+Everything hanging off `src/private/` exists **only in development**,
+and not because the host blocks it: the code **does not reach the
+build**. It is two folds over `import.meta.env.DEV` in `app.tsx` (the
+list of routes to `[]`, the component to `null`) and Rollup deletes the
+whole dynamic import. Verified by counting occurrences in `dist/`: zero.
+In production `/vault` falls into the same branch as any made-up URL.
 
-El borde es una **carpeta** y no un flag repartido por archivos: un flag
-se olvida, un directorio no. Cualquier archivo nuevo ahí adentro hereda
-la puerta sin que nadie tenga que acordarse.
+The edge is a **folder** and not a flag scattered across files: a flag
+gets forgotten, a directory does not. Any new file in there inherits the
+gate without anyone having to remember.
 
-**La dependencia va en un solo sentido.** Lo privado puede importar del
-producto (tokens, `clicDeLink`, `Volver`); el producto **no** puede
-importar de lo privado, porque eso lo arrastraría al bundle. Cuando el
-lienzo tenga que dibujar una pieza de verdad, el import va en esa
-dirección —privado → producto— y por eso el modelo guarda el **nombre**
-de la pieza y no su componente.
+**The dependency goes in one direction only.** The private side can
+import from the product (tokens, `linkClick`, `Back`); the product
+**cannot** import from the private side, because that would drag it into
+the bundle. When the canvas has to draw a real piece, the import goes in
+that direction (private → product), and that is why the model stores the
+**name** of the piece and not its component.
 
-## El mapa del repo
+## The map of the repo
 
-| dónde | qué |
+| where | what |
 | --- | --- |
-| `src/app.tsx` | el router (sin librería: `pushState` y dos vistas), el scrollspy, la puerta de lo privado |
-| `src/pieces.ts` | el inventario público y el `slug` canónico. Hoy vacío |
-| `src/demos.tsx` | el mapa nombre → componente de las piezas Web |
-| `src/piezas/` | **el demo de cada pieza Web**, un archivo por slug. Acá aterriza un boceto publicado |
-| `nativo/` | **el taller nativo**: app Expo con su propio toolchain. Ver su `AGENTS.md` |
-| `nativo/VIDRIO.md` | referencia del material de vidrio: por qué un `GlassView` no se anima por opacidad |
-| `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
-| `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
-| `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |
-| `mockup/` | **el video para X de una pieza App**, en Remotion: bisel oficial, fondo neutro, cámara medida; se itera en Studio. Ver su `AGENTS.md` |
-| `src/parts.tsx` | masthead, ítem de lista, detalle, la muestra (video/vivo), flecha de volver, `clicDeLink` |
-| `src/tokens.css` | todos los tokens, cada uno con su grado de evidencia y sus cuatro ramas (claro · oscuro · alto contraste ×2) |
-| `src/not-found.tsx` | el 404 con física |
-| `src/privado/privado.tsx` | el marco del área privada: solapas, hueco de acciones, ⌘Z de navegación |
-| `src/privado/vault.tsx` | la grilla y el detalle de un clip |
-| `src/privado/clips.ts` | el índice del vault y la derivación desde el archivo |
-| `src/privado/reproductor.tsx` | cuadro a cuadro, pista de 2px, velocidad 1x/0.5x |
-| `src/privado/ficha.tsx` | los cuatro datos al costado del clip |
-| `src/privado/enlaces.ts` · `enlace.tsx` | encontrar los links de una nota y dibujarlos |
-| `src/privado/playground.tsx` | la lista de vistas y el lienzo |
-| `src/privado/vistas.ts` | modelo de vistas, persistencia, deshacer/rehacer, `alPlayground` |
-| `src/privado/bocetos.tsx` | el registro de bocetos: los encuentra, los dibuja y aguanta que estén rotos |
-| `src/privado/bocetos/` | **acá se escribe.** Un archivo por boceto, componente por defecto |
-| `src/privado/acciones.tsx` | menú del clic derecho, diálogos, botones del chrome |
-| `scripts/vault-media.mjs` | el puente al vault |
-| `scripts/cuadros.mjs` | `mdhd` + `stts` del mp4/mov, sin ffprobe |
-| `scripts/rutas.mjs` | `vercel.json` desde `pieces.ts`, en prebuild |
-| `scripts/tarjeta-link.mjs` | título y favicon de un link, del lado del servidor |
+| `src/app.tsx` | the router (no library: `pushState` and two views), the scrollspy, the gate to the private side |
+| `src/pieces.ts` | the public inventory: name, `slug` and platform of every piece, in editorial order |
+| `src/demos.tsx` | the slug → component map of the Web pieces |
+| `src/components/pieces/<slug>/` | **one folder per piece**, with the shape of react-native-motion's `components/animations/<slug>/`: `index.tsx` + `<slug>.tsx` (a Web's demo; this is where a published sketch lands) and `notes.tsx` (the detail's notes, for both platforms) |
+| `src/notes.tsx` | the slug → notes map |
+| `native/` | **the native workshop**: an Expo app with its own toolchain. See its `AGENTS.md` |
+| `native/GLASS.md` | the reference for the glass material: why a `GlassView` cannot be animated by opacity |
+| `native/src/components/pieces/<slug>/` | an App piece: `index.tsx`, `<slug>-screen.tsx`, `<slug>.tsx` and its own things next to them. The route is one for all of them (`native/src/app/[slug].tsx`) and the registry is derived from the folders (`registry.ts`) |
+| `native/scripts/new-piece.mjs` | creates a piece. The `New sketch` of this side |
+| `native/scripts/record.mjs` | records the simulator **straight into the vault**: clean status bar + h264 |
+| `mockup/` | **the video of an App piece for X**, in Remotion: the official bezel, a neutral background, a measured camera; you iterate it in Studio. See its `AGENTS.md` |
+| `src/parts.tsx` | masthead, list item, detail, the showcase (video/live), back arrow, `linkClick` |
+| `src/tokens.css` | every token, each one with its evidence grade and its four branches (light · dark · high contrast ×2) |
+| `src/not-found.tsx` | the 404 with physics |
+| `src/private/private.tsx` | the frame of the private area: tabs, slot for actions, ⌘Z for navigation |
+| `src/private/vault.tsx` | the grid and the detail of a clip |
+| `src/private/clips.ts` | the vault's index and the derivation from the file |
+| `src/private/player.tsx` | frame by frame, a 2px track, speed 1x/0.5x |
+| `src/private/details.tsx` | the four pieces of data beside the clip |
+| `src/private/links.ts` · `link.tsx` | finding the links in a note and drawing them |
+| `src/private/playground.tsx` | the list of views and the canvas |
+| `src/private/views.ts` | the model of views, persistence, undo/redo, `toPlayground` |
+| `src/private/sketches.tsx` | the registry of sketches: it finds them, draws them and puts up with them being broken |
+| `src/private/sketches/` | **this is where you write.** One file per sketch, component by default |
+| `src/private/actions.tsx` | right click menu, dialogs, buttons in the chrome |
+| `scripts/vault-media.mjs` | the bridge to the vault |
+| `scripts/frames.mjs` | `mdhd` + `stts` from the mp4/mov, without ffprobe |
+| `scripts/routes.mjs` | `vercel.json` from `pieces.ts`, in prebuild |
+| `scripts/link-card.mjs` | the title and favicon of a link, on the server side |
 
-## Dónde está escrita cada cosa
+## Where each thing is written
 
-- **`README.md`** — la bitácora. Cada decisión, su valor y de dónde
-  salió. Es lo primero que hay que leer antes de tocar algo que ya está
-  decidido: casi todo lo que parece arbitrario tiene una medición atrás.
-- **`DESIGN.md`** — la referencia. Los tokens, sus valores en cada
-  viewport, los grados de evidencia y las cuatro reglas del sistema.
-- **`AGENTS.md`** (esto) — cómo funciona el producto y cómo se trabaja.
-- **Los archivos mismos.** Cada `.tsx` y cada `.module.css` lleva el
-  porqué arriba, y es donde más rápido se entiende algo. Cuando se decide
-  algo nuevo, se escribe ahí **y** en la bitácora.
+- **`README.md`**: the log. Every decision, its value and where it came
+  from. It is the first thing to read before touching something that is
+  already decided: almost everything that looks arbitrary has a
+  measurement behind it.
+- **`DESIGN.md`**: the reference. The tokens, their values at each
+  viewport, the evidence grades and the system's four rules.
+- **`AGENTS.md`** (this): how the product works and how the work is
+  done.
+- **The files themselves.** Every `.tsx` and every `.module.css` carries
+  the why at the top, and that is where you understand something
+  fastest. When something new is decided, it gets written there **and**
+  in the log.
 
-## Referencias máximas
+## The highest references
 
-**[benji.org](https://benji.org/) (Benji Taylor) y
-[joshpuckett.me](https://joshpuckett.me/) (Josh Puckett) son las referencias
-más altas de este proyecto.** Ante cualquier duda de tipografía, espaciado,
-jerarquía, copy o densidad, la respuesta se busca primero ahí — midiendo sus
-páginas de verdad, nunca de memoria.
+**[benji.org](https://benji.org/) (Benji Taylor) and
+[joshpuckett.me](https://joshpuckett.me/) (Josh Puckett) are the highest
+references of this project.** For any doubt about typography, spacing,
+hierarchy, copy or density, the answer is looked for there first, by
+measuring their pages for real, never from memory.
 
-Referencias secundarias: [emilkowal.ski](https://emilkowal.ski/) (Emil
-Kowalski) para motion y calma vertical, [rauno.me/craft](https://rauno.me/craft)
-para el formato de exposición. Para el área privada se midieron además
-`linear.app/now`, el archivo de Figma y la HIG de Apple.
+Secondary references: [emilkowal.ski](https://emilkowal.ski/) (Emil
+Kowalski) for motion and vertical calm, [rauno.me/craft](https://rauno.me/craft)
+for the exhibition format. For the private area, `linear.app/now`, the
+Figma file and Apple's HIG were also measured.
 
-### Regla de evidencia
+### The evidence rule
 
-Nunca se afirma un valor de estos sitios sin medirlo. Dos grados:
+A value from these sites is never claimed without measuring it. Two
+grades:
 
-- **SOURCE** — leído del CSS servido (`curl` al `.css` que sirve el sitio).
-- **RUNTIME** — `getComputedStyle` en el navegador.
+- **SOURCE**: read from the served CSS (`curl` to the `.css` the site
+  serves).
+- **RUNTIME**: `getComputedStyle` in the browser.
 
-El CSS servido gana sobre el computed cuando difieren. Y una regla que
-existe en la hoja **no** es una regla en la pantalla: si la conclusión
-depende de lo que se renderiza, hay que mirar el HTML servido. Eso ya
-falló tres veces acá —el zoom de benji, las utilidades `active:scale` de
-josh, la card asimétrica de linear—: las tres reglas existían y
-renderizaban **cero** elementos.
+The served CSS wins over the computed one when they differ. And a rule
+that exists in the sheet is **not** a rule on the screen: if the
+conclusion depends on what gets rendered, you have to look at the served
+HTML. That has already failed three times here (benji's zoom, josh's
+`active:scale` utilities, linear's asymmetric card): all three rules
+existed and rendered **zero** elements.
 
-La HIG de Apple no se puede leer con `WebFetch` —sus páginas se arman con
-JS— pero sí en JSON:
-`https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<pagina>.json`.
+Apple's HIG cannot be read with `WebFetch`, because its pages are
+assembled with JS, but it can in JSON:
+`https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<page>.json`.
 
-### Cómo resuelve cada uno la jerarquía
+### How each one solves hierarchy
 
-| | mueve | clava | tracking |
+| | moves | pins | tracking |
 | --- | --- | --- | --- |
-| **Benji** | el **peso**: 460 cuerpo · 500 énfasis · 560 sección · 600 título | el tamaño (14px en todo) | rampa en `rem`, negativa arriba de 13px, **positiva** por debajo de 12 |
-| **Josh** | el **tamaño**: 24px título · 16px cuerpo | el peso (400 siempre) | proporcional en `em`, cambia de signo con el tamaño |
-| Emil | peso + color; cuerpo liviano 400, secciones 550 | el tamaño (16px) | **cero** en todo el sitio |
+| **Benji** | the **weight**: 460 body · 500 emphasis · 560 section · 600 title | the size (14px throughout) | a ramp in `rem`, negative above 13px, **positive** below 12 |
+| **Josh** | the **size**: 24px title · 16px body | the weight (400 always) | proportional in `em`, it changes sign with the size |
+| Emil | weight + color; light body 400, sections 550 | the size (16px) | **zero** across the whole site |
 
-### Título + subtítulo — el patrón medido
+### Title + subtitle: the measured pattern
 
-**Benji** (su `<header>`): `display: flex; flex-direction: column; gap: 4px`.
+**Benji** (his `<header>`): `display: flex; flex-direction: column; gap: 4px`.
 
-- Título `h1` — 14px / **500** / `rgb(17,17,17)`
-- Subtítulo `time` — 14px / **460** / `rgba(0,0,0,.4)` ← **alpha, no un gris sólido**
-- Mismo tamaño; sólo cambian peso y opacidad. Header completo: 52px de alto.
-- Su subtítulo es un **hecho** ("Updated Jul 29, 2026"), no una autodescripción.
+- Title `h1`: 14px / **500** / `rgb(17,17,17)`
+- Subtitle `time`: 14px / **460** / `rgba(0,0,0,.4)` ← **alpha, not a solid gray**
+- Same size; only the weight and the opacity change. Full header: 52px tall.
+- His subtitle is a **fact** ("Updated Jul 29, 2026"), not a self-description.
 
-**Josh** no tiene subtítulo bajo su nombre: del handle pasa directo a prosa.
-Pero su patrón de **proyecto** es exactamente nuestro masthead:
+**Josh** has no subtitle under his name: he goes from the handle straight
+into prose. But his **project** pattern is exactly our masthead:
 
-- Nombre — 16px / 400 / `rgb(10,10,10)`
-- Descripción — 16px / 400 / `rgb(82,82,82)`, una línea, sin separación extra
-- Ejemplo real: *Interface Craft* — "A working library for those committed to
-  designing with uncommon care."
+- Name: 16px / 400 / `rgb(10,10,10)`
+- Description: 16px / 400 / `rgb(82,82,82)`, one line, no extra separation
+- A real example: *Interface Craft*, "A working library for those committed
+  to designing with uncommon care."
 
-Los dos comparten la regla: **el subtítulo no cambia de tamaño, sólo baja de
-peso y/o de color.** Y ninguno de los dos se autoelogia: describen qué es la
-cosa o para quién es, nunca lo bien hecha que está.
+Both of them share the rule: **the subtitle does not change size, it only
+drops in weight and/or in color.** And neither of them praises himself: they
+describe what the thing is or who it is for, never how well made it is.
 
-## Método de trabajo
+## Working method
 
-- **Una mini-decisión por vez.** No se avanzan tres cosas juntas.
-- Las decisiones se exploran con el skill `prototype`: variantes reales detrás
-  del picker, en la página real, y el usuario elige mirando. Todo lo que no
-  está bajo estudio se mantiene congelado, para que la comparación sea limpia.
-- El taller vive fuera del build (`proto/`, `.context/prototypes/`). El repo
-  Vite es canónico: cuando algo se decide, se hornea acá y el harness se saca.
-- **Nada se afirma sin medir.** Ni valores propios ni ajenos. Los reportes
-  citan números tomados del navegador, no estimaciones.
-- **No se razona sobre datos inventados.** Contar sobre placeholders y
-  presentar el resultado como dato es un error — ya pasó con las 18 piezas
-  de scaffolding que hubo en `pieces.ts`.
-- **Una atribución también se verifica.** El `←` de la flecha de volver
-  estuvo atribuido a benji y josh en la bitácora, y los dos usan palabras
-  (`Index`, `Home`): era una decisión nuestra con una cita prestada encima.
-- **Todo nombre usa vocabulario profesional preciso.** Archivos,
-  scripts, carpetas, funciones, variables, clases, commits, ramas, lo que
-  sea: la palabra que un ingeniero de IBM habría escrito en una
-  especificación en 1972. Sin jerga, sin abreviaturas casuales, sin
-  nombres graciosos ni ingeniosos, sin palabras prestadas del chat. Vale
-  para todo, no sólo para el ejemplo que sigue: un script que despliega
-  dashboards es `deploy_dashboards.sh`, no `push_dashboards.sh` — y eso
-  es una ilustración del principio, no su alcance. Vale también para el
-  texto público —el título de la pieza, su línea de descripción y las
-  notas—: las partes se nombran con el término técnico (header, tab bar,
-  pager, list) y las acciones con el verbo de especificación ("select",
-  no "jump"; "collapses", no "folds away"). Regla traída por el usuario
-  el 2026-09-07.
+- **One mini-decision at a time.** Three things do not move forward together.
+- Decisions are explored with the `prototype` skill: real variants behind
+  the picker, on the real page, and the user chooses by looking. Everything
+  that is not under study stays frozen, so that the comparison is clean.
+- That workshop lives outside the build (`proto/`, `.context/prototypes/`).
+  The Vite repo is canonical: when something is decided, it gets baked in
+  here and the harness is taken out.
+- **Nothing is claimed without measuring it.** Neither your own values nor
+  anyone else's. The reports cite numbers taken from the browser, not
+  estimates.
+- **You do not reason over invented data.** Counting over placeholders and
+  presenting the result as a fact is a mistake. It already happened with the
+  18 scaffolding pieces that were in `pieces.ts`.
+- **An attribution gets verified too.** The `←` of the back arrow was
+  attributed to benji and josh in the log, and both of them use words
+  (`Index`, `Home`): it was a decision of ours with a borrowed citation on
+  top of it.
+- **Every name uses precise professional vocabulary.** Files, scripts,
+  folders, functions, variables, classes, commits, branches, whatever it
+  is: the word an IBM engineer would have written in a specification in
+  1972. No jargon, no casual abbreviations, no funny or clever names, no
+  words borrowed from chat. It holds for everything, not only for the
+  example that follows: a script that deploys dashboards is
+  `deploy_dashboards.sh`, not `push_dashboards.sh`, and that is an
+  illustration of the principle, not its scope. It holds for the public
+  text too (the piece's title, its line of description and the notes):
+  the parts are named with the technical term (header, tab bar, pager,
+  list) and the actions with the specification verb ("select", not
+  "jump"; "collapses", not "folds away"). A rule brought in by the user
+  on 2026-09-07.
 
-## Estado
+## Status
 
-Lo decidido y su fundamento está en `README.md`, y ahí mismo está la lista
-de **Pendiente**. Los pendientes de tokens están marcados como tales en
-`src/tokens.css`.
+What has been decided and its grounding is in `README.md`, and the list of
+**Pending** items is right there too. The pending token items are marked as
+such in `src/tokens.css`.

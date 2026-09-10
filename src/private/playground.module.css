@@ -1,0 +1,1497 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE PLAYGROUND
+
+   It shares the private area's rail (1440 max and 32 of air, openai's)
+   with the list of views, and NOT with the canvas: a canvas is full
+   bleed by definition, and that is why the frame never set padding of
+   its own. See private.module.css.
+
+   Not one loose number of color, typography or motion: everything comes
+   out of the same tokens as the product.
+   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   THE LIST OF VIEWS: the vault's grid, with other content inside.
+
+   THE GRID IS NOT NEW: it is openai.com/news's, measured whole with
+   /web-clone and already baked into vault.module.css. Three columns
+   with a 24 gutter and an 80 row, and the cuts to 2 and to 1 column at
+   767 and 560 (the 560 comes out of its own arithmetic, 512 + 24 + 24).
+   The receipts, the eight measured windows and the why of each number
+   are over there, in .grid; here they get reused without arguing them
+   again because it is the same class of content in the same app. The
+   1440 max and the 32 rail are set by the frame (private.module.css).
+
+   This used to be a column of names in plain text. It left for the
+   reason the vault exists: a view is a COMPOSITION, and a name does not
+   say how it is put together.
+   ═══════════════════════════════════════════════════════════════ */
+.playground {
+  /* ─── THE CARD'S RATIO, AS A NUMBER ───
+     The aspect ratio arrives by token, --vault-aspect-ratio in
+     tokens.css, but fitting the preview also needs the QUOTIENT, so it
+     can be compared inside a calc(). A CSS <ratio> does not go into a
+     calc, so that one number is written here with its arithmetic in
+     plain sight and its source cited: 550 × 528 is benji's card in
+     family-values, measured.
+
+     THE OTHER THREE WENT TO tokens.css. They were declared here,
+     duplicated from .vault, and before that not even duplicated: they
+     were read with `var(--vault-…, fallback)` from a sibling module,
+     that is, they NEVER resolved and what you saw was the fallback. Two
+     of them matched by coincidence and the third did not. The label of
+     a dialog option came out at 12px where the vault puts it at 16.
+     Third bite of the same trap in this repo; the fix was moving the
+     value to where both modules inherit it. */
+  --view-card-ratio: calc(550 / 528);
+
+  max-width: var(--private-width);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--private-inline);
+}
+
+/* The same air as the vault's grid, and for the same reason: the bar no
+   longer gives it, so the one below claims it.
+
+   THE ENTRANCE OF THIS GRID IS NOT ANIMATED, not even with a fade. It
+   is the frequency rule: you enter and come back to the list all the
+   time, every time you close a canvas, and what you see many times a
+   day does not get animated, because the animation stops being an
+   arrival and becomes a wait. What does animate is what happens ONCE: a
+   frame you add, a frame you delete. */
+.viewGrid {
+  --view-columns: 3;
+
+  margin-top: var(--section-content-gap);
+  display: grid;
+  grid-template-columns: repeat(var(--view-columns), minmax(0, 1fr));
+  column-gap: var(--vault-gutter);
+  row-gap: var(--vault-row);
+  align-items: start;
+}
+/* Its cuts, the vault's own and from the same measurement. */
+@media (max-width: 767px) {
+  .viewGrid {
+    --view-columns: 2;
+  }
+}
+@media (max-width: 560px) {
+  .viewGrid {
+    --view-columns: 1;
+  }
+}
+
+.card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* The box of the vault's card: its aspect ratio, its radius, its
+   background and its hover. The only different thing is what gets drawn
+   inside. */
+.cardMedia {
+  aspect-ratio: var(--vault-aspect-ratio);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  transition: background-color var(--dur-surface) var(--ease-surface);
+}
+.card:hover .cardMedia {
+  background: var(--surface-hover);
+}
+.cardName {
+  margin-top: var(--vault-media-title);
+  font-size: var(--type-h3-fs);
+  font-weight: var(--type-h3-fw);
+  letter-spacing: var(--type-h3-ls);
+  line-height: var(--type-h3-lh);
+  color: var(--type-h3-c);
+  overflow-wrap: anywhere;
+}
+
+/* ─── THE PREVIEW ───
+   The air goes in `inset` and in percent, which is what the phone's
+   card in the vault does. The difference from a `padding` in percent
+   matters here: `padding` ALWAYS resolves against the width on all four
+   sides, so it would deform the inner box; `inset` resolves top and
+   bottom against the height, and with that the inner box keeps EXACTLY
+   the card's aspect ratio. Keeping it is what makes the fitting
+   arithmetic below exact and not approximate.
+
+   6% per side, 12% in total. */
+.preview {
+  position: absolute;
+  inset: 6%;
+  display: grid;
+  place-items: center;
+}
+
+/* `contain` FITTING DONE BY HAND, because what gets fitted is not an
+   image but a group of nodes and there is no object-fit that helps.
+
+   --preview-ratio is set by the TSX: it is width/height of the bounding
+   box of all the view's frames. With that the fit is one line:
+
+     if the board is NARROWER than the card   it ties the height, and
+                                              the width comes from the
+                                              ratio
+     if it is WIDER                           it ties the width
+
+   The `min()` picks which of the two rules on its own, and the
+   aspect-ratio derives the other side. */
+.previewBox {
+  position: relative;
+  aspect-ratio: var(--preview-ratio);
+  width: min(100%, calc(100% * var(--preview-ratio) / var(--view-card-ratio)));
+}
+
+/* Each frame, in its relative place inside the bounding box. The
+   positions are PERCENTAGES and the TSX sets them, so the same preview
+   works in a 443 card and in a 240 one without recalculating
+   anything. */
+.previewFrame {
+  position: absolute;
+  overflow: hidden;
+  /* 2 and not --card-radius. At this scale a frame is 40px wide: the
+     system's 8 would eat the whole corner and the preview would lie
+     about the shape of what is on the canvas. The system's radius
+     describes a 443 card, not a thumbnail. */
+  border-radius: 2px;
+}
+.previewFrame > * {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* A broken reference, at this scale: a rectangle and nothing else. A
+   name here would be three pixels tall, that is, noise shaped like
+   text. --surface-hover is a single step above the card's background:
+   it is enough to see that there IS a frame there, without saying
+   anything else. */
+.previewPlaceholder {
+  position: absolute;
+  border-radius: 2px;
+  background: var(--surface-hover);
+}
+
+/* The delete button, today the only one of its class: "Add clip" was
+   the other and the + of the board's index replaced it. Plain text,
+   like all the private area's chrome: no pill, no background, no
+   border. The same typographic set as the tabs and the filter, because
+   it is the same class of control. */
+.action {
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  border: 0;
+  background: transparent;
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+/* GATED BY FINE POINTER. In the rest of the private area the hover goes
+   ungated, and there the reasoning holds: those words NAVIGATE, so
+   touching them unmounts the element and the stuck touch hover goes
+   away by itself. Not here: "Delete view" opens a dialog and the button
+   stays mounted underneath, so on a touch screen it would stay lit
+   until you touch something else. It is the exact case of the artifact,
+   and it shares it with the index's rows (.row), for the same reason. */
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    color: var(--active-c);
+  }
+}
+
+/* ─── THE + ───
+   The vault's, whole: the 32 box, the 16 glyph inside, the circle, its
+   two fills per theme and the same pair of transitions. It is copied
+   from .plus in vault.module.css (the values and their reasons are over
+   there) and not imported, because a class from one module cannot be
+   composed from another without dragging the whole file into the one
+   that imports it.
+
+   THE ONLY THING NOT COPIED IS THE MARGIN. Over there the + lives next
+   to three filters and needs --vault-plus-gap so it does not read as a
+   fourth filter; here it is alone at its end of the bar, so there is
+   nothing to separate from and the margin would be a gap with no owner.
+
+   And it belongs ONLY to the bar: the + in the canvas's sidebar is
+   .barePlus, with no circle. A section heading and a bar are two
+   contexts, see the note over there. */
+.plus {
+  --plus-fill: rgb(0 0 0 / 0.08);
+  --plus-fill-hover: rgb(0 0 0 / 0.14);
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--plus-fill);
+  color: var(--type-nav-c);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-surface) var(--ease-surface),
+    color var(--dur-text) var(--ease-text);
+}
+/* ─── THE STRUT THAT GIVES THE CIRCLE A BASELINE ───
+   The private area's bar aligns by `baseline`, and rightly so: the tabs
+   are 13/16 and the vault's filter 14/20, so centering them by box
+   would leave them resting on two different heights.
+
+   But a circle with an SVG inside HAS NO text baseline, so the browser
+   uses its bottom edge, and with that the bar pushes the tabs down to
+   align them against the floor of the circle. MEASURED: the box for
+   "Playground" dropped from y=80 to y=83.28, that is, the + moved the
+   tabs. In the vault this does not happen because the bar's item is
+   .filters, which has text inside and therefore a baseline of its own.
+
+   The strut is a zero-width space with the SAME typography as the nav.
+   It creates a real line of text (an empty inline-block is not enough,
+   it generates no line box) and with it the button gets exactly the
+   baseline a word of the bar would have. Zero width, so it does not
+   shift the glyph a single pixel. */
+.plus::before {
+  content: '\200B';
+  width: 0;
+  overflow: hidden;
+  font-size: var(--type-nav-fs);
+  line-height: var(--type-nav-lh);
+}
+.plus:hover {
+  background: var(--plus-fill-hover);
+  color: var(--active-c);
+}
+@media (prefers-color-scheme: dark) {
+  .plus {
+    --plus-fill: rgb(255 255 255 / 0.05);
+    --plus-fill-hover: rgb(255 255 255 / 0.1);
+  }
+}
+
+.notice {
+  margin: var(--section-content-gap) 0 0;
+  font-size: var(--type-body-fs);
+  font-weight: var(--type-body-fw);
+  letter-spacing: var(--type-body-ls);
+  line-height: var(--type-body-lh);
+  color: var(--type-body-c);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE CANVAS: ONE SIDEBAR AND EVERYTHING ELSE IS BOARD
+
+   It is the project's only full-bleed screen: no 1440 rail, no tab bar
+   (private.tsx turns it off on this route) and none of the frame's
+   vertical air. A canvas is all there is.
+
+   THE ROW IS chrome | board, and that is the whole structure. What
+   separates the two halves is COLOR and not a line: the sidebar goes in
+   --canvas and the board in --surface, which is exactly the pair the
+   system already uses to separate a card from the page. A hairline on
+   top would be a third border saying what two different backgrounds
+   already say, and this system does not draw a box where a contrast is
+   enough (see the ELEVATION note in tokens.css).
+   ═══════════════════════════════════════════════════════════════ */
+.canvas {
+  /* ─── THE SIDEBAR'S WIDTH ───
+     What is CHOSEN is the text column: 176px. In this system there is
+     no fixed column to copy it from (the product's index is `position:
+     fixed` and each of its links measures its own word, so it never
+     reserves a width) so it is written down as scaffolding, the same as
+     --private-tab-gap.
+
+     What fixes it are the two things it has to hold:
+       · the view's name, which is the longest and the only thing that
+         grows. 176 at --type-body (14px) is about 24 characters before
+         it truncates
+       · the index's rows and "Delete view", which at --type-nav (13px)
+         fit with air to spare. A long clip name truncates with an
+         ellipsis and shows the rest in its tooltip
+
+     THE TOTAL WIDTH IS DERIVED, not written: the column plus the
+     private area's rail on each side. And since that rail already
+     scales on its own (32 above 767, 24 below, in tokens.css) the
+     sidebar narrows with it without a media query of its own: 240 on
+     desktop, 224 on tablet. A number written by hand there would be one
+     more thing to remember to move. */
+  --panel-text: 176px;
+  --panel-width: calc(var(--panel-text) + var(--private-inline) * 2);
+
+  /* ─── THE COLLAPSE: 300ms with the system's curve ───
+     300 does not come from nowhere: it is the translation into CSS of
+     the spring the vault's details panel opens and closes with (SPRING
+     in details.tsx, 0.35s, bounce 0). A side panel that leaves takes
+     the same time here as it does there, and that way there are not two
+     clocks for the same fact. The curve is --ease-dialog, the one that
+     already governs everything that enters and leaves the private
+     area. */
+  --panel-collapse: 300ms;
+
+  flex: 1;
+  min-height: 0;
+  display: flex;
+
+  /* ─── WHO PAYS FOR THE LAYOUT WHEN THE PANEL LEAVES ───
+     THIS element pays for it, with a padding, and not the panel with
+     its `width`.
+
+     The difference is the whole difference. A panel that animates its
+     own width does three jobs per frame: it re-lays out the page, it
+     re-lays out ITS CONTENT (the name, the index, the footer) and on
+     top of that it does it from JavaScript. Here the layout cost falls
+     on a single property of a single element with no children of its
+     own to reflow, and the visible panel leaves the flow and travels in
+     `transform`, which is the cheap route.
+
+     It is GitLab's architecture, and it is not a preference: of four
+     production sidebars measured under synthetic load (the naive one,
+     Notion's, Linear's and this one) it is the only one that keeps 60fps
+     with the CPU throttled 6×. Notion's and Linear's drop frames at the
+     same rate, even though one animates `transform` and the other
+     `left`, because both drive the animation with
+     requestAnimationFrame. What decides is not the property: it is the
+     DRIVER. That is why this is a CSS transition and not a `motion`
+     like the rest of the file. The moment a panel collapses is exactly
+     the moment the main thread is busy.
+
+     And `position: relative` because the panel now hangs off here. */
+  position: relative;
+  padding-left: var(--panel-width);
+  transition: padding-left var(--panel-collapse) var(--ease-dialog);
+}
+/* COLLAPSED: the gap closes and the board takes all of it.
+   No value of the sidebar changes. It is drawn the same as always, only
+   resting off screen. */
+.canvas[data-no-panel] {
+  padding-left: 0;
+}
+.canvas[data-no-panel] .panel {
+  /* Percent and not pixels: the column is 240 on desktop and 224 on
+     tablet (--private-inline scales on its own), and `-100%` is still
+     whatever width it has without anybody recalculating anything. */
+  transform: translateX(-100%);
+}
+/* With no motion, the collapse still exists: what gets turned off is
+   the travel, not the function. The panel's own switch-off CANNOT be
+   here. It is below, next to its rule, and the reason is written
+   there. */
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* The chrome's column. OUT OF THE FLOW, pinned to the start edge: the
+   space it takes is reserved by the canvas's padding (see above), so
+   collapsing it is moving it and not re-laying out the page.
+
+   `flex: none` used to live here with this note: "without it flex eats
+   it when the board asks for room, and the 240 sidebar would end up
+   measuring whatever its words measure". The problem was real and the
+   answer is still the same (the width is declared, not negotiated);
+   what changed is that an absolute element is no longer a flex item, so
+   `flex: none` was defending nothing and left. What defends it now is
+   `width`. */
+.panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--panel-width);
+  transition: transform var(--panel-collapse) var(--ease-dialog);
+  /* THE RAIL BELOW, NOT THE PAGE: the 80 of --page-padding-bottom is
+     the editorial air a product page ends with, and here it left
+     "Delete view" floating a tenth of a screen from the edge (request:
+     "put it further down"). A tool hugs its frame with the same number
+     on all three sides: --private-inline, which also already scales on
+     its own (32 above 767, 24 below). The 80 ABOVE stays: it lines the
+     arrow up with the one in the vault's detail. */
+  padding: var(--page-padding-top) var(--private-inline) var(--private-inline);
+  background: var(--canvas);
+  display: flex;
+  flex-direction: column;
+  /* THE BREATHING ROOM BETWEEN THE TITLE AND THE ACTIONS. 40, which is
+     --section-content-gap: "the first piece, from the label", the gap
+     the system puts between a heading and what hangs off it, and this
+     is exactly that relationship: the name is the view's title and the
+     actions are what you can do with it.
+
+     It was tried against --index-group-gap (32), which is the jump
+     between two groups of the product's index, and it lost: there are
+     no two equal groups here, there is a title and its content. The
+     rows INSIDE a group do use the index's 8, see .rows. */
+  gap: var(--section-content-gap);
+  overflow-y: auto;
+
+  /* ─── THE SIDEBAR GOES OVER THE BOARD ───
+     Two belts for the same thing, and both on purpose:
+
+       the board clips   `overflow: hidden` on .board is the real
+                         mechanism. Nothing living inside the canvas can
+                         paint outside it
+       and this          is the safety. A clamped frame never reaches
+                         the edge, but its handles stick 4px out of its
+                         box, and the day something escapes it has to be
+                         the chrome that covers it and not the other way
+                         around
+
+     z-index 1 and not 40: the 40 belongs to the floating menu, which
+     draws over EVERYTHING. Here being one step above a sibling is
+     enough.
+
+     The `position: relative` that came with this z-index went up,
+     turned into `absolute`: the column now hangs off the canvas so it
+     can collapse. The z-index still does the same job (a positioned
+     element is all it needs) and on top of that it is now genuinely
+     necessary: an absolute element and a sibling in the flow stack by
+     document order, and without the 1 the board could win. */
+  z-index: 1;
+
+  /* ─── THE EDGE ───
+     The boundary between the chrome and the board was ONLY color, and
+     it was not enough: --canvas against --surface gives 1.045:1 of
+     contrast (measured by the critique), that is, from a metre away the
+     sidebar and the board are the same surface and the board looks like
+     it starts at x=0.
+
+     1px of --hairline, which is the token that exists for exactly this
+     and is already justified in tokens.css with linear's rule. It is
+     not a box around anything: it is a single line where there really
+     is a border between two different things.
+     `border` and not `box-shadow` because here it DOES have to take its
+     pixel: the board starts after the line, not underneath it. */
+  border-right: 1px solid var(--hairline);
+}
+/* ─── AND DOWN HERE, NOT UP THERE WITH THE CANVAS'S ───
+   The reduced motion block for the collapse is split in two and not out
+   of taste: `.panel`'s `transition` is a SHORTHAND, so it rewrites
+   `transition-duration` whole, and it lives LATER in the file. With
+   both rules at the same specificity the last one wins, that is, a
+   switch-off written further up turned nothing off.
+   Measured: with the system in `reduce`, `.canvas` gave 1e-05s and
+   `.panel` still gave 0.3s. You could see it: the gap closed at once
+   and the column left traveling anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* The arrow and the name, one above the other. The arrow goes alone on
+   its row, not next to the name, because the name can take the two rows
+   the column gives it, and an arrow hanging beside a two-line title
+   rests on nothing.
+
+   IT IS A BARE BLOCK, WITH NO `gap`, and that is a measured correction:
+   with `gap: 16` here the real gap came out at 40px, because .back
+   already brings its own `margin-bottom: 24` and the two added up. 40
+   had not been decided by anybody. It was 24 + 16 − 8 of the input's
+   negative margin.
+
+   It is the rule already written in the product's .indexGroup: "each
+   gap is asked for by a single owner, or the number you wrote stops
+   being the number you see". Here the owner is .back, and its 24 is THE
+   SAME one that separates the arrow from the title in a piece's detail.
+   The same relationship (where you come back from, and what this is
+   called) with the same number. */
+.panelTitle {
+  display: block;
+}
+
+/* ─── THE BOARD'S INDEX ───
+   The section takes the rest of the column (`flex: 1`): the footer
+   stays resting at the bottom, and the list has a real height to scroll
+   against if there are thirty clips one day. IT scrolls and not the
+   whole panel, so that "Delete view" does not leave the screen pushed
+   out by the list.
+
+   THE GAP IS 8 AND NOT THE INDEX'S 16, because the edge takes the other
+   half: the 16 between label and rows was split into 8 + line + 8 (see
+   .clipsHeader). The total label→row is still the same air, now with
+   the shelf in the middle. */
+.clips {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--index-item-gap);
+}
+
+/* ─── THE HEADER'S EDGE: chosen in a prototype (round 2) ───
+   The label and the +, on a nav line, with ONE hairline underneath at
+   the column's width: the label has a shelf. Said honestly: the two
+   measured references put their lines BETWEEN ZONES, full bleed (Paper:
+   paper.design hero; Figma: help.figma.com art. 360039831974) and
+   neither underlines a label against its own rows. That variant
+   ("Zones") was prototyped and LOST by eye. The edge is linear's
+   section rule, and here it wins because the sidebar already has its
+   zone boundary: the border-right.
+
+   Nothing crosses the line, by construction: the bare + lives in the
+   expanded whitespace of a 16 line, the same as a row, so its glyph
+   ends 8px above the edge. With the 32 circle this was not possible: it
+   stuck out −8 per side and crossed the line (measured in round 1, and
+   it is half of why the circle left).
+
+   The label is the product's .indexLabel, in values: it weighs the same
+   as its rows. "It is not a heading, it is the first line of its
+   group." */
+.clipsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--index-item-gap);
+  border-bottom: 1px solid var(--hairline);
+}
+/* ─── THE EDGE IN DARK CANNOT USE --hairline ───
+   White at 5.1% over #090908 composites to about #151514: a delta of 12
+   that gamma flattens near black. MEASURED invisible (it is the same
+   physics that made the dark selection need to be inverted instead of
+   adding 16). The sidebar's boundary survives with that token because
+   there TWO different fills meet and help each other; this line lives
+   alone over a single background and needs a number of its own.
+
+   0.08 is not new: it is the floating menu's dark ring
+   (actions.module.css), the answer the system already gave for "a 1px
+   white border that has to read over dark". */
+@media (prefers-color-scheme: dark) {
+  .clipsHeader {
+    border-bottom-color: rgb(255 255 255 / 0.08);
+  }
+}
+/* With more contrast asked for, the global token goes up to 0.102 and
+   beats the 0.08: this rule keeps the fix above from leaving it BELOW
+   what the user asked for. */
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  .clipsHeader {
+    border-bottom-color: var(--hairline);
+  }
+}
+.clipsLabel {
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  white-space: nowrap;
+}
+
+/* ─── THE BARE + ───
+   No circle: in a section heading the glyph goes naked. It is what
+   Paper ("Pages +") and Figma's new sidebar do, both measured in their
+   official captures. The vault's circle stays for the bars, where the +
+   lives next to nav words and needs a body of its own; here the label
+   already anchors it.
+
+   The box is EXACTLY a row's: the house's expanded whitespace (8/6 with
+   a negative margin), so the header measures one nav line and the 16
+   glyph fits inside it. The glyph's right edge falls on the column's
+   edge by the same mechanism that aligns the rows' text to the left.
+
+   The ::before strut is .plus's, and it is needed for the same reason
+   as over there: at ≤560 the sidebar is a ROW aligned by baseline, and
+   a button with only an SVG inside has no text baseline. Without the
+   strut, the bar would align against the button's floor and push
+   everything else (measured in .plus: the tabs dropped 3.28px). */
+.barePlus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  border: 0;
+  background: none;
+  color: var(--type-nav-c);
+  cursor: pointer;
+  transition: color var(--dur-text) var(--ease-text);
+}
+.barePlus::before {
+  content: '\200B';
+  width: 0;
+  overflow: hidden;
+  font-size: var(--type-nav-fs);
+  line-height: var(--type-nav-lh);
+}
+.barePlus:hover {
+  color: var(--active-c);
+}
+.barePlus:focus-visible {
+  outline: none;
+  color: var(--active-c);
+}
+
+/* The list, with the index's 8 between rows. The scroll belongs here
+   (see .clips), and the padding compensated with a negative margin
+   gives back the room the rows' expanded whitespace needs: without it,
+   `overflow` would clip the 6px of padding sticking out of the edge and
+   the hover would die glued to the text. The text ends up exactly where
+   it would be with none of this. The padding and the margin cancel
+   out. */
+.rows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--index-item-gap);
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+}
+.rowItem {
+  min-width: 0;
+}
+
+/* Each row, plain text: the same nav set as "Delete view" and the
+   product's index. `width: fit-content` and not 100% by .indexList's
+   rule: each word measures its own, and a click 150px away from a short
+   name cannot select anything. The cap allows the column PLUS the
+   compensated whitespace, and that is where the ellipsis cuts. This is
+   not an input: here there is honest text-overflow, with the whole name
+   in the tooltip (see the TSX).
+
+   The transition carries color AND opacity/transform: color for the
+   states, and the opacity+transform pair for the arrival, the SAME
+   tokens as the frame on the board, because a row appearing here and a
+   frame appearing there are the same fact told twice, and two clocks
+   for one fact would show. */
+.row {
+  display: block;
+  width: fit-content;
+  max-width: calc(100% + var(--private-padding-x) * 2);
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+  cursor: pointer;
+  transition:
+    color var(--dur-text) var(--ease-text),
+    opacity var(--board-enter) var(--board-curve),
+    transform var(--board-enter) var(--board-curve);
+}
+/* The three states, with the house's grammar: gray while it waits,
+   active ink when you point at it (pointer or keyboard, the same
+   signal), and full ink for the selected one. The selected one is
+   written LAST so it beats the hover: a selected row does not flicker
+   when you pass over it.
+   The hover gated by fine pointer, like .action and for the same
+   reason: the row stays mounted after you touch it, and on touch the
+   stuck hover would stay lit until you touch something else. */
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    color: var(--active-c);
+  }
+}
+/* No ring, like all the text in this column: the focus signal is the
+   same color as the hover. Pointing with the keyboard and pointing with
+   the pointer are the same gesture. */
+.row:focus-visible {
+  outline: none;
+  color: var(--active-c);
+}
+.row[data-selected] {
+  color: var(--ink);
+}
+
+/* The arrival of a new row: the frame's gesture, at text scale. The
+   frame enters fading with scale 0.98 because at 480px that is about
+   10px of travel; on a 16 line, a scale would be a blur. The same
+   travel is done in translate, 4px rising into place, the direction of
+   the entrance in the vault's detail. */
+@starting-style {
+  .row[data-new] {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+/* And the exit the way it came in, in less time: the two halves of a
+   reversible gesture, like the frame. The row stays in the DOM while
+   `leaving` lasts and `remove` unmounts it when the frame's transition
+   ends, so the two say goodbye over the same interval. */
+.row[data-leaving] {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    color var(--dur-text) var(--ease-text),
+    opacity var(--board-exit) var(--board-curve),
+    transform var(--board-exit) var(--board-curve);
+}
+
+/* The empty state, a dash, where the rows would go, in the gray that
+   annotates. The four values are --type-meta, which is EXACTLY the pair
+   a clip's details table draws a missing value with: its .table uses
+   this same token and its placeholder that same gray (see
+   details.module.css). The dash here and the one over there have to
+   weigh the same, because they are the same fact: there is nothing. */
+.noClips {
+  margin: 0;
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--type-meta-c);
+}
+
+/* The name is edited in place, so the input does NOT look like an
+   input: no border, no background, no shadow. It is the title, and it
+   turns out you can also write over it.
+   It takes the column's width so the cursor lands where you touched
+   even if you touch past the text. */
+.name {
+  /* `block` and not an input's default inline: in the flow, an input
+     rests on a line of text and drags that line's descender along as
+     dead space below, which would break the gap underneath. */
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: var(--private-padding-y) var(--private-padding-x);
+  margin: calc(var(--private-padding-y) * -1) calc(var(--private-padding-x) * -1);
+  font-family: inherit;
+  /* THE TITLE SET, --type-h1, which is the same one the name of the
+     open clip uses in the vault: it is the same role (what the thing
+     you have open is called) so it is the same typography and not a
+     similar one. In this system the size is one single one (14) and
+     what makes hierarchy is the weight: 500 against the 460 of
+     everything else in the column. */
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  color: var(--type-h1-c);
+  /* The text cursor over the WHOLE width, not only over the letters: it
+     is the only thing that says, before you touch, that this gets
+     written. */
+  cursor: text;
+  transition: color var(--dur-text) var(--ease-text);
+}
+/* The signal that it can be edited is the color when you pass over it,
+   which is how everything else here signals. */
+.name:hover {
+  color: var(--active-c);
+}
+/* NO RING. The system's was there: a blue thick-bordered box around a
+   title that has no box, with the square corner no other surface in
+   this app uses. It drew a form where there is a name.
+   The blinking cursor already says where you are (it is the same
+   indicator any text you write has) and it is the same decision the
+   clip's title in the vault and the details' fields already take. */
+.name:focus {
+  outline: none;
+  color: var(--type-h1-c);
+}
+/* And if you select by hand, the house's gray and not the system's
+   blue: the other block of color that showed up on a double click. */
+.name::selection {
+  color: var(--selection-color);
+  background: var(--selection-bg);
+}
+
+/* ─── THE SIDEBAR'S FOOTER ───
+   `margin-top: auto` pins it to the bottom of the column, and THAT
+   DISTANCE IS THE PROTECTION: "Add clip" and "Delete view" were two
+   words of the same size, the same weight and the same gray, separated
+   by 8px. One pixel of error between adding a clip and deleting the
+   whole view.
+
+   The system does not have a single state color (zero reds in the whole
+   product, and putting the first one here would invent a whole level)
+   so the difference goes where it can: in the space. Above, what you do
+   all the time; below, what you do once.
+
+   16 between the action and the number: the same gap the product's
+   index puts between its label and its list, and for the same reason.
+   They are two things of a different nature that still belong to the
+   same block. */
+/* The selection's action: the same chrome word as "Delete view" (the
+   nav's gray → ink pair, the expanded whitespace) with the GROUP air on
+   top. The column's gap already puts 8; these 8 take it to 16, which is
+   the distance the product's index separates two groups with. Without
+   that air it would read as one more row of the list.
+   `align-self` because .clips stretches its children and the button's
+   whitespace has to end where the word ends. */
+.publish {
+  composes: action;
+  margin-top: calc(var(--index-item-gap) + var(--private-padding-y) * -1);
+  align-self: flex-start;
+}
+
+.panelFooter {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--index-label-gap);
+}
+/* The count is now ONLY the announcement channel (see the TSX): the
+   index of the Clips section is the visible count. The recipe is the
+   vault's .hidden, clipped and not display:none, because a switched-off
+   aria-live announces nothing. */
+.count {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* THE BOARD, full bleed and with no rail: it is the real canvas. The
+   frames hang off it in absolute, so it IS the coordinate system. A
+   frame's x/y is measured against this box and against no other.
+
+   `overflow: hidden` clips what hangs off the edges instead of adding
+   scroll: the board is WHAT YOU SEE, and a scrollbar would turn a
+   frame's position into something relative to where you were looking.
+   And there is nothing that can be lost out there because NOTHING GETS
+   OUT: the whole frame stays contained in the board at every moment,
+   during the drag, during the resize, when adding and when mounting
+   stored coordinates. See `clampPosition` and `fitFrame` in the TSX.
+   (This used to say that what protected it was a margin of 48 visible
+   pixels. That was true while the limit was soft; today the limit is
+   hard and that mechanism does not exist.)
+
+   `touch-action: none` turns off the browser's pan and zoom over the
+   board: without this, on a trackpad or a touch screen the gesture of
+   dragging a frame gets read by the scroller before we get it and
+   pointermove stops arriving.
+
+   And `user-select: none` because there is no text to select here:
+   without it, dragging over a frame's placeholder paints the system's
+   blue selection over everything. */
+.board {
+  flex: 1;
+  /* Both, and both are needed: `min-width` because in a row a flex item
+     does not go below its content and the frames are absolute (but the
+     dialog is not), and `min-height` because it inherits the frame's
+     height chain. */
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+
+  /* THE HANDLE'S SIDE IS DECLARED HERE, in the common ancestor of the
+     frame and its handles, and not in the rule that uses it. A custom
+     property is INHERITED, not looked up: declared on `.handle` it
+     cannot be read by the `calc` that centers it if the calculation
+     lives somewhere else, and declared on a sibling it never resolves.
+     It has already bitten twice in this project.
+
+     8 because it is the handle size editors use and it is still
+     grabbable; the `-4` that centers it over the corner comes out of
+     here and not out of a second number somebody has to keep in
+     sync. */
+  --board-handle: 8px;
+
+  /* ─── THE BOARD'S MOTION, IN THREE NAMES ───
+     Declared HERE, in the common ancestor of everything that animates
+     inside. It is not tidiness: a custom property is INHERITED and not
+     looked up, so put on `.frame` it would not be read by `.handle` if
+     tomorrow the handle moves out of the frame, and put on a sibling it
+     would never resolve. It has already bitten twice in this project.
+
+     NONE OF THE THREE IS A NEW NUMBER: all three come out of tokens
+     that already govern the rest of the system. The only thing decided
+     here is WHICH of the existing ones goes to each role.
+
+       enter   --dur-surface (150ms). What a surface of the system takes
+               to change. Well under the 300 ceiling anything you see
+               often has
+       exit    --dur-text (100ms). SHORTER THAN THE ENTRANCE, always: on
+               the way in you are looking at what appeared, on the way
+               out you have already decided and all you want is for it
+               to move
+       curve   --ease-dialog, which is cubic-bezier(.19,1,.22,1), a
+               strong ease-out, the same one the dialog and the
+               right-click menu appear with. One language for everything
+               that enters and leaves in this app.
+               NEVER ease-in: it starts slow at exactly the instant the
+               eye is looking */
+  --board-enter: var(--dur-surface);
+  --board-exit: var(--dur-text);
+  --board-curve: var(--ease-dialog);
+}
+
+/* ─── A FRAME ───
+   Absolute over the board, at the model's coordinates. With no box of
+   its own: what you see is the clip.
+
+   THE FRAME HAS NO `transform` TRANSITION, and that is not an
+   oversight. It is the rule that makes the drag possible. The gesture
+   writes `style.transform` on every frame; with a transition set, each
+   of those writes would turn into a 150ms tween toward the previous
+   point and the frame would always be running behind the pointer. What
+   animates on appearing and on leaving lives in the child
+   (.media/.placeholder), which is the node the gesture never touches.
+   It is separated on purpose.
+
+   There is no transition on left/top/width/height either: a frame goes
+   where you put it, on the frame you put it. With the arrow keys that
+   is also functional. If the movement takes time, you stop being able
+   to count how many times you pressed. */
+.frame {
+  position: absolute;
+  /* grab/grabbing: the only signal that this can be grabbed. The
+     pointer says it before you press, which is when it is useful to
+     know. */
+  cursor: grab;
+
+  /* ─── THE SELECTION IS A LINE AND NOTHING ELSE ───
+     No shadow and no fill: the system does not have a single shadow
+     outside the floating menu, and a shadow here would add fake depth
+     to a board that is flat.
+
+     THE OUTLINE IS ALWAYS THERE, TRANSPARENT. That is what makes it
+     animatable: an `outline: none` has no color to transition from, so
+     the line would appear at once. Declared and transparent it costs
+     nothing (an outline takes no room and displaces no pixel) and the
+     only thing that changes is the color.
+
+     The COLOR is animated and not the opacity, which is what the system
+     animates in everything else (see --dur-text/--ease-text in
+     tokens.css, which exist for exactly this). It is a paint property
+     on a single element and for a single transition frame: there is no
+     layout and nothing to recalculate.
+
+     2px of offset so the line does not rest on the clip's content (a
+     video with a light edge would swallow it) and --active-c, which is
+     exactly the token for "this one, the one you are pointing at". */
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color var(--board-exit) var(--board-curve);
+}
+.frame:active {
+  cursor: grabbing;
+}
+/* ─── THE RING THAT GIVES A LIGHT CLIP AN EDGE ───
+   An almost white clip gives 1.04:1 against the board (measured), that
+   is, it dissolves: you cannot see where the frame ends and dragging it
+   becomes guessing where to grab. A hairline solves it without drawing
+   a box: it is the same 1px line that now separates the sidebar from
+   the board, the token that exists for exactly this.
+
+   IT GOES IN A PSEUDO-ELEMENT AND NOT IN `box-shadow: inset` ON THE
+   CLIP. The difference is that it works: an inner shadow over an <img>
+   or a <video> is painted UNDER the replaced content, so an opaque clip
+   (which is the case this came to fix) covers it entirely. Over the
+   media and without touching the layout, which is what a `border` on
+   the frame could not do.
+
+   The handles go up one step so they do not end up under the line: the
+   pseudo-element is the last child of the box tree. */
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  pointer-events: none;
+}
+.frame[data-selected] {
+  outline-color: var(--active-c);
+  /* Appearing takes longer than disappearing. The duration of each
+     direction lives in the state you arrive at, the same split .menu
+     uses. */
+  transition-duration: var(--board-enter);
+}
+/* A frame that is leaving can no longer be grabbed: the click has to
+   pass through to the board, or to the frame that was underneath. */
+.frame[data-leaving] {
+  pointer-events: none;
+  outline-color: transparent;
+}
+
+/* ─── THE CLIP, AND WHAT IT DOES ON APPEARING AND ON LEAVING ───
+   It fills the frame with the system's radius. The frame already has
+   the clip's aspect ratio (it is given at birth and the resize
+   preserves it) so `cover` crops nothing: it is the safety for the case
+   where the file changes shape under the frame's feet.
+
+   THE ENTRANCE AND THE EXIT of a frame live HERE, and not in .frame,
+   for the reason above: this is the node the gesture never writes, so
+   its `transform` is all ours.
+
+   IT IS A TRANSITION AND NOT A @keyframes. The difference shows in a
+   single case and it is the one that matters: you add a clip, you
+   change your mind and you delete it before it finishes coming in. With
+   keyframes the exit would start from zero and the frame would jump to
+   opacity 1 only to start leaving from there; with a transition it
+   leaves from where it was, which is the rule of "always animate from
+   the presentation value". The same happens the other way around,
+   undoing a delete halfway through.
+
+   0.98 and not 0.9: it is a LARGE element (480 on its longer side) and
+   the bigger something is, the less scale it needs to read as having
+   arrived. At 480px, 0.98 is 9.6px of travel, which is a clear gesture.
+   And never 0: nothing appears out of nothing. */
+.media,
+.placeholder,
+.sketch {
+  transition:
+    opacity var(--board-enter) var(--board-curve),
+    transform var(--board-enter) var(--board-curve);
+}
+/* Where a JUST ADDED frame starts from. Without @starting-style the
+   browser has no previous value to transition from (the node has just
+   appeared) and nothing animates.
+
+   It hangs off [data-new] and not off plain .frame, and that is what
+   makes the frames that were already there NOT fade in when the page
+   loads: none of them has it set except the one you just added. */
+@starting-style {
+  .frame[data-new] .media,
+  .frame[data-new] .placeholder,
+  .frame[data-new] .sketch {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+/* And where one that gets deleted goes: down the same path, in less
+   time. Leaving the way it came in is what makes the two halves read as
+   a single reversible gesture and not as two effects. */
+.frame[data-leaving] .media,
+.frame[data-leaving] .placeholder,
+.frame[data-leaving] .sketch {
+  opacity: 0;
+  transform: scale(0.98);
+  transition-duration: var(--board-exit);
+}
+
+.media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--card-radius);
+  /* The node takes no part in the gesture: the events are handled by
+     the frame, and a <video> that intercepts them leaves the drag half
+     done. */
+  pointer-events: none;
+}
+
+/* ─── A SKETCH ───
+   Your component, taking the whole frame. The box is the only thing the
+   canvas sets: size, the system's radius, and a surface underneath so a
+   sketch with no background of its own does not float over the board.
+   Everything else you write.
+
+   `overflow: hidden` because a half-finished sketch can overflow, and
+   what leaves a frame is drawn on top of its neighbors: the clip is
+   what keeps a mistake of yours from reading as a mistake of the
+   board's.
+
+   ─── THE POINTER IS SHARED OUT BY SELECTION ───
+   Unselected, the sketch does not get it and the frame drags like one
+   with a clip inside. Selected, the sketch gets it and you can press
+   the buttons of what you are building. The frame steps aside on the JS
+   side too (see `startGesture` in playground.tsx) because here only
+   WHO receives the event is decided, and without the other half the
+   gesture would take it anyway by bubbling.
+
+   It is what board editors do, and the price is in plain sight: a
+   selected sketch does not move by dragging it from the middle. You
+   press Escape, which deselects, and it is a frame again. Written down
+   as a candidate to look at with /prototype if it gets annoying. */
+.sketch {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  pointer-events: none;
+}
+.frame[data-selected] .sketch {
+  pointer-events: auto;
+}
+
+/* ─── WHEN THERE IS NOTHING TO SHOW ───
+   A piece of ours, which is not drawn yet, or a clip that is no longer
+   in the vault. The `ref` in the gray that ANNOTATES: it is not
+   content, it is the label of content that is missing.
+
+   --surface-hover AND NOT --canvas. It was on canvas, and that made it
+   the BRIGHTEST thing on the whole board in light theme and the DARKEST
+   in dark theme: canvas and surface invert between themes, so a
+   placeholder painted in canvas shouted in one theme and sank in the
+   other. The two themes of the same capture pointed it out.
+
+   --surface-hover is ONE step above the board and behaves the same in
+   both: in light it goes down from #f8f8f6 to #f4f4f1, in dark it goes
+   up from #0e0e0d to #121211. A frame that is missing has to look like
+   a frame, not like a spotlight. */
+.placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--card-radius);
+  background: var(--surface-hover);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* The same 4 that separates the masthead's subtitle from its title:
+     they are two rows of the SAME size, so the leading already
+     separates them and these 4 are a nudge, not a separation. It is
+     exactly the pair there is here, a name and what happened to it. */
+  gap: var(--masthead-subtitle-gap);
+  padding: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+/* The name of the missing clip, in the gray that ANNOTATES: it is not
+   content (the content is precisely what is not there) it is the label
+   of a placeholder. */
+.placeholderName {
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+  line-height: var(--type-meta-lh);
+  color: var(--type-meta-c);
+  overflow-wrap: anywhere;
+}
+/* And the word that says why it is empty, one step further down: the
+   nav set, which is the smallest and the most muted in the system. It
+   is the chrome speaking, not the file. */
+.placeholderReason {
+  font-size: var(--type-nav-fs);
+  font-weight: var(--type-nav-fw);
+  letter-spacing: var(--type-nav-ls);
+  line-height: var(--type-nav-lh);
+  color: var(--type-nav-c);
+}
+
+/* ─── THE HANDLES ───
+   Four, at the corners, and only with the frame selected. Canvas
+   background and an ink line: they read over any clip, which is the
+   same thing the floating menu solves with a surface of its own.
+
+   The cursor says which DIAGONAL gets stretched, which is every
+   editor's convention: nwse at the ↖↘ corners and nesw at the ↗↙ ones.
+
+   THEY ARE ALWAYS IN THE DOM and what changes is whether they are
+   visible, so this is a state transition and not an entrance:
+   selecting, deselecting and selecting again quickly crosses in mid-air
+   from the current value instead of restarting four times. Switched off
+   they receive no pointer.
+
+   0.6 AND NOT 0.98 LIKE THE FRAME, and the arithmetic is the argument:
+   the scale you perceive is the TRAVEL, not the factor. Over 480px,
+   0.98 is 9.6px; over an 8px handle it would be 0.16px, that is,
+   nothing. 0.6 gives 3.2px, which is of the same order and reads. It is
+   the same rule by which a small element needs more bounce to read the
+   same. */
+.handle {
+  position: absolute;
+  z-index: 1;
+  width: var(--board-handle);
+  height: var(--board-handle);
+  background: var(--canvas);
+  border: 1px solid var(--ink);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition:
+    opacity var(--board-exit) var(--board-curve),
+    transform var(--board-exit) var(--board-curve);
+}
+.frame[data-selected] .handle {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  transition-duration: var(--board-enter);
+}
+/* A frame that leaves takes its handles with it in one go: they are
+   chrome, and the chrome does not say goodbye. */
+.frame[data-leaving] .handle {
+  opacity: 0;
+  transition-duration: var(--board-exit);
+}
+/* THE HIT AREA IS BIGGER THAN THE LITTLE SQUARE. 8px a side would be an
+   impossible target with the pointer, so a pseudo-element stretches it
+   without drawing anything, the same rule the bar's hit areas grew
+   with: the area grows, not the box.
+
+   24 AND NOT 20. It was at 20 (inset −6) and that came in under the
+   24×24 floor this same project had already put in writing, in
+   private.module.css: "the five controls measured 16px tall against the
+   24×24 minimum". A floor that holds for a word in the bar holds for a
+   corner's handle. −8 over 8 gives exactly 24.
+
+   ONE DEBT IS STATED: against a wall, half the hit area falls outside
+   the board and `overflow: hidden` eats it, so there the real area is
+   24×12. The other three corners stay whole and the frame can be moved
+   inward; solving it would call for taking the handles out of the clip,
+   which is a redesign and not an adjustment. */
+.handle::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+.handle[data-corner='nw'] {
+  top: calc(var(--board-handle) / -2);
+  left: calc(var(--board-handle) / -2);
+  cursor: nwse-resize;
+}
+.handle[data-corner='ne'] {
+  top: calc(var(--board-handle) / -2);
+  right: calc(var(--board-handle) / -2);
+  cursor: nesw-resize;
+}
+.handle[data-corner='sw'] {
+  bottom: calc(var(--board-handle) / -2);
+  left: calc(var(--board-handle) / -2);
+  cursor: nesw-resize;
+}
+.handle[data-corner='se'] {
+  bottom: calc(var(--board-handle) / -2);
+  right: calc(var(--board-handle) / -2);
+  cursor: nwse-resize;
+}
+
+/* ─── REDUCED MOTION ───
+   "Softer, not zero": EVERYTHING that moves goes away (the scales) and
+   the fade stays, which is what still explains that something appeared
+   or left without pushing anything across the screen. The outline does
+   not change: a color that appears is not movement.
+
+   AND THE EXIT STILL EXISTS with the preference on: the scale goes and
+   the fade stays, which is what keeps a clip from disappearing at once
+   from the middle of the board. The TSX waits the same --board-exit
+   before unmounting, with no shortcuts. See `remove` in playground.tsx.
+   (This used to say that the elastic edge's spring was also turned off.
+   That spring does not exist: the canvas's limit is hard, so letting go
+   corrects nothing and there is nothing to cushion.) */
+@media (prefers-reduced-motion: reduce) {
+  .frame[data-leaving] .media,
+  .frame[data-leaving] .placeholder,
+  .handle,
+  .frame[data-selected] .handle,
+  /* The index's row goes with the frame here too: fade yes, travel
+     no. */
+  .row[data-leaving] {
+    transform: none;
+  }
+  @starting-style {
+    .frame[data-new] .media,
+    .frame[data-new] .placeholder,
+    .row[data-new] {
+      transform: none;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WHEN THE WINDOW NARROWS
+
+   It is a desktop tool and it does not pretend to be anything else: you
+   do not put a board together on a phone. But there is one rule that
+   cannot be broken at any width. NO WINDOW CAN HAVE MORE CHROME THAN
+   BOARD. Measured before this: at 430px the 240 sidebar took 56% of the
+   screen, so what was left over to look at clips with was less than
+   what it took to say what the view was called.
+
+   There are two steps and both are the cuts the system already uses,
+   767 and 560, the vault grid's own and from the same measurement:
+
+     ≤767   the sidebar narrows BY ITSELF to 224, because its width is
+            derived from the private area's rail and that rail already
+            goes down from 32 to 24. There is no rule here: it is above,
+            in --panel-width
+     ≤560   it stops being a column and becomes a ROW at the top. The
+            board takes the full width and the chrome takes about 90px
+            of height, that is, 10% of a 900 window
+
+   Why a row and not a narrower column: at 430px a usable column does
+   not go below 160 ("Delete view" at 13px already measures 84) and that
+   is still 37% of the width, which is exactly the dimension a canvas
+   needs. The height, on the other hand, is plentiful. It is also the
+   shape the private area already has at the very top: a bar.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 560px) {
+  .canvas {
+    flex-direction: column;
+  }
+  .panel {
+    width: auto;
+    flex-direction: row;
+    align-items: baseline;
+    /* The air above is still set by the system; below, the same 16 that
+       separates two things of a different nature is enough. */
+    padding: var(--page-padding-top) var(--private-inline) var(--index-label-gap);
+    gap: var(--index-group-gap);
+    overflow: visible;
+    /* The edge follows the turn: it separates the same thing, from the
+       other side. */
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .panelTitle {
+    /* The name takes what is left over, which in this row is almost
+       everything: it is the only thing that grows. */
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: var(--index-item-gap);
+  }
+  /* The arrow loses the gap it opened below the title: there is nothing
+     below here. */
+  .panelTitle > button {
+    margin-bottom: 0;
+    flex: none;
+  }
+  .panelFooter {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--index-group-gap);
+    margin-top: 0;
+  }
+  /* The index shrinks down to its +: in a row there is nowhere to stack
+     rows, and a label with no rows labels nothing. The bare + stays in
+     the bar, and its ::before gives it the text baseline this
+     `baseline` aligns it with. THE EDGE GOES TOO: it underlined the
+     header with respect to its rows, and with no rows it separates
+     nothing. The clipped count is NOT switched off: it keeps announcing
+     the Backspace at this width, where it used to be mute. */
+  .clips {
+    flex: none;
+    min-height: auto;
+  }
+  .clipsHeader {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .clipsLabel,
+  .rows,
+  .noClips {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE "ADD CLIP" DIALOG
+
+   The whole recipe (showModal, the entrance scale, the ::backdrop, the
+   exit with overlay/display in allow-discrete) is `.dialog`'s in
+   vault.module.css, and that class is USED instead of copied: if the
+   upload dialog changes tomorrow, this one changes with it. Down here
+   goes only what is different, which is the width and what is inside.
+   ═══════════════════════════════════════════════════════════════ */
+/* The vault's is 974 wide because it shows TWO cards at the grid's real
+   size. This one shows a list to pick from at a glance, so it is sized
+   by what fits well: four 200 thumbnails with the vault grid's gutter
+   and the dialog's own 32 of air.
+     4×200 + 3×24 + 2×32 = 936 */
+.addDialog {
+  width: min(936px, calc(100vw - 48px));
+  /* With sixteen clips the list goes past the window's height. The cap
+     keeps the dialog inside and scrolls what is inside it, not the
+     page. */
+  max-height: calc(100dvh - 96px);
+  overflow: auto;
+}
+.addTitle {
+  margin: 0 0 20px;
+  font-size: var(--type-h1-fs);
+  font-weight: var(--type-h1-fw);
+  letter-spacing: var(--type-h1-ls);
+  line-height: var(--type-h1-lh);
+  color: var(--ink);
+}
+
+/* The same gutter as the vault's grid on both axes. In the vault the
+   row is 80, three times the gutter, so that the grid reads as rows,
+   but that is for a wall you walk along; here it is a list to pick from
+   at a glance inside a box with a ceiling, and an 80 row would be three
+   screens of scroll for thirteen clips.
+
+   `auto-fill` with a minimum instead of a fixed number of columns: the
+   dialog measures min(936, 100vw − 48) and this way it resolves itself
+   at any width. At 936 with 32 of air on each side there are 872
+   usable, and with a 180 minimum four 200 columns fit. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--vault-gutter);
+  /* So that a card with its name on two rows does not stretch the four
+     in its row. It is the same line the vault's grid has. */
+  align-items: start;
+}
+
+/* An option IS the vault's card: the whole class, with its benji aspect
+   ratio, its radius, its background, its hover, its label and, what
+   matters, its `data-source`, which makes a phone clip come in with air
+   instead of cropping it. See the long why in the TSX.
+   Down here goes only the <button> reset, which is exactly what
+   .dialogCard does in the vault's upload dialog. */
+.option {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 150ms var(--ease-dialog);
+}
+
+/* ─── THE BOX OF AN OPTION WITH NO THUMBNAIL ───
+   The sketch ones: the one that starts a new sketch and the ones that
+   already exist. It takes the thumbnail's place and with ITS SAME
+   ASPECT RATIO (the same token, not a copied number) because otherwise
+   the row goes uneven and the dialog stops reading as a grid.
+
+   It does not reuse `.media` from the vault's card on purpose: that
+   class pins 100% width and height on whatever is inside it, which is
+   exactly what a clip needs and the opposite of what a 16px glyph
+   needs.
+
+   In the gray that ANNOTATES: what goes here is not content, it is the
+   label of content that cannot be shown yet. Same criterion as the
+   frame's placeholder. */
+.optionBox {
+  aspect-ratio: var(--vault-aspect-ratio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: var(--type-meta-fs);
+  font-weight: var(--type-meta-fw);
+  letter-spacing: var(--type-meta-ls);
+}
+/* The press, the same as the card in the upload dialog: 0.97 FEELS
+   pressed without the box falling apart. */
+.option:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .option:active {
+    transform: none;
+  }
+}

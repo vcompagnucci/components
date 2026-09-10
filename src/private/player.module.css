@@ -1,0 +1,359 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE PLAYER
+
+   It exists to reach the exact frame where a gesture starts, count up
+   to where it ends, and get the duration in milliseconds.
+
+   ─── WHAT WAS MEASURED, and it does not get touched ───
+   It is in .context/recon/vault/REPRODUCTOR.md.
+
+     play button      38×38, glyph of 20×20            apple
+     transition       opacity 100ms linear + transform .2s ease   apple
+     disabled         opacity .32                      apple
+     speed            height 20, 12px/460, radius 38   benji
+     its transition   all .2s ease                     benji
+     cross-fade       two texts stacked                benji
+
+   From the speed button everything gets copied except the WIDTH: the
+   28px measured on it are the width of HIS label in HIS typography, not
+   a measurement of the control. Here the content gives it, see .speed.
+
+   Both of them render for real (28 videos of apple's, 45 of benji's)
+   and they are not dead rules in a bundle.
+
+   ─── WHAT WAS CHOSEN BY LOOKING ───
+   Two things could not be settled with evidence and were tried with
+   /prototype:
+
+   1 · WHERE THE CONTROLS LIVE. Apple anchors them BOTTOM RIGHT on top
+       of the video; benji TOP RIGHT. Both measured, and they cannot
+       both be right. Theirs was tried ("corners", with apple's scrim to
+       hold the contrast over content we do not control) and A ROW BELOW
+       THE VIDEO WON, which belongs to neither of them. The advantage:
+       nothing covers the clip, and sitting over the canvas it needs
+       neither scrim nor blur. It uses the system colors as they are.
+
+   2 · THE TRACK. THERE IS NO MEASURABLE REFERENCE: Safari has the
+       shadow root closed in both engines, apple-events' full player
+       does not mount its controls outside a real session, and Podcasts
+       and x.com ask for a login. So this one is OURS and it gets said
+       that way. Three were tried (thin, medium and hidden) and THIN
+       won: a 2px rail and no knob. At that thickness the track stops
+       being a control that competes and becomes a readout, which is
+       what is asked of it.
+
+   ─── WHAT DOES NOT EXIST, AND IT IS ON PURPOSE ───
+   THERE ARE NO FRAME BUTTONS. They were there (two 24px arrows next to
+   play) and they were taken out. Stepping lives only in the keyboard
+   arrows: they are more precise, they can be held down, and with shift
+   they jump by ten. Aiming at a small button while you look at
+   something else is exactly the work this player has to save.
+   ═══════════════════════════════════════════════════════════════ */
+.player {
+  --player-play: 38px; /* apple, measured */
+  --player-glyph: 20px; /* apple, measured */
+  --player-small-height: 20px; /* benji, measured */
+  --player-pill-radius: 38px; /* benji, measured */
+  --player-gap: 8px; /* benji, measured */
+
+  /* The track. These ARE OURS: there is no reference to copy.
+     The rail is what you SEE; the height is the area to grab it by.
+     They are two different numbers on purpose: a 2px line is impossible
+     to take with the pointer, and fattening it so it could be grabbed
+     would mean choosing the thickness for a reason that is not the
+     visual one. */
+  --player-rail: 2px;
+  --player-track-height: 12px;
+  /* What the bar takes: the height of the play button (the tallest
+     element in the row) plus the air that separates it from the video.
+     It carries a name because now the VIDEO needs it to know how much
+     height it has left. If .controls' margin changes, it changes
+     here. */
+  --player-bar: calc(var(--player-play) + 12px);
+
+  /* The last link in the chain that makes the clip always fit: the
+     player takes the height the stage passes it, the bar keeps its own
+     (it is flex:none) and the video fits into what is left. See
+     private.module.css. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* AUTO WIDTH: the player shrinks to the video's width, so the bar
+     measures the same as the clip instead of crossing the whole page.
+     For that to work the bar has to stop inflating the player's
+     max-content, see .controls. */
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  /* min-width:0, because a flex item does not shrink below its content by
+     default, and the content here is a video whose natural width can be
+     1920. Without this the player overflowed the stage by 80px on each
+     side, measured. */
+  min-width: 0;
+}
+
+/* THE VIDEO IS THE IMAGE, not the box that contains it.
+
+   This used to be `flex:1; width:100%; object-fit:contain`, with this
+   comment: "the strip left over takes the surface color, so you do not
+   see it". YOU DO SEE IT, and it takes the rounded corner with it.
+   Measured in a 1312 stage: the element gave 1312×606 and the image
+   1108×606, that is 102px of strip on each side, with the border-radius
+   drawn on the corners of the STRIP, 102px away from the image's. In
+   light the strip is almost indistinguishable from the background; in
+   dark --surface and --canvas are five steps apart and the only thing
+   you see is that the clip lost its corners.
+
+   That same strip produced a second defect, worse: when you collapsed
+   the details panel, the image reached its final size in 60ms and then
+   shifted 102px to the right for another 440ms, re-centering inside a
+   box that kept growing. It grew, it finished, and ONLY THEN did it
+   slide.
+
+   ─── WHY LIKE THIS AND NOT SIMPLER ───
+   Element against image was measured at four box widths:
+     width:100% + object-fit    strip of up to 195px horizontally
+     flex:1 + width:auto        fixes horizontal, breaks vertical
+     height with cqh + width auto   same as the previous one
+     this one                   equal in all four
+
+   The key is min(): a percentage inside `width` ALWAYS resolves against
+   the width, so the available height cannot be written with `%`. A
+   container unit is needed. Hence the 100cqh, and hence the stage
+   having to declare itself a size container.
+
+   The width maximum goes in `max-width` and not inside a `min()`: with
+   `min(...)` WebKit does not clip and the video overflows the player.
+   With max-width it does, and since the height is on `auto` and there
+   is an aspect-ratio, clipping the width recomputes the height on its
+   own, which is exactly what is needed.
+
+   ─── WHY THE MAXIMUM IS 100% AND NOT 100cqw ───
+   It was tried with cqw and WebKit resolves it WRONG in the cascade:
+   the computed max-width stayed at 1368.71875px when the stage's
+   content measured 1000. The unit froze at a transient value from the
+   mount and not even a reflow refreshes it. Applied inline it did give
+   1000. It is an invalidation problem with containers that change size,
+   and the stage's width changes on every frame of the animation.
+
+   The height can use cqh because the stage does NOT change height: even
+   if the value gets cached, it is the right one.
+
+   --player-ratio is set by the player when it reads the metadata; the
+   16/9 is only for the instant before, and it avoids a jump on load. */
+.video {
+  display: block;
+  flex: none;
+  aspect-ratio: var(--player-ratio, 16 / 9);
+  height: auto;
+  width: calc((100cqh - var(--player-bar)) * var(--player-ratio, 16 / 9));
+  max-width: 100%;
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* ─── THE BAR ───
+   A row below the video, over the page background. */
+.controls {
+  /* flex:none, so the bar never gives up its height. What shrinks when
+     there is not enough room is the video, not the controls. */
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--player-gap);
+  margin-top: 12px;
+  /* width:0 + min-width:100%: THE BAR HAS NO OPINION ON THE WIDTH.
+     The scrubber's track wants to stretch, so its contribution to the
+     max-content made the player measure the whole page: the video ended
+     up stuck to the left and the bar crossed from side to side. With
+     width:0 the bar contributes zero to the player's width (which then
+     shrinks to the video) and min-width:100% stretches it back out to
+     that already resolved width. */
+  width: 0;
+  min-width: 100%;
+}
+
+/* ─── THE PLAY BUTTON · apple's, measured ─── */
+.play {
+  flex: none;
+  width: var(--player-play);
+  height: var(--player-play);
+  /* ─── THE DRAWING AGAINST THE EDGE, NOT THE BOX ───
+     The bar's box ALREADY measured exactly the same as the video
+     (measured: both of them 496 at 1232) but it did not look that way,
+     and the reason is that what the eye aligns is the INK. The glyph is
+     20px centered in 38 of padding, so it started 9px inside the clip's
+     left edge and the whole row read as narrower than it.
+
+     The negative margin is exactly that gap, written as the subtraction
+     that produces it and not as −9: if tomorrow the size of the button
+     or of the glyph changes, it corrects itself.
+
+     It is the same device the details panel's toggle uses to put its
+     drawing on the page's rail. And the click area is not lost: it
+     hangs in the margin, which is whitespace anyway.
+
+     THE DRAWING'S OWN INDENT IS NOT TOUCHED. The triangle starts at x=6
+     of a 20 canvas (and the pause bars at 5.5), which is its optical
+     compensation: the tip of a triangle stuck to a hard edge reads as
+     if it were coming out. It is the same reason a letter has side
+     bearings. Here what was accidental gets corrected (the centering in
+     the padding) and what was a decision gets respected. */
+  margin-left: calc((var(--player-glyph) - var(--player-play)) / 2);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* Theirs, literal: opacity and transform only. The icon's COLOR
+     carries no transition in their player (it changes all at once) and
+     it does not here either. */
+  transition:
+    opacity 100ms linear,
+    transform 0.2s ease;
+}
+.play:disabled {
+  opacity: 0.32; /* apple, measured */
+  cursor: default;
+}
+/* currentColor instead of apple's mask: the effect is the same (the
+   icon's color is a CSS property, themeable) with one piece less. The
+   drawing is ours; from theirs we copy the measurements, not the art. */
+.glyph {
+  width: var(--player-glyph);
+  height: var(--player-glyph);
+  fill: currentColor;
+}
+
+/* ─── THE SPEED · benji's, measured ───
+   Two states and not a menu. The two texts are stacked in the same cell
+   and cross over by opacity.
+
+   ─── THE TWO STATES MEASURE THE SAME, AND THAT IS NOT A COINCIDENCE ───
+   With the labels "1x" and "0.5x" the button had three conditions that
+   cannot all be met at once: closing against the video's edge, leaving
+   the same air as the rest of the row, and not changing width when it
+   toggles. It was solved by pinning the width at 34px and anchoring the
+   text to the right (the row did not jump) but the gap to the left of
+   the text did: 22.6px in "1x" against 9.8px in "0.5x" (measured). That
+   is, the distance between the frame counter and the speed changed 13px
+   on every click. The box stayed still and the eye saw the air jump,
+   which is the same thing we wanted to avoid.
+
+   THE WAY OUT IS FOR THE TWO LABELS TO MEASURE THE SAME: "1.0x" and
+   "0.5x" with tabular figures both give 25.06px, measured. It is the
+   same device .readout already uses so the counter does not tremble
+   while it runs, and the same convention of an instrument that measures
+   (0:00, 0/255, 1.0x). With that, the width can be given by the
+   content, and the three conditions are met on their own: zero dead
+   gap, constant air of --player-gap, and the right edge pinned where
+   the clip ends.
+
+   The 28 of width measured on benji is NOT copied: it is the width of
+   HIS label in HIS typography. What gets copied from him is the height,
+   the size, the weight, the radius and the transition. */
+.speed {
+  flex: none;
+  /* grid and not position:absolute: stacking the two texts in cell 1/1
+     the button measures what the wider one measures, with no magic
+     number. */
+  display: grid;
+  height: var(--player-small-height);
+  padding: 0;
+  border: 0;
+  border-radius: var(--player-pill-radius);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px; /* his */
+  font-weight: 460; /* his */
+  line-height: 1;
+  /* What makes the two states equal; see above. */
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.2s ease; /* his, literal */
+}
+.speed:hover {
+  color: var(--ink);
+}
+.speed > span {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  /* AGAINST THE RIGHT AND NOT CENTERED, for the same reason play shifts
+     to the left: the one that closes the row is this text and it has to
+     die where the clip dies. With the two labels already equal this
+     should change nothing. It is the insurance for the day a
+     replacement typeface does not bring tabular figures: the right edge
+     holds up the same and the only thing that gives is the air on the
+     left. */
+  justify-content: flex-end;
+  opacity: 0;
+  transition: inherit;
+}
+.speed > span[data-active] {
+  opacity: 1;
+}
+
+/* ─── THE READOUT ───
+   The frame number is the value you come here for: with it you count
+   from where to where a gesture lasts. The time goes next to it because
+   it is what you write into the CSS afterwards.
+
+   Tabular so the digits do not dance while it runs: without that the
+   number changes width on every frame and the whole bar trembles. */
+.readout {
+  display: flex;
+  align-items: center;
+  gap: var(--player-gap);
+  height: var(--player-small-height);
+  font-size: 12px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.time {
+  color: var(--ink);
+}
+.frameNumber {
+  color: var(--text-secondary);
+}
+
+/* ─── THE TRACK: NO REFERENCE, IT IS OURS ───
+   The rail uses --hairline and the fill --ink: they are the two tokens
+   the system already has for "faint structure" and "what you read".
+   There is no new color. */
+.track {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--player-track-height);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.rail,
+.fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--player-rail);
+  border-radius: 999px;
+}
+.rail {
+  background: var(--hairline);
+}
+.fill {
+  background: var(--ink);
+  /* scaleX and not width: it animates in the compositor and does not
+     trigger layout on every screen frame. The origin on the left
+     because the fill grows from there. */
+  transform-origin: left center;
+  will-change: transform;
+}
