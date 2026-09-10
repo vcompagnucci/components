@@ -2,7 +2,7 @@ import { getVideoMetadata } from '@remotion/media-utils'
 import { Composition, Still, staticFile } from 'remotion'
 
 import { Mockup } from './Mockup'
-import { HOLD_TO_COMMIT, PARAMETROS, esquema, paraLibrary } from './parametros'
+import { HOLD_TO_COMMIT, PARAMETROS, esquema, paraExhibition } from './parametros'
 import { GrillaDeSombras } from './Grilla'
 
 /* 2160² a 60 fps: el techo real de un post de X (medido: X sirve 2160²
@@ -50,11 +50,11 @@ export const RemotionRoot: React.FC = () => (
       }
     }}
   />
-  {/* LAS DE LA LIBRARY: la misma cámara de cada pieza, pero
+  {/* LAS DE LA EXHIBITION: la misma cámara de cada pieza, pero
       transparente, sin sombra, más cerca y sin salida. Una composición
       y no unas props porque Remotion mezcla las props sólo en el primer
-      nivel (ver `paraLibrary`). */}
-  {([['SwipeableTabsLibrary', PARAMETROS, PARAMETROS.camara.focoEnLienzo], ['HoldToCommitLibrary', HOLD_TO_COMMIT, 0.85]] as const).map(([id, base, foco]) => (
+      nivel (ver `paraExhibition`). */}
+  {([['SwipeableTabsExhibition', PARAMETROS, PARAMETROS.camara.focoEnLienzo], ['HoldToCommitExhibition', HOLD_TO_COMMIT, 0.85]] as const).map(([id, base, foco]) => (
     <Composition
       key={id}
       id={id}
@@ -64,7 +64,7 @@ export const RemotionRoot: React.FC = () => (
       fps={60}
       durationInFrames={60}
       schema={esquema}
-      defaultProps={paraLibrary(base, foco)}
+      defaultProps={paraExhibition(base, foco)}
       calculateMetadata={async ({ props }) => {
         const m = await getVideoMetadata(staticFile(props.clip))
         return {

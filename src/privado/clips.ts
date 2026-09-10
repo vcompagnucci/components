@@ -156,7 +156,7 @@ export async function guardarFicha(
    taller, no un gesto del vault. El servidor copia el video a
    public/piezas/ y anota la entrada en pieces.ts, las dos cosas o
    ninguna. Devuelve el slug, que es a dónde navegar: la pieza ya está
-   en la library. */
+   en la exhibition. */
 export async function publicarClip(
   ruta: string,
   nombre: string,

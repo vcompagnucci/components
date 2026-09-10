@@ -18,7 +18,7 @@
    puede terminar antes. Hold to commit corta a los 4.10 s, cuando la
    animación ya terminó y el reinicio todavía no empezó (el recibo, con
    la medición, está en `parametros.ts`). Cortar ACÁ y no después es lo
-   que hace que los dos formatos de la library duren exactamente lo
+   que hace que los dos formatos de la exhibition duren exactamente lo
    mismo: cortar un WebM ya rendido con `-c copy` sólo puede cortar en un
    cuadro clave, y dejaba el WebM en 4.121 contra 4.100 del .mov. De paso
    se rinde un 25 % menos de cuadros.

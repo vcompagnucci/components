@@ -1,18 +1,18 @@
-/* EL VIDEO DE UNA PIEZA APP — de un archivo cualquiera a la library, en
+/* EL VIDEO DE UNA PIEZA APP — de un archivo cualquiera a la exhibition, en
    un comando.
 
      pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4
      pnpm pieza:video swipeable-tabs ~/Downloads/final-oscuro.mp4 --oscuro
      pnpm pieza:video swipeable-tabs ~/Downloads/final.mov --ancho=720 --crf=23 --pisar
 
-     pnpm pieza:video swipeable-tabs mockup/out/library --alfa
+     pnpm pieza:video swipeable-tabs mockup/out/exhibition --alfa
 
-   `--alfa` es el camino de la library: recibe la BASE de un par que ya
-   viene listo de `pnpm render:library` (<base>.webm con VP9 y alfa,
+   `--alfa` es el camino de la exhibition: recibe la BASE de un par que ya
+   viene listo de `pnpm render:exhibition` (<base>.webm con VP9 y alfa,
    <base>.mov con HEVC y alfa), los copia tal cual a public/piezas/ y
    completa `video` y `videoHevc`. No re-encodea: el alfa no sobrevive a
    un h264, y el par ya sale a 1280². `--oscuro` quedó para piezas con
-   un fondo horneado por tema; la library de hoy no lo usa.
+   un fondo horneado por tema; la exhibition de hoy no lo usa.
 
    Hace tres cosas, en orden: (1) busca la pieza en PIECES por su slug
    —la MISMA cuenta `slug()` de pieces.ts, así el archivo y la URL no
@@ -24,14 +24,14 @@
    entrada. La card lo levanta sola: `Muestra` en parts.tsx.
 
    ─── POR QUÉ EXISTE ───
-   Publicar (Add to Library) copia un clip del vault TAL CUAL, y el
+   Publicar (Add to Exhibition) copia un clip del vault TAL CUAL, y el
    vault es la pared de lo ajeno: una pieza propia no tiene por qué
    pasar por ahí, y menos su máster (lo que graba el simulador pesa
    20–25 MB a 1320×2868). El video de una pieza puede llegar después de
    publicarla —hecho aparte, por otra persona o en otra sesión— y
    mientras no está, la card muestra el hueco del teléfono vacío
    (el ::before de .streamPreview). Este comando es el paso que faltaba
-   entre "acá está el archivo" y "está en la library".
+   entre "acá está el archivo" y "está en la exhibition".
 
    ─── GUARDAS ───
    · El slug tiene que existir en PIECES: publicar es otro gesto.
@@ -69,7 +69,7 @@ if (!fs.existsSync(archivo) && opciones.alfa !== 'true') {
 }
 const pieza = PIECES.find((p) => slugDePieza(p.name) === slug)
 if (!pieza) {
-  console.error(`No hay ninguna pieza con slug "${slug}" en PIECES. Publicala primero (Add to Library) o agregá la entrada a mano.`)
+  console.error(`No hay ninguna pieza con slug "${slug}" en PIECES. Publicala primero (Add to Exhibition) o agregá la entrada a mano.`)
   process.exit(1)
 }
 if (pieza.platform !== 'App') {
@@ -87,7 +87,7 @@ if (!alfa && pieza[campo] && opciones.pisar !== 'true') {
 }
 
 /* ─── EL PAR CON ALFA, tal cual. Reemplaza lo que haya: es LA versión
-   de la library, y `pnpm render:library` es su único origen. ─── */
+   de la exhibition, y `pnpm render:exhibition` es su único origen. ─── */
 function ponerCampo(src, nombreCampo, valor) {
   const inicio = src.indexOf(`name: '${aLiteral(pieza.name)}'`)
   const cierre = src.indexOf('\n  },', inicio)
@@ -103,7 +103,7 @@ if (alfa) {
   const par = { webm: `${base}.webm`, mov: `${base}.mov` }
   for (const f of Object.values(par)) {
     if (!fs.existsSync(f)) {
-      console.error(`Falta ${f}: el par lo hace \`pnpm render:library\` en mockup/`)
+      console.error(`Falta ${f}: el par lo hace \`pnpm render:exhibition\` en mockup/`)
       process.exit(1)
     }
   }

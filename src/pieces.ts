@@ -21,7 +21,7 @@ export type Piece = {
      referencia (ver AGENTS.md › Cómo se nombra). */
   desc?: string
   /* La grabación que la demuestra, en /piezas/ dentro de public/. Lo
-     escribe Add to Library —el clic derecho sobre un frame del
+     escribe Add to Exhibition —el clic derecho sobre un frame del
      playground—, que copia el archivo y agrega la entrada: ver
      __publicar en scripts/vault-media.mjs. Es de las piezas App; una
      Web va viva —su archivo está en src/piezas/, resuelto por slug en
@@ -30,7 +30,7 @@ export type Piece = {
   /* El mismo video con alfa en HEVC (.mov) para Safari, que no
      reproduce el alfa del WebM. Una pieza App se muestra transparente
      y sin sombra sobre la superficie de la card, como los videos de
-     Family en benji.org: el FONDO lo pone la library en el tema que
+     Family en benji.org: el FONDO lo pone la exhibition en el tema que
      sea, así que el fondo no se hornea por tema. Lo escribe
      `pnpm pieza:video … --alfa`; sin esto, `video` va solo. */
   videoHevc?: string

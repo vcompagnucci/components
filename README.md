@@ -1,4 +1,4 @@
-# Exposición
+# Interface exhibition — bitácora
 
 Playground/exposición de componentes estilo design-engineer: piezas web,
 web-mobile y nativas, cada una perteneciente a UNA plataforma, mostradas
@@ -110,17 +110,17 @@ qué se tomó así.
 | ↳ suavizado de fuente | `-webkit-font-smoothing: antialiased` **y** `-moz-osx-font-smoothing: grayscale`, las dos | acá la jerarquía **es** el trazo —460 · 500 · 600, todo a 14px— así que si Firefox dibuja los tres escalones más pesados no se ve "un poco distinto": se ve **menos jerarquía**. Benji tiene las dos en su `body` (SOURCE) |
 | Tipografía | **El sistema de benji**: un solo tamaño (14px), jerarquía por peso **460 · 500 · 600** — tres, no cuatro. Tracking **−0.00563rem**, interlínea **20px** (su `1.25rem`, absoluta y no razón). Índice 13px/460, tracking −0.0025rem, lh 16 | elegido con un picker contra el sistema de josh sobre la página real. Todos los valores del CSS servido de benji.org: su texto de 14px lleva `line-height:1.25rem` y `letter-spacing:-.00563rem` en **todas** sus reglas, sin excepción. Los dos sistemas medidos en `.context/recon/TYPE-SYSTEMS.md` |
 | ↳ por qué no josh | Josh usa lo opuesto en sus subpáginas: **cinco tamaños** (30·20·16·14·12), **dos pesos** (400/500) y una escalera de **cinco grises** (23·64·82·115·163). Su costo era competir con las piezas — y obligaba a rehacer todos los espaciados verticales, afinados para texto de 14 | medido del markup servido de `/bloom`, `/dialkit`, `/melt-effect`, `/on-being-an-elder` y `/pasito`: su `h1` es el mismo string en las cinco |
-| ↳ la escalera de pesos | **Library 500 · sección 600 · pieza 500**, cuerpo 460. El título de página **no** es lo más pesado: lo son los rótulos de sección | es lo que hace benji, verificado end-to-end — `.article > header h1` es 500 y el separador de /liveline es un `h1` **dentro** de `<article class="article">`, así que cae en `.article h1{font-weight:600}` (confirmado por posición en el HTML servido). Su razón es funcional: el título se lee una vez y su rango ya se lo da la posición, solo arriba y rodeado de aire; los encabezados de sección se buscan muchas veces en medio de contenido, y ahí el peso es el que los hace encontrables. **El peso va donde está el trabajo, que es escanear** |
+| ↳ la escalera de pesos | **Interface exhibition 500 · sección 600 · pieza 500**, cuerpo 460. El título de página **no** es lo más pesado: lo son los rótulos de sección | es lo que hace benji, verificado end-to-end — `.article > header h1` es 500 y el separador de /liveline es un `h1` **dentro** de `<article class="article">`, así que cae en `.article h1{font-weight:600}` (confirmado por posición en el HTML servido). Su razón es funcional: el título se lee una vez y su rango ya se lo da la posición, solo arriba y rodeado de aire; los encabezados de sección se buscan muchas veces en medio de contenido, y ahí el peso es el que los hace encontrables. **El peso va donde está el trabajo, que es escanear** |
 | ↳ tres pesos, no cuatro | El **560 quedó fuera**. La escala en uso es 460 · 500 · 600 | tres es donde está el consenso de sistemas de diseño ([EightShapes](https://medium.com/eightshapes-llc/typography-in-design-systems-6ed771432f1e): *"some systems can get away with as few as two or three weights"*). El 460 no se puede sacar porque es el cuerpo. Y el 560 que teníamos salía de `.article h2` —un sub-encabezado dentro del artículo— y no del separador que copiamos, que es el `h1` a 600 |
 | ↳ nunca un salto menor a 40 | Dos niveles de la misma jerarquía se separan por **40 o más**. Se descartaron pesos intermedios (520, 540) por esto | el conteo completo de sus `font-weight` da 100·200·400·430·450·460·500·560·600·620·700·800, o sea que sí tiene saltos chicos — pero **430** es para cursivas (`\.article em`: la itálica se ve más pesada y la compensa bajando 30) y **450** para internos de componente. Son compensación óptica y one-offs, nunca escalones de jerarquía |
-| ↳ el costo aceptado | "Library" y el nombre de pieza **empatan en 500**. Y la palabra "Web" sale dos veces: 600 en el separador, 460 al 40% en el índice | el empate es el precio de bajar a tres pesos: a esos dos los distingue la posición y el contexto. Lo de "Web" estuvo abierto y se cerró aceptándolo: no son dos pesos que casi empatan, son un encabezado y un renglón de lista |
+| ↳ el costo aceptado | "Interface exhibition" y el nombre de pieza **empatan en 500**. Y la palabra "Web" sale dos veces: 600 en el separador, 460 al 40% en el índice | el empate es el precio de bajar a tres pesos: a esos dos los distingue la posición y el contexto. Lo de "Web" estuvo abierto y se cerró aceptándolo: no son dos pesos que casi empatan, son un encabezado y un renglón de lista |
 | ↳ lo que se corrigió al hornear | El tracking era **−0.004rem**, que no es de nadie. Había **tres interlíneas**, dos escritas a mano (`1.3` en los títulos, que no existe en el CSS de benji; `1.2` en el índice, que sí es suyo). El rótulo de sección estaba en **600** cuando el `h2` de benji es **560** | la página era un híbrido que nadie había decidido |
 | ↳ tokens por rol | La tipografía dejó de vivir hardcodeada por clase: cada rol (`--type-h1-*`, `--type-h2-*`, `--type-h3-*`, `--type-body-*`, `--type-meta-*`, `--type-nav-*`) es un juego de tokens. Las interlíneas van en **px**, no como razón | hizo falta para poder montar los dos sistemas candidatos, porque no son variantes del mismo: benji comparte un tamaño entre todos los roles y josh le da uno a cada uno. Se queda porque es donde vive el peso de cada rol, que si no vuelve a esconderse en su clase |
 | Cómo responde al viewport | **Escalona, no interpola** — la manera de benji. Un solo escalón en **768** que mueve dos cosas juntas: aire superior 80→32 y margen 16→24. El índice se va en **1080**. Cero `clamp()`, cero `vw` | medido de los cuatro CSS servidos de benji y del markup de cinco subpáginas de josh (`.context/recon/RESPONSIVE.md`). Josh es lo contrario: **cero escalones en el marco** — 142 clases en `/bloom`, ninguna con prefijo responsive, 672·24·64 desde 320 hasta 2560. Se prefirió que la página responda y no que se quede igual en todo ancho |
 | ↳ el margen hace dos trabajos | **16** arriba de 768, **24** abajo. Arriba de 768 el riel está centrado con aire de sobra y el padding es vestigial: sólo angosta la columna. Abajo de 582 el riel *es* el viewport y ese mismo padding pasa a ser la única distancia al borde de la pantalla | es exactamente lo que hace benji (`padding: 5rem 1rem 2.5rem` → `2rem 1.5rem 2.5rem`), y explica por qué el número no es constante sin ser incoherente |
 | ↳ el índice en 1080 | Se esconde bajo **1080**, no bajo 1200 | 1080 es el de benji (`@media(max-width:1080px){…{display:none}}`), y su índice está fijo a 80/80, que es de donde salió el nuestro. El 1200 anterior no salía de ninguna de las dos referencias: era nuestro y nadie lo había decidido |
 | Aire superior | 80px, y **32 bajo 768px** | CSS de benji.org (`padding: 5rem`). Medido al píxel: a 769 son 80, a 768 son 32. Antes estaba en 640, heredado del DESIGN.md de Carousels |
-| Masthead | "Library" (600) + una línea gris debajo. El subtítulo no cambia de tamaño: sólo peso y color | benji (`h1` 500 ink / `time` 460 al 40%) y josh (nombre y descripción al mismo tamaño, sólo cambia color) |
+| Masthead | "Interface exhibition" (600) + una línea gris debajo. El subtítulo no cambia de tamaño: sólo peso y color | benji (`h1` 500 ink / `time` 460 al 40%) y josh (nombre y descripción al mismo tamaño, sólo cambia color) |
 | Copy del subtítulo | *Components for web and native apps that feel right.* "Feel right" es el estándar de calidad que usan Emil (h1 de animations.dev: *"How do you craft animations that feel right?"*) y Josh (*"Software that feels right"*). Ninguno de los dos usa "crafted" como adjetivo: *craft* les es verbo o sustantivo, y la calidad la nombran con *feel right*, *care* o *taste*. Afirma el resultado, no el esfuerzo | copy medido de animations.dev e interfacecraft.dev |
 | Riel | **592** = 37rem justos. Con el margen de 16, la columna queda en **560** = 35rem | elegido con el scrubber sobre la página real, entre el de benji (582, su 36.375rem) y el de josh (672, 42rem). Los dos números caen en rem enteros, cosa que no pasaba con ninguno de los dos extremos. El anterior era 832, del DESIGN.md de Carousels, y nunca se había mirado contra esta página |
 | Aire inferior | **80**, el mismo número que arriba. **No escalona** en 768 como el de arriba | no sale de las referencias: las dos cierran corto (benji 40, josh 64) porque abajo tienen footer y nosotros no vamos a tener, así que ese aire es el final de la página y no una separación. No escalona a propósito: los 80 de arriba se recortan porque en un teléfono son pantalla muerta antes de leer nada, y los de abajo sólo se ven si scrolleaste hasta el fondo. Benji hace lo mismo — escalona el de arriba y deja el de abajo quieto |
@@ -259,7 +259,7 @@ medido está en `.context/recon/vault/REPRODUCTOR.md`.
   no por accidente: la 57.0.2 salió el 2026-08-26 y el cooldown de 24h
   la bloqueó. `npx expo install --fix` la sube cuando pase la ventana.
 - **El inspector de selección del lienzo, cuando haya con qué.** Hoy la
-  única acción de un frame elegido (`Add to Library`) vive en la sidebar,
+  única acción de un frame elegido (`Add to Exhibition`) vive en la sidebar,
   debajo del índice. El día que se acumulen más —duplicar, medidas,
   orden— ese bloque es el que se muda a un panel derecho estilo Figma,
   decidido con `/prototype`. Abrir la superficie ahora sería chrome para
@@ -311,7 +311,7 @@ Del lado nuestro tres de cuatro ya lo cumplían:
 
 | pantalla | primer elemento | top |
 |---|---|---:|
-| Library | `<h1>` Library | 80 |
+| Interface exhibition | `<h1>` Interface exhibition | 80 |
 | Detalle de una pieza | la flecha | 80 |
 | Vault, la grilla | la solapa `Vault` | 80 |
 | **Vault, un clip abierto** | la flecha | ~~120~~ → **80** |
@@ -484,10 +484,10 @@ mentiría justo en lo que este vault estudia, que es el gesto y el háptico
 streameado (`simctl io booted screenshot` más `idb ui tap`) da la imagen
 pero no el *feel*, que es lo único que no se puede juzgar de otra manera.
 
-## Publicar — del playground a la library
+## Publicar — del playground a la exhibition
 
 El recorrido cierra desde el 2026-08-26, y cierra **en el tablero**:
-`Add to Library` es el clic derecho sobre un frame del playground. Un
+`Add to Exhibition` es el clic derecho sobre un frame del playground. Un
 boceto sale como pieza **Web viva**; una grabación, como pieza **App**
 en video.
 
@@ -495,12 +495,12 @@ en video.
 no de lugar: el vault es lo EXTERNO —la pared de referencias que mirás—
 y lo que se publica es lo TUYO, que vive en el playground. El flujo
 entero quedó: vault (externo) → playground (iterás tu pieza, con las
-referencias al lado) → library. Publicar es el final del taller, así que
+referencias al lado) → exhibition. Publicar es el final del taller, así que
 el gesto vive donde está el trabajo.
 
 | Decisión | Valor | Fuente |
 | --- | --- | --- |
-| **La acción es visible, no sólo clic derecho** | elegís el frame y `Add to Library` aparece en la sidebar, debajo del índice, a **16** —el aire de grupo, medido— para que no se lea como un renglón más: los renglones son sustantivos y esto es un verbo | la lección ya aprendida en el vault: *un menú contextual no anuncia nada*. El patrón de referencia es el panel derecho de Figma —las acciones de lo elegido— pero UNA acción no paga una superficie nueva: la zona nace adentro de la sidebar que ya existe. El clic derecho queda como atajo |
+| **La acción es visible, no sólo clic derecho** | elegís el frame y `Add to Exhibition` aparece en la sidebar, debajo del índice, a **16** —el aire de grupo, medido— para que no se lea como un renglón más: los renglones son sustantivos y esto es un verbo | la lección ya aprendida en el vault: *un menú contextual no anuncia nada*. El patrón de referencia es el panel derecho de Figma —las acciones de lo elegido— pero UNA acción no paga una superficie nueva: la zona nace adentro de la sidebar que ya existe. El clic derecho queda como atajo |
 | **La plataforma la dice el frame**, sin selector | un frame `boceto` publica Web; un frame `clip` publica App | es la regla que ya existía —*App se demuestra en video, Web va viva*— leída al revés. Un selector ofrecería combinaciones que el sistema ya declaró inválidas |
 | El formulario es el molde de la pieza | dos campos: nombre y una línea de descripción — exactamente los dos renglones del detalle público. El nombre llega puesto; la descripción arranca vacía porque es el único dato que el archivo no sabe de sí mismo | la carpeta-es-el-manifiesto del vault, aplicada al publicar: no se pide nada que ya se sepa |
 | **Cómo vive una pieza Web** | su archivo en `src/piezas/<slug>.tsx`, resuelto **por nombre** en `demos.tsx` — glob perezoso, cache por ref, mismo trío que los bocetos | el slug es el mapa, así que no hay registro que mantener a mano — la decisión de la carpeta-manifiesto, ahora del lado público. En el build cada pieza sale como su propio chunk (**verificado**: `press-counter-….js`, 0.44 kB) |
@@ -508,7 +508,7 @@ el gesto vive donde está el trabajo.
 | ↳ y cruza la frontera de verdad | de `src/privado/bocetos/` a `src/piezas/` | `src/privado/` no llega al build, así que una pieza publicada necesita su archivo del lado público. Por lo mismo, una pieza no puede importar nada de `src/privado/` — era cierto para el boceto (nace autocontenido) y tiene que seguir siéndolo |
 | Las dos escrituras o ninguna | el archivo del demo se copia y la entrada entra a `pieces.ts`; si la segunda falla, la primera se deshace | el vault y `src/privado/` viven fuera del deploy; sin el copiado la pieza apuntaría a algo que producción no tiene |
 | No se pisa nada nunca | nombre o archivo repetidos → **409**, no un reemplazo | la misma regla que subir un clip y crear un boceto: `COPYFILE_EXCL`, chequeo y copia en una sola operación. **Verificado**: mismo slug con otro nombre devuelve 409 |
-| La confirmación es la página | al publicar navegás a `/​<slug>` y ves el demo andando | este sistema no tiene toast (el undo de Sonner sigue pospuesto); la library real es mejor confirmación que cualquier cartel. Navegación dura a propósito: `pieces.ts` acaba de cambiar en disco y recargar garantiza que todos los módulos la vean |
+| La confirmación es la página | al publicar navegás a `/​<slug>` y ves el demo andando | este sistema no tiene toast (el undo de Sonner sigue pospuesto); la exhibition real es mejor confirmación que cualquier cartel. Navegación dura a propósito: `pieces.ts` acaba de cambiar en disco y recargar garantiza que todos los módulos la vean |
 | El demo Web corre vivo en las DOS vistas | lista y detalle, el mismo componente, centrado en la caja con el piso heredado (`min-height: inherit`) | la decisión ya estaba tomada: *"con preview vivo en la lista, el detalle no aporta la pieza — aporta lo que la rodea"*. **Verificado**: el botón de prueba contó 3 clics en `/press-counter` |
 | La grabación toma el hueco del teléfono | el `::before` que reservaba la silueta se apaga (`:has`) y el video usa el mismo ancho por el mismo token — 228 en la lista, 319 en el detalle | el hueco existía para esto: era la reserva de un contenido que ahora llegó. **Verificado**: 228 y 319 medidos |
 | ↳ autoreproduce, muda, en loop | `autoplay muted loop playsinline` | el movimiento ES el contenido, y es lo que hacen los demos de benji en family-values — 45 videos girando a la vez. La regla contraria del playground (arranca quieto) es de un tablero de estudio; una exposición existe para mostrarse sola |
@@ -722,13 +722,13 @@ mide 24 pt de mayúscula, o sea 34 pt de fuente, el Large Title de iOS.
 | ↳ el texto y el final vuelven a los tiempos medidos | la receta `skill` toma de `CRUCE`, `COMMIT` y `REINICIO` los cruces del label (press 360/48; suelta 600 lineal +150 / 250 +80; commit 450 lineal +210 / 280 +40; reinicio 300/250), el velo (330), el deslizamiento (250 + 400) y el fundido (400), con la curva medida; conserva los springs donde hay dedo y el tilde contextual. Los valores de § 5 (200/150 sin retardos, 250, 200, 200) quedan anotados en `receta.ts` | Vito, 2026-09-07, con la receta `skill` recién activa: "no me gusta cómo quedó la animación ahora, el texto cambia muy abrupto y la animación del final es muy rápida". Lo abrupto era exactamente lo que la tabla prescribe para un "small state change"; lo aprobado antes eran los tiempos del clip. La referencia es piso: se tocan las perillas que nombró, no la arquitectura |
 | ↳ y la receta activa vuelve a `clip` | `RECETA = 'clip'`: la medida, la del commit `679b0db`. La `skill` (springs, tilde contextual) queda entera a un `?receta=skill` | Vito, 2026-09-07: "está diferente a antes, sobre todo el final, revisá y dejalo como antes". Con `skill` el pill vuelve al completar con un spring de 400 ms en vez del salto del 25 % más 220 ms medidos, y el tilde entra solo. RUNTIME: con `clip` activa, las cuatro sondas de estado (reposo, 0.5, commit, cruce-commit=150) dan PSNR infinito contra `sim/b-claro-*.png`, capturadas esa mañana con el código anterior: píxel por píxel lo mismo, pantalla entera. El label con tres tintas y la etapa única no cambian nada visible: es la misma coreografía por otro camino |
 | ↳ el tilde y "Order Placed" van de la mano, garantizado | el tilde contextual pierde su reloj propio: lee `pListo`, la presencia del texto, y sus dos capas llevan la MISMA partición de la escalera —la nítida, `nitido`; la borrosa, `ancho + angosto`—. La escala .25 → 1 de better-ui queda, con el mismo ease-out que la del texto. En la receta activa, `clip`, el tilde ya iba adentro de la fila: son literalmente las mismas capas | Vito, 2026-09-07: "¿el ícono y el Order Placed van de la mano al mismo tiempo? Aseguralo". Había DOS formas de separarse y las dos están cerradas: un spring propio de 300 ms contra los 450 + 210 del texto (el tilde llegaba primero), y después, con el reloj ya compartido, una rampa de opacidad distinta (q contra la escalera, que satura en q = .4: el tilde llegaba último). RUNTIME (`cmp/tilde-de-la-mano.png`, sonda `tilde=` a .10/.20/.30/.40/.60/1, medido con `tilde.py` como tinta —Σ 255−luminancia— sobre el pill blanco, normalizada a la de q = 1): en `clip` el tilde y el texto van a ±1.5 puntos porcentuales en cada q; en `skill` antes iban 13 % contra 74 % a q = .30, y ahora 34 % contra 74 %, que es exactamente el área que le falta al tilde por estar al 63 % de su tamaño —la diferencia que queda es el crecimiento prescripto, no un retraso—. Y `clip` no se movió un píxel: commit, `cruce-commit=150` y progreso .5 dan PSNR infinito contra el mismo estado sacado del código de `898eece` |
-| La pieza grabada y publicada en la library, en claro y en oscuro | dos másters en `.context/mockup/master/hold-to-commit-{oscuro,claro}.mp4`, 5.45 s cada uno; cuatro videos para X (`mockup/out/hold-to-commit-<apariencia>-<fondo>.mp4`) y dos pares con alfa para la card. La coreografía es la sonda `demo` (`boton.tsx`), que llama a los MISMOS worklets que el gesto —`apretar`, `completar`, `reiniciar`— así que curvas, tiempos, háptica y sonido son los del camino real. `MATERIAL = 'opaco'`, que de paso cierra la decisión abierta desde el 2026-09-07 y saca los chips de la pantalla | pedido del 2026-09-08 ("graba y subí a library, quiero dark y light mode, en modo opaco, respetando zooms"). El modo sale de `useColorScheme`, así que las dos tomas son el mismo código con `simctl ui appearance`. RUNTIME: las dos tomas alineadas POR EL COMMIT quedan a 33 ms una de otra (`cortar.py`) |
+| La pieza grabada y publicada en la exhibition, en claro y en oscuro | dos másters en `.context/mockup/master/hold-to-commit-{oscuro,claro}.mp4`, 5.45 s cada uno; cuatro videos para X (`mockup/out/hold-to-commit-<apariencia>-<fondo>.mp4`) y dos pares con alfa para la card. La coreografía es la sonda `demo` (`boton.tsx`), que llama a los MISMOS worklets que el gesto —`apretar`, `completar`, `reiniciar`— así que curvas, tiempos, háptica y sonido son los del camino real. `MATERIAL = 'opaco'`, que de paso cierra la decisión abierta desde el 2026-09-07 y saca los chips de la pantalla | pedido del 2026-09-08 ("graba y subí a library, quiero dark y light mode, en modo opaco, respetando zooms"). El modo sale de `useColorScheme`, así que las dos tomas son el mismo código con `simctl ui appearance`. RUNTIME: las dos tomas alineadas POR EL COMMIT quedan a 33 ms una de otra (`cortar.py`) |
 | ↳ el corte se mide ADENTRO de la píldora, no en la banda | `cortar.py` promedia una ventana de 800×70 px que es toda píldora en los dos modos | RUNTIME: con la banda de 1080×200 que se usó primero, en claro la domina la ficha blanca que rodea al botón y el corte salió 200 ms desfasado del de oscuro; en el video de X las dos apariencias mostraban instantes distintos de la coreografía. Se vio en un tablero de los cuatro cuadros del commit, no en los números |
 | ↳ la cámara mira la píldora, y el encuadre está medido | `parametros.ts`, `HOLD_TO_COMMIT`: `foco` 0.9105 (el centro de la píldora está a 2650 de 2868 px de la pantalla, o sea al 91.05 % del CUERPO con el bisel medido de `geometria.ts`) y `focoEnLienzo` 0.58 para X. Todo lo demás —bisel, tamaño, sombra, zooms, curvas— es lo medido en la referencia de @nater02 y no se tocó | el criterio del encuadre no es el gusto: dejar abajo el mismo aire que la referencia deja arriba (`aireArriba`, 7.2 %). RUNTIME: la sombra termina al 84.4 / 89.4 / 92.5 / 96.4 / 99.9 % del lienzo con focoEnLienzo 0.50 / 0.55 / 0.58 / 0.62 / 0.67; 0.58 deja 7.5 % |
-| ↳ en la library el teléfono llena la caja: `focoEnLienzo` 0.85 | el video de la library ES la caja entera de la card, así que el corte del zoom cae en su borde | RUNTIME: con el 0.58 de X el cuerpo llegaba al 70.9 % de la caja y quedaba un 29.1 % de card vacía debajo del teléfono; con 0.85 llega al 97.9 % y la píldora entra entera |
-| ↳ la card sirve la grabación del tema del lector | `Piece` suma `videoOscuro` y `videoHevcOscuro`; `parts.tsx` los elige con `prefers-color-scheme` y remonta el `<video>` con `key`, porque mover el `src` de un `<source>` ya montado no recarga nada sin un `load()`. `pieza:video … --oscuro` escribe ese par | no contradice la decisión del 2026-09-05 ("que haya solo un fondo, el del lugar que da la library"): aquella es sobre el FONDO de la card, que sigue siendo uno solo, y esta sobre lo que se ve adentro del teléfono. Hold to commit es la primera pieza cuyo contenido cambia con la apariencia del sistema, y la diferencia no es cosmética: en claro la píldora pierde el brillo que la llena en oscuro |
+| ↳ en la exhibition el teléfono llena la caja: `focoEnLienzo` 0.85 | el video de la exhibition ES la caja entera de la card, así que el corte del zoom cae en su borde | RUNTIME: con el 0.58 de X el cuerpo llegaba al 70.9 % de la caja y quedaba un 29.1 % de card vacía debajo del teléfono; con 0.85 llega al 97.9 % y la píldora entra entera |
+| ↳ la card sirve la grabación del tema del lector | `Piece` suma `videoOscuro` y `videoHevcOscuro`; `parts.tsx` los elige con `prefers-color-scheme` y remonta el `<video>` con `key`, porque mover el `src` de un `<source>` ya montado no recarga nada sin un `load()`. `pieza:video … --oscuro` escribe ese par | no contradice la decisión del 2026-09-05 ("que haya solo un fondo, el del lugar que da la exhibition"): aquella es sobre el FONDO de la card, que sigue siendo uno solo, y esta sobre lo que se ve adentro del teléfono. Hold to commit es la primera pieza cuyo contenido cambia con la apariencia del sistema, y la diferencia no es cosmética: en claro la píldora pierde el brillo que la llena en oscuro |
 | ↳ la grabación es un solo gesto | la sonda `demo` era reposo, hold abandonado a los 700 ms, hold completo y reinicio; ahora es reposo, hold completo y reinicio, y el máster pasó de 6.65 a 4.65 s más 0.8 de cola | Vito, 2026-09-08: "que en la grabación se ejecute todo de una, sacá esa parte del principio que se aprieta el botón y se corta en la mitad". La retirada sigue en la pieza y en las notas, contada como propiedad del botón: cortarse a la mitad antes de haber mostrado una vez qué pasa al final se lee como un error |
-| ↳ el video termina cuando termina la animación | el máster sigue entero (5.45 s, con el reinicio); lo que se corta es la ENTREGA, a 4.10 s, y se corta UNA VEZ: `pnpm assets --duracion=4.10` deja el clip ya cortado en `public/` y de ahí salen los seis videos, los cuatro de X y los dos pares de la library | Vito, 2026-09-08: "hacé que el video se corte antes, o sea cuando termina la animación y listo, bien natural, que no se espere a volver", y después "que haya más tiempo luego que termine". RUNTIME (`quietud.py`, diferencia entre cuadros consecutivos en la franja de abajo entera, que es por donde sale la ráfaga): las dos apariencias se quedan quietas a los 2.73 y 2.78 s —"✓ Order Placed" enfocado y la ráfaga apagada— y siguen quietas hasta los **4.333 en las dos**, que es cuando el reinicio se mueve. 4.10 deja 1.35 s con el resultado en pantalla y 0.23 de margen. La medición fija el techo; el aire lo eligió él |
+| ↳ el video termina cuando termina la animación | el máster sigue entero (5.45 s, con el reinicio); lo que se corta es la ENTREGA, a 4.10 s, y se corta UNA VEZ: `pnpm assets --duracion=4.10` deja el clip ya cortado en `public/` y de ahí salen los seis videos, los cuatro de X y los dos pares de la exhibition | Vito, 2026-09-08: "hacé que el video se corte antes, o sea cuando termina la animación y listo, bien natural, que no se espere a volver", y después "que haya más tiempo luego que termine". RUNTIME (`quietud.py`, diferencia entre cuadros consecutivos en la franja de abajo entera, que es por donde sale la ráfaga): las dos apariencias se quedan quietas a los 2.73 y 2.78 s —"✓ Order Placed" enfocado y la ráfaga apagada— y siguen quietas hasta los **4.333 en las dos**, que es cuando el reinicio se mueve. 4.10 deja 1.35 s con el resultado en pantalla y 0.23 de margen. La medición fija el techo; el aire lo eligió él |
 | ↳ y se corta ANTES de renderizar, no después | primero se rendía entero y se cortaba el WebM y el .mov con `-c copy`; ahora el corte está en el clip | un `-c copy` sólo puede cortar en un cuadro clave, y dejaba el WebM en 4.121 contra 4.100 del .mov: los dos formatos del mismo video duraban distinto. Cortando el clip los dos dan 246 cuadros exactos, se rinde un 25 % menos y desaparece un paso. El `--duracion` de `pnpm assets` lleva el recibo |
 | Las notas de la pieza | `src/notas/hold-to-commit.tsx`: Anatomy, Performance y Use cases, 12 párrafos. Sin línea de descripción, que es la primera regla: el título ya dice qué es el gesto | el procedimiento entero es AGENTS.md › Cómo se escriben la línea y las notas. Las fuentes se leyeron servidas el 2026-09-08: josh puckett (19 párrafos suyos dan mediana de 25 palabras y 2 oraciones), benji, y la guía de interfaz de Apple por su API de documentación, que entra como explicación y sin nombrarla |
 | ↳ lo que las notas NO afirman | que el hold mida un segundo con 4 ms de error, aunque la fila de rendimiento lo tenga | esa medición sale de la sonda `auto`, que dispara `apretar` y `completar` con dos `setTimeout` de JavaScript: mide la puntería de esos timers, no el reloj del reconocedor de gestos. Lo que sí se afirma es lo que la medición prueba: que el reconocedor y el relleno leen la misma constante, y los cuadros perdidos. Y nada sobre un teléfono real, que la sección dice con todas las letras |
@@ -745,7 +745,7 @@ mide 24 pt de mayúscula, o sea 34 pt de fuente, el Large Title de iOS.
 | ↳ el teléfono entra como prueba, no como medición | el 2026-09-08 se pidió decir que se había probado en un teléfono y NO se escribió, porque no había con qué sostenerlo. El 2026-09-09 Vito lo confirmó ("ya testeado en celular real") y entró: "Measured on the iOS Simulator and an Android emulator, and tested on a phone, where the haptic can be felt" | **los dos verbos son distintos a propósito.** Los números siguen atribuidos a donde se midieron; del teléfono sale lo único que sólo se puede saber ahí. El simulador no vibra —está en el encabezado de `haptica.ts`, y por eso toda esa pista está marcada SIN RECIBO—, así que la háptica es la parte de la pieza que no se puede juzgar de otra manera. Lo que sigue sin escribirse es un cuadro por segundo o una latencia medidos en un teléfono: esos no existen |
 | ↳ dos recibos del taller habían quedado viejos | `haptica.ts` decía que el último detente cae justo antes del salto a negro del label; el último es 0.985 y el salto arranca en 0.965, así que el que cae ahí es el ANTEÚLTIMO (0.955). Y `boton.tsx` contaba el recorrido del frente como 3 % → 94 % en tres lugares, cuando `medidas.ts` dice `arranque` .045 y `recorrido` .91, o sea 4.5 % → 95.5 % | los dos son comentarios, no código: nada se veía mal en pantalla. Es el modo en que un recibo falla —el valor se corrige en un lado y la explicación se queda en el otro— y por eso auditar los comentarios contra el código es parte de cerrar una pieza, no un lujo |
 | La regla de nombres, como skill | `~/.claude/skills/precise-naming/`: la regla del vocabulario de una especificación de IBM de 1972, con las tres preguntas para aplicarla, la tabla de correcciones, la parte de texto público, y cuándo NO se aplica (`useEffect`, `stdin`, `SIGKILL` se quedan) | pedido del 2026-09-08. Corrida sobre lo escrito ese mismo día encontró tres nombres míos: look.ts → acabado.ts ("look" es jerga de diseño, y en inglés en una carpeta que nombra en castellano), pulido | fiel → revisado | referencia ("pulido" nombra una sensación), y EMPUJON_OPTICO → CORRECCION_OPTICA. Y una colisión: `RECETAS` existía dos veces en la misma carpeta, para dos cosas distintas |
-| Se volvió a grabar, y los seis videos son nuevos | dos tomas nuevas del simulador con el botón revisado, dos másters, los cuatro de X y los dos pares con alfa de la library | los videos publicados eran de antes del acabado `revisado`: mostraban el anillo, la página blanca y el label sin corregir, y el esqueleto cruzando el borde de abajo del pill. Un video que no muestra la pieza que está publicada es peor que no tener video. Las dos tomas nuevas coinciden en el commit dentro de **16 ms** (1.483 y 1.467 s desde el corte, contra el mínimo de 1.2 que pide el taller) |
+| Se volvió a grabar, y los seis videos son nuevos | dos tomas nuevas del simulador con el botón revisado, dos másters, los cuatro de X y los dos pares con alfa de la exhibition | los videos publicados eran de antes del acabado `revisado`: mostraban el anillo, la página blanca y el label sin corregir, y el esqueleto cruzando el borde de abajo del pill. Un video que no muestra la pieza que está publicada es peor que no tener video. Las dos tomas nuevas coinciden en el commit dentro de **16 ms** (1.483 y 1.467 s desde el corte, contra el mínimo de 1.2 que pide el taller) |
 | ↳ y la barra de estado se mira antes de gastar dos tomas | la primera captura de control traía el "◀ Safari" que iOS deja después de abrir la app desde un link; se va con un `terminate` + `launch` de más | no lo tenía ninguno de los másters viejos, así que era del estado del simulador y no del script. Cuesta 15 segundos comprobarlo y una toma entera arreglarlo después |
 | El cómo-se-hace no había viajado con el cambio | las decisiones estaban todas en esta bitácora y los tres `AGENTS.md` seguían describiendo el camino de una sola apariencia. El de la raíz decía, con todas las letras, que **"no hay versiones por tema"** | y sí las hay desde esta pieza. La bitácora guarda lo que se decidió; el `AGENTS.md` es donde alguien mira para HACERLO, y ahí la frase vieja no es una omisión, es una instrucción equivocada. Cerrado en los tres: la distinción entre el fondo de la card (uno) y la grabación (dos), `pnpm pieza:video` en su forma de dos apariencias, `--duracion` con su recibo, y la miga de pan de la barra de estado en la sección de grabar |
 | ↳ `--hasta` pasó a llamarse `--duracion` | el flag de `pnpm assets` que corta la entrega | `hasta` ya nombraba otros dos instantes en el mismo camino: el arranque de la salida de cámara en `parametros.ts` (3.00, y `9999` para "no sale") y el `--hasta` de `pnpm mockup` en el taller. Tres instantes con una palabra es justo lo que la regla de nombres prohíbe, y esto además no es un instante: es una duración, la que va al `-t` de ffmpeg. Verificado después del renombre: 246 cuadros, 4.100 s |
@@ -952,8 +952,8 @@ deja de ser rojo sin que haya ningún hueco) y comprueba píxel por píxel
 que el hueco del bisel está lleno en doce estados de la cámara. Corre
 antes de mirar nada.
 
-**La primera pieza App entró a la library por su propio camino**: el clip
-en el vault, `Add to Library` (su endpoint, el mismo que usa la sidebar),
+**La primera pieza App entró a la exhibition por su propio camino**: el clip
+en el vault, `Add to Exhibition` (su endpoint, el mismo que usa la sidebar),
 la entrada en `PIECES` y `vercel.json` regenerado por el build. El vault
 guarda el máster (1320×2868, 25 MB: es lo que graba el simulador) y eso
 es lo que publicar copia tal cual; para la exposición se re-encodeó a
@@ -972,7 +972,7 @@ sintéticos, la sonda mueve el pager con curvas medidas. Un dedo real en
 el teléfono con Expo Go es la otra mitad de "la fluidez", y es una
 grabación distinta, no un ajuste del mockup.
 
-**Addendum, el mismo día.** El video que estaba en la library era el
+**Addendum, el mismo día.** El video que estaba en la exhibition era el
 interino —la grabación del simulador re-encodeada— y el clip final se
 está haciendo en otra sesión. Se decidió dejar la pieza **publicada con
 el hueco vacío** (la card lo reserva sola: es el `::before` de
@@ -1079,22 +1079,22 @@ el canto del bisel. Y la línea completa —de la sonda en la pieza al
 render doble— quedó en `mockup/AGENTS.md`, con cada mini-decisión y su
 porqué, y la sonda de grabación para copiar en `nativo/AGENTS.md`.
 
-**Los dos videos entran a la library, y la card elige.** `Swipeable
+**Los dos videos entran a la exhibition, y la card elige.** `Swipeable
 tabs` ya no tiene el hueco vacío: lleva el mockup claro en `video` y el
 oscuro en `videoOscuro`, los dos a 1080² (el doble del hueco del detalle
 y algo más) por `pnpm pieza:video … --oscuro`. La card los elige con
-`prefers-color-scheme`, que es lo único que la library sigue —no hay
+`prefers-color-scheme`, que es lo único que la exhibition sigue —no hay
 switch de tema—, con un `useSyncExternalStore` sobre el `matchMedia` y
 un `key` por src para que el `<video>` arranque de cero al cambiar. Sin
 `videoOscuro`, el claro va en los dos modos.
 
-**El mockup en la library, grande y del color de la card.** Dos quejas
+**El mockup en la exhibition, grande y del color de la card.** Dos quejas
 sobre la primera puesta: el teléfono se veía chico adentro del cuadrado
-y el fondo del mockup no era el de la library. Se probó dibujar el
+y el fondo del mockup no era el de la exhibition. Se probó dibujar el
 teléfono con CSS alrededor de la grabación cruda, como hace benji.org
 (su video es la pantalla sola y la página pone un phone.png; medido:
 marco del 4.3 % del ancho, esquina del hueco al 14.4 %) y se rechazó:
-"el mockup del iPhone debe estar como antes". Lo que quedó: la library
+"el mockup del iPhone debe estar como antes". Lo que quedó: la exhibition
 lleva **su propio par de renders** del mismo mockup, con el fondo igual
 a `--surface` de la card en cada tema, el teléfono al 86 % del cuadro
 (benji: 85 %, medido en su card) y la salida de la cámara a 1× para que
@@ -1106,9 +1106,9 @@ oscuro decodifica (14, 14, 14) contra (14, 14, 13) de la superficie —un
 nivel de azul que el 4:2:0 del h264 no puede dar (probados 10 a 14 de
 azul: ninguno cae en 13). No se ve, y no se toca el token por un códec.
 
-**Un solo fondo: el de la library.** El par con el color de la card
+**Un solo fondo: el de la exhibition.** El par con el color de la card
 horneado tampoco gustó: "que haya solo un fondo, que sea el del lugar
-que da la library, y sin sombra, como hace Family". Así que la library
+que da la library, y sin sombra, como hace Family". Así que la exhibition
 lleva **un video transparente y sin sombra** —el teléfono al 86 % del
 cuadro y la cámara terminando a 1×— y el fondo lo pone la card en el
 tema que sea; los tokens mandan, el video no trae color. Es lo que hace
@@ -1127,14 +1127,14 @@ card con el padding de 40/60 alrededor, y cuando la cámara entraba el
 teléfono se cortaba contra ese cuadrado invisible, 60 px adentro del
 borde de la caja: un corte que no venía de nada. Ahora el video ES la
 caja —560 de lado, sin padding— y el corte cae en el borde del espacio
-que da la library, que es donde un ojo espera un límite. Y el teléfono
+que da la exhibition, que es donde un ojo espera un límite. Y el teléfono
 va al 92 % del cuadro, 515 px en vez de 378, porque el usuario lo pidió
 más cerca. El hueco de 228×448 sigue vivo para la card sin video.
 
-**En la library la cámara se queda.** "Que sea todo exactamente igual
+**En la exhibition la cámara se queda.** "Que sea todo exactamente igual
 salvo que una vez que se hace zoom, se quede ahí hasta el final, así
 se ve lo que estoy mostrando, que son los tabs." Así que el render de
-la library entra a la fila de tabs y no sale: `hasta` fuera del clip.
+la exhibition entra a la fila de tabs y no sale: `hasta` fuera del clip.
 El video de X sigue con la salida medida en la referencia. Y un bug
 que casi viaja: el máster ProRes 4444 salía sin alfa —esquina 255,
 medido— porque Remotion necesita `--pixel-format=yuva444p10le` además
@@ -1158,7 +1158,7 @@ devuelve a 1. Verificado en Chrome: 1 → 0.5 → 1 en `playbackRate`, el
 ancho 28 → 40, el rótulo cruzado, opacidad 0 sin el mouse y 1 con él.
 
 **Ajuste al botón de velocidad.** Siempre visible en el detalle, como en
-benji; en el hub de la library sólo con el mouse sobre el video, porque
+benji; en el hub de la exhibition sólo con el mouse sobre el video, porque
 ahí es una lista y un control por card es ruido. Sin fondo ni cambio de
 color al pasar por encima: el rótulo alcanza. Y el rótulo es "1x", no
 "1.0x".
@@ -1283,7 +1283,7 @@ jump" a "Swipe between tabs, tap to select one": las páginas son tabs
 (dos feeds y cuatro temas), y "select" es el verbo de especificación
 donde "jump" era el coloquial. Auditados contra la regla y sin cambio:
 el título `Swipeable tabs` (el término de los SDK: `Swipeable` en
-gesture-handler, "swipe" en la HIG), el masthead `Library`, los rótulos
+gesture-handler, "swipe" en la HIG), el masthead `Interface exhibition`, los rótulos
 `Web` y `App`, y los títulos de las notas `Anatomy`, `Performance` y
 `Use cases`. `AGENTS.md › Cómo se nombra` lo deja escrito para las
 piezas que vengan.
@@ -1938,7 +1938,7 @@ escribible.)*
 ### El disparo lo eligió un picker de tres
 
 **El 2026-09-09**, después de ver que en Apple la barra se abre sola al
-mover el cursor, la pregunta era si eso sirve en una library. Se armó un
+mover el cursor, la pregunta era si eso sirve en una exhibition. Se armó un
 picker con el skill `prototype`: **tres disparos, la misma pieza debajo**
 —una copia generada por script del archivo de producción, parchando sólo
 el estado y los manejadores, así que las formas, el goo, el material y
@@ -2535,7 +2535,7 @@ moría al construir.
 
 **La segunda: los videos estaban codificados como másters.** Los dos
 parámetros y su recibo están arriba de cada uno en
-`mockup/scripts/library.mjs`; el resumen es que el WebM salía a
+`mockup/scripts/exhibition.mjs`; el resumen es que el WebM salía a
 `--crf=18` y el HEVC a `-q:v 85`, calidad de archivo, para algo que se
 sirve por red. Pasaron a CRF 32 y a bitrate fijo de 4000k.
 

@@ -1,4 +1,4 @@
-# Library — guía para agentes
+# Interface exhibition — guía para agentes
 
 Exposición de componentes: piezas web e iOS, cada una perteneciente a UNA
 plataforma, mostradas en una página única. No es una librería instalable.
@@ -55,7 +55,7 @@ qué es a mano y qué todavía no existe.
 ```
    tu carpeta            /vault                /playground              /
   (VAULT_DIR)   ───▶   lo EXTERNO      ───▶   lo TUYO         ───▶   la exposición
-  soltás clips         mirás y anotás         iterás tu pieza        Add to Library
+  soltás clips         mirás y anotás         iterás tu pieza        Add to Exhibition
 
                                               web: boceto vivo   →  pieza Web (corre)
                                               app: grabación     →  pieza App (video)
@@ -101,7 +101,7 @@ Las tres reglas que valen para los dos caminos, antes de empezar:
 | 4 | **Creá el boceto** | En el lienzo: `+` → **New sketch**. Escribe `src/privado/bocetos/<slug>.tsx` y lo pone en la tela |
 | 5 | **Escribí** | Editá ese archivo. Vite lo recarga en el frame **sin recargar la página**. Un boceto roto apaga sólo su frame y se recupera al guardar |
 | 6 | **Probalo** | Clic para elegir el frame → ahí el boceto recibe los clics y podés apretarle los botones. `Escape` para volver a moverlo |
-| 7 | **Publicá** | Con el frame elegido, `Add to Library` en la sidebar → nombre + una línea de descripción (opcional: vacía, no se escribe) → **Add** |
+| 7 | **Publicá** | Con el frame elegido, `Add to Exhibition` en la sidebar → nombre + una línea de descripción (opcional: vacía, no se escribe) → **Add** |
 | 8 | **Verificá** | Te deja en `/<slug>` con el componente **corriendo**. Mirá también la home: el preview vivo va en las dos vistas |
 | 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
 
@@ -125,7 +125,7 @@ el archivo publicado**; el boceto se queda en tu tablero.
 | 5 | **Probalo en el teléfono** | Vale la pena: el simulador **no tiene háptica ni 120Hz**. Expo Go + misma Wi-Fi, o `pnpm start --tunnel` |
 | 6 | **Grabá** | `pnpm grabar swipe-to-pay`. Corta con Enter. Barra en 9:41, `--codec h264`, escribe **directo a `VAULT_DIR/native/`** |
 | 7 | **Llevala al tablero** | La grabación ya está en `/vault`: clic derecho → `Open in Playground` |
-| 8 | **Publicá** | Con el frame elegido, `Add to Library` → nombre + descripción → **Add** |
+| 8 | **Publicá** | Con el frame elegido, `Add to Exhibition` → nombre + descripción → **Add** |
 | 9 | **Verificá** | Te deja en `/<slug>` con el video autoreproduciendo en el hueco del teléfono |
 | 10 | **Escribí el porqué** | Igual que el camino A |
 
@@ -138,13 +138,13 @@ había no era el bueno— la pieza igual puede estar publicada: sin `video`
 la card muestra el hueco del teléfono vacío. Cuando el archivo esté:
 
 ```bash
-pnpm pieza:video swipeable-tabs mockup/out/library --alfa        # el par con alfa de `pnpm render:library` (webm + mov), tal cual, y completa `video` y `videoHevc`
+pnpm pieza:video swipeable-tabs mockup/out/exhibition --alfa        # el par con alfa de `pnpm render:exhibition` (webm + mov), tal cual, y completa `video` y `videoHevc`
 pnpm pieza:video swipeable-tabs ~/Downloads/final.mp4            # un video opaco cualquiera: re-encodea para la web y completa `video`
 ```
 
 Una pieza App se muestra **transparente y sin sombra** sobre la
 superficie de la card, como los videos de Family en benji.org: el fondo
-lo pone la library, en el tema que sea. El porqué está en
+lo pone la exhibition, en el tema que sea. El porqué está en
 `mockup/AGENTS.md`.
 
 **Eso es el FONDO. La GRABACIÓN sí puede ser dos**, y son dos cosas
@@ -442,7 +442,7 @@ Tres cosas que conviene saber antes de tocarlo:
   contra el simulador, con el agente al lado, y llega a la exposición
   como video (ver abajo).
 
-**Y acá se publica.** Con un frame elegido, `Add to Library` aparece en
+**Y acá se publica.** Con un frame elegido, `Add to Exhibition` aparece en
 la sidebar —debajo del índice, el patrón del panel de selección de Figma
 colapsado en el panel que ya existe— y el clic derecho lo ofrece como
 atajo. Un boceto sale como pieza Web viva, una grabación como pieza App.
@@ -452,13 +452,13 @@ El detalle está en la sección 3.
 crea: si un frame llegara con ese tipo se dibuja un hueco con la palabra
 `Piece`. El andamio está puesto y dicho; falta la pieza que lo estrene.
 
-### 3 · La library — lo público
+### 3 · La exhibition — lo público
 
 `src/pieces.ts` es el inventario, y **está vacío a propósito**: los 18
 placeholders se borraron enteros antes de la primera pieza real, para que
 nada genérico se confunda con una decisión. La primera define el molde.
 
-**Publicar es un gesto del tablero.** Elegís el frame y `Add to Library`
+**Publicar es un gesto del tablero.** Elegís el frame y `Add to Exhibition`
 aparece en la sidebar (el clic derecho lo repite como atajo): nombre
 (llega puesto) y una línea de descripción, opcional —vacía, no se
 escribe el campo—. Son los dos renglones del detalle público; sin
@@ -551,7 +551,7 @@ pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
   no reproducirse en el `<video>` de la exposición, que es la trampa más
   cara del camino porque no falla al grabar sino en la pieza ya
   publicada— y escribe **directo a `VAULT_DIR/native/`**. Parás y el
-  clip ya está en la grilla → Open in Playground → Add to Library.
+  clip ya está en la grilla → Open in Playground → Add to Exhibition.
 - **Las versiones las elige `expo install`, no npm.** Una dependencia de
   RN trae código nativo compilado contra el runtime del SDK: la última
   de npm contra SDK 57 es una combinación que nadie probó, y rompe el

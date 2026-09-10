@@ -13,7 +13,7 @@ pnpm assets            # bisel + grabación normalizada a 60 fps → public/ (gi
 pnpm verificar         # ¿el hueco del bisel queda lleno en toda la cámara? (rojo pleno, 12 cuadros)
 pnpm studio            # el look, con cada número como control
 pnpm render:ambos      # out/swipeable-tabs.mp4 (claro) y out/swipeable-tabs-oscuro.mp4: cada video sale dos veces, para X
-pnpm render:library    # out/library.webm + out/library.mov: UN video transparente y sin sombra para la library (el fondo lo pone la card)
+pnpm render:exhibition    # out/exhibition.webm + out/exhibition.mov: UN video transparente y sin sombra para la exhibition (el fondo lo pone la card)
 pnpm still Sombras out/sombras.png   # la grilla: el reposo con dieciséis sombras, cada una con su recibo
 pnpm still SombrasSimetricas out/sombras-simetricas.png   # dieciséis más, sin luz de costado
 pnpm still Fondos out/fondos.png   # dieciséis fondos: planos, degradados, foco, malla, grano, trama, piso, imagen, la app desenfocada
@@ -27,7 +27,7 @@ ajeno).
 **`--duracion=4.10` corta la ENTREGA, y se corta UNA sola vez.** El
 máster se guarda entero porque es el registro de la toma; lo que se
 entrega puede terminar antes. El corte va acá, en el clip, y de ahí
-salen todos los renders de esa pieza — los de X y los de la library.
+salen todos los renders de esa pieza — los de X y los de la exhibition.
 Antes se rendía entero y se recortaba cada salida con `-c copy`, que
 sólo puede cortar en un cuadro clave: dejaba el WebM en 4.121 contra
 4.100 del `.mov`, o sea dos formatos del mismo video con largo
@@ -44,9 +44,9 @@ sale"). Se llamó `--hasta` un rato y se renombró por eso.
 Hold to commit obligó a que esto deje de ser de una sola pieza. Lo que
 cambió, y lo que NO:
 
-- **Una composición por pieza, y una más para su versión de library.**
-  `HoldToCommit` y `HoldToCommitLibrary` al lado de `SwipeableTabs` y
-  `SwipeableTabsLibrary`. Lo único que las separa es la CÁMARA: dónde
+- **Una composición por pieza, y una más para su versión de exhibition.**
+  `HoldToCommit` y `HoldToCommitExhibition` al lado de `SwipeableTabs` y
+  `SwipeableTabsExhibition`. Lo único que las separa es la CÁMARA: dónde
   vive el gesto de cada una. Son composiciones y no props porque
   **Remotion mezcla las input props con las defaultProps sólo en el
   primer nivel**: pasarle un `camara` parcial borra el foco y las
@@ -54,16 +54,16 @@ cambió, y lo que NO:
   entera al toque).
 - **Los renders se piden por script, no por `pnpm render`.**
   `node scripts/render.mjs <Composicion> <slug> [--modos=oscuro,claro]`
-  saca los videos de X, y `node scripts/library.mjs <Composicion>Library
+  saca los videos de X, y `node scripts/exhibition.mjs <Composicion>Exhibition
   <clip>` el par con alfa. `--modos` existe porque una pieza puede tener
   una grabación POR APARIENCIA de la app: entonces son cuatro archivos,
   `<slug>-<apariencia>-<fondo>.mp4`, porque apariencia y fondo se eligen
   por separado.
-- **El encuadre de la library no es el de X.** El video de X deja el
-  canto y la sombra adentro del cuadro; el de la library ES la caja de
+- **El encuadre de la exhibition no es el de X.** El video de X deja el
+  canto y la sombra adentro del cuadro; el de la exhibition ES la caja de
   la card y el teléfono tiene que llenarla. Para un gesto que vive
   abajo, el mismo `focoEnLienzo` deja un tercio de card vacío: cada
-  pieza pasa el suyo a `paraLibrary`.
+  pieza pasa el suyo a `paraExhibition`.
 - **Lo que no cambió:** bisel, tamaño, sombra, fondos, zooms y curvas.
   Todo eso está medido en la referencia de @nater02 y no se toca por
   pieza.
@@ -85,8 +85,8 @@ se nombra.
 | 7 | **`pnpm verificar`** antes de mirar: el hueco del bisel lleno en doce estados de la cámara | `scripts/verificar.mjs` |
 | 8 | **La cámara se ajusta a la toma**: `hasta` = fin del gesto lento medido; entrada y salida son las de la referencia | `src/parametros.ts` |
 | 9 | **Se mira en Studio**, se toca lo que haga falta, y **se renderiza dos veces**: `pnpm render:ambos` → claro y oscuro | abajo |
-| 10 | **La library lleva UN solo render, transparente y sin sombra**, como los videos de Family en benji.org: `pnpm render:library` saca `out/library.webm` (VP9 con alfa, Chrome y Firefox) y `out/library.mov` (HEVC con alfa por VideoToolbox, Safari), 1120² (1:1 con la caja de 560 en retina), teléfono al 92 %, y la cámara entra a los tabs y SE QUEDA hasta el final: lo que se muestra son los tabs. El video es la caja entera de la card, así el corte del zoom cae en su borde; el fondo lo pone la card en el tema que sea. Entra por `pnpm pieza:video <slug> mockup/out/library --alfa` desde la raíz. El de X es el par con fondo | raíz `AGENTS.md`, camino B |
-| 10b | **Y si la pieza se dibuja distinto en claro y en oscuro, son DOS pares**, uno por apariencia de la app: `node scripts/library.mjs <Composicion>Library <slug>-claro` y lo mismo con `-oscuro`, y entran con `pnpm pieza:video <slug> mockup/out/<slug>-claro --alfa` y `… <slug>-oscuro --alfa --oscuro`. El par SIN sufijo es la app en claro, que es lo que ve un lector con el sistema en claro. Esto no contradice lo de arriba: el FONDO de la card sigue siendo uno solo, lo que cambia es lo que se ve adentro del teléfono | raíz `AGENTS.md`, camino B |
+| 10 | **La exhibition lleva UN solo render, transparente y sin sombra**, como los videos de Family en benji.org: `pnpm render:exhibition` saca `out/exhibition.webm` (VP9 con alfa, Chrome y Firefox) y `out/exhibition.mov` (HEVC con alfa por VideoToolbox, Safari), 1120² (1:1 con la caja de 560 en retina), teléfono al 92 %, y la cámara entra a los tabs y SE QUEDA hasta el final: lo que se muestra son los tabs. El video es la caja entera de la card, así el corte del zoom cae en su borde; el fondo lo pone la card en el tema que sea. Entra por `pnpm pieza:video <slug> mockup/out/exhibition --alfa` desde la raíz. El de X es el par con fondo | raíz `AGENTS.md`, camino B |
+| 10b | **Y si la pieza se dibuja distinto en claro y en oscuro, son DOS pares**, uno por apariencia de la app: `node scripts/exhibition.mjs <Composicion>Exhibition <slug>-claro` y lo mismo con `-oscuro`, y entran con `pnpm pieza:video <slug> mockup/out/<slug>-claro --alfa` y `… <slug>-oscuro --alfa --oscuro`. El par SIN sufijo es la app en claro, que es lo que ve un lector con el sistema en claro. Esto no contradice lo de arriba: el FONDO de la card sigue siendo uno solo, lo que cambia es lo que se ve adentro del teléfono | raíz `AGENTS.md`, camino B |
 
 ## Las mini-decisiones, y por qué
 
@@ -99,7 +99,7 @@ se nombra.
 - **La grabación: nace en el tab inicial de verdad** (`contentOffset`), arrastre lento de 1.65 s con seno in-out, toques por `alTocar`, flicks con el perfil de dedo medido en X (15 % en 110 ms, el resto en 430) cada 1.0 s, y al llegar al último tab dos de vuelta.
 - **Un bug de la pieza que la sonda destapó:** la barra tomaba "hay un toque" de `destino !== NADIE`; la condición es `movimiento === toque`. Está commiteado en la pieza.
 - **Dos fondos por video:** claro (#EBE6E8) y oscuro (#1C181A, el neutro bajado al 11 % con el mismo tinte; sin referencia medida en el vault). La sombra no cambia.
-- **En la library, ningún fondo y ninguna sombra:** el video va transparente sobre la superficie de la card, como Family en benji.org, y ES la caja entera (560 de lado, teléfono al 92 %): el corte cuando la cámara entra cae en el borde de la caja, no en un cuadrado invisible más adentro. Y en la library la cámara no sale: entra a los tabs y se queda. El ProRes con alfa necesita `--pixel-format=yuva444p10le`; sin eso sale opaco (medido) y el script lo detecta y corta. Se probó hornear el color de la card por tema (claro exacto, oscuro a un nivel de azul) y se rechazó: "que haya solo un fondo, el del lugar que da la library". El alfa viaja en dos archivos, WebM VP9 y HEVC .mov, porque ningún códec lo lleva a todos los navegadores.
+- **En la exhibition, ningún fondo y ninguna sombra:** el video va transparente sobre la superficie de la card, como Family en benji.org, y ES la caja entera (560 de lado, teléfono al 92 %): el corte cuando la cámara entra cae en el borde de la caja, no en un cuadrado invisible más adentro. Y en la exhibition la cámara no sale: entra a los tabs y se queda. El ProRes con alfa necesita `--pixel-format=yuva444p10le`; sin eso sale opaco (medido) y el script lo detecta y corta. Se probó hornear el color de la card por tema (claro exacto, oscuro a un nivel de azul) y se rechazó: "que haya solo un fondo, el del lugar que da la exhibition". El alfa viaja en dos archivos, WebM VP9 y HEVC .mov, porque ningún códec lo lleva a todos los navegadores.
 
 ## Dónde está cada cosa
 

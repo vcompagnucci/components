@@ -85,9 +85,9 @@ export type Parametros = z.infer<typeof esquema>
    teléfono se separa por el canto metálico del bisel, como en Apple. */
 export const FONDO_OSCURO = '#1C181A'
 
-/* LA LIBRARY LLEVA UN SOLO RENDER, TRANSPARENTE Y SIN SOMBRA
-   (pnpm render:library → scripts/library.mjs): el fondo lo pone la
-   card de la library en el tema que sea, y el teléfono va sin sombra,
+/* LA EXHIBITION LLEVA UN SOLO RENDER, TRANSPARENTE Y SIN SOMBRA
+   (pnpm render:exhibition → scripts/exhibition.mjs): el fondo lo pone la
+   card de la exhibition en el tema que sea, y el teléfono va sin sombra,
    como los videos de Family en benji.org. Teléfono al 92 % del cuadro —el
    video es la caja entera de la card y el usuario lo quiso más cerca;
    benji va al 85 %— y la cámara que entra a los tabs y se queda hasta el
@@ -200,14 +200,14 @@ export const HOLD_TO_COMMIT: Parametros = {
   },
 }
 
-/* LOS PARÁMETROS DE LA LIBRARY, derivados de los de cada pieza.
+/* LOS PARÁMETROS DE LA EXHIBITION, derivados de los de cada pieza.
    Existen como composición propia y no como props del render porque
    Remotion mezcla las input props con las defaultProps SÓLO en el
    primer nivel: pasarle un `camara` parcial borra el resto del objeto
    —el foco, el zoom, las curvas— y el esquema de zod lo rechaza. Con
    una composición por pieza, el script de render sólo pisa el clip,
    que es de primer nivel. */
-export const paraLibrary = (p: Parametros, focoEnLienzo = p.camara.focoEnLienzo): Parametros => ({
+export const paraExhibition = (p: Parametros, focoEnLienzo = p.camara.focoEnLienzo): Parametros => ({
   ...p,
   fondo: 'transparent',
   sombra: [],
@@ -222,7 +222,7 @@ export const paraLibrary = (p: Parametros, focoEnLienzo = p.camara.focoEnLienzo)
     hasta: 9999,
     k2: 1.0,
     aireArriba: 0.04,
-    /* EN LA LIBRARY EL VIDEO ES LA CAJA ENTERA de la card, así que el
+    /* EN LA EXHIBITION EL VIDEO ES LA CAJA ENTERA de la card, así que el
        teléfono tiene que LLENARLA: el corte cae en el borde de la caja,
        que es donde tiene que caer. Una pieza cuyo gesto vive abajo
        necesita su propio valor, porque el que sirve para el video de X

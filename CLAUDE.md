@@ -1,7 +1,7 @@
-# Library
+# Interface exhibition
 
 **Leé [`AGENTS.md`](AGENTS.md) antes de tocar nada.** Ahí está cómo
-funciona todo: el recorrido de una pieza (vault → playground → library),
+funciona todo: el recorrido de una pieza (vault → playground → exhibition),
 el mapa del repo, la frontera dev/producción y el método de trabajo.
 
 **Si venís a construir una pieza**, el procedimiento numerado está en

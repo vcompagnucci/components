@@ -9,7 +9,7 @@
  * EL SLUG ES LA MISMA CUENTA QUE EL REPO WEB —minúsculas, todo lo que
  * no es alfanumérico a guión— y eso importa de verdad: la carpeta acá,
  * la URL de la pieza publicada y el nombre del archivo de la grabación
- * son EL MISMO string. Si divergieran, la pieza en la library no
+ * son EL MISMO string. Si divergieran, la pieza en la exhibition no
  * apuntaría a su propio taller.
  *
  * No pide confirmación y no pisa nada: si la carpeta existe, avisa y

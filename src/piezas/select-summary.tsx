@@ -2,7 +2,7 @@
    SELECT SUMMARY — el resumen de una selección múltiple.
 
    PIEZA WEB, y corre viva: el archivo de este lado de la frontera es el
-   canónico (ver AGENTS.md › La library). Es AUTOCONTENIDO a propósito —
+   canónico (ver AGENTS.md › La exhibition). Es AUTOCONTENIDO a propósito —
    no importa nada de src/privado/ ni de ninguna otra pieza— y por eso
    las cuatro personas y su chip viven acá adentro y no en un módulo
    aparte.
@@ -312,7 +312,7 @@ function Racimo({ personas, lado }: { personas: Persona[]; lado: number }) {
    La pieza no reproduce nada: no hay guion, no hay bucle y no hay un
    estado que avance solo. En la lista es el mismo control que en el
    detalle y contesta al puntero, que es como se comporta la otra pieza
-   Web de la library.
+   Web de la exhibition.
 
    Acá vivía un guion de cuatro estados que corría cada 1500 ms mientras
    el puntero estuviera sobre la card. Se leía como una grabación, que es
@@ -676,8 +676,8 @@ const CSS = `
 
      Lo que se pierde, dicho: el control ya NO reproduce el escalón de la
      referencia. Es un control mucho más claro y mucho más plano que el
-     del video, y es a propósito: la referencia es oscura y esta library
-     es clara, y acá manda la library.
+     del video, y es a propósito: la referencia es oscura y esta exhibition
+     es clara, y acá manda la exhibition.
 
      --selection-bg quedó descartado y vale la pena anotar por qué: en
      oscuro mide #fafaf9, L* 98.2. Es el fondo de selección de TEXTO, y
@@ -685,7 +685,7 @@ const CSS = `
      superficie más; medido, no lo es.
 
      ─── Y ES --canvas, NO --surface-hover ───
-     Acá decía --surface-hover, y colisionaba. La card de la library se
+     Acá decía --surface-hover, y colisionaba. La card de la exhibition se
      pinta --surface y pasa a --surface-hover con el puntero encima, que
      es EXACTAMENTE cuando la pieza corre en la home: el bucle sólo
      avanza con el puntero sobre la card. Medido en la home, con el
@@ -724,7 +724,7 @@ const CSS = `
      Acá vivía el violeta de la referencia, medido: #867df9 en oscuro y
      #5b4fe0 en claro para que el blanco encima llegara a contraste.
 
-     Se fue porque esta library NO TIENE COLOR DE ACENTO. Su sistema
+     Se fue porque esta exhibition NO TIENE COLOR DE ACENTO. Su sistema
      entero es un texto, tres superficies y una línea; los únicos dos
      colores que existen son el rojo de lo destructivo y el azul del
      anillo de foco, y los dos tienen su motivo escrito. Un violeta que
@@ -766,7 +766,7 @@ const CSS = `
      Verificado: pieza, disparador y panel, un solo valor en los siete
      estados. */
   align-items: flex-start;
-  /* El aire alrededor. La card de la library no trae padding para una
+  /* El aire alrededor. La card de la exhibition no trae padding para una
      pieza Web: lo pone la pieza, que es la que sabe cuánto necesita. Es
      un alto de botón a cada lado, o sea el mismo H del que cae toda la
      geometría, y con eso la card de la lista pasa de su piso de 260 a

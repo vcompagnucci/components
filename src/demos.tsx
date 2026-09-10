@@ -12,7 +12,7 @@ import { slug } from './pieces'
    y no hay ningún registro que mantener a mano — el nombre ES el mapa,
    la misma decisión que hace que la carpeta del vault sea el manifiesto.
 
-   AHÍ LLEGA UN BOCETO CUANDO SE PUBLICA. Add to Library, sobre el frame
+   AHÍ LLEGA UN BOCETO CUANDO SE PUBLICA. Add to Exhibition, sobre el frame
    del tablero, copia el archivo desde src/privado/bocetos/ hasta acá.
    Se copia y no se importa: src/privado/ no llega al build, así que una
    pieza publicada tiene que tener su archivo de este lado de la
