@@ -1,37 +1,40 @@
 # Interface exhibition
 
-**Leé [`AGENTS.md`](AGENTS.md) antes de tocar nada.** Ahí está cómo
-funciona todo: el recorrido de una pieza (vault → playground → exhibition),
-el mapa del repo, la frontera dev/producción y el método de trabajo.
+**Read [`AGENTS.md`](AGENTS.md) before touching anything.** That is where
+how everything works is written: the journey of a piece (vault →
+playground → exhibition), the map of the repo, the dev/production
+boundary and the working method.
 
-**Si venís a construir una pieza**, el procedimiento numerado está en
-[AGENTS.md › El proceso, paso a paso](AGENTS.md#el-proceso-paso-a-paso)
-— un camino para **Web** (boceto en el playground, se publica corriendo)
-y otro para **App** (Expo en `nativo/`, se publica en video). Lo primero
-que hay que decidir es cuál: ¿dónde corre la cosa que estás mostrando?
+**If you are here to build a piece**, the numbered procedure is in
+[AGENTS.md › The process, step by step](AGENTS.md#the-process-step-by-step):
+one path for **Web** (a sketch in the playground, published running) and
+another for **App** (Expo in `native/`, published on video). The first
+thing to decide is which one: where does the thing you are showing run?
 
-Este archivo es un puntero a propósito — no repite contenido, para que no
-pueda quedar viejo.
+This file is a pointer on purpose. It does not repeat content, so that it
+cannot go stale.
 
-| archivo | qué es |
+| file | what it is |
 | --- | --- |
-| [`AGENTS.md`](AGENTS.md) | cómo funciona el producto y cómo se trabaja acá |
-| [`README.md`](README.md) | la bitácora: cada decisión, su valor y de dónde salió |
-| [`DESIGN.md`](DESIGN.md) | la referencia: tokens, valores por viewport, las cuatro reglas |
+| [`AGENTS.md`](AGENTS.md) | how the product works and how the work is done around here |
+| [`README.md`](README.md) | the log: every decision, its value and where it came from |
+| [`DESIGN.md`](DESIGN.md) | the reference: tokens, values per viewport, the four rules |
 
-Lo que no se negocia, y está desarrollado en `AGENTS.md`:
+What is not negotiable, and is spelled out in `AGENTS.md`:
 
-1. **Nada se afirma sin medir**, ni valores propios ni ajenos. Una regla
-   que existe en una hoja de estilos no es una regla en la pantalla.
-2. **Una mini-decisión por vez**, explorada con el skill `prototype` en la
-   página real. Lo que no está bajo estudio se queda congelado.
-3. **`src/privado/` no se importa desde el producto.** La dependencia va
-   en un solo sentido o el área privada termina en el bundle.
-4. **El porqué se escribe arriba del archivo** y en la bitácora. Un valor
-   sin recibo es un valor que alguien va a cambiar sin saber qué rompe.
-5. **Todo nombre usa vocabulario profesional preciso** —archivos,
-   funciones, variables, commits, ramas, lo que sea—: la palabra que un
-   ingeniero de IBM escribiría en una especificación en 1972. Sin jerga,
-   sin nombres graciosos ni ingeniosos. `deploy_dashboards.sh`, no
-   `push_dashboards.sh`; y en el texto público —título, descripción,
-   notas—, "tap to select", no "tap to jump".
+1. **Nothing is claimed without measuring it**, neither your own values
+   nor anyone else's. A rule that exists in a stylesheet is not a rule on
+   the screen.
+2. **One mini-decision at a time**, explored with the `prototype` skill on
+   the real page. Whatever is not under study stays frozen.
+3. **`src/private/` is not imported from the product.** The dependency
+   goes in one direction only, or the private area ends up in the bundle.
+4. **The why is written at the top of the file** and in the log. A value
+   with no receipt is a value someone is going to change without knowing
+   what it breaks.
+5. **Every name uses precise professional vocabulary** (files, functions,
+   variables, commits, branches, whatever it is): the word an IBM engineer
+   would write in a specification in 1972. No jargon, no funny or clever
+   names. `deploy_dashboards.sh`, not `push_dashboards.sh`; and in the
+   public text (title, description, notes), "tap to select", not "tap to
+   jump".
