@@ -1972,6 +1972,31 @@ a 84 px al cambiar a "Copied", justo en el cuadro en que confirma: se le
 clavó el ancho del texto más largo. Y los cuadros no se movieron con todo
 esto puesto: 0 perdidos a 1× y a 6×.
 
+### El velo se comía todos los clics
+
+El modal salió andando en las sondas y **la pieza estaba rota en el
+navegador**: apretar cualquier botón no hacía nada (Vito: "clickeo y no
+pasa nada"). El velo cubre la escena entera y viene después en el DOM,
+así que con `opacity: 0` seguía tapando la barra y recibiendo todos los
+clics él.
+
+**Lo importante no es el arreglo —una línea de `pointer-events`— sino
+por qué ninguna de las diez sondas lo vio.** Todas llamaban `.click()`
+sobre el elemento, y eso **no hace hit-testing**: el evento se dispara
+sobre el nodo aunque haya otra capa encima. Una interfaz que nadie puede
+tocar pasa todas esas pruebas.
+
+Lo que sí lo ve es un evento de puntero a las COORDENADAS del control,
+que es lo que hace un dedo. Quedó en `sonda/clics.mjs`, y además de
+apretar pregunta `document.elementFromPoint` antes: eso contesta lo
+mismo que el navegador decide al hacer clic, así que nombra al que está
+tapando en vez de dejar que el clic se pierda en silencio. La tabla que
+imprime dice qué se aprieta, quién recibe el clic y qué estado quedó.
+
+La regla que queda: **cualquier capa que exista siempre y se apague con
+opacidad necesita `pointer-events: none` en su estado apagado**, y eso no
+se verifica con clics sintéticos.
+
 ### Cuatro correcciones sobre las capturas
 
 Cuatro cosas que sólo se vieron mirando la pieza corriendo, con la

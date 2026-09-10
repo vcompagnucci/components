@@ -658,7 +658,11 @@ export default function TitleToActions() {
        alguien lo escribe, tira en vez de traer la librería entera de
        vuelta y volver a duplicar el peso sin que nadie lo note. */
     <LazyMotion features={domAnimation} strict>
-      <div data-pieza="title-to-actions" data-abierto={acciones ? '' : undefined}>
+      <div
+        data-pieza="title-to-actions"
+        data-abierto={acciones ? '' : undefined}
+        data-compartiendo={compartir ? '' : undefined}
+      >
         <style href="pieza-title-to-actions" precedence="medium">
           {HOJA}
         </style>
@@ -1378,6 +1382,19 @@ const HOJA = `
   border-radius: var(--card-radio, 8px);
   background: rgb(0 0 0 / 0.28);
   opacity: 0;
+  /* CERRADO NO EXISTE PARA EL PUNTERO, y esto rompió la pieza entera:
+     el velo cubre la escena y viene después en el DOM, así que con
+     opacidad cero seguía tapando la barra y se comía TODOS los clics.
+     Apretar cualquier botón no hacía nada.
+
+     No lo vio ninguna sonda porque todas llamaban .click() sobre el
+     elemento, y eso saltea el hit-testing: el clic llega aunque haya
+     algo encima. Lo que sí lo ve es un evento de entrada de verdad, que
+     es con lo que se verifica desde ahora. */
+  pointer-events: none;
+}
+[data-pieza='title-to-actions'][data-compartiendo] .velo {
+  pointer-events: auto;
 }
 @media (prefers-color-scheme: dark) {
   [data-pieza='title-to-actions'] .velo { background: rgb(0 0 0 / 0.5); }
