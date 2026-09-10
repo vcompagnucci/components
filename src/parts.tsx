@@ -325,7 +325,7 @@ function Muestra({ piece, modo, activo }: { piece: Piece; modo: Modo; activo?: b
      con alfa. Al revés, Safari tomaría el WebM y lo dibujaría sobre
      negro. Ver Reproductor. */
   if (piece.video) return <Reproductor piece={piece} modo={modo} activo={activo} />
-  if (piece.platform === 'Web') return <DemoVivo name={piece.name} modo={modo} activo={activo} />
+  if (piece.platform === 'Web') return <DemoVivo name={piece.name} modo={modo} />
   return null
 }
 

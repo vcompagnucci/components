@@ -30,8 +30,8 @@
    lo que se anima.
    ═══════════════════════════════════════════════════════════════ */
 
-import { useEffect, useId, useRef, useState, type ElementType, type MouseEvent } from 'react'
-import type { PropsPieza } from '../demos'
+import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
+import type { Montaje } from '../demos'
 
 /* Las cuatro personas de la pieza, y el chip que las contiene.
 
@@ -308,48 +308,34 @@ function Racimo({ personas, lado }: { personas: Persona[]; lado: number }) {
   )
 }
 
-/* ─── EL GUION DE LA LISTA ───
-   En la lista la pieza no se toca —el porqué está abajo, en Control—,
-   así que se PRESENTA: recorre sola los cuatro estados que tiene para
-   mostrar. Arranca con el puntero sobre la card y se pausa al salir,
-   retomando donde estaba: la misma regla que ya tienen las grabaciones
-   de las piezas App, y por el mismo motivo (una lista larga con diez
-   piezas moviéndose es ruido y CPU). */
-const GUION: Seleccion[] = [
-  'todas',
-  ['karri'],
-  ['karri', 'john'],
-  ['karri', 'john', 'elon'],
-]
-/* Lo bastante largo para que la transición del resumen —250 ms útiles—
-   termine y se lea antes del siguiente paso. */
-const PASO_GUION = 1500
+/* ─── EN LA LISTA TAMBIÉN SE USA ───
+   La pieza no reproduce nada: no hay guion, no hay bucle y no hay un
+   estado que avance solo. En la lista es el mismo control que en el
+   detalle y contesta al puntero, que es como se comporta la otra pieza
+   Web de la library.
 
-export default function SelectSummary({ modo = 'detalle', activo = false }: PropsPieza = {}) {
-  const enLista = modo === 'lista'
-  const [seleccion, setSeleccion] = useState<Seleccion>('todas')
-  /* El bucle de la lista: corre sólo con el puntero encima y al salir se
-     queda donde está, igual que las grabaciones de las piezas App. */
-  const [paso, setPaso] = useState(0)
-  useEffect(() => {
-    if (!enLista || !activo) return
-    const t = setInterval(() => setPaso((n) => (n + 1) % GUION.length), PASO_GUION)
-    return () => clearInterval(t)
-  }, [enLista, activo])
-  /* Lo que se dibuja: en la lista manda el guión, en el detalle el
-     estado que dejó quien lo tocó. */
-  const vista: Seleccion = enLista ? GUION[paso] : seleccion
-  /* El disparador y las cinco filas son el mismo elemento: <button> en
-     el detalle y <div> en la lista. En la lista la pieza es un PREVIEW
-     adentro de una card que promete abrir el detalle, así que no toma
-     el puntero ni el tabulador: seis botones más por card ensucian el
-     tabulador y le pelean el clic a la card. Es la razón que da
-     `Montaje` en demos.tsx, y vale igual para las dos piezas Web.
-
-     El cast es a una etiqueta intrínseca —'div' o 'button', nunca otra
-     cosa— y existe para poder pasarle props sólo en el detalle sin que
-     TypeScript pida la intersección de los dos juegos de atributos. */
-  const Control = (enLista ? 'div' : 'button') as ElementType
+   Acá vivía un guion de cuatro estados que corría cada 1500 ms mientras
+   el puntero estuviera sobre la card. Se leía como una grabación, que es
+   justo lo que una pieza Web no es. */
+export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } = {}) {
+  /* EN LA LISTA NO SE TABULA, PERO SÍ SE TOCA. Ahí el demo es un preview
+     adentro de una card que promete abrir el detalle: seis paradas más
+     de tabulador por card la ensucian, así que los controles salen del
+     orden de tabulación y el clic de cada uno se frena para que no
+     navegue. Con el puntero la pieza funciona entera, que es lo que un
+     preview vivo tiene que hacer. */
+  const esPreview = modo === 'lista'
+  const [vista, setVista] = useState<Seleccion>('todas')
+  /* EL FRENO DEL CLIC. En la lista la card entera navega al detalle, y
+     el clic de un control de la pieza sube hasta ella. `preventDefault`
+     alcanza: el manejador de la card sale si el evento ya fue atendido
+     (clicDeTarjeta, en parts.tsx). En el detalle no hay card y el
+     preventDefault no le saca nada a un <button type="button">, así que
+     es el mismo código para los dos. */
+  const frenar = (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
   /* ARRANCA ABIERTO, y es de la pieza y no del control: lo que hay que
      ver es de dónde sale el resumen, y con el panel cerrado la card
      muestra una píldora sola sin nada que la explique. En un producto
@@ -435,7 +421,7 @@ export default function SelectSummary({ modo = 'detalle', activo = false }: Prop
 
   /* La fila dice de qué fila se trata; el id es sólo su clave. */
   const tocar = (fila: (typeof filas)[number]) => {
-    setSeleccion((s) => (fila.todas ? 'todas' : alternar(s, fila.id)))
+    setVista((s) => (fila.todas ? 'todas' : alternar(s, fila.id)))
   }
 
   const filasDom = () =>
@@ -489,29 +475,25 @@ export default function SelectSummary({ modo = 'detalle', activo = false }: Prop
     <div
       className="ss"
       ref={raiz}
-      data-lista={enLista ? '' : undefined}
-      aria-hidden={enLista || undefined}
-      onKeyDown={enLista ? undefined : alTecladoRaiz}
+      data-lista={esPreview ? '' : undefined}
+      onKeyDown={alTecladoRaiz}
     >
       <style href="select-summary" precedence="default">
         {CSS}
       </style>
 
-      <Control
+      <button
         className="ss-disparador"
-        {...(enLista
-          ? {}
-          : {
-              type: 'button' as const,
-              'aria-haspopup': 'menu' as const,
-              'aria-expanded': abierto,
-              'aria-controls': `${id}-panel`,
-              onClick: (e: MouseEvent) => {
-                e.preventDefault()
-                setAbierto((v) => !v)
-              },
-              onKeyDown: alTecladoDisparador,
-            })}
+        type="button"
+        tabIndex={esPreview ? -1 : undefined}
+        aria-haspopup="menu"
+        aria-expanded={abierto}
+        aria-controls={`${id}-panel`}
+        onClick={(e) => {
+          frenar(e)
+          setAbierto((v) => !v)
+        }}
+        onKeyDown={alTecladoDisparador}
       >
         <span className="ss-contenido">
           <Racimo personas={personas} lado={RACIMO} />
@@ -529,7 +511,7 @@ export default function SelectSummary({ modo = 'detalle', activo = false }: Prop
             />
           </svg>
         </span>
-      </Control>
+      </button>
 
       <div
           className="ss-popover"
@@ -545,22 +527,19 @@ export default function SelectSummary({ modo = 'detalle', activo = false }: Prop
           onKeyDown={alTeclado}
         >
           {filas.map((f) => (
-            <Control
+            <button
               key={f.id}
               className="ss-fila"
+              type="button"
+              tabIndex={esPreview ? -1 : undefined}
+              role="menuitemcheckbox"
+              aria-checked={f.puesta}
               data-puesta={f.puesta ? '' : undefined}
               data-pie={f.todas ? '' : undefined}
-              {...(enLista
-                ? {}
-                : {
-                    type: 'button' as const,
-                    role: 'menuitemcheckbox' as const,
-                    'aria-checked': f.puesta,
-                    onClick: (e: MouseEvent) => {
-                      e.preventDefault()
-                      tocar(f)
-                    },
-                  })}
+              onClick={(e) => {
+                frenar(e)
+                tocar(f)
+              }}
             >
               {/* Medido: las cinco filas alinean su casilla, su racimo y
                   su nombre en un solo x, 0.00 px de diferencia. */}
@@ -578,7 +557,7 @@ export default function SelectSummary({ modo = 'detalle', activo = false }: Prop
               </span>
               <Racimo personas={f.personas} lado={RACIMO} />
               <span className="ss-nombre">{f.nombre}</span>
-            </Control>
+            </button>
           ))}
         </div>
     </div>
@@ -589,11 +568,6 @@ export default function SelectSummary({ modo = 'detalle', activo = false }: Prop
    Las razones medidas están al lado de cada número. H = 40 px.
    ═══════════════════════════════════════════════════════════════ */
 const CSS = `
-/* En la lista la pieza es una presentación y no recibe el puntero, así
-   el clic lo recoge la card y abre el detalle. */
-.ss[data-lista] {
-  pointer-events: none;
-}
 /* La pieza es autocontenida: no hereda el box-sizing de la página. */
 .ss, .ss *, .ss *::before, .ss *::after {
   box-sizing: border-box;
@@ -622,7 +596,7 @@ const CSS = `
   --ss-aro: 0.09375rem;      /* 1.5 · 0.041 H = 1.6 */
   --ss-chevron-ancho: 0.5rem;     /* 8 · 0.197 H */
   --ss-chevron-alto: 0.8125rem;   /* 13 · 0.332 H */
-  --ss-aire: 1.5rem;         /* 24 · el aire de la pieza dentro de la card */
+  --ss-aire: 2.5rem;         /* 40 · UN ALTO DE BOTÓN de aire arriba y abajo */
   /* Acá vivían un resorte muestreado a linear() y su duración de
      355 ms, los dos sólo para el relleno de la casilla. Se fueron con
      la coreografía: ver LA CASILLA, más abajo. */
@@ -635,17 +609,17 @@ const CSS = `
      sigue en vez de recortar el texto.
 
         28  padding      --ss-pad × 2
-         2  borde        1 + 1
         21  racimo       --ss-racimo
          9  hueco        --ss-hueco
         76  RANURA       --ss-rotulo-ancho
         16  al chevron   --ss-hueco-chevron
          8  chevron      --ss-chevron-ancho
        ───
-       160  y cae justo en 4 H, la unidad de toda la pieza
+       158  más el anillo, que no ocupa lugar
 
-     Todo eso está en rem menos el borde, que es una línea y se queda en
-     píxeles: por eso a raíz 20 px el botón mide 199.5 y no 200.
+     Y son 160 con el redondeo a 4 H, la unidad de toda la pieza: la
+     ranura del rótulo se lleva los 2 px que sobran. Todo está en rem, así
+     que a raíz 20 px el botón mide 200 clavados.
 
      LA RANURA ENTRA EL MÁS ANCHO DE LOS SIETE RÓTULOS POSIBLES. Medidos
      en la página, InterVariable a 15 px: "All people" 69.59 ·
@@ -668,9 +642,9 @@ const CSS = `
 
      Que sea fijo cuesta la transición medida de la referencia, y el
      porqué está entero abajo, en .ss-disparador. */
-  --ss-rotulo-ancho: 4.75rem;    /* 76 · el rótulo más ancho + 6.4 */
+  --ss-rotulo-ancho: 4.875rem;   /* 78 · el rótulo más ancho + 8.4 */
   --ss-disparador-ancho: calc(
-    var(--ss-pad) * 2 + 2px + var(--ss-racimo) + var(--ss-hueco) +
+    var(--ss-pad) * 2 + var(--ss-racimo) + var(--ss-hueco) +
     var(--ss-rotulo-ancho) + var(--ss-hueco-chevron) + var(--ss-chevron-ancho)
   );                             /* 160 · 4 H */
   --ss-fila: 2.5rem;         /* 40 · 1.013 H */
@@ -763,13 +737,23 @@ const CSS = `
      quedó sin una sola línea escrita. */
   --pieza-acento: var(--ink);
   --pieza-acento-glifo: var(--canvas);
-  /* ─── EL CONTORNO DE LA FOTO ───
-     Una línea de 1 px hacia adentro del chip, del mismo token que las
-     demás líneas de la pieza. Quien la necesita es la foto CLARA sobre
-     superficie clara —la de Karri tiene el fondo blanco— y su reflejo
-     en oscuro: sin ella el chip no termina en ningún lado. Al salir del
-     sistema se da vuelta sola con el tema. */
-  --pieza-contorno: var(--hairline);
+  /* ─── EL CONTORNO DE LA FOTO: NEGRO O BLANCO PUROS, AL 10 % ───
+     Una línea de 1 px hacia adentro del chip. Quien la necesita es la
+     foto CLARA sobre superficie clara —la de Karri tiene el fondo
+     blanco—: sin ella el chip no termina en ningún lado.
+
+     Y no es el --hairline del sistema, que es lo que había. El contorno
+     de una imagen es el único color de la pieza que NO se elige: negro
+     puro al 10 % en claro, blanco puro al 10 % en oscuro, nunca un
+     neutro teñido, porque un neutro con tinte recoge la superficie de
+     atrás y se lee como mugre en el borde de la foto. Mirado a los dos
+     valores sobre la foto de Karri: con el 5.1 % del hairline el disco
+     se funde con el panel, con el 10 % termina.
+
+     light-dark() en vez de una consulta de tema: la raíz ya declara
+     color-scheme light dark, así que la pieza sigue sin un solo bloque
+     de color por tema. */
+  --pieza-contorno: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.1));
 
   position: relative;
   display: flex;
@@ -783,8 +767,10 @@ const CSS = `
      estados. */
   align-items: flex-start;
   /* El aire alrededor. La card de la library no trae padding para una
-     pieza Web —lo pone la pieza, que es la que sabe cuánto necesita— y
-     con esto la card de la lista pasa de su piso de 260 a 306. */
+     pieza Web: lo pone la pieza, que es la que sabe cuánto necesita. Es
+     un alto de botón a cada lado, o sea el mismo H del que cae toda la
+     geometría, y con eso la card de la lista pasa de su piso de 260 a
+     338. */
   padding: var(--ss-aire) 0;
   box-sizing: content-box;
   font-size: var(--ss-tipo);
@@ -817,7 +803,25 @@ const CSS = `
   align-items: center;
   height: var(--ss-h);
   padding: 0 var(--ss-pad);
-  border: 1px solid var(--pieza-borde);
+  border: 0;
+  /* ─── EL BORDE ES UN ANILLO, NO UN BORDE ───
+     Un box-shadow inset de 1 px dibuja la misma línea en el mismo
+     lugar, y no ocupa una sola unidad de layout. Dos cosas se
+     arreglan con eso:
+
+     · La cuenta del ancho deja de tener un término en píxeles. Con
+       border, los 2 px del borde eran lo único de la suma que no
+       escalaba con el rem, y el botón medía 199.5 en vez de 200 con la
+       raíz en 20. Ahora la suma es proporcional entera.
+     · El anillo es translúcido y compone sobre lo que tenga debajo, que
+       es la razón por la que un color de borde sólido no sirve: está
+       afinado contra un fondo y sólo contra ése. El --hairline del
+       sistema ya era translúcido; lo que cambia es que ahora tampoco
+       empuja el contenido.
+
+     Va INSET y no afuera: afuera la píldora se vería 2 px más ancha que
+     su caja, y acá el ancho es la decisión de la que cae todo. */
+  box-shadow: inset 0 0 0 1px var(--pieza-borde);
   /* Píldora: verificado contra el círculo en 48 filas del cuadro, con
      error menor a 1 px. No es un radio grande, es la mitad del alto. */
   border-radius: 999px;
@@ -1047,7 +1051,9 @@ const CSS = `
      que se lee como un recorte y no como su continuación. Con nombres
      más cortos la diferencia era de 39 px. */
   min-width: var(--ss-disparador-ancho);
-  border: 1px solid var(--pieza-borde);
+  /* El mismo anillo del disparador, por lo mismo: ver .ss-disparador. */
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--pieza-borde);
   border-radius: var(--ss-radio);
   background: var(--pieza-superficie);
   overflow: hidden;

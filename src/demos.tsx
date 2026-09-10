@@ -35,21 +35,14 @@ import { slug } from './pieces'
    producto, que no es suyo. */
 export type Montaje = 'lista' | 'detalle'
 
-/* Y LA SEGUNDA, PARA LO QUE SE MUEVE SOLO: si el puntero está sobre la
-   card. La lista la usa para arrancar y pausar, que es la misma regla
-   que ya tenían los videos: diez piezas moviéndose a la vez en una lista
-   larga son ruido y CPU. En el detalle no llega y no hace falta, porque
-   ahí la pieza está sola. Una pieza que no se mueva sola no la mira. */
-export type PropsPieza = { modo?: Montaje; activo?: boolean }
-
-const MODULOS = import.meta.glob<{ default: ComponentType<PropsPieza> }>('./piezas/*.tsx')
+const MODULOS = import.meta.glob<{ default: ComponentType<{ modo?: Montaje }> }>('./piezas/*.tsx')
 
 /* Uno por pieza y no uno por render: `lazy` guarda adentro la promesa
    del módulo, y crear otro remontaría el demo —con su estado— en cada
    render de la lista. */
-const cache = new Map<string, ComponentType<PropsPieza>>()
+const cache = new Map<string, ComponentType<{ modo?: Montaje }>>()
 
-function componenteDe(name: string): ComponentType<PropsPieza> | null {
+function componenteDe(name: string): ComponentType<{ modo?: Montaje }> | null {
   const clave = './piezas/' + slug(name) + '.tsx'
   const cargar = MODULOS[clave]
   if (!cargar) return null
@@ -65,13 +58,13 @@ function componenteDe(name: string): ComponentType<PropsPieza> | null {
    detalle, que es la misma con otro piso. Si el archivo no está —una
    entrada escrita a mano sin su pieza— no se dibuja nada, que es la
    caja vacía que ya había. */
-export function DemoVivo({ name, modo, activo }: { name: string } & PropsPieza) {
+export function DemoVivo({ name, modo }: { name: string; modo: Montaje }) {
   const C = componenteDe(name)
   if (!C) return null
   return (
     <div className={css.demoVivo}>
       <Suspense fallback={null}>
-        <C modo={modo} activo={activo} />
+        <C modo={modo} />
       </Suspense>
     </div>
   )
