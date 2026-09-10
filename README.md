@@ -1807,3 +1807,200 @@ de tab instantáneo bajo reduced motion es el comportamiento correcto, no
 una deuda. El razonamiento entero quedó arriba de `CFG`, con la salida
 por si algún día se revisa: partir `Tramo` en dos, y medirlo en el
 teléfono con el ajuste prendido, no razonarlo.
+
+## Title to actions: la primera pieza Web, y la vuelta atrás del vidrio
+
+**Title to actions** (`src/piezas/title-to-actions.tsx`) es la primera
+pieza Web de la exposición: una barra que nombra lo que estás mirando
+—volver, la tapa, el título y el autor, y un botón de puntos
+suspensivos— y que al apretar ese botón cambia el título y el autor por
+las tres acciones del ítem. Los tres botones salen del de puntos
+suspensivos, el pin es un interruptor y compartir abre una tarjeta.
+
+### La primera versión era de vidrio, y se dio marcha atrás
+
+Se construyó contra una grabación de referencia y con el material de
+Liquid Glass: filtros SVG, dos capas de refracción, un velo medido de
+`.glassEffect()` con una sonda de SwiftUI, cuellos de goo, sombras de
+contacto, anillos, y un integrador de resortes de Apple corriendo en un
+lazo de cuadro. Todo eso está medido y el registro sigue en
+`.context/title-to-actions/` — no se tiró. **El archivo entero se guardó
+antes de borrar el taller** (`version-vidrio.tsx`, con su nota al lado):
+era la única copia, porque la pieza publicada nunca llegó a un commit y
+la del picker vivía en `proto/`, que se borró al decidir.
+
+Lo que estaba mal no era la medición: era que **nada de eso es de este
+sistema**. El usuario lo frenó el 2026-09-10 ("no hagas este componente
+en liquid glass, hacelo más con nuestro design system, siguiendo
+DESIGN.md"), y releyendo el documento la pieza rompía cuatro reglas, cada
+una escrita ahí con su evidencia:
+
+| lo que dice `DESIGN.md` | lo que hacía la cápsula |
+| --- | --- |
+| **Elevación — NO HAY.** "Cero box-shadow en todo el producto. La card se define por contraste contra el canvas" | halo de contacto, anillo de 1 pt y una sombra más profunda para la tarjeta |
+| **Tipografía.** Un tamaño, 14/20, tres pesos: 460 · 500 · 600 | 21 px y 17 px, con peso 560 |
+| **Color.** Todo sale de `--ink` y `--text-secondary` | una tinta propia (#22303f) y un realce azulado que no era de ningún token |
+| **Motion.** `--ease-surface` para la superficie, `--ease-text` para el color, `--ease-dialogo` para lo que entra y sale | resortes con rebote 0.40 e integrador propio |
+
+Sobrevivió la **idea**, que no dependía del material. Y el archivo pasó
+de **2087 líneas a 948**: se fueron los tres filtros SVG, las nueve
+máscaras, las seis capas de vidrio, la rampa de degradado, el motor de
+resortes con su integrador de sub-paso, el `ResizeObserver` que escalaba
+la escena y el lazo de `requestAnimationFrame` entero. Lo que anima ahora
+son transiciones de CSS.
+
+### Cada valor sale del sistema, y el que no, dice de dónde sale
+
+**La geometría cae de dos números que ya existían.** El texto es 14/20,
+así que dos renglones son 40; con 4 de padding la barra mide **48** y el
+control **40**, que además es el mínimo de área de toque en escritorio.
+Los radios son **8** para la barra —`--card-radio`, el de la card— y
+**4** para el control, que es 8 − 4 de padding: el radio concéntrico
+exacto, y uno de los dos que las dos referencias usan en controles
+chicos. Nada de esto se eligió; se restó.
+
+**La escalera de superficies extiende la regla de la card.** El sistema
+pone la card a −5 del canvas y no le da ni anillo ni sombra. La barra va
+un escalón más abajo con la misma rampa —el azul baja 6/5 de lo que bajan
+rojo y verde— y las cuatro ramas se derivan igual:
+
+```
+claro            canvas 253,253,252 · card −5 #f8f8f6 · barra −10 #f3f3f0
+oscuro           canvas   9,  9,  8 · card +5 #0e0e0d · barra +10 #131312
+alto contraste   el paso se duplica: barra −20 #e9e9e4 y +20 #1d1d1c
+```
+
+Medido en la página servida, no leído de la hoja: card `rgb(248,248,246)`
+y barra `rgb(243,243,240)`, y en alto contraste `rgb(243,243,240)` contra
+`rgb(233,233,228)`. El paso card→barra es −5 en normal y −10 en alto
+contraste, que es la regla del sistema de duplicar toda distancia que no
+sea texto.
+
+**La tarjeta de compartir va al revés, y tampoco es una excepción
+inventada.** Es lo que ya hace el menú del clic derecho en
+`acciones.module.css`: una superficie *apoyada* se define por contraste,
+pero una que *flota* sobre contenido lleva fondo `--canvas` y la única
+sombra del sistema, "porque un menú flotante sin separación del fondo se
+lee como parte de lo que tapa". Y de ahí sale también cómo entra: escala
+más opacidad con `--ease-dialogo`, 160 ms entrando y 120 saliendo, con el
+origen puesto en el botón que la abrió.
+
+Dos cosas se separaron de ese precedente, y las dos por tamaño:
+
+- **La escala de entrada es 0.92 y no 0.96.** Una escala es relativa:
+  0.96 sobre los 168 px del menú son 7 px de recorrido, y sobre los 320
+  de la tarjeta serían 13 repartidos en una caja el doble de grande, o
+  sea que se leen como la mitad. Con 0.92 el recorrido vuelve a ser el
+  que se ve allá.
+- **El origen no está en la esquina.** La tarjeta termina donde termina
+  la barra, pero el botón que la abre es el segundo de la fila. Sin
+  correr el origen 64 px, la tarjeta crecía desde el botón de cerrar: la
+  que se abría no era la que apretaste.
+
+### El hover pinta el glifo, no una caja
+
+El realce de la cápsula era un velo redondo azulado que se encendía
+debajo del ícono. Ahora el hover **pinta sólo el glifo**, que es lo que
+hacen las dos referencias, lo que ya hace la flecha de volver del
+producto, y lo que evita que aparezca una caja que en reposo no existía.
+
+Con una decisión nuestra encima, anotada como tal: **el reposo no usa el
+gris de anotación.** El sistema manda todo lo secundario a
+`--text-secondary`, pero eso es para lo que ANOTA, y un ícono es un
+control que tiene que poder leerse. Va en `--activo-c` —el token que en
+este sistema significa "ésta"— y sube a `--ink` al tocarlo: son 65 → 17,
+un salto de 48, más que los 40 que el sistema pide entre dos niveles de
+la misma jerarquía. El estado permanente —el pin fijado, el botón con su
+tarjeta abierta— usa ese mismo `--ink`, que es la regla del disparador de
+menú del área privada.
+
+### El pin se clava
+
+El gesto es lo único de la pieza que no sale de ningún lado medido, y
+queda dicho. Un pin se levanta antes de clavarse y queda torcido después,
+así que el glifo hace las dos cosas: **sube 2 al pasar el puntero, vuelve
+a cero al apretarlo, y fijado baja 1 y queda inclinado 12°** mientras el
+trazado se llena. Lo que anima es el hijo y no el botón — si se moviera
+el botón, su propia área de hover se correría bajo el puntero y el estado
+titilaría.
+
+La inclinación es lo que separa "apretado" de "clavado" sin agregar una
+caja ni un color: la silueta no cambia de tamaño, cambia de ángulo. Y el
+relleno es el mismo trazado con y sin `fill`, así que al cruzarse no hay
+nada que se deforme.
+
+### El escalonado, y lo que el goo tapaba
+
+Los tres botones salen de la ranura del de puntos suspensivos, con 40 ms
+entre uno y otro, y los turnos se invierten al cerrar para que vuelvan a
+meterse en vez de esperarse. La primera versión de esto **se veía mal, y
+lo mostró la sonda**: en los cuadros 131 y 164 el pin quedaba dibujado
+encima del de compartir, y dos glifos apilados se leen como un error de
+dibujo. En la versión de vidrio no pasaba porque el goo los fundía en una
+sola forma con cuello; sin material que los funda, el que viaja tiene que
+viajar sin verse.
+
+El arreglo es separar las dos transiciones: **la opacidad entra a mitad
+de camino y en la mitad del tiempo.** El botón arranca de la ranura —se
+ve de dónde sale— y se materializa llegando a la suya. El de cerrar no
+espera: comparte lugar con el de puntos, no viaja, y aparecer tarde ahí
+sería un parpadeo.
+
+### Lo que se verificó, y con qué
+
+Todo con Chrome propio por CDP —con varios worktrees en paralelo el
+perfil del MCP está tomado— y con eventos de entrada de verdad, no
+sintéticos.
+
+- **Las cajas, leídas del DOM** (`sonda/medir.mjs`): barra 420×48,
+  controles 40×40, radios 8 y 4, y el título entra sin cortarse.
+- **Las cinco preferencias del sistema, una por carga**
+  (`sonda/preferencias.mjs`): claro, oscuro, alto contraste en los dos, y
+  movimiento reducido. **Ahí apareció la primera falla real**: con
+  movimiento reducido el escalonado sobrevivía, porque la regla que lo
+  pone tiene tres atributos y le ganaba por especificidad a la del bloque
+  reducido. Los tres botones seguían apareciendo desfasados 40 ms sin
+  moverse, que es justo lo que hay que sacar. Es la razón del único
+  `!important` del archivo, y está anotada al lado.
+- **El recorrido con teclado** (`sonda/teclado.mjs`), y **ahí apareció la
+  segunda**, que ninguna de las otras sondas podía ver. La tarjeta se
+  escondía con `visibility`, copiando al menú del área privada, y **un
+  elemento con `visibility: hidden` no se puede enfocar**: `focus()` no
+  hace nada y no avisa. Abrir con Enter dejaba el foco en el botón de
+  compartir en vez de llevarlo al de copiar.
+
+  Costó encontrarlo porque los tres sospechosos obvios estaban bien:
+  instrumentando el efecto se vio que corría, que el ref estaba poblado
+  y que apuntaba al botón correcto; y con la tarjeta ya abierta ese mismo
+  botón se enfocaba a mano sin problema. O sea que fallaba el CUÁNDO, no
+  el QUÉ. Un `requestAnimationFrame` tampoco alcanzó — su callback corre
+  antes de que el navegador recalcule el estilo.
+
+  El arreglo no fue esperar mejor sino sacar `visibility`: la tarjeta ya
+  lleva `inert`, que la saca del orden de tabulación, de los lectores y
+  del puntero, o sea las tres cosas por las que aquel menú la usa. La
+  copia del precedente era de más.
+
+- **Las interacciones, de punta a punta** (`sonda/interaccion.mjs`): el
+  pin prende y apaga, la tarjeta abre y cierra, **Escape la cierra sin
+  llevarse la ruta** —el choque con el Escape del detalle sigue resuelto
+  en fase de captura—, el clic afuera cierra, y Escape sin nada abierto
+  vuelve a la lista.
+- **El copiado** (`sonda/copiar.mjs`): el link llega al portapapeles y el
+  nombre accesible cambia a "Link copied" por 1500 ms.
+- **Los cuadros** (`sonda/cuadros.mjs`), abriendo la fila, la tarjeta y el
+  pin en una sola corrida: **0 perdidos a 1× y a 6×**, y 1 a 2 a 20×, que
+  caen en el primer cuadro después del clic —el re-render de React— y no
+  en el tramo. Lo mismo en la lista, con las dos instancias montadas.
+
+### El costo que la pieza acepta
+
+**Con las acciones abiertas la barra queda con un hueco en el medio**: la
+tapa a la izquierda, los tres botones a la derecha, y unos 200 px de nada
+entre las dos. Es el precio de que **el ancho no cambie**, y se paga a
+propósito: una barra que se encoge al abrir movería el botón de cerrar
+lejos de donde acabás de apretar, que es lo que hace que abrir y cerrar
+sean el mismo gesto en el mismo punto de la pantalla. La referencia
+medida hace exactamente esto, y ahí el hueco lo llenaba el material; acá
+queda vacío y se ve. Si algún día molesta, la salida es encoger la barra
+anclada al borde derecho, y hay que medir qué cuesta animar el ancho.
