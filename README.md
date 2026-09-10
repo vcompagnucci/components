@@ -1938,7 +1938,7 @@ escribible.)*
 ### El disparo lo eligió un picker de tres
 
 **El 2026-09-09**, después de ver que en Apple la barra se abre sola al
-mover el cursor, la pregunta era si eso sirve en una library. Se armó un
+mover el cursor, la pregunta era si eso sirve en una exhibition. Se armó un
 picker con el skill `prototype`: **tres disparos, la misma pieza debajo**
 —una copia generada por script del archivo de producción, parchando sólo
 el estado y los manejadores, así que las formas, el goo, el material y
@@ -2535,7 +2535,7 @@ moría al construir.
 
 **La segunda: los videos estaban codificados como másters.** Los dos
 parámetros y su recibo están arriba de cada uno en
-`mockup/scripts/library.mjs`; el resumen es que el WebM salía a
+`mockup/scripts/exhibition.mjs`; el resumen es que el WebM salía a
 `--crf=18` y el HEVC a `-q:v 85`, calidad de archivo, para algo que se
 sirve por red. Pasaron a CRF 32 y a bitrate fijo de 4000k.
 
