@@ -2232,3 +2232,173 @@ sean el mismo gesto en el mismo punto de la pantalla. La referencia
 medida hace exactamente esto, y ahí el hueco lo llenaba el material; acá
 queda vacío y se ve. Si algún día molesta, la salida es encoger la barra
 anclada al borde derecho, y hay que medir qué cuesta animar el ancho.
+
+## De un disco a un centro de control
+
+**El pedido** (2026-09-10): *"vamos a hacer de este componente una cosa
+mucho más simple que no sea algo de música, que sea un centro de control
+de verdad usable"*. Y, preguntado si el gesto sobrevivía: **se mantiene**
+—el rótulo se sigue corriendo y los controles siguen saliendo del botón
+de la derecha—, y sobre qué controlar: **"buscá referencias"**.
+
+### Lo que estaba mal no era la música
+
+La barra nombraba *The Dark Side of the Moon* y tenía tres acciones:
+`like`, `share` y `close`. **Dos de las tres no hacían nada.** `share`
+abría una tarjeta que ya se había borrado, y `like` marcaba un ítem que
+no existe. Una pieza de exposición sobre una barra de controles cuyos
+controles no controlan nada es una contradicción, y el disco era sólo la
+parte visible.
+
+### Las referencias, medidas en esta máquina
+
+No salieron de buscar imágenes: salieron del catálogo de controles del
+sistema, leído de sus propias preferencias en macOS 26.6.1.
+
+```
+defaults export com.apple.controlcenter -
+  → ControlCenterDisplayableChronoControlsProviderConfiguration
+```
+
+Devuelve tres controles, cada uno con su tipo — y los dos tipos que
+existen son exactamente los dos que la guía nombra, "a button or toggle":
+
+| control | descripción, textual | `ControlType` |
+| --- | --- | --- |
+| Capture Screen | "Button to take a screenshot" | 2 · botón |
+| Dark Mode | "Toggle whether Dark Mode is enabled" | 1 · interruptor |
+| Stage Manager | "Enable Stage Manager" | 1 · interruptor |
+
+Y el módulo que los agrupa —`ControlCenter.app/Contents/PlugIns/
+DisplayControls.appex`, bundle `com.apple.controls.display`— declara
+seis: `dark-mode`, `night-shift` y `true-tone` como interruptores, y
+`lock`, `screen-saver` y `sleep` como botones. Su ícono lo declara su
+`Info.plist`: `ISTypeIdentifier = com.apple.graphic-icon.display`, que es
+la placa que ahora abre la fila.
+
+**De esa lista, en un navegador sólo `dark-mode` puede ser verdad.** Night
+Shift y True Tone son la temperatura del panel. Así que los otros dos
+interruptores salen de Accesibilidad, que es donde el sistema pone las
+dos preferencias que esta pieza YA escuchaba y nadie podía ver sin ir a
+cambiar los ajustes: aumentar contraste y reducir movimiento.
+
+El resultado es que los tres interruptores de la pieza son las **tres
+ramas que DESIGN.md ya tenía medidas**. No hubo que inventar un solo
+color: los cuatro juegos —claro, oscuro, y los dos de alto contraste— son
+los mismos que ya estaban en las cuatro `@media`, movidos a atributos.
+
+### Dos glifos por interruptor, y por qué
+
+De la guía de controles, servida ese día:
+
+> "For control toggles, provide a symbol for both the on and off states.
+> For example, use the SF Symbols `door.garage.open` and
+> `door.garage.closed`."
+
+> "Use symbol animations to highlight state changes. For control toggles,
+> animate the transition between both on and off states."
+
+Por eso cada interruptor lleva **dos dibujos distintos** y no el mismo
+relleno y sin rellenar, que es lo que hacía el corazón. Los seis salen de
+medir el símbolo del sistema con `apple/simbolos.swift` —512 px, peso
+regular, y de ahí la proporción y el grosor—:
+
+| símbolo | tinta | ancho/alto | trazo/alto |
+| --- | --- | --- | --- |
+| `sun.max` | 338×338 | 1.000 | 0.080 |
+| `moon.fill` | 314×315 | 0.997 | — (relleno) |
+| `circle` | 318×318 | 1.000 | 0.085 |
+| `circle.lefthalf.filled` | 318×318 | 1.000 | 0.085 |
+| `waveform.path` | 383×356 | 1.076 | 0.053 |
+| `display` | 373×314 | 1.188 | 0.083 |
+
+Que `circle` y `circle.lefthalf.filled` midan **lo mismo** es el dato que
+decide el par del contraste: son el mismo aro, y lo único que cambia es
+la media cara. Medido en la fila del medio del segundo, la tinta va de
+0.0 a 0.5 —maciza hasta el borde— y después sólo el trazo de la derecha.
+
+**Una de las seis formas es nuestra y hay que decirlo.** La onda de
+`waveform.path` tiene siete picos de alturas distintas —su fila central
+la cruza en ocho corridas— y a 16 px eso es una mancha. La de la pieza
+son tres medios períodos de 4 de ancho y 2.2 de amplitud. Los dos
+extremos del par sí son del sistema: la onda y `minus`.
+
+**Y el encendido es la línea, no la onda.** El interruptor se llama
+"reducir movimiento", así que prendido tiene que mostrar el movimiento
+reducido: cada estado dibuja lo que ES, que es la regla del
+`door.garage.open` / `door.garage.closed`.
+
+### La paleta se fue de `@media` a atributos, y es una necesidad
+
+Con la paleta en `@media (prefers-color-scheme: dark)`, apretar el
+interruptor **no puede ganarle a la consulta** salvo subiendo
+especificidad, y esa pelea la pierde siempre alguien. Ahora la consulta
+se lee **una sola vez, en JavaScript y sincrónico** —en el inicializador
+del `useState`, así que el primer cuadro ya sale con la apariencia
+correcta y no hay salto— y desde ahí el atributo del DOM es la única
+fuente. Los valores no cambiaron ni uno.
+
+Y los tres **siguen al sistema hasta que los tocás**: cambiar el tema del
+Mac con la pieza en pantalla la cambia con ella; después de apretar un
+interruptor, ese queda tuyo y deja de escuchar.
+
+### El texto tuvo que mudarse adentro de la pieza
+
+Si el rótulo siguiera al `--ink` de la página, el modo oscuro del
+interruptor dejaría **letras negras sobre una píldora negra**: la página
+no se da vuelta, la pieza sí. Así que la tinta y el gris de anotación se
+escriben en la barra, con los alfas del sistema —37 % en claro, 59.2 % en
+oscuro, y 57.4 / 78.8 en alto contraste, que es donde los dos grises se
+colapsan en uno—.
+
+Lo que **no** cambió es que la pieza no trae fondo propio: todo lo que se
+da vuelta vive adentro de la píldora, así que el modo oscuro de acá no le
+pinta un rectángulo negro a la card. La regla de DESIGN.md § Elevación
+sigue intacta.
+
+### El hueco de 200 px se cerró solo
+
+El costo que la vuelta anterior aceptaba —la barra con la tapa a la
+izquierda, los botones a la derecha y un vacío en el medio— desapareció
+al sacar el disco: el rótulo ahora ocupa ese lugar. Y el viaje del
+rótulo, que sin la tapa se quedaba sin razón, la recuperó: **lo que le
+abre lugar es la placa del módulo, que se apaga**, igual que el chevron
+de volver en la grabación de referencia. Son 40 + 8 = 48 de ranura contra
+40 de viaje, y 40 es `0.867 × 46`, la misma razón medida de siempre.
+
+### Lo que se verificó, con eventos de entrada de verdad
+
+`sonda/controles.mjs` mide tres cosas por paso, y las tres tienen que
+moverse juntas: quién recibe el clic en esas coordenadas, el estado que
+la pieza declara, y **el píxel** —el relleno de la barra computado por el
+navegador—. Un interruptor que dice estar encendido y no cambia nada en
+pantalla es el botón muerto que esta vuelta vino a sacar.
+
+```
+qué se aprieta        recibe     tema    contr  relleno
+(al cargar)                      claro   false  rgb(233, 233, 228)
+Dark Mode             el botón   oscuro  false  rgb(29, 29, 28)
+Increase Contrast     el botón   oscuro  true   rgb(49, 49, 47)
+Dark Mode otra vez    el botón   claro   true   rgb(213, 213, 204)
+```
+
+- **El recorrido con teclado**: Dark Mode → Increase Contrast → Reduce
+  Motion → Close, y de ahí sale al link de volver de la página. El
+  ciclo no se traba y el foco no se cae al cuerpo.
+- **Movimiento reducido**: con la preferencia puesta, el interruptor
+  arranca encendido y el abanico está **en su destino a un cuadro** de
+  abrir (viaje 0). Sin ella, arranca a 560 y viaja −138, que es
+  `3 × 46` exacto.
+- **En la lista**, adentro del `<a>` de la card: abre, cierra y **no
+  navega**.
+- **Los cuadros** (`sonda/cuadros.mjs`), abriendo la fila y apretando dos
+  interruptores en una corrida: **0 perdidos a 1× y a 6×**.
+- Consola limpia en las cinco corridas.
+
+### Lo que se borró
+
+`src/privado/proto.tsx`, `src/privado/proto/` y la ruta `/proto` —el
+banco de las cinco direcciones para la tarjeta de compartir—, porque ya
+no hay nada que compartir. Y los tres PNG de la tapa del disco, con su
+`srcset` y las mediciones de nitidez que los eligieron: **eso queda en la
+bitácora de arriba y en el historial, no en el bundle**.
