@@ -1,4 +1,4 @@
-import { Seccion } from '../../../notas'
+import { Seccion } from '../../../notes'
 
 /* Las notas de Swipeable tabs. Todo lo de acá está en el registro: el
    README (§ La primera pieza App), medidas.ts de la pieza y la planilla

@@ -3,7 +3,7 @@ import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import type { Piece } from './pieces'
 import { DemoVivo } from './demos'
-import { Notas } from './notas'
+import { Notas } from './notes'
 
 /* Piezas de la página, cada una con una sola responsabilidad. Viven
    acá y no en app.tsx para que app quede sólo con la composición. */

@@ -37,7 +37,7 @@ import type { Montaje } from '../../../demos'
 
    ─── DE DÓNDE SALE CADA FOTO ───
    Son fotos de perfil de X de cuatro personas conocidas, bajadas el
-   2026-09-10 y guardadas en public/piezas/select-summary/. Cada una se
+   2026-09-10 y guardadas en public/pieces/select-summary/. Cada una se
    miró antes de entrar: una foto que uno no verificó es una foto
    equivocada.
 
@@ -84,10 +84,10 @@ type Persona = {
 }
 
 const PERSONAS: Persona[] = [
-  { id: 'karri', nombre: 'Karri', foto: '/piezas/select-summary/karri.jpg' },
-  { id: 'john', nombre: 'John', foto: '/piezas/select-summary/john.jpg' },
-  { id: 'elon', nombre: 'Elon', foto: '/piezas/select-summary/elon.jpg' },
-  { id: 'guillermo', nombre: 'Guillermo', foto: '/piezas/select-summary/guillermo.jpg' },
+  { id: 'karri', nombre: 'Karri', foto: '/pieces/select-summary/karri.jpg' },
+  { id: 'john', nombre: 'John', foto: '/pieces/select-summary/john.jpg' },
+  { id: 'elon', nombre: 'Elon', foto: '/pieces/select-summary/elon.jpg' },
+  { id: 'guillermo', nombre: 'Guillermo', foto: '/pieces/select-summary/guillermo.jpg' },
 ]
 
 /* Un chip: la foto recortada en círculo, al tamaño que le toque.

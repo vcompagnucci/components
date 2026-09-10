@@ -1,4 +1,4 @@
-import { Seccion } from '../../../notas'
+import { Seccion } from '../../../notes'
 
 /* Las notas de Select summary. Todo lo de acá está en el registro: los
    comentarios de `select-summary.tsx` —en esta carpeta— y las mediciones de

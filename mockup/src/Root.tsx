@@ -2,8 +2,8 @@ import { getVideoMetadata } from '@remotion/media-utils'
 import { Composition, Still, staticFile } from 'remotion'
 
 import { Mockup } from './Mockup'
-import { HOLD_TO_COMMIT, PARAMETROS, esquema, paraExhibition } from './parametros'
-import { GrillaDeSombras } from './Grilla'
+import { HOLD_TO_COMMIT, PARAMETROS, esquema, paraExhibition } from './parameters'
+import { GrillaDeSombras } from './Grid'
 
 /* 2160² a 60 fps: el techo real de un post de X (medido: X sirve 2160²
    si se lo subís así; a 720² recomprime lo demás). La duración es la

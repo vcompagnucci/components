@@ -1,4 +1,4 @@
-import { Seccion } from '../../../notas'
+import { Seccion } from '../../../notes'
 
 /* Las notas de Buttons separate. Todo lo de acá está en el registro: el
    README (§ Buttons separate), el encabezado de `buttons-separate.tsx`

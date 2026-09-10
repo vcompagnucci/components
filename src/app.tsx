@@ -56,7 +56,7 @@ const PRIVADAS: Privada[] = import.meta.env.DEV
     ]
   : []
 
-const Privado = import.meta.env.DEV ? lazy(() => import('./privado/privado')) : null
+const Privado = import.meta.env.DEV ? lazy(() => import('./private/private')) : null
 
 /* A PROPÓSITO NO HAY NINGÚN LINK HACIA /vault NI /playground en la
    portada, ni siquiera en dev: al área privada se entra escribiendo la

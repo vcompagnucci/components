@@ -27,7 +27,7 @@
       ]
     },
     {
-      "source": "/piezas/(.*)",
+      "source": "/pieces/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

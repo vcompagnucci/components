@@ -1,4 +1,4 @@
-import { Seccion } from '../../../notas'
+import { Seccion } from '../../../notes'
 
 /* Las notas de Hold to commit. Todo lo de acá está en el registro: el
    README (§ Hold to commit), `medidas.ts` y `receta.ts` de la pieza, y

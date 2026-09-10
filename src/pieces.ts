@@ -155,8 +155,8 @@ export const PIECES: Piece[] = [
     name: 'Swipe between tabs',
     slug: 'swipeable-tabs',
     platform: 'App',
-    video: '/piezas/swipeable-tabs.webm',
-    videoHevc: '/piezas/swipeable-tabs.mov',
+    video: '/pieces/swipeable-tabs.webm',
+    videoHevc: '/pieces/swipeable-tabs.mov',
   },
   /* Sin `desc`: el título ya dice qué es el gesto, que es la primera
      regla de AGENTS.md › Cómo se nombra. Once caracteres. */
@@ -164,9 +164,9 @@ export const PIECES: Piece[] = [
     name: 'Hold to buy',
     slug: 'hold-to-commit',
     platform: 'App',
-    video: '/piezas/hold-to-commit.webm',
-    videoHevc: '/piezas/hold-to-commit.mov',
-    videoOscuro: '/piezas/hold-to-commit-oscuro.webm',
-    videoHevcOscuro: '/piezas/hold-to-commit-oscuro.mov',
+    video: '/pieces/hold-to-commit.webm',
+    videoHevc: '/pieces/hold-to-commit.mov',
+    videoOscuro: '/pieces/hold-to-commit-dark.webm',
+    videoHevcOscuro: '/pieces/hold-to-commit-dark.mov',
   },
 ]

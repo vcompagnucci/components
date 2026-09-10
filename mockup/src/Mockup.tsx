@@ -6,9 +6,9 @@
    punto del brief: no zoom al frame compuesto, que ablanda. */
 import { AbsoluteFill, Img, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
 
-import { Fondo } from './Fondo'
-import { capas, encuadre } from './geometria'
-import type { Parametros } from './parametros'
+import { Fondo } from './Background'
+import { capas, encuadre } from './geometry'
+import type { Parametros } from './parameters'
 
 /* `lienzo` sólo lo pasa la grilla comparativa, que dibuja varios
    mockups chicos adentro de un cuadro grande; en la composición de

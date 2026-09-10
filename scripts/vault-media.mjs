@@ -46,8 +46,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { cuadroDe } from './cuadros.mjs'
-import { tarjetaDe } from './tarjeta-link.mjs'
+import { cuadroDe } from './frames.mjs'
+import { tarjetaDe } from './link-card.mjs'
 /* La MISMA cuenta que usan la página y rutas.mjs. Publicar nombra el
    archivo del video con el slug de la pieza, así que si acá viviera
    una copia, la URL y el archivo podrían divergir en silencio. */
@@ -417,7 +417,7 @@ const json = (res, codigo, cuerpo) => {
    NO PISA NADA. Si el archivo existe se devuelve 409 y el que llama se
    entera: un botón que silenciosamente reemplaza lo que escribiste no
    es un botón, es una trampa. */
-const BOCETOS_DIR = fileURLToPath(new URL('../src/privado/bocetos/', import.meta.url))
+const BOCETOS_DIR = fileURLToPath(new URL('../src/private/sketches/', import.meta.url))
 
 const refDeBoceto = (crudo) => {
   if (typeof crudo !== 'string') return null
@@ -480,7 +480,7 @@ const identificadorDe = (ref) => {
    LA PLATAFORMA LA DICE EL FRAME, no un selector: una grabación ES una
    pieza App y un boceto ES una pieza Web — es la regla de `platform`
    (App va en video, Web va viva) leída al revés. */
-const PIEZAS_DIR = fileURLToPath(new URL('../public/piezas/', import.meta.url))
+const PIEZAS_DIR = fileURLToPath(new URL('../public/pieces/', import.meta.url))
 const PIEZAS_SRC = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
 const PIEZAS_TS = fileURLToPath(new URL('../src/pieces.ts', import.meta.url))
 
@@ -952,7 +952,7 @@ export function vaultMedia(dirCrudo) {
             const ext = path.extname(origen).toLowerCase()
             if (!VIDEO.has(ext))
               return json(res, 400, { error: 'una pieza App se demuestra con una grabación' })
-            return publicar(origen, path.join(PIEZAS_DIR, s + ext), 'App', `/piezas/${s}${ext}`)
+            return publicar(origen, path.join(PIEZAS_DIR, s + ext), 'App', `/pieces/${s}${ext}`)
           })
           return
         }
