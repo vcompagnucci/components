@@ -2513,10 +2513,19 @@ WebM, la fuente, el JS con hash y el documento— contestaban lo mismo:
 ése es el default, y significa que **cada recarga vuelve a bajar los
 33 MB**. Ningún recorte de tamaño arregla eso.
 
-**Esto está medido y diagnosticado, pero TODAVÍA NO APLICADO**: el
-cambio a `vercel.json` se revirtió en el disco antes de commitearse y no
-se volvió a poner sin confirmarlo. Las tres políticas propuestas, donde
-la diferencia entre ellas es si el nombre del archivo lleva hash:
+Quedaron tres políticas, y **la diferencia entre ellas es si el nombre
+del archivo lleva hash de contenido**. Ésa es toda la regla: un nombre
+que cambia cuando cambia el archivo se puede cachear para siempre; uno
+estable, no.
+
+**Van en `scripts/rutas.mjs` y no en `vercel.json`.** Se intentó dos
+veces editar el JSON directo y las dos veces desapareció solo, lo que
+parecía un watcher o una sesión pisando el archivo. No era ninguna de
+las dos: `vercel.json` **es un archivo generado**, y el `prebuild` que
+lo reescribe entero corría dentro del mismo `pnpm build` con el que se
+verificaba el cambio. La prueba que lo cerró fue escribirlo desde la
+terminal y mirarlo a los 0, 1, 3, 6 y 10 segundos: sobrevivía. Sólo
+moría al construir.
 
 | ruta | política | por qué |
 | --- | --- | --- |
