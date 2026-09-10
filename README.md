@@ -2620,22 +2620,23 @@ de que vuelva a asomar una faceta.
 20× con ocho copias no se pierde ninguno; a 40×, 15 de 55, el mismo
 número que antes de este cambio.
 
-**Y el valor final NO es el de la referencia, a propósito.** Con 3.0 los
-cuellos quedaban como los suyos y Vito lo miró: *"me gustaba más como
-antes"*, que era sin cuellos. Después pidió un intermedio.
+**Y AL FINAL NO ESTÁ EN LA PIEZA.** Con 3.0 los cuellos quedaban como
+los de Spotlight, y mirándolo: *"me gustaba más como antes"*, que era sin
+cuellos. Se armó entonces una escalera con 0, 1.0, 1.6, 2.2 y 3.0,
+capturada en el mismo instante y a la misma escala que la grabación
+(`.context/buttons-separate/escalera.png`), y quedó en 1.6. Mirándolo
+otra vez: *"me seguía gustando como antes"*. Volvió a σ constante.
 
-Se armó una escalera con 0, 1.0, 1.6, 2.2 y 3.0, capturada en el mismo
-instante y a la misma escala que la grabación
-(`.context/buttons-separate/escalera.png`). En **1.0** las formas apenas
-se pellizcan y se lee como un defecto de dibujo; en **1.6** el cuello ya
-es una forma y los cuatro círculos se siguen leyendo como cuatro. Quedó
-**1.6**, que es una elección de cómo se ve y no una medida: lo medido es
-que σ crece con el movimiento y que el de la referencia está cerca de
-3.0.
+Lo escribo entero igual, y ésta es la razón: **la medición sigue siendo
+cierta**. La referencia funde más de lo que funde esta pieza, y el
+próximo que compare cuadro a cuadro lo va a encontrar y lo va a
+implementar. Que no esté es una decisión de cómo se ve, tomada dos veces
+sobre imágenes, no un hueco.
 
-Es el mismo procedimiento de siempre cuando lo que se discute es una
-sensación: una perilla y una escalera de imágenes, no una arquitectura
-nueva ni una vuelta atrás entera.
+Y el procedimiento fue el correcto para lo que se discutía: una perilla y
+una escalera de imágenes. Lo que no fue correcto de mi parte fue lo
+primero que hice con el "me gustaba más como antes" —proponer un
+intermedio— cuando la respuesta ya estaba dada.
 
 **Lo que sigue sin poder medirse** es lo otro: si los cuatro botones
 abren con un solo paso. Para eso hacen falta los centros uno por uno, y

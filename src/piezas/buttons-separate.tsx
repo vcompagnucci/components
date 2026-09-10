@@ -11,11 +11,6 @@
    altura da 56.0 pt de un extremo al otro, sin una hondonada. Por eso
    las cinco formas van bajo UN goo y no se dibujan pegadas.
 
-   Y ESE GOO SE ENSANCHA CON EL MOVIMIENTO. La referencia está fundida
-   con 12.9 pt de hueco y separada con 9.9: un hueco más grande no puede
-   estar más fundido, así que σ no es constante. Está arriba de
-   SIGMA_MOVIMIENTO.
-
    LA PIEZA CONTRA LA GRABACIÓN, con la pieza corriendo: 4.95 pt de error
    cuadrático medio en el borde del conjunto sobre el primer segundo, y
    0.039 / 0.228 pt en la opacidad y el desenfoque de los glifos. Acá
@@ -253,55 +248,17 @@ function avanzar(r: Resorte, ahora: number, dt: number) {
 
    El umbral encoge lo curvo en σ²/2R —0.58 px en un círculo de 19—, así
    que la capa del goo queda ADENTRO de la nítida y no asoma ninguna
-   faceta. Por eso el radio ya no se compensa. */
+   faceta. Por eso el radio ya no se compensa.
+
+   σ ES CONSTANTE ACÁ Y EN LA REFERENCIA NO, y aun así se queda
+   constante. Medido: la grabación está FUNDIDA con 12.9 pt de hueco (a
+   los 360 ms) y SEPARADA con 9.9 (a los 700), o sea que su σ crece
+   mientras las formas se mueven; el valor equivalente sería sumarle ~3.0
+   proporcional a la velocidad del abanico. Se implementó, se probó una
+   escalera de cinco valores en imágenes y Vito eligió esto, sin cuellos,
+   dos veces. Acá los cuatro botones se despegan sueltos porque es como
+   se prefirió mirándolo. La medición y la escalera están en el README. */
 const SIGMA = 4.7
-
-/* σ NO ES CONSTANTE EN LA REFERENCIA: se ensancha mientras las formas se
-   están moviendo. Está probado con dos cuadros del mismo ciclo, y no
-   hace falta ningún modelo para leerlo —sólo mirar si hay puente en el
-   punto medio, sobre el perfil ya calibrado—:
-
-     a los 360 ms  hueco 12.9 pt  →  cuello de 17 pt   FUNDIDO
-     a los 700 ms  hueco  9.9 pt  →  sin cuello        separado
-
-   Un hueco MÁS GRANDE no puede estar más fundido. Con un σ fijo el
-   puente se corta a un hueco y listo, así que el de la referencia tiene
-   que crecer con algo, y lo único que cambia entre esos dos cuadros es
-   que en el primero los botones se mueven y en el segundo están
-   quietos.
-
-   Se veía antes de medirlo, en el montaje contra la grabación: a los
-   300 ms la referencia todavía tiene tres botones en un solo bulto y
-   acá ya eran cuatro círculos limpios.
-
-   EL VALOR NO ES EL DE LA REFERENCIA, Y ES A PROPÓSITO. Con 3.0 los
-   cuellos quedan como los suyos —21.1 pt con 8.8 de hueco, contra sus
-   20.0— y Vito lo miró y prefirió lo que había antes, que era sin
-   cuellos: "me gustaba más como antes". Después pidió un intermedio.
-
-   Se armó una escalera con 0, 1.0, 1.6, 2.2 y 3.0, capturada en el mismo
-   instante y a la misma escala que la grabación
-   (.context/buttons-separate/escalera.png). En 1.0 las formas apenas se
-   pellizcan y se lee como un defecto de dibujo; en 1.6 el cuello ya es
-   una forma, y los cuatro círculos se siguen leyendo como cuatro. Ése es
-   el que quedó.
-
-   O sea que 1.6 es una elección de cómo se ve, no una medida. Lo medido
-   es que σ crece con el movimiento y que el valor de la referencia
-   está cerca de 3.0.
-
-   Chrome implementa feGaussianBlur como TRES desenfoques de caja y
-   entrega el ~83 % del σ que se le pide, así que el número pedido y el
-   que se ve no son el mismo: por eso los valores se compararon contra el
-   CUELLO medido y no contra la cuenta.
-
-   El de reposo NO se toca: con 4.7 el puente muere a los 7.3 pt de hueco
-   y en reposo el hueco es 10, que es justamente por qué las formas se
-   separan del todo. Y un σ más grande ENCOGE más la capa del goo
-   (σ²/2R), así que se mete más adentro de la forma nítida: no hay riesgo
-   de que asome una faceta. */
-const SIGMA_MOVIMIENTO = 1.6
-const VELOCIDAD_GOO = 0.6
 
 /* LOS CUATRO BOTONES. Iconos de trazo, 16×16: son ámbitos de búsqueda,
    que es lo que son los cuatro de la referencia. */
@@ -386,13 +343,6 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
   /* El desenfoque va en el GLIFO y no en el botón: el botón también
      lleva el velo del hover, y ese no se enfoca. */
   const glifos = useRef<(SVGSVGElement | null)[]>([])
-  /* El goo se ensancha con el movimiento (ver SIGMA_MOVIMIENTO), así que
-     su desenfoque se escribe por cuadro como todo lo demás. */
-  const difuso = useRef<SVGFEGaussianBlurElement>(null)
-  /* La escala de la escena la lee el lazo de cuadro, y `pintar` es un
-     useCallback sin dependencias: leerla del estado ahí adentro daría
-     siempre la del primer render. */
-  const escala = useRef(1)
 
   /* Se decide ANTES del primer render y no en un efecto: con un efecto,
      un teléfono pintaría un cuadro con la forma cerrada y la abriría
@@ -507,8 +457,6 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
        no se ve: por debajo de 0.5 Chrome ya redondea a cero. */
     const radio = DESENFOQUE * (1 - rf.x)
     const foco = opaco > 0.001 && radio > 0.4 ? `blur(${radio.toFixed(2)}px)` : ''
-    const goo = SIGMA + SIGMA_MOVIMIENTO * Math.min(1, Math.abs(ra.v) / VELOCIDAD_GOO)
-    difuso.current?.setAttribute('stdDeviation', String(goo * escala.current))
     for (let i = 0; i < BOTONES.length; i++) {
       const encogido = 1 - (1 - PRESION_ESCALA) * presion[i].x
       circulos.current[i]?.setAttribute('cx', String(RANURA + paso * i))
@@ -523,7 +471,6 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
     }
   }, [])
   useLayoutEffect(() => {
-    escala.current = caja.escala
     pintar()
   }, [pintar, caja])
 
@@ -645,7 +592,7 @@ export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' |
                 cuenta del cuello. sRGB explícito: por defecto un filtro
                 SVG trabaja en linearRGB y el umbral se corre. */}
             <filter id={`goo-${id}`} {...REGION} colorInterpolationFilters="sRGB">
-              <feGaussianBlur ref={difuso} stdDeviation={SIGMA * caja.escala} result="difuso" />
+              <feGaussianBlur stdDeviation={SIGMA * caja.escala} result="difuso" />
               <feColorMatrix in="difuso" type="matrix" values={UMBRAL} />
             </filter>
             {/* LA SOMBRA DE CONTACTO: la silueta ablandada MENOS la
