@@ -2499,3 +2499,62 @@ rehacer el cmd-click a mano con `window.open` contradice la regla de
 `clicDeLink` —dejar pasar todo lo que el navegador hace mejor— y ni así
 devuelve el menú contextual. Sobre el título y el resto de la card los
 dos siguen andando.
+
+## Lo que tardaba en cargar era el caché, no el peso
+
+Vito, 2026-09-10: *"no puede ser que reloadeo y tarden en cargar los
+mockups"*. La sospecha obvia era el peso de los videos, y era **la
+segunda causa, no la primera**.
+
+**La primera: producción no cacheaba nada.** Medido con `curl -I` contra
+`components-three-pi.vercel.app`, los cuatro recursos que probé —el
+WebM, la fuente, el JS con hash y el documento— contestaban lo mismo:
+`public, max-age=0, must-revalidate`. Sin `headers` en `vercel.json`,
+ése es el default, y significa que **cada recarga vuelve a bajar los
+33 MB**. Ningún recorte de tamaño arregla eso.
+
+**Esto está medido y diagnosticado, pero TODAVÍA NO APLICADO**: el
+cambio a `vercel.json` se revirtió en el disco antes de commitearse y no
+se volvió a poner sin confirmarlo. Las tres políticas propuestas, donde
+la diferencia entre ellas es si el nombre del archivo lleva hash:
+
+| ruta | política | por qué |
+| --- | --- | --- |
+| `/assets/*` | `max-age=31536000, immutable` | Vite les pone hash de contenido (`index-Q3GrExxQ.js`): un cambio cambia el nombre, así que cachearlos para siempre no puede servir nada viejo |
+| `/fonts/*` | `max-age=31536000, immutable` | el nombre es estable, pero una fuente no cambia. **Si alguna vez cambia hay que renombrar el archivo**, o el que ya la tenga se queda un año con la vieja |
+| `/piezas/*` | `max-age=86400, stale-while-revalidate=2592000` | los videos también tienen nombre estable y sí se regraban. Un día de caché —la recarga sale instantánea— y treinta de revalidación en segundo plano |
+
+**La segunda: los videos estaban codificados como másters.** Los dos
+parámetros y su recibo están arriba de cada uno en
+`mockup/scripts/library.mjs`; el resumen es que el WebM salía a
+`--crf=18` y el HEVC a `-q:v 85`, calidad de archivo, para algo que se
+sirve por red. Pasaron a CRF 32 y a bitrate fijo de 4000k.
+
+| | antes | después | |
+| --- | --- | --- | --- |
+| `swipeable-tabs.mov` | 20.60 MB | 6.84 MB | −67 % |
+| `swipeable-tabs.webm` | 8.89 MB | 4.75 MB | −47 % |
+| las seis juntas | 32.78 MB | 13.7 MB | −58 % |
+| `/swipeable-tabs` en Chrome | 9.07 MB | 4.92 MB | −46 % |
+
+**Lo que NO se tocó, y por qué.** La resolución: se midió el tamaño
+dibujado y el video ya está exacto —560 px de CSS × 2 de DPR = 1120, y
+el archivo es 1120×1120—, así que no había nada que recortar. Y los
+60 fps: son el contenido de la pieza.
+
+**Dos trampas que costaron una vuelta cada una.**
+
+La primera, del método: el barrido de CRF con SSIM sobre el cuadro
+entero daba 0.997 a 0.999 para *todo*, incluido CRF 38. La métrica no
+discriminaba porque buena parte del cuadro es transparente. Sirvió
+buscar el bloque de 80×80 con mayor diferencia —buscado, no elegido a
+dedo— y mirarlo al 200 %: ahí sí se ve dónde se pierde el grano del
+papel de la ilustración, y ahí se eligió.
+
+La segunda, de ffmpeg, y estuvo a punto de publicar seis videos rotos:
+**para recodificar un WebM con alfa hay que pedir `-c:v libvpx-vp9` en
+la ENTRADA.** El decodificador VP9 por defecto descarta la capa alfa sin
+decir nada, y la salida sale opaca aunque uno pida `yuva420p`. Lo
+delató la verificación —esquina 255 en vez de 0— que corre sobre los
+seis archivos antes de reemplazarlos. La prueba que NO alcanza es mirar
+el `color_type` del PNG: da 6 (RGBA) igual, con el alfa en 255.
