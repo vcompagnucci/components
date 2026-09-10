@@ -1,9 +1,9 @@
-# Interface exhibition — bitácora
+# Interface exhibition: the log
 
-Playground/exposición de componentes estilo design-engineer: piezas web,
-web-mobile y nativas, cada una perteneciente a UNA plataforma, mostradas
-en una página única. Sin código a la vista, sin instalación — es una
-exposición, no una librería instalable.
+Playground/exhibition of components in the design-engineer style: web,
+web-mobile and native pieces, each one belonging to ONE platform, shown
+on a single page. No code in sight, nothing to install. It is an
+exhibition, not an installable library.
 
 ```bash
 pnpm install
@@ -12,532 +12,539 @@ pnpm build
 pnpm typecheck
 ```
 
-**Cómo funciona todo** —el recorrido de un clip del vault al playground y
-de ahí a la exposición pública, el mapa del repo, la frontera entre lo
-privado y lo que se publica, y qué hace falta para arrancar en un
-worktree nuevo— está en **[AGENTS.md](AGENTS.md)**. Es lo primero que
-hay que leer.
+**How all of it works** (the trip a clip takes from the vault to the
+playground and from there to the public exhibition, the map of the repo,
+the boundary between what is private and what gets published, and what
+you need to get going in a fresh worktree) is in
+**[AGENTS.md](AGENTS.md)**. It is the first thing to read.
 
-El sistema completo —cada token, su valor en los cinco viewports, su
-grado de evidencia y las reglas que gobiernan lo que falta— está en
-**[DESIGN.md](DESIGN.md)**. Acá va el registro de cada decisión y por
-qué se tomó así.
+The complete system (every token, its value across the five viewports,
+its evidence grade and the rules that govern what is missing) is in
+**[DESIGN.md](DESIGN.md)**. This file is the record of every decision
+and why it was taken the way it was.
 
-## Decisiones tomadas (y de dónde salen)
+## Decisions taken, and where they come from
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| Formato | Exposición de una página; cada pieza tiene **URL propia** (`/button`). **Sin router**: son dos vistas, `history.pushState` alcanza. El atrás del navegador vuelve a la lista **y al scroll donde estabas**; entrar directo por link también funciona | la decisión original era "estado, sin rutas", tomada cuando el detalle era un rectángulo vacío. Al confirmarse que lleva notas, no poder linkearlas pasó a ser una pérdida real |
-| ↳ condición de deploy | El host tiene que servir `index.html` para rutas desconocidas (fallback SPA). Vite ya lo hace en dev y en preview | es lo único que impone tener rutas de verdad en vez de hash |
-| ↳ el ítem es un `<a href>`, no un botón | Clic normal navega del lado del cliente; cmd-click y clic del medio abren pestaña nueva | **medido en benji:** su ítem de lista es `<a href="/drawesome">`, el clic da **0 pedidos de documento** y cmd-click abre pestaña. Era un `<button>` con `pushState`, y eso costaba cmd-click, clic del medio, *"abrir en pestaña nueva"* y *"copiar dirección"* del menú contextual, más que un lector de pantalla anunciara **"botón"**. El interceptor deja pasar toda tecla modificadora y todo botón que no sea el principal; sólo el clic pelado se vuelve navegación de cliente |
-| ↳ y conservamos lo que él no hace | **restaura el scroll al volver** | benji vuelve a la lista en scrollY 0, medido. Nosotros guardamos la posición y la devolvemos — verificado en 1500 → 1500 |
-| ↳ lo que queda por chequear | el Tab en un Safari real | en Chromium el foco llega al ancla con su anillo de 2px y radio 8, y Enter navega. En el WebKit de Playwright el Tab no llega **ni al ancla ni a un `<button>`** —lo medí en los dos— así que el entorno no puede responderlo. Safari tiene una preferencia (*"Press Tab to highlight each item on a webpage"*) que gobierna si los links entran al orden de tabulación, y eso sí hay que verlo en el navegador de verdad |
-| Display | Segmented: una pieza por fila, título arriba, preview grande | ídem |
-| La caja de la pieza | **Altura fija, nunca proporción** | seis casos medidos entre los dos (`.context/recon/CARDS.md`): lo que corre lleva altura elegida a mano, lo quieto deja mandar al contenido. Ninguno usa `aspect-ratio` para algo vivo |
-| ↳ Web | **260** en la lista, **400** al abrir. Como `min-height`, o sea un piso | los dos de benji, y la relación entre ellos también: dentro de una página larga sus demos miden 260 (×4 de 21), y cuando el demo **es** la página el frame de /drawesome mide 400. Sus 20 demos no cambian de alto en ningún viewport — medido a 1440, 768, 500, 390, 320 |
-| ↳ App | **Sin altura**: reserva el hueco del teléfono (**228**×448 en la lista, **319** al abrir) y la altura sale de ahí más 40/60 de padding. Da 528 y 707 | de benji · family-values, que tampoco declara altura ni tiene una sola media query en esas clases. Barrido de 13 anchos: la suya y la nuestra ceden en **395 exacto**, sin copiar ningún breakpoint |
-| ↳ el costo | Abajo de 396 el detalle de App deja de ser más grande que la lista | ahí el ancho útil ya está debajo de los 228, los dos huecos topean contra el mismo número y dan el mismo alto |
-| La piel de la card | **Más oscura que la página, sin anillo y sin sombra**: el contraste hace todo. `--surface: #f8f8f6`, −5 respecto del canvas | es la regla de josh, medida (`#fafaf9` sobre blanco puro, −5) y elegida contra la de benji, que es la opuesta: card al ras del fondo (−1) definida por una línea de 1px. Lo que había era card más **clara** que el fondo **más** un anillo al doble del suyo — las dos señales en contra |
-| ↳ se traslada el delta, no el valor | Copiar su hex `#fafaf9` sobre nuestro canvas daría **−3**, no −5 | su página es blanco puro y la nuestra arranca 2 unidades abajo. Copiarle el color y copiarle el contraste son decisiones distintas y caen en escalones distintos |
-| ↳ radio | **8** | censo de las 7 páginas: para cajas grandes hay dos números y no hay un tercero — benji **8** (50 usos en family-values, 4 en liveline) y josh **12** (11 en su home). El resto son one-offs de una sola página: su 14 hero, el 16 de las cajas de `<img>`, el único 32 de bloom. El 8 es el más repetido de las dos juntas, el único que **las dos** usan en cajas grandes, y múltiplo de 4 — que el 14 no es. En controles chicos los dos coinciden en 4 y 6 |
-| ↳ hover | Oscurece el relleno y nada más: ni sombra, ni escala, ni movimiento. Paso de **−4** desde el reposo, a `#f4f4f1` — elegido entre −3, −4 y −5, o sea medio escalón suyo | sus cajas de demo no reaccionan porque **no son clickeables**. Su regla es **un escalón** de su rampa, y se ve en los únicos dos hovers que tiene: cards de la home `neutral-50 → neutral-100`, botón de bloom `stone-700 → stone-600`. El del botón **aclara**, así que la regla es un paso y no una dirección. Antes acá decía −10 contra su página: ese delta salía de medir contra el blanco de /pasito, y el hover ocurre en su home, que es `#fafafa` |
-| ↳ press | **No hay.** El `:active` pinta idéntico al `:hover`, en los cuatro modos | en las **23 páginas** de las dos referencias más altas (9 de benji, 14 de josh) hay **un solo `:active` vivo**: un botón de 40×40 en `/honkish` que ni baja ni escala — le quita el anillo de 1px que le puso el hover (`box-shadow` spread 1px→0px, `transition-duration .02s` leída en runtime). Su press no agrega un estado, **retira** el hover. Las listas de los dos —el mismo objeto que esta card— no tienen press. Y `active:scale-[0.94/0.96/0.98]` existe en el bundle de josh y lo usa **cero** elementos |
-| ↳ lo que se retiró al decidirlo | `--surface-press: #f0f0ec` con sus tres ramas, y `--dur-press: 20ms` | eran el `--color-bg-level-3` de linear —que cae justo en nuestro paso siguiente— y la asimetría de benji. Los 20ms estaban bien medidos pero aplicados **al revés**: en su botón sirven para quitar el hover, no para profundizarlo. Cuando la pieza Button necesite un press se mide para un botón, que es donde esa evidencia sí aplica |
-| ↳ y se descartó el mecanismo de benji | atenuar las hermanas a `opacity .3` | **es cuestión de escala, no de gusto.** Su lista son 7 filas de 41px que **se tocan** (hueco 0px), 286px en total = 0.3 pantallas: se ve entera de una y el gesto es sobre *la lista*. La nuestra son **8 pantallas** y a 1440×900 se ven **2 cards**, así que "se apaga el resto" sería literalmente *la otra*. Nuestra card es 7.3× el área de una fila suya. Aparte él atenúa **texto** —el `h2` y los `span` del `time`, con `span:last-child` exento para que la columna de años quede encendida— y nunca una superficie: no tiene ninguna |
-| ↳ curva y duración | **Todo partido por propiedad.** Superficie: `--ease-surface: cubic-bezier(.23,1,.32,1)` + `--dur-surface: 150ms`. Texto: `--ease-text: ease` + `--dur-text: 100ms` | **linear no elige una curva, elige por lo que se anima.** Sus tres cards con hover usan ease-out sin excepción y 25 de sus 46 transiciones de color terminan en `ease` (54%). El valor de ease-out es el de `/review-animations`, catálogo línea 32, *"strong ease-out for UI"*; el de texto lo respaldan cuatro fuentes: benji (cada transición de su bundle), josh a mano (`.company-link` ×18), linear (54%) y las tres skills |
-| ↳ la duración partida es composición nuestra | 100 para texto, 150 para superficie | **ninguna referencia parte la duración**: benji usa 100ms para las dos familias (`background-color` ×10, `color` ×23) y josh 150 para las dos (`background-color` ×11, `color` ×21 a mano). Se toma el número de benji para el texto y el de josh para la superficie. Elegido mirando: a 100ms el hover de la card son 6 cuadros en vez de 9 y con Δ4 queda casi como un encendido seco; en el texto, con Δ101, los 100ms se leen justos |
-| ↳ y la flecha de volver es la excepción | Va con el par de **superficie** en sus dos propiedades | anima fondo **y** color, así que con el corte por propiedad terminarían en momentos distintos —150 el fondo, 100 el color— y se leería como dos cosas. Es la regla de elementos apareados de animations.dev: *"lo que se mueve junto tiene que sentirse como una unidad"*. **La regla completa: manda la propiedad, salvo cuando un elemento anima las dos familias — ahí manda el elemento** |
-| ↳ divergencia consciente en el valor | La familia sale de linear; el número sale de la skill, y **no coinciden** | linear usa ease-out en sus cards pero nunca este valor: sus tres usan quad, la palabra clave y cubic. Declara el quint entre sus 18 curvas de Penner y lo usa **una** vez en todo el sitio. Si mañana se prefiere lo que ellos ship-ean, quad es `cubic-bezier(.25,.46,.45,.94)`, su caballo de batalla con 60 usos |
-| ↳ y el hover queda **simétrico** | 150 entrando y 150 saliendo | **vuelta atrás:** había escrito que tres fuentes pedían asimetría y era falso. La regla asimétrica de linear existe (`.rWdRxW_card` con `:hover{transition-duration:var(--speed-highlightFadeIn)}`, FadeIn `0s`) pero vive en `ContactLink.css` y renderiza **cero** elementos — mismo error que las utilidades `active:scale` de josh. La card que sí renderiza, `.Dc5tqa_customerCard` ×24, es simétrica. Barrido en vivo sobre 5 páginas de linear: **21 elementos hovereables con transición, 0 asimétricos**; la lista de benji y la fila de josh también. Y los otros dos acuerdos no eran de hover: los 20ms de benji son de un `:active` y el *pointer-down* de Apple es del press — el estándar 9 nombra textualmente *"press-and-release or hold"*. Un press es deliberado y merece acuse instantáneo; un hover es incidental, y 150ms funciona de amortiguador. La asimetría queda anotada para el press, con la pieza Button |
-| ↳ y las dos que había estaban mal | se fueron `--ease-fill` y `--ease-out` | `--ease-fill` se horneó como *"la curva de josh"* y **no lo era**: las **21** apariciones de `cubic-bezier(.4,0,.2,1)` en sus tres páginas salen todas de una utilidad de Tailwind —`transition-colors`, `-all`, `-transform`, `-opacity`— y **ninguna** de su CSS. Es el default del framework. Y `--ease-out` era un quint-out heredado de Carousels, que es la curva de **entrar y salir**, cosa que en esta página no pasa nunca. El quint no se guarda por si acaso —un token sin lector es código muerto— pero su valor queda escrito en DESIGN.md para el día que una pieza entre o salga |
-| ↳ y los dos cambiaron de nombre | `--dur-fill` → `--dur-color`, y la curva a `--ease-color` | lo pide la **regla 4** del propio sistema, el nombre es el rol. `fill` era el rol cuando el único lector era el relleno de la card; hoy son cuatro y tres no rellenan nada |
-| ↳ el título NO entra en el relleno | Se pinta sólo el rectángulo; el título queda afuera, sobre el canvas | **una sola referencia lo hacía, no tres.** La de josh vale: su `<a class="block rounded-xl px-4 py-3">` de 580×76 lleva el título adentro y el hover pinta el bloque entero. Las otras dos que había citado no aplican y se retiran: la `.demo-card` de agentation tiene **cero reglas `:hover`**, `transition: all 0s`, `cursor: auto` y no está dentro de ningún link —es un dibujo estático, que sea una caja rellena con un título adentro no dice nada sobre el hover— y benji **nunca rellena nada**, el fondo de su fila es `rgba(0,0,0,0)` en todos los estados. Y el bloque de josh contiene **sólo texto**: título más descripción. El nuestro contendría un marco vacío de 260px, que no es el mismo objeto |
-| ↳ lo que se probó y se descartó | Un bloque que sangra 16px hacia afuera (592×292, radio concéntrico 24) con título y card fundidos en una superficie sola | se armó en el prototipo y anda: el título no se mueve un píxel, la card sigue en 560 y el ritmo vertical se conserva con las tres sangrías. No se descartó por no funcionar, se descartó por falta de respaldo |
-| ↳ hover pegado en touch | El hover del índice va detrás de `@media (hover: hover)`. **Es el único gate por puntero del sistema** | el artefacto aparece donde el toque **deja el elemento en pantalla**: tocar un link del índice sólo scrollea, así que el `:hover` se le pega, y como hover y activo pintan el mismo color el pegado es indistinguible del verdadero. Medido en un iPad Pro horizontal: tocar "Switch" y scrollear lejos dejaba **dos** links pintados. La card no lo necesita porque tocarla la desmonta, la flecha de volver tampoco, y en WebKit un solo toque alcanza en las dos. El corte cae justo: el índice se ve arriba de 1080px y el único dispositivo medido que llega ahí sin mouse es el iPad Pro horizontal (1194px, `(hover:hover)` false). Ninguna de las dos referencias gatea nada por puntero — cero `(hover:`, `(pointer:` y `(any-hover:` en los dos bundles |
-| ↳ canvas y tinta, ahora verificados | `#fdfdfc` y `#111111` | venían del design.md de Carousels sin poder verificarse. Son literalmente los de benji: sus variables declaradas dicen `--body-bg:#fdfdfc` y `--body-color:#111` |
-| Grises de texto | **UN nivel secundario: un alfa, dos bases.** `--secundario-alfa: 37%`, aplicado desde negro puro (anotación → **160**) y desde `--ink` (nav → **166**) | es la estructura de benji, verificada en su CSS servido: declara **un solo** token de color de texto (`--body-color:#111`) y **ningún** token de gris. Todo lo gris es su negro o su ink a un alfa, y `.4` domina con 40 declaraciones contra 8 del siguiente. Sus "dos grises" (152 y 159) son ese mismo 40% desde dos bases — no es un escalón, es la fuga de escribir la regla en dos archivos. Con `α=.4` nuestras dos bases reproducen sus 152 y 159 clavados: eso valida el modelo |
-| ↳ el alfa se eligió en dos pasos | **el barrio** con slider sobre la anotación sola (163), **el número** con un barrido de seis alfas donde las dos se mueven juntas (37%) | el slider movía **un renglón** de la página, porque ahí la nav todavía era un número aparte: sirvió para ubicar la zona. El barrido se miró de tres formas —rampa de corrido, los dos derivados **en contacto**, y el texto real a 13/16 contra 14/20— porque un salto de 6 unidades en 13px es invisible si los mirás separados. La anotación terminó 3 más oscura que el 163 del slider: ΔL .006, adentro del ruido |
-| ↳ la nav se movió de 159 a 166 | consecuencia buscada de la regla | venía copiada de su `hsla(0,0%,7%,.4)` al hornear la tipografía del índice y **nunca se eligió**. Bajo esta regla no se elige: se deriva |
-| ↳ y el orden se arregló solo | la nav queda **más clara** que la anotación, como en su página | antes era al revés (163 anotación contra 159 nav). Ahora no es una decisión: cae de que `--ink` es más claro que negro puro. Gap 6; el suyo 7 |
-| ↳ los dos quedan bajo APCA | Lc **50** y **47**, contra los 60 que pide para texto que no es cuerpo | benji también: 54 y 50. Se acepta a conciencia — lo que va en gris acá **anota**, no se lee. Cruzar el piso pedía `α=45%`, que en el barrido se vio demasiado oscuro para el rol |
-| ↳ el contraste se mide componiendo | `rgba(0,0,0,.4)` da **2.84:1**, no 20:1 | hay que componer el alfa sobre el fondo antes de calcular. Sin eso se puntúa como negro puro y todos los números salen mal |
-| Cómo se usa el color | **Todo lo que se LEE va en ink**; el gris es sólo para lo que **anota** | regla de benji, medida en cuatro de sus páginas. Por eso **la descripción del detalle pasó a ink**: es prosa. Le quedan al gris el subtítulo del masthead y la plataforma del detalle, que es el rol de su `<time>` bajo el `h1` |
-| ↳ activo del índice | No llega al ink: se queda en **65** | su CSS pone hover y activo en la misma declaración, `hsla(0,0%,7%,.8)`. La pieza que mirás se destaca sin ser lo más oscuro de la pantalla |
-| Selección de texto | La de benji: `#ededed` de fondo y el texto **forzado a ink** | las tres tienen regla global y no dicen lo mismo — josh invierte (`#fff` sobre `#000`), emil pone **sólo fondo** (`#e2e1de`) y no toca el color. Lo que decide es forzar: emil puede no hacerlo porque su secundario está en 99; el nuestro está en 160 y sobre su fondo da **2.00:1**, ilegible justo mientras lo seleccionás. Forzado a ink, 16.13:1. Y no es regla nueva: es "todo lo que se lee va en ink" aplicada a un estado |
-| ↳ acá el hex sí se copia literal | `#ededed` tal cual, sin trasladar delta | primera vez en todo el sistema. Su canvas es `#fdfdfc` y el nuestro también — el de emil igual (`--color-gray-100:#fdfdfc`). En card, hover y grises hubo que trasladar el delta porque los fondos no coincidían; acá coinciden |
-| Modo oscuro | **Sí, disparado por el sistema como josh.** Y no es una paleta escrita a mano: son **cuatro números** —profundidad 9 · calidez .003 · ink 250 · tono 106.4— y todo lo demás cae de dos reglas | de las cinco referencias medidas sólo josh tiene tema oscuro **de página**: benji y emil tienen paletas oscuras en su CSS pero para componentes embebidos, y linear fuerza `data-theme="dark"` e ignora el sistema. El canvas 9 es el de linear (`--color-bg-level-0:#08090a`), el ink 250 es el de josh (`--foreground:#fafafa`) |
-| ↳ regla 1 · el texto conserva el **contraste** | ink 104.1→**104.4** · anotación 50.3→48.1 · nav 46.7→42.5 · activo 92.9→**93.4** | tiene un piso de legibilidad que las superficies no tienen, así que se sostiene el Lc y no el número. El 59.2% del secundario sale del **×1.6** que benji aplica en sus dos tokens con alfa (`.28→.45` y `.10→.16`, el mismo factor dos veces). El 93% del activo no conserva el alfa sino su **posición** entre la nav y el ink: en claro el 80% cae al 80.4% de ese recorrido, y en oscuro hace falta 93% para caer igual |
-| ↳ regla 2 · todo lo demás conserva la **distancia** e invierte la dirección | claro `−5 −9 −16 −36 −151` → oscuro `+5 +9 +16 +36 +151`; los alfas, mismo número y base dada vuelta | lo de los alfas es de **linear**: su `--color-border-translucent` es `#0000000d` claro y `#ffffff0d` oscuro, ×1.00 — y `#0000000d` es 5.098%, nuestra `--hairline` a tres decimales. Es un compromiso y no una ley: conservar la distancia da ~1.5× de ΔL, así que la card **es** algo más notoria en oscuro; conservar el ΔL exacto la dejaba en +3 e invisible, y emil (×3.00) y linear (×4.48) agrandan mucho más por robustez entre pantallas. **APCA no puede arbitrarlo**: devuelve 0.0 para todas las superficies |
-| ↳ lo que hizo posible el ink de 250 | reescribir el secundario como **una base y dos alfas** en vez de un alfa y dos bases | derivando la nav del `--ink`, el ink quedaba atrapado: tenía que entrar ~17 unidades desde el extremo o las dos bases se aplastaban. Eso forzaba un ink de 238 y dejaba el texto 7.5 Lc bajo el claro. El valor claro no se movió —`negro@34.4%` da los mismos 166 que `ink@37%`— y es la estructura que benji usa para su nav en reposo y activa |
-| ↳ `color-scheme: light dark` | ninguna de las cinco referencias lo declara | sin eso el navegador auto-oscurece controles nativos y scrollbars y la página queda mitad y mitad |
-| Alto contraste | `prefers-contrast: more` cubierto en los dos modos. **Los dos grises se colapsan en uno** — alfa 57.4% claro, 78.8% oscuro — y todas las distancias que no son texto se duplican | **primera decisión de color sin ninguna referencia**: cero ocurrencias de `prefers-contrast` en los cinco bundles. La regla la pone `/better-colors` — ensanchar el gap de L ≥0.15 y verificar contra los umbrales **preferidos** de APCA (90 cuerpo, 75 no-cuerpo). El ink ya pasaba con 104; la anotación (50) y la nav (47) no |
-| ↳ el colapso lo decide la aritmética | el alfa para llegar a Lc 75 sale **el mismo** para los dos roles | las dos apuntan al mismo número, así que convergen. Y está bien: esa distinción era de 3.6 Lc en su mejor momento, justo el tipo de sutileza que alguien pidiendo más contraste quiere que desaparezca. Sobrevive la jerarquía que carga significado, ink contra secundario |
-| ↳ el gap se ensancha más de lo pedido | **0.153 a 0.194** contra el 0.15 mínimo | llegar al umbral de APCA ya lo cubre en los cuatro casos, así que manda el umbral y no hace falta un segundo cálculo |
-| ↳ y lo no-textual se duplica | card −5→−10 · hover −9→−18 · selección −16→−32 · subrayado −36→−72 · alfas de línea al doble | esto **no** lo pide el skill, es criterio nuestro: bajo alto contraste la estructura también tiene que leerse. Una regla en vez de cuatro números. El hover del subrayado va a `--ink` porque duplicar sus 151 se sale del rango, y el anillo corre un escalón de acento (\|Lc\| 77.8→87.9 claro, 34.8→48.7 oscuro) |
-| ↳ links | **Sin color propio**: heredan el del bloque y los marca un subrayado de 1px `#d9d9d9`, que en hover pasa a `#666`. El texto no se mueve | **dos de las tres referencias hacen esto** — benji con un pseudo-elemento, emil con `text-decoration-color #bcbbb5` a 1.5px. Se usó el mecanismo de emil con los valores de benji: nuestro texto es 14px, no 16 |
-| Foco | `2px solid #005fcc`, **offset 2px**, sin transición | el color es el anillo por defecto de **Chromium, medido del motor**: enfoqué un botón sin estilos en los tres y leí el píxel pintado — Chromium `#005fcc` sólido, WebKit `#0067f4` **al 50%** (el glow de Aqua), Firefox `#007aff` sólido. Gana Chromium por ser el más grave y el de más contraste, \|Lc\| **77.8** claro y **34.8** oscuro sobre el piso de 30 de APCA. Su par oscuro `#347ee5` sale de subirle la L con el ΔL que aplican benji y josh a sus acentos; el mismo cálculo sobre el azul de Firefox da `#3f9aff` contra el `#3d9bff` medido de benji, **una unidad**. El `transition:none` es de benji |
-| ↳ dos cosas que salieron de medirlos | el azul que teníamos **era el de Firefox**; y WebKit pinta el suyo **al 50% clavado** | `rgba(0,122,255,.5)` heredado de benji es `#007aff`, el que pinta Firefox. Y el compuesto de WebKit da `(127,179,249)` a la unidad, o sea que el mecanismo del anillo viejo de Safari era el que ya teníamos |
-| ↳ `outline-offset: 2px`, de josh | y no es adorno | sin él el anillo **corta las letras** de los links del índice, que son texto sin padding. Reemplaza el `padding:0 2px / margin:0 -2px` con el que benji despega el suyo, sin tocar el layout. En la card el outline sigue el radio 8 solo |
-| ↳ y destapó un bug de layout | el flex estiraba cada link del índice a los **89px** del más largo | las palabras miden 31–62, así que el anillo dibujaba hasta **58px de vacío**. Con `align-items: flex-start` cada uno mide su palabra — que es lo que benji tiene por naturaleza, porque sus links son `<a>` inline |
-| Nav | **Índice fijo a la izquierda** con todas las piezas agrupadas. Sin tabs. A 80 del borde, 13px/460 al 40%, 8px entre links, ancho ajustado al label más largo | recorridas 13 páginas de las dos referencias: **ninguna usa tabs**, las dos navegan con índice fijo. Medido en `.context/recon/NAVIGATION.md` |
-| ↳ los rótulos `Web`/`App` | **Siempre visibles**, y pesan **lo mismo que sus links** — no son encabezados, son la primera línea de su grupo. Lo que los separa es sólo el aire: **16px**, el doble de los 8 que hay entre links | es lo de benji, `nav h2` y `nav ul li a` idénticos propiedad por propiedad, con `padding:0 0 1rem` en el rótulo y `gap:.5rem` en la lista. Medido en su página, no sólo en su CSS: su índice llega vacío en el HTML y lo llena JS |
-| ↳ dónde arranca | **"Web" se apoya en la misma línea que "Button"**, el título de la primera pieza. Da 237 a 1440 de ancho. Se alinea por la **base** del texto y **se mide**, no se calcula | elegido mirando con reglas rojas encima, contra otros cuatro pares (link↔pieza 205 · rótulo↔separador 186 · rótulo↔masthead 82 · los 80 crudos de benji). Se mide porque el número es la suma de todo el apilado de la página: como `calc` sería una fórmula que nadie actualizaría |
-| ↳ **con** scrollspy | La pieza que estás mirando se pinta (en **65**, ver arriba). Activa es la última cuyo borde superior ya pasó una línea a **128px** del tope, más un guarda al final del documento | es la regla de benji, sacada de su bundle: su fórmula lleva medio viewport de los dos lados y se cancela. Antes acá decía "sin scrollspy" — se revirtió |
-| Separador de sección | Rótulo 14px/600/#111 + hairline hasta el borde del riel; hueco de 8px, 64px arriba, 56px abajo | el separador de benji en /liveline y /drawesome, medido en vivo — su `<hr>` está vacío, lo que pinta es el div que React le envuelve |
-| Para qué existe el detalle | Para **las notas y el aire**: el porqué, las decisiones y los números, más la pieza sola en pantalla y más grande. La lista muestra, el detalle explica. No es sólo una pieza agrandada | con preview vivo en la lista, el detalle no aporta la pieza (ya la tenías): aporta lo que la rodea |
-| ↳ y la descripción va **debajo** de la pieza | Arriba queda `título + plataforma`; la prosa entra después del preview, a **24** | pedido de Vito el 2026-09-04, y es orden de lectura y no un valor: primero se ve la cosa, después se lee qué es. Lo que gana de paso es que arriba queda **exactamente** el par medido de benji —su `h1` con su `time` a 4px— sin un tercer renglón que él no tiene. El 24 no se eligió mirando: se reusa el `margin-bottom` del bloque de arriba para no tener dos números para la misma relación (texto contra la pieza). Queda para pasarle el scrubber |
-| Espaciado de la lista | Aire arriba/abajo **80 → 32** · masthead→sección **60** · rótulo→pieza **40** · nombre→card **12** · entre piezas **48** · entre secciones **64** · rótulo↔hairline **8** · subtítulo **4**. **Todos múltiplos de 4** | elegidos con scrubber sobre la página real. Los 40, 48 y 64 son de benji, medidos; el resto se decidió acá. Detalle en `.context/recon/NAVIGATION.md` |
-| ↳ nombres de los tokens | **Dueño → parte → propiedad**, al modo de apple: `--page-padding-top`, `--section-content-gap`, `--piece-card-gap`, `--index-group-gap`. **La escala `--space-*` se borró entera** | medido en 1.3 MB de CSS servido de apple, linear y openai. Apple: `--buystrip-content-padding`, `--media-gallery-bottom-content-padding-left`. Linear más corto: `--button-gap`, `--kbd-gap`. OpenAI intermedio: `--page-top-gap`, `--tabs-sticky-gap`. **Ninguno de los tres tiene un token nombrado por su valor** — no hay un solo `--space-4` en los tres bundles. Y los tres comparten que el nombre es el ROL y el valor es contextual: el `--button-gap` de linear vale 4, 6 u 8 según el tamaño |
-| ↳ ×4 en layout, libre en componentes | Todo espaciado de **layout** es múltiplo de 4. **Adentro de un componente no rige** | es lo que hace benji: usa 2, 3, 5, 6 y 10 —el 6px aparece 28 veces— pero **sólo** en `.Toolbar_*`, `.BarSlider_field`, `.submitButton` y variantes `[data-size=sm]`. Ni uno solo en layout de página. Misma forma que su regla de pesos: los valores sucios existen para compensación e internos, nunca para la estructura. Hoy no tenemos nada interno — la card está vacía y el único componente es la flecha del detalle, que es andamio |
-| ↳ el número es el hueco visible | `--gap-label` es de la línea al primer texto, no el `margin-bottom`. La línea va centrada en la caja del rótulo, así que el CSS descuenta esa media caja calculándola desde `--fs` y `--lh` | el margen decía 32 cuando el hueco real era 41.5: dos números para la misma distancia. El que manda es el que se ve |
-| ↳ agrupación | rótulo→pieza (40) tiene que ser menor que entre piezas (48), o el rótulo se despega de su grupo y lee como flotando entre los dos | venía de 56, que era mayor: la agrupación estaba invertida |
-| ↳ masthead título → subtítulo | **4**, y 8 de aire abajo del masthead entero | es el de benji y acá el análogo es **exacto**: su `<header>` es el mismo par que el nuestro —un `h1` y una línea secundaria, los dos de 14px con interlínea 20— con `display:flex; flex-direction:column; gap:.25rem; padding:0 0 .5rem`. Verificado en el HTML servido de su home, no sólo en la hoja. Como los dos textos son del mismo tamaño la interlínea ya los separa: los 4 son un empujón. Los 8 de abajo ya los teníamos. Josh usa 16, pero su `h1` es de 30px contra un párrafo de 16 |
-| ↳ título de pieza → card | **12**, constante en todo ancho. El nombre va **arriba** de la card. El aire lo **reclama el bloque de abajo** (`margin-top`), no lo empuja el título. **Elegido a ojo con scrubber sobre la página real, no copiado** | ninguna referencia tiene nuestra estructura —una lista de pares [nombre corto + card grande] repetida 19 veces. Benji en /liveline hace de cada sección UN bloque; su home es una lista de filas de texto sin bloque. Lo más cercano es josh en /pasito: `h2` de 20px/500 seguido **directo** de una card de código, a **16** (`mt-4`), en "Usage" y "Autoplay Usage" — los dos casos donde va del título al bloque sin nada en el medio. Donde muestra el componente **visualmente** mete una descripción entre los dos, que no es nuestro caso. Se probaron 12 y 16 con las 19 piezas apiladas y ganó 12; su `h2` además es de 20px y el nuestro de 14, así que sus 16 cuelgan de un título más grande. La **forma** sí está copiada y verificada en su página real: el contenedor de su gráfico lleva `style="margin-top:2rem"`, o sea que el bloque reclama su margen en vez de que el título lo empuje |
-| ↳ una retractación que vale la pena guardar | El 12 se había justificado con la timeline de benji (`h2` 14/500 + bloque a `.75rem`). **Era falso**: `timeline` no aparece ni una vez en el HTML de /liveline — es CSS de otra página. Con eso también se cayó un supuesto caveat sobre una línea vertical con círculos que nunca existió | leí reglas que existen y di por hecho que se veían. Mismo error que con el `<hr>`. Una regla en el CSS no es una regla en la pantalla: si la conclusión depende de lo que se renderiza, hay que mirar el HTML servido, no sólo la hoja de estilos |
-| Categorías | **Web** y **App**, las dos siempre visibles (no hay filtro). El corte es navegador vs app instalada, que es la línea que de verdad cuesta cruzar. Bajo App conviven SwiftUI y Expo/React Native (los dos renderizan vistas nativas reales) | el runtime es la propiedad honesta: "iOS" subdeclaraba las piezas de Expo, que también corren en Android |
-| ↳ App, no Mobile | **App** corta en el mismo eje que Web (¿dónde corre?); **Mobile** contesta otra pregunta (¿en qué pantalla?), y mezclar dos ejes es lo que ya rompió `Web / Web Mobile / Native`. Decisivo: un sheet web pensado para teléfono es *web y mobile* a la vez — con Mobile el corte se rompe y hay que inventar una regla; con App esa pieza es Web y listo. Mobile se entiende medio segundo más rápido, pero al lado de "Web" el contraste desambigua sola | la colisión no es hipotética: Vaul (Emil Kowalski, referencia del proyecto) es exactamente un drawer mobile-first que corre en el navegador |
-| Demos nativos | **Lo decide `platform`, y nada más.** Web va viva en el navegador, App va en video — **Expo incluido** | antes se decidía pieza por pieza porque Expo *podía* ir vivo vía react-native-web. Al pasar Expo también a video, la regla **colapsó en la categoría** y el campo `runtime` que la sostenía dejó de tener sentido: se borró el tipo. El dato original sigue siendo cierto —`expo-haptics` mapea a la Web Vibration API, que Safari no soporta— pero ya no hay nada que decidir por pieza |
-| Elevación | **No hay, y es una decisión.** Cero `box-shadow` en todo el producto: la card se define por contraste contra el canvas | medido en cuatro páginas de referencia. benji home **0** sombras, josh home **0**, josh interface-craft **0**, y las **52** de benji/family-values son *todas* `0px 0px 0px 1px` — cero blur, cero offset: bordes dibujados con `box-shadow`, no elevación. **En las cuatro no hay una sola sombra con blur.** `/better-ui` pide lo contrario ("sombras para elevación, bordes para estructura") y benji hace justo eso al revés; se sigue a las referencias, que es de dónde salió todo el resto |
-| z-index | **Cero, y todavía no es decidible** | hoy nada se superpone — el índice es `fixed` pero vive en el margen. josh no tiene ninguno en sus dos páginas; benji sólo en `family-values`, su única página con demos interactivos. Es nuestro mismo reparto: el chrome no necesita apilado, las piezas sí. Cinco de las 18 son capas (Dialog, Sheet, Tooltip, Context Menu, Action Sheet) y la escala se decide con la primera, no antes |
-| La flecha de volver | **Pinta el glifo, no el cuadrado**, y llega a `--activo-c` (65 claro / 233 oscuro) en 100ms `ease`. El cuadrado de 34×34 se queda invisible como área de click, y el radio de 8 porque el `outline` del foco sigue el `border-radius` | **unánime en las dos referencias**, medido en vivo: benji `.styles_backButton` 122×28, radio 0, `transition: color 0.1s`, `rgba(0,0,0,.4)` → `rgba(0,0,0,.8)`; josh `"Home"` en /melt-effect 62×20, neutral-400 → neutral-900. Los dos: **no pintan fondo, cambian el color, no se mueven**. Y los 0.1s de benji son exactamente el `--dur-text` que ya teníamos |
-| ↳ el destino es el 80%, no la tinta | 65, no 17 | es lo de benji, que **no llega a su tinta**: para en 51 sobre su canvas. Nosotros paramos en 65 porque el 80% se escribe desde nuestra base de ink y no desde negro puro — la misma estructura de *un alfa, dos bases* que rige los grises de texto. Se descartó la tinta (17, lo que hace josh) y el nivel del hover de texto (102, `--link-underline-hover`): el segundo unificaría todo lo que reacciona al puntero en un color, pero en oscuro cae en 160 contra un reposo de 155 — **cinco unidades, invisible** |
-| ↳ y el token perdió el nombre del componente | `--index-activo-c` → **`--activo-c`** | tenía el índice como único lector; hoy son **tres** —el activo del índice, su hover y el hover de la flecha— en dos componentes. Por la **regla 4**, el nombre es el rol, y el rol es el nivel que marca *"ésta"*: porque la señalás con el puntero o porque es donde estás. Que las dos cosas compartan color es de él: escribe `nav ul li a:hover` y `nav ul li[data-active=true] a` en **una sola declaración** |
-| ↳ y se cayó la excepción del par | ya no existe | la flecha era el único elemento que animaba superficie **y** texto, y por eso tomaba el par de superficie en las dos propiedades. Ahora anima una sola familia: la regla vuelve a ser **manda la propiedad, y punto**. De paso murió `--a1`, cuyo único lector era ese fondo — se fue de las cuatro ramas, y el comentario que decía *"lo usa el foco"* nunca fue cierto |
-| Motion | **La página no tiene animación de entrada.** Abrir una pieza y volver no anima nada. Lo único que se mueve es el hover, y son cambios de color y de anillo, no de posición | había `enterFwd`/`enterBack` y una entrada del detalle. `enterBack` además **nunca se disparaba**: `data-dir` estaba escrito a mano en `"fwd"`. Se sacaron las tres en vez de arreglar la que faltaba |
-| ↳ sin bloque de reduced-motion | No hace falta: **no queda movimiento que reducir**. El scroll suave del índice sí lo consulta, en `app.tsx` | los cuatro lugares con transición cruzan un color —índice, relleno de la card, botón de volver, subrayado de los links— y ninguno desplaza, escala ni rota. Verificado con `reduced-motion: reduce`: la card sólo declara `transition-property: background-color`. Deja de ser cierto el día que entre una escala, y ahí hay que escribirlo |
-| ↳ la fuente | **InterVariable self-hosteada**, el archivo oficial de rsms.me subseteado a latin. Cuatro archivos por `unicode-range`: **102 KB** es lo único que carga una página en inglés, contra 343 del original. Conserva los dos ejes, `opsz` 14–32 y `wght` 100–900 | **no es la de Google Fonts**, y la diferencia es concreta: pidiéndole `family=Inter:opsz,wght@14..32,100..900` devuelve CSS con **cero** menciones de `opsz` — ignora el eje. Nuestro `body` usa `font-optical-sizing:auto`, que sin ese eje no hace nada. Benji usa la de Google vía `next/font`, así que **él no tiene `opsz` y nosotros sí**. Mantenerlo cuesta 36 KB y se paga a propósito |
-| ↳ por qué dejó de venir del CDN | Era un `<link>` bloqueante a `rsms.me`, el sitio personal del autor, no un CDN de producción | si no cargaba, el matching de CSS convertía **460→500 y 560→600** y la jerarquía se derrumbaba. Desde nuestro origen, si falla la fuente ya falló todo. Y los dos referentes self-hostean: ninguno carga de un CDN |
-| ↳ suavizado de fuente | `-webkit-font-smoothing: antialiased` **y** `-moz-osx-font-smoothing: grayscale`, las dos | acá la jerarquía **es** el trazo —460 · 500 · 600, todo a 14px— así que si Firefox dibuja los tres escalones más pesados no se ve "un poco distinto": se ve **menos jerarquía**. Benji tiene las dos en su `body` (SOURCE) |
-| Tipografía | **El sistema de benji**: un solo tamaño (14px), jerarquía por peso **460 · 500 · 600** — tres, no cuatro. Tracking **−0.00563rem**, interlínea **20px** (su `1.25rem`, absoluta y no razón). Índice 13px/460, tracking −0.0025rem, lh 16 | elegido con un picker contra el sistema de josh sobre la página real. Todos los valores del CSS servido de benji.org: su texto de 14px lleva `line-height:1.25rem` y `letter-spacing:-.00563rem` en **todas** sus reglas, sin excepción. Los dos sistemas medidos en `.context/recon/TYPE-SYSTEMS.md` |
-| ↳ por qué no josh | Josh usa lo opuesto en sus subpáginas: **cinco tamaños** (30·20·16·14·12), **dos pesos** (400/500) y una escalera de **cinco grises** (23·64·82·115·163). Su costo era competir con las piezas — y obligaba a rehacer todos los espaciados verticales, afinados para texto de 14 | medido del markup servido de `/bloom`, `/dialkit`, `/melt-effect`, `/on-being-an-elder` y `/pasito`: su `h1` es el mismo string en las cinco |
-| ↳ la escalera de pesos | **Interface exhibition 500 · sección 600 · pieza 500**, cuerpo 460. El título de página **no** es lo más pesado: lo son los rótulos de sección | es lo que hace benji, verificado end-to-end — `.article > header h1` es 500 y el separador de /liveline es un `h1` **dentro** de `<article class="article">`, así que cae en `.article h1{font-weight:600}` (confirmado por posición en el HTML servido). Su razón es funcional: el título se lee una vez y su rango ya se lo da la posición, solo arriba y rodeado de aire; los encabezados de sección se buscan muchas veces en medio de contenido, y ahí el peso es el que los hace encontrables. **El peso va donde está el trabajo, que es escanear** |
-| ↳ tres pesos, no cuatro | El **560 quedó fuera**. La escala en uso es 460 · 500 · 600 | tres es donde está el consenso de sistemas de diseño ([EightShapes](https://medium.com/eightshapes-llc/typography-in-design-systems-6ed771432f1e): *"some systems can get away with as few as two or three weights"*). El 460 no se puede sacar porque es el cuerpo. Y el 560 que teníamos salía de `.article h2` —un sub-encabezado dentro del artículo— y no del separador que copiamos, que es el `h1` a 600 |
-| ↳ nunca un salto menor a 40 | Dos niveles de la misma jerarquía se separan por **40 o más**. Se descartaron pesos intermedios (520, 540) por esto | el conteo completo de sus `font-weight` da 100·200·400·430·450·460·500·560·600·620·700·800, o sea que sí tiene saltos chicos — pero **430** es para cursivas (`\.article em`: la itálica se ve más pesada y la compensa bajando 30) y **450** para internos de componente. Son compensación óptica y one-offs, nunca escalones de jerarquía |
-| ↳ el costo aceptado | "Interface exhibition" y el nombre de pieza **empatan en 500**. Y la palabra "Web" sale dos veces: 600 en el separador, 460 al 40% en el índice | el empate es el precio de bajar a tres pesos: a esos dos los distingue la posición y el contexto. Lo de "Web" estuvo abierto y se cerró aceptándolo: no son dos pesos que casi empatan, son un encabezado y un renglón de lista |
-| ↳ lo que se corrigió al hornear | El tracking era **−0.004rem**, que no es de nadie. Había **tres interlíneas**, dos escritas a mano (`1.3` en los títulos, que no existe en el CSS de benji; `1.2` en el índice, que sí es suyo). El rótulo de sección estaba en **600** cuando el `h2` de benji es **560** | la página era un híbrido que nadie había decidido |
-| ↳ tokens por rol | La tipografía dejó de vivir hardcodeada por clase: cada rol (`--type-h1-*`, `--type-h2-*`, `--type-h3-*`, `--type-body-*`, `--type-meta-*`, `--type-nav-*`) es un juego de tokens. Las interlíneas van en **px**, no como razón | hizo falta para poder montar los dos sistemas candidatos, porque no son variantes del mismo: benji comparte un tamaño entre todos los roles y josh le da uno a cada uno. Se queda porque es donde vive el peso de cada rol, que si no vuelve a esconderse en su clase |
-| Cómo responde al viewport | **Escalona, no interpola** — la manera de benji. Un solo escalón en **768** que mueve dos cosas juntas: aire superior 80→32 y margen 16→24. El índice se va en **1080**. Cero `clamp()`, cero `vw` | medido de los cuatro CSS servidos de benji y del markup de cinco subpáginas de josh (`.context/recon/RESPONSIVE.md`). Josh es lo contrario: **cero escalones en el marco** — 142 clases en `/bloom`, ninguna con prefijo responsive, 672·24·64 desde 320 hasta 2560. Se prefirió que la página responda y no que se quede igual en todo ancho |
-| ↳ el margen hace dos trabajos | **16** arriba de 768, **24** abajo. Arriba de 768 el riel está centrado con aire de sobra y el padding es vestigial: sólo angosta la columna. Abajo de 582 el riel *es* el viewport y ese mismo padding pasa a ser la única distancia al borde de la pantalla | es exactamente lo que hace benji (`padding: 5rem 1rem 2.5rem` → `2rem 1.5rem 2.5rem`), y explica por qué el número no es constante sin ser incoherente |
-| ↳ el índice en 1080 | Se esconde bajo **1080**, no bajo 1200 | 1080 es el de benji (`@media(max-width:1080px){…{display:none}}`), y su índice está fijo a 80/80, que es de donde salió el nuestro. El 1200 anterior no salía de ninguna de las dos referencias: era nuestro y nadie lo había decidido |
-| Aire superior | 80px, y **32 bajo 768px** | CSS de benji.org (`padding: 5rem`). Medido al píxel: a 769 son 80, a 768 son 32. Antes estaba en 640, heredado del DESIGN.md de Carousels |
-| Masthead | "Interface exhibition" (600) + una línea gris debajo. El subtítulo no cambia de tamaño: sólo peso y color | benji (`h1` 500 ink / `time` 460 al 40%) y josh (nombre y descripción al mismo tamaño, sólo cambia color) |
-| Copy del subtítulo | *Components for web and native apps that feel right.* "Feel right" es el estándar de calidad que usan Emil (h1 de animations.dev: *"How do you craft animations that feel right?"*) y Josh (*"Software that feels right"*). Ninguno de los dos usa "crafted" como adjetivo: *craft* les es verbo o sustantivo, y la calidad la nombran con *feel right*, *care* o *taste*. Afirma el resultado, no el esfuerzo | copy medido de animations.dev e interfacecraft.dev |
-| Riel | **592** = 37rem justos. Con el margen de 16, la columna queda en **560** = 35rem | elegido con el scrubber sobre la página real, entre el de benji (582, su 36.375rem) y el de josh (672, 42rem). Los dos números caen en rem enteros, cosa que no pasaba con ninguno de los dos extremos. El anterior era 832, del DESIGN.md de Carousels, y nunca se había mirado contra esta página |
-| Aire inferior | **80**, el mismo número que arriba. **No escalona** en 768 como el de arriba | no sale de las referencias: las dos cierran corto (benji 40, josh 64) porque abajo tienen footer y nosotros no vamos a tener, así que ese aire es el final de la página y no una separación. No escalona a propósito: los 80 de arriba se recortan porque en un teléfono son pantalla muerta antes de leer nada, y los de abajo sólo se ven si scrolleaste hasta el fondo. Benji hace lo mismo — escalona el de arriba y deja el de abajo quieto |
-| Colores/espaciado | Tokens heredados del DESIGN.md de Carousels (solo tipografía, colores y tamaños) | `src/tokens.css` |
-| Stack | Vite + React 19, versiones exactas, CSS plano + CSS Modules | — |
+| Format | One-page exhibition; every piece has its **own URL** (`/button`). **No router**: there are two views, `history.pushState` is enough. The browser's back button returns to the list **and to the scroll position you were at**; arriving straight from a link works too | the original decision was "state, no routes", taken when the detail was an empty rectangle. Once it was settled that the detail carries notes, not being able to link to them turned into a real loss |
+| ↳ deploy condition | The host has to serve `index.html` for unknown routes (SPA fallback). Vite already does it in dev and in preview | it is the only thing that having real routes instead of hash routes imposes |
+| ↳ the item is an `<a href>`, not a button | A plain click navigates on the client side; cmd-click and middle click open a new tab | **measured on benji:** his list item is `<a href="/drawesome">`, the click makes **0 document requests** and cmd-click opens a tab. Ours was a `<button>` with `pushState`, and that cost cmd-click, middle click, *"open in new tab"* and *"copy address"* from the context menu, plus a screen reader announcing **"button"**. The interceptor lets every modifier key through, and every button that is not the primary one; only the bare click becomes client navigation |
+| ↳ and we keep what he does not do | **it restores the scroll on the way back** | benji returns to the list at scrollY 0, measured. We save the position and hand it back, verified at 1500 → 1500 |
+| ↳ what is left to check | Tab in a real Safari | in Chromium the focus reaches the anchor with its 2px ring and radius 8, and Enter navigates. In Playwright's WebKit, Tab reaches **neither the anchor nor a `<button>`** (I measured both), so the environment cannot answer it. Safari has a preference (*"Press Tab to highlight each item on a webpage"*) that governs whether links enter the tab order, and that one has to be seen in the real browser |
+| Display | Segmented: one piece per row, title on top, large preview | same |
+| The piece's box | **Fixed height, never a ratio** | six cases measured across the two of them (`.context/recon/CARDS.md`): what runs carries a height picked by hand, what sits still lets the content decide. Neither of them uses `aspect-ratio` for anything alive |
+| ↳ Web | **260** in the list, **400** when opened. As `min-height`, so a floor | both of benji's, and the relation between them too: inside a long page his demos measure 260 (×4 out of 21), and when the demo **is** the page the frame of /drawesome measures 400. His 20 demos do not change height at any viewport, measured at 1440, 768, 500, 390, 320 |
+| ↳ App | **No height**: it reserves the phone slot (**228**×448 in the list, **319** when opened) and the height comes out of that plus 40/60 of padding. Gives 528 and 707 | from benji · family-values, which also declares no height and does not have a single media query in those classes. Sweep of 13 widths: his and ours give way at **exactly 395**, without copying any breakpoint |
+| ↳ the cost | Below 396 the App detail stops being bigger than the list | at that point the usable width is already under 228, the two slots top out at the same number and give the same height |
+| The card's skin | **Darker than the page, no ring and no shadow**: the contrast does all the work. `--surface: #f8f8f6`, −5 from the canvas | it is josh's rule, measured (`#fafaf9` on pure white, −5) and chosen over benji's, which is the opposite: card flush with the background (−1) defined by a 1px line. What was there was a card **lighter** than the background **plus** a ring at twice his. Both signals against |
+| ↳ the delta transfers, not the value | Copying his hex `#fafaf9` onto our canvas would give **−3**, not −5 | his page is pure white and ours starts 2 units below. Copying his color and copying his contrast are different decisions and they land on different steps |
+| ↳ radius | **8** | census of the 7 pages: for large boxes there are two numbers and there is no third. benji **8** (50 uses in family-values, 4 in liveline) and josh **12** (11 on his home). The rest are one-offs from a single page: his 14 hero, the 16 of the `<img>` boxes, bloom's lone 32. The 8 is the most repeated across the two of them, the only one **both** use on large boxes, and a multiple of 4, which 14 is not. On small controls the two agree on 4 and 6 |
+| ↳ hover | It darkens the fill and nothing else: no shadow, no scale, no movement. A step of **−4** from rest, to `#f4f4f1`, picked among −3, −4 and −5, which is half a step of his | his demo boxes do not react because **they are not clickable**. His rule is **one step** of his ramp, and it shows in the only two hovers he has: home cards `neutral-50 → neutral-100`, bloom's button `stone-700 → stone-600`. The button's hover **lightens**, so the rule is one step and not a direction. This used to say −10 against his page: that delta came from measuring against the white of /pasito, and the hover happens on his home, which is `#fafafa` |
+| ↳ press | **There is none.** `:active` paints identical to `:hover`, in all four modes | across the **23 pages** of the two highest references (9 of benji's, 14 of josh's) there is **one single live `:active`**: a 40×40 button on `/honkish` that neither drops nor scales. It takes away the 1px ring the hover put on it (`box-shadow` spread 1px→0px, `transition-duration .02s` read at runtime). His press does not add a state, it **removes** the hover. The lists of both of them, the same object as this card, have no press. And `active:scale-[0.94/0.96/0.98]` exists in josh's bundle and **zero** elements use it |
+| ↳ what was withdrawn when this was decided | --surface-press: #f0f0ec with its three branches, and --dur-press: 20ms | they were linear's `--color-bg-level-3` (which lands exactly on our next step) and benji's asymmetry. The 20ms were measured correctly but applied **backwards**: on his button they serve to take the hover away, not to deepen it. When the Button piece needs a press it gets measured for a button, which is where that evidence does apply |
+| ↳ and benji's mechanism was dropped | dimming the siblings to `opacity .3` | **it is a matter of scale, not of taste.** His list is 7 rows of 41px that **touch each other** (0px gap), 286px in total = 0.3 screens: you see all of it at once and the gesture is about *the list*. Ours is **8 screens** and at 1440×900 you see **2 cards**, so "the rest dims" would literally be *the other one*. Our card is 7.3× the area of one of his rows. On top of that he dims **text**, the `h2` and the `span`s of the `time`, with `span:last-child` exempt so the column of years stays lit, and never a surface: he does not have one |
+| ↳ curve and duration | **All of it split by property.** Surface: `--ease-surface: cubic-bezier(.23,1,.32,1)` + `--dur-surface: 150ms`. Text: `--ease-text: ease` + `--dur-text: 100ms` | **linear does not pick a curve, it picks by what is being animated.** Its three cards with hover use ease-out without exception and 25 of its 46 color transitions end in `ease` (54%). The ease-out value is the one from `/review-animations`, catalog line 32, *"strong ease-out for UI"*; the text one is backed by four sources: benji (every transition in his bundle), josh by hand (`.company-link` ×18), linear (54%) and the three skills |
+| ↳ the split duration is our own composition | 100 for text, 150 for surface | **no reference splits the duration**: benji uses 100ms for both families (`background-color` ×10, `color` ×23) and josh 150 for both (`background-color` ×11, `color` ×21 by hand). We take benji's number for the text and josh's for the surface. Chosen by looking: at 100ms the card's hover is 6 frames instead of 9 and with Δ4 it comes out almost like a dry switch-on; on the text, with Δ101, 100ms reads just right |
+| ↳ and the back arrow is the exception | It goes with the **surface** pair on both of its properties | it animates background **and** color, so with the split by property they would finish at different moments (150 the background, 100 the color) and it would read as two things. It is animations.dev's rule for paired elements: *"what moves together has to feel like one unit"*. **The full rule: the property decides, except when one element animates both families. There the element decides** |
+| ↳ a deliberate divergence in the value | The family comes from linear; the number comes from the skill, and **they do not match** | linear uses ease-out on its cards but never this value: its three use quad, the keyword and cubic. It declares the quint among its 18 Penner curves and uses it **once** in the whole site. If tomorrow we prefer what they ship, quad is `cubic-bezier(.25,.46,.45,.94)`, their workhorse with 60 uses |
+| ↳ and the hover stays **symmetric** | 150 going in and 150 going out | **a reversal:** I had written that three sources called for asymmetry and it was false. Linear's asymmetric rule does exist (`.rWdRxW_card` with `:hover{transition-duration:var(--speed-highlightFadeIn)}`, FadeIn `0s`) but it lives in `ContactLink.css` and renders **zero** elements, the same mistake as josh's `active:scale` utilities. The card that does render, `.Dc5tqa_customerCard` ×24, is symmetric. Live sweep over 5 pages of linear: **21 hoverable elements with a transition, 0 asymmetric**; benji's list and josh's row too. And the other two agreements were not about hover: benji's 20ms are from an `:active`, and Apple's *pointer-down* is about the press. Standard 9 says it word for word, *"press-and-release or hold"*. A press is deliberate and deserves an instant acknowledgment; a hover is incidental, and 150ms works as a damper. The asymmetry is noted down for the press, with the Button piece |
+| ↳ and the two that were there were wrong | --ease-fill and --ease-out are gone | --ease-fill was baked in as *"josh's curve"* and **it was not**: the **21** appearances of `cubic-bezier(.4,0,.2,1)` across his three pages all come from a Tailwind utility (`transition-colors`, `-all`, `-transform`, `-opacity`) and **none** from his CSS. It is the framework's default. And --ease-out was a quint-out inherited from Carousels, which is the curve for **entering and leaving**, something that never happens on this page. The quint is not kept just in case, a token with no reader is dead code, but its value stays written in DESIGN.md for the day a piece enters or leaves |
+| ↳ and the two of them changed name | --dur-fill → --dur-color, and the curve to --ease-color | **rule 4** of the system itself asks for it, the name is the role. `fill` was the role when the only reader was the card's fill; today there are four readers and three of them fill nothing |
+| ↳ the title does NOT go inside the fill | Only the rectangle gets painted; the title stays outside, on the canvas | **one single reference did it, not three.** Josh's counts: his `<a class="block rounded-xl px-4 py-3">` of 580×76 carries the title inside and the hover paints the whole block. The other two I had cited do not apply and are withdrawn: agentation's `.demo-card` has **zero `:hover` rules**, `transition: all 0s`, `cursor: auto` and is not inside any link. It is a static drawing, and that it is a filled box with a title inside says nothing about hover. And benji **never fills anything**, the background of his row is `rgba(0,0,0,0)` in every state. And josh's block contains **only text**: title plus description. Ours would contain an empty 260px frame, which is not the same object |
+| ↳ what was tried and dropped | A block that bleeds 16px outwards (592×292, concentric radius 24) with title and card fused into a single surface | it was built in the prototype and it works: the title does not move a pixel, the card is still at 560 and the vertical rhythm survives with the three bleeds. It was not dropped for failing to work, it was dropped for lack of backing |
+| ↳ stuck hover on touch | The index's hover goes behind `@media (hover: hover)`. **It is the only pointer gate in the system** | the artifact shows up where the tap **leaves the element on screen**: tapping a link in the index only scrolls, so the `:hover` sticks to it, and since hover and active paint the same color the stuck one is indistinguishable from the real one. Measured on an iPad Pro in landscape: tapping "Switch" and scrolling far away left **two** links painted. The card does not need it because tapping it unmounts it, the back arrow does not either, and in WebKit a single tap is enough on both. The cut falls exactly right: the index shows above 1080px and the only measured device that gets there without a mouse is the iPad Pro in landscape (1194px, `(hover:hover)` false). Neither reference gates anything by pointer, zero `(hover:`, `(pointer:` and `(any-hover:` in the two bundles |
+| ↳ canvas and ink, now verified | `#fdfdfc` and `#111111` | they came from Carousels' design.md with no way to verify them. They are literally benji's: his declared variables say `--body-bg:#fdfdfc` and `--body-color:#111` |
+| Text grays | **ONE secondary level: one alpha, two bases.** `--secondary-alpha: 37%`, applied from pure black (annotation → **160**) and from `--ink` (nav → **166**) | it is benji's structure, verified in his served CSS: he declares **one single** text color token (`--body-color:#111`) and **no** gray token. Everything gray is his black or his ink at an alpha, and `.4` dominates with 40 declarations against 8 for the next one. His "two grays" (152 and 159) are that same 40% from two bases. It is not a step, it is the leak from writing the rule in two files. With `α=.4` our two bases reproduce his 152 and 159 dead on: that validates the model |
+| ↳ the alpha was chosen in two steps | **the ballpark** with a slider on the annotation alone (163), **the number** with a sweep of six alphas where both move together (37%) | the slider moved **one line** of the page, because back then the nav was still a separate number: it was good for locating the zone. The sweep was looked at three ways (a continuous ramp, the two derived values **touching each other**, and the real text at 13/16 against 14/20) because a jump of 6 units at 13px is invisible if you look at them apart. The annotation ended up 3 darker than the slider's 163: ΔL .006, inside the noise |
+| ↳ the nav moved from 159 to 166 | an intended consequence of the rule | it had been copied from his `hsla(0,0%,7%,.4)` while baking in the index's typography and **it was never chosen**. Under this rule it does not get chosen, it gets derived |
+| ↳ and the order fixed itself | the nav ends up **lighter** than the annotation, as on his page | before it was the other way round (163 annotation against 159 nav). Now it is not a decision: it falls out of `--ink` being lighter than pure black. Gap 6; his is 7 |
+| ↳ both come out under APCA | Lc **50** and **47**, against the 60 it asks for on text that is not body | benji too: 54 and 50. Accepted knowingly, what goes in gray here **annotates**, it is not read. Crossing the floor called for `α=45%`, which in the sweep looked too dark for the role |
+| ↳ contrast is measured by compositing | `rgba(0,0,0,.4)` gives **2.84:1**, not 20:1 | you have to composite the alpha over the background before calculating. Without that it scores as pure black and every number comes out wrong |
+| How color gets used | **Everything that gets READ goes in ink**; gray is only for what **annotates** | benji's rule, measured on four of his pages. That is why **the detail's description moved to ink**: it is prose. What is left for gray is the masthead's subtitle and the detail's platform, which is the role of his `<time>` under the `h1` |
+| ↳ the index's active state | It does not reach the ink: it stops at **65** | his CSS puts hover and active in the same declaration, `hsla(0,0%,7%,.8)`. The piece you are looking at stands out without being the darkest thing on the screen |
+| Text selection | benji's: `#ededed` background and the text **forced to ink** | all three have a global rule and they do not say the same thing. Josh inverts (`#fff` on `#000`), emil sets **only the background** (`#e2e1de`) and does not touch the color. What decides it is the forcing: emil can go without it because his secondary sits at 99; ours sits at 160 and on his background that gives **2.00:1**, unreadable exactly while you are selecting it. Forced to ink, 16.13:1. And it is not a new rule: it is "everything that gets read goes in ink" applied to a state |
+| ↳ here the hex does get copied literally | `#ededed` as is, with no delta transferred | the first time in the whole system. His canvas is `#fdfdfc` and so is ours, and so is emil's (`--color-gray-100:#fdfdfc`). On the card, the hover and the grays the delta had to be transferred because the backgrounds did not match; here they do |
+| Dark mode | **Yes, triggered by the system like josh.** And it is not a hand-written palette: it is **four numbers** (depth 9 · warmth .003 · ink 250 · hue 106.4) and everything else falls out of two rules | of the five measured references only josh has a **page-level** dark theme: benji and emil have dark palettes in their CSS but for embedded components, and linear forces `data-theme="dark"` and ignores the system. The canvas 9 is linear's (`--color-bg-level-0:#08090a`), the ink 250 is josh's (`--foreground:#fafafa`) |
+| ↳ rule 1 · text keeps its **contrast** | ink 104.1→**104.4** · annotation 50.3→48.1 · nav 46.7→42.5 · active 92.9→**93.4** | it has a legibility floor that surfaces do not have, so what is held is the Lc and not the number. The secondary's 59.2% comes from the **×1.6** benji applies to his two tokens with alpha (`.28→.45` and `.10→.16`, the same factor twice). The active's 93% does not keep the alpha but its **position** between the nav and the ink: in light, 80% falls at 80.4% of that run, and in dark it takes 93% to fall in the same place |
+| ↳ rule 2 · everything else keeps the **distance** and flips the direction | light `−5 −9 −16 −36 −151` → dark `+5 +9 +16 +36 +151`; the alphas, same number with the base turned around | the alpha part is **linear's**: their `--color-border-translucent` is `#0000000d` in light and `#ffffff0d` in dark, ×1.00, and `#0000000d` is 5.098%, our `--hairline` to three decimals. It is a compromise and not a law: keeping the distance gives ~1.5× of ΔL, so the card **is** somewhat more noticeable in dark; keeping the exact ΔL left it at +3 and invisible, and emil (×3.00) and linear (×4.48) enlarge it much more so it holds up across screens. **APCA cannot arbitrate it**: it returns 0.0 for every surface |
+| ↳ what made the ink of 250 possible | rewriting the secondary as **one base and two alphas** instead of one alpha and two bases | deriving the nav from `--ink` left the ink trapped: it had to come in ~17 units from the end or the two bases flattened into each other. That forced an ink of 238 and left the text 7.5 Lc below the light one. The light value did not move, `black@34.4%` gives the same 166 as `ink@37%`, and it is the structure benji uses for his nav at rest and active |
+| ↳ `color-scheme: light dark` | none of the five references declares it | without it the browser auto-darkens native controls and scrollbars and the page ends up half and half |
+| High contrast | `prefers-contrast: more` covered in both modes. **The two grays collapse into one** (alpha 57.4% light, 78.8% dark) and every distance that is not text doubles | **the first color decision with no reference at all**: zero occurrences of `prefers-contrast` in the five bundles. The rule comes from `/better-colors`: widen the L gap to ≥0.15 and check against APCA's **preferred** thresholds (90 body, 75 non-body). The ink already passed with 104; the annotation (50) and the nav (47) did not |
+| ↳ the arithmetic decides the collapse | the alpha that reaches Lc 75 comes out **the same** for both roles | the two aim at the same number, so they converge. And that is fine: that distinction was 3.6 Lc at its best moment, exactly the kind of subtlety someone asking for more contrast wants gone. What survives is the hierarchy that carries meaning, ink against secondary |
+| ↳ the gap widens more than was asked | **0.153 to 0.194** against the 0.15 minimum | reaching APCA's threshold already covers it in all four cases, so the threshold decides and a second calculation is not needed |
+| ↳ and the non-text part doubles | card −5→−10 · hover −9→−18 · selection −16→−32 · underline −36→−72 · line alphas at double | the skill does **not** ask for this, it is our own call: under high contrast the structure has to read too. One rule instead of four numbers. The underline's hover goes to `--ink` because doubling its 151 runs off the range, and the ring moves one accent step (\|Lc\| 77.8→87.9 light, 34.8→48.7 dark) |
+| ↳ links | **No color of their own**: they inherit the block's, and a 1px `#d9d9d9` underline marks them, which on hover goes to `#666`. The text does not move | **two of the three references do this**, benji with a pseudo-element, emil with `text-decoration-color #bcbbb5` at 1.5px. We used emil's mechanism with benji's values: our text is 14px, not 16 |
+| Focus | `2px solid #005fcc`, **offset 2px**, no transition | the color is **Chromium's** default ring, **measured off the engine**: I focused an unstyled button in all three and read the painted pixel. Chromium `#005fcc` solid, WebKit `#0067f4` **at 50%** (the Aqua glow), Firefox `#007aff` solid. Chromium wins for being the deepest and the one with the most contrast, \|Lc\| **77.8** light and **34.8** dark over APCA's floor of 30. Its dark counterpart `#347ee5` comes from raising its L by the ΔL benji and josh apply to their accents; the same calculation on Firefox's blue gives `#3f9aff` against benji's measured `#3d9bff`, **one unit apart**. The `transition:none` is benji's |
+| ↳ two things that came out of measuring them | the blue we had **was Firefox's**; and WebKit paints its own **at exactly 50%** | `rgba(0,122,255,.5)`, inherited from benji, is `#007aff`, the one Firefox paints. And WebKit's composite gives `(127,179,249)` to the unit, which means the mechanism of Safari's old ring was the one we already had |
+| ↳ `outline-offset: 2px`, from josh | and it is not decoration | without it the ring **cuts the letters** of the index's links, which are text with no padding. It replaces the `padding:0 2px / margin:0 -2px` benji uses to push his own clear, without touching the layout. On the card the outline follows the radius 8 on its own |
+| ↳ and it uncovered a layout bug | the flex was stretching every index link to the **89px** of the longest one | the words measure 31 to 62, so the ring was drawing up to **58px of emptiness**. With `align-items: flex-start` each one measures its own word, which is what benji has by nature, because his links are inline `<a>` |
+| Nav | **Fixed index on the left** with every piece grouped. No tabs. At 80 from the edge, 13px/460 at 40%, 8px between links, width fitted to the longest label | 13 pages of the two references walked through: **neither uses tabs**, both navigate with a fixed index. Measured in `.context/recon/NAVIGATION.md` |
+| ↳ the `Web`/`App` labels | **Always visible**, and they weigh **the same as their links**. They are not headings, they are the first line of their group. The only thing that separates them is the air: **16px**, double the 8 there is between links | it is benji's, `nav h2` and `nav ul li a` identical property by property, with `padding:0 0 1rem` on the label and `gap:.5rem` on the list. Measured on his page, not just in his CSS: his index arrives empty in the HTML and JS fills it |
+| ↳ where it starts | **"Web" sits on the same line as "Button"**, the title of the first piece. Gives 237 at 1440 of width. It aligns on the text **baseline** and it **gets measured**, not calculated | chosen by looking, with red rulers on top, against four other pairings (link↔piece 205 · label↔separator 186 · label↔masthead 82 · benji's raw 80). It gets measured because the number is the sum of the whole vertical stack of the page: as a `calc` it would be a formula nobody would update |
+| ↳ **with** scrollspy | The piece you are looking at gets painted (at **65**, see above). The active one is the last whose top edge has already crossed a line **128px** from the top, plus a guard at the end of the document | it is benji's rule, taken out of his bundle: his formula carries half a viewport on both sides and cancels out. This used to say "no scrollspy", and it was reversed |
+| Section separator | Label 14px/600/#111 + hairline out to the edge of the rail; 8px gap, 64px above, 56px below | benji's separator on /liveline and /drawesome, measured live. His `<hr>` is empty; what paints is the div React wraps it in |
+| What the detail exists for | For **the notes and the air**: the why, the decisions and the numbers, plus the piece alone on the screen and bigger. The list shows, the detail explains. It is not just an enlarged piece | with a live preview in the list, the detail does not contribute the piece (you already had it): it contributes what surrounds it |
+| ↳ and the description goes **below** the piece | At the top what stays is `title + platform`; the prose comes in after the preview, at **24** | Vito's request on 2026-09-04, and it is reading order and not a value: first you see the thing, then you read what it is. What it wins along the way is that the top is **exactly** benji's measured pair, his `h1` with his `time` at 4px, with no third line that he does not have. The 24 was not chosen by looking: it reuses the `margin-bottom` of the block above so there are not two numbers for the same relation (text against the piece). It is still owed a pass with the scrubber |
+| List spacing | Air above/below **80 → 32** · masthead→section **60** · label→piece **40** · name→card **12** · between pieces **48** · between sections **64** · label↔hairline **8** · subtitle **4**. **All multiples of 4** | chosen with the scrubber on the real page. The 40, 48 and 64 are benji's, measured; the rest was decided here. Detail in `.context/recon/NAVIGATION.md` |
+| ↳ the names of the tokens | **Owner → part → property**, apple's way: `--page-padding-top`, `--section-content-gap`, `--piece-card-gap`, `--index-group-gap`. **The whole --space scale was deleted** | measured across 1.3 MB of served CSS from apple, linear and openai. Apple: `--buystrip-content-padding`, `--media-gallery-bottom-content-padding-left`. Linear shorter: `--button-gap`, `--kbd-gap`. OpenAI in between: `--page-top-gap`, `--tabs-sticky-gap`. **None of the three has a token named after its value**, there is not one single --space-4 in the three bundles. And the three share that the name is the ROLE and the value is contextual: linear's `--button-gap` is worth 4, 6 or 8 depending on the size |
+| ↳ ×4 in layout, free inside components | Every **layout** spacing is a multiple of 4. **Inside a component it does not apply** | it is what benji does: he uses 2, 3, 5, 6 and 10, and 6px shows up 28 times, but **only** in `.Toolbar_*`, `.BarSlider_field`, `.submitButton` and `[data-size=sm]` variants. Not a single one in page layout. Same shape as his rule for weights: the dirty values exist for optical compensation and for internals, never for the structure. Today we have nothing internal, the card is empty and the only component is the detail's arrow, which is provisional |
+| ↳ the number is the gap you can see | `--section-content-gap` goes from the line to the first text, not the `margin-bottom`. The line sits centered in the box of the label, so the CSS discounts that half box by working it out from `--fs` and `--lh` | the margin said 32 when the real gap was 41.5: two numbers for the same distance. The one that decides is the one you see |
+| ↳ grouping | label→piece (40) has to be smaller than between pieces (48), or the label comes unstuck from its group and reads as floating between the two | it came from 56, which was larger: the grouping was inverted |
+| ↳ masthead title → subtitle | **4**, and 8 of air below the whole masthead | it is benji's and here the analogy is **exact**: his `<header>` is the same pair as ours, an `h1` and a secondary line, both 14px with a line height of 20, with `display:flex; flex-direction:column; gap:.25rem; padding:0 0 .5rem`. Verified in the served HTML of his home, not just in the sheet. Since the two texts are the same size the line height already separates them: the 4 is a nudge. The 8 below we already had. Josh uses 16, but his `h1` is 30px against a paragraph of 16 |
+| ↳ piece title → card | **12**, constant at every width. The name goes **above** the card. The air is **claimed by the block below** (`margin-top`), the title does not push it. **Chosen by eye with a scrubber on the real page, not copied** | no reference has our structure, a list of pairs [short name + large card] repeated 19 times. Benji on /liveline makes ONE block out of each section; his home is a list of text rows with no block. The closest is josh on /pasito: an `h2` of 20px/500 followed **directly** by a code card, at **16** (`mt-4`), under "Usage" and "Autoplay Usage", the two cases where he goes from the title to the block with nothing in between. Where he shows the component **visually** he puts a description between the two, which is not our case. 12 and 16 were tried with the 19 pieces stacked and 12 won; his `h2` is also 20px and ours is 14, so his 16 hangs off a bigger title. The **shape** is copied and verified on his real page: the container of his chart carries `style="margin-top:2rem"`, which means the block claims its margin instead of the title pushing it |
+| ↳ a retraction worth keeping | The 12 had been justified with benji's timeline (`h2` 14/500 + block at `.75rem`). **It was false**: `timeline` does not appear once in the HTML of /liveline, it is CSS from another page. That also brought down a supposed caveat about a vertical line with circles that never existed | I read rules that exist and took for granted that they were visible. Same mistake as with the `<hr>`. A rule in the CSS is not a rule on the screen: if the conclusion depends on what gets rendered, you have to look at the served HTML, not just the style sheet |
+| Categories | **Web** and **App**, both always visible (there is no filter). The cut is browser vs installed app, which is the line that really costs something to cross. Under App, SwiftUI and Expo/React Native live together (both render real native views) | the runtime is the honest property: "iOS" under-declared the Expo pieces, which also run on Android |
+| ↳ App, not Mobile | **App** cuts on the same axis as Web (where does it run?); **Mobile** answers a different question (on what screen?), and mixing two axes is what already broke `Web / Web Mobile / Native`. The decider: a web sheet designed for a phone is *web and mobile* at once. With Mobile the cut breaks and you have to invent a rule; with App that piece is Web and that is that. Mobile is understood half a second faster, but next to "Web" the contrast disambiguates on its own | the collision is not hypothetical: Vaul (Emil Kowalski, one of this project's references) is exactly a mobile-first drawer that runs in the browser |
+| Native demos | **`platform` decides it, and nothing else.** Web goes live in the browser, App goes in video, **Expo included** | it used to be decided piece by piece because Expo *could* go live via react-native-web. When Expo moved to video as well, the rule **collapsed into the category** and the `runtime` field that held it up stopped making sense: the type was deleted. The original fact is still true, `expo-haptics` maps to the Web Vibration API, which Safari does not support, but there is nothing left to decide per piece |
+| Elevation | **There is none, and it is a decision.** Zero `box-shadow` in the whole product: the card is defined by contrast against the canvas | measured on four reference pages. benji home **0** shadows, josh home **0**, josh interface-craft **0**, and the **52** in benji/family-values are *all* `0px 0px 0px 1px`, zero blur, zero offset: borders drawn with `box-shadow`, not elevation. **Across the four there is not a single shadow with blur.** `/better-ui` asks for the opposite ("shadows for elevation, borders for structure") and benji does exactly that backwards; we follow the references, which is where everything else came from |
+| z-index | **Zero, and it is not decidable yet** | today nothing overlaps, the index is `fixed` but it lives in the margin. josh has none across his two pages; benji only in `family-values`, his one page with interactive demos. It is the same split as ours: the chrome does not need stacking, the pieces do. Five of the 18 are layers (Dialog, Sheet, Tooltip, Context Menu, Action Sheet) and the scale gets decided with the first one, not before |
+| The back arrow | **It paints the glyph, not the square**, and it reaches `--active-c` (65 light / 233 dark) in 100ms `ease`. The 34×34 square stays invisible as the click area, and the radius of 8 because the focus `outline` follows the `border-radius` | **unanimous across the two references**, measured live: benji `.styles_backButton` 122×28, radius 0, `transition: color 0.1s`, `rgba(0,0,0,.4)` → `rgba(0,0,0,.8)`; josh `"Home"` on /melt-effect 62×20, neutral-400 → neutral-900. Both of them: **they do not paint a background, they change the color, they do not move**. And benji's 0.1s is exactly the `--dur-text` we already had |
+| ↳ the destination is the 80%, not the ink | 65, not 17 | it is benji's, and he **does not reach his ink**: he stops at 51 over his canvas. We stop at 65 because the 80% is written from our ink base and not from pure black, the same *one alpha, two bases* structure that governs the text grays. The ink was dropped (17, what josh does) and so was the text hover level (102, `--link-underline-hover`): the second would unify everything that reacts to the pointer into one color, but in dark it lands on 160 against a rest of 155, **five units, invisible** |
+| ↳ and the token lost the component's name | `--index-active-c` → **`--active-c`** | it had the index as its only reader; today there are **three**, the index's active state, its hover and the arrow's hover, across two components. By **rule 4** the name is the role, and the role is the level that marks *"this one"*: because you are pointing at it, or because it is where you are. That the two things share a color is his: he writes `nav ul li a:hover` and `nav ul li[data-active=true] a` in **one single declaration** |
+| ↳ and the exception for the pair fell away | it no longer exists | the arrow was the only element that animated surface **and** text, and that is why it took the surface pair on both properties. Now it animates a single family: the rule goes back to being **the property decides, full stop**. Along the way --a1 died, whose only reader was that background. It left all four branches, and the comment that said *"the focus uses it"* was never true |
+| Motion | **The page has no entrance animation.** Opening a piece and going back animates nothing. The only thing that moves is the hover, and those are changes of color and of ring, not of position | there were enterFwd/enterBack and an entrance for the detail. On top of that enterBack **never fired**: data-dir was written by hand as "fwd". All three were taken out instead of fixing the one that was missing |
+| ↳ no reduced-motion block | It is not needed: **there is no movement left to reduce**. The index's smooth scroll does consult it, in `app.tsx` | the four places with a transition cross a color (index, the card's fill, the back button, the links' underline) and none of them displaces, scales or rotates. Verified with `reduced-motion: reduce`: the card declares only `transition-property: background-color`. It stops being true the day a scale comes in, and that is when it has to be written |
+| ↳ the font | **InterVariable, self-hosted**, the official file from rsms.me subset to latin. Four files by `unicode-range`: **102 KB** is all an English page loads, against 343 for the original. It keeps both axes, `opsz` 14 to 32 and `wght` 100 to 900 | **it is not the Google Fonts one**, and the difference is concrete: asking it for `family=Inter:opsz,wght@14..32,100..900` returns CSS with **zero** mentions of `opsz`, it ignores the axis. Our `body` uses `font-optical-sizing:auto`, which without that axis does nothing. Benji uses the Google one via `next/font`, so **he does not have `opsz` and we do**. Keeping it costs 36 KB and it is paid on purpose |
+| ↳ why it stopped coming from a CDN | It was a blocking `<link>` to `rsms.me`, the author's personal site, not a production CDN | if it did not load, CSS matching turned **460→500 and 560→600** and the hierarchy fell apart. From our own origin, if the font fails then everything has already failed. And both references self-host: neither one loads from a CDN |
+| ↳ font smoothing | `-webkit-font-smoothing: antialiased` **and** `-moz-osx-font-smoothing: grayscale`, both of them | here the hierarchy **is** the stroke, 460 · 500 · 600, all at 14px, so if Firefox draws the three steps heavier it does not look "a bit different": it looks like **less hierarchy**. Benji has both in his `body` (SOURCE) |
+| Typography | **benji's system**: one single size (14px), hierarchy by weight **460 · 500 · 600**, three and not four. Tracking **−0.00563rem**, line height **20px** (his `1.25rem`, absolute and not a ratio). Index 13px/460, tracking −0.0025rem, lh 16 | chosen with a picker against josh's system on the real page. Every value from benji.org's served CSS: his 14px text carries `line-height:1.25rem` and `letter-spacing:-.00563rem` in **all** of his rules, without exception. The two systems measured in `.context/recon/TYPE-SYSTEMS.md` |
+| ↳ why not josh | Josh uses the opposite on his subpages: **five sizes** (30·20·16·14·12), **two weights** (400/500) and a ladder of **five grays** (23·64·82·115·163). His cost was competing with the pieces, and he forced a redo of all the vertical spacing, tuned for 14px text | measured from the served markup of `/bloom`, `/dialkit`, `/melt-effect`, `/on-being-an-elder` and `/pasito`: his `h1` is the same string in all five |
+| ↳ the ladder of weights | **Interface exhibition 500 · section 600 · piece 500**, body 460. The page title is **not** the heaviest thing: the section labels are | it is what benji does, verified end to end. `.article > header h1` is 500 and the separator on /liveline is an `h1` **inside** `<article class="article">`, so it falls under `.article h1{font-weight:600}` (confirmed by position in the served HTML). His reason is functional: the title is read once and its rank is already given by position, alone at the top and surrounded by air; section headings get searched for many times in the middle of content, and there the weight is what makes them findable. **The weight goes where the work is, and the work is scanning** |
+| ↳ three weights, not four | The **560 was left out**. The scale in use is 460 · 500 · 600 | three is where the consensus among design systems sits ([EightShapes](https://medium.com/eightshapes-llc/typography-in-design-systems-6ed771432f1e): *"some systems can get away with as few as two or three weights"*). The 460 cannot be removed because it is the body. And the 560 we had came from `.article h2`, a sub-heading inside the article, and not from the separator we copied, which is the `h1` at 600 |
+| ↳ never a jump smaller than 40 | Two levels of the same hierarchy are separated by **40 or more**. Intermediate weights (520, 540) were dropped over this | the full count of his `font-weight` gives 100·200·400·430·450·460·500·560·600·620·700·800, so he does have small jumps, but **430** is for italics (`\.article em`: the italic looks heavier and he compensates by dropping 30) and **450** is for component internals. They are optical compensation and one-offs, never steps of hierarchy |
+| ↳ the accepted cost | "Interface exhibition" and the piece name **tie at 500**. And the word "Web" comes out twice: 600 in the separator, 460 at 40% in the index | the tie is the price of coming down to three weights: those two are told apart by position and context. The "Web" one was left open and closed by accepting it: they are not two weights that almost tie, they are a heading and a line of a list |
+| ↳ what was corrected while baking it in | The tracking was **−0.004rem**, which is nobody's. There were **three line heights**, two written by hand (`1.3` on the titles, which does not exist in benji's CSS; `1.2` in the index, which is his). The section label was at **600** when benji's `h2` is **560** | the page was a hybrid nobody had decided |
+| ↳ tokens by role | Typography stopped living hardcoded per class: each role (`--type-h1-*`, `--type-h2-*`, `--type-h3-*`, `--type-body-*`, `--type-meta-*`, `--type-nav-*`) is a set of tokens. Line heights go in **px**, not as a ratio | it was needed to be able to mount the two candidate systems, because they are not variants of the same one: benji shares a single size across every role and josh gives each one its own. It stays because it is where each role's weight lives, and otherwise it goes back to hiding inside its class |
+| How it responds to the viewport | **It steps, it does not interpolate**, benji's way. A single step at **768** that moves two things together: top air 80→32 and margin 16→24. The index leaves at **1080**. Zero `clamp()`, zero `vw` | measured from benji's four served CSS files and from the markup of five of josh's subpages (`.context/recon/RESPONSIVE.md`). Josh is the opposite: **zero steps in the frame**, 142 classes on `/bloom`, none with a responsive prefix, 672·24·64 from 320 up to 2560. We preferred the page to respond rather than stay the same at every width |
+| ↳ the margin does two jobs | **16** above 768, **24** below. Above 768 the rail is centered with air to spare and the padding is vestigial: it only narrows the column. Below 582 the rail *is* the viewport and that same padding becomes the only distance to the edge of the screen | it is exactly what benji does (`padding: 5rem 1rem 2.5rem` → `2rem 1.5rem 2.5rem`), and it explains why the number is not constant without being incoherent |
+| ↳ the index at 1080 | It hides below **1080**, not below 1200 | 1080 is benji's (`@media(max-width:1080px){…{display:none}}`), and his index is fixed at 80/80, which is where ours came from. The previous 1200 did not come from either reference: it was ours and nobody had decided it |
+| Top air | 80px, and **32 below 768px** | benji.org's CSS (`padding: 5rem`). Measured to the pixel: at 769 it is 80, at 768 it is 32. Before it sat at 640, inherited from Carousels' DESIGN.md |
+| Masthead | "Interface exhibition" (600) + a gray line below. The subtitle does not change size: only weight and color | benji (`h1` 500 ink / `time` 460 at 40%) and josh (name and description at the same size, only the color changes) |
+| The subtitle's copy | *Components for web and native apps that feel right.* "Feel right" is the quality standard Emil uses (animations.dev's h1: *"How do you craft animations that feel right?"*) and Josh too (*"Software that feels right"*). Neither of them uses "crafted" as an adjective: for them *craft* is a verb or a noun, and they name the quality with *feel right*, *care* or *taste*. It states the result, not the effort | copy measured from animations.dev and interfacecraft.dev |
+| Rail | **592** = exactly 37rem. With the margin of 16, the column comes out at **560** = 35rem | chosen with the scrubber on the real page, between benji's (582, his 36.375rem) and josh's (672, 42rem). Both numbers land on whole rems, which did not happen with either extreme. The previous one was 832, from Carousels' DESIGN.md, and it had never been looked at against this page |
+| Bottom air | **80**, the same number as the top. It **does not step** at 768 the way the top one does | it does not come from the references: both of them close short (benji 40, josh 64) because they have a footer down there and we are not going to have one, so that air is the end of the page and not a separation. It does not step on purpose: the 80 at the top gets trimmed because on a phone it is dead screen before you read anything, and the one at the bottom is only seen if you scrolled to the very end. Benji does the same, he steps the top one and leaves the bottom one alone |
+| Colors/spacing | Tokens inherited from Carousels' DESIGN.md (typography, colors and sizes only) | `src/tokens.css` |
+| Stack | Vite + React 19, exact versions, plain CSS + CSS Modules | no source |
 
-## El área privada — vault y playground
+## The private area: vault and playground
 
-Dos cosas en un mismo lugar y con distinta responsabilidad: el **vault**
-es la pared de referencias que mirás, el **playground** es donde
-construís. Ninguna de las dos se publica.
+Two things in the same place with different responsibilities: the
+**vault** is the wall of references you look at, the **playground** is
+where you build. Neither one gets published.
 
-Lo medido de las referencias está en `.context/recon/vault/GRILLA.md`.
+What was measured off the references is in `.context/recon/vault/GRILLA.md`.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| No se publica | `/vault` y `/playground` existen **sólo en dev**, y no porque el host las bloquee sino porque **el código no llega al build** | dos pliegues sobre `import.meta.env.DEV`: la lista de rutas se pliega a `[]` y el componente a `null`. Verificado: **0** ocurrencias de `vault`, `playground` y `privado`-como-ruta en `dist/`, **0** imports dinámicos, un solo chunk. En producción `/vault` cae en la misma rama que cualquier URL inventada — 404, sin regla especial |
-| ↳ el borde es una carpeta | todo lo que cuelga de `src/privado/` hereda la puerta | un flag repartido por archivos se olvida; un directorio no. La dependencia va en **un solo sentido**: lo privado puede importar del producto, nunca al revés |
-| Dónde viven los clips | En una carpeta **tuya, fuera del repo** — puede ser tu Obsidian. `VAULT_DIR` en `.env.local`, gitignoreado | ni un clip entra a git. Sin prefijo `VITE_` a propósito: con él, Vite hornearía la ruta de tu disco en el bundle del cliente |
-| ↳ el puente | plugin de Vite `apply:'serve'` que sirve esa carpeta en `/vault-media/` | en `vite build` ni se instancia. **38 chequeos HTTP** en verde |
-| ↳ tres guardas | lista **blanca** de extensiones de video e imagen · nada que empiece con punto · `realpath` de los dos lados | la blanca importa de verdad si apuntás esto a tu Obsidian: un `.md` no se sirve nunca, y no porque una regla lo bloquee sino porque no está en la lista de lo que sí. La de punto cierra `.obsidian/` y `.trash/`. La de realpath impide que un symlink camine para afuera |
-| ↳ una guarda que faltaba | la de realpath estaba **sólo al servir**, y el índice llegó a listar un symlink a `/etc/hosts` como un mp4 de 213 bytes | no se podía descargar, pero su tamaño y su fecha ya estaban publicados. Ahora está escrita una vez y la usan los dos caminos. La agarró el vault de prueba, que tiene casos hostiles a propósito |
-| ↳ Range requests | implementadas en el puente, no en el reproductor | son propiedad del **transporte**: sin ellas Chrome no puede buscar dentro del video y Safari directamente no reproduce, y llegar al cuadro exacto es todo el punto. Chrome real y WebKit cargan, buscan al medio exacto y saltan 1/60s |
-| ↳ nota de entorno | las pruebas de video van con **WebKit o `channel:'chrome'`** | el Chromium que trae Playwright se compila sin H.264 y falla con código 4 sobre bytes que los otros dos reproducen bien |
-| La carpeta es el manifiesto | nombre, fuente y fecha se **derivan** del archivo y de dónde lo soltaste. No hay JSON que mantener | un manifiesto a mano se desincroniza el día que arrastrás un archivo sin editarlo, y entonces el vault miente. Así no puede |
-| La grilla | 3 columnas · canaleta **32** · filas **64** · título→caption **8** | filas y título→caption son donde **linear.app/now y el archivo de figma coinciden exacto**, así que se toman sin discutir |
-| ↳ el riel | **80** a cada lado, cayendo a `--page-padding-inline` abajo de 768 | no es un número nuevo: es el mismo 80 del aire superior y del índice lateral. A 1440 deja la grilla en **1280**, que da exacto el contenedor de linear — convergencia, no búsqueda |
-| ↳ la canaleta va limpia | 32 sin línea, la de figma, contra los 64-con-línea de linear | su línea de 1px existe **porque sus cards no tienen fondo**: sin ella nada separaría una columna de otra. La nuestra es una superficie pintada con su propio borde, y una línea encima competiría con él |
-| **La forma de la caja** | la card de **benji** en family-values: `padding 40/60`, radio 8, flex centrado, el clip adentro con ancho explícito y la **altura mandada por el contenido** | sus clips y los de figma son **todos apaisados**; los nuestros van de **0.46** (grabación de teléfono) a **1.60** (captura de escritorio). No hay referencia que copiar, así que se probaron las tres respuestas obvias con `/prototype` y las tres fallan: 16:9 conteniendo deja al vertical como una tira entre dos campos vacíos, 16:9 recortando le corta arriba y abajo —donde viven el sheet y la tab bar— y dejar que la caja siga al clip da 881px contra 253 |
-| ↳ qué hace él, medido | 45 cards **en una sola columna**, 550 de ancho fijo y **cinco alturas**: 532 ×17 · 475 ×12 · 443 ×8 · 346 ×7 · 368 ×1 | su respuesta a las formas distintas es **no imponer ninguna**. `532.42 = 40 + 448.42 + 40 + 4` — la altura la manda el contenido. Se lo permite tener una columna |
-| ↳ y ya eran tokens nuestros | `--card-app-padding` y `--card-app-slot-ancho` salieron de medir **esta misma card** para la página de piezas | no se agrega nada al sistema, se reusa |
-| ↳ **todas la misma altura**, y es **contra** él | **574px** | él deja mandar al contenido —por eso sus 45 cards tienen **cinco alturas**— y puede porque tiene **una columna**. En tres, la altura variable deja filas desparejas de hasta **209px** y eso se lee como error, no como variedad. El 574 es el punto donde **nuestro** clip vertical llega a los **228** exactos que él le da al suyo: abajo de eso el teléfono se achica por falta de alto. Elegido contra 418 (su proporción sobre nuestra columna) y 532 (su altura literal); lo que los separa es cuánto del hueco llena la imagen — **574: vertical 100%, apaisado 36%** · 532: 91/39 · 418: 68/53 |
-| ↳ abajo de 768 vuelve a mandar el contenido | la altura fija se suelta | con una columna no hay vecina con la que emparejarse, así que clavarla sólo agregaría aire — y con una columna, ése es el caso de benji exacto |
-| **Sin epígrafe** | debajo de la card va **sólo el nombre**: ni fecha ni categoría | las dos referencias lo llevan (linear autor y fecha, figma categoría y fecha) y se va igual: en un vault ninguna de las dos anota nada. La categoría ya la dice el filtro, que es donde la usás, y la fecha no distingue nada porque **todos los clips entran el día que los arrastrás**. En sus páginas son artículos con autor y fecha de publicación, y ahí sí dicen algo. La fecha **sigue ordenando** la grilla; lo que se fue es mostrarla |
-| **Sin flecha en el hover** | la superficie oscurece y nada más | la flecha era la de linear, medida — pero **su** tarjeta la necesita porque nada más le cambia al pasar el puntero: sin ella no habría señal de que es clickeable. La nuestra oscurece la superficie entera (regla de josh, ya en el sistema), así que la flecha era una segunda señal diciendo lo mismo |
-| ↳ el borde no se copia | sin anillo ni sombra | la regla de josh ya está decidida en `tokens.css`: la card se define por contraste. Se copia la geometría, se respeta lo decidido |
-| ↳ ancho explícito, siempre | el teléfono a **228**, el resto al 100% de la caja | ninguna de sus 45 cards deja que el archivo decida su tamaño. Sin esto un clip más chico que la caja se dibuja a su tamaño natural: una imagen de 1×1 daba una caja de **81px** de alto |
-| **Una card son tres capas** | el componente · **su** fondo, que viene del archivo · y `--surface` alrededor, **siempre presente** — y el hueco es **uno solo para todas las fuentes** | Vito, mirando la grilla: *"el tamaño ese de componente, más su fondo que viene del video, y después nuestro fondo siempre presente"*. Con dos reglas —web llenando la card, native con aire— la tercera capa faltaba en web (RUNTIME a 1440: `Shelf to card` pintado 442.64×424.94 en una card de 442.66×424.94, **aire 0.01 × 0**) y las bandejas no podían medir lo mismo. Hubo ida y vuelta: se unificó, se revirtió porque nadie lo había pedido y achicaba los clips de web, y volvió cuando sí se pidió |
-| ↳ **el ancho baja a 2/3** | de **78.1818%** (430/550, benji) a **66.6667%**. El alto no se toca: **84.8485%** = 448/528, suyo | el 78.18% sólo ataba cuando el archivo es más ancho que alto, y **6 de 8** clips de `nativo/` son cuadrados o casi: salían todos al mismo tope, **346.06**, con 48.3 de aire al costado contra 39.4 arriba. A 2/3 el tope es **295.11** y el aire lateral **73.78**. No hay referencia detrás del número y queda dicho: es el redondo que achica lo cuadrado y no toca lo que tiene forma de teléfono, porque a eso lo ata el alto (`Floating bar` 1320×2868 → 165.85, intacto). Verificado a 1440, 900, 700, 500 y 390 |
-| ↳ **las bandejas miden lo mismo porque los archivos son 1:1** | la regla sola no alcanza: con `contain` el tamaño lo decide la **proporción del archivo** | los clips con bandeja que no eran cuadrados se rellenaron con **su propio fondo** hasta 1:1 — `Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 → 2868×2868. El relleno no es un color pintado sino sus propias filas/columnas de borde extendidas: pintar un color caía **2 niveles** distinto por la conversión RGB→YUV y se veía la costura. Resultado: **siete bandejas a 295.11×295.11** exactos. El precio: en `Floating bar` el teléfono pasa de 166 a 136px de ancho, y `Copy text` deja de llenar la card (295×283 con superficie alrededor) |
-| ↳ una trampa de ffmpeg, anotada | `scale` **preserva el aspecto de display** y `vstack`/`hstack` heredan el SAR del primer input | estirar una tira de 2 filas a 36 (1800×2 → 1800×36) le pone **SAR 18:1**, y el archivo entero sale marcado así: el navegador lo veía como 32400×1800 y lo dibujaba de 16px de alto. `setsar=1` después del apilado, siempre |
-| ↳ lo que rompe, anotado | el diálogo de subir muestra **Native** y **Web** con las mismas clases para que elijas *cuál se ve mejor* — y ahora **se ven iguales** | `fuente` sigue decidiendo la carpeta y la solapa del filtro; lo que dejó de decidir es el encuadre, que era lo que ese diálogo ponía a la vista. Queda sin resolver a propósito: volver a diferenciar el marco, o pasar el diálogo a preguntar por la carpeta con palabras, es una decisión aparte |
-| ↳ el orden de la grilla se toca en el disco | `birthtime`, con `SetFile -d` | la grilla ordena por `creado` y la carpeta es el manifiesto, así que no hay campo de orden que agregar: se cambia la fecha del archivo. Las originales quedan anotadas en `.context/marco-vault/originales/fechas.txt`, con los archivos originales al lado de cada re-encode |
-| **El activo del filtro y las solapas: sólo contraste, confirmado** | tinta vs gris, mismo peso, sin subrayado ni pastilla | se probó en la página real con `prototype` contra cuatro alternativas —peso 600 (HIG sidebar), subrayado 1px (Vercel/Stripe), pastilla (Apple.com/Dribbble) e invertido— con once referencias en claro capturadas al lado. Vito eligió "como está". Lo que cuesta queda medido y aceptado: en claro el inactivo está a **2.39:1** del fondo (WCAG pide 4.5:1 para texto); en oscuro los dos estados a **2.62:1** entre sí (pide 3:1 sin segunda señal). Misma apuesta que Linear. La etiqueta del filtro pasó de "Native" a **"App"**, el nombre que ya usa la exhibition |
-| El hover | **la superficie oscurece y nada más**: la imagen no se mueve, no escala y no se oscurece aparte | medido en linear: en toda su tarjeta lo único que cambia es `opacity 0→1` y `translateX(−2→0)` en 100ms — una flecha. Acá esa flecha se sacó, ver arriba |
-| **Corrección: el zoom de benji no existe** | `react-medium-image-zoom` está en su CSS servido pero renderiza **0 elementos** en `/`, `/family-values`, `/liveline`, `/drawesome`, `/honkish` y `/pixelmelt` | mismo caso que las utilidades `active:scale` de josh. Tampoco hay hover con escala: el único `scale` que toca una card es **estático** (`1.06`, para que la captura sangre bajo el bisel del teléfono) |
-| ↳ lo que sí hace en cada card | un toggle de velocidad **1x / 0.5x** arriba a la derecha — 45 en family-values, 34 en honkish | 28×20, 12px/460, radio 38, `#989897`, dos `<span>` que se cruzan por opacidad, `all .2s ease`. Es evidencia directa para el reproductor |
-| ↳ nota de método | una sonda dio *"0 reglas `:hover` en toda la página"* y era **falso**: el número real es 68 | sus hojas son de otro origen, `sheet.cssRules` tira excepción y la sonda las salteaba en silencio. Contra CSS de otro origen hay que capturar el **texto** de la respuesta, no leer el CSSOM |
-| **La sidebar del lienzo se pliega con `⌥⌘S`** | y **no hay control a la vista**: el chrome del lienzo no cambia en nada | el atajo es el de Apple, no uno nuestro — [Mac keyboard shortcuts](https://support.apple.com/en-us/102650): *Option-Command-S* oculta o muestra la sidebar en Finder, y es el mismo en Mail, Notes y Xcode. Se mira `e.code === 'KeyS'` y no `e.key`, porque en un teclado Mac ⌥+S produce `ß`. Arranca **visible** y no se recuerda entre vistas ([Sidebars](https://developer.apple.com/design/human-interface-guidelines/sidebars): no ocultarla por defecto). **Verificado**: abierta, la geometría es idéntica al píxel a la de antes — panel `0..240`, chevron `31..47`, nombre `26..201`; plegada, la tela pasa a `0..1440` |
-| ↳ quién paga el layout | un `padding-left` en `.lienzo`; el panel sale del flujo y viaja en `transform`, con transición de **CSS** | es la arquitectura de GitLab. De cuatro sidebars de producción medidas bajo carga —la ingenua, Notion, Linear y ésta— es la única que sigue a 60fps con la CPU **6× frenada**. Notion anima `transform` y Linear anima `left` y **pierden cuadros a la par**: las dos usan `requestAnimationFrame`. Lo que decide es el **driver**, no la propiedad — y plegar un panel pasa justo cuando el hilo principal está ocupado |
-| ↳ y los frames se re-acomodan al **volver** | se escucha `transitionend` de `padding-left`, no el cambio de estado | desplegar le come 240px a la tela, y un frame dejado en esa franja queda afuera. Al apretar la tecla la tela **todavía mide lo de antes**, así que medir ahí no ve nada. Se filtra por propiedad **y por target** porque `transitionend` burbujea: verificado, al lienzo le llegan también el `color` de un `input` y el `transform` del `aside` |
+| It does not get published | `/vault` and `/playground` exist **only in dev**, and not because the host blocks them but because **the code never reaches the build** | two folds over `import.meta.env.DEV`: the list of routes folds to `[]` and the component to `null`. Verified: **0** occurrences of `vault`, `playground` and `private`-as-a-route in `dist/`, **0** dynamic imports, one single chunk. In production `/vault` falls into the same branch as any made-up URL: 404, with no special rule |
+| ↳ the edge is a folder | everything hanging off `src/private/` inherits the gate | a flag spread across files gets forgotten; a directory does not. The dependency goes **one way only**: the private side can import from the product, never the other way round |
+| Where the clips live | In a folder **of yours, outside the repo**. It can be your Obsidian. `VAULT_DIR` in `.env.local`, gitignored | not one clip goes into git. No `VITE_` prefix, on purpose: with it, Vite would bake the path on your disk into the client bundle |
+| ↳ the bridge | a Vite plugin with `apply:'serve'` that serves that folder at `/vault-media/` | in `vite build` it is not even instantiated. **38 HTTP checks** green |
+| ↳ three guards | an **allow** list of video and image extensions · nothing that starts with a dot · `realpath` on both sides | the allow list really matters if you point this at your Obsidian: an `.md` is never served, and not because a rule blocks it but because it is not on the list of what is. The dot one closes `.obsidian/` and `.trash/`. The realpath one stops a symlink from walking outside |
+| ↳ a guard that was missing | the realpath one was **only on serving**, and the index got as far as listing a symlink to `/etc/hosts` as a 213-byte mp4 | you could not download it, but its size and its date were already published. Now it is written once and both paths use it. The test vault caught it, the one that has hostile cases on purpose |
+| ↳ Range requests | implemented in the bridge, not in the player | they are a property of the **transport**: without them Chrome cannot seek inside the video and Safari does not play at all, and reaching the exact frame is the whole point. Real Chrome and WebKit load, seek to the exact middle and step 1/60s |
+| ↳ a note about the environment | the video tests run with **WebKit or `channel:'chrome'`** | the Chromium Playwright ships is compiled without H.264 and fails with code 4 on bytes the other two play fine |
+| The folder is the manifest | name, source and date get **derived** from the file and from where you dropped it. There is no JSON to maintain | a hand-written manifest falls out of sync the day you drag a file in without editing it, and then the vault lies. This way it cannot |
+| The grid | 3 columns · gutter **32** · rows **64** · title→caption **8** | rows and title→caption are where **linear.app/now and figma's archive match exactly**, so they get taken without argument |
+| ↳ the rail | **80** on each side, dropping to `--page-padding-inline` below 768 | it is not a new number: it is the same 80 as the top air and the side index. At 1440 it leaves the grid at **1280**, which is exactly linear's container. Convergence, not a search |
+| ↳ the gutter goes clean | 32 with no line, figma's, against linear's 64-with-a-line | their 1px line exists **because their cards have no background**: without it nothing would separate one column from the next. Ours is a painted surface with its own edge, and a line on top would compete with it |
+| **The shape of the box** | **benji**'s card in family-values: `padding 40/60`, radius 8, centered flex, the clip inside with an explicit width and the **height commanded by the content** | his clips and figma's are **all landscape**; ours run from **0.46** (a phone recording) to **1.60** (a desktop capture). There is no reference to copy, so the three obvious answers were tried with `/prototype` and all three fail: 16:9 containing leaves the vertical one as a strip between two empty fields, 16:9 cropping cuts it top and bottom (where the sheet and the tab bar live) and letting the box follow the clip gives 881px against 253 |
+| ↳ what he does, measured | 45 cards **in a single column**, 550 of fixed width and **five heights**: 532 ×17 · 475 ×12 · 443 ×8 · 346 ×7 · 368 ×1 | his answer to different shapes is **to impose none**. `532.42 = 40 + 448.42 + 40 + 4`, the height is commanded by the content. Having one column lets him do it |
+| ↳ and they were already tokens of ours | `--card-app-padding` and `--card-app-slot-width` came out of measuring **this same card** for the pieces page | nothing gets added to the system, it gets reused |
+| ↳ **all of them the same height**, and it is **against** him | **574px** | he lets the content command (that is why his 45 cards have **five heights**) and he can because he has **one column**. In three, the variable height leaves rows uneven by up to **209px** and that reads as a mistake, not as variety. The 574 is the point where **our** vertical clip reaches the exact **228** he gives his: below that the phone shrinks for lack of height. Chosen against 418 (his proportion over our column) and 532 (his literal height); what separates them is how much of the slot the image fills. **574: vertical 100%, landscape 36%** · 532: 91/39 · 418: 68/53 |
+| ↳ below 768 the content commands again | the fixed height gets released | with one column there is no neighbor to line up with, so pinning it would only add air. And with one column, that is benji's case exactly |
+| **No caption** | below the card goes **only the name**: no date and no category | both references carry one (linear author and date, figma category and date) and it goes anyway: in a vault neither of the two annotates anything. The category is already said by the filter, which is where you use it, and the date tells nothing apart because **every clip comes in the day you drag it**. On their pages these are articles with an author and a publication date, and there they do say something. The date **still orders** the grid; what went away is showing it |
+| **No arrow on the hover** | the surface darkens and nothing else | the arrow was linear's, measured, but **their** card needs it because nothing else changes on it when the pointer goes over: without it there would be no sign that it is clickable. Ours darkens the whole surface (josh's rule, already in the system), so the arrow was a second signal saying the same thing |
+| ↳ the edge does not get copied | no ring and no shadow | josh's rule is already decided in `tokens.css`: the card is defined by contrast. The geometry gets copied, what was decided gets respected |
+| ↳ an explicit width, always | the phone at **228**, the rest at 100% of the box | not one of his 45 cards lets the file decide its size. Without this a clip smaller than the box draws at its natural size: a 1×1 image gave a box **81px** tall |
+| **A card is three layers** | the component · **its** background, which comes from the file · and `--surface` around it, **always present**. And the slot is **a single one for every source** | Vito, looking at the grid: *"that size of component, plus its background that comes from the video, and then our background always present"*. With two rules (web filling the card, native with air) the third layer was missing in web (RUNTIME at 1440: `Shelf to card` painted 442.64×424.94 in a card of 442.66×424.94, **air 0.01 × 0**) and the trays could not measure the same. There was back and forth: it got unified, it got reverted because nobody had asked for it and it shrank the web clips, and it came back when it was asked for |
+| ↳ **the width drops to 2/3** | from **78.1818%** (430/550, benji) to **66.6667%**. The height does not get touched: **84.8485%** = 448/528, his | the 78.18% only bound when the file is wider than it is tall, and **6 of 8** clips in `nativo/` are square or nearly: they all came out at the same ceiling, **346.06**, with 48.3 of air at the side against 39.4 above. At 2/3 the ceiling is **295.11** and the side air **73.78**. There is no reference behind the number and it gets said: it is the round one that shrinks what is square and does not touch what is shaped like a phone, because that one is bound by the height (`Floating bar` 1320×2868 → 165.85, untouched). Verified at 1440, 900, 700, 500 and 390 |
+| ↳ **the trays measure the same because the files are 1:1** | the rule alone is not enough: with `contain` the size is decided by the **file's ratio** | the clips with a tray that were not square got filled with **their own background** up to 1:1: `Shelf to card` 1800×1728 → 1800×1800, `Floating bar` 1320×2868 → 2868×2868. The fill is not a painted color but their own rows and columns of edge extended: painting a color landed **2 levels** off because of the RGB→YUV conversion and the seam showed. Result: **seven trays at exactly 295.11×295.11**. The price: in `Floating bar` the phone goes from 166 to 136px wide, and `Copy text` stops filling the card (295×283 with surface around it) |
+| ↳ an ffmpeg trap, written down | `scale` **preserves the display aspect** and `vstack`/`hstack` inherit the SAR of the first input | stretching a 2-row strip to 36 (1800×2 → 1800×36) puts **SAR 18:1** on it, and the whole file comes out marked that way: the browser saw it as 32400×1800 and drew it 16px tall. `setsar=1` after the stacking, always |
+| ↳ what it breaks, written down | the upload dialog shows **Native** and **Web** with the same classes so you can pick *which one looks better*, and now **they look the same** | `source` still decides the folder and the filter's tab; what it stopped deciding is the framing, which is what that dialog put in front of you. It is left unresolved on purpose: going back to telling the frame apart, or turning the dialog into asking about the folder in words, is a separate decision |
+| ↳ the grid's order gets touched on the disk | `birthtime`, with `SetFile -d` | the grid orders by `created` and the folder is the manifest, so there is no order field to add: you change the file's date. The original ones stay written down in `.context/marco-vault/originales/fechas.txt`, with the original files next to each re-encode |
+| **The active state of the filter and the tabs: contrast only, confirmed** | ink vs gray, same weight, no underline and no pill | it was tried on the real page with `prototype` against four alternatives: weight 600 (HIG sidebar), a 1px underline (Vercel/Stripe), a pill (Apple.com/Dribbble) and inverted, with eleven light-mode references captured alongside. Vito chose "as it is". What it costs is measured and accepted: in light the inactive one sits at **2.39:1** from the background (WCAG asks for 4.5:1 on text); in dark the two states sit at **2.62:1** from each other (it asks for 3:1 with no second signal). Same bet as Linear. The filter's label went from "Native" to **"App"**, the name the exhibition already uses |
+| The hover | **the surface darkens and nothing else**: the image does not move, does not scale and does not darken on its own | measured on linear: across their whole card the only thing that changes is `opacity 0→1` and `translateX(−2→0)` in 100ms, an arrow. Here that arrow was taken out, see above |
+| **Correction: benji's zoom does not exist** | `react-medium-image-zoom` is in his served CSS but renders **0 elements** on `/`, `/family-values`, `/liveline`, `/drawesome`, `/honkish` and `/pixelmelt` | same case as josh's `active:scale` utilities. There is no hover with a scale either: the only `scale` that touches a card is **static** (`1.06`, so the capture bleeds under the phone's bezel) |
+| ↳ what he does do on every card | a speed toggle **1x / 0.5x** at the top right, 45 in family-values, 34 in honkish | 28×20, 12px/460, radius 38, `#989897`, two `<span>`s that cross by opacity, `all .2s ease`. It is direct evidence for the player |
+| ↳ a note about method | a probe returned *"0 `:hover` rules on the whole page"* and it was **false**: the real number is 68 | his sheets come from another origin, `sheet.cssRules` throws and the probe was skipping them in silence. Against CSS from another origin you have to capture the **text** of the response, not read the CSSOM |
+| **The canvas sidebar collapses with `⌥⌘S`** | and **there is no control in sight**: the canvas chrome does not change at all | the shortcut is Apple's, not one of ours. [Mac keyboard shortcuts](https://support.apple.com/en-us/102650): *Option-Command-S* hides or shows the sidebar in Finder, and it is the same in Mail, Notes and Xcode. It looks at `e.code === 'KeyS'` and not `e.key`, because on a Mac keyboard ⌥+S produces `ß`. It starts **visible** and it is not remembered between views ([Sidebars](https://developer.apple.com/design/human-interface-guidelines/sidebars): do not hide it by default). **Verified**: open, the geometry is identical to the pixel to the one before, panel `0..240`, chevron `31..47`, name `26..201`; collapsed, the canvas goes to `0..1440` |
+| ↳ who pays for the layout | a `padding-left` on `.canvas`; the panel leaves the flow and travels on `transform`, with a **CSS** transition | it is GitLab's architecture. Of four production sidebars measured under load (the naive one, Notion, Linear and this one) it is the only one that stays at 60fps with the CPU **throttled 6×**. Notion animates `transform` and Linear animates `left` and **they drop frames alike**: both use `requestAnimationFrame`. What decides is the **driver**, not the property. And collapsing a panel happens exactly when the main thread is busy |
+| ↳ and the frames rearrange on the way **back** | it listens for the `transitionend` of `padding-left`, not for the change of state | opening it eats 240px of the canvas, and a frame left in that band ends up outside. When you press the key the canvas **still measures what it did before**, so measuring there sees nothing. It filters by property **and by target** because `transitionend` bubbles: verified, the canvas also gets the `color` of an `input` and the `transform` of the `aside` |
 
-### El reproductor
+### The player
 
-Existe para una cosa: llegar al cuadro exacto donde arranca un gesto,
-contar hasta donde termina, y sacar la duración en milisegundos. Lo
-medido está en `.context/recon/vault/REPRODUCTOR.md`.
+It exists for one thing: to reach the exact frame where a gesture
+starts, count to where it ends, and get the duration in milliseconds.
+What was measured is in `.context/recon/vault/REPRODUCTOR.md`.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| Botón de play | **38×38**, glifo de **20×20**, `opacity 100ms linear` + `transform .2s ease`, deshabilitado en **.32** | **apple**, de su `inline-media-ui`. Renderiza en **28 videos** de `/apple-vision-pro`, no es una regla muerta. El color del icono **no** lleva transición en su reproductor —cambia de golpe— y acá tampoco |
-| ↳ los iconos son nuestros | dos formas triviales con `currentColor` | de él se copian las **medidas**, no el arte. `currentColor` hace lo mismo que su `mask` + `background-color` —el color del icono es una propiedad CSS— con una pieza menos |
-| Velocidad | **28×20**, 12px/460, radio 38, `all .2s ease`. **Dos estados (1x · 0.5x), no un menú** | **benji**, y renderiza en **45** elementos de family-values y 34 de honkish |
-| ↳ el cross-fade | dos `<span>` superpuestos con `inset:0` que se cruzan por opacidad | suyo, y no es adorno: *"1x"* y *"0.5x"* no miden lo mismo, así que sin esto el botón cambia de ancho y salta todo lo que tiene al lado |
-| **Dónde van los controles** | una **fila debajo del video** | elegido mirando, y **no es de ninguno de los dos**: apple ancla abajo a la derecha *encima* del video, benji arriba a la derecha, y los dos medidos no pueden tener razón a la vez. Debajo nada tapa el clip, y al estar sobre el canvas no necesita scrim ni blur — usa los colores del sistema tal cual. Se probó la variante "esquinas" con el scrim exacto de apple y perdió |
-| **La pista** | riel de **2px**, sin perilla | **sin referencia medible**, y se dice así: Safari tiene el shadow root **cerrado** en los dos motores, `apple-events` no monta sus controles headless, y Podcasts y x.com piden login. Es nuestra. Se probaron fina/media/oculta y ganó fina: a ese grosor deja de ser un control que compite y pasa a ser una lectura. Usa `--hairline` y `--ink`, sin ningún color nuevo |
-| **Sin botones de cuadro** | el paso vive **sólo en las flechas del teclado** | estuvieron —dos flechas de 24px al lado del play— y se sacaron. El teclado es más preciso y se puede mantener apretado. Apuntarle a un botón chico mientras mirás otra cosa es el trabajo que este reproductor tiene que ahorrar |
-| ↳ los modificadores | sola **1 cuadro** · **option 10** · **command a los bordes** (inicio / final). `shift` sigue haciendo lo mismo que `option` | son las tres distancias que se piden de verdad: el cuadro exacto, cruzar un gesto entero, y volver al principio para contarlo otra vez. **Verificado en `Reminders App.mov` (256 cuadros)**: 0→1→2, option 2→12→22→12, command→255, command→0, y clampea en los dos extremos sin pasarse |
-| ↳ y command+flecha lleva `preventDefault` de verdad | sin él, back/forward del navegador | es el atajo nativo de historial: sin cortarlo, "ir al final del clip" te saca de la página. **Verificado: la URL no cambia en ninguno de los dos sentidos** |
-| ↳ y eso destapó un bug real | el listener escucha en el **documento**, no en el foco del reproductor | estaba atado al foco y fallaba en el caso más común: clickeás el video para pausarlo, el clic cae en el `<video>` y el marco nunca toma el foco, así que desde ahí las flechas no hacen nada. **Verificado: tras clickear para pausar, `activeElement` es `BODY`.** Ahora sólo existe mientras hay un clip abierto |
-| ↳ pero el foco **sí** importa para las flechas | en un **campo de texto** el reproductor no las toca; en un **botón** sí | la ficha de al lado tiene título, fuente y notas, y ahí `option+flecha` es saltar de palabra y `command+flecha` ir al borde de la línea: robárselas rompe lo que en mac se hace sin pensar. Los botones no usan flechas, así que después de apretar play seguís yendo cuadro a cuadro. **Verificado con el caret adentro del título: la flecha mueve el cursor y el cuadro no se mueve.** El espacio sí se saltea en cualquier control, botones incluidos — ahí ya lo activa el navegador |
-| El paso de cuadro | del **contenedor**, no estimado | `scripts/cuadros.mjs` lee `mdhd` (timescale) y `stts` (deltas) del mp4/mov. Sin `ffprobe` y sin dependencias. **Validado 9/9**: cuadros × duración-de-cuadro reproduce la duración que reporta el navegador |
-| ↳ busca el **medio** del cuadro | `(destino + 0.5) · cuadro` | pedir exactamente `N·cuadro` cae en la frontera entre dos cuadros y el navegador puede resolver para cualquiera de los dos |
-| ↳ tasa variable | se devuelve el delta más frecuente **con `variable: true`** | para que quien lo use sepa que el paso es aproximado, en vez de creer que es exacto |
-| El tiempo se lee por cuadro de pantalla | `requestAnimationFrame`, no `timeupdate` | `timeupdate` dispara unas **4 veces por segundo**: con eso la pista avanza a saltos y el número de cuadro miente casi siempre |
-| Lo que no se pudo medir | controles nativos de Safari · reproductor completo de apple-events · Apple Podcasts · x.com | shadow root cerrado en los dos motores · `.controls-container` renderiza 0×0 headless · las dos últimas piden login |
+| Play button | **38×38**, a **20×20** glyph, `opacity 100ms linear` + `transform .2s ease`, disabled at **.32** | **apple**, from their `inline-media-ui`. It renders on **28 videos** of `/apple-vision-pro`, it is not a dead rule. The icon's color carries **no** transition in their player (it changes at once) and it carries none here either |
+| ↳ the icons are ours | two trivial shapes with `currentColor` | what gets copied from them is the **measurements**, not the art. `currentColor` does the same as their `mask` + `background-color` (the icon's color is a CSS property) with one piece less |
+| Speed | **28×20**, 12px/460, radius 38, `all .2s ease`. **Two states (1x · 0.5x), not a menu** | **benji**, and it renders on **45** elements of family-values and 34 of honkish |
+| ↳ the cross-fade | two overlaid `<span>`s with `inset:0` that cross by opacity | his, and it is not decoration: *"1x"* and *"0.5x"* do not measure the same, so without this the button changes width and everything next to it jumps |
+| **Where the controls go** | a **row below the video** | chosen by looking, and **it belongs to neither of the two**: apple anchors bottom right *on top of* the video, benji top right, and the two of them measured cannot both be right. Below, nothing covers the clip, and sitting on the canvas it needs no scrim and no blur: it uses the system colors as they are. The "corners" variant was tried with apple's exact scrim and it lost |
+| **The track** | a **2px** rail, no knob | **no measurable reference**, and it gets said that way: Safari has the shadow root **closed** in both engines, `apple-events` does not mount its controls headless, and Podcasts and x.com ask for a login. It is ours. Thin, medium and hidden were tried and thin won: at that thickness it stops being a control that competes and becomes a reading. It uses `--hairline` and `--ink`, with no new color |
+| **No frame buttons** | the step lives **only in the keyboard arrows** | they were there, two 24px arrows next to the play button, and they were taken out. The keyboard is more precise and you can hold it down. Aiming at a small button while you are looking at something else is the work this player has to save you |
+| ↳ the modifiers | on its own **1 frame** · **option 10** · **command to the edges** (start / end). `shift` still does the same as `option` | they are the three distances you actually ask for: the exact frame, crossing a whole gesture, and going back to the start to count it again. **Verified on `Reminders App.mov` (256 frames)**: 0→1→2, option 2→12→22→12, command→255, command→0, and it clamps at both ends without overshooting |
+| ↳ and command+arrow carries a real `preventDefault` | without it, the browser's back/forward | it is the native history shortcut: without cutting it, "go to the end of the clip" takes you off the page. **Verified: the URL does not change in either direction** |
+| ↳ and that uncovered a real bug | the listener listens on the **document**, not on the player's focus | it was tied to the focus and it failed in the most common case: you click the video to pause it, the click lands on the `<video>` and the frame never takes focus, so from there the arrows do nothing. **Verified: after clicking to pause, `activeElement` is `BODY`.** Now it only exists while a clip is open |
+| ↳ but the focus **does** matter for the arrows | in a **text field** the player does not touch them; in a **button** it does | the details next to it have a title, a source and notes, and there `option+arrow` is jump by word and `command+arrow` is go to the edge of the line: stealing them breaks what on a mac you do without thinking. Buttons do not use arrows, so after pressing play you keep going frame by frame. **Verified with the caret inside the title: the arrow moves the cursor and the frame does not move.** The space bar does get skipped in any control, buttons included, because there the browser already activates it |
+| The frame step | from the **container**, not estimated | `scripts/frames.mjs` reads `mdhd` (timescale) and `stts` (deltas) from the mp4/mov. No `ffprobe` and no dependencies. **Validated 9/9**: frames × frame-duration reproduces the duration the browser reports |
+| ↳ it seeks the **middle** of the frame | `(target + 0.5) · frame` | asking for exactly `N·frame` falls on the boundary between two frames and the browser can resolve to either of them |
+| ↳ variable rate | it returns the most frequent delta **with `variable: true`** | so whoever uses it knows the step is approximate, instead of believing it is exact |
+| The time gets read per screen frame | `requestAnimationFrame`, not `timeupdate` | `timeupdate` fires about **4 times a second**: with that the track advances in jumps and the frame number lies almost always |
+| What could not be measured | Safari's native controls · the full apple-events player · Apple Podcasts · x.com | shadow root closed in both engines · `.controls-container` renders 0×0 headless · the last two ask for a login |
 
 ## Error 404
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| Composición | Un único anillo con `ERROR 404 · PAGE NOT FOUND` repetido; sin controles ni texto visible adicional | simplificación elegida por Vito después del taller de sonido |
-| Física | Cuerpo circular rígido, con gravedad, giro, drag y arrojar. Restitución de **0.90** en laterales/techo y **0.86** en el piso | recupera la respuesta seca anterior sin deformación al presionar el borde |
-| Sonido | Una sola voz suave, disparada exclusivamente cuando el anillo completo rebota | se eliminaron las variantes `Letra`, `Palabra` y `Doble` y todo sonido por presión |
-| Gestos descartados | Sin deformación, presión, explosión, partículas ni rearmado | la escena debe leerse como un único objeto rígido |
-| Reduced motion | El anillo queda quieto; el drag sigue siendo directo y no genera inercia | el movimiento autónomo es decorativo |
+| Composition | A single ring with `ERROR 404 · PAGE NOT FOUND` repeated; no controls and no extra visible text | a simplification Vito chose after the sound workshop |
+| Physics | A rigid circular body, with gravity, spin, drag and throw. Restitution of **0.90** on the sides and the ceiling and **0.86** on the floor | it recovers the dry response from before, with no deformation when you press the edge |
+| Sound | One single soft voice, fired only when the complete ring bounces | the Letter, Word and Double variants were removed, and so was every sound triggered by pressing |
+| Gestures dropped | No deformation, no press, no explosion, no particles and no reassembly | the scene has to read as one single rigid object |
+| Reduced motion | The ring stays still; the drag is still direct and generates no inertia | the movement that runs on its own is decorative |
 
-## Pendiente (marcado como tal en `src/tokens.css`)
+## Pending (marked as such in `src/tokens.css`)
 
-- **La escala `--space-*` no cubre lo que la página usa.** Va 4·8·12·16·20·
-  24·32·40·48·64, pero 56, 60 y 80 están en uso y no están en ella; hoy
-  viven como tokens semánticos (`--gap-masthead`, `--index-top`). Falta
-  decidir si la escala crece arriba o si esos valores se quedan como
-  semánticos. También sobran `--space-2`, `--space-6` y `--space-10`, que
-  rompen la regla de múltiplos de 4 — los dos primeros sin uso
-- Radios, elevación, z-index — se definen desde la primera pieza construida
-- **`Swipeable tabs` está publicada sin video.** El clip final se está
-  haciendo en otra sesión; cuando esté, entra con
-  `pnpm pieza:video swipeable-tabs <archivo>`. Falta decidir QUÉ va en el
-  hueco: la grabación cruda (la silueta del teléfono, que es lo que el
-  hueco reserva) o el mockup para X (cuadrado, con bisel y fondo: en el
-  hueco se vería un teléfono chico adentro de un cuadrado)
-- **`pnpm grabar` escribe al vault por diseño**, pero la primera pieza
-  se sacó del vault a pedido: el vault es lo ajeno. Si esa regla se
-  generaliza, `grabar` debería escribir a `.context/mockup/master/` y el
-  mockup leer de ahí (hoy se le pasa con `--clip=`)
-- Primera pieza a construir dentro del stage
-- Footer / firma: el nombre "Vito Compagnucci" todavía no está en ninguna parte
-- **`Reminders App`** es el único clip que dice DÓNDE en vez de QUÉ, y repite
-  su `Source` (`Apple Reminders App`) palabra por palabra. Entra en 15, así
-  que no urge; falta saber qué gesto muestra para poder nombrarlo.
-- **El lienzo del playground no entró al modelo de la barra.** Tiene `←` y
-  nombre en su sidebar, que es leading + título con otra ropa. Queda como
-  excepción documentada hasta que se decida si se une.
-- **El taller nativo de SwiftUI.** El de Expo ya existe (`nativo/`, ver
-  su `AGENTS.md`); el proyecto Xcode espera a la primera pieza que lo
-  pida — View por pieza + `#Preview`, springs de iOS 17, Inject para
-  recarga en caliente.
-- **El parche de `expo-modules-jsi` es temporal.** Existe porque esta
-  máquina tiene Xcode 26.2 y SDK 57 pide 26.4+. Cuando Xcode se
-  actualice: borrar `nativo/patches/`, sacar `patchedDependencies` de
-  `nativo/pnpm-workspace.yaml`, reconstruir.
-- **Los MCP que le dan ojos al agente no están conectados.** Están
-  relevados en la recon (`expo-mcp` del lado RN, XcodeBuildMCP del lado
-  Xcode, y Xcode 26.3+ expone MCP nativo — esta máquina tiene 26.2).
-  Mientras tanto el agente escribe archivos y vos mirás el simulador,
-  que es el modo que ya funciona.
-- **Grabar para verificar, no sólo para publicar.** `pnpm grabar` hace el
-  clip final —barra en 9:41, h264, derecho al vault—. Falta lo otro: una
-  grabación corta durante la iteración, para que el agente vea lo que
-  hizo. Es lo único que `react-native-motion` tiene y nosotros no (ver
-  [Lo que trajimos de leer otro repo](#lo-que-trajimos-de-leer-otro-repo)).
-  Va junto con el punto de arriba: sin ojos, grabar no le sirve a nadie
-  más que a vos.
-- **`expo-haptics` quedó una versión atrás** (57.0.1 contra 57.0.2), y
-  no por accidente: la 57.0.2 salió el 2026-08-26 y el cooldown de 24h
-  la bloqueó. `npx expo install --fix` la sube cuando pase la ventana.
-- **El inspector de selección del lienzo, cuando haya con qué.** Hoy la
-  única acción de un frame elegido (`Add to Exhibition`) vive en la sidebar,
-  debajo del índice. El día que se acumulen más —duplicar, medidas,
-  orden— ese bloque es el que se muda a un panel derecho estilo Figma,
-  decidido con `/prototype`. Abrir la superficie ahora sería chrome para
-  una sola palabra.
-- **La barra sigue siendo tres mecanismos para cuatro pantallas** — el portal
-  anónimo de `.acciones`, la fila del detalle y la sidebar del lienzo. Falta
-  decidir si pasa a ser un componente con zonas (`leading` / `trailing`).
-- **No hay undo adentro de la app, y ése es el hueco más concreto que queda.**
-  Desde el 2026-08-25 `Move to Trash` no pregunta, siguiendo
+- **The `--space-*` scale does not cover what the page uses.** It goes
+  4·8·12·16·20·24·32·40·48·64, but 56, 60 and 80 are in use and not in
+  it; today they live as semantic tokens (`--gap-masthead`, `--index-top`).
+  Nobody has decided yet whether the scale grows at the top or those
+  values stay semantic. `--space-2`, `--space-6` and `--space-10` are
+  spare too and they break the rule of multiples of 4; the first two are unused
+- Radii, elevation, z-index: they get defined from the first piece built
+- **`Swipeable tabs` is published with no video.** The final clip is
+  being made in another session; when it exists it comes in with
+  `pnpm piece:video swipeable-tabs <file>`. Still to decide WHAT goes in
+  the slot: the raw recording (the phone's silhouette, which is what the
+  slot reserves) or the mockup for X (square, with a bezel and a
+  background: in the slot you would see a small phone inside a square)
+- **`pnpm record` writes to the vault by design**, but the first piece
+  was pulled out of the vault on request: the vault is what is external.
+  If that rule generalizes, `record` should write to `.context/mockup/master/`
+  and the mockup read from there (today it is passed with `--clip=`)
+- The first piece to build inside the stage
+- Footer / signature: the name "Vito Compagnucci" is not anywhere yet
+- **`Reminders App`** is the only clip that says WHERE instead of WHAT, and
+  repeats its `Source` (`Apple Reminders App`) word for word. It fits in 15,
+  so it is not urgent; what is missing is knowing which gesture it shows so
+  it can be named.
+- **The playground's canvas did not enter the bar's model.** It has a `←`
+  and a name in its sidebar, which is leading + title wearing other clothes.
+  It stays as a documented exception until it gets decided whether it joins.
+- **The SwiftUI native workshop.** The Expo one already exists (`native/`,
+  see its `AGENTS.md`); the Xcode project is waiting for the first piece
+  that asks for it. A View per piece + `#Preview`, iOS 17 springs, Inject
+  for hot reload.
+- **The `expo-modules-jsi` patch is temporary.** It exists because this
+  machine has Xcode 26.2 and SDK 57 asks for 26.4+. When Xcode updates:
+  delete `native/patches/`, take `patchedDependencies` out of
+  `native/pnpm-workspace.yaml`, rebuild.
+- **The MCPs that give the agent eyes are not connected.** They are
+  surveyed in the recon (`expo-mcp` on the RN side, XcodeBuildMCP on the
+  Xcode side, and Xcode 26.3+ exposes a native MCP; this machine has
+  26.2). Meanwhile the agent writes files and you watch the simulator,
+  which is the mode that already works.
+- **Record to verify, not only to publish.** `pnpm record` makes the final
+  clip (bar at 9:41, h264, straight to the vault). The other one is
+  missing: a short recording during the iteration, so the agent sees what
+  it did. It is the only thing `react-native-motion` has and we do not (see
+  [What we brought back from reading another repo](#what-we-brought-back-from-reading-another-repo)).
+  It goes together with the point above: with no eyes, recording is of no
+  use to anyone but you.
+- **`expo-haptics` is one version behind** (57.0.1 against 57.0.2), and
+  not by accident: 57.0.2 came out on 2026-08-26 and the 24h cooldown
+  blocked it. `npx expo install --fix` bumps it once the window passes.
+- **The canvas's selection inspector, when there is something to put in
+  it.** Today the only action of a chosen frame (`Add to Exhibition`)
+  lives in the sidebar, below the index. The day more of them pile up
+  (duplicate, measurements, order) that block is the one that moves to a
+  right-hand panel Figma-style, decided with `/prototype`. Opening the
+  surface now would be chrome for one single word.
+- **The bar is still three mechanisms for four screens**: the anonymous
+  portal of `.actions`, the detail's row and the canvas's sidebar. It is
+  still to be decided whether it becomes a component with zones
+  (`leading` / `trailing`).
+- **There is no undo inside the app, and that is the most concrete hole left.**
+  Since 2026-08-25 `Move to Trash` does not ask, following
   [Alerts › Best practices](https://developer.apple.com/design/human-interface-guidelines/alerts#Best-practices):
-  no se alerta por una acción destructiva común y **reversible**. Pero el
-  criterio literal de Apple es *"¿lo pueden deshacer?"*, y hoy se deshace en el
-  **Finder**, no acá. El patrón completo es borrar sin preguntar **y** ofrecer
-  el undo en el acto.
+  you do not alert for a destructive action that is common and
+  **reversible**. But Apple's literal test is *"can they undo it?"*, and today
+  you undo it in the **Finder**, not here. The complete pattern is to delete
+  without asking **and** offer the undo on the spot.
 
-  **El medio decidido es [Sonner](https://sonner.emilkowal.ski/)**, de Emil
-  Kowalski — que además es una de las referencias medidas de este sistema. Es
-  también lo que elige `/pick-ui-library` para toasts en vez de escribirlo a
-  mano, y el repo ya tiene la skill `ask-sonner` para el cableado.
+  **The medium decided on is [Sonner](https://sonner.emilkowal.ski/)**, by Emil
+  Kowalski, who is also one of this system's measured references. It is also
+  what `/pick-ui-library` picks for toasts instead of writing one by hand, and
+  the repo already has the `ask-sonner` skill for the wiring.
 
-  **Lo que abre, dicho antes de abrirlo:** sería la **primera dependencia de
-  UI** del proyecto — hoy no hay ninguna, todo está construido desde
-  referencias medidas. Y traería una superficie que el sistema declara no
-  tener: `playground.module.css` dice "cero rojos en todo el producto" y no hay
-  toast ni barra de estado en ninguna parte. O sea que hay que decidir dos
-  cosas, no una: si entra la librería, y qué lugar ocupa un toast en un
-  chrome que hasta hoy son sólo palabras sobre el canvas.
+  **What it opens up, said before opening it:** it would be the project's
+  **first UI dependency**. Today there is none, everything is built from
+  measured references. And it would bring in a surface the system declares it
+  does not have: `playground.module.css` says "zero reds in the whole product"
+  and there is no toast and no status bar anywhere. So there are two things to
+  decide, not one: whether the library comes in, and what place a toast takes
+  in a chrome that until today is only words over the canvas.
 
-  Pospuesto a propósito. Cuando exista, `aLaPapelera` en `vault.tsx` es su
-  primer cliente y `AvisoPapelera` probablemente se va con él.
+  Postponed on purpose. When it exists, `sendToTrash` in `vault.tsx` is its
+  first client and `TrashNotice` probably goes with it.
 
-- **La flecha de volver ya es el chevron estándar** (resuelto el 2026-08-25).
-  Lo que queda anotado es lo que se descubrió al cambiarla: el `←` que había
-  **no venía de la recon**. El README lo atribuía a benji y josh, y los dos
-  usan palabras (`Index`, `Home`). Era una decisión nuestra sin recibo, con una
-  cita prestada encima. Vale como recordatorio de que una atribución también se
-  verifica.
+- **The back arrow is already the standard chevron** (settled on 2026-08-25).
+  What stays written down is what changing it uncovered: the `←` that was
+  there **did not come from the recon**. The README attributed it to benji
+  and josh, and the two of them use words (`Index`, `Home`). It was a
+  decision of ours with no receipt, and a borrowed citation on top. It is
+  worth keeping as a reminder that an attribution gets verified too.
 
-## El aire de arriba es 80, en todas las pantallas
+## The top air is 80, on every screen
 
-**Una sola distancia, no una por vista.** Es la regla de benji y se volvió a
-medir en vivo para esto, a 1728×900: su `.styles_container__YJPlC` lleva
-`padding: 80px 16px 40px` y es **el mismo contenedor en todas sus páginas** —
-verificado en su home y en `/liveline`, `/drawesome` y `/honkish`. Lo primero
-que hay cae en **top 80** en las cuatro: en la home su `<h1>`, en un detalle su
-link `Index`. No tiene un aire de lista y otro de detalle.
+**One single distance, not one per view.** It is benji's rule and it got
+measured live again for this, at 1728×900: his `.styles_container__YJPlC`
+carries `padding: 80px 16px 40px` and it is **the same container on all of his
+pages**, verified on his home and on `/liveline`, `/drawesome` and `/honkish`.
+The first thing there is falls at **top 80** in all four: on the home his
+`<h1>`, on a detail his `Index` link. He does not have one air for the list
+and another for the detail.
 
-Del lado nuestro tres de cuatro ya lo cumplían:
+On our side three out of four already met it:
 
-| pantalla | primer elemento | top |
+| screen | first element | top |
 |---|---|---:|
 | Interface exhibition | `<h1>` Interface exhibition | 80 |
-| Detalle de una pieza | la flecha | 80 |
-| Vault, la grilla | la solapa `Vault` | 80 |
-| **Vault, un clip abierto** | la flecha | ~~120~~ → **80** |
+| A piece's detail | the arrow | 80 |
+| Vault, the grid | the `Vault` tab | 80 |
+| **Vault, a clip open** | the arrow | ~~120~~ → **80** |
 
-El detalle del clip llevaba `margin-top: 40` para separarse de la barra de
-solapas — pero **en el detalle la barra no se renderiza** (`sinSolapas`, en
-`privado.tsx`), así que separaba de nada. Se retiró.
+The clip's detail carried a `margin-top: 40` to separate itself from the tab
+bar, but **in the detail the bar is not rendered** (`noTabs`, in
+`private.tsx`), so it was separating from nothing. It was withdrawn.
 
-**El clip no cambió de tamaño**, y eso fue deliberado. Al liberar los 40 de
-arriba el clip se los quedaba: medido, 536×536 → 576×576. Se devolvieron abajo
-—`.escenario` pasó de `padding-bottom: 56` a `96`— porque ese valor **no es un
-margen inferior sino el control del tamaño del clip**: su trabajo es sostener
-el tamaño que se eligió mirando. El aire total de la página no se movió un
-píxel; sólo cambió de punta.
+**The clip did not change size**, and that was deliberate. Freeing the 40 at
+the top left the clip keeping them: measured, 536×536 → 576×576. They were
+given back at the bottom (`.stage` went from `padding-bottom: 56` to `96`)
+because that value **is not a bottom margin but the control of the clip's
+size**: its job is to hold the size that was chosen by looking. The page's
+total air did not move a pixel; it only changed ends.
 
-## La cabecera del detalle
+## The detail's header
 
 `← · Photo picker ⌄ ·········· ↗ · ▮▯`
 
-**El título ES el menú del documento.** Tocar el nombre —o su chevron, que son
-un solo botón— abre `Rename` y `Move to Trash`. Es el *document menu* que
-describe [Toolbars › Item groupings](https://developer.apple.com/design/human-interface-guidelines/toolbars#Item-groupings)
-para el borde inicial: comandos que afectan al documento entero. Nuestras
-acciones caen todas ahí; ninguna es un sobrante de la barra, que es para lo
-que existe el menú *More* del otro borde.
+**The title IS the document menu.** Tapping the name (or its chevron, which
+are one single button) opens `Rename` and `Move to Trash`. It is the *document
+menu* that [Toolbars › Item groupings](https://developer.apple.com/design/human-interface-guidelines/toolbars#Item-groupings)
+describes for the leading edge: commands that affect the whole document. Our
+actions all fall there; not one of them is a leftover from the bar, which is
+what the *More* menu on the other edge exists for.
 
-**Se retiró el renombre en el lugar.** El título se editaba al tocarlo y era
-menos ceremonia que un diálogo. Lo que lo tira abajo no es la ceremonia: es
-que ese clic no alcanzaba para todo lo que había que poder hacer, así que
-renombrar, la papelera y el playground vivían sólo en el clic derecho —o sea,
-invisibles—. Un título que se edita al tocarlo se queda con el gesto.
+**Renaming in place was withdrawn.** The title got edited when you tapped it
+and it was less ceremony than a dialog. What brings it down is not the
+ceremony: it is that that click was not enough for everything you had to be
+able to do, so renaming, the trash and the playground lived only in the right
+click, which is to say invisible. A title that gets edited when you tap it
+keeps the gesture for itself.
 
-**Sólo una acción sube a ícono: el playground.** Es la única que no es sobre
-la identidad ni la existencia del archivo, y la única sin consecuencia —
-mandarla mil veces no rompe nada. Un ícono permanente es para lo que se
-aprieta sin pensar. Por eso **no está en el menú**: repetirla a diez píxeles
-sería ofrecer dos veces lo mismo. En la grilla sí está en el clic derecho,
-porque ahí no hay barra.
+**Only one action rises to an icon: the playground.** It is the only one that
+is not about the file's identity or its existence, and the only one with no
+consequence, since sending it a thousand times breaks nothing. A permanent
+icon is for what you press without thinking. That is why it is **not in the
+menu**: repeating it ten pixels away would be offering the same thing twice.
+In the grid it is in the right click, because there is no bar there.
 
-**El toggle del inspector va último, contra el riel.** La misma página ancla
-el de sidebar al *far leading edge*; éste es su espejo. Y es el que se aprieta
-repetido, así que es el que no puede moverse de lugar. El hueco entre los dos
-íconos es **8** — el de controles del sistema (esta fila, el `--rep-gap` del
-reproductor, el `--index-item-gap`). Hubo una versión con 16 y estaba mal
-leída: 16 es el hueco entre **palabras** del chrome, no entre controles.
+**The inspector's toggle goes last, against the rail.** The same page anchors
+the sidebar one to the *far leading edge*; this one is its mirror. And it is
+the one you press over and over, so it is the one that cannot move from its
+place. The gap between the two icons is **8**, the one for system controls
+(this row, the player's `--player-gap`, the `--index-item-gap`). There was a
+version with 16 and it was misread: 16 is the gap between **words** of the
+chrome, not between controls.
 
-**El nombre nunca se recorta.** Acá el título ES el nombre del archivo en tu
-disco, y un nombre a medias no sirve para lo único que se hace con él. Si no
-entra, empuja — y ahí la convención de los 15 caracteres deja de ser una nota
-y se ve.
+**The name never gets truncated.** Here the title IS the name of the file on
+your disk, and a half name is no use for the only thing you do with it. If it
+does not fit, it pushes, and there the convention of 15 characters stops being
+a note and becomes visible.
 
-Se descartaron: **`Expuesto`** (cada acción un glifo — el de playground no se
-lee sin tooltip y la papelera queda a un clic permanente), **`Panel`** (las
-acciones dentro del inspector, que arranca cerrado), **`Borde`** (el menú
-`···` en el borde final; se implementó y se revirtió: su menú cae encima del
-inspector cuando está abierto), **`Popover`** (el título abre una superficie
-con el campo del nombre adentro) y **`Limpio`** (el detalle no puede borrar).
+These were dropped: **Exposed** (each action a glyph; the playground one
+cannot be read without a tooltip and the trash sits a permanent click away),
+**Panel** (the actions inside the inspector, which starts closed), **Edge**
+(the `···` menu on the trailing edge; it was implemented and reverted: its
+menu falls on top of the inspector when it is open), **Popover** (the title
+opens a surface with the name field inside) and **Clean** (the detail cannot
+delete).
 
-### Auditoría contra la HIG
+### Audit against the HIG
 
-**Sin íconos en los ítems, y no es una omisión.**
+**No icons on the items, and it is not an omission.**
 [Menus › Icons](https://developer.apple.com/design/human-interface-guidelines/menus#Icons)
-pide usarlos con moderación y cierra la puerta al caso mixto: los ítems de un
-mismo grupo llevan ícono **todos o ninguno**. Hoy ninguno. Ponerle uno sólo a
-`Move to Trash` —que es lo que hace la bitácora de Carousels, con `#e5352b`—
-obligaría a dárselo también a `Rename…`, al menú de la grilla y al del
-playground. Es una decisión de lenguaje entera, no un detalle de una fila.
+asks to use them sparingly and closes the door on the mixed case: the items of
+one group carry an icon **all of them or none**. Today none. Giving one only
+to `Move to Trash` (which is what the Carousels log does, with `#e5352b`)
+would force giving one to `Rename…` too, and to the grid's menu and the
+playground's. It is a whole decision about language, not a detail of one row.
 
-**Mayúsculas de título** en todas las etiquetas: `Open in Playground`,
-`Rename View`, `Delete View`. Lo pide la misma sección.
+**Title case** in every label: `Open in Playground`, `Rename View`,
+`Delete View`. The same section asks for it.
 
-**Borrar no pregunta.**
+**Deleting does not ask.**
 [Alerts › Best practices](https://developer.apple.com/design/human-interface-guidelines/alerts#Best-practices)
-dice evitar el alert para acciones destructivas **comunes y reversibles**, y su
-ejemplo es borrar un archivo. Se retiró `DialogoPapelera` entero. Verificado
-end-to-end con un archivo de prueba: el clip sale del vault y aparece en la
-papelera de macOS, o sea que la premisa se cumple de verdad y no por
-suposición. Lo que queda es `AvisoPapelera`, que **no** es el mismo diálogo con
-otro texto: tiene un solo botón, no hay nada que decidir, y existe porque la
-misma página dice que un alert sí sirve para contar un problema — sin él, un
-fallo del servidor sería silencioso.
+says to avoid the alert for destructive actions that are **common and
+reversible**, and its example is deleting a file. The whole trash dialog was
+withdrawn. Verified end to end with a test file: the clip leaves the vault and
+turns up in the macOS trash, which means the premise really holds and not by
+assumption. What is left is `TrashNotice`, which is **not** the same dialog
+with other words: it has one single button, there is nothing to decide, and it
+exists because the same page says an alert is good for telling you about a
+problem. Without it, a server failure would be silent.
 
-**La advertencia no desapareció, cambió de momento:** antes llegaba después
-del clic; ahora llega antes, con el ítem en rojo.
+**The warning did not disappear, it changed moment:** before it arrived after
+the click; now it arrives before, with the item in red.
 
-**La flecha de volver es un chevron**, el símbolo estándar que pide
-[Toolbars › Navigation](https://developer.apple.com/design/human-interface-guidelines/toolbars#Navigation).
-Era `←`, y el README llegó a atribuirlo a la recon de benji y josh — pero los
-dos usan **palabras** (`Index`, `Home`), así que ninguno lo respaldaba. Era
-nuestro y sin recibo. Va dibujado y no escrito, por lo mismo que el `+` de la
-grilla: un glifo se apoya en la línea de base y nunca queda centrado.
+**The back arrow is a chevron**, the standard symbol
+[Toolbars › Navigation](https://developer.apple.com/design/human-interface-guidelines/toolbars#Navigation)
+asks for. It was `←`, and the README went as far as attributing it to the
+recon of benji and josh, but the two use **words** (`Index`, `Home`), so
+neither of them backed it. It was ours and with no receipt. It goes drawn and
+not written, for the same reason as the `+` of the grid: a glyph sits on the
+baseline and never ends up centered.
 
-**Lo único que se aparta a propósito:** `Rename` no lleva elipsis. *Menus ›
-Labels* la pide cuando la acción necesita más información antes de completarse,
-y ésta abre un diálogo que pide el nombre. Retirada por decisión del dueño
-(2026-08-25): el menú tiene dos ítems y los dos son evidentes, así que el signo
-agrega ruido sin resolver ninguna duda.
+**The only thing that departs on purpose:** `Rename` carries no ellipsis.
+*Menus › Labels* asks for it when the action needs more information before it
+completes, and this one opens a dialog that asks for the name. Withdrawn by
+the owner's decision (2026-08-25): the menu has two items and both are
+obvious, so the sign adds noise without settling any doubt.
 
-**Lo que nos falta para el patrón completo:** el criterio de Apple es *"¿lo
-pueden deshacer?"*, y acá se deshace en el **Finder**, no en la app. La versión
-completa sería borrar sin preguntar **y** ofrecer un undo adentro — que hoy no
-tiene dónde vivir, porque este sistema no tiene toast ni barra de estado.
-Cuando exista esa superficie, éste es su primer cliente.
+**What we are missing for the complete pattern:** Apple's test is *"can they
+undo it?"*, and here you undo it in the **Finder**, not in the app. The
+complete version would be to delete without asking **and** offer an undo
+inside, which today has nowhere to live, because this system has no toast and
+no status bar. When that surface exists, this is its first client.
 
-**Un detalle que sí coincide con el ejemplo textual de Apple:** el rojo va en
-el **ítem del menú** y no en el botón del diálogo. Alerts dice que cuando la
-persona ya eligió deliberadamente la acción destructiva —su ejemplo es
-`Empty Trash`— el botón que la confirma **no** lleva el estilo destructivo.
-El nuestro va en `--ink`.
+**One detail that does match Apple's literal example:** the red goes on the
+**menu item** and not on the dialog's button. Alerts says that when the person
+already chose the destructive action deliberately (their example is
+`Empty Trash`) the button that confirms it does **not** carry the destructive
+style. Ours goes in `--ink`.
 
-## El rojo destructivo
+## The destructive red
 
-`Move to Trash` se pinta en `--destructivo`, con una hairline delante.
-**Acá había escrita la decisión contraria** en `acciones.module.css` — *"no hay
-ni un color de estado, y meter el primero sería inventar un nivel entero"*. La
-premisa era falsa: el nivel estaba decidido desde antes que este repo, en la
-bitácora de Carousels (`docs/design-research/design-decisions.md`, línea 374),
-y su caso es literalmente éste. La familia es Apple `#ff3b30`, elegida ahí
-contra el `#ff0052` de benji.
+`Move to Trash` gets painted in `--destructive`, with a hairline in front.
+**The opposite decision was written here** in `actions.module.css`: *"there is
+not one state color, and putting in the first would be inventing a whole
+level"*. The premise was false: the level had been decided before this repo,
+in the Carousels log (`docs/design-research/design-decisions.md`, line 374),
+and its case is literally this one. The family is Apple `#ff3b30`, chosen
+there against benji's `#ff0052`.
 
-Medido sobre **nuestros** fondos, que es lo que había que comprobar:
+Measured over **our** backgrounds, which is what had to be checked:
 
-| | valor | sobre `--canvas` | WCAG |
+| | value | over `--canvas` | WCAG |
 |---|---|---:|---:|
-| claro | `#c81e14` | Lc 75.5 | 5.65 |
-| oscuro | `#ff6b60` | Lc −48.8 | 7.14 |
+| light | `#c81e14` | Lc 75.5 | 5.65 |
+| dark | `#ff6b60` | Lc −48.8 | 7.14 |
 
-El claro transfiere clavado y no por suerte: el canvas de Carousels es este
-mismo `#fdfdfc`, los dos salieron de agentation. Y 75.5 cae justo en el umbral
-**preferido** de APCA para texto que no es cuerpo.
+The light one transfers dead on and not by luck: Carousels' canvas is this
+same `#fdfdfc`, both of them came out of agentation. And 75.5 falls right on
+APCA's **preferred** threshold for text that is not body.
 
-**Dónde se dobla la regla.** El modo oscuro de este sistema exige que el texto
-conserve su contraste, y éste no lo hace. Se calculó qué haría falta:
-manteniendo tono y croma, el rojo que da Lc −75.5 sobre `#090908` es `#ffbcb1`
-— croma 0.204 → 0.080, un rosa pálido. Ahí el token deja de hacer su único
-trabajo. **La palabra ya se lee**, en ink, a Lc 104; el rojo no carga la
-lectura, carga el aviso. Es el primer token de texto que no cumple la regla y
-va dicho, no escondido.
+**Where the rule bends.** This system's dark mode demands that text keep its
+contrast, and this one does not. What it would take was calculated: keeping
+hue and chroma, the red that gives Lc −75.5 over `#090908` is `#ffbcb1`,
+chroma 0.204 → 0.080, a pale pink. There the token stops doing its one job.
+**The word already reads**, in ink, at Lc 104; the red does not carry the
+reading, it carries the warning. It is the first text token that does not meet
+the rule and it goes said, not hidden.
 
-## Los bocetos — escribir un componente desde cero en el lienzo
+## Sketches: writing a component from scratch on the canvas
 
-El playground tenía las referencias y no tenía dónde construir: sus frames
-sólo podían apuntar a un clip del vault. Desde el 2026-08-26 hay un tercer
-tipo de frame, `boceto`, y es **un archivo de verdad** en
-`src/privado/bocetos/` que exporta un componente por defecto.
+The playground had the references and had nowhere to build: its frames could
+only point at a clip in the vault. Since 2026-08-26 there is a third kind of
+frame, `sketch`, and it is **a real file** in `src/private/sketches/` that
+exports a default component.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| Qué es un boceto | Un `.tsx` en `src/privado/bocetos/`, resuelto con `import.meta.glob`. `New sketch` crea el archivo y lo pone en la tela | el frame ya guardaba una **referencia** y no una copia para los clips; un boceto usa exactamente el mismo trato, con el `ref` apuntando al nombre del archivo |
-| **No hay editor en el navegador** | escribís en tu editor y Vite recarga el frame | Monaco o CodeMirror más un transformador en el cliente sería una dependencia grande para darte un editor **peor** que el que ya tenés abierto al lado. Y sobre todo: **un agente escribe archivos, no tipea en un textarea**. Si el boceto es un archivo, las dos formas de trabajar —vos en el editor, un agente en la terminal— son la MISMA y ninguna necesita interfaz |
-| ↳ verificado en vivo | editar el archivo cambia el frame **sin recargar la página** | medido: `performance.getEntriesByType('navigation')[0].type` sigue en `navigate` después de tres ediciones, y el contenido del frame cambió las tres veces |
-| **Un boceto roto no tira el tablero** | cada uno adentro de un límite de error; se apaga sólo su frame, con el nombre y la palabra `Error` | escribir libremente significa que la mitad del tiempo el archivo está a medias. Sin esto un `null.map()` desmonta el lienzo entero y perdés los otros frames, la selección y el gesto a medio hacer. **Verificado**: con el boceto roto el tablero siguió montado y el frame dijo `Error` |
-| ↳ y se recupera solo | el límite se limpia en el siguiente hot update, que es cuando arreglaste el archivo | si no, el frame quedaría en rojo para siempre y habría que recargar — o sea perder justo lo que este componente vino a salvar. Se limpia **sólo si hay error**: pisar el estado en cada guardado remontaría todos los bocetos del tablero cada vez que tocás cualquier archivo |
-| **El puntero se reparte por selección** | sin elegir el frame se arrastra; elegido, el boceto recibe los clics | hay que poder apretarle los botones a lo que estás construyendo, pero el gesto del frame hace `preventDefault` y toma el puntero: si empezara ahí, el clic nunca llegaría adentro. Es lo que hacen los editores de tablero. **Verificado**: elegido, tres clics dieron tres incrementos; deseleccionado, `pointer-events` computa `none` |
-| ↳ el precio, dicho | un boceto elegido no se mueve arrastrándolo del medio: Escape y vuelve a ser un frame | queda anotado como candidato a mirarse con `/prototype` si molesta |
-| El diálogo pasó a llamarse `Add` | y `New sketch` es la primera opción de la grilla, con la misma caja que las demás | era `Add clip`, y desde que también se agregan bocetos nombraba una de las dos cosas que hay adentro. La opción nueva es una card más y no un botón aparte, así que no hay una segunda geometría que decidir |
-| ↳ no pregunta el nombre | nace `sketch`, `sketch-2`… y se renombra renombrando el archivo | es la regla que ya usa `New view`: un modal antes de ver nada te obliga a bautizar algo que todavía no existe |
-| El endpoint escribe **adentro del repo** | `POST /vault-media/__boceto`, única excepción del puente | un boceto es código: tiene que estar donde Vite lo compile y donde tu editor y un agente lo puedan abrir. La carpeta es fija y sale de `import.meta.url`, y del nombre sólo sobreviven letras, números y guiones — con ese alfabeto no hay `..` que construir. **Verificado**: `?nombre=../../etc/passwd` escribió `etc-passwd.tsx` adentro de la carpeta, y nada afuera |
-| ↳ no pisa nada | se escribe con `wx`, y si existe devuelve 409 | el chequeo y la escritura son la misma operación, así que no hay ventana entre "no está" y "lo escribo". **Verificado**: el segundo POST con el mismo nombre da 409 |
-| **Y sigue sin llegar a producción** | `dist/` no menciona `boceto` ni una vez | el borde es la carpeta: todo esto cuelga de `src/privado/` y hereda la puerta. Verificado después de `pnpm build` |
+| What a sketch is | A `.tsx` in `src/private/sketches/`, resolved with `import.meta.glob`. `New sketch` creates the file and puts it on the canvas | the frame was already keeping a **reference** and not a copy for the clips; a sketch uses exactly the same deal, with the `ref` pointing at the file's name |
+| **There is no editor in the browser** | you write in your editor and Vite reloads the frame | Monaco or CodeMirror plus a transformer on the client would be a big dependency to give you an editor **worse** than the one you already have open next to it. And above all: **an agent writes files, it does not type into a textarea**. If the sketch is a file, the two ways of working (you in the editor, an agent in the terminal) are the SAME one and neither needs an interface |
+| ↳ verified live | editing the file changes the frame **without reloading the page** | measured: `performance.getEntriesByType('navigation')[0].type` is still `navigate` after three edits, and the frame's content changed all three times |
+| **A broken sketch does not take the board down** | each one inside an error boundary; only its own frame goes dark, with the name and the word `Error` | writing freely means that half the time the file is half done. Without this a `null.map()` unmounts the whole canvas and you lose the other frames, the selection and the gesture you were half through. **Verified**: with the sketch broken the board stayed mounted and the frame said `Error` |
+| ↳ and it recovers on its own | the boundary clears on the next hot update, which is when you fixed the file | otherwise the frame would stay red forever and you would have to reload, which is to say lose exactly what this component came to save. It clears **only if there is an error**: overwriting the state on every save would remount every sketch on the board every time you touch any file |
+| **The pointer gets split by selection** | without choosing the frame it drags; chosen, the sketch receives the clicks | you have to be able to press the buttons of what you are building, but the frame's gesture calls `preventDefault` and takes the pointer: if it started there, the click would never reach inside. It is what board editors do. **Verified**: chosen, three clicks gave three increments; deselected, `pointer-events` computes to `none` |
+| ↳ the price, said out loud | a chosen sketch does not move by dragging it from the middle: Escape and it goes back to being a frame | it stays written down as a candidate to look at with `/prototype` if it gets annoying |
+| The dialog is now called `Add` | and `New sketch` is the first option in the grid, with the same box as the rest | it was `Add clip`, and since sketches get added too it was naming one of the two things inside. The new option is one more card and not a separate button, so there is no second geometry to decide |
+| ↳ it does not ask for the name | it is born `sketch`, `sketch-2`… and it gets renamed by renaming the file | it is the rule `New view` already uses: a modal before you see anything forces you to christen something that does not exist yet |
+| The endpoint writes **inside the repo** | `POST /vault-media/__sketch`, the bridge's only exception | a sketch is code: it has to be where Vite compiles it and where your editor and an agent can open it. The folder is fixed and comes out of `import.meta.url`, and of the name only letters, numbers and hyphens survive. With that alphabet there is no `..` to build. **Verified**: `?name=../../etc/passwd` wrote `etc-passwd.tsx` inside the folder, and nothing outside |
+| ↳ it overwrites nothing | it writes with `wx`, and if it exists it returns 409 | the check and the write are the same operation, so there is no window between "it is not there" and "I write it". **Verified**: the second POST with the same name gives 409 |
+| **And it still does not reach production** | `dist/` does not mention `sketch` even once | the edge is the folder: all of this hangs off `src/private/` and inherits the gate. Verified after `pnpm build` |
 
-**El playground es sólo web, y es una decisión.** Una pieza de App no se
-construye acá: se escribe con el agente al lado mientras la mirás correr
-en el **simulador de iOS**, y entra a la exposición como **grabación de
-pantalla** — que es lo que `platform` ya decía sobre cómo se demuestra,
-ahora también sobre dónde se construye. Se evaluó meter el teléfono
-adentro del lienzo y se descartó: `react-native-web` dibujaría la forma y
-mentiría justo en lo que este vault estudia, que es el gesto y el háptico
-—el mismo argumento por el que Expo pasó a video—, y un simulador
-streameado (`simctl io booted screenshot` más `idb ui tap`) da la imagen
-pero no el *feel*, que es lo único que no se puede juzgar de otra manera.
+**The playground is web only, and it is a decision.** An App piece does not
+get built here: you write it with the agent next to you while you watch it
+run on the **iOS simulator**, and it enters the exhibition as a **screen
+recording**, which is what `platform` already said about how a piece gets
+demonstrated, now also about where it gets built. Putting the phone inside
+the canvas was considered and dropped: `react-native-web` would draw the
+shape and would lie about exactly what this vault studies, the gesture and
+the haptics (the same argument that moved Expo to video), and a streamed
+simulator (`simctl io booted screenshot` plus `idb ui tap`) gives the image
+but not the *feel*, which is the only thing you cannot judge any other way.
 
-## Publicar — del playground a la exhibition
+## Publishing: from the playground to the exhibition
 
-El recorrido cierra desde el 2026-08-26, y cierra **en el tablero**:
-`Add to Exhibition` es el clic derecho sobre un frame del playground. Un
-boceto sale como pieza **Web viva**; una grabación, como pieza **App**
-en video.
+The trip closes as of 2026-08-26, and it closes **on the board**:
+`Add to Exhibition` is the right click on a frame of the playground. A
+sketch comes out as a **live Web** piece; a recording, as an **App**
+piece in video.
 
-**Estuvo un día en el vault y se movió**, y la corrección es de modelo,
-no de lugar: el vault es lo EXTERNO —la pared de referencias que mirás—
-y lo que se publica es lo TUYO, que vive en el playground. El flujo
-entero quedó: vault (externo) → playground (iterás tu pieza, con las
-referencias al lado) → exhibition. Publicar es el final del taller, así que
-el gesto vive donde está el trabajo.
+**It spent a day in the vault and it moved**, and the correction is about
+the model, not about the place: the vault is what is EXTERNAL, the wall of
+references you look at, and what gets published is YOURS, which lives in
+the playground. The whole flow ended up: vault (external) → playground
+(you iterate on your piece, with the references next to it) → exhibition.
+Publishing is the end of the workshop, so the gesture lives where the work is.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| **La acción es visible, no sólo clic derecho** | elegís el frame y `Add to Exhibition` aparece en la sidebar, debajo del índice, a **16** —el aire de grupo, medido— para que no se lea como un renglón más: los renglones son sustantivos y esto es un verbo | la lección ya aprendida en el vault: *un menú contextual no anuncia nada*. El patrón de referencia es el panel derecho de Figma —las acciones de lo elegido— pero UNA acción no paga una superficie nueva: la zona nace adentro de la sidebar que ya existe. El clic derecho queda como atajo |
-| **La plataforma la dice el frame**, sin selector | un frame `boceto` publica Web; un frame `clip` publica App | es la regla que ya existía —*App se demuestra en video, Web va viva*— leída al revés. Un selector ofrecería combinaciones que el sistema ya declaró inválidas |
-| El formulario es el molde de la pieza | dos campos: nombre y una línea de descripción — exactamente los dos renglones del detalle público. El nombre llega puesto; la descripción arranca vacía porque es el único dato que el archivo no sabe de sí mismo | la carpeta-es-el-manifiesto del vault, aplicada al publicar: no se pide nada que ya se sepa |
-| **Cómo vive una pieza Web** | su carpeta en `src/components/pieces/<slug>/` (desde el 2026-09-10; antes un archivo, `src/piezas/<slug>.tsx`), resuelta **por slug** en `demos.tsx` — glob perezoso, cache por ref, mismo trío que los bocetos | el slug es el mapa, así que no hay registro que mantener a mano — la decisión de la carpeta-manifiesto, ahora del lado público. En el build cada pieza sale como su propio chunk (**verificado**: `press-counter-….js`, 0.44 kB) |
-| ↳ publicar es COPIA, no mudanza | el boceto queda en el tablero; la pieza se edita en su archivo publicado | mover el archivo rompería los frames que lo referencian. El costo —dos archivos que pueden divergir— queda dicho: desde la publicación, el canónico es `src/piezas/` |
-| ↳ y cruza la frontera de verdad | de `src/privado/bocetos/` a `src/components/pieces/` | `src/privado/` no llega al build, así que una pieza publicada necesita su archivo del lado público. Por lo mismo, una pieza no puede importar nada de `src/privado/` — era cierto para el boceto (nace autocontenido) y tiene que seguir siéndolo |
-| Las dos escrituras o ninguna | el archivo del demo se copia y la entrada entra a `pieces.ts`; si la segunda falla, la primera se deshace | el vault y `src/privado/` viven fuera del deploy; sin el copiado la pieza apuntaría a algo que producción no tiene |
-| No se pisa nada nunca | nombre o archivo repetidos → **409**, no un reemplazo | la misma regla que subir un clip y crear un boceto: `COPYFILE_EXCL`, chequeo y copia en una sola operación. **Verificado**: mismo slug con otro nombre devuelve 409 |
-| La confirmación es la página | al publicar navegás a `/​<slug>` y ves el demo andando | este sistema no tiene toast (el undo de Sonner sigue pospuesto); la exhibition real es mejor confirmación que cualquier cartel. Navegación dura a propósito: `pieces.ts` acaba de cambiar en disco y recargar garantiza que todos los módulos la vean |
-| El demo Web corre vivo en las DOS vistas | lista y detalle, el mismo componente, centrado en la caja con el piso heredado (`min-height: inherit`) | la decisión ya estaba tomada: *"con preview vivo en la lista, el detalle no aporta la pieza — aporta lo que la rodea"*. **Verificado**: el botón de prueba contó 3 clics en `/press-counter` |
-| La grabación toma el hueco del teléfono | el `::before` que reservaba la silueta se apaga (`:has`) y el video usa el mismo ancho por el mismo token — 228 en la lista, 319 en el detalle | el hueco existía para esto: era la reserva de un contenido que ahora llegó. **Verificado**: 228 y 319 medidos |
-| ↳ autoreproduce, muda, en loop | `autoplay muted loop playsinline` | el movimiento ES el contenido, y es lo que hacen los demos de benji en family-values — 45 videos girando a la vez. La regla contraria del playground (arranca quieto) es de un tablero de estudio; una exposición existe para mostrarse sola |
-| **El slug quedó UNO** | vive en `pieces.ts` y lo comparten la página, `rutas.mjs` y el puente | vivían dos cuentas que coincidían de casualidad —espacios→guión en `parts.tsx`, todo-lo-no-alfanumérico→guión en `rutas.mjs`— y con el primer nombre con signo divergían. Publicar nombra el archivo del demo con el slug, así que una tercera copia era inaceptable |
-| ↳ y `rutas.mjs` dejó el regex | importa `PIECES` y `slug` de `pieces.ts` de verdad | Node ≥24 —que `engines` ya exigía— corre TypeScript sin tipos ejecutables. El guard de "vacío a propósito" murió con el regex que protegía: si `pieces.ts` no compila, el build frena ahí — el mismo freno, sin heurística |
-| Verificado de punta a punta, dos veces | **Web**: New sketch → escribir el archivo → clic derecho → `/press-counter` con el botón contando clics. **App**: la rama clip publica, el video reproduce en su hueco, `vercel.json` regenerado | hecho con material de prueba y **revertido**: el inventario sólo lleva piezas construidas de verdad |
+| **The action is visible, not just a right click** | you choose the frame and `Add to Exhibition` shows up in the sidebar, below the index, at **16** (the group air, measured) so it does not read as one more line: the lines are nouns and this is a verb | the lesson already learned in the vault: *a context menu announces nothing*. The reference pattern is Figma's right-hand panel, the actions of what is chosen, but ONE action does not pay for a new surface: the zone is born inside the sidebar that already exists. The right click stays as a shortcut |
+| **The frame says the platform**, with no selector | a `sketch` frame publishes Web; a `clip` frame publishes App | it is the rule that already existed (*App gets demonstrated in video, Web goes live*) read backwards. A selector would offer combinations the system already declared invalid |
+| The form is the mold of the piece | two fields: name and one line of description, exactly the two lines of the public detail. The name arrives filled in; the description starts empty because it is the one thing the file does not know about itself | the vault's folder-is-the-manifest, applied to publishing: nothing gets asked for that is already known |
+| **How a Web piece lives** | its folder at `src/components/pieces/<slug>/` (since 2026-09-10; before that one file, `src/piezas/<slug>.tsx`), resolved **by slug** in `demos.tsx`, a lazy glob, a cache by ref, the same trio as the sketches | the slug is the map, so there is no registry to maintain by hand, the folder-manifest decision now on the public side. In the build each piece comes out as its own chunk (**verified**: `press-counter-….js`, 0.44 kB) |
+| ↳ publishing is a COPY, not a move | the sketch stays on the board; the piece gets edited in its published file | moving the file would break the frames that reference it. The cost, two files that can diverge, gets said: from the moment you publish, the canonical one is `src/piezas/` |
+| ↳ and it really crosses the boundary | from `src/private/sketches/` to `src/components/pieces/` | `src/private/` does not reach the build, so a published piece needs its file on the public side. For the same reason, a piece cannot import anything from `src/private/`. It was true for the sketch (it is born self-contained) and it has to stay true |
+| Both writes or neither | the demo's file gets copied and the entry goes into `pieces.ts`; if the second one fails, the first is undone | the vault and `src/private/` live outside the deploy; without the copy the piece would point at something production does not have |
+| Nothing ever gets overwritten | a repeated name or file → **409**, not a replacement | the same rule as uploading a clip and creating a sketch: `COPYFILE_EXCL`, check and copy in one single operation. **Verified**: the same slug with a different name returns 409 |
+| The confirmation is the page | when you publish you navigate to `/<slug>` and you see the demo running | this system has no toast (Sonner's undo is still postponed); the real exhibition is a better confirmation than any sign. A hard navigation on purpose: `pieces.ts` has just changed on disk and reloading guarantees that every module sees it |
+| The Web demo runs live in BOTH views | list and detail, the same component, centered in the box with the inherited floor (`min-height: inherit`) | the decision was already taken: *"with a live preview in the list, the detail does not contribute the piece, it contributes what surrounds it"*. **Verified**: the test button counted 3 clicks on `/press-counter` |
+| The recording takes the phone slot | the `::before` that reserved the silhouette goes off (`:has`) and the video uses the same width through the same token, 228 in the list, 319 in the detail | the slot existed for this: it was the reservation for a content that has now arrived. **Verified**: 228 and 319 measured |
+| ↳ autoplays, muted, on loop | `autoplay muted loop playsinline` | the movement IS the content, and it is what benji's demos do in family-values, 45 videos turning at once. The playground's opposite rule (it starts still) belongs to a study board; an exhibition exists to show itself on its own |
+| **The slug ended up being ONE** | it lives in `pieces.ts` and the page, `routes.mjs` and the bridge share it | there were two accounts that agreed by chance, spaces→hyphen in `parts.tsx` and everything-non-alphanumeric→hyphen in `routes.mjs`, and with the first name carrying a punctuation mark they would diverge. Publishing names the demo's file with the slug, so a third copy was unacceptable |
+| ↳ and `routes.mjs` dropped the regex | it really imports `PIECES` and `slug` from `pieces.ts` | Node ≥24 (which `engines` already required) runs TypeScript with no executable types. The "empty on purpose" guard died with the regex it was protecting: if `pieces.ts` does not compile, the build stops there, the same stop with no heuristic |
+| Verified end to end, twice | **Web**: New sketch → write the file → right click → `/press-counter` with the button counting clicks. **App**: the clip branch publishes, the video plays in its slot, `vercel.json` regenerated | done with test material and **reverted**: the inventory only carries pieces that were really built |
 
-## Cómo se nombra un clip
+## How a clip is named
 
-**Menos de 15 caracteres.** Es el tope de la HIG de Apple en
+**Under 15 characters.** It is the ceiling in Apple's HIG at
 [Toolbars › Titles](https://developer.apple.com/design/human-interface-guidelines/toolbars#Titles),
-y el motivo que ella misma da es funcional: que quede lugar para los demás
-controles de la barra. Desde que la cabecera del detalle es UNA fila
-—flecha · título · inspector— ese lugar es literal.
+and the reason it gives itself is functional: so there is room left for the
+bar's other controls. Since the detail's header is ONE row (arrow · title ·
+inspector) that room is literal.
 
-**El título dice QUÉ es el gesto. `Source` dice DE DÓNDE salió.** Los dos
-campos existen y hacen cosas distintas, y sacar esa repetición es lo que
-hace que 15 caracteres alcancen: no hay que comprimir nada, hay que dejar
-de decir dos veces lo mismo.
+**The title says WHAT the gesture is. `Source` says WHERE it came from.** The
+two fields exist and they do different things, and taking that repetition out
+is what makes 15 characters enough: you do not have to compress anything, you
+have to stop saying the same thing twice.
 
-El modelo ya existía en el vault: **`Swipe to pay`** son 12 caracteres, no
-nombra la app, y dice exactamente qué vas a ver. Contra ése se escribieron
-los demás.
+The model already existed in the vault: **`Swipe to pay`** is 12 characters,
+it does not name the app, and it says exactly what you are going to see. The
+rest were written against that one.
 
-**Aplicado el 2026-08-24.** Cinco de siete clips se pasaban; en tres de
-ellos lo único que sobraba era el nombre de la app, que su propio `Source`
-ya decía:
+**Applied on 2026-08-24.** Five of seven clips went over; in three of them the
+only thing to spare was the name of the app, which their own `Source` already
+said:
 
-| antes | | después | |
+| before | | after | |
 |---|---:|---|---:|
 | Bottom accessory like Apple Music mini player | 45 | Mini player | 11 |
 | Copy text animation from Apple Passwords | 40 | Copy text | 9 |
@@ -545,2439 +552,2476 @@ ya decía:
 | ~~ChatGPT~~ photo selector | 22 | Photo picker | 12 |
 | ~~X App's~~ Swipeable Tabs | 22 | Swipeable tabs | 14 |
 
-Mediana 22 → **12**. Las fichas viajan con el archivo en el mismo paso que
-lo renombra, así que ninguna quedó huérfana.
+Median 22 → **12**. The details travel with the file in the same step that
+renames it, so not one of them was left orphaned.
 
-No está forzado por código a propósito: el nombre es el nombre del archivo
-en tu disco, y una app que te impide llamar a tus archivos como querés
-tiene la dependencia al revés.
+It is not enforced by code, on purpose: the name is the name of the file on
+your disk, and an app that stops you from calling your files what you want
+has the dependency backwards.
 
-## Hold to commit — el botón de Opal, pieza App
+## Hold to commit: Opal's button, an App piece
 
-**El 2026-09-02** entró al taller nativo la primera pieza construida
-contra un clip del vault: `nativo/src/components/pieces/hold-to-commit/` (la pantalla y el
-mecanismo; la ruta es una para todas desde el 2026-09-10). La referencia es
-`VAULT_DIR/nativo/Hold to commit.mp4` —el botón de **Opal** (Screen Time
-Control, Apple Design Award 2025), publicado por @60fpsdesign en X y
-catalogado en [60fps.design](https://60fps.design/shots/opal-hold-to-commit-button-interaction)
-como "Opal Hold to Commit Button Interaction"; 60 fps, recorte de un
-2160×2160— y se midió entera cuadro a cuadro leyendo píxeles crudos
-(ffmpeg → rgb24 → Python), con la escala fijada por la pantalla del
-teléfono del clip: 1192 px = 440 pt (iPhone 17 Pro Max) → 2.709 px/pt.
-Cada valor lleva su recibo arriba de `components/pieces/hold-to-commit/medidas.ts`;
-las planillas y los scripts están en `.context/hold-to-commit/`, que no
-viaja. Lo que el clip no muestra —la cabeza de la pantalla, la háptica,
-el reinicio— está marcado SUPUESTO.
+**On 2026-09-02** the first piece built against a vault clip landed in
+the native workshop: `native/src/components/pieces/hold-to-commit/` (the
+screen and the mechanism; since 2026-09-10 the route is one for all of
+them). The reference is `VAULT_DIR/nativo/Hold to commit.mp4`, the
+**Opal** button (Screen Time Control, Apple Design Award 2025), posted by
+@60fpsdesign on X and cataloged on
+[60fps.design](https://60fps.design/shots/opal-hold-to-commit-button-interaction)
+as "Opal Hold to Commit Button Interaction"; 60 fps, a crop out of a
+2160×2160. It was measured whole, frame by frame, reading raw pixels
+(ffmpeg → rgb24 → Python), with the scale fixed by the screen of the
+phone in the clip: 1192 px = 440 pt (iPhone 17 Pro Max) → 2.709 px/pt.
+Every value carries its receipt above it in
+`components/pieces/hold-to-commit/measurements.ts`; the spreadsheets and
+the scripts live in `.context/hold-to-commit/`, which does not travel.
+What the clip does not show (the head of the screen, the haptics, the
+reset) is marked ASSUMED.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| **Sin Skia ni módulos nativos nuevos** | Views, Reanimated, Gesture Handler, expo-symbols, expo-haptics, y **cuatro PNG** para el brillo | la pieza tiene que abrirse en el teléfono con Expo Go, donde Skia no está, y la háptica sólo se siente ahí. Un degradé con borde difuso no existe en RN sin módulo nativo: se genera como textura (`media/generar.swift`, con los perfiles medidos) y se traslada, que es lo más barato para el compositor |
-| **Un solo reloj para el gesto y el relleno** | `LongPress.minDuration` y el `withTiming` lineal del progreso leen `HOLD.duracion` = 2000 | RUNTIME: el frente del clip avanza lineal a 7.75 px/cuadro y del press a la ráfaga van 121 cuadros. Regla 3 del AGENTS del taller |
-| El relleno | cuerpo blanco con rim verde pálido + frente en cápsula con caída **erfc σ = 19 pt centrada en el borde geométrico** + punta izquierda 6 pt adentro con σ 20 | RUNTIME f151: 10 %→90 % en 51 pt; f122 fila a 10 pt del borde: el 50 % cae 9 pt atrás del de media altura (punta redonda). **Verificado en pantalla**: perfil a ±6 de luminancia en cada 5 % del ancho |
-| ↳ la punta no se puede hacer con un velo neutro | el velo se invierte por canal contra el color objetivo (verde pálido × cobertura + pill) | un oscurecedor gris sobre blanco no baja R sin bajar G; el clip da (150,172,156) a 18 pt. Verificado exacto en pantalla |
-| El pill se achica al apretar | escala **0.953**, 250 ms ease-out cuadrático; vuelve en 250 al soltar y en 120 al completar | RUNTIME: bordes 157→182 y 1194→1169; 16/52/80/96 % a 1/4/8/13 cuadros. Con el bezier fuerte del skill cerraba el doble de rápido (grabación del taller) |
-| El label | tres textos, cada uno con su **presencia** (0..1); cruce `.blurReplace` hecho con **dos copias desenfocadas por texto** (σ 2.5 y σ 1.0, rasterizadas en Swift con la misma SF Pro, teñidas con `tintColor`) más el nítido, repartidas por una escalera que es **partición de la opacidad**; el color viaja con el progreso (blanco → gris verdoso al 55 % → negro al 96.5 %) | `filter: blur` existe en RN 0.86 pero detrás de la bandera nativa `enableSwiftUIBasedFilters`, apagada y sin forma de prenderla desde Expo; Skia no está en el binario. Tiras ampliadas: los dos textos se desenfocan y cruzan centrados, sin escala. **El cruce no es simétrico**: el saliente se va en 4 cuadros (67 ms) y el entrante aparece borroso a los 33, legible a los 67, al 90 % a los 133 y termina de enfocar a los ~380. Los tiempos (`CRUCE`): press 360 ease-out / 48; suelta 600 lineal desde 150 / 250 desde 80; commit 450 lineal desde 210 / 280 desde 40. Verificado con sondas en ms contra el cuadro del clip del mismo instante (`cmp/press-*.png`, `commit-*.png`, `suelta*.png`) |
-| ↳ por qué partición y no capas apiladas | ancho + angosto + nítido = o(q) | con dos copias borrosas prendidas a la vez el texto salía más gordo y más brillante que el nítido; un blur de verdad conserva la masa. Captura `cruce=0.35` contra f63: engordado donde el clip pierde tinta |
-| ↳ "✓ Committed" entra creciendo | escala 0.9 → 1 siguiendo su presencia con ease-out | SUPUESTO, pedido del 2026-09-03 ("más chico desde el fondo y que vaya creciendo"): el `.blurReplace(.downUp)` de SwiftUI. El clip no escala; `COMMIT.escalaEntrada = 1` devuelve lo fiel |
-| ↳ todo es semibold 17 | "Hold to Commit", "Keep Holding...", "Committed" | anchos de tinta contra el mismo SF en macOS: 121.1 / 118.9 / 86.7 pt caen en semibold (medium y bold quedan a 2–4 %). "Committed" *parecía* bold porque "Keep Holding..." está achicado por el press |
-| La ráfaga | 46 puntos pre-montados, un shared value, tabla determinista; nacen sobre la normal de la cápsula (puntas incluidas) a 2.2 pt; viaje 2–17 pt (uniforme^1.5, mediana 7.3) + **expansión desde el centro** (dx = 0.075 × distancia al centro, ±4 de ruido), ease-out 350–550 ms; brillo propio .75–1 con τ = 330 ms y cierre suave desde el 40 % de una vida de 700 ms; 1.5–4 pt (uniforme^1.4) | RUNTIME (`rastro.py`, 58 pistas enlazadas cuadro a cuadro): d0 2.0–2.6 pt; Δdist final p10 1.5–2.3, mediana 7.6–8.7, p90 14–17; **dx final ∝ (x₀ − centro)**: −18.7 en la punta izquierda, +14.3 en la derecha, ~0 en el medio — la nube se abre, no tiembla, y eso es lo "limpio" de la referencia (antes había ±3 al azar). Hay pistas que nacen en x = −0.9 y 383.7: los arcos de las puntas también emiten. La vida corta es SUPUESTO: "que desaparezcan un toque antes" que el Committed (en el clip viven 1.2 s) |
-| Las chispas | 12 imágenes con 3 vidas cada una (36 por hold), función del progreso: nacen 8–100 pt delante del frente (uniforme^2.5, mediana 24), viajan a la derecha al 50–75 % de la velocidad del frente, viven 250–450 ms, derivan 0 a −25 pt/s en y; gaussiana blanca de σ 1.4 pt escalada a .5–.7, alfa .2–.38 | RUNTIME (`chispas.py`, `chispas2.py`: 24 pistas de ≥3 cuadros en f64–f182): 3 vivas a la vez (máx 7), +18..+59 de luminancia sobre fondos de 60–110, 1.65–2.5 pt/cuadro contra 3.18 del frente, vida mediana 12 cuadros. El frente las alcanza y las absorbe (blanco al 30 % sobre blanco). Van dentro del recorte, sobre el relleno y bajo el velo blanco |
-| Los SF Symbols | caja = caja natural del glifo al tamaño deseado, `scaleAspectFit`, `scale: 'large'` | SOURCE `expo-symbols/ios/SymbolView.swift:127`: el `size` no es el pointSize — siempre 14 pt y el contentMode escala a la caja. Con `resizeMode: 'center'` todo salía al 80 % |
-| Las cards | 400 pt, márgenes 20, padding 21 / 23, esquinas **continuas de 33** | RUNTIME: el perfil de la esquina del clip se aparta de un círculo por la cola; 26 continuo daba la mitad de inset a cada profundidad |
-| El brillo de reposo | dos gaussianas verticales (σ 13 y 28) pegadas al borde inferior, envolvente horizontal = tabla medida, teal hasta el centro y viraje corto a verde-amarillo | tres modelos simétricos fallaron en los hombros; la tabla del clip es el asset |
-| Reinicio a los 5 s | vuelve al reposo con el mismo cruce | SUPUESTO, pedido del 2026-09-02 para probar seguido |
-| La háptica | `selectionAsync` en doce detentes acelerando (300→60 ms) y Success al completar; apretar y soltar no vibran. **Cambiado el 2026-09-04** por la tabla de animate-expo: antes era Light al apretar, doce impactos de Soft a Medium y Soft al soltar | SIN RECIBO: el clip es video. Es la única perilla que se ajusta con el teléfono en la mano, y está en `haptica.ts` sola |
+| **No Skia and no new native modules** | Views, Reanimated, Gesture Handler, expo-symbols, expo-haptics, and **four PNGs** for the sheen | the piece has to open on the phone with Expo Go, where Skia is not, and the haptics can only be felt there. A gradient with a soft edge does not exist in RN without a native module: it gets generated as a texture (`media/generate.swift`, with the measured profiles) and translated, which is the cheapest thing for the compositor |
+| **One single clock for the gesture and the fill** | `LongPress.minDuration` and the progress's linear `withTiming` both read `HOLD.duration` = 2000 | RUNTIME: the clip's front advances linearly at 7.75 px/frame, and from the press to the burst there are 121 frames. Rule 3 of the workshop's AGENTS |
+| The fill | a white body with a pale green rim + a front in a capsule with an **erfc falloff of σ = 19 pt centered on the geometric edge** + a left tip 6 pt inside with σ 20 | RUNTIME f151: 10 %→90 % over 51 pt; f122, a row 10 pt from the edge: the 50 % falls 9 pt behind the one at half height (a round tip). **Verified on screen**: the profile within ±6 of luminance at every 5 % of the width |
+| ↳ the tip cannot be done with a neutral veil | the veil is inverted per channel against the target color (pale green × coverage + pill) | a gray darkener over white does not lower R without lowering G; the clip gives (150,172,156) at 18 pt. Verified exactly on screen |
+| The pill shrinks on press | scale **0.953**, 250 ms quadratic ease-out; it comes back in 250 on release and in 120 on complete | RUNTIME: edges 157→182 and 1194→1169; 16/52/80/96 % at 1/4/8/13 frames. With the skill's strong bezier it closed twice as fast (workshop recording) |
+| The label | three texts, each with its own **presence** (0..1); a `.blurReplace` crossfade made of **two blurred copies per text** (σ 2.5 and σ 1.0, rasterized in Swift with the same SF Pro, tinted with `tintColor`) plus the sharp one, handed out by a staircase that is a **partition of the opacity**; the color travels with the progress (white → greenish gray at 55 % → black at 96.5 %) | `filter: blur` exists in RN 0.86 but behind the native flag `enableSwiftUIBasedFilters`, off and with no way to turn it on from Expo; Skia is not in the binary. Enlarged strips: the two texts blur and cross centered, with no scale. **The crossfade is not symmetric**: the one leaving goes in 4 frames (67 ms) and the one entering shows up blurred at 33, legible at 67, at 90 % by 133 and finishes coming into focus at ~380. The timings (`CROSSFADE`): press 360 ease-out / 48; release 600 linear from 150 / 250 from 80; commit 450 linear from 210 / 280 from 40. Verified with probes in ms against the clip frame from the same instant (`cmp/press-*.png`, `commit-*.png`, `suelta*.png`) |
+| ↳ why a partition and not stacked layers | wide + narrow + sharp = o(q) | with two blurred copies lit at once the text came out fatter and brighter than the sharp one; a real blur conserves the mass. Capture `crossfade=0.35` against f63: fattened where the clip loses ink |
+| ↳ "✓ Committed" comes in growing | scale 0.9 → 1 following its presence with ease-out | ASSUMED, requested on 2026-09-03 ("smaller, from the back, and have it grow"): SwiftUI's `.blurReplace(.downUp)`. The clip does not scale; `COMMIT.enterScale = 1` gives back the faithful one |
+| ↳ everything is semibold 17 | "Hold to Commit", "Keep Holding...", "Committed" | ink widths against the same SF on macOS: 121.1 / 118.9 / 86.7 pt land on semibold (medium and bold sit 2 to 4 % away). "Committed" *looked* bold because "Keep Holding..." is shrunk by the press |
+| The burst | 46 pre-mounted dots, one shared value, a deterministic table; they are born on the capsule's normal (tips included) at 2.2 pt; travel 2 to 17 pt (uniform^1.5, median 7.3) + **expansion from the center** (dx = 0.075 × distance to the center, ±4 of noise), ease-out 350 to 550 ms; their own brightness .75 to 1 with τ = 330 ms and a soft close from 40 % of a life of 700 ms; 1.5 to 4 pt (uniform^1.4) | RUNTIME (`rastro.py`, 58 tracks linked frame by frame): d0 2.0 to 2.6 pt; final Δdist p10 1.5 to 2.3, median 7.6 to 8.7, p90 14 to 17; **final dx ∝ (x₀ − center)**: −18.7 at the left tip, +14.3 at the right one, ~0 in the middle. The cloud opens, it does not shake, and that is what is "clean" about the reference (before there was ±3 at random). There are tracks born at x = −0.9 and 383.7: the arcs of the tips emit too. The short life is ASSUMED: "have them disappear a touch earlier" than the Committed (in the clip they live 1.2 s) |
+| The sparks | 12 images with 3 lives each (36 per hold), a function of the progress: they are born 8 to 100 pt ahead of the front (uniform^2.5, median 24), travel to the right at 50 to 75 % of the front's speed, live 250 to 450 ms, drift 0 to −25 pt/s in y; a white gaussian of σ 1.4 pt scaled to .5 to .7, alpha .2 to .38 | RUNTIME (`chispas.py`, `chispas2.py`: 24 tracks of ≥3 frames in f64 to f182): 3 alive at a time (max 7), +18..+59 of luminance over backgrounds of 60 to 110, 1.65 to 2.5 pt/frame against the front's 3.18, median life 12 frames. The front catches them and absorbs them (white at 30 % over white). They go inside the clip path, above the fill and below the white veil |
+| The SF Symbols | box = the glyph's natural box at the size you want, `scaleAspectFit`, `scale: 'large'` | SOURCE `expo-symbols/ios/SymbolView.swift:127`: the `size` is not the pointSize. It is always 14 pt and the contentMode scales it to the box. With `resizeMode: 'center'` everything came out at 80 % |
+| The cards | 400 pt, margins 20, padding 21 / 23, **continuous corners of 33** | RUNTIME: the profile of the clip's corner departs from a circle at the tail; a continuous 26 gave half the inset at every depth |
+| The resting sheen | two vertical gaussians (σ 13 and 28) stuck to the bottom edge, horizontal envelope = the measured table, teal up to the center and a short turn to yellow-green | three symmetric models failed at the shoulders; the clip's table is the asset |
+| Reset at 5 s | it goes back to rest with the same crossfade | ASSUMED, requested on 2026-09-02 so it could be tried over and over |
+| The haptics | `selectionAsync` on twelve detents that speed up (300→60 ms) and Success on complete; press and release do not vibrate. **Changed on 2026-09-04** to animate-expo's table: it used to be Light on press, twelve impacts from Soft to Medium, and Soft on release | NO RECEIPT: the clip is video. It is the only knob you tune with the phone in your hand, and it sits in `haptics.ts` on its own |
 
-**Dos simuladores para dos worktrees.** El dev client está clavado a
-`localhost:8081`, y el otro worktree tenía el simulador con Expo Go en
-8082. En vez de pelear por la pantalla se levantó un segundo iPhone 17
-Pro Max ("Pro Max B"), copiando el `Taller.app` instalado con
-`simctl get_app_container` + `simctl install`: cada Metro alimenta su
-simulador y nadie le saca el foco a nadie. Al terminar se apaga, porque
-`pnpm grabar` habla con "booted" y con dos prendidos elige uno cualquiera.
+**Two simulators for two worktrees.** The dev client is nailed to
+`localhost:8081`, and the other worktree had the simulator with Expo Go
+on 8082. Instead of fighting over the screen, a second iPhone 17 Pro Max
+went up ("Pro Max B"), copying the installed `Workshop.app` with
+`simctl get_app_container` + `simctl install`: each Metro feeds its own
+simulator and nobody steals focus from anybody. It gets shut down when
+you finish, because `pnpm record` talks to "booted" and with two of them
+on it picks whichever.
 
-**La sonda se mide en milisegundos, no en fracciones.** `cruce=q`
-parqueaba los dos labels con el mismo parámetro, y en la animación real
-el saliente ya se fue (48 ms) cuando el entrante va por la mitad (360):
-la captura mostraba superposiciones que nunca ocurren. `cruce=25`,
-`cruce-commit=308`, `cruce-suelta=217` ponen cada shared value donde lo
-tendría la animación a ese instante, con las mismas curvas y retardos,
-y se comparan con el cuadro del clip del mismo instante. Y la captura
-espera a que la pantalla cambie y se quede quieta (`sondas.sh`): con un
-`sleep 4` fijo, la primera sonda después de una recarga salía vieja.
+**The probe is measured in milliseconds, not in fractions.**
+`crossfade=q` parked both labels with the same parameter, and in the real
+animation the one leaving is already gone (48 ms) when the one entering
+is halfway through (360): the capture showed overlaps that never happen.
+`crossfade=25`, `crossfade-commit=308` and `crossfade-release=217` put
+every shared value where the animation would have it at that instant,
+with the same curves and delays, and they get compared against the clip
+frame from the same instant. And the capture waits for the screen to
+change and then hold still (`sondas.sh`): with a fixed `sleep 4`, the
+first probe after a reload came out stale.
 
-**Los montajes se miran a resolución completa.** Un montaje de 16 filas
-se muestra achicado a la mitad y un blur de σ 1 desaparece: se leyó
-"nítido" donde había blur y se corrigió una cosa que no estaba mal.
-Ocho filas por imagen, a 2×, y recién ahí se decide.
+**The montages get looked at in full resolution.** A 16-row montage
+shows up shrunk to half and a blur of σ 1 disappears: I read "sharp"
+where there was blur and corrected something that was not wrong. Eight
+rows per image, at 2×, and only then do you decide.
 
-**El fondo es una variante, no un valor.** Vito pidió (2026-09-03)
-sacar la pantalla de Opal de atrás del botón y dejar algo liso y
-neutro, sin decidir cuál. En vez de elegir por él, `fondo.ts` tiene
-cuatro direcciones —`liso` (sólo el botón, al pie), `centrado` (sólo el
-botón, en el medio), `bloques` (la silueta de la pantalla de Opal en
-bloques mudos) y `opal` (la copia medida)— y con `'elegir'` la pieza
-muestra un selector arriba para pasar de una a otra en vivo, también en
-el teléfono. El botón no sabe cuál está puesta. Cuando haya ganador se
-escribe en `FONDO`, el selector desaparece y las que pierdan se borran,
-salvo `opal`, que queda recuperable.
+**The background is a variant, not a value.** Vito asked (2026-09-03)
+to take Opal's screen out from behind the button and leave something
+plain and neutral, without deciding which. Instead of choosing for him,
+`background.ts` holds four directions: `plain` (only the button, at the
+foot), `centered` (only the button, in the middle), `blocks` (the
+silhouette of Opal's screen in mute blocks) and `opal` (the measured
+copy). With `'choose'` the piece shows a selector at the top to move
+from one to another live, on the phone too. The button does not know
+which one is in. When there is a winner it gets written into
+`BACKGROUND`, the selector goes away and the losers get deleted, except
+`opal`, which stays recoverable.
 
-**Ganó `bloques`, y se rehizo** (2026-09-03, "mucho mejor y ordenado,
-que no se overlapeen con el botón"). La primera versión eran cuatro
-rectángulos sueltos que terminaban pegados al pill. La segunda es la
-pantalla de Opal como esqueleto: la misma grilla y las mismas alturas
-medidas, una barra gris de 14 pt centrada en cada caja de línea de 20.3
-donde había texto, siete discos donde había días, la silueta del toggle
-donde había toggle; tres grises neutros (fondo, card, barra) y ninguna
-mancha. El último bloque termina a `SECCION.alPill` (32 pt, medido) del
-botón, la misma distancia que la última card de Opal. Tablero antes y
-después en `.context/hold-to-commit/cmp/bloques-tablero.png`.
+**`blocks` won, and it got redone** (2026-09-03, "much better and
+tidier, and don't let them overlap the button"). The first version was
+four loose rectangles that ended up stuck to the pill. The second is
+Opal's screen as a skeleton: the same grid and the same measured
+heights, a gray bar of 14 pt centered in each line box of 20.3 where
+there was text, seven discs where there were days, the toggle's
+silhouette where there was a toggle; three neutral grays (background,
+card, bar) and not one stain. The last block ends `SECTION.toPill`
+(32 pt, measured) away from the button, the same distance as Opal's last
+card. Board before and after in
+`.context/hold-to-commit/cmp/bloques-tablero.png`.
 
-**La revisión fina del relleno (2026-09-03, "pegale una revisada
-detallada para igualar el comportamiento").** Se midió cada sistema del
-botón contra el cuadro del clip del mismo instante, con sondas en ms y
-perfiles de luminancia (`perfil.py`, `evolucion.py`, `vertical.py`), y
-salieron seis cosas que el modelo anterior no tenía. Todas con recibo
-en `medidas.ts`:
+**The fine review of the fill (2026-09-03, "give it a detailed pass to
+match the behavior").** Every system in the button got measured against
+the clip frame from the same instant, with probes in ms and luminance
+profiles (`perfil.py`, `evolucion.py`, `vertical.py`), and six things
+came out that the previous model did not have. All with a receipt in
+`measurements.ts`:
 
-| Qué | Antes | Ahora | Medida |
+| What | Before | Now | Measurement |
 | --- | --- | --- | --- |
-| El frente no va de punta a punta | 0 → 100 % en 2 s | **4.5 → 95.5 %** (174 pt/s); después de la ráfaga se desliza al 101 % con 250 ms de retardo | el 50 % del frente cada 100 ms, f76…f181; en f181 está al 93.5 % con la punta derecha a 124 |
-| La punta izquierda se oscurece y se ensancha | velo fijo (el de f151) | la textura del final (f181) **escalada en x desde la punta**, s = .25 + .75·p | a 38 pt de la punta: 249 (p .22) → 235 (.52) → 207 (.72) → 183 (.99); verificado a ±5 en cuatro progresos |
-| El frente es más angosto al principio | σ fijo | escala en x alrededor del borde geométrico, .66 + .36·p | ancho 90→10 %: 51–53 pt hasta p .42, 58–60 a .72–.82, 62–64 después; captura 49 / 58 / 60 / 51 contra 51 / 55 / 58 / 55 |
-| El encendido arranca lento | ease-out 300 ms | **ease-in-out 330** | pico sobre el fondo 8 / 17 / 26 / 65 / 100 % a 75 / 108 / 142 / 208 / 308 ms; captura a ±7 en ocho instantes |
-| Al soltar se apaga más de lo que retrocede | retirada 180 ms bezier fuerte + fundido 150 | retirada **400 ease-out** + fundido **exponencial τ 60 ms** (`Easing.out(exp)`, 420) | el pico cae .81 / .61 / .44 / .32 / .25 / .17 / .13 a 17…125 ms mientras el 50 % del frente va 13.5 → 9.5 %; con el bezier el frente estaba al 3.5 % a los 83 ms |
-| La escala vuelve en 200 ms al completar | 120 ms ease-out | salto del 25 % en un cuadro + 220 ease-out | ancho 364 → 369 → 374 → 378 → 380 → 382 (f182…f195); captura a ±1.3 pt en cinco instantes |
-| El brillo de reposo es "cuadrado" arriba | una envolvente para todas las filas | envolvente de arriba (parejo del 25 al 75 %, apagado antes del 10 %) fundida con la de abajo por altura; vertical .32·g(12) + .28·g(26) | fila a 10 pt: 30/41/45/45/46/46/45/40/33 contra 30/41/44/43/44/45/44/39/33 |
+| The front does not go tip to tip | 0 → 100 % in 2 s | **4.5 → 95.5 %** (174 pt/s); after the burst it slides to 101 % with a 250 ms delay | the front's 50 % every 100 ms, f76…f181; at f181 it is at 93.5 % with the right tip at 124 |
+| The left tip darkens and widens | a fixed veil (the one from f151) | the texture from the end (f181) **scaled in x from the tip**, s = .25 + .75·p | 38 pt from the tip: 249 (p .22) → 235 (.52) → 207 (.72) → 183 (.99); verified within ±5 at four progresses |
+| The front is narrower at the start | a fixed σ | a scale in x around the geometric edge, .66 + .36·p | width 90→10 %: 51 to 53 pt up to p .42, 58 to 60 at .72 to .82, 62 to 64 after that; capture 49 / 58 / 60 / 51 against 51 / 55 / 58 / 55 |
+| The turn-on starts slow | ease-out 300 ms | **ease-in-out 330** | peak over the background 8 / 17 / 26 / 65 / 100 % at 75 / 108 / 142 / 208 / 308 ms; capture within ±7 at eight instants |
+| On release it fades more than it retreats | retreat 180 ms strong bezier + fade 150 | retreat **400 ease-out** + **exponential fade, τ 60 ms** (`Easing.out(exp)`, 420) | the peak drops .81 / .61 / .44 / .32 / .25 / .17 / .13 at 17…125 ms while the front's 50 % goes 13.5 → 9.5 %; with the bezier the front was at 3.5 % by 83 ms |
+| The scale comes back in 200 ms on complete | 120 ms ease-out | a jump of 25 % in one frame + 220 ease-out | width 364 → 369 → 374 → 378 → 380 → 382 (f182…f195); capture within ±1.3 pt at five instants |
+| The resting sheen is "square" at the top | one envelope for every row | a top envelope (even from 25 to 75 %, off before 10 %) blended with the bottom one by height; vertical .32·g(12) + .28·g(26) | row at 10 pt: 30/41/45/45/46/46/45/40/33 against 30/41/44/43/44/45/44/39/33 |
 
-Lo que se midió y NO cambió: el pill no irradia luz hacia afuera
-durante el hold (el fondo a 3–18 pt del borde queda en 20.0 en todos
-los cuadros), la escala del press coincide al punto en los ocho
-instantes, y el derrame de abajo es constante.
+What got measured and did NOT change: the pill does not radiate light
+outwards during the hold (the background 3 to 18 pt from the edge stays
+at 20.0 in every frame), the press's scale matches to the point at all
+eight instants, and the spill underneath is constant.
 
-**Lo que pidió el skill `animate-expo` (2026-09-04, "seguí la skill y
-corregí lo que no cumplimos en háptica, reduce motion y accesibilidad;
-lo otro quiero probarlo sin perder lo que tenemos").** Se pasó la
-pieza regla por regla contra el skill: 30 en verde y 10 en rojo, de las
-que siete eran a propósito —la referencia manda sobre la tabla del
-skill, y cada desvío tiene su medida— y tres eran deuda. Lo que cambió:
+**What the skill `animate-expo` asked for (2026-09-04, "follow the
+skill and fix what we don't comply with in haptics, reduce motion and
+accessibility; the rest I want to try without losing what we have").**
+The piece went rule by rule against the skill: 30 green and 10 red, of
+which seven were on purpose (the reference rules over the skill's table,
+and every departure has its measurement) and three were debt. What
+changed:
 
-| Qué | Antes | Ahora | Fuente / medida |
+| What | Before | Now | Source / measurement |
 | --- | --- | --- | --- |
-| La háptica sigue la tabla del skill | Light al apretar, Soft al soltar, doce impactos de Soft a Medium en los detentes | `selectionAsync` en los doce detentes (misma cadencia, 300 → 60 ms) y Success al completar; apretar y soltar no vibran | animate-expo § 8: "a value ticks past a step → `selectionAsync`"; apretar y soltar no están en la tabla. Sigue SIN RECIBO (el clip es video) y se ajusta con el teléfono en la mano |
-| Reduce motion de verdad | `useReducedMotion` apagaba ráfaga, chispas, blur y la escala del Committed… pero el default `reduceMotion: System` de Reanimated hacía que TODO `withTiming` saltara al final en un cuadro: el relleno se llenaba entero al apretar y los doce tics disparaban juntos | todo `withTiming` del botón pasa por `animar`, con `ReduceMotion.Never`, y la política es a mano (§ 9): sin escala del press, sin barrido (el relleno entero, con el progreso como opacidad), sin chispas, ráfaga ni copias borrosas; quedan opacidad y color | SOURCE `reanimated/src/animation/util.ts:506`. RUNTIME en el simulador B con `com.apple.Accessibility ReduceMotionEnabled`: luminancia media del pill 64.2 → **182.0 en un cuadro** y clavada los 2 s (antes); 64 / 87 / 123 / 148 / 166 / 185 / 207 a lo largo de los 2 s (ahora). `lum.py`, `sim/rm-auto-*` y `rm2-auto-*` |
-| El label sigue a Dynamic Type | `allowFontScaling={false}` en los tres textos | `maxFontSizeMultiplier` = 1.786 (AX1), y las copias borrosas, el tilde y su hueco escalan con el mismo factor; el label se remonta cuando el factor cambia | SOURCE RCTAccessibilityManager.mm:267; caja de línea 20.3 × 1.786 = 36.3 pt en 52. Captura a AX5 (`sim/dt-*`): los tres textos entran y el cruce sigue calzando. Sin remontar, un cambio en vivo dejaba el texto grande recortado en la caja de 17 pt |
-| Las curvas y los tiempos son una receta | constantes sueltas en `hold-to-commit.tsx` | `receta.ts`: `clip` (lo medido, cada valor con recibo en `medidas.ts`) y `skill` (las tablas del skill a la letra, con la sección citada en cada valor); con `'elegir'`, un selector en vivo al lado del de fondo. Las sondas miden `clip` | regresión: siete sondas antes y después del cambio, **0 píxeles distintos** en la banda del pill (`dif.py`). Lo que no cambia entre recetas: el relleno lineal de 2 s, el color por progreso, chispas y ráfaga, la geometría, la háptica |
+| The haptics follow the skill's table | Light on press, Soft on release, twelve impacts from Soft to Medium on the detents | `selectionAsync` on the twelve detents (same cadence, 300 → 60 ms) and Success on complete; press and release do not vibrate | animate-expo § 8: "a value ticks past a step → `selectionAsync`"; press and release are not in the table. Still NO RECEIPT (the clip is video) and it gets tuned with the phone in your hand |
+| Reduce motion for real | `useReducedMotion` turned off the burst, the sparks, the blur and the Committed's scale… but Reanimated's default `reduceMotion: System` made EVERY `withTiming` jump to the end in one frame: the fill filled up whole on press and the twelve ticks fired together | every `withTiming` in the button goes through `move`, with `ReduceMotion.Never`, and the policy is written by hand (§ 9): no press scale, no sweep (the whole fill, with the progress as opacity), no sparks, no burst and no blurred copies; opacity and color are what is left | SOURCE `reanimated/src/animation/util.ts:506`. RUNTIME on simulator B with `com.apple.Accessibility ReduceMotionEnabled`: mean luminance of the pill 64.2 → **182.0 in one frame** and nailed there for the 2 s (before); 64 / 87 / 123 / 148 / 166 / 185 / 207 across the 2 s (now). `lum.py`, `sim/rm-auto-*` and `rm2-auto-*` |
+| The label follows Dynamic Type | `allowFontScaling={false}` on the three texts | `maxFontSizeMultiplier` = 1.786 (AX1), and the blurred copies, the checkmark and its slot scale by the same factor; the label remounts when the factor changes | SOURCE RCTAccessibilityManager.mm:267; line box 20.3 × 1.786 = 36.3 pt inside 52. Capture at AX5 (`sim/dt-*`): the three texts fit and the crossfade still lines up. Without remounting, a live change left the large text clipped in the 17 pt box |
+| The curves and the timings are a recipe | loose constants in `hold-to-commit.tsx` | `recipe.ts`: `clip` (the measured one, every value with a receipt in `measurements.ts`) and `skill` (the skill's tables to the letter, with the section quoted on each value); with `'choose'`, a live selector next to the background one. The probes measure `clip` | regression: seven probes before and after the change, **0 different pixels** in the pill's band (`dif.py`). What does not change between recipes: the linear 2 s fill, the color by progress, the sparks and the burst, the geometry, the haptics |
 
-Lo que queda en rojo a propósito, para mirarlo con la receta `skill`
-puesta: las curvas (el bezier del skill contra el ease-out cuadrático
-medido), las entradas lineales del label, el press de 250 ms y .953
-(contra 120 y .97), y los cruces de más de 300 ms. Y lo que sigue
-siendo deuda: nadie juzgó la pieza en un teléfono ni en una build de
-release, y Expo Go no sirve para eso.
+What stays red on purpose, to be looked at with the `skill` recipe in:
+the curves (the skill's bezier against the measured quadratic ease-out),
+the label's linear entrances, the press at 250 ms and .953 (against 120
+and .97), and the crossfades longer than 300 ms. And what is still debt:
+nobody has judged the piece on a phone or in a release build, and Expo
+Go is no good for that.
 
-**En el teléfono, por fin (2026-09-04).** La App Store publicó Expo Go
-57.0.9 el 2 de septiembre —hasta ese día estaba en SDK 54 y había que
-firmar uno propio cada 7 días— y Vito vio la pieza en su iPhone. Dos
-pedidos desde ahí, y los dos son sacar cosas:
+**On the phone, at last (2026-09-04).** The App Store published Expo Go
+57.0.9 on September 2 (until that day it was on SDK 54 and you had to
+sign your own every 7 days) and Vito saw the piece on his iPhone. Two
+requests out of that, and both of them are about taking things out:
 
-| Qué | Antes | Ahora | Por qué |
+| What | Before | Now | Why |
 | --- | --- | --- | --- |
-| "Hay algo detrás del botón, sacalo" | el derrame —la luz que se escapa por debajo del pill, medida en la pantalla de Opal (`DERRAME`)— se dibujaba siempre | sólo con el fondo `opal`; la pantalla se lo pasa al botón como un booleano | sobre un fondo neutro no se lee como luz sino como una caja asomando detrás del botón. En la copia fiel sigue, con su recibo |
-| "Sacá lo que está para poner algo" | la fila de chips `clip \| skill` arriba, andamiaje para probar la receta del skill en vivo | `RECETA = 'clip'`: sin selector. Para probar `skill`, `'elegir'` en `receta.ts` o `?receta=skill` | el selector es de la exploración, no de la pieza; en el teléfono era ruido. La receta `skill` sigue entera, a una línea |
+| "There's something behind the button, take it out" | the spill, the light that escapes under the pill, measured on Opal's screen (`SPILL`), was always drawn | only with the `opal` background; the screen passes it down to the button as a boolean | over a neutral background it does not read as light but as a box peeking out behind the button. In the faithful copy it stays, with its receipt |
+| "Take out what's there to put something in" | the row of `clip \| skill` chips at the top, scaffolding for trying the skill's recipe live | `RECIPE = 'clip'`: no selector. To try `skill`, `'choose'` in `recipe.ts` or `?recipe=skill` | the selector belongs to the exploration, not to the piece; on the phone it was noise. The `skill` recipe is still there whole, one line away |
 
-**Un botón para comprar, en una app financiera (2026-09-04, "mejorá
-mucho más el fondo de skeletons, hacé como que sea de una app financiera
-tipo Robinhood y que el botón de abajo sea para comprar"; después: "sin
-mucho detalle igual, todo skeletons").** La referencia no se recordó, se
-midió: la captura oficial de Robinhood en la App Store (2026.35.0, la
-ficha de un activo: título, precio, variación, gráfico y selector de
-rango), bajada por la API de iTunes a 1242 × 2208 y medida con
-`.context/hold-to-commit/robinhood/medir.py`. El mockup es un iPhone de
-402 pt (2.415 px/pt), y la escala cierra por otro lado: la "C" del título
-mide 24 pt de mayúscula, o sea 34 pt de fuente, el Large Title de iOS.
+**A button to buy with, in a finance app (2026-09-04, "improve the
+skeleton background a lot more, make it look like a finance app like
+Robinhood and make the button at the bottom a buy button"; later: "not
+much detail either way, all skeletons").** The reference was not
+remembered, it was measured: Robinhood's official App Store screenshot
+(2026.35.0, an asset's page: title, price, change, chart and range
+selector), pulled through the iTunes API at 1242 × 2208 and measured
+with `.context/hold-to-commit/robinhood/medir.py`. The mockup is a
+402 pt iPhone (2.415 px/pt), and the scale closes from the other side:
+the "C" of the title is 24 pt of cap height, which is a 34 pt font, iOS's
+Large Title.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| El fondo `accion` (elegido) | negro puro y un solo gris, `#2A2A2A`, para todo: barras, curva del gráfico y píldora del rango (con una barra negra adentro). Sin color | RUNTIME de la captura: fondo (0,0,0); la línea y la píldora son lima (204,255,0), y quedó medido pero NO se usa: la primera versión las tenía en lima y Vito pidió "no agregues colores al fondo y hacelo mucho más skeleton". Nada compite con el botón |
-| La cabeza | título 97 × 28 y precio 152 × 28 en dos líneas de 41; la (i) de 20 pt a 12 del precio; la variación 8 pt abajo: 147 pt en lima + 40 en gris, barras de 14 | RUNTIME: "Crypto" 96.9 pt de tinta, "$1,500.00" 152, ⓘ 20.7; el precio arranca 39.7 pt bajo el título; todo a 33.5–34 pt del borde |
-| El gráfico | una Catmull-Rom por ocho puntos de control, sin ruido, muestreada en 43 puntos: 42 segmentos de 3 pt rotados desde su extremo, del 2 % al 72.6 % del ancho, en una banda de 76 pt; 68 pt bajo la variación y 42 sobre el rango; marcador de 8 en el máximo | RUNTIME: la línea va de 8.3 pt a 292 de 402, alto 76.6, grosor ~2 pt (en esqueleto va a 3). La primera versión seguía la forma dentada del clip con ruido; "mucho más skeleton" la alisó. Sin Skia ni SVG: vistas quietas, nada por cuadro |
-| El selector de rango | siete barras entre 47 y 363 pt repartidas parejo, la segunda dentro de una píldora lima de 31 × 22 con radio 7 | RUNTIME: tramos a 47 / 95 / 149 / 197 / 245 / 294 / 349; píldora 30.6 × 21.5, esquina ~7; mayúsculas de 8.3 pt → barras de 9 |
-| Lo de abajo del rango | una cabecera de sección y una grilla de datos en dos columnas (tres filas de 44 con hairline al margen), y una segunda sección de tres líneas de texto corrido; todo en un contenedor que se recorta en pantallas más bajas | SUPUESTO: la captura termina en el selector. El botón queda afuera del contenedor que se recorta. La primera captura tenía el precio y la variación centrados: un `justifyContent: center` en una fila centra a lo ancho, no a lo alto |
-| El botón compra | "Hold to Buy" / "Keep Holding..." / "✓ Order Placed", mismos semibold 17 y mismas copias borrosas regeneradas | los anchos de tinta que fijaron el peso son de los textos de Opal y valen igual: no cambia fuente, tamaño ni peso. `generar.swift` guarda los originales para volver |
-| El reinicio es un fundido, no un barrido | a los 5 s: (1) el velo blanco y el relleno se apagan en 400 ms con ease-out mientras "✓ Order Placed" se va en 250; (2) con el relleno ya invisible, el progreso vuelve a 0 de golpe y "Hold to Buy" entra en 300, blanco | Vito (2026-09-04): "que cuando vuelve al estado inicial la transición sea clean, hoy es malísima". Antes el progreso volvía a 0 en 300 ms y el relleno se veía retroceder entero mientras el blanco se apagaba y el label cruzaba, todo junto. RUNTIME (video de simctl a 15 fps, `cmp/reinicio-tira.png`): el interior del pill baja 217 → 177 → 141 → 104 → 74 → 58 parejo en toda la cápsula, sin frente; el label de reposo entra recién después. El mismo truco que reduce motion: la geometría cambia sólo cuando no se ve |
-| Modo claro y oscuro en el fondo `accion` | tres colores de sistema de iOS por `PlatformColor`, dinámicos: `systemBackground` (fondo), `systemFill` (barras, curva y píldora) y `separator` (hairlines). La barra de estado en `auto` con este fondo | pedido del 2026-09-04 ("agregá light mode y dark mode al fondo"). SOURCE: la tabla de colores de sistema de UIKit: systemFill es (120,120,128) al 36 % en oscuro y al 20 % en claro. RUNTIME en el simulador (`cmp/modos-tablero.png`): oscuro fondo (0,0,0) y barra (43,43,46), el gris medido de `bloques` a un nivel, así que el oscuro no cambió; claro fondo (255,255,255) y barra (228,228,230). Sin un solo `if` de esquema: los colores cambian solos, en vivo. El botón opaco no cambia con el modo: el pill medido es oscuro siempre |
-| El botón en Liquid Glass, como opción | `material.ts`: `opaco` (el pill medido), `vidrio`, y desde el 2026-09-07 también `claro`, el mismo vidrio con el estilo `clear` de Apple, más transparente y con la lente más visible (pedido al preguntar si el vidrio tenía intensidad: no la tiene, tiene dos estilos y un tinte; lo que más cambia cuánto se nota es el contraste de lo que pasa por debajo). `vidrio`: `GlassView` de `expo-glass-effect` sobre `UIGlassEffect`, **`regular` sin tinte e interactivo**, como CONTENEDOR del pill; adentro, la vista que recorta las texturas, transparente. Sin nada de Opal encima: ni brillo de reposo, ni punta velada, ni anillo, ni la escala del press (el material trae su propio abultado bajo el dedo). El relleno blanco del hold barre encima igual. Label negro en claro y blanco en oscuro. Selector prendido (`'elegir'`) para mirarlo en vivo | pedido del 2026-09-04 en dos pasos. El primero ("quiero ver una opción con botón liquid glass") dio un vidrio detrás del recorte con el brillo de Opal encima, sobre un fondo plano y sin responder al dedo: el material nativo, pero indistinguible de una cápsula pintada. Vito: "quiero el liquid glass nativo de Apple, bien hecho, como lo lanzaría una app de las mejores del mundo". Lo que hace que el material se vea y se sienta, según la guía de Apple (HIG › Materials, WWDC25): vidrio `regular` sin tinte (el tinte prominente lo vuelve casi opaco), interactivo, y CONTENIDO QUE PASA POR DEBAJO —el vidrio sólo se lee cuando refracta algo—, así que el fondo `accion` pasó a scrollear debajo del botón, que flota. Trampas de `VIDRIO.md` respetadas: sin opacidad animada encima y sin recorte sobre el vidrio ni sus ancestros (el hijo se recorta a sí mismo). El módulo se pide con un `require` en un try: sin él, cae a una cápsula translúcida plana. RUNTIME (`cmp/glass-tablero.png`, `cmp/glass-bandas.png`): en claro y en oscuro, las barras de la lista se ven a través del vidrio con la lente en el borde; reposo, mitad del hold y "✓ Order Placed" |
-| El fondo `accion` scrollea por debajo del botón | un `ScrollView` a pantalla completa, más largo que la pantalla (dos grillas, un párrafo y una lista de filas con miniatura, todo SUPUESTO), con `paddingBottom` del alto de la zona del botón; el botón flota a la misma distancia del borde que antes | así flota un botón primario en iOS 26 y así se ve el vidrio. Con el pill opaco, el contenido pasa por debajo y el pill lo tapa, como cualquier barra de iOS |
-| El hold dura 1000 ms | `HOLD.duracion` = 1000; el LongPress lee el mismo número | pedido del 2026-09-07, en dos pasos ("que tarde 1500 ms en total", después "reducí el tiempo a 1 s"). Lo medido en el clip son 2000 (121 cuadros del press a la ráfaga) y queda en el recibo para volver. El frente pasa de 174 a 348 pt/s; chispas, detentes hápticos y color del label son función del progreso y se comprimen solos |
-| El sonido de Apple Pay al completar, bien timeado | `sonido.ts` + `media/compra.wav`: `payment_success.caf` del runtime de iOS 26.2, el sonido de éxito de Apple Pay (pagar, confirmar una compra o instalación en el App Store), a WAV 44.1 kHz mono y subido de −11 a −1 dBFS de pico; reproductor precalentado a volumen 1, disparado 60 ms antes del final del hold desde el mismo reloj que el relleno (`ADELANTO_MS`), así la primera nota cae en el cuadro de la ráfaga y la segunda, el "ding", 120 ms después mientras el pill blanquea; respeta el switch de silencio y no pausa otras apps | pedido del 2026-09-07 ("dejá el de Apple al descargar una app, bien timeado"), al final de diez vueltas: arpegio, campana, moneda, este mismo, el pajarito de Berry en tres versiones, una voz en dos, y "sacá todo tipo de sonido". RUNTIME (`.context/hold-to-commit/audio/medir-sonido.py`): re 6 (1176 Hz) 120 ms y re 7 (2352 Hz) decayendo 1.1 dB por 20 ms hasta los 700 ms. **Es un asset de Apple y no se redistribuye**: si el repo se hace público, no viaja. Lo aprendido en el camino: reusar un reproductor con `seekTo(0)` + `play()` pierde golpes; crearlo en el momento tarda, se precalienta; una modulación entre 20 y 150 Hz o dos frecuencias cercanas suenan ásperas; el nivel se mide en LUFS. `expo-audio` 57.0.4, con `require` en un try porque el dev client del simulador no lo trae |
-| ↳ `claro` sale | `material.ts` vuelve a dos materiales, `opaco` y `vidrio`; la cápsula de vidrio es siempre `regular` | pedido del 2026-09-07 ("sacá la opción de claro"), el mismo día que entró. Lo que se vio: sobre el fondo `accion`, gris y plano, `clear` casi no se distingue de `regular` y pierde el esmerilado que hace legible el label; es el estilo que Apple reserva para fotos y video. Queda en el recibo del archivo cómo volver: `glassEffectStyle="clear"` en la cápsula |
-| Modo claro de verdad, y nada pintado en el fondo del botón | el ESQUEMA lo decide la pantalla (sólo `accion` sigue al sistema; los fondos de Opal son oscuros siempre) y lo reciben el botón, los chips y la barra de estado. En claro: el pill sigue oscuro (#1E1E1E, el botón primario negro de iOS y de Robinhood) pero sin brillo de reposo ni punta velada; anillo negro al 10 % (se ve sobre el pill blanco del commit, no sobre el oscuro); ráfaga del color del pill; chips con `systemFill` y `secondaryLabel` de iOS. Recibo en `CLARO` (medidas.ts) | pedido del 2026-09-07 mirando el simulador en claro: "adaptalo bien a light mode, lo veo horrible todo, hasta el picker, y todo lo del botón" y "sacá las cosas del fondo del botón". Lo que se veía: chips blancos al 6 % sobre blanco (invisibles), texto gris de la pantalla oscura, y un pill oscuro con el brillo teal→verde de Opal como único color de una pantalla que a pedido no tiene ninguno. SUPUESTO todo (el clip es oscuro), derivado de los colores de sistema. RUNTIME (`cmp/claro-tablero.png`): reposo, mitad del hold, commit y ráfaga en claro; commit y reposo en oscuro, que no cambió (el brillo de Opal sigue ahí) |
-| Android, tal cual iOS | cuatro cosas que eran sólo iOS: (1) los colores de sistema del fondo `accion` dejan de pedirse con `PlatformColor` y se escriben con sus valores de UIKit por esquema (`PALETA`); (2) las copias borrosas del label en Android son el mismo `Text` con `filter: [{ blur: σ }]` (σ 2.5 y 1.0, las de `generar.swift`) desde la API 31, y antes se cruzan los nítidos; (3) el tilde es `check` de Material Symbols en 700 (`@expo-google-fonts/material-symbols` 0.4.44, exacta); (4) `includeFontPadding: false` en el texto y `needsOffscreenAlphaCompositing` en el relleno que se funde | pedido del 2026-09-07 ("que funcione tal cual funciona en Android e iOS"). SOURCE de cada trampa en `nativo/AGENTS.md` 22–24 y 28: `PlatformColor` con nombres de UIKit devuelve 0 = transparente en Android (`FabricUIManager.java:573`); `SymbolView` con nombre string no dibuja nada (`SymbolView.tsx:32`); el blur de `filter` es `RenderEffect` desde la API 31 (`BaseViewManager.java:558`); Android compone los hijos de una vista con opacidad uno por uno. En iOS los píxeles no cambian: los valores escritos son los que `PlatformColor` daba (barra (43,43,46) en oscuro, (228,228,230) en claro). RUNTIME en un emulador Pixel 9 / Android 16 con Expo Go 57.0.9 instalado a propósito (`cmp/android-tablero.png`): reposo, hold, commit con la copia borrosa enfocando, asentado y reinicio; y `sim/android-oscuro.png` en oscuro. Esta Mac no tenía Android: se instalaron el JDK y las command-line tools con Homebrew (cómo, en `nativo/AGENTS.md › Probar en Android`) |
-| Rendimiento: medido bajo la carga de una app real | dos herramientas nuevas, andamiaje de la pieza: `carga.tsx` (JS ocupado al 60 % parseando JSON de 40 KB cada 20 ms; la ficha re-renderizándose a 10 Hz; las dos; o JS bloqueado 150 ms por vez) y `medidor.tsx` (cuadros del hilo de UI por fase de la secuencia, demora del hilo de JS, y marcas en los dos hilos que dan la latencia real de la háptica y el sonido). Perillas en `sonda.ts` (`CARGA`, `MEDIR`, `RECEPTOR`) o por URL. Y un cambio en el botón: el REINICIO pasa del `setTimeout` de JS a un `withDelay` en UI | pedido del 2026-09-07 ("mejorá muchísimo la performance [...] simulá la carga de una app real para testear su performance"). RUNTIME, secuencia `auto` entera (press → commit → 5 s → reinicio), 60 Hz: **iOS** (simulador, bundle dev): 0 cuadros perdidos de ~416 bajo `todo` y bajo `pesada`; hold 1000–1004 ms; reinicio a los 5030 ± 4 ms del commit con JS bloqueado (antes, en JS, esperaba a que JS se liberara). **Android** (emulador, bundle de producción): 0 perdidos bajo `todo`, 1 de 416 bajo `pesada`, hold 999–1003. Lo que sí espera es lo que cruza a JS: bajo `pesada` el primer tic háptico llega 66–92 ms tarde y el sonido 50 ms (los detentes y el sonido salen del reloj de UI en el instante justo; JS los atiende cuando puede). Sin un módulo nativo eso no se puede mover en Expo Go, y ninguna carga plausible (`todo`) lo atrasa más de 12 ms. La medición destapó dos bugs propios que ya no están (AGENTS 25 y 26): el reinicio en UI capturaba una `const` de más abajo, y las marcas desde JS tiraban un error en la cola de animaciones. Y una trampa del emulador (AGENTS 27): en dev pierde 47 cuadros de 372 sin carga; en producción, 0–2 |
-| Sólo transform y opacity: el color del label también es opacidad | "Hold to Buy" y "Keep Holding..." existen tres veces, en las tres tintas medidas (reposo, gris verdoso #202B24, negro), cada tanda con color fijo y una opacidad que es la PARTICIÓN derivada del progreso (blanco 1−t₁, oscuro t₁(1−t₂), negro t₂). Ninguna vista anima `color` ni `tintColor` | pedido del 2026-09-07 ("¿hay chance de lograr lo mismo animando sólo transform y opacity?"). Dos textos idénticos apilados y cruzados por opacidad dan exactamente la interpolación del color en los píxeles cubiertos: blanco·(1−t) + oscuro·t. Cada tanda lleva `needsOffscreenAlphaCompositing` para que Android no componga sus tres capas una por una (trampa 28). RUNTIME (`cmp/tilde-contextual-tablero.png`, última fila): a p = .62 el label sale gris verdoso como antes; la secuencia entera bajo `pesada`, 0 cuadros perdidos en iOS (`medidor.tsx`) |
-| Springs, con los dos parámetros de Apple, en la receta `skill` | `receta.ts`: un `Movimiento` es por tiempo con curva o un spring con DURACIÓN y REBOTE, los parámetros de `Spring(duration:bounce:)` de SwiftUI (WWDC23 "Animate with springs"), que Reanimated toma como `duration` + `dampingRatio` (= 1 − rebote). Spring donde hubo un dedo: press 150 rebote 0, vuelta 400 rebote 0, retirada del frente 400 rebote 0 clavado en 0, commit 400 rebote 0. Lo que no tiene dedo (labels, velo, fundido) sigue por tiempo con los beziers de la tabla. `RECETA` pasa a `skill`; la `clip` medida queda entera a un `?receta=clip` | pedido del 2026-09-07 ("¿se puede implementar spring? ¿cómo haría Apple?"). SOURCE: animate-expo § 5 ("If a finger was involved, use a spring"; tabla "Default settle, no overshoot: {duration: 400, dampingRatio: 1}"; "bounce only when the gesture carried momentum"); Apple: rebote 0 es `.smooth`, el default de sus controles, y un hold no lleva momento. `overshootClamping` donde el valor tiene un borde (§ 5: "must not pass a hard edge"). Un recibo de la implementación: los constructores `tiempo()` y `spring()` se llaman desde worklets y llevan `'worklet'` (trampa 29). RUNTIME (`auto`, iOS, receta `skill`): hold 1002–1004 ms, reinicio a los 5028–5031, 0 cuadros perdidos bajo `pesada`, 2 de 414 sin carga (uno en la ráfaga, uno en el fundido) |
-| El tilde de "Order Placed" entra con la técnica de ícono contextual de better-ui | en la receta `skill` el tilde entra SOLO: opacidad 0 → 1, escala .25 → 1 y blur 4 → 0 sobre un spring de 300 ms con rebote 0; el blur son dos capas, la PNG a σ 4 pt (`tilde-borroso@3x.png`, o el `filter` en Android) y la nítida, con la opacidad repartida q(1−q) y q². El texto sigue con su blur-replace, con PNG nuevas sin tilde (`placed-borroso-*`). Para que el tilde caiga donde lo pone la fila nítida, su capa es la misma fila con el texto invisible | pedido del 2026-09-07 ("usá la técnica de ícono contextual de better-ui"). SOURCE: better-ui "Contextual icon animations": "scale 0.25 to 1, opacity 0 to 1, blur 4px to 0px", "spring, duration 0.3, bounce 0". La receta `clip` no cambia: ahí el tilde entra pegado al texto, como en Opal. RUNTIME: `cmp/tilde-contextual-tablero.png` (sonda `tilde=` a .25, .5, .75 y 1: el tilde crece y enfoca sin mover el texto) y `cmp/android-skill-tablero.png` (un hold real en el emulador con el `check` de Material) |
-| Storyboard arriba del botón y una sola etapa | `hold-to-commit.tsx` abre con el storyboard ASCII de interface-craft (ms → evento, receta `skill` con la `clip` entre corchetes) y el estado del botón es UN entero, `etapa` (reposo, hold, sonando, commit, reinicio): cada worklet lo lee para saber si le toca. Antes eran dos banderas (`terminado`, `sono`) | pedido del 2026-09-07 ("cumplir todo lo que está en amarillo de interface-craft"): storyboard legible, un solo estado, spring-first (fila anterior). De paso, `components/pieces/abrir.ts`: con dos piezas en el taller el índice ya no redirige, y las sondas y `pnpm grabar` necesitan arrancar en la pieza; el slug se escribe ahí y el índice redirige (queda `undefined` en el repo). Y el hint de VoiceOver decía "two seconds" con un hold de uno: ahora sale de `HOLD.duracion` |
-| ↳ el texto y el final vuelven a los tiempos medidos | la receta `skill` toma de `CRUCE`, `COMMIT` y `REINICIO` los cruces del label (press 360/48; suelta 600 lineal +150 / 250 +80; commit 450 lineal +210 / 280 +40; reinicio 300/250), el velo (330), el deslizamiento (250 + 400) y el fundido (400), con la curva medida; conserva los springs donde hay dedo y el tilde contextual. Los valores de § 5 (200/150 sin retardos, 250, 200, 200) quedan anotados en `receta.ts` | Vito, 2026-09-07, con la receta `skill` recién activa: "no me gusta cómo quedó la animación ahora, el texto cambia muy abrupto y la animación del final es muy rápida". Lo abrupto era exactamente lo que la tabla prescribe para un "small state change"; lo aprobado antes eran los tiempos del clip. La referencia es piso: se tocan las perillas que nombró, no la arquitectura |
-| ↳ y la receta activa vuelve a `clip` | `RECETA = 'clip'`: la medida, la del commit `679b0db`. La `skill` (springs, tilde contextual) queda entera a un `?receta=skill` | Vito, 2026-09-07: "está diferente a antes, sobre todo el final, revisá y dejalo como antes". Con `skill` el pill vuelve al completar con un spring de 400 ms en vez del salto del 25 % más 220 ms medidos, y el tilde entra solo. RUNTIME: con `clip` activa, las cuatro sondas de estado (reposo, 0.5, commit, cruce-commit=150) dan PSNR infinito contra `sim/b-claro-*.png`, capturadas esa mañana con el código anterior: píxel por píxel lo mismo, pantalla entera. El label con tres tintas y la etapa única no cambian nada visible: es la misma coreografía por otro camino |
-| ↳ el tilde y "Order Placed" van de la mano, garantizado | el tilde contextual pierde su reloj propio: lee `pListo`, la presencia del texto, y sus dos capas llevan la MISMA partición de la escalera —la nítida, `nitido`; la borrosa, `ancho + angosto`—. La escala .25 → 1 de better-ui queda, con el mismo ease-out que la del texto. En la receta activa, `clip`, el tilde ya iba adentro de la fila: son literalmente las mismas capas | Vito, 2026-09-07: "¿el ícono y el Order Placed van de la mano al mismo tiempo? Aseguralo". Había DOS formas de separarse y las dos están cerradas: un spring propio de 300 ms contra los 450 + 210 del texto (el tilde llegaba primero), y después, con el reloj ya compartido, una rampa de opacidad distinta (q contra la escalera, que satura en q = .4: el tilde llegaba último). RUNTIME (`cmp/tilde-de-la-mano.png`, sonda `tilde=` a .10/.20/.30/.40/.60/1, medido con `tilde.py` como tinta —Σ 255−luminancia— sobre el pill blanco, normalizada a la de q = 1): en `clip` el tilde y el texto van a ±1.5 puntos porcentuales en cada q; en `skill` antes iban 13 % contra 74 % a q = .30, y ahora 34 % contra 74 %, que es exactamente el área que le falta al tilde por estar al 63 % de su tamaño —la diferencia que queda es el crecimiento prescripto, no un retraso—. Y `clip` no se movió un píxel: commit, `cruce-commit=150` y progreso .5 dan PSNR infinito contra el mismo estado sacado del código de `898eece` |
-| La pieza grabada y publicada en la exhibition, en claro y en oscuro | dos másters en `.context/mockup/master/hold-to-commit-{oscuro,claro}.mp4`, 5.45 s cada uno; cuatro videos para X (`mockup/out/hold-to-commit-<apariencia>-<fondo>.mp4`) y dos pares con alfa para la card. La coreografía es la sonda `demo` (`hold-to-commit.tsx`), que llama a los MISMOS worklets que el gesto —`apretar`, `completar`, `reiniciar`— así que curvas, tiempos, háptica y sonido son los del camino real. `MATERIAL = 'opaco'`, que de paso cierra la decisión abierta desde el 2026-09-07 y saca los chips de la pantalla | pedido del 2026-09-08 ("graba y subí a library, quiero dark y light mode, en modo opaco, respetando zooms"). El modo sale de `useColorScheme`, así que las dos tomas son el mismo código con `simctl ui appearance`. RUNTIME: las dos tomas alineadas POR EL COMMIT quedan a 33 ms una de otra (`cortar.py`) |
-| ↳ el corte se mide ADENTRO de la píldora, no en la banda | `cortar.py` promedia una ventana de 800×70 px que es toda píldora en los dos modos | RUNTIME: con la banda de 1080×200 que se usó primero, en claro la domina la ficha blanca que rodea al botón y el corte salió 200 ms desfasado del de oscuro; en el video de X las dos apariencias mostraban instantes distintos de la coreografía. Se vio en un tablero de los cuatro cuadros del commit, no en los números |
-| ↳ la cámara mira la píldora, y el encuadre está medido | `parametros.ts`, `HOLD_TO_COMMIT`: `foco` 0.9105 (el centro de la píldora está a 2650 de 2868 px de la pantalla, o sea al 91.05 % del CUERPO con el bisel medido de `geometria.ts`) y `focoEnLienzo` 0.58 para X. Todo lo demás —bisel, tamaño, sombra, zooms, curvas— es lo medido en la referencia de @nater02 y no se tocó | el criterio del encuadre no es el gusto: dejar abajo el mismo aire que la referencia deja arriba (`aireArriba`, 7.2 %). RUNTIME: la sombra termina al 84.4 / 89.4 / 92.5 / 96.4 / 99.9 % del lienzo con focoEnLienzo 0.50 / 0.55 / 0.58 / 0.62 / 0.67; 0.58 deja 7.5 % |
-| ↳ en la exhibition el teléfono llena la caja: `focoEnLienzo` 0.85 | el video de la exhibition ES la caja entera de la card, así que el corte del zoom cae en su borde | RUNTIME: con el 0.58 de X el cuerpo llegaba al 70.9 % de la caja y quedaba un 29.1 % de card vacía debajo del teléfono; con 0.85 llega al 97.9 % y la píldora entra entera |
-| ↳ la card sirve la grabación del tema del lector | `Piece` suma `videoOscuro` y `videoHevcOscuro`; `parts.tsx` los elige con `prefers-color-scheme` y remonta el `<video>` con `key`, porque mover el `src` de un `<source>` ya montado no recarga nada sin un `load()`. `pieza:video … --oscuro` escribe ese par | no contradice la decisión del 2026-09-05 ("que haya solo un fondo, el del lugar que da la exhibition"): aquella es sobre el FONDO de la card, que sigue siendo uno solo, y esta sobre lo que se ve adentro del teléfono. Hold to commit es la primera pieza cuyo contenido cambia con la apariencia del sistema, y la diferencia no es cosmética: en claro la píldora pierde el brillo que la llena en oscuro |
-| ↳ la grabación es un solo gesto | la sonda `demo` era reposo, hold abandonado a los 700 ms, hold completo y reinicio; ahora es reposo, hold completo y reinicio, y el máster pasó de 6.65 a 4.65 s más 0.8 de cola | Vito, 2026-09-08: "que en la grabación se ejecute todo de una, sacá esa parte del principio que se aprieta el botón y se corta en la mitad". La retirada sigue en la pieza y en las notas, contada como propiedad del botón: cortarse a la mitad antes de haber mostrado una vez qué pasa al final se lee como un error |
-| ↳ el video termina cuando termina la animación | el máster sigue entero (5.45 s, con el reinicio); lo que se corta es la ENTREGA, a 4.10 s, y se corta UNA VEZ: `pnpm assets --duracion=4.10` deja el clip ya cortado en `public/` y de ahí salen los seis videos, los cuatro de X y los dos pares de la exhibition | Vito, 2026-09-08: "hacé que el video se corte antes, o sea cuando termina la animación y listo, bien natural, que no se espere a volver", y después "que haya más tiempo luego que termine". RUNTIME (`quietud.py`, diferencia entre cuadros consecutivos en la franja de abajo entera, que es por donde sale la ráfaga): las dos apariencias se quedan quietas a los 2.73 y 2.78 s —"✓ Order Placed" enfocado y la ráfaga apagada— y siguen quietas hasta los **4.333 en las dos**, que es cuando el reinicio se mueve. 4.10 deja 1.35 s con el resultado en pantalla y 0.23 de margen. La medición fija el techo; el aire lo eligió él |
-| ↳ y se corta ANTES de renderizar, no después | primero se rendía entero y se cortaba el WebM y el .mov con `-c copy`; ahora el corte está en el clip | un `-c copy` sólo puede cortar en un cuadro clave, y dejaba el WebM en 4.121 contra 4.100 del .mov: los dos formatos del mismo video duraban distinto. Cortando el clip los dos dan 246 cuadros exactos, se rinde un 25 % menos y desaparece un paso. El `--duracion` de `pnpm assets` lleva el recibo |
-| Las notas de la pieza | `src/components/pieces/hold-to-commit/notes.tsx`: Anatomy, Performance y Use cases, 12 párrafos. Sin línea de descripción, que es la primera regla: el título ya dice qué es el gesto | el procedimiento entero es AGENTS.md › Cómo se escriben la línea y las notas. Las fuentes se leyeron servidas el 2026-09-08: josh puckett (19 párrafos suyos dan mediana de 25 palabras y 2 oraciones), benji, y la guía de interfaz de Apple por su API de documentación, que entra como explicación y sin nombrarla |
-| ↳ lo que las notas NO afirman | que el hold mida un segundo con 4 ms de error, aunque la fila de rendimiento lo tenga | esa medición sale de la sonda `auto`, que dispara `apretar` y `completar` con dos `setTimeout` de JavaScript: mide la puntería de esos timers, no el reloj del reconocedor de gestos. Lo que sí se afirma es lo que la medición prueba: que el reconocedor y el relleno leen la misma constante, y los cuadros perdidos. Y nada sobre un teléfono real, que la sección dice con todas las letras |
-| El botón revisado contra las guías de interfaz | el botón se aparta del clip en tres cosas: el anillo de 1 pt no se dibuja y en su lugar va una sombra de dos capas transparentes; "✓ Order Placed" se corre 6.6 pt a la izquierda (`LABEL.correccionOptica`); y la página pasa de blanco puro al gris agrupado de iOS | pedido del 2026-09-08 ("corregí todo esto para cumplir tal cual dice better-ui") |
-| ↳ y la perilla que sirvió para decidirlo se borró | las dos versiones convivieron detrás de un chip (el archivo acabado.ts, con los valores referencia y revisado) hasta que se eligió una. El 2026-09-09 se borró el archivo entero y con él el tipo, el chip, el parámetro `?acabado=`, la prop que bajaba por tres componentes y el código del anillo | primero quedó el chip fijo en `revisado`, y así era una perilla con una sola posición: la mitad del código existía para una rama que ya no se elige. El argumento para conservarlo era que `referencia` es "el registro de qué dice el clip", y ese registro no necesita código: los tres números están en esta bitácora y los recibos, arriba de `LABEL.correccionOptica` y donde estaba `COLOR.anillo`, en `medidas.ts`. Un valor medido se guarda escrito, no ejecutable |
-| ↳ el anillo era un contorno dibujado, no un borde | RUNTIME (`optico.py`, ocho puntos del borde de arriba, en reposo): el anillo se despega **+54.5** de lo que tiene a 2 pt afuera y **+16** de lo que tiene a 2 pt adentro; en el clip, **+4** y **−2**. O sea que en Opal el borde es una rampa y en el nuestro una línea clara por encima de sus dos vecinos | la prueba de interface-craft ("do outlines add structure or noise?") la contesta la medición, y better-ui da el reemplazo: "where a border exists only to create depth, prefer layered transparent box-shadow values". Ojo con la sombra: **`boxShadow` sigue la forma de la VISTA**, y sin `borderRadius` dibujaba una caja de esquinas vivas alrededor de la cápsula ("se nota todo el box del componente, muy feo") |
-| ↳ el label con ícono no estaba centrado para el ojo | RUNTIME (`optico.py`, tinta por columna sobre el pill blanco del commit; Δ contra el centro del pill): la caja de la fila cae en +0.83, pero el TEXTO queda en **+13.67 pt** y el centroide de tinta en +6.60. En el clip, +0.74 / +13.84 / +8.35: reproducíamos a Opal con 0.2 pt de diferencia, y Opal tampoco lo corrige | Vito, 2026-09-08: "revisá si respeta lo que dice better-ui sobre que algo esté centrado para el ojo, cuando hay icon me da esa sensación". La corrección es el Δ del centroide anulado, −6.6 pt, y sólo mueve al label que tiene tilde. Verificado: Δ −0.06. Se probó también centrar el texto (−13.7, Δ 0.00) y se descartó: el tilde queda colgando al margen |
-| ↳ el blanco en claro se arregla en la página, no en el botón | RUNTIME: en claro, al completar, el interior del pill medía 229.9 contra una ficha de 245.5, o sea **15.6 de contraste**: dejaba de existir como superficie. La primera solución fue un velo oscuro sobre el relleno, que llevó el contraste a 40.9 | Vito, 2026-09-08: "no me gusta cómo resolviste lo del color, de última cambiá un poco el color del fondo, ya que no es lo principal acá". Tenía razón: ensuciaba al protagonista para arreglar el escenario. El velo se sacó entero, el botón vuelve a blanco pleno como la referencia, y la página pasó a `systemGroupedBackground`. Vale como regla: **cuando el protagonista y el escenario no se separan, se mueve el escenario** |
-| ↳ el fondo termina ARRIBA del botón | `fondos/accion.tsx`: el `paddingBottom` estaba en el contenido, que sólo agrega aire al final; ahora acota el VIEWPORT del `ScrollView`. Y el contenido termina antes de ese borde: salieron la lista con miniaturas y la última grilla | Vito, 2026-09-08: "justo la parte de abajo del botón coincide con algo de abajo, aparentando que es más grande el botón". Era una fila del esqueleto cruzando el borde de abajo del pill. RUNTIME: con una fila de lista el contenido terminaba en 830.7 pt con el borde en 831, o sea cortada al ras; sin ella termina en 742 y sobran 89 pt. Quedan 121 pt de respiro hasta el pill, a propósito: una fila entera no entra |
-| Las notas, mucho más cortas | `src/components/pieces/hold-to-commit/notes.tsx`: de 750 palabras y 12 párrafos a **396 y 9**, un 47 %, en dos pasadas y sumando tres hechos en el medio. Salieron el reinicio (es del taller), cómo está hecho el relleno y el label (implementación), la latencia desmenuzada y la lista de acciones de ejemplo | pedido del 2026-09-08 ("hacela muchísima más corta, y fiel al código"). De los skills entra sólo lo que un lector puede ver: hilo de UI, sólo transform y opacity, reduce motion, Dynamic Type, la háptica que nunca es el único feedback, el reconocedor y el relleno leyendo una sola constante, la interrupción y la alineación óptica de better-interface, y la sombra en vez del contorno, que es lo que contesta la lente de crítica de interface-craft. NO entra lo que es craft del código —storyboard, etapa única, data-driven— porque habla de la fuente y no de la pieza |
-| ↳ los dos hechos que las notas ganaron | "The capsule has no outline: its edge is its own shape, lifted by a shadow on light backgrounds" y "The checkmark and the words are centered by eye, not by box" | son las dos correcciones del acabado, contadas desde lo que se ve. La frase de la sombra es CONDICIONAL a propósito: una sombra negra sobre el fondo negro del modo oscuro no se ve, así que decir que la sombra lleva el borde sería falso en la mitad de los casos |
-| ↳ la háptica dejó de llamarse "tick" | ahora son "detents", que es el nombre que el código ya usaba (`DETENTES` en `haptica.ts`) | con el tilde nombrado en el texto público, "tick" nombraba dos cosas: el glifo (que en inglés es un tick) y el pulso háptico. `precise-naming` lo cazó. "Detent" es el término de especificación —un tope mecánico que se siente— y el glifo se queda con "checkmark" |
-| ↳ los cuadros perdidos salieron del texto | eran ciertos —0 en iOS, 1 de 416 en Android con el hilo bloqueado— pero son de simulador y de emulador | contarlos invita a leerlos como si fueran de un teléfono. Queda el hecho que se sostiene: lo que se ve no depende del hilo de JavaScript. Los números siguen en esta bitácora |
-| ↳ el teléfono entra como prueba, no como medición | el 2026-09-08 se pidió decir que se había probado en un teléfono y NO se escribió, porque no había con qué sostenerlo. El 2026-09-09 Vito lo confirmó ("ya testeado en celular real") y entró: "Measured on the iOS Simulator and an Android emulator, and tested on a phone, where the haptic can be felt" | **los dos verbos son distintos a propósito.** Los números siguen atribuidos a donde se midieron; del teléfono sale lo único que sólo se puede saber ahí. El simulador no vibra —está en el encabezado de `haptica.ts`, y por eso toda esa pista está marcada SIN RECIBO—, así que la háptica es la parte de la pieza que no se puede juzgar de otra manera. Lo que sigue sin escribirse es un cuadro por segundo o una latencia medidos en un teléfono: esos no existen |
-| ↳ dos recibos del taller habían quedado viejos | `haptica.ts` decía que el último detente cae justo antes del salto a negro del label; el último es 0.985 y el salto arranca en 0.965, así que el que cae ahí es el ANTEÚLTIMO (0.955). Y `hold-to-commit.tsx` contaba el recorrido del frente como 3 % → 94 % en tres lugares, cuando `medidas.ts` dice `arranque` .045 y `recorrido` .91, o sea 4.5 % → 95.5 % | los dos son comentarios, no código: nada se veía mal en pantalla. Es el modo en que un recibo falla —el valor se corrige en un lado y la explicación se queda en el otro— y por eso auditar los comentarios contra el código es parte de cerrar una pieza, no un lujo |
-| La regla de nombres, como skill | `~/.claude/skills/precise-naming/`: la regla del vocabulario de una especificación de IBM de 1972, con las tres preguntas para aplicarla, la tabla de correcciones, la parte de texto público, y cuándo NO se aplica (`useEffect`, `stdin`, `SIGKILL` se quedan) | pedido del 2026-09-08. Corrida sobre lo escrito ese mismo día encontró tres nombres míos: look.ts → acabado.ts ("look" es jerga de diseño, y en inglés en una carpeta que nombra en castellano), pulido | fiel → revisado | referencia ("pulido" nombra una sensación), y EMPUJON_OPTICO → CORRECCION_OPTICA. Y una colisión: `RECETAS` existía dos veces en la misma carpeta, para dos cosas distintas |
-| Se volvió a grabar, y los seis videos son nuevos | dos tomas nuevas del simulador con el botón revisado, dos másters, los cuatro de X y los dos pares con alfa de la exhibition | los videos publicados eran de antes del acabado `revisado`: mostraban el anillo, la página blanca y el label sin corregir, y el esqueleto cruzando el borde de abajo del pill. Un video que no muestra la pieza que está publicada es peor que no tener video. Las dos tomas nuevas coinciden en el commit dentro de **16 ms** (1.483 y 1.467 s desde el corte, contra el mínimo de 1.2 que pide el taller) |
-| ↳ y la barra de estado se mira antes de gastar dos tomas | la primera captura de control traía el "◀ Safari" que iOS deja después de abrir la app desde un link; se va con un `terminate` + `launch` de más | no lo tenía ninguno de los másters viejos, así que era del estado del simulador y no del script. Cuesta 15 segundos comprobarlo y una toma entera arreglarlo después |
-| El cómo-se-hace no había viajado con el cambio | las decisiones estaban todas en esta bitácora y los tres `AGENTS.md` seguían describiendo el camino de una sola apariencia. El de la raíz decía, con todas las letras, que **"no hay versiones por tema"** | y sí las hay desde esta pieza. La bitácora guarda lo que se decidió; el `AGENTS.md` es donde alguien mira para HACERLO, y ahí la frase vieja no es una omisión, es una instrucción equivocada. Cerrado en los tres: la distinción entre el fondo de la card (uno) y la grabación (dos), `pnpm pieza:video` en su forma de dos apariencias, `--duracion` con su recibo, y la miga de pan de la barra de estado en la sección de grabar |
-| ↳ `--hasta` pasó a llamarse `--duracion` | el flag de `pnpm assets` que corta la entrega | `hasta` ya nombraba otros dos instantes en el mismo camino: el arranque de la salida de cámara en `parametros.ts` (3.00, y `9999` para "no sale") y el `--hasta` de `pnpm mockup` en el taller. Tres instantes con una palabra es justo lo que la regla de nombres prohíbe, y esto además no es un instante: es una duración, la que va al `-t` de ffmpeg. Verificado después del renombre: 246 cuadros, 4.100 s |
+| The `stock` background (the chosen one) | pure black and a single gray, `#2A2A2A`, for everything: bars, the chart's curve and the range pill (with a black bar inside). No color | RUNTIME off the screenshot: background (0,0,0); the line and the pill are lime (204,255,0), and it got measured but is NOT used: the first version had them in lime and Vito asked "don't add colors to the background and make it much more skeleton". Nothing competes with the button |
+| The head | title 97 × 28 and price 152 × 28 on two lines of 41; the (i) of 20 pt at 12 from the price; the change 8 pt below: 147 pt in lime + 40 in gray, bars of 14 | RUNTIME: "Crypto" 96.9 pt of ink, "$1,500.00" 152, ⓘ 20.7; the price starts 39.7 pt under the title; everything 33.5 to 34 pt from the edge |
+| The chart | one Catmull-Rom through eight control points, no noise, sampled at 43 points: 42 segments of 3 pt rotated from their end, from 2 % to 72.6 % of the width, in a band of 76 pt; 68 pt under the change and 42 above the range; a marker of 8 at the maximum | RUNTIME: the line runs from 8.3 pt to 292 out of 402, height 76.6, thickness ~2 pt (in the skeleton it goes to 3). The first version followed the clip's jagged shape with noise; "much more skeleton" smoothed it out. No Skia and no SVG: still views, nothing per frame |
+| The range selector | seven bars between 47 and 363 pt spread evenly, the second one inside a lime pill of 31 × 22 with radius 7 | RUNTIME: segments at 47 / 95 / 149 / 197 / 245 / 294 / 349; pill 30.6 × 21.5, corner ~7; caps of 8.3 pt → bars of 9 |
+| What goes below the range | a section header and a data grid in two columns (three rows of 44 with a hairline to the margin), and a second section of three lines of running text; all inside a container that gets clipped on shorter screens | ASSUMED: the screenshot ends at the selector. The button sits outside the container that gets clipped. The first capture had the price and the change centered: a `justifyContent: center` on a row centers across, not down |
+| The buy button | "Hold to Buy" / "Keep Holding..." / "✓ Order Placed", the same semibold 17 and the same blurred copies regenerated | the ink widths that fixed the weight come from Opal's texts and hold just the same: no change of font, size or weight. `generate.swift` keeps the originals so you can go back |
+| The reset is a fade, not a sweep | at 5 s: (1) the white veil and the fill go out in 400 ms with ease-out while "✓ Order Placed" leaves in 250; (2) with the fill already invisible, the progress snaps back to 0 and "Hold to Buy" comes in over 300, in white | Vito (2026-09-04): "make the transition back to the initial state clean, right now it's terrible". Before, the progress went back to 0 in 300 ms and you saw the fill retreat whole while the white went out and the label crossed, all at once. RUNTIME (simctl video at 15 fps, `cmp/reinicio-tira.png`): the inside of the pill drops 217 → 177 → 141 → 104 → 74 → 58 evenly across the whole capsule, with no front; the resting label only comes in after that. The same trick as reduce motion: the geometry changes only when it cannot be seen |
+| Light and dark mode in the `stock` background | three iOS system colors through `PlatformColor`, dynamic: `systemBackground` (background), `systemFill` (bars, curve and pill) and `separator` (hairlines). The status bar on `auto` with this background | requested on 2026-09-04 ("add light mode and dark mode to the background"). SOURCE: UIKit's system color table: systemFill is (120,120,128) at 36 % in dark and at 20 % in light. RUNTIME in the simulator (`cmp/modos-tablero.png`): dark background (0,0,0) and bar (43,43,46), the gray measured for `blocks` to the level, so dark did not change; light background (255,255,255) and bar (228,228,230). Without a single scheme `if`: the colors change on their own, live. The opaque button does not change with the mode: the measured pill is dark always |
+| The button in Liquid Glass, as an option | `material.ts`: `opaque` (the measured pill), `glass`, and since 2026-09-07 also a third one, clear, the same glass with Apple's `clear` style, more transparent and with the lens more visible (asked for when the question came up of whether the glass had an intensity: it does not, it has two styles and a tint; what changes how much you notice it is the contrast of what passes underneath). `glass`: `GlassView` from `expo-glass-effect` over `UIGlassEffect`, **`regular`, untinted and interactive**, as the CONTAINER of the pill; inside it, the view that clips the textures, transparent. Nothing from Opal on top: no resting sheen, no veiled tip, no ring, and no press scale (the material brings its own bulge under the finger). The hold's white fill still sweeps over it. Black label in light and white in dark. Selector on (`'choose'`) to look at it live | requested on 2026-09-04, in two steps. The first one ("I want to see an option with a liquid glass button") gave a glass behind the clip path with Opal's sheen on top, over a flat background and not responding to the finger: the native material, but indistinguishable from a painted capsule. Vito: "I want Apple's native liquid glass, well done, the way one of the best apps in the world would ship it". What makes the material show and feel, according to Apple's guide (HIG › Materials, WWDC25): `regular` glass with no tint (the prominent tint turns it almost opaque), interactive, and CONTENT PASSING UNDERNEATH, because the glass only reads when it refracts something. So the `stock` background started scrolling under the button, which floats. Traps from `GLASS.md` respected: no animated opacity on top and no clipping on the glass or its ancestors (the child clips itself). The module is asked for with a `require` inside a try: without it, it falls back to a flat translucent capsule. RUNTIME (`cmp/glass-tablero.png`, `cmp/glass-bandas.png`): in light and in dark, the list's bars show through the glass with the lens at the edge; rest, halfway through the hold and "✓ Order Placed" |
+| The `stock` background scrolls under the button | a full-screen `ScrollView`, longer than the screen (two grids, a paragraph and a list of rows with a thumbnail, all ASSUMED), with a `paddingBottom` the height of the button's zone; the button floats at the same distance from the edge as before | that is how a primary button floats in iOS 26 and that is how the glass shows. With the opaque pill, the content passes underneath and the pill covers it, like any iOS bar |
+| The hold lasts 1000 ms | `HOLD.duration` = 1000; the LongPress reads the same number | requested on 2026-09-07, in two steps ("make it take 1500 ms in total", then "cut the time down to 1 s"). What was measured in the clip is 2000 (121 frames from the press to the burst) and it stays in the receipt so you can go back. The front goes from 174 to 348 pt/s; sparks, haptic detents and the label's color are a function of the progress and compress on their own |
+| Apple Pay's sound on complete, timed right | `sound.ts` + `media/purchase.wav`: `payment_success.caf` from the iOS 26.2 runtime, Apple Pay's success sound (paying, confirming a purchase or an App Store install), turned into WAV 44.1 kHz mono and raised from −11 to −1 dBFS of peak; player warmed up at volume 1, fired 60 ms before the end of the hold from the same clock as the fill (`LEAD_MS`), so the first note lands on the burst's frame and the second one, the "ding", 120 ms later while the pill whitens; it respects the silent switch and does not pause other apps | requested on 2026-09-07 ("leave Apple's one from downloading an app, timed right"), at the end of ten rounds: an arpeggio, a bell, a coin, this one, Berry's little bird in three versions, a voice in two, and "take out sound of any kind". RUNTIME (`.context/hold-to-commit/audio/medir-sonido.py`): D6 (1176 Hz) 120 ms and D7 (2352 Hz) decaying 1.1 dB every 20 ms up to 700 ms. **It is an Apple asset and it does not get redistributed**: if the repo goes public, it does not travel. What I learned along the way: reusing a player with `seekTo(0)` + `play()` drops hits; creating it on the spot takes too long, so it gets warmed up; a modulation between 20 and 150 Hz, or two nearby frequencies, sound harsh; the level is measured in LUFS. `expo-audio` 57.0.4, with a `require` inside a try because the simulator's dev client does not carry it |
+| ↳ clear goes out | `material.ts` goes back to two materials, `opaque` and `glass`; the glass capsule is always `regular` | requested on 2026-09-07 ("take out the clear option"), the same day it came in. What was seen: over the `stock` background, gray and flat, `clear` is barely distinguishable from `regular` and loses the frosting that makes the label legible; it is the style Apple reserves for photos and video. How to go back stays in the file's receipt: `glassEffectStyle="clear"` on the capsule |
+| Light mode for real, and nothing painted on the button's background | the screen decides the SCHEME (only `stock` follows the system; Opal's backgrounds are dark always) and the button, the chips and the status bar receive it. In light: the pill stays dark (#1E1E1E, the black primary button of iOS and of Robinhood) but with no resting sheen and no veiled tip; a black ring at 10 % (it shows over the commit's white pill, not over the dark one); a burst in the pill's color; chips with iOS's `systemFill` and `secondaryLabel`. Receipt in `LIGHT` (measurements.ts) | requested on 2026-09-07 while looking at the simulator in light: "adapt it properly to light mode, it all looks awful to me, even the picker, and everything about the button" and "take the things out of the button's background". What you saw: white chips at 6 % over white (invisible), gray text from the dark screen, and a dark pill with Opal's teal→green sheen as the only color on a screen that, by request, has none. All ASSUMED (the clip is dark), derived from the system colors. RUNTIME (`cmp/claro-tablero.png`): rest, halfway through the hold, commit and burst in light; commit and rest in dark, which did not change (Opal's sheen is still there) |
+| Android, exactly like iOS | four things that were iOS only: (1) the `stock` background's system colors stop being asked for with `PlatformColor` and get written with their UIKit values per scheme (`PALETTE`); (2) the label's blurred copies on Android are the same `Text` with `filter: [{ blur: σ }]` (σ 2.5 and 1.0, the ones from `generate.swift`) from API 31 on, and before that the sharp ones crossfade; (3) the checkmark is Material Symbols' `check` at 700 (`@expo-google-fonts/material-symbols` 0.4.44, exact); (4) `includeFontPadding: false` on the text and `needsOffscreenAlphaCompositing` on the fill that fades | requested on 2026-09-07 ("make it work exactly the way it works on Android and iOS"). SOURCE for each trap in `native/AGENTS.md` 22 to 24 and 28: `PlatformColor` with UIKit names returns 0 = transparent on Android (`FabricUIManager.java:573`); `SymbolView` with a string name draws nothing (`SymbolView.tsx:32`); `filter`'s blur is `RenderEffect` from API 31 (`BaseViewManager.java:558`); Android composites the children of a view with opacity one by one. On iOS the pixels do not change: the values written are the ones `PlatformColor` was giving (bar (43,43,46) in dark, (228,228,230) in light). RUNTIME on a Pixel 9 / Android 16 emulator with Expo Go 57.0.9 installed on purpose (`cmp/android-tablero.png`): rest, hold, commit with the blurred copy coming into focus, settled and reset; and `sim/android-oscuro.png` in dark. This Mac did not have Android: the JDK and the command-line tools went in with Homebrew (how, in `native/AGENTS.md › Testing on Android`) |
+| Performance: measured under the load of a real app | two new tools, scaffolding for the piece: `load.tsx` (JS busy 60 % of the time parsing a 40 KB JSON every 20 ms; the detail page re-rendering at 10 Hz; both; or JS blocked 150 ms at a time) and `meter.tsx` (UI thread frames per phase of the sequence, JS thread lag, and marks on both threads that give the real latency of the haptics and the sound). Knobs in `probe.ts` (`LOAD`, `MEASURE`, `RECEIVER`) or through the URL. And one change in the button: the RESET moves from JS's `setTimeout` to a `withDelay` on UI | requested on 2026-09-07 ("improve the performance a whole lot [...] simulate the load of a real app to test its performance"). RUNTIME, the whole `auto` sequence (press → commit → 5 s → reset), 60 Hz: **iOS** (simulator, dev bundle): 0 frames dropped out of ~416 under `all` and under `heavy`; hold 1000 to 1004 ms; reset at 5030 ± 4 ms from the commit with JS blocked (before, on JS, it waited for JS to free up). **Android** (emulator, production bundle): 0 dropped under `all`, 1 out of 416 under `heavy`, hold 999 to 1003. What does wait is whatever crosses to JS: under `heavy` the first haptic tick arrives 66 to 92 ms late and the sound 50 ms (the detents and the sound leave the UI clock at exactly the right instant; JS attends to them when it can). Without a native module that cannot be moved in Expo Go, and no plausible load (`all`) delays it by more than 12 ms. The measurement uncovered two bugs of our own that are gone (AGENTS 25 and 26): the reset on UI captured a `const` from further down, and the marks from JS threw an error in the animation queue. And one emulator trap (AGENTS 27): in dev it drops 47 frames out of 372 with no load; in production, 0 to 2 |
+| Only transform and opacity: the label's color is opacity too | "Hold to Buy" and "Keep Holding..." exist three times over, in the three measured inks (rest, greenish gray #202B24, black), each batch with a fixed color and an opacity that is the PARTITION derived from the progress (white 1−t₁, dark t₁(1−t₂), black t₂). No view animates `color` or `tintColor` | requested on 2026-09-07 ("is there any chance of getting the same thing animating only transform and opacity?"). Two identical texts stacked and crossfaded by opacity give exactly the interpolation of the color in the covered pixels: white·(1−t) + dark·t. Each batch carries `needsOffscreenAlphaCompositing` so that Android does not composite its three layers one by one (trap 28). RUNTIME (`cmp/tilde-contextual-tablero.png`, last row): at p = .62 the label comes out greenish gray as before; the whole sequence under `heavy`, 0 frames dropped on iOS (`meter.tsx`) |
+| Springs, with Apple's two parameters, in the `skill` recipe | `recipe.ts`: a `Movement` is either by time with a curve or a spring with DURATION and BOUNCE, the parameters of SwiftUI's `Spring(duration:bounce:)` (WWDC23 "Animate with springs"), which Reanimated takes as `duration` + `dampingRatio` (= 1 − bounce). A spring wherever there was a finger: press 150 bounce 0, return 400 bounce 0, the front's retreat 400 bounce 0 clamped at 0, commit 400 bounce 0. What has no finger (labels, veil, fade) stays by time with the table's beziers. `RECIPE` moves to `skill`; the measured `clip` one stays whole, one `?recipe=clip` away | requested on 2026-09-07 ("can a spring be implemented? how would Apple do it?"). SOURCE: animate-expo § 5 ("If a finger was involved, use a spring"; table "Default settle, no overshoot: {duration: 400, dampingRatio: 1}"; "bounce only when the gesture carried momentum"); Apple: bounce 0 is `.smooth`, the default of their controls, and a hold carries no momentum. `overshootClamping` where the value has an edge (§ 5: "must not pass a hard edge"). One receipt from the implementation: the constructors `timing()` and `spring()` get called from worklets and carry `'worklet'` (trap 29). RUNTIME (`auto`, iOS, `skill` recipe): hold 1002 to 1004 ms, reset at 5028 to 5031, 0 frames dropped under `heavy`, 2 out of 414 with no load (one in the burst, one in the fade) |
+| The checkmark of "Order Placed" comes in with better-ui's contextual icon technique | in the `skill` recipe the checkmark comes in ON ITS OWN: opacity 0 → 1, scale .25 → 1 and blur 4 → 0 over a 300 ms spring with bounce 0; the blur is two layers, the PNG at σ 4 pt (`checkmark-blurred@3x.png`, or the `filter` on Android) and the sharp one, with the opacity split q(1−q) and q². The text keeps its blur-replace, with new PNGs that have no checkmark (`placed-blurred-*`). So that the checkmark falls where the sharp row puts it, its layer is that same row with the text invisible | requested on 2026-09-07 ("use better-ui's contextual icon technique"). SOURCE: better-ui "Contextual icon animations": "scale 0.25 to 1, opacity 0 to 1, blur 4px to 0px", "spring, duration 0.3, bounce 0". The `clip` recipe does not change: there the checkmark comes in glued to the text, as in Opal. RUNTIME: `cmp/tilde-contextual-tablero.png` (probe `checkmark=` at .25, .5, .75 and 1: the checkmark grows and comes into focus without moving the text) and `cmp/android-skill-tablero.png` (a real hold on the emulator with Material's `check`) |
+| A storyboard above the button, and one single stage | `hold-to-commit.tsx` opens with interface-craft's ASCII storyboard (ms → event, the `skill` recipe with the `clip` one in brackets) and the button's state is ONE integer, `stage` (rest, hold, sounding, commit, reset): every worklet reads it to know whether it is its turn. Before there were two flags, done and sounded | requested on 2026-09-07 ("comply with everything interface-craft has in yellow"): a readable storyboard, a single state, spring-first (the row above). Along the way, `components/pieces/open.ts`: with two pieces in the workshop the index no longer redirects, and the probes and `pnpm record` need to start on the piece; the slug gets written there and the index redirects (it stays `undefined` in the repo). And VoiceOver's hint said "two seconds" with a hold of one: now it comes out of `HOLD.duration` |
+| ↳ the text and the ending go back to the measured timings | the `skill` recipe takes from `CROSSFADE`, `COMMIT` and `RESET` the label's crossfades (press 360/48; release 600 linear +150 / 250 +80; commit 450 linear +210 / 280 +40; reset 300/250), the veil (330), the slide (250 + 400) and the fade (400), with the measured curve; it keeps the springs where there is a finger and the contextual checkmark. The § 5 values (200/150 with no delays, 250, 200, 200) stay written down in `recipe.ts` | Vito, 2026-09-07, with the `skill` recipe just switched on: "I don't like how the animation turned out now, the text changes too abruptly and the animation at the end is too fast". The abruptness was exactly what the table prescribes for a "small state change"; what had been approved before were the clip's timings. The reference is a floor: you touch the knobs he named, not the architecture |
+| ↳ and the active recipe goes back to `clip` | `RECIPE = 'clip'`: the measured one, the one from commit `679b0db`. The `skill` one (springs, contextual checkmark) stays whole, one `?recipe=skill` away | Vito, 2026-09-07: "it's different from before, especially the ending, check it and leave it the way it was". With `skill` the pill comes back on complete with a 400 ms spring instead of the measured 25 % jump plus 220 ms, and the checkmark comes in on its own. RUNTIME: with `clip` active, the four state probes (rest, 0.5, commit, crossfade-commit=150) give infinite PSNR against `sim/b-claro-*.png`, captured that morning with the previous code: pixel for pixel the same, whole screen. The label with three inks and the single stage change nothing visible: it is the same choreography by another road |
+| ↳ the checkmark and "Order Placed" go hand in hand, guaranteed | the contextual checkmark loses its own clock: it reads `pPlaced`, the text's presence, and its two layers carry the SAME partition of the staircase (the sharp one, `sharp`; the blurred one, `wide + narrow`). better-ui's scale .25 → 1 stays, with the same ease-out as the text's. In the active recipe, `clip`, the checkmark was already inside the row: they are literally the same layers | Vito, 2026-09-07: "do the icon and the Order Placed go hand in hand at the same time? Make sure of it". There were TWO ways to come apart and both are closed: a 300 ms spring of its own against the text's 450 + 210 (the checkmark arrived first), and then, with the clock already shared, a different opacity ramp (q against the staircase, which saturates at q = .4: the checkmark arrived last). RUNTIME (`cmp/tilde-de-la-mano.png`, probe `checkmark=` at .10/.20/.30/.40/.60/1, measured with `tilde.py` as ink, Σ 255−luminance, over the white pill, normalized against the one at q = 1): in `clip` the checkmark and the text run within ±1.5 percentage points at every q; in `skill` they used to run 13 % against 74 % at q = .30, and now 34 % against 74 %, which is exactly the area the checkmark is missing for being at 63 % of its size. The difference that is left is the prescribed growth, not a delay. And `clip` did not move a pixel: commit, `crossfade-commit=150` and progress .5 give infinite PSNR against the same state pulled out of the code at `898eece` |
+| The piece recorded and published in the exhibition, in light and in dark | two masters in `.context/mockup/master/hold-to-commit-{oscuro,claro}.mp4`, 5.45 s each; four videos for X (`mockup/out/hold-to-commit-<appearance>-<background>.mp4`) and two pairs with alpha for the card. The choreography is the `demo` probe (`hold-to-commit.tsx`), which calls the SAME worklets as the gesture (`press`, `complete`, `reset`), so curves, timings, haptics and sound are the ones from the real path. `MATERIAL = 'opaque'`, which along the way closes the decision that had been open since 2026-09-07 and takes the chips off the screen | requested on 2026-09-08 ("record it and upload it to library, I want dark and light mode, in opaque mode, respecting zooms"). The mode comes out of `useColorScheme`, so the two takes are the same code with `simctl ui appearance`. RUNTIME: the two takes aligned BY THE COMMIT end up 33 ms apart (`cortar.py`) |
+| ↳ the cut gets measured INSIDE the pill, not in the band | `cortar.py` averages an 800×70 px window that is all pill in both modes | RUNTIME: with the 1080×200 band that was used first, in light the white detail page around the button dominates it and the cut came out 200 ms off from the dark one; in the video for X the two appearances were showing different instants of the choreography. It showed up in a board of the four commit frames, not in the numbers |
+| ↳ the camera looks at the pill, and the framing is measured | `parameters.ts`, `HOLD_TO_COMMIT`: `focus` 0.9105 (the center of the pill sits at 2650 of the screen's 2868 px, which is 91.05 % of the BODY with the bezel measured in `geometry.ts`) and `focusOnCanvas` 0.58 for X. Everything else (bezel, size, shadow, zooms, curves) is what was measured in @nater02's reference and it was not touched | the criterion for the framing is not taste: leave the same air below that the reference leaves above (`airAbove`, 7.2 %). RUNTIME: the shadow ends at 84.4 / 89.4 / 92.5 / 96.4 / 99.9 % of the canvas with focusOnCanvas 0.50 / 0.55 / 0.58 / 0.62 / 0.67; 0.58 leaves 7.5 % |
+| ↳ in the exhibition the phone fills the box: `focusOnCanvas` 0.85 | the exhibition's video IS the card's whole box, so the zoom's cut falls on its edge | RUNTIME: with X's 0.58 the body reached 70.9 % of the box and left 29.1 % of empty card under the phone; with 0.85 it reaches 97.9 % and the pill fits whole |
+| ↳ the card serves the recording of the reader's theme | `Piece` adds `videoDark` and `videoHevcDark`; `parts.tsx` picks them with `prefers-color-scheme` and remounts the `<video>` with `key`, because moving the `src` of a `<source>` that is already mounted reloads nothing without a `load()`. `piece:video … --dark` writes that pair | it does not contradict the decision of 2026-09-05 ("let there be only one background, the one the exhibition gives the place"): that one is about the card's BACKGROUND, which is still a single one, and this one is about what you see inside the phone. Hold to commit is the first piece whose content changes with the system's appearance, and the difference is not cosmetic: in light the pill loses the sheen that fills it in dark |
+| ↳ the recording is a single gesture | the `demo` probe used to be rest, a hold abandoned at 700 ms, a full hold and reset; now it is rest, a full hold and reset, and the master went from 6.65 to 4.65 s plus 0.8 of tail | Vito, 2026-09-08: "make the recording run everything in one go, take out that part at the beginning where the button is pressed and it cuts halfway". The retreat is still in the piece and in the notes, told as a property of the button: cutting itself in half before having shown once what happens at the end reads as a bug |
+| ↳ the video ends when the animation ends | the master stays whole (5.45 s, with the reset); what gets cut is the DELIVERY, at 4.10 s, and it gets cut ONCE: `pnpm assets --duration=4.10` leaves the clip already cut in `public/` and the six videos come out of there, the four for X and the two pairs for the exhibition | Vito, 2026-09-08: "make the video cut earlier, meaning when the animation ends and that's it, nice and natural, don't wait for it to go back", and later "let there be more time after it ends". RUNTIME (`quietud.py`, the difference between consecutive frames across the whole bottom strip, which is where the burst comes out): the two appearances go still at 2.73 and 2.78 s ("✓ Order Placed" in focus and the burst out) and stay still until **4.333 in both**, which is when the reset moves. 4.10 leaves 1.35 s with the result on screen and 0.23 of margin. The measurement fixes the ceiling; the air was his pick |
+| ↳ and the cut happens BEFORE rendering, not after | at first it rendered whole and the WebM and the .mov got cut with `-c copy`; now the cut is in the clip | a `-c copy` can only cut on a key frame, and it left the WebM at 4.121 against the .mov's 4.100: the two formats of the same video lasted different amounts. Cutting the clip, both give exactly 246 frames, 25 % less gets rendered and one step disappears. `pnpm assets`'s `--duration` carries the receipt |
+| The piece's notes | `src/components/pieces/hold-to-commit/notes.tsx`: Anatomy, Performance and Use cases, 12 paragraphs. No description line, which is the first rule: the title already says what the gesture is | the whole procedure is AGENTS.md › How the line and the notes are written. The sources were read as served on 2026-09-08: josh puckett (19 of his paragraphs give a median of 25 words and 2 sentences), benji, and Apple's interface guide through its documentation API, which goes in as explanation and without being named |
+| ↳ what the notes do NOT claim | that the hold measures one second with 4 ms of error, even though the performance row has it | that measurement comes out of the `auto` probe, which fires `press` and `complete` with two JavaScript `setTimeout`s: it measures how well those timers aim, not the gesture recognizer's clock. What does get claimed is what the measurement proves: that the recognizer and the fill read the same constant, and the dropped frames. And nothing about a real phone, which the section spells out |
+| The button revised against the interface guides | the button departs from the clip in three things: the 1 pt ring does not get drawn and in its place goes a shadow of two transparent layers; "✓ Order Placed" moves 6.6 pt to the left (`LABEL.opticalCorrection`); and the page goes from pure white to iOS's grouped gray | requested on 2026-09-08 ("fix all of this to comply exactly with what better-ui says") |
+| ↳ and the knob that decided it got deleted | the two versions lived together behind a chip (the file finish.ts, with the values reference and revised) until one was chosen. On 2026-09-09 the whole file got deleted, and with it the type, the chip, the ?finish= parameter, the prop that came down through three components and the ring's code | first the chip was pinned to revised, and that made it a knob with one position: half the code existed for a branch nobody picks any more. The argument for keeping it was that reference is "the record of what the clip says", and that record does not need code: the three numbers are in this log and the receipts, above `LABEL.opticalCorrection` and where COLOR.ring used to be, in `measurements.ts`. A measured value gets kept written down, not executable |
+| ↳ the ring was a drawn outline, not a border | RUNTIME (`optico.py`, eight points of the top edge, at rest): the ring pulls **+54.5** away from what it has 2 pt outside and **+16** from what it has 2 pt inside; in the clip, **+4** and **−2**. Which means that in Opal the edge is a ramp and in ours it was a light line above both of its neighbors | interface-craft's test ("do outlines add structure or noise?") gets answered by the measurement, and better-ui gives the replacement: "where a border exists only to create depth, prefer layered transparent box-shadow values". Watch out for the shadow: **`boxShadow` follows the shape of the VIEW**, and without `borderRadius` it drew a box with sharp corners around the capsule ("you can see the component's whole box, really ugly") |
+| ↳ the label with an icon was not centered for the eye | RUNTIME (`optico.py`, ink per column over the commit's white pill; Δ against the pill's center): the row's box falls at +0.83, but the TEXT sits at **+13.67 pt** and the ink centroid at +6.60. In the clip, +0.74 / +13.84 / +8.35: we were reproducing Opal to within 0.2 pt, and Opal does not correct it either | Vito, 2026-09-08: "check whether it respects what better-ui says about something being centered for the eye, when there's an icon I get that feeling". The correction is the centroid's Δ canceled out, −6.6 pt, and it only moves the label that has a checkmark. Verified: Δ −0.06. Centering the text was tried too (−13.7, Δ 0.00) and dropped: the checkmark ends up hanging off the margin |
+| ↳ the white in light mode gets fixed on the page, not on the button | RUNTIME: in light, on complete, the inside of the pill measured 229.9 against a detail page of 245.5, which is **15.6 of contrast**: it stopped existing as a surface. The first solution was a dark veil over the fill, which took the contrast to 40.9 | Vito, 2026-09-08: "I don't like how you solved the color thing, if it comes to it change the background color a bit, since it isn't the main thing here". He was right: it was dirtying the protagonist to fix the set. The veil came out entirely, the button goes back to full white like the reference, and the page moved to `systemGroupedBackground`. It holds as a rule: **when the protagonist and the set do not separate, you move the set** |
+| ↳ the background ends ABOVE the button | `backgrounds/stock.tsx`: the `paddingBottom` was on the content, which only adds air at the end; now it bounds the `ScrollView`'s VIEWPORT. And the content ends before that edge: the list with thumbnails and the last grid came out | Vito, 2026-09-08: "the bottom part of the button lines up exactly with something below it, making the button look bigger". It was a row of the skeleton crossing the pill's bottom edge. RUNTIME: with one list row the content ended at 830.7 pt with the edge at 831, cut flush; without it, it ends at 742 and 89 pt are left over. There are 121 pt of breathing room up to the pill, on purpose: a whole row does not fit |
+| The notes, much shorter | `src/components/pieces/hold-to-commit/notes.tsx`: from 750 words and 12 paragraphs to **396 and 9**, 47 % less, in two passes and adding three facts along the way. Out went the reset (it belongs to the workshop), how the fill and the label are built (implementation), the latency broken down, and the list of example actions | requested on 2026-09-08 ("make it far shorter, and faithful to the code"). From the skills, only what a reader can see gets in: the UI thread, only transform and opacity, reduce motion, Dynamic Type, the haptics never being the only feedback, the recognizer and the fill reading a single constant, the interruption and better-interface's optical alignment, and the shadow instead of the outline, which is what answers interface-craft's critique lens. What does NOT get in is the craft of the code (storyboard, single stage, data-driven) because it talks about the source and not about the piece |
+| ↳ the two facts the notes gained | "The capsule has no outline: its edge is its own shape, lifted by a shadow on light backgrounds" and "The checkmark and the words are centered by eye, not by box" | they are the two corrections to the finish, told from what you can see. The sentence about the shadow is CONDITIONAL on purpose: a black shadow over dark mode's black background is not visible, so saying that the shadow carries the edge would be false in half the cases |
+| ↳ the haptics stopped being called "tick" | now they are "detents", which is the name the code was already using (`DETENTS` in `haptics.ts`) | with the checkmark named in the public text, "tick" was naming two things: the glyph (which in English is a tick) and the haptic pulse. `precise-naming` caught it. "Detent" is the specification term, a mechanical stop you can feel, and the glyph keeps "checkmark" |
+| ↳ the dropped frames came out of the text | they were true (0 on iOS, 1 out of 416 on Android with the thread blocked) but they come from a simulator and an emulator | counting them invites you to read them as if they came from a phone. What stays is the fact that holds up: what you see does not depend on the JavaScript thread. The numbers are still in this log |
+| ↳ the phone goes in as a test, not as a measurement | on 2026-09-08 there was a request to say that it had been tested on a phone and it was NOT written, because there was nothing to back it with. On 2026-09-09 Vito confirmed it ("already tested on a real phone") and it went in: "Measured on the iOS Simulator and an Android emulator, and tested on a phone, where the haptic can be felt" | **the two verbs are different on purpose.** The numbers are still attributed to where they were measured; out of the phone comes the one thing you can only know there. The simulator does not vibrate (it is in the header of `haptics.ts`, and that is why that whole track is marked NO RECEIPT), so the haptics are the part of the piece you cannot judge any other way. What still does not get written is a frame rate or a latency measured on a phone: those do not exist |
+| ↳ two of the workshop's receipts had gone stale | `haptics.ts` said that the last detent falls just before the label's jump to black; the last one is 0.985 and the jump starts at 0.965, so the one that falls there is the SECOND TO LAST (0.955). And `hold-to-commit.tsx` reported the front's travel as 3 % → 94 % in three places, when `measurements.ts` says `start` .045 and `travel` .91, which is 4.5 % → 95.5 % | both are comments, not code: nothing looked wrong on screen. It is the way a receipt fails (the value gets corrected on one side and the explanation stays behind on the other) and that is why auditing the comments against the code is part of closing a piece, not a luxury |
+| The naming rule, as a skill | `~/.claude/skills/precise-naming/`: the rule about the vocabulary of a 1972 IBM specification, with the three questions for applying it, the table of corrections, the public-text part, and when it does NOT apply (`useEffect`, `stdin`, `SIGKILL` stay) | requested on 2026-09-08. Run over what had been written that same day, it found three names of mine: look.ts → finish.ts ("look" is design jargon, and in English inside a folder that named things in Spanish), polished | faithful → revised | reference ("polished" names a feeling), and OPTICAL_NUDGE → OPTICAL_CORRECTION. And one collision: `RECIPES` existed twice in the same folder, for two different things |
+| It got recorded again, and the six videos are new | two new simulator takes with the revised button, two masters, the four for X and the two pairs with alpha for the exhibition | the published videos came from before the revised finish: they showed the ring, the white page and the uncorrected label, and the skeleton crossing the pill's bottom edge. A video that does not show the piece that is published is worse than having no video. The two new takes agree on the commit to within **16 ms** (1.483 and 1.467 s from the cut, against the minimum of 1.2 the workshop asks for) |
+| ↳ and you look at the status bar before spending two takes | the first control capture carried the "◀ Safari" that iOS leaves after you open the app from a link; it goes away with one extra `terminate` + `launch` | none of the old masters had it, so it came from the simulator's state and not from the script. It costs 15 seconds to check and a whole take to fix afterwards |
+| The how-to had not traveled with the change | the decisions were all in this log and the three `AGENTS.md` files still described the path for a single appearance. The one at the root said, in so many words, that **"there are no per-theme versions"** | and there are, as of this piece. The log keeps what was decided; the `AGENTS.md` is where somebody looks when they want to DO it, and there the old sentence is not an omission, it is a wrong instruction. Closed in all three: the distinction between the card's background (one) and the recording (two), `pnpm piece:video` in its two-appearance form, `--duration` with its receipt, and the breadcrumb about the status bar in the recording section |
+| ↳ `--until` got renamed to `--duration` | the `pnpm assets` flag that cuts the delivery | until was already naming two other instants on the same path: the start of the camera's way out in `parameters.ts` (3.00, and `9999` for "it does not leave") and `pnpm mockup`'s `--until` in the workshop. Three instants under one word is exactly what the naming rule forbids, and on top of that this is not an instant: it is a duration, the one that goes into ffmpeg's `-t`. Verified after the rename: 246 frames, 4.100 s |
 
-## Lo que trajimos de leer otro repo
+## What we brought back from reading another repo
 
-**El 2026-08-28** leímos entero
+**On 2026-08-28** we read
 [SchroederNathan/react-native-motion](https://github.com/SchroederNathan/react-native-motion)
-—siete animaciones Expo/RN, sitio de docs aparte— buscando qué del método
-ajeno servía acá. No tiene licencia: el único `LICENSE` es el MIT de Expo
-que deja `create-expo-app`. Así que **no viajó código**, viajaron
-conclusiones.
+end to end (seven Expo/RN animations, a separate docs site) looking for
+what of somebody else's method was useful here. It has no license: the
+only `LICENSE` is the Expo MIT that `create-expo-app` leaves behind. So
+**no code traveled**, conclusions did.
 
-**Lo que sí trajimos.** Cierran cada animación con una lista de
-invariantes —`Do not change these behaviors`— y eso es nuestra regla del
-recibo en un formato que otro agente puede ejecutar. Clasifiqué las 28
-líneas de sus cuatro listas:
+**What we did bring back.** They close every animation with a list of
+invariants, `Do not change these behaviors`, and that is our receipt rule
+in a format another agent can execute. I classified the 28 lines of their
+four lists:
 
-| | cuántas | qué se hizo |
+| | how many | what was done |
 |---|---:|---|
-| Propias de su implementación | 13 | nada, no aplican |
-| Trampas generales disfrazadas de regla de pieza | 8 | → `nativo/AGENTS.md` › *Lo que ya sabemos que muerde* |
-| Convención de API del stack | 7 | → `nativo/AGENTS.md` › *Lo que vale para toda pieza* |
+| Specific to their implementation | 13 | nothing, they do not apply |
+| General traps dressed up as a rule about a piece | 8 | → `native/AGENTS.md` › *What we already know bites* |
+| API convention of the stack | 7 | → `native/AGENTS.md` › *What holds for every piece* |
 
-Las 8 entraron **como reglas, no como sugerencias**. Vienen de un repo
-donde las constantes se sacan cuadro a cuadro de la referencia y cada
-decisión lleva su comentario arriba: el que no esté de acuerdo con una,
-que mida antes de tocarla.
+The 8 went in **as rules, not as suggestions**. They come from a repo
+where the constants are pulled frame by frame out of the reference and
+every decision carries its comment above it: whoever disagrees with one
+of them should measure before touching it.
 
-**Y el formato del bloque**, con un agregado nuestro: cada línea lleva su
-grado de evidencia — `SOURCE` si lo dice el código, `RUNTIME` si se midió
-corriendo. Sin eso, "500 ms" y "210 ms" parecen la misma clase de número
-y no lo son: uno es una decisión, el otro es una lectura de la
-referencia.
+**And the format of the block**, with an addition of our own: every line
+carries its evidence grade, `SOURCE` if the code says so, `RUNTIME` if it
+was measured running. Without that, "500 ms" and "210 ms" look like the
+same kind of number and they are not: one is a decision, the other is a
+reading off the reference.
 
-**Por qué las convenciones van en un solo lugar.** Copiaron la misma regla
-a mano en sus cuatro briefs, y en el cuarto quedó vieja: el del radial
-menu manda usar `runOnJS`, pero su propio código usa `scheduleOnRN` trece
-veces y `runOnJS` ninguna. Se actualizaron tres de cuatro. Verificado
-contra nuestro propio `node_modules`: `runOnJS` está
-`@deprecated` en `react-native-worklets@0.10.1`
+**Why the conventions live in one single place.** They copied the same
+rule by hand into their four briefs, and in the fourth one it went stale:
+the radial menu's brief orders you to use `runOnJS`, but their own code
+uses `scheduleOnRN` thirteen times and `runOnJS` not once. Three out of
+four got updated. Verified against our own `node_modules`: `runOnJS` is
+`@deprecated` in `react-native-worklets@0.10.1`
 (`lib/typescript/threads.native.d.ts:103`).
 
-**`nativo/VIDRIO.md`** salió de la misma lectura: `expo-glass-effect` ya
-estaba instalado y tiene trampas que no se ven venir —un `GlassView` bajo
-una opacidad animada **no dibuja nada**, y recortarlo mata el bulto del
-material bajo el dedo—. Y una regla que se olvida: el `BlurView` de la
-caída sí hay que recortarlo, o sea las dos ramas del mismo componente
-llevan reglas opuestas.
+**`native/GLASS.md`** came out of the same reading: `expo-glass-effect`
+was already installed and it has traps you do not see coming. A
+`GlassView` under an animated opacity **draws nothing**, and clipping it
+kills the material's bulge under the finger. And one rule that gets
+forgotten: the `BlurView` of the fallback does have to be clipped, which
+means the two branches of the same component carry opposite rules.
 
-**Con `expo-blur` 57.0.2 instalado el mismo día**, aunque todavía no haya
-pieza que lo use. Es la escalera completa o no es escalera: abajo de iOS
-26 el material no existe, y descubrirlo cuando la pieza ya está a medias
-cuesta un `pnpm ios:build` en el peor momento. Se reconstruyó el dev
-client en el mismo paso.
+**With `expo-blur` 57.0.2 installed the same day**, even though there is
+no piece using it yet. It is the whole ladder or it is not a ladder:
+below iOS 26 the material does not exist, and finding that out when the
+piece is already half built costs you a `pnpm ios:build` at the worst
+moment. The dev client got rebuilt in the same step.
 
-**Lo que no trajimos**, y por qué:
+**What we did not bring back**, and why:
 
 | | |
 |---|---|
-| Su skill `make-interfaces-feel-better` | es CSS puro para su sitio Next.js — cero menciones a React Native en sus 959 líneas. Y `~/.claude/skills/better-ui` es la misma familia con cuatro archivos más |
-| Su registry escrito a mano | el nuestro se deriva de las carpetas. El de ellos ya se desincronizó: `linear-tab-bar` está cargado en `data/animations.ts` y no tiene ni carpeta ni entrada en el registry |
-| El monorepo con sitio de docs aparte | resuelve un problema que no tenemos. Ellos hacen una vidriera para que otros copien; acá el producto es la exposición |
+| Their skill `make-interfaces-feel-better` | it is pure CSS for their Next.js site, zero mentions of React Native in its 959 lines. And `~/.claude/skills/better-ui` is the same family with four more files |
+| Their registry written by hand | ours is derived from the folders. Theirs has already gone out of sync: `linear-tab-bar` is loaded in `data/animations.ts` and has neither a folder nor an entry in the registry |
+| The monorepo with a separate docs site | it solves a problem we do not have. They build a display window for other people to copy from; here the product is the exhibition |
 
-**Lo único que nos falta y ellos tienen:** graban el simulador *durante*
-la iteración, no sólo al publicar. Diez `.mp4` se les colaron al repo en
-`.argent/recordings/` —no está en su `.gitignore`— y entraron en los
-mismos commits que las animaciones. Medidos con `ffprobe`: h264, 30 fps,
-1206×2622 y 1320×2868, o sea dos simuladores distintos por UDID en el
-nombre. Nuestro `pnpm grabar` graba para **publicar**; esto sería para
-**verificar**, y es otra cosa. Queda en Pendiente, junto con los MCP que
-le dan ojos al agente.
+**The one thing we are missing and they have:** they record the
+simulator *during* the iteration, not only when publishing. Ten `.mp4`
+files slipped into their repo in `.argent/recordings/` (it is not in their
+`.gitignore`) and went in with the same commits as the animations.
+Measured with `ffprobe`: h264, 30 fps, 1206×2622 and 1320×2868, which is
+two different simulators by the UDID in the name. Our `pnpm record`
+records to **publish**; this would be to **verify**, and that is another
+thing. It stays in Pending, along with the MCPs that give the agent
+eyes.
 
-## Las notas del detalle — líneas de benji, tono de josh
+## The detail's notes: benji's lines, josh's tone
 
-**El detalle existía para esto** y estaba vacío: *"la lista muestra, el
-detalle explica"*. Desde el 2026-09-04 una pieza puede traer un texto
-largo bajo su preview, partido en secciones: de dónde salió, qué se
-midió, qué peleó. Vive en `src/components/pieces/<slug>/notes.tsx`, con el mismo mecanismo
-que los demos —glob perezoso por slug, sin registro que mantener— y una
-pieza sin notas no dibuja nada.
+**The detail existed for this** and it was empty: *"the list shows, the
+detail explains"*. Since 2026-09-04 a piece can carry a long text under
+its preview, split into sections: where it came from, what got measured,
+what fought back. It lives in `src/components/pieces/<slug>/notes.tsx`,
+with the same mechanism as the demos (a lazy glob by slug, no registry to
+maintain) and a piece with no notes draws nothing.
 
-**La línea de `PIECES` no se tocó, y son dos cosas distintas.** Esa es la
-que se escribe al publicar y la que se lee de corrido bajo la pieza;
-las notas son lo que sigue. Meter la prosa en el inventario habría
-hinchado el archivo que leen la página, `rutas.mjs` y el puente que
-publica.
+**The `PIECES` line was not touched, and they are two different
+things.** That one is what you write when you publish and what gets read
+straight through under the piece; the notes are what comes after. Putting
+the prose into the inventory would have bloated the file that the page,
+`routes.mjs` and the bridge that publishes all read.
 
-**Las líneas son de benji y el tono es de josh, y conviene decir de quién
-es cada mitad** porque la mezcla es nuestra:
+**The lines are benji's and the tone is josh's, and it is worth saying
+which half belongs to whom** because the mix is ours:
 
-- El separador **es el mismo objeto** que parte la lista en Web y App
-  (`.groupHead`: rótulo 14/600 + hairline hasta el borde del riel, hueco
-  de 8), que ya estaba medido de `/liveline` y `/drawesome`. No se
-  escribió una segunda línea: una sola línea en la página es una sola
-  regla.
-- **Josh no tiene ninguna**: cero `<hr>` en `/melt-effect` (SOURCE,
-  2026-09-04, sobre el HTML servido). Lo suyo son los **rótulos** —
-  cortos, en sentence case, a veces una pregunta: *"1. What's a
-  displacement map?"*, *"Shaping with frequencies"*, *"The filter"*,
-  *"Apply it"*— y la **prosa**: primera persona del plural para el
-  método, frases cortas, el mecanismo nombrado con precisión, la
-  advertencia dicha sin dramatismo (*"A note on performance. Animating
-  filter attributes re-evaluates the entire filter graph every
-  frame"*) y los errores propios admitidos. Nada de autoelogio: eso ya
-  era la regla del copy acá.
+- The separator **is the same object** that splits the list into Web and
+  App (`.groupHead`: a 14/600 label + a hairline out to the edge of the
+  rail, 8 of gap), which was already measured off `/liveline` and
+  `/drawesome`. A second line was not written: one single line on the
+  page is one single rule.
+- **Josh has none**: zero `<hr>` on `/melt-effect` (SOURCE, 2026-09-04,
+  over the served HTML). What is his are the **labels**, short, in
+  sentence case, sometimes a question: *"1. What's a displacement
+  map?"*, *"Shaping with frequencies"*, *"The filter"*, *"Apply it"*.
+  And the **prose**: first person plural for the method, short
+  sentences, the mechanism named precisely, the warning stated without
+  drama (*"A note on performance. Animating filter attributes
+  re-evaluates the entire filter graph every frame"*) and his own
+  mistakes admitted. No self-praise: that was already the copy rule
+  here.
 
-**Se escribe en primera persona del singular.** *"I didn't start from a
-memory of how X feels. I started from X."* Acá adentro hay una sola
-persona y el plural sonaba a un equipo que no existe. Es además lo que
-hace josh cuando cuenta lo suyo —*"I've applied an SVG filter to it"*,
-*"I'll never forget"*— y deja el `we` para llevar al lector por un
-método. El `you` para el lector se queda, que también es suyo.
+**It is written in the first person singular.** *"I didn't start from a
+memory of how X feels. I started from X."* In here there is one single
+person and the plural sounded like a team that does not exist. It is
+also what josh does when he tells his own story (*"I've applied an SVG
+filter to it"*, *"I'll never forget"*), leaving the `we` for walking the
+reader through a method. The `you` for the reader stays, which is his
+too.
 
-**Los dos huecos son tokens que ya existían** —64 arriba de cada rótulo
-(`--section-gap`) y 40 de la línea al primer renglón
-(`--section-content-gap`)— y **no se volvieron a elegir**: se reusan para
-tener un número por relación. Que sean los correctos *para prosa* está
-**sin medir**, igual que la línea de aire entre párrafos (hoy la
-interlínea del cuerpo). Las tres se deciden con el scrubber sobre esta
-página, y están marcadas como pendientes en el CSS.
+**The two gaps are tokens that already existed**, 64 above each label
+(`--section-gap`) and 40 from the line to the first text
+(`--section-content-gap`), and **they were not chosen again**: they get
+reused so there is one number per relation. Whether they are the right
+ones *for prose* is **unmeasured**, and so is the line of air between
+paragraphs (today the body's line height). All three get decided with
+the scrubber on this page, and they are marked as pending in the CSS.
 
-## La primera pieza App: los tabs de X, medidos contra la app real
+## The first App piece: X's tabs, measured against the real app
 
-**Swipeable tabs** (`nativo/src/components/pieces/swipeable-tabs/`) es la primera
-pieza que sale del taller nativo, y fija cómo se construye una: **nada se
-afirma sin medir**. La referencia no fue una idea de cómo se mueve X sino
-X mismo — el clip del vault y después cuatro grabaciones de la cuenta del
-usuario, en su teléfono (1320×2868, 60 fps), leídas cuadro a cuadro con
-scripts de ffmpeg y no a ojo. De ahí salieron los seis reposos de la
-barra al décimo de punto, la regla de la inclinación (`BARRA.apartar`),
-la curva del toque (easeOutCubic, 300 ms, ajustada contra tres toques),
-el pliegue de la cabecera con el scroll (traslación = scroll al décimo,
-fundido lineal) y **las dos paletas**, la oscura y la clara, con el mismo
-método. Cada número lleva su recibo arriba en `medidas.ts`, y la planilla
-entera vive en `.context/recon/swipeable-tabs/MEDICIONES.md`.
+**Swipeable tabs** (`native/src/components/pieces/swipeable-tabs/`) is
+the first piece to come out of the native workshop, and it fixes how one
+gets built: **nothing gets claimed without measuring**. The reference was
+not an idea of how X moves but X itself, the vault clip and then four
+recordings of the user's own account, on his phone (1320×2868, 60 fps),
+read frame by frame with ffmpeg scripts and not by eye. Out of that came
+the tab bar's six resting positions to a tenth of a point, the lean rule
+(`TAB_BAR.lean`), the tap's curve (easeOutCubic, 300 ms, fitted against
+three taps), the header's collapse with the scroll (translation = scroll
+to the tenth, linear fade) and **the two palettes**, the dark one and the
+light one, by the same method. Every number carries its receipt above it
+in `measurements.ts`, and the whole spreadsheet lives in
+`.context/recon/swipeable-tabs/MEDICIONES.md`.
 
-**Lo que se decidió contra la referencia también quedó escrito**, con la
-prueba de que la referencia hace otra cosa: la fila de tabs sólo se corre
-cuando el tab destino no entra en pantalla (`BARRA.fila = 'visible'`),
-aunque la grabación muestra a X centrando siempre; el bloque de arriba
-frena con su divisor pegado a la barra de estado en vez de salir entero.
-Las dos son pedidos del usuario probados en el teléfono, y las variantes
-fieles están a una palabra de distancia. Y las que se probaron y se
-rechazaron —el bloque desvaneciéndose entero, el recorrido completo del
-pliegue— quedaron anotadas arriba del código para que nadie las repita.
+**What was decided against the reference got written down too**, with
+the proof that the reference does something else: the tab row only
+shifts when the target tab does not fit on screen
+(`TAB_BAR.row = 'visible'`), even though the recording shows X centering
+every time; the block at the top stops with its divider stuck to the
+status bar instead of leaving entirely. Both are the user's requests,
+tried on the phone, and the faithful variants are one word away. And
+the ones that were tried and rejected (the block fading out whole, the
+collapse's full travel) were written down above the code so that nobody
+repeats them.
 
-**La forma de la carpeta** es la de un componente de
-[react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations):
-una pantalla autocontenida, un `index.tsx` que la exporta, el mecanismo
-en archivos por responsabilidad, el tema y los datos al lado. La ruta en
-`src/app/` es un puntero. Su registry a mano no viajó, por lo mismo de
-siempre: el índice del taller se deriva de las carpetas. (Así fue hasta
-el 2026-09-10: desde entonces la ruta es una para todas y el registry
-existe, derivado de las carpetas de las piezas — ver *La estructura de
-react-native-motion*, más abajo.)
+**The shape of the folder** is that of a
+[react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations)
+component: a self-contained screen, an `index.tsx` that exports it, the
+mechanism in files by responsibility, the theme and the data alongside.
+The route in `src/app/` is a pointer. Their hand-written registry did not
+travel, for the usual reason: the workshop's index is derived from the
+folders. (That was how it worked until 2026-09-10: since then the route
+is one for all of them and the registry does exist, derived from the
+pieces' folders. See *The structure of react-native-motion*, further
+down.)
 
-**Lo que aprendimos del método**, más que de la pieza: una sonda
-determinista es UN estado por recarga, no una línea de tiempo de timers;
-el simulador no puede recibir un tap, así que el camino del toque se
-prueba en el teléfono; y cuando el usuario dice "se siente abrupto", se
-toca una perilla o se pregunta cuál, no la geometría — la vuelta grande
-se rechazó en el acto.
+**What we learned about the method**, more than about the piece: a
+deterministic probe is ONE state per reload, not a timeline of timers;
+the simulator cannot receive a tap, so the tap's path gets tried on the
+phone; and when the user says "it feels abrupt", you touch a knob or ask
+which one, not the geometry. The big rework was rejected on the spot.
 
-## El video para X, medido contra el clip de @nater02
+## The video for X, measured against @nater02's clip
 
-La pieza ya corría y estaba grabada; faltaba el video que se publica. El
-usuario trajo la referencia exacta —un clip de @nater02 en X: 720² a 60
-fps, 24.6 s— y cuatro palabras: el zoom al inicio, el fondo neutro, el
-teléfono tal cual ese en el medio, la fluidez. Se midió cuadro a cuadro
-antes de tocar nada, como con la pieza:
+The piece was already running and already recorded; what was missing was
+the video you publish. The user brought the exact reference (a clip by
+@nater02 on X: 720² at 60 fps, 24.6 s) and four words: the zoom at the
+start, the neutral background, that exact phone in the middle, the
+fluidity. It got measured frame by frame before anything was touched, as
+with the piece:
 
-| qué | medido | de dónde |
+| what | measured | where from |
 | --- | --- | --- |
-| fondo | RGB (235, 230, 232), plano | las cuatro esquinas y los bordes, iguales en todos los cuadros |
-| teléfono | negro, cuerpo 335×686 en 720² → 95.3 % del alto, centrado | el borde del cuerpo por fila y columna en el cuadro 0 |
-| sombra | sólo a la derecha y abajo; dos capas, una apretada (α .60, σ 8, corrida 12) y una ancha (α .20, σ 30, corrida 70) | ajuste por mínimos cuadrados sobre el perfil de luma a cada 6 px, con los lados sin sombra como restricción |
-| cámara | entra a 1.576× en 0.65 s, se queda 0.18 s, sale a 1.161× en 0.62 s y no se mueve más | el ancho del cuerpo cuadro a cuadro (335 → 528 → 389) |
-| curvas | entrada bézier (0.30, 0.05, 0.40, 0.90), salida (0.25, 0.25, 0.20, 0.90) | búsqueda sobre los cuatro puntos de control, rms 0.005; ninguna curva CSS conocida baja de 0.03 |
+| background | RGB (235, 230, 232), flat | the four corners and the edges, the same in every frame |
+| phone | black, body 335×686 in 720² → 95.3 % of the height, centered | the body's edge by row and by column in frame 0 |
+| shadow | only to the right and below; two layers, one tight (α .60, σ 8, offset 12) and one wide (α .20, σ 30, offset 70) | a least-squares fit over the luma profile every 6 px, with the shadowless sides as a constraint |
+| camera | it comes in to 1.576× in 0.65 s, holds 0.18 s, leaves to 1.161× in 0.62 s and does not move again | the body's width frame by frame (335 → 528 → 389) |
+| curves | way in bézier (0.30, 0.05, 0.40, 0.90), way out (0.25, 0.25, 0.20, 0.90) | a search over the four control points, rms 0.005; no known CSS curve gets below 0.03 |
 
-**El teléfono es el iPhone 17 en Black.** La proporción del cuerpo de la
-referencia (2.05) está más cerca del 17 (2.066) que del Pro Max (2.095),
-y el Pro Max no viene en negro. La grabación del Pro Max entra en el
-hueco del 17 escalada: la proporción es la misma al 0.1 %. Ahora hay dos
-modelos medidos en el script y la cámara mueve cada capa por cuadro desde
-su fuente, sin re-escalar el cuadro compuesto: al 1.58× el bisel se
-agranda un 20 % sobre el PNG y la grabación entra casi 1:1.
+**The phone is the iPhone 17 in Black.** The proportion of the
+reference's body (2.05) is closer to the 17 (2.066) than to the Pro Max
+(2.095), and the Pro Max does not come in black. The Pro Max recording
+fits into the 17's slot scaled: the proportion is the same to 0.1 %.
+There are now two models measured in the script and the camera moves each
+layer per frame from its own source, without re-scaling the composed
+frame: at 1.58× the bezel grows 20 % over the PNG and the recording fits
+almost 1:1.
 
-**La cámara apunta a la acción de ESTA pieza, no a la de la referencia.**
-Ahí la acción está abajo (un menú que se despliega desde el teclado) y el
-zoom deja el borde de arriba cortado; acá está arriba (la fila de tabs),
-así que la entrada apunta a la fila —al 33 % del alto— y la salida deja
-el borde de arriba a 7.2 % del lienzo con el de abajo cortado. Es el
-espejo, con los mismos números.
+**The camera points at the action of THIS piece, not at the reference's.**
+There the action is at the bottom (a menu that unfolds from the keyboard)
+and the zoom leaves the top edge cut off; here it is at the top (the tab
+row), so the way in points at the row, at 33 % of the height, and the way
+out leaves the top edge at 7.2 % of the canvas with the bottom one cut
+off. It is the mirror image, with the same numbers.
 
-**Los bordes, y por qué ahora hay `--verificar`.** La primera versión
-tenía la pantalla 15×20 px corrida —`pant.x` estaba en coordenadas del
-PNG y se sumaba a un origen que era el cuerpo— y en la esquina de arriba
-a la izquierda asomaba el fondo por el hueco. En el cuadro entero no se
-veía; el usuario lo vio en un zoom: "tenés que ser mucho más detallista,
-mirá los bordes, no se fillean". Con capas que se posicionan por su
-cuenta y se redondean a píxel en cada cuadro, un origen mal tomado no
-falla: se ve. Así que `pnpm mockup <slug> --verificar` mete un rojo pleno
-en vez de la grabación, renderiza la cámara entera sin pérdida (RGB,
-ffv1: en yuv420p el croma se promedia de a 2 px y un rojo pegado al bisel
-deja de ser rojo sin que haya ningún hueco) y comprueba píxel por píxel
-que el hueco del bisel está lleno en doce estados de la cámara. Corre
-antes de mirar nada.
+**The edges, and why there is a `--verify` now.** The first version had
+the screen off by 15×20 px (the screen's x was in the PNG's coordinates
+and it was being added to an origin that was the body) and in the top
+left corner the background peeked through the slot. In the whole frame
+you could not see it; the user saw it in a zoom: "you have to be much
+more detail-oriented, look at the edges, they don't get filled". With
+layers that position themselves and round to the pixel in every frame, a
+wrongly taken origin does not fail: it shows. So
+`pnpm mockup <slug> --verify` puts solid red in place of the recording,
+renders the whole camera losslessly (RGB, ffv1: in yuv420p the chroma
+gets averaged 2 px at a time and a red stuck to the bezel stops being red
+without there being any gap at all) and checks pixel by pixel that the
+bezel's slot is full in twelve states of the camera. It runs before you
+look at anything.
 
-**La primera pieza App entró a la exhibition por su propio camino**: el clip
-en el vault, `Add to Exhibition` (su endpoint, el mismo que usa la sidebar),
-la entrada en `PIECES` y `vercel.json` regenerado por el build. El vault
-guarda el máster (1320×2868, 25 MB: es lo que graba el simulador) y eso
-es lo que publicar copia tal cual; para la exposición se re-encodeó a
-720×1564 (5.6 MB), el doble del hueco de 319 del detalle. **Pendiente:**
-publicar debería transcodificar solo —el máster es para el mockup, la
-web no lo necesita— y el tiempo de la barra de estado sale "09:41" porque
-el simulador está en formato de 24 horas; la próxima grabación lo cambia
-con `AppleICUForce12HourTime` antes de grabar.
+**The first App piece entered the exhibition by its own road**: the clip
+in the vault, `Add to Exhibition` (its endpoint, the same one the sidebar
+uses), the entry in `PIECES` and `vercel.json` regenerated by the build.
+The vault keeps the master (1320×2868, 25 MB: that is what the simulator
+records) and that is what publishing copies as it is; for the exhibition
+it got re-encoded to 720×1564 (5.6 MB), twice the detail's 319 slot.
+**Pending:** publishing ought to transcode on its own (the master is for
+the mockup, the web does not need it), and the time in the status bar
+comes out as "09:41" because the simulator is in 24-hour format; the next
+recording changes it with `AppleICUForce12HourTime` before recording.
 
-**Herramientas, para la próxima.** Lo que hace este pipeline —bisel
-oficial, fondo, sombra, cámara— lo hacen también Screen Studio (graba el
-iPhone por USB con marco, pero no ve los toques: sin auto-zoom en iOS) y
-Matte (graba simulador o iPhone con marco y zoom). Lo que ninguna
-herramienta arregla es la fuente: los gestos de esta grabación son
-sintéticos, la sonda mueve el pager con curvas medidas. Un dedo real en
-el teléfono con Expo Go es la otra mitad de "la fluidez", y es una
-grabación distinta, no un ajuste del mockup.
+**Tools, for next time.** What this pipeline does (official bezel,
+background, shadow, camera) is also done by Screen Studio (it records the
+iPhone over USB with a frame, but it does not see the taps: no auto-zoom
+on iOS) and Matte (it records a simulator or an iPhone with a frame and
+zoom). What no tool fixes is the source: the gestures in this recording
+are synthetic, the probe moves the pager with measured curves. A real
+finger on the phone with Expo Go is the other half of "the fluidity", and
+that is a different recording, not an adjustment to the mockup.
 
-**Addendum, el mismo día.** El video que estaba en la exhibition era el
-interino —la grabación del simulador re-encodeada— y el clip final se
-está haciendo en otra sesión. Se decidió dejar la pieza **publicada con
-el hueco vacío** (la card lo reserva sola: es el `::before` de
-`.streamPreview`) y que el video entre después con un comando,
-`pnpm pieza:video <slug> <archivo>`: re-encodea para la web al ancho
-del hueco, conserva la proporción del archivo, escribe
-`public/piezas/<slug>.mp4` y completa `video` en `PIECES`. Y la pieza
-**salió del vault**: el vault es la pared de lo ajeno, y una pieza
-propia no tiene por qué pasar por ahí para llegar a la exposición. Su
-máster quedó en `.context/mockup/master/` (gitignoreado), que es de
-donde el mockup lo toma con `--clip=`.
+**Addendum, the same day.** The video that was in the exhibition was the
+interim one, the simulator recording re-encoded, and the final clip is
+being made in another session. The decision was to leave the piece
+**published with an empty slot** (the card reserves it on its own: it is
+the `::before` of `.streamPreview`) and to have the video come in
+afterwards with a command, `pnpm piece:video <slug> <file>`: it
+re-encodes for the web at the slot's width, keeps the file's proportion,
+writes `public/pieces/<slug>.mp4` and fills in `video` in `PIECES`. And
+the piece **left the vault**: the vault is the wall of other people's
+work, and a piece of our own has no reason to pass through there to reach
+the exhibition. Its master ended up in `.context/mockup/master/`
+(gitignored), which is where the mockup takes it from with `--clip=`.
 
-## El mockup en Remotion: los mismos números, iterados en vivo
+## The mockup in Remotion: the same numbers, iterated live
 
-El pipeline de ffmpeg hacía el video bien pero cada ajuste era un
-re-encode de minutos, y el brief del video pidió lo contrario: mirar el
-look en vivo y renderizar una vez. Se armó `mockup/`, una composición de
-Remotion (React) con **exactamente los números medidos** —el bisel sobre
-el alfa del PNG, el fondo, la sombra en dos capas, la cámara de tres
-momentos y sus dos bézier— como props con esquema, que Remotion Studio
-muestra como controles. Lo que cambió respecto del pipeline, y por qué:
+The ffmpeg pipeline made the video correctly, but every adjustment was a
+re-encode of several minutes, and the video's brief asked for the
+opposite: watch the look live and render once. So `mockup/` went up, a
+Remotion (React) composition with **exactly the measured numbers** (the
+bezel over the PNG's alpha, the background, the shadow in two layers,
+the three-moment camera and its two béziers) as props with a schema,
+which Remotion Studio shows as controls. What changed with respect to
+the pipeline, and why:
 
-| qué | ffmpeg | Remotion |
+| what | ffmpeg | Remotion |
 | --- | --- | --- |
-| las curvas | polinomio de grado 7 ajustado a la bézier (ffmpeg no evalúa bézier) | la bézier misma, por bisección |
-| la cámara | (zoom, punto de mira) | (zoom, posición del cuerpo): el borde del teléfono va en una sola dirección |
-| cada capa | escalada por cuadro con `scale … eval=frame` | dibujada a su tamaño en cada cuadro, sin `transform: scale` |
-| el intermedio | — | PNG entre el cuadro y el encoder, no JPEG: es lo que se sube |
-| la guarda | `--verificar` | `pnpm verificar`, con la misma geometría que dibuja |
-| iterar | re-encode por ajuste | Studio, en vivo; `pnpm render` al final |
+| the curves | a degree-7 polynomial fitted to the bézier (ffmpeg does not evaluate béziers) | the bézier itself, by bisection |
+| the camera | (zoom, aim point) | (zoom, position of the body): the edge of the phone travels in one direction only |
+| each layer | scaled per frame with `scale … eval=frame` | drawn at its size in each frame, with no `transform: scale` |
+| the intermediate | none | PNG between the frame and the encoder, not JPEG: it is what gets uploaded |
+| the guard | `--verify` | `pnpm verify`, with the same geometry it draws |
+| iterating | a re-encode per adjustment | Studio, live; `pnpm render` at the end |
 
-Lo que el brief se apartó de la referencia, a propósito y anotado al
-lado del número: el teléfono al 75 % del alto en vez del 95.3 % (más
-aire) y la sombra más marcada (α .82 σ 7 + α .32 σ 36 en px de 720; las
-corridas quedan las medidas, que son las únicas que hay). Y una
-decisión medida sobre la grabación nueva: la cámara se queda cerrada
-hasta los 3.9 s, no los 2.6 del brief, porque el arrastre a Stocks
-termina a los 3.80 y la ráfaga de tabs empieza a los 5.37: la entrada
-cubre los dos gestos lentos y la ráfaga se ve entera desde el encuadre
-final.
+Where the brief departed from the reference, on purpose and noted next
+to the number: the phone at 75 % of the height instead of 95.3 % (more
+air) and a heavier shadow (α .82 σ 7 + α .32 σ 36 in px of 720; the
+offsets stay the measured ones, which are the only ones there are). And
+one measured decision about the new recording: the camera stays closed
+until 3.9 s, not the 2.6 of the brief, because the drag to Stocks ends
+at 3.80 and the burst of tabs starts at 5.37: the way in covers the two
+slow gestures and the burst is seen whole from the final framing.
 
-**Verificado antes de mirar:** los doce estados de la cámara con el
-hueco lleno (0 píxeles sin rojo), y las esquinas a 3× en los cuadros
-del zoom y del encuadre final.
+**Verified before looking:** the twelve states of the camera with the
+slot full (0 pixels that are not red), and the corners at 3× in the
+frames of the zoom and of the final framing.
 
-**Segunda toma, con lo que el usuario vio.** Sobre el primer video dijo
-tres cosas: que de For you a Following "se traba", que la parte rápida
-pasa demasiado rápido, y que entre Following y Stocks tiene que ir
-lento. Medido sobre la grabación: la entrada a Following era un salto
-instantáneo (un solo cuadro), Following → Stocks era un toque de 0.27 s
-y la ráfaga eran toques cada 600 ms. La toma nueva arranca en Following,
-arrastra a Stocks en 1.65 s con un seno in-out (X, medido: 1.73), toca
-For you y hace cinco flicks de un tab cada 1.0 s con el perfil de dedo
-ajustado contra X (15 % en 110 ms, el resto en 430). Los gestos van
-por los caminos reales de la pieza, con una sonda `?demo=1` que vive en
-el árbol de trabajo y no viaja.
+**Second take, with what the user saw.** About the first video he said
+three things: that from For you to Following it "sticks", that the fast
+part goes by too fast, and that between Following and Stocks it has to
+go slow. Measured on the recording: the entry into Following was an
+instant jump (a single frame), Following → Stocks was a tap of 0.27 s
+and the burst was taps every 600 ms. The new take starts in Following,
+drags to Stocks in 1.65 s with an in-out sine (X, measured: 1.73), taps
+For you and does five one-tab flicks, one every 1.0 s, with the finger
+profile fitted against X (15 % in 110 ms, the rest in 430). The gestures
+go along the piece's real paths, with a `?demo=1` probe that lives in
+the working tree and does not travel.
 
-**Y un bug de la pieza que la sonda destapó.** Al mover el pager por
-`destino` con `movimiento` en arrastre, la barra leía el tramo del
-toque —`destino !== NADIE` era su condición— y el subrayado quedaba
-clavado en For you mientras el contenido viajaba ("está bugueada toda
-la animación de las tabs… nunca está la animación a medias"). La
-condición correcta es `movimiento === toque`: para un toque real es lo
-mismo, y para cualquier otra cosa que use `destino` la barra sigue al
-contenido. Verificado en la tira de cuadros del arrastre lento: el
-subrayado viaja continuo de Following a Stocks y las tintas se cruzan.
+**And a bug in the piece that the probe uncovered.** Moving the pager by
+`target` with `motion` set to drag, the tab bar read the tap's segment
+(`target !== NONE` was its condition) and the underline stayed nailed to
+For you while the content traveled ("the whole tab animation is
+bugged… the animation is never halfway"). The correct condition is
+`motion === tap`: for a real tap it is the same thing, and for anything
+else that uses `target` the tab bar follows the content. Verified in the
+frame strip of the slow drag: the underline travels continuously from
+Following to Stocks and the inks cross.
 
-**Tercera toma: dos atrás al final, y nacer en Following de verdad.**
-Dos pedidos más sobre el video: que al llegar al último tab vuelva dos
-atrás y termine ahí, y que el primer cuadro muestre Following con el
-contenido de Following —mostraba el tab de Following con el contenido
-de For you. Lo segundo era la sonda: un `scrollTo` en el primer efecto
-no movía el pager (el contenido todavía no estaba) y sólo `scrollX`
-cambiaba, así que la barra y el contenido nacían desacordados. Ahora el
-pager nace con `contentOffset` en Following y `scrollX` nace ahí
-también. El clip queda en 12.9 s: arrastre lento a 1.20, toque a For
-you a 3.80, cinco flicks hasta Design y dos de vuelta hasta Tech, cada
-uno a 1.0 s del anterior.
+**Third take: two back at the end, and really starting in Following.**
+Two more requests about the video: that on reaching the last tab it go
+two back and end there, and that the first frame show Following with
+Following's content. It was showing the Following tab with For you's
+content. The second one was the probe: a `scrollTo` in the first effect
+did not move the pager (the content was not there yet) and only
+`scrollX` changed, so the tab bar and the content started out of step.
+Now the pager starts with `contentOffset` in Following and `scrollX`
+starts there too. The clip comes out at 12.9 s: slow drag at 1.20, tap
+to For you at 3.80, five flicks up to Design and two back to Tech, each
+one 1.0 s after the last.
 
-**Dieciséis sombras, lado a lado.** Antes de elegir la sombra del
-mockup se midió qué hacen las referencias, con el mismo método que con
-@nater02 (luma alrededor del borde del teléfono, dos gaussianas con
-corrida). Los clips del vault se parten en tres familias: **sin sombra
-o casi** (Floating bar y Photo picker: cero niveles fuera del borde;
-solarn: ocho), **una sola capa ancha y tenue apenas corrida** (Swipe to
-pay α .20 σ 60; Pill to button α .15 σ 75; Shelf to card, abajo), y
-**dos capas, contacto más ambiente, corridas a la derecha y abajo**,
-que es sólo el video de referencia. Con eso, más los sistemas de diseño
-(Material elevación 24, las capas de Comeau) y los estilos conocidos
-(larga y dura, flotante, contacto, halo, dramática), la grilla `Sombras`
-del mockup muestra dieciséis variantes del mismo cuadro con su recibo
-abajo. El modelo de sombra creció para poder dibujarlas: cada capa
-tiene corrida en x y en y, color y expansión, y la corrida diagonal
-única de antes es el caso particular.
+**Sixteen shadows, side by side.** Before choosing the mockup's shadow I
+measured what the references do, with the same method as with @nater02
+(luma around the edge of the phone, two gaussians with an offset). The
+vault's clips split into three families: **no shadow, or almost none**
+(Floating bar and Photo picker: zero levels outside the edge; solarn:
+eight), **a single wide, faint layer, barely offset** (Swipe to pay
+α .20 σ 60; Pill to button α .15 σ 75; Shelf to card, below), and **two
+layers, contact plus ambient, offset to the right and down**, which is
+only the reference video. With that, plus the design systems (Material
+elevation 24, Comeau's layers) and the known styles (long and hard,
+floating, contact, halo, dramatic), the mockup's `Shadows` grid shows
+sixteen variants of the same frame with its receipt underneath. The
+shadow model grew so it could draw them: each layer has an offset in x
+and in y, a color and a spread, and the single diagonal offset from
+before is the particular case.
 
-**Dos fondos por video, y el proceso escrito entero.** Regla nueva: cada
-video sale dos veces, sobre el fondo claro medido y sobre uno oscuro
-(`pnpm render:ambos`). El oscuro no tiene referencia en el vault —los
-clips que parecían oscuros, Mini player y Hold to commit, miden blanco
-en las esquinas: era el teléfono ocupando el cuadro— así que es el
-neutro bajado al 11 % con el mismo tinte, #1C181A, y la sombra queda
-igual porque negra sobre casi negro no se ve; el teléfono se separa por
-el canto del bisel. Y la línea completa —de la sonda en la pieza al
-render doble— quedó en `mockup/AGENTS.md`, con cada mini-decisión y su
-porqué, y la sonda de grabación para copiar en `nativo/AGENTS.md`.
+**Two backgrounds per video, and the whole process written down.** New
+rule: every video comes out twice, over the measured light background
+and over a dark one (`pnpm render:both`). The dark one has no reference
+in the vault. The clips that looked dark, Mini player and Hold to
+commit, measure white in the corners: that was the phone filling the
+frame. So it is the neutral taken down to 11 % with the same tint,
+#1C181A, and the shadow stays as it is because black over almost black
+cannot be seen; the phone is set apart by the edge of the bezel. And the
+whole line, from the probe in the piece to the double render, went into
+`mockup/AGENTS.md`, with every mini-decision and its why, plus the
+recording probe to copy into `native/AGENTS.md`.
 
-**Los dos videos entran a la exhibition, y la card elige.** `Swipeable
-tabs` ya no tiene el hueco vacío: lleva el mockup claro en `video` y el
-oscuro en `videoOscuro`, los dos a 1080² (el doble del hueco del detalle
-y algo más) por `pnpm pieza:video … --oscuro`. La card los elige con
-`prefers-color-scheme`, que es lo único que la exhibition sigue —no hay
-switch de tema—, con un `useSyncExternalStore` sobre el `matchMedia` y
-un `key` por src para que el `<video>` arranque de cero al cambiar. Sin
-`videoOscuro`, el claro va en los dos modos.
+**Both videos go into the exhibition, and the card chooses.** Swipeable
+tabs no longer has the slot empty: it carries the light mockup in
+`video` and the dark one in `videoDark`, both at 1080² (twice the
+detail's slot and then some) through `pnpm piece:video … --dark`. The
+card chooses between them with `prefers-color-scheme`, which is the only
+thing the exhibition follows (there is no theme switch), with a
+`useSyncExternalStore` over `matchMedia` and a `key` per src so the
+`<video>` starts from zero when it changes. With no `videoDark`, the
+light one goes in both modes.
 
-**El mockup en la exhibition, grande y del color de la card.** Dos quejas
-sobre la primera puesta: el teléfono se veía chico adentro del cuadrado
-y el fondo del mockup no era el de la exhibition. Se probó dibujar el
-teléfono con CSS alrededor de la grabación cruda, como hace benji.org
-(su video es la pantalla sola y la página pone un phone.png; medido:
-marco del 4.3 % del ancho, esquina del hueco al 14.4 %) y se rechazó:
-"el mockup del iPhone debe estar como antes". Lo que quedó: la exhibition
-lleva **su propio par de renders** del mismo mockup, con el fondo igual
-a `--surface` de la card en cada tema, el teléfono al 86 % del cuadro
-(benji: 85 %, medido en su card) y la salida de la cámara a 1× para que
-el teléfono termine entero y centrado. Y la muestra se dimensiona por
-el ALTO del hueco: una grabación cruda sigue cayendo en 228×448, y el
-cuadrado llena lo que la caja deja, 440. Medido en el navegador: en
-claro el video decodifica (248, 248, 246), la superficie exacta; en
-oscuro decodifica (14, 14, 14) contra (14, 14, 13) de la superficie —un
-nivel de azul que el 4:2:0 del h264 no puede dar (probados 10 a 14 de
-azul: ninguno cae en 13). No se ve, y no se toca el token por un códec.
+**The mockup in the exhibition, large and the color of the card.** Two
+complaints about the first attempt: the phone looked small inside the
+square and the mockup's background was not the exhibition's. I tried
+drawing the phone with CSS around the raw recording, the way benji.org
+does (his video is the screen alone and the page puts a phone.png over
+it; measured: a frame of 4.3 % of the width, the slot's corner at
+14.4 %) and it was rejected: "the iPhone mockup should be like it was
+before". What stayed: the exhibition carries **its own pair of renders**
+of the same mockup, with the background equal to the card's `--surface`
+in each theme, the phone at 86 % of the frame (benji: 85 %, measured on
+his card) and the camera's way out at 1× so the phone ends up whole and
+centered. And the showcase is sized by the HEIGHT of the slot: a raw
+recording still falls into 228×448, and the square fills what the box
+leaves, 440. Measured in the browser: in light the video decodes to
+(248, 248, 246), the exact surface; in dark it decodes to (14, 14, 14)
+against the surface's (14, 14, 13), one level of blue that h264's 4:2:0
+cannot give (10 through 14 of blue tested: none lands on 13). It cannot
+be seen, and a token does not get touched for a codec.
 
-**Un solo fondo: el de la exhibition.** El par con el color de la card
-horneado tampoco gustó: "que haya solo un fondo, que sea el del lugar
-que da la library, y sin sombra, como hace Family". Así que la exhibition
-lleva **un video transparente y sin sombra** —el teléfono al 86 % del
-cuadro y la cámara terminando a 1×— y el fondo lo pone la card en el
-tema que sea; los tokens mandan, el video no trae color. Es lo que hace
-Family en benji.org: la página pone el fondo y el teléfono va limpio. El
-alfa viaja en dos archivos porque ningún códec lo lleva a todos los
-navegadores: WebM VP9 con alfa para Chrome y Firefox, y HEVC con alfa en
-.mov para Safari, que sale del máster ProRes 4444 con el encoder de
-VideoToolbox de macOS. La card los ofrece con dos `<source>`, el .mov
-primero: Safari es el único que lo abre, y al revés tomaría el WebM y lo
-dibujaría sobre negro. Con esto `videoOscuro` y el hook del esquema de
-color se fueron: no hay nada que elegir por tema.
+**One background only: the exhibition's.** The pair with the card's
+color baked in was not liked either: "let there be only one background,
+the one the place the library gives, and no shadow, the way Family does
+it". So the exhibition carries **a transparent video with no shadow**
+(the phone at 86 % of the frame and the camera ending at 1×) and the
+card puts the background in whichever theme it is; the tokens rule, the
+video brings no color. It is what Family does on benji.org: the page
+puts the background and the phone goes in clean. The alpha travels in
+two files because no codec carries it to every browser: WebM VP9 with
+alpha for Chrome and Firefox, and HEVC with alpha in .mov for Safari,
+which comes out of the ProRes 4444 master with macOS's VideoToolbox
+encoder. The card offers them with two `<source>`, the .mov first:
+Safari is the only one that opens it, and the other way round it would
+take the WebM and draw it over black. With this, `videoDark` and the
+color scheme hook went away: there is nothing left to choose by theme.
 
-**Más cerca, y el corte del zoom en el borde de la caja.** Con el video
-transparente, el cuadrado del mockup vivía centrado en la caja de la
-card con el padding de 40/60 alrededor, y cuando la cámara entraba el
-teléfono se cortaba contra ese cuadrado invisible, 60 px adentro del
-borde de la caja: un corte que no venía de nada. Ahora el video ES la
-caja —560 de lado, sin padding— y el corte cae en el borde del espacio
-que da la exhibition, que es donde un ojo espera un límite. Y el teléfono
-va al 92 % del cuadro, 515 px en vez de 378, porque el usuario lo pidió
-más cerca. El hueco de 228×448 sigue vivo para la card sin video.
+**Closer, and the zoom's cut on the edge of the box.** With the
+transparent video, the mockup's square lived centered in the card's box
+with the 40/60 padding around it, and when the camera came in the phone
+was cut against that invisible square, 60 px inside the edge of the box:
+a cut that came from nothing. Now the video IS the box (560 a side, no
+padding) and the cut falls on the edge of the space the exhibition
+gives, which is where an eye expects a limit. And the phone goes to 92 %
+of the frame, 515 px instead of 378, because the user asked for it
+closer. The 228×448 slot is still alive for the card with no video.
 
-**En la exhibition la cámara se queda.** "Que sea todo exactamente igual
-salvo que una vez que se hace zoom, se quede ahí hasta el final, así
-se ve lo que estoy mostrando, que son los tabs." Así que el render de
-la exhibition entra a la fila de tabs y no sale: `hasta` fuera del clip.
-El video de X sigue con la salida medida en la referencia. Y un bug
-que casi viaja: el máster ProRes 4444 salía sin alfa —esquina 255,
-medido— porque Remotion necesita `--pixel-format=yuva444p10le` además
-del perfil; el .mov de Safari habría tenido fondo negro. El script lo
-mide ahora antes de seguir y corta si el alfa no es cero.
+**In the exhibition the camera stays.** "Make it all exactly the same
+except that once it zooms in, it stays there until the end, so you can
+see what I am showing, which is the tabs." So the exhibition's render
+comes into the row of tabs and does not come out: `--until` outside the
+clip. The video for X keeps the way out measured on the reference. And a
+bug that nearly traveled: the ProRes 4444 master was coming out with no
+alpha (corner 255, measured) because Remotion needs
+`--pixel-format=yuva444p10le` on top of the profile; Safari's .mov would
+have had a black background. The script measures it now before going on
+and stops if the alpha is not zero.
 
-**La velocidad, como en Family Values.** Al pasar el mouse por el video
-aparece arriba a la derecha un botón que alterna 1x y 0.5x y escribe
-`playbackRate`. Está medido en el código de benji.org: 1rem de padding
-desde la esquina, 0.75rem/460, alto 1.25rem, radio píldora, color
-#989897, ancho 1.75rem en 1x y 2.5rem en 0.5x, los dos rótulos
-superpuestos y cruzados por opacidad, hover con fondo #f2f2f2, todo con
-`transition: all .2s ease`. Acá los colores son los tokens que ya dicen
-lo mismo —`--text-secondary` y `--surface-hover`—, la tipografía la de
-nav (13/460, la más chica del sistema) y el movimiento `--dur-surface`
-con `--ease-surface`. Una diferencia a propósito: en benji el botón
-está siempre; acá se revela con el mouse sobre el video —lo pidió el
-usuario— y queda siempre visible donde no hay hover. La velocidad se
-vuelve a escribir en `loadedmetadata`, porque un cambio de fuente la
-devuelve a 1. Verificado en Chrome: 1 → 0.5 → 1 en `playbackRate`, el
-ancho 28 → 40, el rótulo cruzado, opacidad 0 sin el mouse y 1 con él.
+**The speed, as in Family Values.** Moving the mouse over the video
+brings up a button at the top right that toggles 1x and 0.5x and writes
+`playbackRate`. It is measured in benji.org's code: 1rem of padding from
+the corner, 0.75rem/460, height 1.25rem, pill radius, color #989897,
+width 1.75rem at 1x and 2.5rem at 0.5x, the two labels stacked and
+crossed by opacity, hover with a #f2f2f2 background, all with
+`transition: all .2s ease`. Here the colors are the tokens that already
+say the same thing (`--text-secondary` and `--surface-hover`), the type
+is nav's (13/460, the smallest in the system) and the motion is
+`--dur-surface` with `--ease-surface`. One difference on purpose: in
+benji the button is always there; here it is revealed with the mouse
+over the video (the user asked for it) and it stays always visible where
+there is no hover. The speed is written again on `loadedmetadata`,
+because a change of source returns it to 1. Verified in Chrome: 1 → 0.5
+→ 1 in `playbackRate`, the width 28 → 40, the label crossed, opacity 0
+without the mouse and 1 with it.
 
-**Ajuste al botón de velocidad.** Siempre visible en el detalle, como en
-benji; en el hub de la exhibition sólo con el mouse sobre el video, porque
-ahí es una lista y un control por card es ruido. Sin fondo ni cambio de
-color al pasar por encima: el rótulo alcanza. Y el rótulo es "1x", no
-"1.0x".
+**An adjustment to the speed button.** Always visible in the detail, as
+in benji; in the exhibition's hub only with the mouse over the video,
+because there it is a list and one control per card is noise. No
+background and no color change on hover: the label is enough. And the
+label is "1x", not "1.0x".
 
-**La calidad a 0.5×, medida antes de tocar.** "A 0.5 se ve en mala
-calidad, medio lag." En Chrome, con `getVideoPlaybackQuality`: 240
-cuadros presentados en 4 s a 1× y 119 a 0.5×, cero caídos en los dos
-casos. Es decir, el navegador no pierde nada: a 0.5× muestra 30 cuadros
-únicos por segundo porque la grabación tiene 60, y eso es un techo de
-la fuente, no del códec. Se probó levantarlo interpolando a 120 con
-`minterpolate` y se descartó con evidencia: en el arrastre lento deja
-fantasmas en los bordes del texto, y en los flicks duplica las letras
-enteras. Lo que sí mejora la calidad se hizo: el video pasa de 1280² a
-**1120², que es 1:1 con la caja de 560 en retina** —cada píxel del video
-cae en uno de la pantalla, sin re-muestreo— y decodifica un 23 % menos;
-el VP9 va a crf 18 explícito y el HEVC de Safari sube de calidad 70 a
-85 sin priorizar velocidad. Un 120 real pediría grabar a 120 Hz, y el
-simulador rinde a 60.
+**The quality at 0.5×, measured before touching anything.** "At 0.5 it
+looks like bad quality, kind of laggy." In Chrome, with
+`getVideoPlaybackQuality`: 240 frames presented in 4 s at 1× and 119 at
+0.5×, zero dropped in both cases. That is, the browser loses nothing: at
+0.5× it shows 30 unique frames per second because the recording has 60,
+and that is a ceiling of the source, not of the codec. I tried raising
+it by interpolating to 120 with `minterpolate` and dropped it with
+evidence: in the slow drag it leaves ghosts at the edges of the text,
+and in the flicks it duplicates whole letters. What does improve the
+quality was done: the video goes from 1280² to **1120², which is 1:1
+with the 560 box on retina** (each pixel of the video lands on one of
+the screen, with no resampling) and decodes 23 % less; the VP9 goes to
+an explicit crf 18 and Safari's HEVC goes up from quality 70 to 85
+without prioritizing speed. A real 120 would ask for recording at
+120 Hz, and the simulator delivers 60.
 
-**Los 60 fps, de punta a punta, medidos.** Tres lugares donde se
-podrían perder cuadros, y qué dio cada uno:
+**The 60 fps, end to end, measured.** Three places where frames could be
+lost, and what each one gave:
 
-| dónde | medida | resultado |
+| where | measurement | result |
 | --- | --- | --- |
-| la grabación | cuadros escritos dentro de cada gesto contra la duración del gesto × 60, en tres tomas | 100.7 %, 101.1 % y 100.2 %: no falta ninguno. Los deltas de 20–30 ms entre marcas de tiempo son jitter del grabador, no cuadros perdidos (si faltaran, la completitud bajaría) |
-| el render | Remotion dibuja cada cuadro por número, no por reloj | por construcción, 776 de 776 |
-| el navegador | `getVideoPlaybackQuality` en Chrome, 4 s a 1× y 4 s a 0.5× | 240 y 119 presentados, 0 caídos |
+| the recording | frames written inside each gesture against the duration of the gesture × 60, in three takes | 100.7 %, 101.1 % and 100.2 %: not one is missing. The deltas of 20 to 30 ms between timestamps are jitter from the recorder, not lost frames (if any were missing, completeness would drop) |
+| the render | Remotion draws every frame by number, not by clock | by construction, 776 of 776 |
+| the browser | `getVideoPlaybackQuality` in Chrome, 4 s at 1× and 4 s at 0.5× | 240 and 119 presented, 0 dropped |
 
-Lo que quedaba por hacer no era arreglar una pérdida sino cuidar que no
-aparezca cuando la lista crezca: un VP9 con alfa se decodifica por
-software en Chrome (no hay camino de hardware para el alfa), y son dos
-decodificaciones por cuadro. Así que **el reproductor sólo reproduce lo
-que se ve** —pausa y retoma con IntersectionObserver, como benji, que
-monta su player recién en pantalla—, precarga entero lo visible, y no
-redondea las esquinas del video transparente: era una máscara sobre una
-capa de 1120² por cuadro para no cambiar nada. Si algún día un equipo
-flojo cae cuadros, el siguiente escalón es un h264 opaco con el color
-de la card horneado, que decodifica en hardware en todos lados; se
-descartó por ahora porque el oscuro queda a un nivel de azul de la
-superficie.
+What was left to do was not to fix a loss but to keep it from showing up
+when the list grows: a VP9 with alpha decodes in software in Chrome
+(there is no hardware path for the alpha), and that is two decodes per
+frame. So **the player only plays what can be seen** (it pauses and
+resumes with IntersectionObserver, like benji, who mounts his player
+only once it is on screen), it preloads everything visible in full, and
+it does not round the corners of the transparent video: that was a mask
+over a 1120² layer per frame in exchange for changing nothing. If some
+weak machine ever drops frames, the next step down is an opaque h264
+with the card's color baked in, which decodes in hardware everywhere; it
+was dropped for now because the dark one lands one level of blue away
+from the surface.
 
-**Las notas de la pieza, en el tono de Josh Puckett.** Se leyeron sus
-páginas —Bloom, Pasito, Melt Effect— y las secciones de Family Values
-de benji. Josh: una línea bajo el título que dice qué es, secciones
-cortas con títulos llanos ("Anatomy", "A note on performance"), dos o
-tres oraciones cada una, "you" cuando te habla, y una parte por oración
-cuando desarma el componente. Benji escribe ensayos largos por
-principios y sólo se le toma el pie de un renglón bajo cada demo. Las
-notas de Swipeable tabs pasan de un ensayo de cinco secciones largas a
-seis secciones de 252 palabras en total: qué hace, anatomía, de dónde
-salen los números, lo que cambié a propósito, una nota sobre la
-grabación y probarlo en la mano. La línea del detalle: "X’s home tabs
-for Expo. Swipe between feeds, tap to jump, and the header folds away
-as you scroll."
+**The notes of the piece, in Josh Puckett's tone.** I read his pages
+(Bloom, Pasito, Melt Effect) and benji's Family Values sections. Josh: a
+line under the title that says what it is, short sections with plain
+titles ("Anatomy", "A note on performance"), two or three sentences
+each, "you" when he talks to you, and one part per sentence when he
+takes the component apart. Benji writes long essays by principle and the
+only thing taken from him is the one-line caption under each demo. The
+Swipeable tabs notes go from an essay of five long sections to six
+sections of 252 words in total: what it does, anatomy, where the numbers
+come from, what I changed on purpose, a note on the recording and trying
+it in your hand. The detail's line: "X’s home tabs for Expo. Swipe
+between feeds, tap to jump, and the header folds away as you scroll."
 
-**En la lista, el video arranca con el puntero, como en el vault.** La
-card entera es el disparador —apuntarle sólo al video dejaría media
-card muerta—, entra con el mouse o con el foco del teclado, se pausa al
-salir y retoma donde estaba, sin rebobinar; con reduced-motion no
-arranca. Sin autoplay y con `preload="metadata"` más el fragmento
-`#t=0.1`, que obliga a pintar el primer cuadro (el truco del vault: en
-0 algunos contenedores todavía no tienen cuadro clave). El detalle sigue
-con autoplay y precarga entera: es la pieza que viniste a ver.
-Verificado en Chrome: pausado en 0.1 al cargar, reproduce con la card
-bajo el puntero, pausa al salir conservando el tiempo.
+**In the list, the video starts with the pointer, as in the vault.** The
+whole card is the trigger (pointing only at the video would leave half
+the card dead), it comes in with the mouse or with keyboard focus, it
+pauses on the way out and resumes where it was, without rewinding; with
+reduced-motion it does not start. No autoplay, and `preload="metadata"`
+plus the `#t=0.1` fragment, which forces the first frame to be painted
+(the vault's trick: at 0 some containers do not have a key frame yet).
+The detail keeps autoplay and full preload: it is the piece you came to
+see. Verified in Chrome: paused at 0.1 on load, plays with the card
+under the pointer, pauses on the way out keeping the time.
 
-**Todo nombre usa vocabulario profesional preciso.** Regla traída por
-el usuario el 2026-09-07 (de otro `CLAUDE.md`, en captura), y vale para
-el repo entero: archivos, scripts, carpetas, funciones, variables,
-clases, commits, ramas, lo que sea, con la palabra que un ingeniero de
-IBM habría escrito en una especificación en 1972 — sin jerga, sin
-abreviaturas casuales, sin nombres graciosos ni ingeniosos, sin palabras
-del chat. `deploy_dashboards.sh`, no `push_dashboards.sh`, y eso es una
-ilustración, no el alcance. Vive en `AGENTS.md › Método de trabajo` y
-como quinto punto de `CLAUDE.md`. Se aplicó primero al texto público: la
-descripción de Swipeable tabs dice "collapses" donde decía "folds away",
-y las partes de la anatomía se llaman `Header`, `Tab bar`, `Pager` y
-`Page`, no "the fold".
+**Every name uses precise professional vocabulary.** A rule the user
+brought on 2026-09-07 (from another `CLAUDE.md`, in a screenshot), and
+it holds for the whole repo: files, scripts, folders, functions,
+variables, classes, commits, branches, whatever, with the word an IBM
+engineer would have written in a specification in 1972. No jargon, no
+casual abbreviations, no funny or clever names, no words from the chat.
+`deploy_dashboards.sh`, not `push_dashboards.sh`, and that is an
+illustration, not the scope. It lives in `AGENTS.md › Working method`
+and as the fifth point of `CLAUDE.md`. It was applied first to the
+public text: the description of Swipeable tabs says "collapses" where it
+said "folds away", and the parts of the anatomy are called "Header",
+"Tab bar", "Pager" and "Page", not "the fold".
 
-**La anatomía, en partes con nombre, como josh en /bloom.** El párrafo
-único de "Anatomy" mezclaba cuatro cosas en seis oraciones y el usuario
-pidió explicarlo "como lo haría benji taylor o josh puckett, bien
-simple" (2026-09-07). Medido en /bloom (API Reference, sobre la página
-servida): cada parte es un `h3` con el nombre —16/500/24, la tinta del
-título— y, a 8 px, un párrafo de una o dos oraciones —16/400/24, gris—;
-las partes van a 64 una de otra ("Container — The morphing element.
-Automatically sizes to fit the trigger content, then animates to the
-menu dimensions"). En /drawesome benji hace lo mismo en prosa: lista las
-herramientas y después cuenta qué hace cada una ("Each pen behaves like
-the thing it's named after"). Acá es un componente `Parte` en
-`notas.tsx`: el nombre en `--type-h3` (14/500, el título de pieza: mismo
-rol, un nombre corto que encabeza algo), el párrafo en cuerpo y en tinta
-como toda la prosa, 8 de nombre a párrafo (`--note-part-gap`) y entre
-partes el hueco de párrafos (20; el 64 de josh es su hueco de sección y
-ese acá ya es `--section-gap`), elegido mirando. Cuatro partes de arriba
-a abajo —Header, Tab bar, Pager, Page—, cada una con qué es y después
-qué hace, en dos a cuatro oraciones y sin adjetivos; la frase de la fila
-que sólo se corre cuando el tab no entra pasó de Performance a Tab bar,
-porque es comportamiento y no rendimiento. Cada afirmación sale del
-código de la pieza y de sus recibos: el bloque que se mueve entero, la
-barra sin estado que dibuja desde un solo valor, el toque que mueve el
-contenido una sola página, la háptica por cambio de tab, el pliegue
-1:1 hasta que el divisor toca la barra de estado.
+**The anatomy, in named parts, like josh in /bloom.** The single
+paragraph of "Anatomy" mixed four things in six sentences and the user
+asked for it to be explained "the way benji taylor or josh puckett would
+do it, nice and simple" (2026-09-07). Measured on /bloom (API Reference,
+on the served page): each part is an `h3` with the name (16/500/24, the
+title's ink) and, 8 px below, a paragraph of one or two sentences
+(16/400/24, gray); the parts sit 64 from one another ("Container: The
+morphing element. Automatically sizes to fit the trigger content, then
+animates to the menu dimensions"). In /drawesome benji does the same in
+prose: he lists the tools and then tells what each one does ("Each pen
+behaves like the thing it's named after"). Here it is a Part component
+in `src/notes.tsx`: the name in `--type-h3` (14/500, the piece title:
+same role, a short name heading something), the paragraph in body and in
+ink like all the prose, 8 from name to paragraph (a --note-part-gap
+token) and between parts the paragraph gap (20; josh's 64 is his section
+gap and that one here is already `--section-gap`), chosen by looking.
+Four parts from top to bottom (Header, Tab bar, Pager, Page), each one
+with what it is and then what it does, in two to four sentences and with
+no adjectives; the sentence about the row that only moves when the tab
+does not fit went from Performance to Tab bar, because it is behavior
+and not performance. Every claim comes out of the piece's code and its
+receipts: the block that moves whole, the stateless bar that draws from
+a single value, the tap that moves the content one page only, the haptic
+per tab change, the 1:1 collapse until the divider touches the status
+bar.
 
-**La anatomía vuelve a ser prosa: el subtítulo por parte se rechazó.**
-Con la página servida el usuario dijo "no me gusta esta estructura"
-(2026-09-07) sobre los cuatro h3 (Header, Tab bar, Pager, Page). Se
-retiraron el componente `Parte`, sus reglas de CSS y el token
-`--note-part-gap`; el contenido de esa vuelta se quedó, en tres
-párrafos que nombran cada parte al pasar —qué partes hay y cómo forman
-un bloque; cómo la barra y el pager comparten un solo valor; cómo el
-scroll de la lista colapsa el header— con el "How it works" de benji en
-/liveline como modelo de forma: prosa corrida de oraciones cortas ("One
-<canvas>, one requestAnimationFrame loop. When a new value arrives,
-nothing jumps."). Queda anotado en `notas.tsx` para que nadie vuelva a
-proponer el h3.
+**The anatomy goes back to being prose: the subhead per part was
+rejected.** With the page served the user said "I don't like this
+structure" (2026-09-07) about the four h3s (Header, Tab bar, Pager,
+Page). The Part component, its CSS rules and the --note-part-gap token
+were withdrawn; the content of that round stayed, in three paragraphs
+that name each part in passing (which parts there are and how they form
+a block; how the bar and the pager share a single value; how the list's
+scroll collapses the header) with benji's "How it works" in /liveline as
+the model of form: running prose of short sentences ("One <canvas>, one
+requestAnimationFrame loop. When a new value arrives, nothing jumps.").
+It is noted in `src/notes.tsx` so that nobody proposes the h3 again.
 
-**La línea de descripción y el título, bajo la regla de nombres.** El
-usuario pidió usar la misma regla "para la descripción y para los
-títulos" (2026-09-07). La línea pasa de "Swipe between feeds, tap to
-jump" a "Swipe between tabs, tap to select one": las páginas son tabs
-(dos feeds y cuatro temas), y "select" es el verbo de especificación
-donde "jump" era el coloquial. Auditados contra la regla y sin cambio:
-el título `Swipeable tabs` (el término de los SDK: `Swipeable` en
-gesture-handler, "swipe" en la HIG), el masthead `Interface exhibition`, los rótulos
-`Web` y `App`, y los títulos de las notas `Anatomy`, `Performance` y
-`Use cases`. `AGENTS.md › Cómo se nombra` lo deja escrito para las
-piezas que vengan.
+**The description line and the title, under the naming rule.** The user
+asked to use the same rule "for the description and for the titles"
+(2026-09-07). The line goes from "Swipe between feeds, tap to jump" to
+"Swipe between tabs, tap to select one": the pages are tabs (two feeds
+and four topics), and "select" is the specification verb where "jump"
+was the colloquial one. Audited against the rule and unchanged: the
+title Swipeable tabs (the SDKs' term: `Swipeable` in gesture-handler,
+"swipe" in the HIG), the masthead `Interface exhibition`, the labels
+`Web` and `App`, and the notes' titles `Anatomy`, `Performance` and
+`Use cases`. `AGENTS.md › How a piece is named` writes it down for the
+pieces to come.
 
-**Anatomy habla sólo de la animación que da nombre a la pieza.** El
-usuario, con la prosa en pantalla: "en anatomy que se hable solo de la
-animación de los tabs, no de las otras cosas" (2026-09-07). Salieron de
-la sección el header que colapsa, las listas y el avatar —siguen en la
-grabación y en la línea de descripción— y quedaron dos párrafos sobre
-los tabs y el cierre de la medición: la fila de labels con su subrayado
-sobre un ScrollView paginado, la barra sin estado que dibuja subrayado,
-colores de label y símbolos desde un solo valor; el arrastre como scroll
-nativo con la curva de iOS, el toque en 300 ms que mueve el contenido
-una sola página, el tab que crece para su símbolo mientras los labels
-vecinos se apartan, la fila que sólo se corre cuando el próximo tab no
-entra, y la háptica por cambio. Es la regla para las notas que vengan y
-está escrita en `notas.tsx`: la sección desarma la animación, no la
-pantalla.
+**Anatomy talks only about the animation the piece is named after.** The
+user, with the prose on screen: "in anatomy talk only about the tabs
+animation, not the other things" (2026-09-07). The header that
+collapses, the lists and the avatar left the section (they are still in
+the recording and in the description line) and two paragraphs about the
+tabs stayed, plus the closing about the measurement: the row of labels
+with its underline over a paged ScrollView, the stateless bar that draws
+the underline, the label colors and the symbols from a single value; the
+drag as native scroll with the iOS curve, the tap in 300 ms that moves
+the content one page only, the tab that grows for its symbol while the
+neighboring labels move aside, the row that only moves when the next
+tab does not fit, and the haptic per change. It is the rule for the
+notes to come and it is written in `src/notes.tsx`: the section takes
+the animation apart, not the screen.
 
-**La línea de descripción no nombra la app; la referencia se cuenta en
-Anatomy.** "En la descripción principal no pongas X's tabs, mencionalo
-explicando el proceso o en anatomy, que la referencia fue sacada de
-ahí" (2026-09-07). La línea queda "A tab bar with paged content, for
-Expo. Swipe between tabs, tap to select one, and the header collapses
-as you scroll." —qué es y qué hace, como el título, que tampoco nombra
-la app— y el cierre de Anatomy dice de dónde salió y cómo se midió:
-"The reference is the home tabs of X on iOS. Every value is measured
-from there: four recordings at 60 fps, read frame by frame, each number
-next to its receipt in the code." Escrito en `AGENTS.md › Cómo se
-nombra` para las piezas que vengan.
+**The description line does not name the app; the reference is told in
+Anatomy.** "In the main description don't put X's tabs, mention it while
+explaining the process or in anatomy, that the reference was taken from
+there" (2026-09-07). The line ends up as "A tab bar with paged content,
+for Expo. Swipe between tabs, tap to select one, and the header
+collapses as you scroll.", what it is and what it does, like the title,
+which does not name the app either. And the closing of Anatomy says
+where it came from and how it was measured: "The reference is the home
+tabs of X on iOS. Every value is measured from there: four recordings at
+60 fps, read frame by frame, each number next to its receipt in the
+code." Written in `AGENTS.md › How a piece is named` for the pieces to
+come.
 
-**Anatomy y la línea, escritas para quien acaba de ver el video.** El
-usuario, con la versión anterior en pantalla: "decí React Native, no
-Reanimated, no se suele decir eso, y no me gusta tanto anatomy y
-descripción, no siento que sea útil" (2026-09-07). Lo inútil era el
-punto de vista: contaban la implementación —un valor derivado, el pager
-que le pasa un tramo a la barra, worklets— a alguien que vio doce
-segundos de video y quiere saber qué miró y con qué está hecho. Ahora
-la línea dice qué es y los tres detalles que hay que mirar ("Top tabs
-for React Native. The underline follows the drag, the active tab widens
-to show its symbol, and a tap moves the content one page, however far
-the tab is."), y dejó de mencionar el header que colapsa, que la
-grabación no muestra. Anatomy va de lo que se ve al cómo: el subrayado
-atado al scroll, que va con el contenido y frena con él; el toque que
-activa el tab en 300 ms, lo ensancha para su símbolo, aparta los otros
-labels y cruza una sola página; la fila que sólo se corre cuando el tab
-no entra; la háptica por cambio; con qué está hecho (SF Symbols, la
-háptica de Expo) y de dónde salió (X en iOS, cuatro grabaciones a
-60 fps). Performance dice lo mismo que antes en llano: "on the UI
-thread, not in JavaScript", sin nombrar la librería. Las tres reglas
-—desde lo que se ve, sólo la animación que da nombre, sin nombres de
-librerías— están en `notas.tsx` y en `AGENTS.md › Cómo se nombra`.
+**Anatomy and the line, written for someone who has just seen the
+video.** The user, with the previous version on screen: "say React
+Native, not Reanimated, people don't usually say that, and I don't like
+anatomy and the description all that much, I don't feel they're useful"
+(2026-09-07). What was useless was the point of view: they told the
+implementation (a derived value, the pager handing a segment to the bar,
+worklets) to someone who saw twelve seconds of video and wants to know
+what they looked at and what it is made with. Now the line says what it
+is and the three details to look at ("Top tabs for React Native. The
+underline follows the drag, the active tab widens to show its symbol,
+and a tap moves the content one page, however far the tab is."), and it
+stopped mentioning the header that collapses, which the recording does
+not show. Anatomy goes from what you see to the how: the underline bound
+to the scroll, which goes with the content and stops with it; the tap
+that activates the tab in 300 ms, widens it for its symbol, moves the
+other labels aside and crosses a single page; the row that only moves
+when the tab does not fit; the haptic per change; what it is made with
+(SF Symbols, Expo's haptics) and where it came from (X on iOS, four
+recordings at 60 fps). Performance says the same as before in plain
+words: "on the UI thread, not in JavaScript", without naming the
+library. The three rules (from what you see, only the animation the
+piece is named after, no library names) are in `src/notes.tsx` and in
+`AGENTS.md › How a piece is named`.
 
-**La línea, muchísimo más corta.** "Muchísimo más corto esto" (usuario,
-2026-09-07) sobre la línea de tres detalles. Queda "Top tabs for React
-Native. The underline follows the drag.": qué es y el detalle que se
-ve primero; los otros dos —el tab que se ensancha, el toque que cruza
-una sola página— ya están en Anatomy y ahí se quedan. Es la medida de
-josh: una línea bajo el título ("A tiny, fully-themeable, and
-dependency-free fluid stepper component"). Regla en `AGENTS.md › Cómo
-se nombra`: qué es y un detalle, una línea.
+**The line, much shorter.** "Much, much shorter, this one" (user,
+2026-09-07) about the three-detail line. It ends up as "Top tabs for
+React Native. The underline follows the drag.": what it is and the
+detail you see first; the other two, the tab that widens and the tap
+that crosses a single page, are already in Anatomy and there they stay.
+It is josh's measure: one line under the title ("A tiny,
+fully-themeable, and dependency-free fluid stepper component"). Rule in
+`AGENTS.md › How a piece is named`: what it is and one detail, one line.
 
-**La línea, sólo qué es y para qué plataforma.** "Que sea tabs, React
-Native, Expo, bien escrito" (usuario, 2026-09-07). Queda "Top tabs for
-React Native and Expo.": el término de React Navigation para esta
-barra, y las dos plataformas como las nombra el ecosistema ("React
-Native & Expo"). El detalle del subrayado que llevaba la versión
-anterior está en la primera oración de Anatomy y no hacía falta dos
-veces. Regla en `AGENTS.md › Cómo se nombra`.
+**The line, only what it is and for which platform.** "Make it tabs,
+React Native, Expo, well written" (user, 2026-09-07). It ends up as "Top
+tabs for React Native and Expo.": React Navigation's term for this bar,
+and the two platforms as the ecosystem names them ("React Native &
+Expo"). The underline detail the previous version carried is in the
+first sentence of Anatomy and it was not needed twice. Rule in
+`AGENTS.md › How a piece is named`.
 
-**"&" en la línea, no "and".** Pedido del usuario (2026-09-07). Queda
-"Top tabs for React Native & Expo.", que es como el ecosistema escribe
-el par. El "for" se quedó: es la preposición de las dos referencias en
-su línea bajo el título —"a drawing toolbar for React" (benji,
-/drawesome), "a real-time animated line chart component for React"
-(benji, /liveline), "An iOS inspired pull down menu for the web" (josh,
-/bloom)—, leída en sus páginas servidas el mismo día.
+**"&" in the line, not "and".** The user's request (2026-09-07). It ends
+up as "Top tabs for React Native & Expo.", which is how the ecosystem
+writes the pair. The "for" stayed: it is the preposition of both
+references in their line under the title ("a drawing toolbar for React",
+benji, /drawesome; "a real-time animated line chart component for
+React", benji, /liveline; "An iOS inspired pull down menu for the web",
+josh, /bloom), read on their served pages the same day.
 
-**Anatomy enumera las reglas de motion que la pieza cumple, y sólo
-esas.** Pedido del usuario (2026-09-07): "aclará reglas que sigan a
-/animate-expo y /interface-craft y /better-ui si cumplen con el
-código", y que no se diga de dónde son los símbolos. Se auditó el
-código contra los tres skills antes de escribir una palabra; entraron
-ocho reglas con recibo en archivo y línea (el detalle está arriba de
-`src/components/pieces/swipeable-tabs/notes.tsx`): sólo transform y opacity, con el
-subrayado como el único ancho animado y dentro de la excepción (hijo
-absoluto sin hijos); el gesto interrumpe la animación; ease-out, nunca
-ease-in; una háptica por acción, en el cuadro del cambio y nunca como
-única señal; reduced motion en la propia animación; 120 fps habilitado
-en ProMotion (SOURCE, `app.json`); cada valor una constante con su
-fuente y un solo valor guiando la transición; el movimiento nunca como
-única señal. Quedó afuera, a propósito, la puerta "tab switches never
-slide" de animate-expo: la pieza desliza porque la referencia desliza,
-medido cuadro a cuadro, y la regla apunta a los tabs de abajo. En el
-texto público las reglas no llevan el nombre de los skills —son
-archivos locales que el lector no conoce— sino "the library's rules
-for motion"; la atribución vive en el comentario del archivo.
+**Anatomy lists the motion rules the piece meets, and only those.** The
+user's request (2026-09-07): "spell out rules that follow /animate-expo
+and /interface-craft and /better-ui if the code meets them", and not to
+say where the symbols come from. The code was audited against the three
+skills before a word was written; eight rules came in with a receipt in
+file and line (the detail is at the top of
+`src/components/pieces/swipeable-tabs/notes.tsx`): only transform and
+opacity, with the underline as the only animated width and inside the
+exception (an absolute child with no children); the gesture interrupts
+the animation; ease-out, never ease-in; one haptic per action, on the
+frame of the change and never as the only signal; reduced motion in the
+animation itself; 120 fps enabled on ProMotion (SOURCE, `app.json`);
+every value a constant with its source and a single value driving the
+transition; movement never as the only signal. One thing was left out on
+purpose, animate-expo's gate "tab switches never slide": the piece
+slides because the reference slides, measured frame by frame, and the
+rule is aimed at the tabs at the bottom. In the public text the rules do
+not carry the skills' names (they are local files the reader does not
+know) but "the library's rules for motion"; the attribution lives in the
+file's comment.
 
-**Las reglas, sin frase que las anuncie.** "It follows the library's
-rules for motion" se rechazó ("no me gusta esta frase", 2026-09-07).
-El párrafo arranca por la primera regla —"Only transform and opacity
-animate"— como el "How it works" de benji, que tampoco anuncia: dice.
+**The rules, with no sentence to announce them.** "It follows the
+library's rules for motion" was rejected ("I don't like this sentence",
+2026-09-07). The paragraph starts with the first rule ("Only transform
+and opacity animate") like benji's "How it works", which does not
+announce either: it says.
 
-**Una pasada de redacción sobre el texto público, con `better-writing`
-y la regla de vocabulario.** Pedido del usuario (2026-09-07): "fijate
-que todo respete la regla del vocabulario tipo ingeniero de IBM del 73,
-y mejorá un poco la redacción como la haría benji o josh; revisá
-better-writing". Lo que cayó: los modismos ("mid-flight", "tied to",
-"runs ahead or lags behind", "in step", "cue") pasan a la palabra de
-especificación ("in progress", "bound to", "synchronized", "feedback");
-"absolute element" a "absolutely positioned"; "ProMotion screens" a
-"ProMotion displays", como lo llama Apple; "first-level filters" a
-"top-level sections"; "React never renders a frame" a "React does not
-render"; la medición dicha en llano ("the recording holds 60 fps
-through every gesture"); y una frase que estaba en Anatomy y en
-Performance quedó sólo donde explica algo. La lista completa de cambios
-está arriba de `src/components/pieces/swipeable-tabs/notes.tsx`.
+**A writing pass over the public text, with `better-writing` and the
+vocabulary rule.** The user's request (2026-09-07): "check that
+everything respects the '73 IBM engineer vocabulary rule, and improve
+the writing a bit the way benji or josh would; look at better-writing".
+What fell: the idioms ("mid-flight", "tied to", "runs ahead or lags
+behind", "in step", "cue") go to the specification word ("in progress",
+"bound to", "synchronized", "feedback"); "absolute element" to
+"absolutely positioned"; "ProMotion screens" to "ProMotion displays", as
+Apple calls them; "first-level filters" to "top-level sections"; "React
+never renders a frame" to "React does not render"; the measurement said
+plainly ("the recording holds 60 fps through every gesture"); and a
+sentence that was in Anatomy and in Performance stayed only where it
+explains something. The complete list of changes is at the top of
+`src/components/pieces/swipeable-tabs/notes.tsx`.
 
-**Performance, con el método de Anatomy.** Pedido del usuario
-(2026-09-07): mejorarla "siguiendo todas las mismas reglas de
-better-ui, animate-expo, interface-craft, la regla de hoy y
-better-writing". Se verificó cada afirmación en el código antes de
-escribirla y salió en tres párrafos, desde lo que se nota hacia el
-cómo: (1) todo en el hilo de UI y ninguna vuelta a JavaScript por
-cuadro —sólo al empezar o terminar una acción: bloquear y soltar el
-pager en un toque lejano, y la háptica—; (2) cero layout mientras el
-contenido se mueve —la fila no es un flex row, las posiciones y anchos
-de cada estado de reposo se calculan una vez y cada cuadro interpola
-entre dos—, más las páginas memoizadas con la medición del tirón que
-evitan; (3) un solo valor del que derivan subrayado, labels y símbolos
-en el mismo cuadro, y lo medido: 60 fps en cada gesto y una traza de
-492 cuadros sin titileo. Ningún nombre de librería; "moves as one
-object" es la regla de cohesión de better-ui dicha en llano. Los
-recibos, archivo y símbolo, están arriba de `src/components/pieces/swipeable-tabs/notes.tsx`.
+**Performance, with Anatomy's method.** The user's request (2026-09-07):
+improve it "following all the same rules of better-ui, animate-expo,
+interface-craft, today's rule and better-writing". Every claim was
+verified in the code before writing it and it came out in three
+paragraphs, from what you notice towards the how: (1) everything on the
+UI thread and no trip back to JavaScript per frame, only at the start or
+the end of an action, locking and releasing the pager on a distant tap,
+and the haptic; (2) zero layout while the content moves, since the row
+is not a flex row and the positions and widths of each resting state are
+computed once and each frame interpolates between two, plus the memoized
+pages with the measurement of the stutter they avoid; (3) a single value
+from which the underline, the labels and the symbols derive in the same
+frame, and what was measured: 60 fps in every gesture and a trace of 492
+frames with no flicker. No library name; "moves as one object" is
+better-ui's cohesion rule said plainly. The receipts, file and symbol,
+are at the top of `src/components/pieces/swipeable-tabs/notes.tsx`.
 
-**Chequeo de veracidad de Performance y Anatomy.** Pedido del usuario
-(2026-09-07): "chequeá que toda esa información sea verdadera y
-correcta". Se releyó cada afirmación contra el código y las tablas de
-medición; tres eran imprecisas y se corrigieron en el texto público:
-un arrastre sólo interrumpe un toque al tab vecino, porque el toque
-lejano bloquea el pager mientras dura; React no renderiza durante el
-ARRASTRE, pero un toque lejano renderiza dos veces y la háptica del
-arrastre cae en medio del gesto, así que la frase dice "during a drag"
-y "discrete moments"; y el tirón medido es un cuadro entero perdido,
-no un segundo cuadro que "alcanza" (saltó 0.195 donde el ease pedía
-0.252). Una cuarta se ajustó de alcance: "no layout runs" es para los
-tabs, porque el ancho del subrayado sí es layout de su propio nodo.
-Todo lo demás se confirmó con su recibo: la fila se corre desde un
-worklet, el layout precalculado depende sólo de los labels medidos, las
-páginas están memoizadas, la completitud fue 100.7 %, 101.1 % y
-100.2 %, y la traza de 492 cuadros es la que está en `swipeable-tabs-screen.tsx`.
+**Truth check of Performance and Anatomy.** The user's request
+(2026-09-07): "check that all that information is true and correct".
+Every claim was re-read against the code and the measurement tables;
+three were imprecise and were corrected in the public text: a drag only
+interrupts a tap to the neighboring tab, because a distant tap locks
+the pager for as long as it lasts; React does not render during the
+DRAG, but a distant tap renders twice and the drag's haptic falls in the
+middle of the gesture, so the sentence says "during a drag" and
+"discrete moments"; and the measured stutter is a whole frame lost, not
+a second frame that "catches up" (it jumped 0.195 where the ease asked
+for 0.252). A fourth was adjusted in scope: "no layout runs" is for the
+tabs, because the underline's width is layout of its own node.
+Everything else was confirmed with its receipt: the row moves from a
+worklet, the precomputed layout depends only on the measured labels, the
+pages are memoized, completeness was 100.7 %, 101.1 % and 100.2 %, and
+the trace of 492 frames is the one in `swipeable-tabs-screen.tsx`.
 
-**El dedo interrumpe también un toque lejano.** De la auditoría contra
-los skills (2026-09-07) quedó una sola regla en contra: `animate-expo`
-pone la interrupción como piso, y el pager rechazaba el dedo durante
-los 300 ms de un toque a dos o más tabs (`scrollEnabled={!quieto}`),
-por la página prestada. El usuario eligió cumplirla sin tocar la
-animación del toque, para no regrabar: la grabación tiene un solo toque
-lejano (Stocks → For you a los 4.1 s) y el gesto siguiente arranca a
-los 5.1 s, así que ningún cuadro cambia. Cómo: el préstamo sigue vivo
-mientras el dedo arrastra —la barra sigue de `desde` a `hasta` con el
-avance leído del scroll— y se devuelve sólo cuando no se ve: al llegar
-al destino, o al frenar sobre la página prestada, saltando en el mismo
-cuadro a su lugar real con la háptica de ese salto silenciada. Un toque
-nuevo sobre un préstamo sin asentar lo asienta primero. Se fue el
-estado `quieto`: el pager ya no tiene estado de React, y las páginas
-siguen memoizadas por cualquier render del padre. La esquina que queda:
-arrastrar hacia atrás más allá de la página prestada dentro de esos
-300 ms muestra el lugar vacío de donde salió; se arregla al soltar. SIN
-RECIBO en pantalla: se prueba en el teléfono tocando lejos y arrastrando
-enseguida, en las dos direcciones. Las notas públicas se actualizaron:
-"A drag interrupts a tap at any point, however far the tab is" y "React
-does not render during a gesture or a tap".
+**The finger interrupts a distant tap too.** From the audit against the
+skills (2026-09-07) one single rule came out against: `animate-expo`
+puts interruption as the floor, and the pager rejected the finger during
+the 300 ms of a tap to two or more tabs away (`scrollEnabled={!still}`),
+because of the borrowed page. The user chose to meet it without touching
+the tap's animation, so as not to record again: the recording has a
+single distant tap (Stocks → For you at 4.1 s) and the next gesture
+starts at 5.1 s, so not one frame changes. How: the loan stays alive
+while the finger drags, with the tab bar still going from the segment's
+`d` to its `h` with the progress read off the scroll, and it is given
+back only when it cannot be seen, on arriving at the target or on
+stopping over the borrowed page, jumping in the same frame to its real
+place with the haptic of that jump silenced. A new tap over a loan that
+has not settled settles it first. The still state went away: the pager
+no longer has React state, and the pages stay memoized against any
+render of the parent. The corner that is left: dragging backwards past
+the borrowed page inside those 300 ms shows the empty place it came
+from; it fixes itself on release. NO RECEIPT on screen: you test it on
+the phone by tapping far away and dragging right afterwards, in both
+directions. The public notes were updated: "A drag interrupts a tap at
+any point, however far the tab is" and "React does not render during a
+gesture or a tap".
 
-**El procedimiento de la línea y las notas queda escrito.** Pedido del
-usuario (2026-09-07): guardar el proceso entero para las piezas que
-vengan. Está en `AGENTS.md › Lo que vale para los dos › Cómo se
-escriben la línea y las notas`, en nueve pasos: para quién, la forma,
-el tono, el vocabulario, las reglas de motion, la redacción, la
-veracidad, la verificación en pantalla y el registro. Cada paso sale de
-una vuelta de hoy y de lo que se rechazó en ella. En la misma pasada,
-la segunda relectura de Anatomy y Performance dejó tres precisiones: el
-subrayado en un toque sí lleva su propia animación, con la misma config
-que el contenido ("a tap moves both with the same timing"); la háptica
-es una por CRUCE de tab, no una por acción: ir y volver sobre el mismo
-límite en un gesto vibra cada vez, como cambia el label (un arrastre no
-llega a cruzar dos tabs: el segundo cruce queda a una pantalla y media
-de recorrido del dedo, y con paging el momentum sólo alcanza la página
-vecina); y "JavaScript takes part only twice" se leía como una cuenta
-("at two moments only").
+**The procedure for the line and the notes is written down.** The user's
+request (2026-09-07): keep the whole process for the pieces to come. It
+is in `AGENTS.md › What applies to both › How the line and the notes are
+written`, in nine steps: for whom, the form, the tone, the vocabulary,
+the motion rules, the writing, the truthfulness, the verification on
+screen and the record. Each step comes out of a round from today and
+from what was rejected in it. In the same pass, the second re-reading of
+Anatomy and Performance left three precisions: the underline in a tap
+does carry its own animation, with the same config as the content ("a
+tap moves both with the same timing"); the haptic is one per tab
+CROSSING, not one per action, since going and coming back over the same
+boundary in one gesture vibrates each time, the way the label changes (a
+drag does not get to cross two tabs: the second crossing is a screen and
+a half of finger travel away, and with paging the momentum only reaches
+the neighboring page); and "JavaScript takes part only twice" read as a
+count ("at two moments only").
 
-**Corrección de un ejemplo mío.** Al explicar lo anterior dije que "un
-arrastre de tres tabs vibra tres veces". No puede pasar, y el usuario lo
-señaló (2026-09-07): la reacción de la háptica no cambió en todo el día
-—vibra cuando `round(progreso)` cambia y no hay toque en curso, igual
-que siempre— y un gesto cruza a lo sumo un límite hacia adelante. Lo
-que sí vibra más de una vez es ir y volver sobre el mismo límite sin
-soltar, una por cruce, exactamente como cambia el label activo.
+**A correction to an example of mine.** Explaining the above I said that
+"a three-tab drag vibrates three times". It cannot happen, and the user
+pointed it out (2026-09-07): the haptic's reaction did not change all
+day, it vibrates when `Math.round(progress)` changes and there is no tap
+in progress, the same as always, and one gesture crosses at most one
+boundary going forward. What does vibrate more than once is going and
+coming back over the same boundary without letting go, one per crossing,
+exactly the way the active label changes.
 
-**El párrafo de las reglas, partido en dos.** Tenía siete oraciones y
-la forma que fija `AGENTS.md` pide de dos a cuatro por párrafo, como
-josh, que nunca pasa de tres. Anatomy queda en cinco párrafos: qué es y
-el subrayado; el toque; lo que se anima y cómo (propiedades, subrayado,
-interrupción, curva); lo que lo acompaña (háptica, reduced motion,
-120 fps, constantes con fuente); la referencia. Pedido del usuario
-(2026-09-07), después de la auditoría final contra las skills.
+**The paragraph of rules, split in two.** It had seven sentences and the
+form `AGENTS.md` fixes asks for two to four per paragraph, like josh,
+who never goes past three. Anatomy ends up in five paragraphs: what it
+is and the underline; the tap; what animates and how (properties,
+underline, interruption, curve); what goes with it (haptic, reduced
+motion, 120 fps, constants with a source); the reference. The user's
+request (2026-09-07), after the final audit against the skills.
 
-**Sin línea de descripción: el título alcanza.** "Borrá esta
-descripción, que no haya nada ahí, ya está la de arriba que dice
-swipeable tabs" (usuario, 2026-09-07), sobre "Top tabs for React Native
-& Expo.". La línea pasa a ser OPCIONAL en el modelo (`desc?` en
-`pieces.ts`); sin línea, el detalle no dibuja el párrafo —si lo dibujara
-vacío quedarían sus 24 px de margen— y las notas siguen directo al
-preview con el aire de sección de siempre. Publicar sigue aceptando una
-descripción, pero si viene vacía no escribe el campo. Las reglas para
-cuando hay línea quedan en `AGENTS.md › Cómo se nombra`, con la nueva
-primera regla: si el título ya dice qué es, no hay línea.
+**No description line: the title is enough.** "Delete this description,
+let there be nothing there, the one above already says swipeable tabs"
+(user, 2026-09-07), about "Top tabs for React Native & Expo.". The line
+becomes OPTIONAL in the model (`desc?` in `pieces.ts`); with no line the
+detail does not draw the paragraph, because drawing it empty would leave
+its 24 px of margin, and the notes go straight on to the preview with
+the usual section air. Publishing still accepts a description, but if it
+comes in empty it does not write the field. The rules for when there is
+a line are in `AGENTS.md › How a piece is named`, with the new first
+rule: if the title already says what it is, there is no line.
 
-**El rótulo de sección de las notas rendía 12 px más abajo que el de la
-lista.** Pregunta del usuario (2026-09-07): "¿la distancia entre el
-componente y la línea de Anatomy está bien?". Medido en la página
-servida: 76 del preview al rótulo donde `--section-gap` dice 64, y 53
-de la línea al primer texto donde `--section-content-gap` dice 40. La
-causa: en la lista el rótulo es un `div`; en las notas, `Seccion` lo
-dibuja como `h2`, y el navegador le pone 0.83em de margen arriba y
-abajo que `.groupLabel` no reseteaba. Josh usa el mismo 64 de un demo
-al título siguiente (medido en /bloom el mismo día). Arreglo: `margin:
-0` en `.groupLabel`; la lista no cambia. Verificado después: 64, 40 y
-64 entre secciones.
+**The notes' section label rendered 12 px lower than the list's.** The
+user's question (2026-09-07): "is the distance between the component and
+the Anatomy line right?". Measured on the served page: 76 from the
+preview to the label where `--section-gap` says 64, and 53 from the line
+to the first text where `--section-content-gap` says 40. The cause: in
+the list the label is a `div`; in the notes, `Section` draws it as an
+`h2`, and the browser gives it 0.83em of margin above and below that
+`.groupLabel` was not resetting. Josh uses the same 64 from a demo to
+the next title (measured on /bloom the same day). Fix: `margin: 0` in
+`.groupLabel`; the list does not change. Verified afterwards: 64, 40 and
+64 between sections.
 
-**Del preview a las notas, el 112 de benji.** "¿No debería ser 40
-entonces? ¿Qué usa benji en nuestro caso?" (usuario, 2026-09-07). No es
-40, que es de la línea al primer texto, ni 64, que es de prosa a
-separador. Medido en /liveline sobre la página servida: después de un
-demo benji deja 112 hasta la línea del separador, en las diez secciones
-que terminan en demo, con pie de foto o sin él; después de prosa, 64.
-Y 112 = 48 + 64, su hueco bajo una pieza más el de sección. Acá va con
-los mismos dos tokens: `.detailPreview + .notas` suma `--piece-gap`
-(48) y la primera sección pone sus 64. Sólo cuando las notas siguen
-directo al preview: con línea de descripción es prosa lo que precede, y
-ahí quedan los 64.
+**From the preview to the notes, benji's 112.** "Shouldn't it be 40
+then? What does benji use in our case?" (user, 2026-09-07). It is not
+40, which is from the line to the first text, nor 64, which is from
+prose to separator. Measured on /liveline on the served page: after a
+demo benji leaves 112 up to the separator's line, in the ten sections
+that end in a demo, with a caption or without one; after prose, 64. And
+112 = 48 + 64, his gap under a piece plus the section one. Here it goes
+with the same two tokens: `.detailPreview + .notes` adds `--piece-gap`
+(48) and the first section puts in its 64. Only when the notes follow
+straight after the preview: with a description line it is prose that
+comes before, and there the 64 stays.
 
-**Use cases, con las mismas reglas que Anatomy.** Pedido del usuario
-(2026-09-07): "falta la parte de use cases, una mejor explicación,
-siguiendo todas las reglas". Tres párrafos, en el vocabulario de la
-HIG: cuándo sí —secciones del mismo rango, cada una una lista, más de
-las que entra en un segmented control, cambiadas tan seguido que el
-swipe tiene que valer tanto como el toque, con X como modelo—; los
-ejemplos, listas con más de un corte de primer nivel; y cuándo no
-—jerarquía, dos a cuatro opciones, las secciones de la app—, más la
-condición de los labels cortos, que sale de la pieza. El usuario piensa
-sumar un video por caso: irán con pie de un renglón, como los de benji
-en /liveline, y la sección es prosa hasta entonces.
+**Use cases, with the same rules as Anatomy.** The user's request
+(2026-09-07): "the use cases part is missing, a better explanation,
+following all the rules". Three paragraphs, in the HIG's vocabulary:
+when yes, sections of the same rank, each one a list, more of them than
+fit in a segmented control, switched so often that the swipe has to be
+worth as much as the tap, with X as the model; the examples, lists with
+more than one first-level cut; and when not, hierarchy, two to four
+options, the app's sections; plus the condition of the short labels,
+which comes out of the piece. The user is thinking of adding a video per
+case: they will go with a one-line caption, like benji's in /liveline,
+and the section is prose until then.
 
-**El wrap de las notas, con better-typography.** "¿Se usan buenas
-reglas de wrap?" (usuario, 2026-09-07). Medido en producción: los
-párrafos iban con `text-wrap: wrap` y el primero de Performance
-terminaba en "frame." solo en su línea; y número y unidad ("300 ms",
-"60 fps", "120 fps", "492 frames") iban con espacio normal, sin caer
-todavía en un corte pero a un cambio de texto de partirse. Arreglo:
-`text-wrap: pretty` en `.notas p` y en `.detailDesc` —la regla es para
-descripciones, no para texto largo— y espacio indivisible entre número
-y unidad en la nota. Lo que se aparta de la guía y se queda, por la
-referencia: la medida (80 a 84 caracteres por línea; la guía pide 60 a
-75, pero benji da 85 y josh 80, y la columna de 560 se eligió entre los
-dos) y la interlínea (20/14 = 1.43; la guía prefiere 1.5, y es el 14/20
-de benji, medido). Bien y sin cambio: `lang="en"`, antialiasing en la
-raíz, peso 460, apóstrofes tipográficos, rótulos con `nowrap`.
+**The notes' wrap, with better-typography.** "Are good wrap rules being
+used?" (user, 2026-09-07). Measured in production: the paragraphs went
+with `text-wrap: wrap` and the first one of Performance ended in
+"frame." alone on its line; and number and unit ("300 ms", "60 fps",
+"120 fps", "492 frames") went with a normal space, not falling on a
+break yet but one text change away from splitting. Fix: `text-wrap:
+pretty` in `.notes p` and in `.detailDesc`, since the rule is for
+descriptions and not for long text, and a non-breaking space between
+number and unit in the note. What departs from the guide and stays,
+because of the reference: the measure (80 to 84 characters per line; the
+guide asks for 60 to 75, but benji gives 85 and josh 80, and the 560
+column was chosen between the two) and the leading (20/14 = 1.43; the
+guide prefers 1.5, and it is benji's 14/20, measured). Fine and
+unchanged: `lang="en"`, antialiasing at the root, weight 460,
+typographic apostrophes, labels with `nowrap`.
 
-**"Two to five", no "two to four".** Al releer Use cases con la HIG a
-la vista (2026-09-07, pregunta del usuario: "¿quedó bien y real?"):
-Apple dice "no more than about five segments on iPhone" para un
-segmented control, así que el texto decía uno de menos. Corregido, y
-la cita quedó en el comentario de la nota junto con la de tab bars ("A
-tab bar lets people navigate between top-level sections of your app"),
-que sostiene la otra mitad del párrafo.
+**"Two to five", not "two to four".** Re-reading Use cases with the HIG
+in view (2026-09-07, the user's question: "did it come out right and
+real?"): Apple says "no more than about five segments on iPhone" for a
+segmented control, so the text said one less. Corrected, and the
+quotation stayed in the note's comment along with the one about tab bars
+("A tab bar lets people navigate between top-level sections of your
+app"), which holds up the other half of the paragraph.
 
-**Performance, releída como la leería un ingeniero senior.** Pedido del
-usuario (2026-09-07). Cuatro precisiones: "not in JavaScript" pasa a
-"not the JavaScript thread", porque los worklets también son
-JavaScript; se dice que el scroll es nativo, que es la razón principal
-de que el gesto no cueste; la memoización se cuenta por su costo —seis
-listas de doce filas, montadas desde el principio para que un swipe
-nunca monte una lista en medio del gesto— y no como historia; y el
-"one derived value" con su mecanismo: ningún estilo puede leer parte de
-la transición del cuadro anterior. La medición dice dónde: en el
-teléfono, 60 fps en cada gesto, medido por el usuario; la completitud
-de la grabación del simulador queda como recibo de la toma. El
-comentario de la pieza decía "siete páginas" de cuando había un tab
-más: seis.
+**Performance, re-read the way a senior engineer would read it.** The
+user's request (2026-09-07). Four precisions: "not in JavaScript"
+becomes "not the JavaScript thread", because worklets are JavaScript
+too; it says that the scroll is native, which is the main reason the
+gesture costs nothing; the memoization is told by its cost, six lists of
+twelve rows, mounted from the start so that a swipe never mounts a list
+in the middle of the gesture, and not as history; and the "one derived
+value" with its mechanism: no style can read part of the previous
+frame's transition. The measurement says where: on the phone, 60 fps in
+every gesture, measured by the user; the completeness of the simulator's
+recording stays as the receipt of the take. The piece's comment said
+"seven pages" from when there was one tab more: six.
 
-**Use cases dicho con las palabras de Apple.** Pedido del usuario
-(2026-09-08): "en use cases usá lo que pondría Apple resources". Las
-tres páginas de la HIG se leyeron servidas ese día por la API de
-documentación —`developer.apple.com/tutorials/data/design/human-interface-guidelines/<slug>.json`,
-porque la página HTML se arma con JavaScript y `curl` y WebFetch sólo
-devuelven el título—, y cada frase del texto quedó atada a su cita en
-el comentario de la nota. Lo que cambió: "sections of the same rank"
-pasa a "closely related lists", que es la palabra de Apple; entra la
-regla que faltaba, "Panes are mutually exclusive, so ensure they're
-fully self-contained", dicha en llano ("what happens in one does not
-change what the others show"); "two to five options" pasa a "About
-five lists or fewer", conservando el "about" de Apple, que no es un
-tope duro; y "labels have to stay short" deja de apoyarse sólo en la
-pieza, porque un tab bar ("Use single words whenever possible") y un
-segmented control ("Use nouns or noun phrases") piden lo mismo.
+**Use cases said in Apple's words.** The user's request (2026-09-08):
+"in use cases use what Apple resources would put". The three HIG pages
+were read served that day through the documentation API
+(`developer.apple.com/tutorials/data/design/human-interface-guidelines/<slug>.json`,
+because the HTML page is built with JavaScript and `curl` and WebFetch
+only return the title), and every sentence of the text was tied to its
+quotation in the note's comment. What changed: "sections of the same
+rank" becomes "closely related lists", which is Apple's word; the rule
+that was missing comes in, "Panes are mutually exclusive, so ensure
+they're fully self-contained", said plainly ("what happens in one does
+not change what the others show"); "two to five options" becomes "About
+five lists or fewer", keeping Apple's "about", which is not a hard cap;
+and "labels have to stay short" stops leaning only on the piece, because
+a tab bar ("Use single words whenever possible") and a segmented control
+("Use nouns or noun phrases") ask for the same thing.
 
-Se arregló además una colisión de vocabulario que estaba desde el
-principio: el segundo párrafo decía "more than one top-level division"
-y el tercero mandaba "the app's own sections" al tab bar. Apple reserva
-"top-level" para el tab bar, así que el segundo párrafo ahora dice
-"wherever one section of an app holds several lists of equal standing"
-— que además es más cierto, porque en X estos tabs viven adentro de una
-sección, no en el nivel de arriba.
+A vocabulary collision that had been there from the start was fixed too:
+the second paragraph said "more than one top-level division" and the
+third one sent "the app's own sections" to the tab bar. Apple reserves
+"top-level" for the tab bar, so the second paragraph now says "wherever
+one section of an app holds several lists of equal standing", which is
+also truer, because in X these tabs live inside a section, not at the
+top level.
 
-Y un cuarto párrafo al cierre, corto como el de la referencia en
-Anatomy: "On the Mac, Apple's guidelines call this a tab view […].
-There is no tab view on iPhone, and for the same job the guidelines
-point to a segmented control." Corrige lo que le dije al usuario el
-2026-09-07 ("en el vocabulario de Apple lo nuestro es un tab view"):
-vale para macOS, que era la captura que él mandó, pero la propia página
-de tab views dice "Not supported in iOS, iPadOS, tvOS, or visionOS" y
-manda a un segmented control, que topa en cinco. Ese hueco es la razón
-de la pieza. No se citó "Avoid providing more than six tabs in a tab
-view", aunque X tenga seis: es guía de macOS y usarla para iPhone sería
-estirarla.
+And a fourth paragraph at the close, short like the reference one in
+Anatomy: "On the Mac, Apple's guidelines call this a tab view […]. There
+is no tab view on iPhone, and for the same job the guidelines point to a
+segmented control." It corrects what I told the user on 2026-09-07 ("in
+Apple's vocabulary ours is a tab view"): that holds for macOS, which was
+the screenshot he sent, but the tab views page itself says "Not
+supported in iOS, iPadOS, tvOS, or visionOS" and points to a segmented
+control, which caps at five. That gap is the reason for the piece. "Avoid
+providing more than six tabs in a tab view" was not quoted, even though
+X has six: it is macOS guidance and using it for iPhone would be
+stretching it.
 
-**Segunda pasada de `better-writing`, sobre las tres secciones.** Mismo
-pedido (2026-09-08): "fijate que todo cumpla /better-writing". La regla
-que encontró todo fue "one voice": un solo nombre por cosa en toda la
-página. "The bar" pasa a "the row" en Performance —la fila era "row" en
-Anatomy y en Use cases, y "bar" sólo ahí, el nombre interno del archivo
-(`barra.tsx`) filtrándose al texto público—; "the chosen tab doesn't
-fit" pasa a "the active tab does not fit", que arregla dos cosas a la
-vez, "chosen" y "active" para la misma cosa en el mismo párrafo y la
-única contracción de la página; y "its offset is read" pasa a "the
-scroll offset is read", porque el "its" más cercano apuntaba a
-"deceleration". Revisado y no cambiado: "however far the tab is" se
-repite a dos párrafos en Anatomy, pero las dos cláusulas dicen cosas
-distintas y borrar cualquiera pierde una afirmación que costó un cambio
-de código. Verificado sobre la página servida: doce párrafos, ninguno
-termina con menos de tres palabras en su última línea, y la medida
-sigue entre 77 y 86 caracteres.
+**Second `better-writing` pass, over the three sections.** Same request
+(2026-09-08): "check that everything meets /better-writing". The rule
+that found everything was "one voice": a single name per thing across
+the whole page. "The bar" becomes "the row" in Performance, since the
+row was "row" in Anatomy and in Use cases and "bar" only there, the
+file's internal name (`tab-bar.tsx`) leaking into the public text; "the
+chosen tab doesn't fit" becomes "the active tab does not fit", which
+fixes two things at once, "chosen" and "active" for the same thing in
+the same paragraph and the only contraction on the page; and "its offset
+is read" becomes "the scroll offset is read", because the nearest "its"
+pointed at "deceleration". Reviewed and not changed: "however far the
+tab is" repeats two paragraphs apart in Anatomy, but the two clauses say
+different things and deleting either one loses a claim that cost a code
+change. Verified on the served page: twelve paragraphs, none ends with
+fewer than three words on its last line, and the measure stays between
+77 and 86 characters.
 
-**El color del label también se anima, y el texto lo negaba.** Al releer
-las tres secciones contra el código a pedido del usuario (2026-09-08:
-"¿están todas las descripciones bien?"), el inventario de los trece
-`useAnimatedStyle` de la pieza dio transform ×6, opacity ×5, width ×1
-(el subrayado) y **color ×1** (`estiloLabel` en `barra.tsx`, aplicado al
-label). O sea que "Only transform and opacity animate" era falso, y
-falso justo sobre el hallazgo de la pieza: el label activo no es más
-grueso, es más blanco. Ahora dice "Only transform, opacity and the label
-color animate".
+**The label color animates too, and the text denied it.** Re-reading the
+three sections against the code at the user's request (2026-09-08: "are
+all the descriptions right?"), the inventory of the piece's thirteen
+`useAnimatedStyle` gave transform ×6, opacity ×5, width ×1 (the
+underline) and **color ×1** (`labelStyle` in `tab-bar.tsx`, applied to
+the label). So "Only transform and opacity animate" was false, and false
+right on the piece's own finding: the active label is not thicker, it is
+whiter. Now it says "Only transform, opacity and the label color
+animate".
 
-**El código no cambia, y la pregunta se contestó midiendo el skill, no
-de memoria.** El usuario preguntó primero por sacar el color ("que se
-anime sólo transform and opacity, que es lo que recomienda /animate-expo
-creo, chequealo") y después por el fondo ("¿pero es una buena práctica el
-color?"). `animate-expo` no pide eso: su § 4 y la tabla *Never Ship*
-enumeran propiedades de **layout** —width, height, margin, padding,
-flex, top, gap, las que re-corren Yoga— y `color` no está en ninguna de
-las dos; sí está como caso de uso en § 3 ("press, toggle, color, a value
-flipping") y en § 9 como lo que hay que **conservar** bajo reduced motion
-("keep opacity and color changes that explain a state change"). El color
-igual no es gratis —transform y opacity son composición, el color es
-pintura y con texto re-rasteriza los glifos—, pero la salida estándar
-para eso, la que el propio skill receta para las sombras de Android y el
-blur, es apilar dos capas estáticas y cruzar opacidades: acá, un label
-gris y uno blanco. Eso rompería la medición, porque dos textos
-antialiaseados superpuestos suman cobertura en el borde de cada glifo y
-se leen más gruesos en el medio del cruce, justo lo que X no hace (el
-asta de la misma letra mide 5.03 px en los dos estados). Se cambiaría un
-costo que no se nota por un artefacto que sí. Y el costo está acotado:
-seis labels cortos, sólo mientras dura una transición, 60 fps medidos en
-el teléfono y la traza de 492 cuadros sin titileo.
+**The code does not change, and the question was answered by measuring
+the skill, not from memory.** The user asked first about taking the
+color out ("make only transform and opacity animate, which is what
+/animate-expo recommends I think, check it") and then about the
+substance of it ("but is color a good practice?"). `animate-expo` does
+not ask for that: its § 4 and the *Never Ship* table list **layout**
+properties, width, height, margin, padding, flex, top, gap, the ones
+that re-run Yoga, and `color` is in neither of the two; it is there as a
+use case in § 3 ("press, toggle, color, a value flipping") and in § 9 as
+what has to be **kept** under reduced motion ("keep opacity and color
+changes that explain a state change"). Color is not free either, since
+transform and opacity are compositing and color is paint and with text
+it re-rasterizes the glyphs, but the standard way out for that, the one
+the skill itself prescribes for Android's shadows and for blur, is to
+stack two static layers and cross opacities: here, a gray label and a
+white one. That would break the measurement, because two antialiased
+texts on top of each other add coverage at the edge of every glyph and
+read thicker in the middle of the cross, exactly what X does not do (the
+stem of the same letter measures 5.03 px in both states). It would trade
+a cost you do not notice for an artifact you do. And the cost is
+bounded: six short labels, only while a transition lasts, 60 fps
+measured on the phone and the trace of 492 frames with no flicker.
 
-Quedaron sin corregir, por decisión del usuario, las otras dos que
-encontró la misma relectura: "four recordings at 60 fps" cuenta de menos
-(el registro dice el clip del vault **y después** cuatro grabaciones de
-su cuenta: son cinco), y "The row scrolls only when the active tab does
-not fit on screen" es cierto de lo que hace la pieza sola pero omite que
-la fila es un `ScrollView` que se arrastra con el dedo (`onBeginDrag` se
-lo devuelve al usuario: "el dedo en la fila siempre gana").
+The other two the same re-reading found were left uncorrected, by the
+user's decision: "four recordings at 60 fps" counts short (the record
+says the vault clip **and then** four recordings of his own: that is
+five), and "The row scrolls only when the active tab does not fit on
+screen" is true of what the piece does on its own but leaves out that
+the row is a `ScrollView` that gets dragged with the finger
+(`onBeginDrag` gives it back to the user: "the finger on the row always
+wins").
 
-**Las tres secciones, 17 % más cortas, con las mismas afirmaciones.**
-Pedido del usuario (2026-09-08): "ya teniendo todo, usando buenas
-prácticas, dejá todo mucho más conciso, seguí respetando lo del lenguaje
-de engineer de IBM del 73 y /better-writing". De 703 a 583 palabras, los
-mismos doce párrafos, ni una afirmación de menos: es la regla de
-`better-writing` "delete every word that does no work" aplicada palabra
-por palabra, no un recorte de contenido.
+**The three sections, 17 % shorter, with the same claims.** The user's
+request (2026-09-08): "now that everything is there, using good
+practices, leave it all much more concise, keep respecting the '73 IBM
+engineer language thing and /better-writing". From 703 to 583 words, the
+same twelve paragraphs, not one claim fewer: it is `better-writing`'s
+rule "delete every word that does no work" applied word by word, not a
+cut of content.
 
-Tres tipos de corte. **Redundancia interna**: "one value that describes
-the whole transition […] It is one derived value" decía lo mismo dos
-veces; "not the JavaScript thread […] at two moments only […] Never per
-frame" eran tres formas de una idea; "always agree, and the row moves as
-one object", dos. **Redundancia entre secciones**: "the row scrolls only
-when a tab does not fit" estaba en Anatomy y en Use cases, y queda en
-Anatomy; "however far the tab is" estaba en dos párrafos de Anatomy y
-queda en el que lo necesita. **Perífrasis por el verbo**: "Tap a tab and
-it becomes the active one" → "A tap makes a tab active"; "When one did,
-the recording showed the first frame after a tap standing still" →
-"Unmemoized, the first frame after a tap stood still"; "several lists of
-equal standing" → "several peer lists", que es el término de
-`animate-expo` ("peers, not a hierarchy") y engancha con la jerarquía
-del párrafo siguiente; "so the drag and its deceleration run natively" →
-"the system runs the drag and its deceleration", que además dice quién.
+Three kinds of cut. **Internal redundancy**: "one value that describes
+the whole transition […] It is one derived value" said the same thing
+twice; "not the JavaScript thread […] at two moments only […] Never per
+frame" were three forms of one idea; "always agree, and the row moves as
+one object", two. **Redundancy between sections**: "the row scrolls only
+when a tab does not fit" was in Anatomy and in Use cases, and stays in
+Anatomy; "however far the tab is" was in two paragraphs of Anatomy and
+stays in the one that needs it. **Periphrasis replaced by the verb**:
+"Tap a tab and it becomes the active one" → "A tap makes a tab active";
+"When one did, the recording showed the first frame after a tap standing
+still" → "Unmemoized, the first frame after a tap stood still"; "several
+lists of equal standing" → "several peer lists", which is
+`animate-expo`'s term ("peers, not a hierarchy") and hooks into the next
+paragraph's hierarchy; "so the drag and its deceleration run natively" →
+"the system runs the drag and its deceleration", which also says who.
 
-Y el recorte arregló solo una de las dos imprecisiones que habían quedado
-abiertas: el cierre de Anatomy decía "from four recordings at 60 fps" y
-ahora dice "at 60 fps". El registro dice el clip del vault **y después**
-cuatro grabaciones del usuario —cinco—, así que "four" contaba de menos.
-Sigue abierta la otra, "The row scrolls only when the active tab does not
-fit on screen", que omite que la fila se arrastra con el dedo.
+And the cut fixed one of the two imprecisions that had been left open on
+its own: the close of Anatomy said "from four recordings at 60 fps" and
+now says "at 60 fps". The record says the vault clip **and then** four
+recordings by the user, five, so "four" counted short. The other one is
+still open, "The row scrolls only when the active tab does not fit on
+screen", which leaves out that the row gets dragged with the finger.
 
-**Sin raya en el texto público.** Pedido del usuario (2026-09-08): "no
-uses –". La pasada de concisión había metido dos em dash, las dos en
-Performance, y las dos salieron sin perder nada. "React does not render
-during a gesture or a tap [raya] the JavaScript thread takes part only at
-the tap and at the haptic" se partió en dos oraciones, que es más llano y
-además una palabra más corto; y "stood still [raya] a whole frame lost"
-pasa a dos puntos, que es el signo que ya hace ese trabajo en los otros
-once párrafos. Los guiones de palabra compuesta se quedan (ease-out,
-ease-in, six-page, top-level). La regla quedó en `AGENTS.md › Cómo se
-escriben la línea y las notas`, paso 6, para todas las piezas; vale para
-el texto público y no para los comentarios en castellano, donde la raya
-es puntuación normal.
+**No dash in the public text.** The user's request (2026-09-08): "don't
+use the dash". The concision pass had put in two em dashes, both in
+Performance, and both came out without losing anything. "React does not
+render during a gesture or a tap [dash] the JavaScript thread takes part
+only at the tap and at the haptic" was split into two sentences, which
+is plainer and one word shorter as well; and "stood still [dash] a whole
+frame lost" becomes a colon, which is the mark already doing that job in
+the other eleven paragraphs. Compound-word hyphens stay (ease-out,
+ease-in, six-page, top-level). The rule went into `AGENTS.md › How the
+line and the notes are written`, step 6, for every piece; it holds for
+the public text and not for the comments in Spanish, where the dash is
+normal punctuation.
 
-**La HIG explica, no autoriza, y no se la nombra.** Pedido del usuario
-(2026-09-08), después de leer el cierre de Use cases: "no menciones Apple
-guidelines y está mal esa parte, usalas pero para explicar algo mejor, no
-para decir algo que no es". El cuarto párrafo se borró entero. Decía: "On
-the Mac, Apple's guidelines call this a tab view: mutually exclusive
-panes of content in one area, switched with a row of tabs. There is no
-tab view on iPhone; for the same job the guidelines point to a segmented
-control." Vivió unas horas, y estaba mal de dos formas.
+**The HIG explains, it does not authorize, and it is not named.** The
+user's request (2026-09-08), after reading the close of Use cases:
+"don't mention Apple guidelines and that part is wrong, use them but to
+explain something better, not to say something that isn't so". The
+fourth paragraph was deleted whole. It said: "On the Mac, Apple's
+guidelines call this a tab view: mutually exclusive panes of content in
+one area, switched with a row of tabs. There is no tab view on iPhone;
+for the same job the guidelines point to a segmented control." It lived
+a few hours, and it was wrong in two ways.
 
-**"There is no tab view on iPhone" es falso para quien programa.** El
-"Not supported in iOS" de la HIG habla del componente de diseño de macOS,
-la caja con solapas arriba; pero `TabView` existe en SwiftUI en iOS, es
-el contenedor del tab bar, y con `.tabViewStyle(.page)` es literalmente
-un pager que se desliza, o sea lo más parecido del sistema a esta pieza.
+**"There is no tab view on iPhone" is false for anyone who writes
+code.** The HIG's "Not supported in iOS" talks about the macOS design
+component, the box with tabs along the top; but `TabView` exists in
+SwiftUI on iOS, it is the tab bar's container, and with
+`.tabViewStyle(.page)` it is literally a pager that swipes, that is, the
+closest thing in the system to this piece.
 
-**Y "for the same job the guidelines point to a segmented control"
-contradecía al párrafo de arriba**, que dice que un segmented control es
-para cinco listas o menos. Los dos juntos afirmaban que esta pieza
-tendría que ser un segmented control, que es lo contrario de lo que
-argumenta la sección entera.
+**And "for the same job the guidelines point to a segmented control"
+contradicted the paragraph above it**, which says a segmented control is
+for five lists or fewer. The two of them together claimed that this
+piece ought to be a segmented control, which is the opposite of what the
+whole section argues.
 
-Lo que el párrafo quería aportar, que el patrón vive entre un segmented
-control y un tab bar, ya lo dice el tercer párrafo sin nombrar a nadie.
-Los conceptos y los números de la guía se quedan donde sirven, dichos en
-llano como propios, con la cita en el comentario del archivo: "closely
-related", los paneles autocontenidos, "about five", "top-level sections",
-los labels cortos. La palabra "Apple" ya no aparece en el texto público.
-La regla quedó en `AGENTS.md`, paso 4: si una oración necesita el nombre
-de quien escribió la guía para sostenerse, la afirmación no se sostiene
-sola.
+What the paragraph was trying to add, that the pattern lives between a
+segmented control and a tab bar, the third paragraph already says
+without naming anyone. The guide's concepts and numbers stay where they
+are useful, said plainly as our own, with the quotation in the file's
+comment: "closely related", the self-contained panes, "about five",
+"top-level sections", the short labels. The word "Apple" no longer
+appears in the public text. The rule went into `AGENTS.md`, step 4: if a
+sentence needs the name of whoever wrote the guide to stand up, the
+claim does not stand on its own.
 
-**Auditoría de qué viaja con el repo.** Pregunta del usuario
-(2026-09-08), al cerrar Swipeable tabs: "¿queda todo el proceso
-documentado para futuros agentes con otros componentes?". Se cruzó lo
-que se aprendió con esta pieza contra lo que está escrito en archivos
-versionados, y aparecieron cuatro huecos, todos de cosas que vivían sólo
-en la bitácora o en la memoria del agente, que es de esta máquina y no
-viaja. Los cuatro quedaron cerrados:
+**Audit of what travels with the repo.** The user's question
+(2026-09-08), closing Swipeable tabs: "is the whole process documented
+for future agents with other components?". What was learned with this
+piece was crossed against what is written in versioned files, and four
+gaps appeared, all of them things that lived only in the log or in the
+agent's memory, which belongs to this machine and does not travel. All
+four were closed:
 
-- **`AGENTS.md`, paso 6**, la regla de `better-writing` que más encuentra
-  acá y que ninguna lectura por sección detecta: **un solo nombre por
-  cosa en toda la página**. Con las tres fallas concretas de esta pieza
-  como ejemplo, más cómo decidir quién es "you".
-- **`AGENTS.md`, paso 6**, la **pasada de concisión al final**: cuándo se
-  hace, qué encuentra siempre y en qué orden, y que hay que volver a
-  correr la verificación en pantalla porque el wrap cambió.
-- **`AGENTS.md`, paso 7**, la relectura de `Performance` **"como un
-  ingeniero senior"**, con las cuatro imprecisiones típicas de plantilla:
-  el hilo de JavaScript, decir qué hace el sistema, contar una
-  optimización por su costo, y decir dónde se midió.
-- **`nativo/AGENTS.md`**, décima cosa que muerde: **el `size` de
-  `SymbolView` no es un `pointSize`**. Estaba en tres comentarios de
-  `barra.tsx` y en ningún lado donde lo encuentre alguien que empieza una
-  pieza distinta.
+- **`AGENTS.md`, step 6**, the `better-writing` rule that finds the most
+  here and that no reading by section detects: **one name per thing
+  across the whole page**. With this piece's three concrete failures as
+  the example, plus how to decide who "you" is.
+- **`AGENTS.md`, step 6**, the **concision pass at the end**: when it is
+  done, what it always finds and in what order, and that the on-screen
+  verification has to be run again because the wrap changed.
+- **`AGENTS.md`, step 7**, the re-reading of `Performance` **"like a
+  senior engineer"**, with the four imprecisions typical of a template:
+  the JavaScript thread, saying what the system does, telling an
+  optimization by its cost, and saying where it was measured.
+- **`native/AGENTS.md`**, the tenth thing that bites: **`SymbolView`'s
+  `size` is not a `pointSize`**. It was in three comments of
+  `tab-bar.tsx` and nowhere that someone starting a different piece
+  would find it.
 
-**Lo que sigue sin viajar, y es a propósito:** las planillas de
-`.context/recon/` están gitignoreadas. La mitigación ya estaba escrita y
-se confirmó: el recibo de cada número vive también al lado del número en
-`medidas.ts`, y las conclusiones de cada recon viven en el `AGENTS.md`
-que corresponde. Un agente que clona el repo tiene los porqués, no los
-píxeles crudos.
+**What still does not travel, and that is on purpose:** the sheets in
+`.context/recon/` are gitignored. The mitigation was already written and
+it was confirmed: the receipt of every number also lives next to the
+number in `measurements.ts`, and the conclusions of each recon live in
+the `AGENTS.md` that corresponds. An agent who clones the repo has the
+whys, not the raw pixels.
 
-**Los pendientes cerrados, y uno cerrado diciendo que no.** Pedido del
-usuario (2026-09-08): "arreglá todo así te archivo".
+**The open items closed, and one closed by saying no.** The user's
+request (2026-09-08): "fix everything so I can file you away".
 
-- **`silencio` pasa a `hapticaSuprimida`** (`swipeable-tabs.tsx`,
-  cuatro usos). Era la única palabra del código nuevo que no pasaba la
-  regla de nombres del repo: metáfora en vez de especificación.
-- **"The row scrolls only when the active tab does not fit" pasa a "The
-  row moves on its own only when the active tab does not fit."** Era
-  cierto de lo que hace la pieza sola, pero la fila es un `ScrollView` y
-  se arrastra con el dedo: el código se lo devuelve al usuario
-  explícitamente (`onBeginDrag`, "el dedo en la fila siempre gana"). El
-  "only" excluía algo que existe. Una palabra más, y deja de decir de
-  más.
-- **La planilla queda anotada**: las dos tablas medidas con siete tabs
-  llevan ahora la nota de que hoy son seis y por qué salió "Sports". No
-  se tocaron los números, que son el registro de lo que se midió ese día.
+- **silence becomes `hapticSuppressed`** (`swipeable-tabs.tsx`, four
+  uses). It was the only word in the new code that did not pass the
+  repo's naming rule: a metaphor instead of a specification.
+- **"The row scrolls only when the active tab does not fit" becomes "The
+  row moves on its own only when the active tab does not fit."** It was
+  true of what the piece does on its own, but the row is a `ScrollView`
+  and it gets dragged with the finger: the code gives it back to the
+  user explicitly (`onBeginDrag`, "the finger on the row always wins").
+  The "only" was excluding something that exists. One word more, and it
+  stops saying too much.
+- **The sheet is annotated**: the two tables measured with seven tabs
+  now carry the note that today there are six and why "Sports" came out.
+  The numbers were not touched; they are the record of what was measured
+  that day.
 
-**Y el reduce motion NO se cambió, que era lo que yo mismo había
-propuesto.** Al estudiarlo en serio, la regla de `animate-expo` § 9
-("fewer and gentler, not zero: keep opacity and color changes… drop
-translation") no aplica acá, por dos razones. Cumplirla pide DOS avances
-—uno que salta la posición y otro que anima el color— que bajo motion
-normal tienen que ser idénticos, y eso es exactamente la trampa
-documentada como la novena cosa que muerde en `nativo/AGENTS.md` y la
-causa medida del titileo de los símbolos; además dejaría de ser cierta la
-frase de Performance. Y no hay nada que explicar: la regla existe para
-cuando sacar el movimiento deja un cambio de estado sin explicación, y
-acá el estado lo dicen propiedades estáticas —el label blanco, el
-subrayado debajo, la página nueva—, todas visibles en el salto. Un cambio
-de tab instantáneo bajo reduced motion es el comportamiento correcto, no
-una deuda. El razonamiento entero quedó arriba de `CFG`, con la salida
-por si algún día se revisa: partir `Tramo` en dos, y medirlo en el
-teléfono con el ajuste prendido, no razonarlo.
+**And reduce motion was NOT changed, which is what I myself had
+proposed.** Studying it seriously, `animate-expo`'s § 9 rule ("fewer and
+gentler, not zero: keep opacity and color changes… drop translation")
+does not apply here, for two reasons. Meeting it asks for TWO progress
+values, one that jumps the position and another that animates the color,
+which under normal motion have to be identical, and that is exactly the
+trap documented as the ninth thing that bites in `native/AGENTS.md` and
+the measured cause of the symbols' flicker; on top of that the sentence
+in Performance would stop being true. And there is nothing to explain:
+the rule exists for when taking the movement out leaves a state change
+with no explanation, and here the state is told by static properties,
+the white label, the underline below, the new page, all of them visible
+in the jump. An instant tab change under reduced motion is the correct
+behavior, not a debt. The whole reasoning went above `CFG`, with the
+way out in case it ever gets revisited: split `Segment` in two, and
+measure it on the phone with the setting turned on, not reason about it.
 
-## Buttons separate — el Spotlight de macOS Tahoe, la primera pieza Web
+## Buttons separate: the Spotlight of macOS Tahoe, the first Web piece
 
-**El 2026-09-09** entró la primera pieza que corre viva en el navegador:
-`src/components/pieces/buttons-separate/buttons-separate.tsx`, sin `desc` y sin video. La referencia
-es `VAULT_DIR/web/Buttons separate.mp4` —el Spotlight de **macOS 26
-Tahoe**, grabación de pantalla propia— y se midió sobre el original de
-3420×2214 a 60 fps, leyendo píxeles crudos (ffmpeg → rgb24 → Python).
-Los scripts y la tabla entera están en `.context/buttons-separate/`, que
-no viaja; las conclusiones están acá y arriba del archivo.
+**On 2026-09-09** the first piece that runs live in the browser came in:
+`src/components/pieces/buttons-separate/buttons-separate.tsx`, with no `desc` and no video. The reference
+is `VAULT_DIR/web/Buttons separate.mp4`, the Spotlight of **macOS 26
+Tahoe**, a screen recording of my own, and it was measured on the
+original at 3420×2214 and 60 fps, reading raw pixels (ffmpeg → rgb24 →
+Python). The scripts and the whole table are in
+`.context/buttons-separate/`, which does not travel; the conclusions are
+here and at the top of the file.
 
-**La escala de la referencia: 2 px físicos por punto.** El panel lógico
-es 1710×1107. Verificado con la barra de menú: el ascendente del tipo de
-13 pt mide 20 px, y para SF Pro eso son 2.05 px/pt. Sin este número
-ninguna de las medidas de abajo quiere decir nada.
+**The scale of the reference: 2 physical pixels per point.** The logical
+panel is 1710×1107. Verified with the menu bar: the ascender of the
+13 pt type measures 20 px, and for SF Pro that is 2.05 px/pt. Without
+this number none of the measurements below mean a thing.
 
-**Y la grabación es VFR.** El contenedor declara 60 fps y trae 535
-cuadros para 9.61 s; 22 pasos son de 33 ms y uno de 350. Decodificada a
-60 constantes da 577 y el índice ES el tiempo. La trampa: el `select` de
-ffmpeg cuenta cuadros del ORIGEN, así que un `eq(n,120)` no cae en el
-mismo lugar que el índice 120 del array — hay que transcodificar a CFR
-antes de sacar tiras.
+**And the recording is VFR.** The container declares 60 fps and carries
+535 frames for 9.61 s; 22 steps are 33 ms and one is 350. Decoded to a
+constant 60 it gives 577 and the index IS the time. The trap: ffmpeg's
+`select` counts frames of the SOURCE, so an `eq(n,120)` does not land in
+the same place as index 120 of the array. You have to transcode to CFR
+before pulling strips.
 
-| Decisión | Valor | Fuente |
+| Decision | Value | Source |
 | --- | --- | --- |
-| **Fundido es UNA píldora**, no cuatro círculos pegados | una cápsula de 640 × 56 | RUNTIME: el perfil de altura da 56.0 constante de x=880 a x=1140, sin una sola hondonada entre botones. Con círculos fundidos por un goo habría festón |
-| **El primer botón no se mueve** | los cuatro salen en abanico desde la primera ranura; lo que se abre es el PASO, de 0 a 64 | RUNTIME: el borde izquierdo del primero está en 929 desde el cuadro 92 y sigue ahí en reposo. Y con los cuatro quietos en su ranura el extremo derecho no podría bajar de 1175, y baja hasta 1010 |
-| **Son dos resortes** | campo 365 ms / rebote 0.38; abanico 532 ms / rebote 0.32, 42 ms más tarde | RUNTIME: mínimos cuadrados sobre la respuesta al escalón de un oscilador de segundo orden, 1.57 y 1.42 pt de error en 64 cuadros. Los dos ciclos limpios del video dan lo mismo por separado |
-| ↳ 365 y no 395 | el ajuste con desfase libre da 395 ms y 0.58 pt | ese ajuste se come un t0 de −8 ms: el cuadro 80 es el primero donde el borde YA se movió, no el instante en que arrancó. En la pieza el resorte arranca cuando entra el puntero, así que hay que ajustar con ese modelo puesto |
-| La geometría | campo 384 × 56 (radio 28), botón 54, hueco 10, paso 64, conjunto 640 × 56 | RUNTIME con subpíxel sobre el cuadro 150: el campo mide 55.93 y los botones 53.95, los cinco centrados en y = 292.76 |
-| ↳ en pantalla, por 5/7 | alto 40, campo 276, botón 38, hueco 7, paso 45, total 456 | 640 crudos no entran en la card de 544, y encoger sólo a lo ancho rompe la proporción que hace que esto se lea como un control |
-| **El goo** | desenfoque σ = 4.7 px y umbral en alfa 0.5 | RUNTIME: dos centros a 61 pt de distancia dan un cuello de 25 pt de alto, y con el modelo de desenfoque + umbral —cuello = 2√((r+0.674σ)² − d²/4)— eso es σ ≈ 6.6 pt de la referencia. El puente se corta en un hueco de ~9 y en reposo el hueco es 10 |
-| ↳ por qué no un filete de radio constante | para dar ese cuello necesita k ≈ 9, y con ese k el puente aguantaría hasta un hueco de 16 | la referencia lo corta en 9 |
-| El material | relleno que sube el fondo ~120 niveles, anillo de **1 pt** a +40 y sombra de contacto de ~3 pt, simétrica | RUNTIME, muestras radiales sobre el cuarto botón: relleno rgb(178,197,230) casi constante, borde rgb(218,241,255) igual en las cuatro orientaciones, y afuera el fondo por 0.62 a 0.9 |
-| ↳ el desenfoque es GRANDE | sobre la nube clara el vidrio da casi neutro | rgb(186,152,137) detrás → rgb(219,217,228) delante: el vidrio no muestra lo que tiene justo atrás sino el promedio de un vecindario del ancho de la nube |
-| Una tinta sola para texto, lupa y glifos | rgb(46,68,97) | RUNTIME: placeholder (47,69,99), lupa (48,69,97), glifo (44,65,95). No hay un gris de marcador aparte |
-| El disparo es el **hover** | pedido del usuario, 2026-09-09 | y la grabación no dice otra cosa: el puntero nunca sube a la barra —se para 200 pt abajo— y las tres esperas entre abrir y separar son 733, 217 y 933 ms. No hay retardo fijo que copiar |
+| **Fused is ONE pill**, not four circles stuck together | a capsule of 640 × 56 | RUNTIME: the height profile gives a constant 56.0 from x=880 to x=1140, without a single dip between buttons. With circles fused by a goo there would be scalloping |
+| **The first button does not move** | the four fan out from the first slot; what opens is the STEP, from 0 to 64 | RUNTIME: the left edge of the first one is at 929 from frame 92 and it is still there at rest. And with the four sitting in their slot the right end could not go below 1175, and it goes down to 1010 |
+| **They are two springs** | field 365 ms / bounce 0.38; fan 532 ms / bounce 0.32, 42 ms later | RUNTIME: least squares over the step response of a second order oscillator, 1.57 and 1.42 pt of error over 64 frames. The two clean cycles of the video give the same thing on their own |
+| ↳ 365 and not 395 | the fit with a free offset gives 395 ms and 0.58 pt | that fit eats a t0 of -8 ms: frame 80 is the first one where the edge HAS already moved, not the instant it started. In the piece the spring starts when the pointer comes in, so you have to fit with that model in place |
+| The geometry | field 384 × 56 (radius 28), button 54, gap 10, step 64, set 640 × 56 | RUNTIME with subpixel over frame 150: the field measures 55.93 and the buttons 53.95, the five centered at y = 292.76 |
+| ↳ on screen, times 5/7 | height 40, field 276, button 38, gap 7, step 45, total 456 | 640 raw do not fit in the card of 544, and shrinking only the width breaks the proportion that makes this read as a control |
+| **The goo** | blur σ = 4.7 px and threshold at alpha 0.5 | RUNTIME: two centers 61 pt apart give a neck 25 pt tall, and with the blur plus threshold model (neck = 2√((r+0.674σ)² - d²/4)) that is σ ≈ 6.6 pt of the reference. The bridge breaks at a gap of ~9 and at rest the gap is 10 |
+| ↳ why not a fillet of constant radius | to give that neck it needs k ≈ 9, and with that k the bridge would hold up to a gap of 16 | the reference breaks it at 9 |
+| The material | a fill that raises the background by ~120 levels, a **1 pt** ring at +40 and a contact shadow of ~3 pt, symmetric | RUNTIME, radial samples over the fourth button: fill rgb(178,197,230) almost constant, edge rgb(218,241,255) the same in all four orientations, and outside it the background by 0.62 to 0.9 |
+| ↳ the blur is BIG | over the light cloud the glass comes out almost neutral | rgb(186,152,137) behind → rgb(219,217,228) in front: the glass does not show what is right behind it but the average of a neighborhood as wide as the cloud |
+| One single ink for text, magnifier and glyphs | rgb(46,68,97) | RUNTIME: placeholder (47,69,99), magnifier (48,69,97), glyph (44,65,95). There is no separate placeholder gray |
+| The trigger is the **hover** | the user's request, 2026-09-09 | and the recording does not say otherwise: the pointer never goes up to the bar, it stops 200 pt below, and the three waits between opening and separating are 733, 217 and 933 ms. There is no fixed delay to copy |
 
-**El vidrio no es un `backdrop-filter`.** Es una segunda copia del mismo
-fondo, desenfocada una vez, con la máscara del goo encima. Tres razones:
-el desenfoque de la referencia es enorme y `backdrop-filter` con máscara
-SVG no está garantizado en todos los motores; el fondo acá es nuestro,
-así que copiarlo es exacto; y sale más barato, porque la capa
-desenfocada no cambia nunca y lo único que se mueve es la máscara. Las
-dos copias se dibujan sobre la MISMA caja agrandada 96 px por lado: un
-desenfoque se come el borde de su propia capa, y si terminaran donde
-termina la escena, la mitad izquierda del vidrio mostraría el
-desvanecido en vez del fondo.
+**The glass is not a `backdrop-filter`.** It is a second copy of the same
+background, blurred once, with the goo's mask on top. Three reasons: the
+reference's blur is enormous and `backdrop-filter` with an SVG mask is
+not guaranteed in every engine; the background here is ours, so copying
+it is exact; and it comes out cheaper, because the blurred layer never
+changes and the only thing that moves is the mask. The two copies are
+drawn over the SAME box, grown by 96 px on each side: a blur eats the
+edge of its own layer, and if they ended where the scene ends, the left
+half of the glass would show the fade instead of the background.
 
-**Un `<mask>` y un `<filter>` con el mismo id son un id duplicado.**
-Costó una hora: `url(#halo-…)` resolvía al filtro y la capa entera salía
-en blanco, sin un error en ningún lado. Las máscaras llevan prefijo
-`mascara-`. Y una máscara referenciada desde CSS necesita `x`, `y`,
-`width` y `height` explícitos: los valores por defecto se resuelven
-contra el `<svg>` de las definiciones, que mide cero, y la máscara sale
-vacía.
+**A `<mask>` and a `<filter>` with the same id are a duplicate id.** It
+cost an hour: `url(#halo-…)` resolved to the filter and the whole layer
+came out white, without an error anywhere. The masks carry a `mask-`
+prefix. And a mask referenced from CSS needs explicit `x`, `y`, `width`
+and `height`: the default values resolve against the `<svg>` of the
+definitions, which measures zero, and the mask comes out empty.
 
-**`motion` se fue del bundle.** La pieza usaba `useSpring` y traía 14 kB
-comprimidos de librería para mover dos números; en producción era su
-único lector (el otro está en `src/privado/`, que no llega al build). En
-su lugar hay un integrador de Euler semi-implícito con sub-paso fijo de
-1/240 s, 40 líneas, con el tope de 50 ms para cuando la pestaña vuelve
-de segundo plano. El chunk pasó de 36.8 kB a 13.6 (13.95 → 5.26
-comprimidos), y la interrupción sale gratis: entrar y salir rápido con
-el puntero sólo cambia el destino, y la posición y la velocidad siguen
-siendo las que había.
+**`motion` left the bundle.** The piece used `useSpring` and brought in
+14 compressed kilobytes of library to move two numbers; in production it
+was its only reader (the other one is in `src/private/`, which does not
+reach the build). In its place there is a semi-implicit Euler integrator
+with a fixed substep of 1/240 s, 40 lines, with the cap of 50 ms for
+when the tab comes back from the background. The chunk went from 36.8 kB
+to 13.6 (13.95 → 5.26 compressed), and the interruption comes for free:
+going in and out fast with the pointer only changes the target, and the
+position and the velocity stay the ones there were.
 
-**Verificado contra la referencia con la pieza corriendo.** Se muestreó
-cuadro a cuadro el borde derecho del conjunto y se comparó contra la
-misma traza del video: **4.95 pt de error cuadrático medio y 18.7 de
-máximo sobre el primer segundo**, sin latencia que descontar. El máximo
-cae en el mínimo de la curva, que es donde la medición del video es
-menos confiable porque ahí el goo ensancha la silueta.
+**Verified against the reference with the piece running.** The right
+edge of the set was sampled frame by frame and compared against the same
+trace from the video: **4.95 pt of root mean square error and 18.7 of
+maximum over the first second**, with no latency to discount. The
+maximum falls at the minimum of the curve, which is where the video
+measurement is least reliable, because that is where the goo widens the
+silhouette.
 
-**Corrección del 2026-09-09.** Este párrafo decía 2.35 pt. La sonda
-modelaba el borde del botón en r = 19.58 —el radio compensado que tenía
-el goo— cuando lo dibujado mide 19; con las formas nítidas encima el
-modelo y lo dibujado coinciden y el número honesto es 4.95. Lo que se
-mueve no cambió: cambió la sonda.
+**Correction of 2026-09-09.** This paragraph said 2.35 pt. The probe
+modeled the edge of the button at r = 19.58, the compensated radius the
+goo had, when what is drawn measures 19; with the sharp shapes on top,
+the model and what is drawn coincide and the honest number is 4.95. What
+moves did not change: the probe changed.
 
-**Cuadros:** 62 en un segundo, mediana 16.7 ms, ninguno arriba de 20,
-con el procesador cuatro veces más lento y dos copias de la pieza en la
-página (Chrome, 2026-09-09).
+**Frames:** 62 in one second, median 16.7 ms, none above 20, with the
+processor four times slower and two copies of the piece on the page
+(Chrome, 2026-09-09).
 
-**La salida no es la entrada al revés** (2026-09-09, Vito: "la salida
-sobre todo, no me convence"). Posando el cierre cuadro a cuadro en siete
-instancias a la vez se ven las tres fallas, y ninguna se ve razonándola:
-los botones se tocan cuando el paso baja de 38 —el diámetro—, a los
-~55 ms, y con el tramo de 300 ms los iconos todavía valían **0.28 a los
-120**, o sea cuatro glifos apilados encima del campo; el campo se pasaba
-**14 px** de su largo de reposo a los 300 ms, un rebote que está medido
-pero en la CONTRACCIÓN de la apertura y que al cerrar no tiene causa; y
-duraba lo mismo que la entrada, contra la regla de que la salida va un
-cuarto más corta. Ahora el cierre tiene su propio juego: campo 280 ms
-sin rebote, abanico 400 con 0.1, iconos 110. Termina en ~300 ms. **La
-entrada no se tocó**: sigue siendo la medida.
+**The exit is not the entrance in reverse** (2026-09-09, Vito: "the exit
+above all, it does not convince me"). Posing the close frame by frame in
+seven instances at once, you see the three failures, and none of them is
+visible by reasoning about it: the buttons touch when the step drops
+below 38, the diameter, at ~55 ms, and with the segment of 300 ms the
+icons were still worth **0.28 at 120**, that is, four glyphs stacked on
+top of the field; the field went **14 px** past its resting length at
+300 ms, a bounce that is measured but in the CONTRACTION of the opening
+and that has no cause when closing; and it lasted the same as the
+entrance, against the rule that the exit runs a quarter shorter. Now the
+close has a set of its own: field 280 ms with no bounce, fan 400 with
+0.1, icons 110. It ends in ~300 ms. **The entrance was not touched**: it
+is still the measured one.
 
-**El press ahora presiona.** Escalaba sólo el `<svg>` a 0.94 y se leía
-"se achicó el ícono". Ahora achica el **círculo de la máscara** en el
-mismo lazo de cuadro, con un resorte propio por botón, así que se hunde
-el vidrio entero; y a 0.96, que abajo de 0.95 se ve exagerado. Verificado
-leyendo el atributo: el radio va de 19 a 18.24 y vuelve.
+**The press now presses.** It scaled only the `<svg>` to 0.94 and it
+read as "the icon got smaller". Now it shrinks the **circle of the mask**
+in the same frame loop, with a spring of its own per button, so the
+whole glass sinks; and at 0.96, because under 0.95 it looks exaggerated.
+Verified by reading the attribute: the radius goes from 19 to 18.24 and
+comes back.
 
-**Los cuadros, medidos con el peor caso que puede pasar de verdad.** En
-Chrome, con el procesador **veinte veces** más lento y **ocho copias** de
-la pieza en la página: scrolleando se pierde 1 de 59, y con una
-abriéndose y las otras siete en reposo se pierden 2 de 54. A 4× no se
-pierde ninguno. Las ocho animando a la vez sí caen a 30 cuadros, y no
-puede pasar: hay un solo puntero. Lo que hace que las que están quietas
-no cuesten nada es que el lazo **no pide cuadro en reposo**.
+**The frames, measured with the worst case that can really happen.** In
+Chrome, with the processor **twenty times** slower and **eight copies**
+of the piece on the page: scrolling drops 1 of 59, and with one opening
+and the other seven at rest it drops 2 of 54. At 4× it drops none. The
+eight animating at once do fall to 30 frames, and that cannot happen:
+there is a single pointer. What makes the ones sitting still cost
+nothing is that the loop **does not ask for a frame at rest**.
 
-**Y tres detalles que sólo aparecen midiendo.** La opacidad de los
-iconos iba en una variable CSS del padre, que obliga a recalcular el
-estilo de todo el subárbol por cuadro: ahora son cuatro escrituras
-directas. El `:hover` del realce no estaba detrás de
-`(hover: hover) and (pointer: fine)`, así que un dedo lo dejaba pegado
-al tocar. Y con movimiento reducido las transiciones de CSS seguían
-corriendo.
+**And three details that only show up by measuring.** The icons' opacity
+went in a CSS variable on the parent, which forces the browser to
+recompute the style of the whole subtree per frame: now they are four
+direct writes. The `:hover` of the highlight was not behind
+`(hover: hover) and (pointer: fine)`, so a finger left it stuck on touch.
+And with reduced motion the CSS transitions were still running.
 
-**Los baches del camino A, que era la primera vez.** El alto pide `100%`
-Y `min-height: inherit`: en la card lo pone un min-height heredado y el
-100 % no resuelve; en el lienzo del playground el frame tiene alto fijo
-y el que no resuelve es el min-height. Y el `<style href>` de React 19
-se iza **una sola vez**: al editar el CSS de una pieza, Vite recarga el
-módulo pero la hoja vieja se queda, así que hay que recargar la página.
-*(Este último ya no pasa; el arreglo está más abajo, en el campo
-escribible.)*
+**The potholes of path A, which was the first time.** The height asks
+for `100%` AND `min-height: inherit`: in the card an inherited min-height
+sets it and the 100% does not resolve; on the playground canvas the
+frame has a fixed height and the one that does not resolve is the
+min-height. And React 19's `<style href>` is hoisted **once and only
+once**: when you edit a piece's CSS, Vite reloads the module but the old
+sheet stays, so you have to reload the page. *(That last one no longer
+happens; the fix is further down, in the writable field.)*
 
-### El disparo lo eligió un picker de tres
+### A picker of three chose the trigger
 
-**El 2026-09-09**, después de ver que en Apple la barra se abre sola al
-mover el cursor, la pregunta era si eso sirve en una exhibition. Se armó un
-picker con el skill `prototype`: **tres disparos, la misma pieza debajo**
-—una copia generada por script del archivo de producción, parchando sólo
-el estado y los manejadores, así que las formas, el goo, el material y
-los dos resortes son los mismos bytes— y las dos cajas reales, el detalle
-de 544×400 y la card de la lista de 544×260.
+**On 2026-09-09**, after seeing that on Apple the bar opens by itself
+when you move the cursor, the question was whether that works in an
+exhibition. A picker was built with the `prototype` skill: **three
+triggers, the same piece underneath**, a copy of the production file
+generated by script, patching only the state and the handlers, so the
+shapes, the goo, the material and the two springs are the same bytes,
+and the two real boxes, the detail of 544×400 and the list card of
+544×260.
 
-| | eje | cuándo gana | qué cuesta |
+| | axis | when it wins | what it costs |
 | --- | --- | --- | --- |
-| **Ahora** | abre al entrar el puntero a la barra | el lector controla cuándo verla | hay que apuntarle a una franja de 40 px de alto, y barriendo el mouse se abre y se cierra sin que la mires |
-| **Apple** | abre al mover el puntero en la card | no pide puntería, y se rearma sola al salir | pasar de largo por una lista dispara la animación de cada card que cruzás |
+| **Now** | opens when the pointer enters the bar | the reader controls when to see it | you have to aim at a strip 40 px tall, and sweeping the mouse across opens and closes it without you looking |
+| **Apple** | opens when the pointer moves inside the card | it asks for no aim, and it rearms itself on the way out | going past a list fires the animation of every card you cross |
 
-Se llama **Apple** por lo que Vito vio en su Mac —Spotlight se abre al
-mover el cursor—, **no por la grabación**: ahí el puntero nunca sube a la
-barra y las tres esperas entre abrir y separar son distintas, así que la
-grabación no dice nada del disparo. El nombre es del picker, no un
-recibo.
-| **Reposo** | abre cuando el puntero se queda quieto | no dispara al pasar de largo | a 700 ms ya se siente la espera; a 2 s parece que no anda |
+It is called **Apple** because of what Vito saw on his Mac, Spotlight
+opens when you move the cursor, and **not because of the recording**:
+there the pointer never goes up to the bar and the three waits between
+opening and separating are different, so the recording says nothing
+about the trigger. The name is the picker's, not a receipt.
+| **Rest** | opens when the pointer stops moving | it does not fire when you go past | at 700 ms the wait is already felt; at 2 s it looks broken |
 
-**Eligió Apple, con el umbral en 20 px.** El dial existe porque cero no
-sirve: dispara con el temblor de un píxel y con el primer evento que
-manda el navegador al entrar. Con 20, entrar a la card y seguir de largo
-abre; apoyar el puntero quieto en el borde, no. Verificado en la pieza ya
-publicada: un solo evento no abre, 8 px no abren, 25 px sí, salir cierra,
-el foco del teclado abre y el desenfoque de foco cierra.
+**He chose Apple, with the threshold at 20 px.** The dial exists because
+zero does not work: it fires with the tremor of one pixel and with the
+first event the browser sends on entry. With 20, entering the card and
+carrying on opens it; resting the pointer still on the edge does not.
+Verified on the piece already published: a single event does not open it,
+8 px do not open it, 25 px do, leaving closes it, keyboard focus opens it
+and losing focus closes it.
 
-**El de reposo arrancaba en 700 ms y no en los 2 s del pedido.** Probados
-los dos, a 2 s la pieza parece rota antes de abrirse. Quedó como dial
-para que la decisión fuera de él y no del número que yo eligiera.
+**The rest one started at 700 ms and not at the 2 s of the request.**
+Both were tried, and at 2 s the piece looks broken before it opens. It
+stayed as a dial so the decision would be his and not the number I
+picked.
 
-**Producción no se tocó durante la exploración**, que es la regla del
-skill: `proto/` estaba en `.gitignore` y `git status` quedó limpio hasta
-que se promovió la elegida.
+**Production was not touched during the exploration**, which is the
+skill's rule: `proto/` was in `.gitignore` and `git status` stayed clean
+until the chosen one was promoted.
 
-### Los glifos no se funden: entran fuera de foco
+### The glyphs do not fade in: they arrive out of focus
 
-**Vito, mirando los cuatro iconos: "se nota cuando cargan, tiene que ser
-mejor eso, fijate cómo hace la refe y copialo tal cual".** Tenía razón y
-el mecanismo estaba mal, no el tiempo: la pieza los fundía —opacidad de 0
-a 1— y **la referencia los enfoca**. Recortando el interior de un botón
-cuadro a cuadro y ampliando, a los 267 ms hay un borrón que se va
-cerrando; a los 500 es un dibujo nítido.
+**Vito, looking at the four icons: "you can tell when they load, that
+has to be better, look at how the reference does it and copy it exactly".**
+He was right and the mechanism was wrong, not the timing: the piece faded
+them, opacity from 0 to 1, and **the reference sharpens them**. Cropping
+the inside of a button frame by frame and blowing it up, at 267 ms there
+is a smear closing in; at 500 it is a sharp drawing.
 
-**La primera medición decía lo contrario y era la sonda, no la pieza.**
-Proyectando cada cuadro contra el glifo NÍTIDO del reposo, un borrón
-correlaciona poco y se lee como "poca opacidad": salía un fundido de 310
-ms de retraso y 350 de duración, prolijo y falso. El desenfoque no
-aparece si la plantilla no puede representarlo.
+**The first measurement said the opposite and it was the probe, not the
+piece.** Projecting each frame against the SHARP glyph at rest, a smear
+correlates poorly and reads as "little opacity": out came a fade of
+310 ms of delay and 350 of duration, tidy and false. The blur does not
+show up if the template cannot represent it.
 
-**El estimador que sirve, y los tres que no.** El modelo final es lineal
-y sin filtros: `L(t) ≈ fondo cúbico + α · gauss(glifo del reposo, σ)`.
-Para un σ dado sale de un solo mínimos cuadrados; σ se barre en grilla.
-Antes de creerle una sola cifra se lo calibró con **cuadros sintéticos de
-α y σ conocidos**, y esa calibración descartó tres estimadores anteriores:
+**The estimator that works, and the three that do not.** The final model
+is linear and unfiltered: `L(t) ≈ cubic background + α · gauss(glyph at
+rest, σ)`. For a given σ it comes out of a single least squares; σ is
+swept on a grid. Before believing a single figure of it, it was
+calibrated with **synthetic frames of known α and σ**, and that
+calibration threw out three earlier estimators:
 
-1. **Maximizar α** en vez de minimizar el residuo: α crece sin techo con
-   el desenfoque libre, y σ se clavaba en el tope hasta en los cuadros ya
-   quietos.
-2. **Desenfocar el cuadro entero** en la plantilla: el glifo se dibuja
-   ENCIMA del vidrio, así que el desenfoque va sobre el glifo y no sobre
-   el fondo. Con esto, un α real de 0.4 a 2 pt de σ se leía **0.87** — de
-   ahí salió la conclusión falsa de que la opacidad casi no se movía.
-3. **Trabajar en alta frecuencia con la plantilla ya filtrada**: el
-   pasa-altos aplicado dos veces deja un residuo suave que α absorbe. Un
-   α real de 0.2 se leía **2.54**.
+1. **Maximizing α** instead of minimizing the residual: α grows without a
+   ceiling when the blur is free, and σ pinned itself to the top even in
+   frames that were already still.
+2. **Blurring the whole frame** in the template: the glyph is drawn ON TOP
+   of the glass, so the blur goes over the glyph and not over the
+   background. With this, a real α of 0.4 at 2 pt of σ read **0.87**, and
+   that is where the false conclusion came from, that the opacity barely
+   moved.
+3. **Working at high frequency with the template already filtered**: the
+   high-pass applied twice leaves a smooth residual that α absorbs. A real
+   α of 0.2 read **2.54**.
 
-El bueno devuelve α y σ **exactos** hasta 4 pt de σ, y por encima satura
-—6 pt se lee igual que 4—, así que esos cuadros no entran a ningún
-ajuste.
+The good one returns α and σ **exactly** up to 4 pt of σ, and above that
+it saturates (6 pt reads the same as 4), so those frames do not go into
+any fit.
 
-**Lo que hace la referencia**, dos ciclos y los cuatro botones, con el
-reloj anclado al mismo cero que `RETRASO` (el ajuste del extremo derecho
-del conjunto, 2.01 pt de error en el ciclo limpio):
+**What the reference does**, two cycles and the four buttons, with the
+clock anchored to the same zero as `DELAY` (the fit of the right end of
+the set, 2.01 pt of error in the clean cycle):
 
-| | retraso | duración | rebote | rms |
+| | delay | duration | bounce | rms |
 | --- | --- | --- | --- | --- |
-| **α, la opacidad** | 270 ms | 260 ms | 0.14 | 0.043 |
-| **σ, el desenfoque** | 290 ms | 350 ms | 0 | 0.122 pt |
+| **α, the opacity** | 270 ms | 260 ms | 0.14 | 0.043 |
+| **σ, the blur** | 290 ms | 350 ms | 0 | 0.122 pt |
 
-σ arranca en **3.0 pt** y cierra a cero. El resorte le gana a la rampa y
-al ease en los dos casos. **Son dos tramos y no uno**: con α ya pegado a
-1 —0.93 a los 417 ms— σ sigue bajando de 1.02 a 0.30, así que σ no es
-función de α. Y **no hay escala**: el ajuste devuelve 1.00 en todo el
-tramo medible, o sea que el glifo no crece.
+σ starts at **3.0 pt** and closes at zero. The spring beats the ramp and
+the ease in both cases. **They are two segments and not one**: with α
+already pinned to 1 (0.93 at 417 ms) σ keeps coming down from 1.02 to
+0.30, so σ is not a function of α. And **there is no scale**: the fit
+returns 1.00 over the whole measurable segment, meaning the glyph does
+not grow.
 
-**No hay desfase entre botones.** Con la sonda mala parecía que el
-primero entraba 27 ms antes que los otros tres, consistente en los tres
-ciclos. Con la buena, el orden cambia de cuadro en cuadro: era ruido. Los
-cuatro entran juntos.
+**There is no offset between buttons.** With the bad probe it looked like
+the first one came in 27 ms before the other three, consistent across the
+three cycles. With the good one, the order changes from frame to frame: it
+was noise. The four come in together.
 
-**Por qué se notaba.** El tramo viejo arrancaba a los 200 ms y duraba
-300: a los 300 los glifos ya valían **0.62** y en la referencia valen
-**0.14**. Aparecían mientras los botones todavía volaban, y nítidos desde
-el primer cuadro. Eso es exactamente la lectura de "se están cargando".
+**Why you could tell.** The old segment started at 200 ms and lasted 300:
+at 300 the glyphs were already worth **0.62** and in the reference they
+are worth **0.14**. They showed up while the buttons were still flying,
+and sharp from the first frame. That is exactly the reading of "they are
+loading".
 
-**El `blur()` de CSS, medido y no supuesto.** Sobre un borde duro con una
-rampa de valores: en pantalla Retina `blur(N px)` da una gaussiana de
-σ = N px con un 8 % de error, y **por debajo de 0.5 px la redondea a
-cero** —son tres cajas de desenfoque, no una gaussiana—. A 1× la
-cuantización es mucho más gruesa: `blur(0.75px)` no desenfoca nada.
-Por eso la cola no se escribe y el filtro vuelve a la cadena vacía: un
-filtro que no hace nada igual obliga a rasterizar el glifo aparte.
+**CSS's `blur()`, measured and not assumed.** Over a hard edge with a ramp
+of values: on a Retina screen `blur(N px)` gives a gaussian of σ = N px
+with 8% of error, and **below 0.5 px it rounds it to zero** (they are
+three box blurs, not a gaussian). At 1× the quantization is much coarser:
+`blur(0.75px)` does not blur anything. That is why the tail is not written
+and the filter goes back to the empty chain: a filter that does nothing
+still forces the glyph to be rasterized on its own.
 
-**Los dos retrasos estuvieron unidos en 280 ms** —20 ms son poco más de
-un cuadro— hasta que se midió la pieza contra la referencia con el mismo
-estimador: unidos, la opacidad iba un cuadro atrás y el desenfoque uno
-adelante. Separados, los dos errores se van.
+**The two delays were joined at 280 ms** (20 ms is a little over one
+frame) until the piece was measured against the reference with the same
+estimator: joined, the opacity ran a frame behind and the blur a frame
+ahead. Separated, both errors go away.
 
-**Y no cuesta cuadros.** Con el procesador 40 veces más lento y ocho
-copias montadas, una abriéndose pierde 14 de 55 cuadros **con el
-desenfoque y sin él**: el mismo número. A 20× no se pierde ninguno en
-ninguno de los tres escenarios. El costo de esa escena está en las
-máscaras, no en los cuatro glifos.
+**And it does not cost frames.** With the processor 40 times slower and
+eight copies mounted, one opening drops 14 of 55 frames **with the blur
+and without it**: the same number. At 20× none is dropped in any of the
+three scenarios. The cost of that scene is in the masks, not in the four
+glyphs.
 
-**La pieza contra la referencia, con el mismo estimador de los dos
-lados** —grabando la apertura con `Page.screencast`, que es lo único que
-entrega el cuadro CON su marca de tiempo—: sobre tres corridas y 46
-cuadros entre los 356 y los 554 ms, **0.039 de error cuadrático medio en
-la opacidad** (0.133 de máximo) y **0.228 pt en el desenfoque** (0.448).
-Lo del desenfoque es del orden del ruido del método: dos corridas leen el
-mismo instante con 0.25 pt de diferencia, porque el `blur()` de Chrome
-cuantiza y los cuadros del screencast pasan por PNG.
+**The piece against the reference, with the same estimator on both
+sides**, recording the opening with `Page.screencast`, which is the only
+thing that hands over the frame WITH its timestamp: over three runs and 46
+frames between 356 and 554 ms, **0.039 of root mean square error in the
+opacity** (0.133 of maximum) and **0.228 pt in the blur** (0.448). The
+blur figure is of the order of the method's noise: two runs read the same
+instant with 0.25 pt of difference, because Chrome's `blur()` quantizes
+and the screencast frames go through PNG.
 
-**Tres formas de sacar la tira que no servían, todas por el reloj.**
-Cuatro fotos seguidas, una por botón: entre la primera y la cuarta pasan
-~200 ms, así que el mismo resorte sale enfocado abajo y borroso arriba.
-Esperar en la página al cuadro correcto y recién ahí pedir la foto: el
-viaje de ida y vuelta se suma, distinto cada vez, y a los 267 ms se ve
-menos que a los 200. Y el tiempo virtual de CDP, que congela el reloj y
-lo avanza exacto pero con la carga adentro del presupuesto no deja montar
-la pieza. La marca de tiempo tiene que venir CON el cuadro.
+**Three ways of pulling the strip that did not work, all of them because
+of the clock.** Four photos in a row, one per button: between the first
+and the fourth ~200 ms go by, so the same spring comes out sharp at the
+bottom and blurred at the top. Waiting on the page for the right frame and
+only then asking for the photo: the round trip adds up, different every
+time, and at 267 ms you see less than at 200. And CDP's virtual time,
+which freezes the clock and advances it exactly, but with the load inside
+the budget it does not let the piece mount. The timestamp has to come WITH
+the frame.
 
-### El campo se escribe, y no hace nada más
+### The field is writable, and it does nothing else
 
-**Pedido de Vito el 2026-09-09**: poder escribir en la barra de búsqueda,
-que no se despliegue nada, con un tope de caracteres, que el texto dure
-mientras estés en la página y que al borrarlo vuelva el placeholder.
+**Vito's request on 2026-09-09**: to be able to type in the search bar,
+with nothing unfolding, with a character limit, with the text lasting as
+long as you are on the page, and with the placeholder coming back when you
+delete it.
 
-**El tope es 24 y sale de medir la caja.** El campo abierto son 276 px;
-descontando los 44 de sangría hasta el glifo y los 14 del otro lado
-quedan **218 px de texto**, y con el tipo del sitio a 18 px un carácter
-promedio mide 8.69 —medido con `measureText` sobre el tipo real, no
-estimado—, o sea que entran 25. El tope es 24: se llena la caja y ni uno
-más. Con mayúsculas anchas (una W mide 17.6) la caja se llena antes y el
-texto se corre adentro del input, que es lo que hace cualquier campo. Lo
-que no puede pasar es que empuje algo, y no puede: el ancho está fijo.
+**The limit is 24 and it comes from measuring the box.** The open field is
+276 px; taking away the 44 of inset up to the glyph and the 14 on the
+other side leaves **218 px of text**, and with the site's type at 18 px an
+average character measures 8.69, measured with `measureText` over the real
+type, not estimated, meaning 25 fit. The limit is 24: the box fills up and
+not one more. With wide capitals (a W measures 17.6) the box fills sooner
+and the text scrolls inside the input, which is what any field does. What
+cannot happen is that it pushes something, and it cannot: the width is
+fixed.
 
-**No sobrevive a una recarga, a propósito.** Es estado del componente y
-nada más. Sin `localStorage` no hay nada que restaurar al cargar, así que
-no hay ni un cuadro con el texto viejo ni un salto de layout;
-`autoComplete="off"` apaga además la restauración de formularios del
-navegador, que es el otro camino por el que un valor vuelve solo.
-Verificado: al recargar el valor es `""` y el scroll queda en 0.
+**It does not survive a reload, on purpose.** It is component state and
+nothing else. Without `localStorage` there is nothing to restore on load,
+so there is not one frame with the old text nor a layout jump;
+`autoComplete="off"` also turns off the browser's form restoration, which
+is the other path by which a value comes back on its own. Verified: on
+reload the value is `""` and the scroll sits at 0.
 
-**En la lista NO se escribe, y es la misma decisión de siempre.** Ahí el
-demo vive adentro del `<a>` de la card y un `<a>` no puede contener
-contenido interactivo: un lector anunciaría un cuadro de texto adentro de
-un link, tabular por la lista pararía en cada uno y el clic pelearía con
-la navegación. En la lista es un `<span>` y el clic abre la pieza
-—verificado: `/` → `/buttons-separate`—; en el detalle, que no tiene
-link, es un `<input>`. La pieza lo resuelve mirando el árbol
-(`closest('a')`) y no con una prop, porque una pieza publicada es UN
-archivo autocontenido y `demos.tsx` no le pasa nada.
+**In the list you do NOT type, and it is the same decision as always.**
+There the demo lives inside the card's `<a>` and an `<a>` cannot contain
+interactive content: a reader would announce a text box inside a link,
+tabbing through the list would stop at each one and the click would fight
+with the navigation. In the list it is a `<span>` and the click opens the
+piece (verified: `/` → `/buttons-separate`); in the detail, which has no
+link, it is an `<input>`. The piece works it out by looking at the tree
+(`closest('a')`) and not with a prop, because a published piece is ONE
+self-contained file and `demos.tsx` passes it nothing.
 
-**El campo pasó a ser la píldora entera.** Era un flex de dos —glifo,
-texto— cuyo ancho lo ponía la palabra: con un input adentro eso sería un
-campo que se agranda al escribir. Ahora la caja mide lo que mide el campo
-abierto, el glifo va absoluto en su posición medida y el input ocupa
-todo, así que **el clic cae en cualquier parte de la píldora, incluida la
-lupa**. El texto no se movió: la comparación píxel a píxel del "Search"
-antes y después da **0 píxeles distintos** sobre 192.000. Lo que hace que coincida es
-la altura de línea igual al alto de la barra: el medio interlineado deja la
-línea de base donde la dejaba el `line-height: 1` del `<span>`, y de paso
-da aire para las colas de la g y la y, que un input sí recorta.
+**The field became the whole pill.** It was a flex of two, glyph and text,
+whose width was set by the word: with an input inside, that would be a
+field that grows as you type. Now the box measures what the open field
+measures, the glyph goes absolute at its measured position and the input
+takes up everything, so **the click lands anywhere on the pill, including
+the magnifier**. The text did not move: the pixel by pixel comparison of
+the "Search" before and after gives **0 different pixels** out of 192,000.
+What makes it line up is the line height equal to the height of the bar:
+the half leading leaves the baseline where the `<span>`'s `line-height: 1`
+left it, and along the way it gives room for the tails of the g and the y,
+which an input does clip.
 
-**Y no se cierra mientras escribís.** Sacando el mouse de la card con el
-cursor puesto, la barra se cerraba y el campo crecía por encima de los
-botones. Ahora el `pointerleave` no cierra si el foco está adentro;
-cerrar es cosa del `blur`, que ya estaba.
+**And it does not close while you type.** Taking the mouse off the card
+with the cursor placed, the bar closed and the field grew over the
+buttons. Now `pointerleave` does not close if the focus is inside; closing
+is the job of `blur`, which was already there.
 
-**El `<style href>` de React 19, resuelto.** Este bache se cobró la
-primera prueba del campo escribible: con la hoja vieja todavía puesta, el
-`<input>` se ve como un control del sistema sin estilar adentro de la
-píldora, y parece un bug de la pieza. Ahora **en desarrollo la hoja va en
-línea, sin `href`**: React no la iza, le reescribe el texto en cada
-render y el cambio se ve al toque —y deshacerlo también—. En producción
-sigue izada y deduplicada, que es para lo que existe; `import.meta.env.DEV`
-saca la rama del bundle (verificado: cero `import.meta.env` en el
-archivo construido, y una sola hoja en el `<head>` del build).
+**React 19's `<style href>`, solved.** This pothole took the first test of
+the writable field: with the old sheet still in place, the `<input>` looks
+like an unstyled system control inside the pill, and it looks like a bug
+in the piece. Now **in development the sheet goes inline, without `href`**:
+React does not hoist it, it rewrites its text on every render and the
+change shows up at once, and undoing it too. In production it is still
+hoisted and deduplicated, which is what it exists for;
+`import.meta.env.DEV` takes the branch out of the bundle (verified: zero
+`import.meta.env` in the built file, and a single sheet in the build's
+`<head>`).
 
-Antes se probó ponerle **la huella de la hoja al `href`**, y hay que
-anotarlo porque parece la solución obvia y no lo es: arregla la ida pero
-rompe la vuelta. La hoja vieja ya quedó insertada más arriba, así que al
-volver a un CSS anterior sigue ganando la última que entró. Medido con la
-página abierta, editando el archivo desde la sonda: con la huella,
-`-0.18px → -0.9px → -0.9px`; con la hoja en línea, `-0.18px → -0.9px →
--0.18px`.
+Before that we tried putting **the sheet's fingerprint in the `href`**, and
+it has to be written down because it looks like the obvious solution and it
+is not: it fixes the way out but breaks the way back. The old sheet is
+already inserted higher up, so going back to an earlier CSS still loses to
+the last one that came in. Measured with the page open, editing the file
+from the probe: with the fingerprint, `-0.18px → -0.9px → -0.9px`; with the
+sheet inline, `-0.18px → -0.9px → -0.18px`.
 
-**El campo no lleva anillo de foco, y no es un olvido.** Le puse el token
-del sitio y estaba mal por tres razones, las tres visibles en la captura
-que mandó Vito ("horrible el borde azul, que no vuelva a pasar"):
+**The field has no focus ring, and it is not an oversight.** I put the
+site's token on it and it was wrong for three reasons, all three visible in
+the capture Vito sent ("that blue border is horrible, it must not happen
+again"):
 
-1. **Salía con el mouse**, no sólo con el teclado. En un campo de texto
-   Chrome hace coincidir `:focus-visible` **siempre** —el elemento acepta
-   teclas—, así que un clic normal para escribir dibujaba el anillo. Eso
-   no es un indicador de foco: es un borde permanente.
-2. **Era un rectángulo sobre una píldora.** El radio del campo lo dibuja
-   la máscara y no ese elemento, así que el `border-radius: inherit`
-   heredaba 0 y el anillo salía cuadrado alrededor de una forma redonda.
-3. **Es chrome del navegador encima del vidrio.** El azul del token es el
-   del sitio y no tiene nada que ver con este material.
+1. **It came out with the mouse**, not only with the keyboard. In a text
+   field Chrome matches `:focus-visible` **always**, because the element
+   accepts keys, so a normal click to type drew the ring. That is not a
+   focus indicator: it is a permanent border.
+2. **It was a rectangle over a pill.** The field's radius is drawn by the
+   mask and not by that element, so `border-radius: inherit` inherited 0
+   and the ring came out square around a round shape.
+3. **It is browser chrome on top of the glass.** The token's blue is the
+   site's and has nothing to do with this material.
 
-El indicador es **el cursor**, que en un campo de texto está siempre que
-el campo tiene el foco —con el mouse y con el tabulador— y va con la
-tinta de la pieza (`caret-color`), no con la del navegador. Es lo que
-hace la referencia: el campo de Spotlight no tiene anillo. Los cuatro
-botones sí lo llevan y se quedan como están: un botón no tiene cursor, y
-sin anillo no habría manera de saber dónde está el foco al tabular.
-Verificado: con clic, `:focus-visible` coincide pero el contorno es
-`none` y el cursor es `rgb(43,64,92)`; el botón sigue en `solid 2px`.
+The indicator is **the caret**, which in a text field is always there when
+the field has focus, with the mouse and with the tab key, and it goes with
+the piece's ink (`caret-color`), not the browser's. It is what the
+reference does: Spotlight's field has no ring. The four buttons do carry
+one and they stay as they are: a button has no caret, and without a ring
+there would be no way to know where the focus is when tabbing. Verified:
+with a click, `:focus-visible` matches but the outline is `none` and the
+caret is `rgb(43,64,92)`; the button is still at `solid 2px`.
 
-De la misma familia, y por eso va acá: `-webkit-tap-highlight-color:
-transparent`, que saca el rectángulo gris que Android e iOS pintan encima
-al tocar.
+From the same family, and that is why it goes here:
+`-webkit-tap-highlight-color: transparent`, which takes away the gray
+rectangle Android and iOS paint on top when you touch.
 
-### El fondo sale del design system
+### The background comes out of the design system
 
-**Vito, 2026-09-10: "el fondo, ¿no podés poner los del design system
-según el theme?".** Era un degradado azul-gris escrito a mano, con su
-propia paleta, adentro de una card que es `--surface`. Ahora cada parada
-es `--canvas` con `--ink` mezclado, así que sigue al tema sin traer
-colores propios. La geometría no se toca: el mismo radial y el mismo
-lineal, en las mismas posiciones.
+**Vito, 2026-09-10: "the background, can you not put the ones from the
+design system according to the theme?".** It was a blue-gray gradient
+written by hand, with a palette of its own, inside a card that is
+`--surface`. Now every stop is `--canvas` with `--ink` mixed in, so it
+follows the theme without bringing colors of its own. The geometry is not
+touched: the same radial and the same linear, in the same positions.
 
-**Los porcentajes no son a ojo.** Cada uno es la mezcla que iguala la
-**luminancia (L\*)** de la parada que había, buscada sobre
-`color-mix(in srgb, …)`, que es lineal por canal:
+**The percentages are not by eye.** Each one is the mix that matches the
+**luminance (L\*)** of the stop that was there, searched over
+`color-mix(in srgb, …)`, which is linear per channel:
 
-| | claro | oscuro |
+| | light | dark |
 | --- | --- | --- |
-| radial 0 % | `#f2f5fa` → **3.5 %** de tinta | `#5b74a2` → **44.2 %** |
-| radial 38 % | `#cdd6e5` → **16.8 %** | `#35486d` → **26.2 %** |
-| radial 76 % | `#9aa7bd` → **36.8 %** | `#1a2338` → **10.9 %** |
-| radial 100 % | `#8492aa` → **45.7 %** | `#131a2b` → **7.2 %** |
-| lineal 0 % → 100 % | **7.0 %** → **47.8 %** | **29.4 %** → **3.6 %** |
+| radial 0% | `#f2f5fa` → **3.5%** of ink | `#5b74a2` → **44.2%** |
+| radial 38% | `#cdd6e5` → **16.8%** | `#35486d` → **26.2%** |
+| radial 76% | `#9aa7bd` → **36.8%** | `#1a2338` → **10.9%** |
+| radial 100% | `#8492aa` → **45.7%** | `#131a2b` → **7.2%** |
+| linear 0% → 100% | **7.0%** → **47.8%** | **29.4%** → **3.6%** |
 
-Igualar la luminancia y no el color importa porque **el vidrio es una
-copia desenfocada de este fondo** y su velo está medido contra el
-material nativo: si el fondo cambia de claridad, cambia el vidrio. Se
-pierde el TONO —el azul del cielo de la referencia— y se conserva la
-luz, que es lo que el material lee.
+Matching the luminance and not the color matters because **the glass is a
+blurred copy of this background** and its veil is measured against the
+native material: if the background changes lightness, the glass changes.
+The HUE is lost, the blue of the reference's sky, and the light is kept,
+which is what the material reads.
 
-**Medido antes y después, con el fondo viejo puesto de nuevo para tener
-el par:**
+**Measured before and after, with the old background put back to have the
+pair:**
 
-| | vidrio contra el fondo | tinta sobre el vidrio |
+| | glass against the background | ink over the glass |
 | --- | --- | --- |
-| claro, fondo viejo | 1.06:1 | **7.88:1** |
-| claro, del sistema | **1.06:1** | **7.88:1** |
-| oscuro, fondo viejo | 1.05:1 | 5.77:1 |
-| oscuro, del sistema | **1.02:1** | **5.81:1** |
+| light, old background | 1.06:1 | **7.88:1** |
+| light, from the system | **1.06:1** | **7.88:1** |
+| dark, old background | 1.05:1 | 5.77:1 |
+| dark, from the system | **1.02:1** | **5.81:1** |
 
-O sea: el material se lee igual y la tinta también. Lo único que se movió
-es el tono.
+So: the material reads the same and so does the ink. The only thing that
+moved is the hue.
 
-**Por qué en claro el fondo no puede ser `--surface` a secas.** El vidrio
-es claro: sobre una card de `#f8f8f6` sería una forma casi blanca sobre
-casi blanco y no se vería nada. El degradado baja hasta L\* 58, que es el
-mismo piso que tenía, y ahí el vidrio despega. Con el sistema en oscuro
-pasa lo natural: fondo casi negro y vidrio claro encima, que es
-literalmente la referencia. Si el gris del tema claro pesa demasiado, la
-perilla es el último porcentaje del radial y el del lineal; subir el piso
-achica el contraste del vidrio en la misma proporción.
+**Why in light the background cannot be plain `--surface`.** The glass is
+light: over a card of `#f8f8f6` it would be an almost white shape on almost
+white and nothing would be visible. The gradient goes down to L\* 58, which
+is the same floor it had, and there the glass lifts off. With the system in
+dark what happens is the natural thing: an almost black background and light
+glass on top, which is literally the reference. If the gray of the light
+theme weighs too much, the knob is the last percentage of the radial and the
+one of the linear; raising the floor shrinks the glass's contrast in the same
+proportion.
 
-**La tinta NO se tocó.** Sigue siendo `#2e4461`, que es la medida de la
-referencia. Queda una tinta fría sobre un fondo neutro, que es la única
-costura que dejó el cambio.
+**The ink was NOT touched.** It is still `#2e4461`, which is the measurement
+of the reference. What is left is a cold ink over a neutral background, which
+is the only seam the change left.
 
-### Las cinco puntas sueltas, cerradas
+### The five loose ends, closed
 
-**Vito, 2026-09-10: "corregí absolutamente todas".** Eran las cinco que
-quedaron anotadas como abiertas. Tres se arreglaron, dos se cerraron
-midiendo y el resultado fue que la falla no existía. Va una por una,
-porque dos de ellas terminan en "el hallazgo anterior no se sostiene" y
-eso hay que decirlo con el mismo detalle que un arreglo.
+**Vito, 2026-09-10: "fix absolutely all of them".** They were the five that
+had been written down as open. Three were fixed, two were closed by
+measuring and the result was that the failure did not exist. They go one by
+one, because two of them end in "the earlier finding does not hold" and that
+has to be said with the same detail as a fix.
 
-**1. El cuello del goo: el hallazgo no sobrevivió a la medición.** Decía
-que con el mismo hueco los cuellos de la referencia son más profundos que
-los míos (0.40-0.63 contra 0.35). Ese "mismo hueco" suponía que los tres
-huecos valen lo mismo en cada cuadro, que es lo que hace el modelo de UN
-resorte. Midiendo la serie entera aparecieron dos cosas:
+**1. The neck of the goo: the finding did not survive the measurement.** It
+said that at the same gap the reference's necks are deeper than mine
+(0.40-0.63 against 0.35). That "same gap" assumed the three gaps are worth
+the same in every frame, which is what the model of ONE spring does.
+Measuring the whole series, two things showed up:
 
-- Con el umbral bien puesto —el vidrio SUBE la luminancia, así que el
-  corte va sobre la subida y no sobre la diferencia; con la diferencia
-  entra la sombra de contacto y da cuello en reposo, donde no hay
-  puente— los tres cuellos se cortan con huecos distintos: el primero
-  cerca de 5 pt, el tercero cerca de 13.
-- Y la distancia entre cuellos vecinos, que es una medida directa sin
-  modelo, da 57.8 y 46.0 en el mismo cuadro.
+- With the threshold set properly (the glass RAISES the luminance, so the
+  cut goes over the rise and not over the difference; with the difference
+  the contact shadow gets in and gives a neck at rest, where there is no
+  bridge) the three necks break at different gaps: the first one near 5 pt,
+  the third one near 13.
+- And the distance between neighboring necks, which is a direct measurement
+  with no model, gives 57.8 and 46.0 in the same frame.
 
-O sea que **los cuatro botones no se abren con un solo paso**, o el
-modelo tiene un error grande. No pude decidir cuál: para separar los
-cuatro centros hay que encadenar `c_{k+1} = 2·cuello_k − c_k`, y eso
-multiplica el error por 2, 4 y 8. Contra la verdad conocida en reposo
-—10, 10 y 10— el método devuelve **8.8, 10.2 y 11.9**. Con ±1.5 pt de
-error no se puede afirmar un desfase de unos pocos pt.
+Which means **the four buttons do not open with a single step**, or the model
+has a large error. I could not decide which: to separate the four centers you
+have to chain `c_{k+1} = 2·neck_k - c_k`, and that multiplies the error by 2,
+4 and 8. Against the known truth at rest (10, 10 and 10) the method returns
+**8.8, 10.2 and 11.9**. With ±1.5 pt of error you cannot assert an offset of
+a few pt.
 
-Así que lo que se corrige es la afirmación: no hay evidencia de que mis
-cuellos sean más chatos que los de la referencia, porque la comparación
-se hacía contra un hueco que nunca se midió. Lo que sí queda anotado, y
-es más grande, es la duda sobre el abanico de un solo resorte. Los
-scripts son `cuellos.py`, `pasos.py` y `abanico.py`.
+So what gets corrected is the claim: there is no evidence that my necks are
+flatter than the reference's, because the comparison was being made against a
+gap that was never measured. What does stay written down, and is bigger, is
+the doubt about the fan of a single spring. The scripts are `cuellos.py`,
+`pasos.py` and `abanico.py`.
 
-**2. La refracción: correcta, y su efecto acá es de 1 nivel sobre 255.**
-La capa no es adorno, es el vidrio: la copia del fondo que se ve a través
-del material. Lo que estaba en duda era el desenfoque de 2.9 px encima.
-Medido rindiendo el mismo degradado con y sin él: **media 0.25 niveles,
-máximo 1.00, cero subpíxeles por encima de 1**, sobre un degradado con
-78 niveles de recorrido. Es exactamente lo que tiene que pasar: un
-desenfoque de un degradado liso es el mismo degradado. Y no cuesta nada
-medible (ver el punto 5). Se queda, porque es una propiedad medida del
-material nativo y el día que el fondo tenga textura es lo único que la
-mostrará. Deja de estar anotada como problema: está cuantificada.
+**2. The refraction: correct, and its effect here is of 1 level out of 255.**
+The layer is not decoration, it is the glass: the copy of the background you
+see through the material. What was in doubt was the 2.9 px blur on top.
+Measured by rendering the same gradient with and without it: **mean 0.25
+levels, maximum 1.00, zero subpixels above 1**, over a gradient with 78
+levels of travel. It is exactly what has to happen: a blur of a smooth
+gradient is the same gradient. And it does not cost anything measurable (see
+point 5). It stays, because it is a measured property of the native material
+and the day the background has texture it is the only thing that will show
+it. It stops being written down as a problem: it is quantified.
 
-**3. El `<a>` con cuatro `<button>` adentro: arreglado de verdad.** Un
-`<a>` no puede contener contenido interactivo. La card ya no es el ancla:
-es un `<article>`, el ancla envuelve **sólo el título** y se estira sobre
-la card con un `::after`, y el preview va después en el documento, así
-que pinta encima de esa capa y el demo sigue vivo. El clic sobre el
-preview lo recoge el `<article>` con la misma regla de `clicDeLink`.
-Verificado en la página: **cero elementos interactivos adentro de un
-`<a>`**, el orden de tabulación pasó de parar en cada botón de cada card
-a un ancla por card, y el clic abre la pieza tanto desde el título como
-desde el preview.
+**3. The `<a>` with four `<button>` inside: actually fixed.** An `<a>` cannot
+contain interactive content. The card is no longer the anchor: it is an
+`<article>`, the anchor wraps **only the title** and stretches over the card
+with an `::after`, and the preview comes after it in the document, so it
+paints on top of that layer and the demo stays alive. The click on the
+preview is picked up by the `<article>` with the same rule as `linkClick`.
+Verified on the page: **zero interactive elements inside an `<a>`**, the tab
+order went from stopping at every button of every card to one anchor per
+card, and the click opens the piece from the title as well as from the
+preview.
 
-Lo que se pierde, dicho para que no se descubra después: **sobre el
-preview no hay cmd-click ni menú contextual**, porque ahí el ancla no
-está debajo del puntero. Sobre el título y el resto de la card sí.
+What is lost, said here so it is not discovered later: **on the preview there
+is no cmd-click and no context menu**, because there the anchor is not under
+the pointer. On the title and on the rest of the card there is.
 
-Y de paso apareció un error mío: la pieza sabía si era preview mirando
-`closest('a')`, y ese arreglo lo rompió —al sacar el demo del ancla, la
-lista volvió a renderizar el `<input>`—. Ahora lo dice una **prop**,
-`modo`, que baja de `demos.tsx`. Es la única prop que recibe una pieza y
-es opcional. Que la pieza dependiera del MARKUP del producto era el
-problema de fondo, no un detalle: el markup no es suyo.
+And along the way a mistake of mine showed up: the piece knew whether it was
+a preview by looking at `closest('a')`, and that fix broke it, because taking
+the demo out of the anchor made the list render the `<input>` again. Now a
+**prop** says it, `mode`, coming down from `demos.tsx`. It is the only prop a
+piece receives and it is optional. That the piece depended on the product's
+MARKUP was the underlying problem, not a detail: the markup is not its own.
 
-**4. La tinta fría sobre fondo neutro: sale del sistema, como el fondo.**
-Mismo método y mismo recibo: la mezcla que iguala la LUMINANCIA de la
-tinta medida. `#2e4461` está en L\* 28.32 y `color-mix(in srgb, --ink
-78.9%, --canvas)` da L\* 28.32; en oscuro, 22.4 % da L\* 26.6. La
-legibilidad no se movió: **7.88 → 7.85 en claro** y **5.81 → 5.81 en
-oscuro**. Se pierde el tono, se conserva el peso, y la pieza queda entera
-sobre el eje neutro del sistema.
+**4. The cold ink over a neutral background: it comes from the system, like
+the background.** Same method and same receipt: the mix that matches the
+LUMINANCE of the measured ink. `#2e4461` sits at L\* 28.32 and
+`color-mix(in srgb, --ink 78.9%, --canvas)` gives L\* 28.32; in dark, 22.4%
+gives L\* 26.6. Legibility did not move: **7.88 → 7.85 in light** and
+**5.81 → 5.81 in dark**. The hue is lost, the weight is kept, and the piece
+sits whole on the system's neutral axis.
 
-**5. Los cuadros: remedidos en un Chrome de verdad, cinco veces.** La
-cifra publicada (1 de 59, 2 de 54) salía de una sola corrida con otra
-herramienta, y mi medición nueva daba 0. No eran contradictorias: es la
-misma medición con su ruido. Remedido con el MCP de chrome-devtools —un
-Chrome real, con GPU— a 20× y con ocho copias, cinco corridas del mismo
-contador de rAF:
+**5. The frames: measured again in a real Chrome, five times.** The published
+figure (1 of 59, 2 of 54) came out of a single run with another tool, and my
+new measurement gave 0. They were not contradictory: it is the same
+measurement with its noise. Measured again with the chrome-devtools MCP, a
+real Chrome with a GPU, at 20× and with eight copies, five runs of the same
+rAF counter:
 
-| | perdidos |
+| | dropped |
 | --- | --- |
-| en reposo | 0, 0, 0, 0, 0 |
-| scrolleando | 0, 0, 0, 0, 0 |
-| una abriéndose | 1, 0, 1, 0, 0 (de ~55) |
+| at rest | 0, 0, 0, 0, 0 |
+| scrolling | 0, 0, 0, 0, 0 |
+| one opening | 1, 0, 1, 0, 0 (of ~55) |
 
-El texto público pasa a **"scrolling drops no frames, and one copy
-opening while the other seven rest drops at most 1 in 55"**. "At most" y
-cinco corridas: es lo único defendible con una cifra que varía.
+The public text becomes **"scrolling drops no frames, and one copy opening
+while the other seven rest drops at most 1 in 55"**. "At most" and five runs:
+it is the only thing you can defend with a figure that varies.
 
-### La auditoría de toque, accesibilidad y rendimiento
+### The audit of touch, accessibility and performance
 
-**2026-09-10, con `emil-touch-and-accessibility` y `emil-performance`.**
-Todo medido en la página, no leído del código. Las sondas quedaron en
+**2026-09-10, with `emil-touch-and-accessibility` and `emil-performance`.**
+All of it measured on the page, not read off the code. The probes stayed in
 `.context/buttons-separate/sonda/` (`a11y.cjs`, `perf.cjs`, `teclado.cjs`).
 
-**Lo que se arregló:**
+**What was fixed:**
 
-| | antes | ahora |
+| | before | now |
 | --- | --- | --- |
-| el campo escribible | 276×**40** de blanco | 276×**44**, y el texto no se movió (0 píxeles de diferencia) |
-| la flecha de volver | 34×34 | 34×34 a la vista, **44×44** de blanco |
-| el botón de velocidad | 28×20 | 28×20 a la vista, **52×44** de blanco |
-| `touch-action` | en ningún control | `manipulation` en `button, a, input, select, textarea, summary`, una sola regla en tokens.css |
+| the writable field | 276×**40** of white | 276×**44**, and the text did not move (0 pixels of difference) |
+| the back arrow | 34×34 | 34×34 in sight, **44×44** of white |
+| the speed button | 28×20 | 28×20 in sight, **52×44** of white |
+| `touch-action` | on no control | `manipulation` on `button, a, input, select, textarea, summary`, one single rule in tokens.css |
 
-Los 44 del campo salen sin mover el texto porque la altura de línea sube
-con la caja, de 40 a 44: el medio interlineado lo recentra y la línea de
-base queda donde estaba. Los 2 px que sobresalen de la píldora caen sobre
-la escena, que no escucha el clic.
+The 44 of the field come out without moving the text because the line height
+rises with the box, from 40 to 44: the half leading recenters it and the
+baseline stays where it was. The 2 px that stick out of the pill land on the
+scene, which does not listen for the click.
 
-`touch-action: manipulation` saca el zoom por doble toque de los
-controles y deja el pan y el pinch. Las superficies con gesto propio
-—el lienzo del playground, el reproductor del área privada, el 404—
-ponen `touch-action: none` en su clase y ganan por especificidad.
+`touch-action: manipulation` takes double-tap zoom off the controls and keeps
+pan and pinch. The surfaces with a gesture of their own (the playground
+canvas, the private area's player, the 404) put `touch-action: none` in their
+class and win by specificity.
 
-**Tres hallazgos que se cerraron midiendo, no tocando:**
+**Three findings that were closed by measuring, not by touching:**
 
-1. **Los cuatro botones son focalizables con opacidad 0.** Tabular hacia
-   algo invisible es un defecto, salvo que el foco lo revele: acá el
-   `onFocus` vive en el contenido y focusin burbujea, así que **el foco
-   ABRE la barra**. Verificado tabulando de verdad: el foco llega primero
-   al campo, que ya la abre, así que ninguno de los cuatro recibe el foco
-   invisible; y entrando por atrás, el que lo recibe la abre en el mismo
-   cuadro. Esconderlos con `visibility: hidden` cerraría el único camino
-   que tiene el teclado.
-2. **El ancla de cada card medía 112×17.** Falso positivo de la sonda: su
-   `::after` cubre la card entera. Medido: **560×292** y **560×592**.
-3. **El botón de velocidad arranca en opacidad 0.** Con `.focus()` no se
-   revela, pero con la tecla Tab sí: `:focus-visible` sólo coincide con
-   foco de teclado, que es el caso que importa. Verificado con eventos de
-   teclado reales. Y en toque lo muestra `@media (hover: none)`.
+1. **The four buttons are focusable at opacity 0.** Tabbing towards something
+   invisible is a defect, unless the focus reveals it: here the `onFocus`
+   lives in the content and focusin bubbles, so **the focus OPENS the bar**.
+   Verified by really tabbing: the focus reaches the field first, which
+   already opens it, so none of the four receives the invisible focus; and
+   coming in from behind, the one that receives it opens the bar in the same
+   frame. Hiding them with `visibility: hidden` would close the only path the
+   keyboard has.
+2. **Each card's anchor measured 112×17.** A false positive of the probe: its
+   `::after` covers the whole card. Measured: **560×292** and **560×592**.
+3. **The speed button starts at opacity 0.** With `.focus()` it is not
+   revealed, but with the Tab key it is: `:focus-visible` only matches
+   keyboard focus, which is the case that matters. Verified with real keyboard
+   events. And on touch it is shown by `@media (hover: none)`.
 
-**Lo que queda anotado y no se tocó:** los links del índice miden 104×16.
-Es una decisión escrita en `.indexList` —"cada link mide lo que su
-palabra… el costo es un área de click más chica, y se acepta"— y el
-índice sólo se muestra arriba de 1080 px, donde el único dispositivo
-medido sin mouse es un iPad Pro horizontal. Agrandarles el blanco a 44
-les pisaría el blanco entre ellos.
+**What stays written down and was not touched:** the index links measure
+104×16. It is a decision written in `.indexList` ("each link measures its
+word… the cost is a smaller click area, and it is accepted") and the index
+only shows above 1080 px, where the only device measured without a mouse is a
+horizontal iPad Pro. Growing their white to 44 would step on the white
+between them.
 
-**Rendimiento, medido:**
+**Performance, measured:**
 
-- **React no re-renderiza mientras la pieza se mueve**: cero cambios de
-  hijos en 1.2 s de apertura, con un MutationObserver puesto.
-- **En reposo no se pide un solo cuadro**, ni en la lista ni en el
-  detalle: 0 rAF en 1.5 s. La apertura pide 61.
-- **La apertura no corre el layout**: CLS 0.
-- **Sin tareas largas** al cargar ninguna de las dos páginas.
-- **Los cuadros con el fondo nuevo**: a 20× con ocho copias, 0 perdidos
-  scrolleando y 1 de 55 en el peor caso al abrir. A 40×, 17 de 55, el
-  mismo número que antes del cambio de fondo: el `color-mix` del
-  degradado se resuelve una vez, no por cuadro.
-- Cero `transition: all` y cero `will-change` en el producto. Los dos que
-  hay viven en `src/privado/`, que no entra al build.
+- **React does not re-render while the piece moves**: zero changes of children
+  in 1.2 s of opening, with a MutationObserver in place.
+- **At rest not a single frame is asked for**, neither in the list nor in the
+  detail: 0 rAF in 1.5 s. The opening asks for 61.
+- **The opening does not run layout**: CLS 0.
+- **No long tasks** when loading either of the two pages.
+- **The frames with the new background**: at 20× with eight copies, 0 dropped
+  scrolling and 1 of 55 in the worst case when opening. At 40×, 17 of 55, the
+  same number as before the background change: the gradient's `color-mix`
+  resolves once, not per frame.
+- Zero `transition: all` and zero `will-change` in the product. The two that
+  exist live in `src/private/`, which does not go into the build.
 
-**Un hallazgo de rendimiento que NO es de esta pieza: CLS en la lista.**
-Cinco cargas dan `0.0516  0  0.0294  0  0.0516`. Que sea cero en dos de
-cinco dice que es una carrera, no un layout roto: el hueco reservado para
-la silueta del teléfono (`::before` con `aspect-ratio`) se apaga cuando
-entra el `<video>`, y la altura pasa a ser la del archivo, que recién se
-sabe con los metadatos. **No lo causa el overlay del ancla**: sacándolo,
-el CLS sube a 0.0516. El detalle de la pieza Web da **0**, y la card de
-Buttons separate es la primera de la lista, así que no se mueve.
+**A performance finding that is NOT this piece's: CLS in the list.** Five
+loads give `0.0516  0  0.0294  0  0.0516`. That it is zero in two of five says
+it is a race, not a broken layout: the gap reserved for the silhouette of the
+phone (`::before` with `aspect-ratio`) turns off when the `<video>` comes in,
+and the height becomes the file's, which is only known with the metadata.
+**The anchor's overlay does not cause it**: taking it out, the CLS goes up to
+0.0516. The Web piece's detail gives **0**, and the Buttons separate card is
+the first of the list, so it does not move.
 
-El arreglo es declarar la proporción de cada grabación para que la caja
-esté reservada antes de que el archivo llegue. Es un cambio de datos y de
-CSS en el camino de las cards App, con sus propias decisiones escritas, y
-queda para su propio turno: 0.05 está bien por debajo del 0.1 que Google
-llama bueno.
+The fix is to declare the ratio of each recording so the box is reserved
+before the file arrives. It is a change of data and of CSS on the path of the
+App cards, with decisions of its own written down, and it waits for its own
+turn: 0.05 is well under the 0.1 that Google calls good.
 
-### La auditoría de código
+### The code audit
 
-**2026-09-10, con `emil-unslop-code`.** El repo escribe el porqué arriba
-del archivo, así que la densidad de comentarios NO es el problema: el
-skill pide "match the room". El problema es el otro, y el skill lo nombra
-igual — **comentarios que hablan del diff**, nombres que mienten y
-defensa que no defiende. Seis cosas:
+**2026-09-10, with `emil-unslop-code`.** This repo writes the why at the top
+of the file, so comment density is NOT the problem: the skill asks to "match
+the room". The problem is the other one, and the skill names it the same way:
+**comments that talk about the diff**, names that lie and defense that does
+not defend. Six things:
 
-1. **El bloque de comentario de las notas se había vuelto un changelog.**
-   164 líneas, y una parte era cronología: "el primer intento bajó de 434
-   palabras a 433", los dos arreglos de oído. Eso va en este README, que
-   ES la bitácora. **164 → 133 líneas.**
+1. **The notes' comment block had turned into a changelog.** 164 lines, and
+   part of it was chronology: "the first attempt went from 434 words to 433",
+   the two fixes by ear. That goes in this README, which IS the log.
+   **164 → 133 lines.**
 
-   **Y en el primer intento corté de más**, aplicando el skill por encima
-   de la regla del repo. La regla es "el porqué se escribe arriba del
-   archivo Y en la bitácora", y el recibo existe para PROTEGER UN VALOR:
-   ése es el test, no si la frase habla del pasado. Volvieron tres que lo
-   pasan: qué párrafos se cortaron del texto y por qué —si no, alguien
-   los re-agrega—, que no hay que volver a 1 de 59 y 2 de 54, y que el
-   peor caso sintético de 30 cuadros no se publica porque hay un solo
-   puntero.
+   **And on the first attempt I cut too much**, applying the skill above the
+   repo's rule. The rule is "the why is written at the top of the file AND in
+   the log", and the receipt exists to PROTECT A VALUE: that is the test, not
+   whether the sentence talks about the past. Three came back that pass it:
+   which paragraphs were cut from the text and why (otherwise someone adds
+   them back), that you must not go back to 1 of 59 and 2 of 54, and that the
+   synthetic worst case of 30 frames is not published because there is a
+   single pointer.
 
-   Y **"ya no" y "antes" son el idioma de la casa**, no un tell: están en
-   `tokens.css:20` ("el radio YA NO está pendiente"), en `:403`
-   ("REESCRITO: la nav ya NO sale del --ink"), en `app.module.css:187` y
-   en la propia pieza dos veces, todas de antes de hoy. El skill dice
-   "match the room" y eso ES la room: un recibo que nombra el estado
-   anterior es lo que impide volver a él. Los tres que había reescrito en
-   presente —la card, el ancla y el campo— volvieron al idioma.
-2. **`dentroDeLink` pasó a `esPreview`.** El nombre venía de cuando la
-   pieza miraba si tenía un `<a>` arriba. Desde que lo decide una prop,
-   ese nombre nombra algo que ya no existe.
-3. **Tres comentarios apilados sobre `Item`, dos hablando del mismo
-   tema**, y el primero —"La pieza entera es el botón"— ya era falso: la
-   card es un `<article>`. Quedó uno solo que dice la estructura y sus
-   dos porqués.
-4. **La misma explicación vivía dos veces** —por qué el montaje lo dice
-   una prop y no una consulta al DOM—, en `demos.tsx` y en la pieza. Ahora
-   está donde se define el tipo, y la pieza apunta ahí. Los otros tres
-   comentarios contra el estado anterior quedaron en presente conservando
-   el porqué entero.
-5. **`if (glifo && glifo.style.filter !== foco)`**: la comparación era
-   relleno, y la línea de arriba —`boton.style.opacity = visible`— no la
-   tiene. El lazo no corre en reposo, así que no ahorraba nada.
-6. **`HojaIzada()` existía para sostener dos líneas.** Un componente que
-   sólo reenvía es indirección sin política: la rama va en línea en el
+   And **"no longer" and "used to" are the language of the house**, not a
+   tell: they are in `tokens.css:20` ("the radius is NO LONGER pending"), in
+   `:403` ("REWRITTEN: the nav NO LONGER comes out of --ink"), in
+   `app.module.css:187` and in the piece itself twice, all of them from before
+   today. The skill says "match the room" and that IS the room: a receipt that
+   names the previous state is what stops anyone going back to it. The three I
+   had rewritten in the present, the card, the anchor and the field, went back
+   to the language.
+2. **dentroDeLink became `isPreview`.** The name came from when the piece
+   looked at whether it had an `<a>` above it. Since a prop decides it, that
+   name names something that no longer exists.
+3. **Three comments stacked over `Item`, two of them on the same subject**,
+   and the first one ("the whole piece is the button") was already false: the
+   card is an `<article>`. One was left, saying the structure and its two
+   whys.
+4. **The same explanation lived twice**, why the mount is said by a prop and
+   not by a query to the DOM, in `demos.tsx` and in the piece. Now it is where
+   the type is defined, and the piece points there. The other three comments
+   against the previous state were left in the present, keeping the whole why.
+5. **The comparison `glyph.style.filter !== …` was padding**, and the line
+   above it, the one that writes `button.style.opacity`, does not have one.
+   The loop does not run at rest, so it saved nothing.
+6. **A component called HojaIzada existed to hold two lines.** A component that
+   only forwards is indirection without policy: the branch goes inline in the
    JSX.
 
-**Lo que se revisó y estaba bien:** cero `console.log`, cero TODO, cero
-código comentado, cero `as any` ni `@ts-ignore`, cero `catch` que se
-trague nada, cero fallback silencioso. `noUnusedLocals` está prendido, así
-que no sobrevive un import ni una variable muerta. Y las guardas que
-quedan —`if (!el) return` sobre un ref, `if (boton)` sobre el arreglo de
-refs— son las mismas que ya usaba el archivo.
+**What was reviewed and was fine:** zero `console.log`, zero TODO, zero
+commented-out code, zero `as any` or `@ts-ignore`, zero `catch` that swallows
+anything, zero silent fallback. `noUnusedLocals` is on, so neither an import
+nor a dead variable survives. And the guards that remain (`if (!el) return`
+over a ref, `if (button)` over the array of refs) are the same ones the file
+was already using.
 
-El texto público quedó en 381 palabras; el comentario de arriba decía 386
-y también se corrigió.
+The public text ended at 381 words; the comment at the top said 386 and that
+was corrected too.
 
-### Los cuatro puntos que quedaban, cerrados
+### The four points that were left, closed
 
-**2026-09-10.** Dos se arreglaron, uno se cerró midiendo y el cuarto pasa
-de deuda a decisión escrita.
+**2026-09-10.** Two were fixed, one was closed by measuring and the fourth
+goes from debt to a written decision.
 
-**El cuello del goo: la grabación NO PUEDE responderlo, y ahora se sabe
-por qué.** Tres métodos fallaron, cada uno por una razón distinta, hasta
-que el tercero dio la respuesta de verdad: **la ventana en la que los
-huecos podrían diferir cae entera adentro del estado fundido.** Las
-formas se separan en cinco recién a los **368 ms** del disparo, y para
-entonces el abanico ya recorrió **1.048** de su camino —o sea que
-terminó— y los glifos ya valen 0.75 de opacidad. Mientras los huecos
-importan, la silueta es una sola forma: no contiene cuatro botones
-separables, así que no hay nada que medir ahí. Y los glifos, que son el
-otro canal, aparecen cuando el abanico ya se asentó.
+**The neck of the goo: the recording CANNOT answer it, and now we know why.**
+Three methods failed, each one for a different reason, until the third gave
+the real answer: **the window in which the gaps could differ falls entirely
+inside the fused state.** The shapes only separate into five at **368 ms**
+after the trigger, and by then the fan has already traveled **1.048** of its
+path, meaning it finished, and the glyphs are already worth 0.75 of opacity.
+While the gaps matter, the silhouette is a single shape: it does not contain
+four separable buttons, so there is nothing to measure there. And the glyphs,
+which are the other channel, show up when the fan has already settled.
 
-Queda cerrado: no es que no pude, es que el dato no está en la
-grabación. Los tres métodos y su porqué están en `cuellos.py`, `pasos.py`,
-`abanico.py` y `centros.py`.
+It is closed: it is not that I could not, it is that the data is not in the
+recording. The three methods and their why are in `cuellos.py`, `pasos.py`,
+`abanico.py` and `centros.py`.
 
-**El CLS de la lista: de 0.0516 variable a 0.0149 fijo.** La causa que
-diagnostiqué era real y está arreglada: el `<video>` no tenía altura
-hasta que llegaban sus metadatos, y cuando llegaban la card cambiaba de
-alto. Ahora `.demo` lleva **`aspect-ratio: auto 1`** — la proporción real
-del archivo manda en cuanto se conoce, y el 1 cubre el hueco hasta
-entonces. Las dos grabaciones son 1120×1120, así que el 1 acierta.
-Cinco cargas dan **0.0149 las cinco**: se acabó la carrera.
+**The list's CLS: from a varying 0.0516 to a fixed 0.0149.** The cause I
+diagnosed was real and it is fixed: the `<video>` had no height until its
+metadata arrived, and when it arrived the card changed height. Now `.demo`
+carries **`aspect-ratio: auto 1`**. The file's real ratio rules as soon as it
+is known, and the 1 covers the gap until then. Both recordings are 1120×1120,
+so the 1 gets it right. Five loads give **0.0149 all five**: the race is over.
 
-Lo que queda **no es de esta pieza y no lo toqué**: el preview de Select
-summary mide **336** contra el piso de 260 de una card, así que cuando
-llega su chunk la card crece 76 px y empuja lo de abajo. Buttons separate
-mide exactamente 260 y no mueve nada. Arreglarlo es decidir entre que la
-pieza entre en el piso, reservar su alto en el registro, o sacar el
-`lazy` de demos.tsx —que le sumaría ~20 kB comprimidos al bundle de 66
-para ahorrar 0.015 de CLS, y no vale—.
+What is left **is not this piece's and I did not touch it**: the Select
+summary preview measures **336** against a card's floor of 260, so when its
+chunk arrives the card grows 76 px and pushes what is below. Buttons separate
+measures exactly 260 and moves nothing. Fixing it means deciding between
+making the piece fit the floor, reserving its height in the registry, or
+taking the `lazy` out of demos.tsx, which would add ~20 compressed kB to a
+bundle of 66 to save 0.015 of CLS, and it is not worth it.
 
-**Los links del índice: 16 → 24 de blanco.** Los 44 de Apple no entran,
-porque los links están a 8 px uno de otro y estirarlos hasta ahí les
-haría pisarse el blanco. Los **24 de la norma** (WCAG 2.5.8, AA) sí:
-4 px de cada lado, y los blancos se TOCAN sin superponerse. Medido en la
-página: 99×24, 104×24, 94×24 y 93×24, sin solape. El texto no se movió,
-porque el `::before` no ocupa layout y el hueco de 8 medido contra benji
-sigue siendo el que se ve.
+**The index links: 16 → 24 of white.** Apple's 44 do not fit, because the
+links sit 8 px apart and stretching them that far would make their whites
+overlap. The **24 of the norm** (WCAG 2.5.8, AA) do fit: 4 px on each side,
+and the whites TOUCH without overlapping. Measured on the page: 99×24, 104×24,
+94×24 and 93×24, no overlap. The text did not move, because the `::before`
+takes up no layout and the gap of 8 measured against benji is still the one
+you see.
 
-**El cmd-click sobre el preview pasa a ser una decisión.** Probé las dos
-salidas y las dos son peores. Poner el ancla ENCIMA del preview devuelve
-el cmd-click y mata lo que el preview tiene adentro: los cuatro botones
-de Buttons separate, las cinco filas de Select summary y el botón de
-velocidad del video, que son justamente lo que se viene a probar. Y
-rehacer el cmd-click a mano con `window.open` contradice la regla de
-`clicDeLink` —dejar pasar todo lo que el navegador hace mejor— y ni así
-devuelve el menú contextual. Sobre el título y el resto de la card los
-dos siguen andando.
+**Cmd-click on the preview becomes a decision.** I tried both ways out and
+both are worse. Putting the anchor ON TOP of the preview gives cmd-click back
+and kills what the preview has inside: the four buttons of Buttons separate,
+the five rows of Select summary and the video's speed button, which are
+exactly what you come to try. And redoing cmd-click by hand with
+`window.open` contradicts the rule of `linkClick`, let through everything the
+browser does better, and even then it does not give the context menu back. On
+the title and on the rest of the card both still work.
 
-## Lo que tardaba en cargar era el caché, no el peso
+## What was slow to load was the cache, not the weight
 
-Vito, 2026-09-10: *"no puede ser que reloadeo y tarden en cargar los
-mockups"*. La sospecha obvia era el peso de los videos, y era **la
-segunda causa, no la primera**.
+Vito, 2026-09-10: *"it cannot be that I reload and the mockups take time to
+load"*. The obvious suspect was the weight of the videos, and it was **the
+second cause, not the first**.
 
-**La primera: producción no cacheaba nada.** Medido con `curl -I` contra
-`components-three-pi.vercel.app`, los cuatro recursos que probé —el
-WebM, la fuente, el JS con hash y el documento— contestaban lo mismo:
-`public, max-age=0, must-revalidate`. Sin `headers` en `vercel.json`,
-ése es el default, y significa que **cada recarga vuelve a bajar los
-33 MB**. Ningún recorte de tamaño arregla eso.
+**The first: production cached nothing.** Measured with `curl -I` against
+`components-three-pi.vercel.app`, the four resources I tried (the WebM, the
+font, the hashed JS and the document) all answered the same:
+`public, max-age=0, must-revalidate`. Without `headers` in `vercel.json`,
+that is the default, and it means **every reload downloads the 33 MB again**.
+No cut in size fixes that.
 
-Quedaron tres políticas, y **la diferencia entre ellas es si el nombre
-del archivo lleva hash de contenido**. Ésa es toda la regla: un nombre
-que cambia cuando cambia el archivo se puede cachear para siempre; uno
-estable, no.
+Three policies were left, and **the difference between them is whether the
+file name carries a content hash**. That is the whole rule: a name that
+changes when the file changes can be cached forever; a stable one cannot.
 
-**Van en `scripts/rutas.mjs` y no en `vercel.json`.** Se intentó dos
-veces editar el JSON directo y las dos veces desapareció solo, lo que
-parecía un watcher o una sesión pisando el archivo. No era ninguna de
-las dos: `vercel.json` **es un archivo generado**, y el `prebuild` que
-lo reescribe entero corría dentro del mismo `pnpm build` con el que se
-verificaba el cambio. La prueba que lo cerró fue escribirlo desde la
-terminal y mirarlo a los 0, 1, 3, 6 y 10 segundos: sobrevivía. Sólo
-moría al construir.
+**They go in `scripts/routes.mjs` and not in `vercel.json`.** I tried twice to
+edit the JSON directly and both times it disappeared on its own, which looked
+like a watcher or a session stepping on the file. It was neither:
+`vercel.json` **is a generated file**, and the `prebuild` that rewrites it
+whole ran inside the same `pnpm build` I was verifying the change with. The
+test that closed it was writing it from the terminal and looking at it after
+0, 1, 3, 6 and 10 seconds: it survived. It only died on a build.
 
-| ruta | política | por qué |
+| route | policy | why |
 | --- | --- | --- |
-| `/assets/*` | `max-age=31536000, immutable` | Vite les pone hash de contenido (`index-Q3GrExxQ.js`): un cambio cambia el nombre, así que cachearlos para siempre no puede servir nada viejo |
-| `/fonts/*` | `max-age=31536000, immutable` | el nombre es estable, pero una fuente no cambia. **Si alguna vez cambia hay que renombrar el archivo**, o el que ya la tenga se queda un año con la vieja |
-| `/piezas/*` | `max-age=86400, stale-while-revalidate=2592000` | los videos también tienen nombre estable y sí se regraban. Un día de caché —la recarga sale instantánea— y treinta de revalidación en segundo plano |
+| `/assets/*` | `max-age=31536000, immutable` | Vite gives them a content hash (`index-Q3GrExxQ.js`): a change changes the name, so caching them forever cannot serve anything old |
+| `/fonts/*` | `max-age=31536000, immutable` | the name is stable, but a font does not change. **If one ever does change the file has to be renamed**, or whoever already has it keeps the old one for a year |
+| `/pieces/*` | `max-age=86400, stale-while-revalidate=2592000` | the videos also have a stable name and they do get re-recorded. One day of cache (the reload comes out instant) and thirty of revalidation in the background |
 
-**La segunda: los videos estaban codificados como másters.** Los dos
-parámetros y su recibo están arriba de cada uno en
-`mockup/scripts/exhibition.mjs`; el resumen es que el WebM salía a
-`--crf=18` y el HEVC a `-q:v 85`, calidad de archivo, para algo que se
-sirve por red. Pasaron a CRF 32 y a bitrate fijo de 4000k.
+**The second: the videos were encoded as masters.** The two parameters and
+their receipt are at the top of each one in `mockup/scripts/exhibition.mjs`;
+the summary is that the WebM came out at `--crf=18` and the HEVC at `-q:v 85`,
+archive quality, for something served over the network. They went to CRF 32
+and a fixed bitrate of 4000k.
 
-| | antes | después | |
+| | before | after | |
 | --- | --- | --- | --- |
-| `swipeable-tabs.mov` | 20.60 MB | 6.84 MB | −67 % |
-| `swipeable-tabs.webm` | 8.89 MB | 4.75 MB | −47 % |
-| las seis juntas | 32.78 MB | 13.7 MB | −58 % |
-| `/swipeable-tabs` en Chrome | 9.07 MB | 4.92 MB | −46 % |
+| `swipeable-tabs.mov` | 20.60 MB | 6.84 MB | -67% |
+| `swipeable-tabs.webm` | 8.89 MB | 4.75 MB | -47% |
+| the six together | 32.78 MB | 13.7 MB | -58% |
+| `/swipeable-tabs` in Chrome | 9.07 MB | 4.92 MB | -46% |
 
-**Lo que NO se tocó, y por qué.** La resolución: se midió el tamaño
-dibujado y el video ya está exacto —560 px de CSS × 2 de DPR = 1120, y
-el archivo es 1120×1120—, así que no había nada que recortar. Y los
-60 fps: son el contenido de la pieza.
+**What was NOT touched, and why.** The resolution: the drawn size was measured
+and the video is already exact (560 px of CSS × 2 of DPR = 1120, and the file
+is 1120×1120), so there was nothing to cut. And the 60 fps: they are the
+content of the piece.
 
-**Dos trampas que costaron una vuelta cada una.**
+**Two traps that cost one round each.**
 
-La primera, del método: el barrido de CRF con SSIM sobre el cuadro
-entero daba 0.997 a 0.999 para *todo*, incluido CRF 38. La métrica no
-discriminaba porque buena parte del cuadro es transparente. Sirvió
-buscar el bloque de 80×80 con mayor diferencia —buscado, no elegido a
-dedo— y mirarlo al 200 %: ahí sí se ve dónde se pierde el grano del
-papel de la ilustración, y ahí se eligió.
+The first one, of the method: the CRF sweep with SSIM over the whole frame
+gave 0.997 to 0.999 for *everything*, CRF 38 included. The metric did not
+discriminate because a good part of the frame is transparent. What worked was
+looking for the 80×80 block with the largest difference, searched for and not
+picked by hand, and looking at it at 200%: there you do see where the grain of
+the illustration's paper is lost, and there is where it was chosen.
 
-La segunda, de ffmpeg, y estuvo a punto de publicar seis videos rotos:
-**para recodificar un WebM con alfa hay que pedir `-c:v libvpx-vp9` en
-la ENTRADA.** El decodificador VP9 por defecto descarta la capa alfa sin
-decir nada, y la salida sale opaca aunque uno pida `yuva420p`. Lo
-delató la verificación —esquina 255 en vez de 0— que corre sobre los
-seis archivos antes de reemplazarlos. La prueba que NO alcanza es mirar
-el `color_type` del PNG: da 6 (RGBA) igual, con el alfa en 255.
+The second one, of ffmpeg, and it was about to publish six broken videos: **to
+re-encode a WebM with alpha you have to ask for `-c:v libvpx-vp9` on the
+INPUT.** The default VP9 decoder drops the alpha layer without saying
+anything, and the output comes out opaque even if you ask for `yuva420p`. It
+was given away by the verification (corner 255 instead of 0) that runs over
+the six files before replacing them. The test that is NOT enough is looking at
+the PNG's `color_type`: it gives 6 (RGBA) all the same, with the alpha at 255.
 
-### El goo se ensancha con el movimiento
+### The goo widens with the movement
 
-**Comparando cuadro a cuadro contra la grabación, a la misma escala.**
-Es lo que dijo Vito el 2026-09-10: "corregí para igualar aún más a la
-referencia, ya teniendo estas imágenes". Las imágenes están en
-`.context/buttons-separate/`: `montaje.png` (la barra entera en diez
-instantes) y `montaje-cuellos.png` (el extremo de los botones).
+**Comparing frame by frame against the recording, at the same scale.** It is
+what Vito said on 2026-09-10: "fix it to match the reference even more, now
+that you have these images". The images are in `.context/buttons-separate/`:
+`montaje.png` (the whole bar at ten instants) and `montaje-cuellos.png` (the
+end of the buttons).
 
-**Desde los 430 ms los dos lados son la misma cosa.** La píldora, los
-cuatro círculos, sus tamaños y su separación se superponen. Lo que no
-coincidía estaba antes.
+**From 430 ms on, the two sides are the same thing.** The pill, the four
+circles, their sizes and their separation lie on top of each other. What did
+not match was before that.
 
-**A los 300 ms la referencia todavía tiene tres botones en un solo bulto
-y la pieza ya tenía cuatro círculos limpios.** Mi goo se cortaba
-demasiado pronto, y eso obliga a corregir lo que este mismo README decía
-ayer —que la grabación no podía responder por el cuello—. No podía
-responder por los CENTROS, que es otra cosa. Por el cuello responde, y
-alcanzan dos cuadros del mismo ciclo, sin ningún modelo de por medio:
+**At 300 ms the reference still has three buttons in a single lump and the
+piece already had four clean circles.** My goo broke too early, and that
+forces a correction to what this same README said yesterday, that the
+recording could not answer for the neck. It could not answer for the CENTERS,
+which is another thing. For the neck it does answer, and two frames of the
+same cycle are enough, with no model in between:
 
-| | hueco | cuello |
+| | gap | neck |
 | --- | --- | --- |
-| a los 360 ms | **12.9 pt** | 17.0 → **fundido** |
-| a los 700 ms | **9.9 pt** | 0.0 → separado |
+| at 360 ms | **12.9 pt** | 17.0 → **fused** |
+| at 700 ms | **9.9 pt** | 0.0 → separated |
 
-**Un hueco más grande no puede estar más fundido.** Con σ fijo el puente
-se corta a un hueco y listo. Lo único que cambia entre esos dos cuadros
-es que en el primero los botones se mueven y en el segundo están quietos,
-así que **σ crece con el movimiento**. Despejándolo cuadro a cuadro sobre
-la grabación, va de 6.87 a 8.90 pt mientras se abren.
+**A bigger gap cannot be more fused.** With σ fixed the bridge breaks at one
+gap and that is that. The only thing that changes between those two frames is
+that in the first one the buttons are moving and in the second they are still,
+so **σ grows with the movement**. Solving for it frame by frame over the
+recording, it goes from 6.87 to 8.90 pt while they open.
 
-**El disparador es la velocidad del abanico, saturada**, y el valor se
-ajustó contra el CUELLO y no contra la cuenta. Chrome implementa
-`feGaussianBlur` como tres desenfoques de caja y entrega el ~83 % del σ
-que se le pide, así que lo pedido y lo que se ve no son lo mismo. Medido
-en la pieza corriendo, con el mismo estimador que la grabación y en
-puntos de la referencia:
+**The trigger is the speed of the fan, saturated**, and the value was fitted
+against the NECK and not against the arithmetic. Chrome implements
+`feGaussianBlur` as three box blurs and delivers about 83% of the σ you ask
+for, so what is asked and what you see are not the same. Measured on the piece
+running, with the same estimator as the recording and in points of the
+reference:
 
-| hueco | la referencia | 6.3 px pedidos | 7.7 px pedidos |
+| gap | the reference | 6.3 px asked for | 7.7 px asked for |
 | --- | --- | --- | --- |
-| 8.4–8.8 | 20.0 | 8.4 | **21.1** |
-| 11.3–11.5 | 8.0 | 0 | **5.6** |
+| 8.4-8.8 | 20.0 | 8.4 | **21.1** |
+| 11.3-11.5 | 8.0 | 0 | **5.6** |
 
-El de reposo **no se toca**: con 4.7 el puente muere a los 7.3 pt de
-hueco y en reposo el hueco es 10, que es justamente por qué las formas
-se separan del todo. Y un σ más grande ENCOGE más la capa del goo
-(σ²/2R), así que se mete más adentro de la forma nítida: no hay riesgo
-de que vuelva a asomar una faceta.
+The resting one is **not touched**: at 4.7 the bridge dies at 7.3 pt of gap and
+at rest the gap is 10, which is exactly why the shapes separate completely. And
+a bigger σ SHRINKS the goo layer more (σ²/2R), so it tucks further inside the
+sharp shape: there is no risk of a facet peeking out again.
 
-**No cuesta cuadros.** El σ se escribe por cuadro como todo lo demás, y a
-20× con ocho copias no se pierde ninguno; a 40×, 15 de 55, el mismo
-número que antes de este cambio.
+**It does not cost frames.** σ is written per frame like everything else, and
+at 20× with eight copies none is dropped; at 40×, 15 of 55, the same number as
+before this change.
 
-**Y AL FINAL NO ESTÁ EN LA PIEZA.** Con 3.0 los cuellos quedaban como
-los de Spotlight, y mirándolo: *"me gustaba más como antes"*, que era sin
-cuellos. Se armó entonces una escalera con 0, 1.0, 1.6, 2.2 y 3.0,
-capturada en el mismo instante y a la misma escala que la grabación
-(`.context/buttons-separate/escalera.png`), y quedó en 1.6. Mirándolo
-otra vez: *"me seguía gustando como antes"*. Volvió a σ constante.
+**AND IN THE END IT IS NOT IN THE PIECE.** At 3.0 the necks came out like
+Spotlight's, and looking at it: *"I liked it better the way it was"*, which was
+without necks. So a ladder was built with 0, 1.0, 1.6, 2.2 and 3.0, captured at
+the same instant and at the same scale as the recording
+(`.context/buttons-separate/escalera.png`), and it landed on 1.6. Looking at it
+again: *"I still liked it the way it was"*. It went back to a constant σ.
 
-Lo escribo entero igual, y ésta es la razón: **la medición sigue siendo
-cierta**. La referencia funde más de lo que funde esta pieza, y el
-próximo que compare cuadro a cuadro lo va a encontrar y lo va a
-implementar. Que no esté es una decisión de cómo se ve, tomada dos veces
-sobre imágenes, no un hueco.
+I write the whole thing down anyway, and this is the reason: **the measurement
+is still true**. The reference fuses more than this piece fuses, and the next
+person who compares frame by frame is going to find it and implement it. That
+it is not there is a decision about how it looks, taken twice over images, not
+a gap.
 
-Y el procedimiento fue el correcto para lo que se discutía: una perilla y
-una escalera de imágenes. Lo que no fue correcto de mi parte fue lo
-primero que hice con el "me gustaba más como antes" —proponer un
-intermedio— cuando la respuesta ya estaba dada.
+And the procedure was the right one for what was being discussed: a knob and a
+ladder of images. What was not right on my part was the first thing I did with
+"I liked it better the way it was", proposing a middle value, when the answer
+had already been given.
 
-**Lo que sigue sin poder medirse** es lo otro: si los cuatro botones
-abren con un solo paso. Para eso hacen falta los centros uno por uno, y
-la ventana donde podrían diferir cae entera adentro del estado fundido.
+**What still cannot be measured** is the other thing: whether the four buttons
+open with a single step. For that you need the centers one by one, and the
+window where they could differ falls entirely inside the fused state.
 
-## Oxlint: la config es la mitad del trabajo
+## Oxlint: the config is half the work
 
-**2026-09-10.** El linter entró con 39 errores sobre el código de hoy, y
-apagar el linter o apagar el código eran las dos respuestas fáciles. La
-regla que se siguió es la del propio criterio: *un linter que grita por
-todo se ignora*, así que primero se afinó la config y después se
-arregló lo que quedaba.
+**2026-09-10.** The linter came in with 39 errors over today's code, and
+turning off the linter or turning off the code were the two easy answers. The
+rule that was followed is the one from the criterion itself: *a linter that
+shouts about everything gets ignored*, so first the config was tuned and then
+what was left was fixed.
 
-**Por qué importaba que quedara en cero.** El hook de `PostToolUse`
-corre oxlint sobre cada archivo editado y hace `exit 2`: con un solo
-error presente, **ese archivo no se puede editar**. Con 39 errores
-repartidos entre `parts.tsx`, las dos piezas Web y casi todo
-`src/privado/`, prender el linter equivalía a trabar el repo. Pasó de
-verdad en el medio de este trabajo: el hook bloqueó una edición mía.
+**Why it mattered that it end at zero.** The `PostToolUse` hook runs oxlint
+over every edited file and does `exit 2`: with a single error present, **that
+file cannot be edited**. With 39 errors spread across `parts.tsx`, the two Web
+pieces and almost all of `src/private/`, turning the linter on was the same as
+jamming the repo. It happened for real in the middle of this work: the hook
+blocked an edit of mine.
 
-**Lo que se apagó, y por qué es apagarlo y no arreglarlo.**
+**What was turned off, and why it is turning it off and not fixing it.**
 
-| regla | n | motivo |
+| rule | n | reason |
 | --- | --- | --- |
-| `jsx-a11y/prefer-tag-over-role` | 7 | pide cambiar `role="listbox"` por `<select>`, `role="slider"` por `<input>`. Acá el producto ES construir controles a medida: el rol ARIA es la forma correcta, no el error |
-| `jsx-a11y/media-has-caption` | 2 | los videos son demos decorativos y MUDOS. Un `<track>` con los subtítulos de nada no es accesibilidad |
-| tres de `jsx-a11y` en `src/privado/**` | 4 | el área privada sólo existe en desarrollo y no llega al bundle (0 apariciones en `dist/`). Nadie que no sea nosotros la ve |
+| `jsx-a11y/prefer-tag-over-role` | 7 | it asks to change `role="listbox"` for `<select>`, `role="slider"` for `<input>`. Here the product IS building controls by hand: the ARIA role is the correct form, not the error |
+| `jsx-a11y/media-has-caption` | 2 | the videos are decorative demos and MUTE. A `<track>` with the subtitles of nothing is not accessibility |
+| three of `jsx-a11y` in `src/private/**` | 4 | the private area only exists in development and does not reach the bundle (0 appearances in `dist/`). Nobody who is not us sees it |
 
-**Lo que se arregló de verdad**: tres variables muertas y un escape
-inútil en `mockup.mjs`, una expresión-coma usada como sentencia en
-`cuadros.mjs`, un regex con `$` que era un `endsWith`, un ternario como
-sentencia y un spread sobre un array que contenía sólo ese spread —
-`[...(c ? [x] : [])]` es `c ? [x] : []`.
+**What was actually fixed**: three dead variables and a useless escape in
+`mockup.mjs`, a comma expression used as a statement in `frames.mjs`, a regex
+with `$` that was an `endsWith`, a ternary as a statement and a spread over an
+array that contained only that spread, since `[...(c ? [x] : [])]` is
+`c ? [x] : []`.
 
-**Lo que se silenció EN EL SITIO, con el porqué al lado**, porque la
-regla es buena y el caso es un falso positivo:
+**What was silenced IN PLACE, with the why next to it**, because the rule is
+good and the case is a false positive:
 
-- `react/static-components` en los tres `<C />` de carga diferida. El
-  `lazy()` está cacheado en un Map de nivel de módulo, así que la
-  referencia es estable; la regla no ve a través del cache. El
-  comentario que ya estaba en `bocetos.tsx` decía que el cache existe
-  justo para no tirar el estado.
-- `react/purity` en `buttons-separate`: el `performance.now()` vive
-  dentro de un manejador de evento, no del render.
-- Los dos de `parts.tsx`: el camino de teclado no falta, está en el
-  `<a href>` de adentro, que lleva el mismo handler. Duplicarlo arriba
-  daría dos activaciones por Enter.
-- Los dos de `select-summary`: la raíz sólo DELEGA el teclado, y en un
-  menú el foco vive en los items (ARIA APG), que acá son `<button>`
-  nativos. Ponerle `tabIndex` al contenedor haría que un clic le robe
-  el foco al botón.
+- `react/static-components` in the three `<C />` of deferred loading. The
+  `lazy()` is cached in a module-level Map, so the reference is stable; the
+  rule does not see through the cache. The comment that was already in
+  `sketches.tsx` said the cache exists precisely so the state is not thrown
+  away.
+- `react/purity` in `buttons-separate`: the `performance.now()` lives inside an
+  event handler, not in the render.
+- The two in `parts.tsx`: the keyboard path is not missing, it is in the inner
+  `<a href>`, which carries the same handler. Duplicating it above would give
+  two activations per Enter.
+- The two in `select-summary`: the root only DELEGATES the keyboard, and in a
+  menu the focus lives in the items (ARIA APG), which here are native
+  `<button>`. Putting `tabIndex` on the container would let a click steal the
+  focus from the button.
 
-**Lo que queda pendiente y está anotado como tal.** Seis
-`set-state-in-effect` y dos `refs` en `src/privado/`. Son hallazgos
-reales —`set-state-in-effect` es literalmente la regla por la que
-oxlint está en este proyecto— pero piden refactor, no una línea, y
-viven en el taller. Quedan en `warn` **sólo dentro de
-`src/privado/**`**: siguen saliendo en `pnpm lint` y no traban a nadie.
-En todo lo que se publica siguen en `error`.
+**What is left pending and is written down as such.** Six
+`set-state-in-effect` and two `refs` in `src/private/`. They are real findings
+(`set-state-in-effect` is literally the rule oxlint is in this project for) but
+they ask for a refactor, not one line, and they live in the workshop. They stay
+at `warn` **only inside `src/private/**`**: they still come out in `pnpm lint`
+and they jam nobody. In everything that gets published they stay at `error`.
 
-Estado final: **0 errores, 59 warnings**.
+Final state: **0 errors, 59 warnings**.
 
-## La descripción tiene que cumplirse, y ahora hay una sonda que lo dice
+## The description has to hold, and now a probe says whether it does
 
-**2026-09-10.** *"Asegurate que la descripción cumpla todo lo que dice el
-componente, y ponelo por encima de Select summary."* Dos pedidos, y el
-primero destapó un problema de método: **estas notas se escribían contra
-el código leído, y leer no es medir.** La regla número uno del repo vale
-igual para la prosa.
+**2026-09-10.** *"Make sure the description delivers everything the component
+says, and put it above Select summary."* Two requests, and the first one
+uncovered a problem of method: **these notes were written against the code as
+read, and reading is not measuring.** The repo's rule number one holds for
+prose too.
 
-### Una sonda por oración
+### One probe per sentence
 
-`.context/buttons-separate/sonda/texto.cjs` tiene un `ok` por afirmación
-del texto público. Si la pieza deja de cumplir una, falla. Veintisiete
-comprobaciones; la primera corrida encontró **dos oraciones que no se
-sostenían**.
+`.context/buttons-separate/sonda/texto.cjs` has one `ok` per claim in the
+public text. If the piece stops delivering one, it fails. Twenty-seven checks;
+the first run found **two sentences that did not hold**.
 
-**"A search field, and beside it a single shape of glass" describía dos
-formas y en reposo hay una.** Los cuatro círculos están en la misma
-ranura —cx 302, medido— y esa ranura cae *adentro* del campo, que mide
-456. Lo que se ve al llegar es una píldora sola: los botones salen de
-adentro del campo cuando el campo se acorta a 276. La captura lo cerró en
-un segundo, después de dos meses de texto escrito de memoria.
+**"A search field, and beside it a single shape of glass" described two shapes
+and at rest there is one.** The four circles are in the same slot (cx 302,
+measured) and that slot falls *inside* the field, which measures 456. What you
+see on arrival is a single pill: the buttons come out of the inside of the
+field when the field shortens to 276. The capture closed it in a second, after
+two months of text written from memory.
 
-**"The field settles in 365 ms" era falso.** `duración`, en la
-parametrización de Apple, fija la frecuencia (ω = 2π/duración), no el
-momento en que la cosa se queda quieta. Integrando el resorte de la pieza:
+**"The field settles in 365 ms" was false.** `duration`, in Apple's
+parametrization, sets the frequency (ω = 2π/duration), not the moment the
+thing goes still. Integrating the piece's spring:
 
-| | 90 % del viaje | sobrepaso | por debajo de ½ px |
+| | 90% of the travel | overshoot | below ½ px |
 | --- | --- | --- | --- |
-| campo (365 ms) | 138 ms | **7.6 %** a los 229 | 537 ms |
-| abanico (532 ms) | 217 ms | 4.9 % a los 358 | 625 ms |
+| field (365 ms) | 138 ms | **7.6%** at 229 | 537 ms |
+| fan (532 ms) | 217 ms | 4.9% at 358 | 625 ms |
 
-Ninguna columna es 365. El texto dice ahora *"365 ms for the field"*, que
-es lo que el número es. Es la misma trampa que este README ya se había
-puesto con el asentamiento del conjunto, y volvió a entrar por otra
-puerta.
+No column is 365. The text now says *"365 ms for the field"*, which is what the
+number is. It is the same trap this README had already set for itself with the
+settling of the set, and it came in again through another door.
 
-### Lo que faltaba: cuatro cosas que se ven y el texto no decía
+### What was missing: four things you can see that the text did not say
 
-La regla vieja era *Anatomy habla sólo de la separación*. Con ella se
-quedaron afuera el realce del hover, el hundido del press, que el foco en
-el campo mantiene la barra abierta con el puntero afuera, y que el fondo
-sale de los tokens de la página y sigue al tema. **Ninguna es
-implementación: las cuatro se miran.** La regla nueva es la del pedido de
-hoy — lo que se ve, se dice.
+The old rule was *Anatomy talks only about the separation*. It left out the
+hover highlight, the sink of the press, that focus in the field keeps the bar
+open with the pointer outside, and that the background comes out of the page's
+tokens and follows the theme. **None of them is implementation: all four are
+looked at.** The new rule is the one from today's request: what you see gets
+said.
 
-Y entró el **cierre**, que faltaba a propósito y estaba mal que faltara.
-No porque no se vea, sino porque el párrafo de al lado afirma que la
-apertura se midió contra la grabación, y sin la aclaración esa afirmación
-se derramaba sobre un cierre que la grabación **no muestra**. Anatomy
-queda en tres párrafos, uno por asunto: el gesto, lo medido, lo decidido.
+And the **close** came in, which was missing on purpose and was wrong to be
+missing. Not because you cannot see it, but because the paragraph next to it
+claims the opening was measured against the recording, and without the
+clarification that claim spilled over onto a close the recording **does not
+show**. Anatomy is left in three paragraphs, one per subject: the gesture,
+what was measured, what was decided.
 
-### El cierre, medido con la pieza corriendo
+### The close, measured with the piece running
 
-`sonda/salida.cjs`, que tampoco existía:
+`sonda/salida.cjs`, which did not exist either:
 
 | | |
 | --- | --- |
-| el abanico arranca | primer cuadro |
-| el campo arranca | **49 ms** (el retraso cambió de lado) |
-| las formas se vuelven a tocar | 49 ms, con los glifos en **0.25** |
-| los glifos llegan a 0.02 | 115 ms |
-| el campo vuelve a 456 | sin pasarse ni una vez |
+| the fan starts | first frame |
+| the field starts | **49 ms** (the delay changed sides) |
+| the shapes touch again | 49 ms, with the glyphs at **0.25** |
+| the glyphs reach 0.02 | 115 ms |
+| the field goes back to 456 | without going past it once |
 
-Y con eso, **una afirmación de la pieza que era falsa**: arriba de
-`CAMPO_SALIDA` decía que los iconos *"se van en 110 ms, antes de que las
-formas se pisen"*. No: cuando las formas se tocan los glifos todavía
-valen 0.25. Lo cierto es lo otro, y alcanza — se van **antes que todo lo
-demás**, y por eso no quedan cuatro apilados sobre el campo, que es lo
-que pasaba con el tramo de 300 (0.28 a los 120).
+And with that, **a claim in the piece that was false**: above `FIELD_CLOSE` it
+said the icons *"leave in 110 ms, before the shapes overlap"*. No: when the
+shapes touch, the glyphs are still worth 0.25. The true thing is the other one,
+and it is enough. They leave **before everything else**, and that is why four
+of them are not left stacked over the field, which is what happened with the
+segment of 300 (0.28 at 120).
 
-### El 44 no se promete
+### The 44 is not promised
 
-Cada botón dibuja 38 px y responde 44, con 1 px libre contra el vecino.
-Pero por debajo de **544 px de escena** —no de ventana: la escala es
-`min(1, (ancho − 88) / 456)`— el conjunto se achica en bloque y el área
-se achica con él. A 372 px la escala es 0.623 y quedan **27.4 px**: pasa
-el mínimo de la WCAG 2.5.8 AA (24) y no llega a los 44 de Apple. Por eso
-la última oración de Use cases existe. Sin ella, el 44 se leería como una
-garantía que la pieza no da.
+Each button draws 38 px and answers to 44, with 1 px free against its
+neighbor. But below **544 px of scene**, not of window (the scale is
+`min(1, (width - 88) / 456)`), the set shrinks as a block and the area shrinks
+with it. At 372 px the scale is 0.623 and **27.4 px** are left: it passes the
+WCAG 2.5.8 AA minimum (24) and does not reach Apple's 44. That is why the last
+sentence of Use cases exists. Without it, the 44 would read as a guarantee the
+piece does not give.
 
-### La forma, después de los hechos
+### The form, after the facts
 
-Con el texto ya cierto vino una pasada de `emil-unslop-writing`, que es
-otro problema: no *qué* dice sino si suena a que lo escribió una máquina.
-Encontró tres cosas, las tres en los párrafos nuevos.
+With the text already true came a pass of `emil-unslop-writing`, which is
+another problem: not *what* it says but whether it sounds like a machine wrote
+it. It found three things, all three in the new paragraphs.
 
-**Amontonamientos de subordinadas, uno por párrafo.** El peor abría
-Anatomy con 34 palabras y tres cláusulas colgadas de dos "and" y un punto
-y coma. Partidas en oraciones cortas siguen el orden de la interacción:
-*"Move the pointer over this area."* y recién después qué pasa.
+**Pile-ups of subordinate clauses, one per paragraph.** The worst one opened
+Anatomy with 34 words and three clauses hanging off two "and"s and a semicolon.
+Split into short sentences they follow the order of the interaction: *"Move the
+pointer over this area."* and only then what happens.
 
-**Una pasiva con el actor escondido** —"The background under all of it is
-mixed from…"— y de yapa un sinónimo suelto, "all of it", para algo que ya
-tenía nombre. Y **"come out of the end it leaves behind"**, que pedía
-reconstruir una geometría para entender una frase: salen del campo, y eso
-es lo que dice ahora.
+**A passive with the actor hidden**, "The background under all of it is mixed
+from…", and on top of that a loose synonym, "all of it", for something that
+already had a name. And **"come out of the end it leaves behind"**, which asked
+you to reconstruct a geometry to understand a phrase: they come out of the
+field, and that is what it says now.
 
-**El largo de las oraciones se mira, y no es una manía.** Una página
-entera de oraciones de quince palabras es de las cosas que más delatan un
-texto generado. Ésta va de 3 a 40: *"Nothing is hidden"* al lado del
-párrafo de la medición.
+**Sentence length gets looked at, and it is not a fixation.** A whole page of
+fifteen-word sentences is one of the things that gives a generated text away
+the most. This one runs from 3 to 40: *"Nothing is hidden"* next to the
+paragraph of the measurement.
 
-No se tocaron tres que una lectura rápida marca igual: la oración de 40
-palabras de Performance —lleva la medición entera y su dos-puntos
-trabaja—, la de 27 de Use cases, y el *"same glass, same place, same
-size"*, que es un tres de verdad y no un relleno rítmico: son tres hechos
-distintos y cada uno se puede negar por separado.
+Three that a quick read flags anyway were not touched: the 40-word sentence in
+Performance, which carries the whole measurement and whose colon does work; the
+27-word one in Use cases; and the *"same glass, same place, same size"*, which
+is a real three and not rhythmic padding: they are three different facts and
+each one can be denied on its own.
 
-El texto quedó en 517 palabras contra 341. Es más largo, y es la primera
-versión que se puede verificar entera.
+The text ended at 517 words against 341. It is longer, and it is the first
+version that can be verified whole.
 
-### El orden de la lista es editorial
+### The order of the list is editorial
 
-Buttons separate arriba de Select summary, por pedido. **El orden de
-`PIECES` no se ordenaba solo**: Select summary abría la muestra por el
-accidente de haberse mergeado primero (PR #26 contra #27), no por una
-decisión. Ahora la primera de la lista es la que abre la muestra y la
-elige Vito, y eso está escrito arriba del arreglo.
+Buttons separate above Select summary, by request. **The order of `PIECES` did
+not sort itself**: Select summary opened the showcase by the accident of having
+been merged first (PR #26 against #27), not by a decision. Now the first of the
+list is the one that opens the showcase and Vito picks it, and that is written
+above the fix.
 
-De regalo, medido A/B con el mismo Chrome y el mismo viewport:
-**CLS 0.0092 → 0.0029**. La card de Select summary es la más alta de las
-cuatro y su preview llegaba tarde; abajo, lo que empuja pesa menos. Los
-dos números están lejísimos del 0.1, así que no es la razón del cambio.
-Es sólo lo que pasó.
+As a bonus, measured A/B with the same Chrome and the same viewport:
+**CLS 0.0092 → 0.0029**. The Select summary card is the tallest of the four and
+its preview arrived late; further down, what pushes weighs less. Both numbers
+are miles away from 0.1, so that is not the reason for the change. It is only
+what happened.
 
-## La estructura de react-native-motion, y los nombres en montaña
+## The structure of react-native-motion, and the names as a mountain
 
-2026-09-10. Dos pedidos en uno: que "toda la estructura de este repo de
-componentes siga la estructura" de `apps/expo/components` en
+2026-09-10. Two requests in one: that "the whole structure of this components
+repo follow the structure" of `apps/expo/components` in
 [react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components),
-y que los cuatro títulos pasen por la regla de nombres y, "sin alterar el
-orden", dibujen una montaña en el índice: "lo más largo en el medio y en
-las puntas los nombres cortos a propósito".
+and that the four titles go through the naming rule and, "without changing the
+order", draw a mountain in the index: "the longest one in the middle and at the
+ends the short names on purpose".
 
-### Una carpeta por pieza, con los nombres de la referencia
+### One folder per piece, with the reference's names
 
-La referencia es una carpeta por animación bajo `components/animations/`,
-y adentro siempre lo mismo: `index.tsx` que exporta, `<slug>-screen.tsx`
-con la pantalla, `<slug>.tsx` con el mecanismo, `theme.ts`, los datos y
-las partes al lado (sub-carpetas cuando son muchas), más un `registry`
-que va del slug a la pantalla y una sola ruta `[slug].tsx` que lo lee.
-El taller ya tenía la forma —lo decía su propio `AGENTS.md`— pero con
-otros nombres y sin el registry; el lado web tenía las piezas sueltas en
-dos carpetas planas (`src/piezas/`, `src/notas/`). Ahora:
+The reference is one folder per animation under `components/animations/`, and
+inside it always the same: `index.tsx` that exports, `<slug>-screen.tsx` with
+the screen, `<slug>.tsx` with the mechanism, `theme.ts`, the data and the parts
+alongside (subfolders when there are many), plus a `registry` that goes from
+the slug to the screen and a single route `[slug].tsx` that reads it. The
+workshop already had the shape, its own `AGENTS.md` said so, but with other
+names and without the registry; the web side had the pieces loose in two flat
+folders (`src/piezas/`, `src/notas/`). Now:
 
-| antes | ahora |
+| before | now |
 | --- | --- |
-| `src/piezas/<slug>.tsx` | `src/components/pieces/<slug>/<slug>.tsx`, con `index.tsx` que lo re-exporta |
-| `src/notas/<slug>.tsx` | `src/components/pieces/<slug>/notes.tsx` — la misma carpeta, también para las piezas App |
-| `nativo/src/piezas/<slug>/pantalla.tsx` | `nativo/src/components/pieces/<slug>/<slug>-screen.tsx` |
-| `boton.tsx` · `tabs-deslizables.tsx` | `hold-to-commit.tsx` · `swipeable-tabs.tsx`, y sus componentes `HoldToCommit` · `SwipeableTabs` |
-| `tema.ts` | `theme.ts` |
-| `fondo-accion.tsx` · `fondo-bloques.tsx` · `fondo-opal.tsx` · `cards.tsx` | `fondos/accion.tsx` · `bloques.tsx` · `opal.tsx` · `cards.tsx` |
-| `nativo/src/app/<slug>/index.tsx`, un puntero por pieza | `nativo/src/app/[slug].tsx`, una ruta, y `components/pieces/registry.ts` |
-| el índice dibujado adentro de `app/index.tsx` | `components/piece-list.tsx`, el `animation-list.tsx` de allá |
-| `nativo/src/piezas/abrir.ts` | `nativo/src/components/pieces/abrir.ts` |
+| `src/piezas/<slug>.tsx` | `src/components/pieces/<slug>/<slug>.tsx`, with an `index.tsx` that re-exports it |
+| `src/notas/<slug>.tsx` | `src/components/pieces/<slug>/notes.tsx`, the same folder, and for the App pieces too |
+| `nativo/src/piezas/<slug>/pantalla.tsx` | `native/src/components/pieces/<slug>/<slug>-screen.tsx` |
+| boton.tsx · tabs-deslizables.tsx | `hold-to-commit.tsx` · `swipeable-tabs.tsx`, and their components `HoldToCommit` · `SwipeableTabs` |
+| tema.ts | `theme.ts` |
+| fondo-accion.tsx · fondo-bloques.tsx · fondo-opal.tsx · cards.tsx | `backgrounds/stock.tsx` · `blocks.tsx` · `opal.tsx` · `cards.tsx` |
+| `nativo/src/app/<slug>/index.tsx`, one pointer per piece | `native/src/app/[slug].tsx`, one route, and `components/pieces/registry.ts` |
+| the index drawn inside `app/index.tsx` | `components/piece-list.tsx`, the `animation-list.tsx` from over there |
+| nativo/src/piezas/abrir.ts | `native/src/components/pieces/open.ts` |
 
-**Lo que se copió con una diferencia: el registry se deriva, no se
-escribe.** Allá es un import y una línea por animación, a mano. Acá
-`registry.ts` hace `require.context` sobre `./<slug>/index.tsx` y arma
-el mapa solo, por lo mismo de siempre —una lista a mano se desincroniza
-el día que agregás una carpeta sin anotarla— y por una razón que allá no
-tienen: acá se construye en varios worktrees a la vez, y un archivo
-central que todos editan es un conflicto por pieza nueva. La ruta
-`[slug].tsx` busca ahí; un slug que no existe vuelve al índice. Cada
-`index.tsx` exporta su pantalla **por defecto**, que es lo único que el
-registro necesita saber. Las perillas de hold-to-commit (`?parcar=`,
-`?fondo=`…) las lee ahora su propia pantalla, como las piezas de allá,
-que son autocontenidas; la ruta no sabe qué pieza monta. El bloque "No
-tocar sin volver a medir" de hold-to-commit, que vivía en la ruta, pasó
-al pie de la pantalla, donde ya estaba el de swipeable-tabs.
+**What was copied with one difference: the registry is derived, not written.**
+Over there it is an import and a line per animation, by hand. Here
+`registry.ts` does `require.context` over `./<slug>/index.tsx` and builds the
+map on its own, for the usual reason (a list kept by hand falls out of sync the
+day you add a folder without writing it down) and for a reason they do not have
+over there: here it is built in several worktrees at once, and a central file
+everybody edits is one conflict per new piece. The route `[slug].tsx` looks
+there; a slug that does not exist goes back to the index. Each `index.tsx`
+exports its screen **by default**, which is the only thing the registry needs
+to know. The knobs of hold-to-commit (`?park=`, `?background=`…) are now read
+by its own screen, like the pieces over there, which are self-contained; the
+route does not know which piece it mounts. The "Do not touch without measuring
+again" block of hold-to-commit, which lived in the route, moved to the foot of
+the screen, where swipeable-tabs' block already was.
 
-**Lo que no se copió, y por qué.** `data/animations.ts` es nuestro
-`src/pieces.ts` y se queda donde está: lo importan tres scripts y no es
-un componente. El sistema de temas de allá (`theme/`) no hace falta:
-cada pieza trae su paleta medida. Y **los identificadores de adentro de
-las piezas siguen en castellano** (`Etiqueta`, `BARRA`, `usePaleta`): la
-regla de nombres es de precisión, no de idioma; son unas 6.000 líneas
-con recibo, y la bitácora, `nativo/AGENTS.md` y los comentarios los
-nombran a cada paso. Se renombraron sólo los archivos que la referencia
-nombra por convención y los dos componentes que llevan el nombre de la
-carpeta.
+**What was not copied, and why.** `data/animations.ts` is our `src/pieces.ts`
+and it stays where it is: three scripts import it and it is not a component.
+The theme system over there (`theme/`) is not needed: each piece brings its
+measured palette. And **the identifiers inside the pieces stayed in Spanish**
+(Etiqueta, BARRA, usePaleta): the naming rule is about precision, not about
+language; they are some 6,000 lines with a receipt, and the log,
+`native/AGENTS.md` and the comments name them at every step. Only the files the
+reference names by convention were renamed, plus the two components that carry
+the folder's name.
 
-**Lo que se tocó por el camino.** `demos.tsx` y `notas.tsx` globean
-`./components/pieces/*/index.tsx` y `*/notes.tsx`; Add to Exhibition
-escribe la carpeta con los dos archivos y deshace los dos si la entrada
-no entra; `pnpm nueva` crea `<slug>-screen.tsx` + `index.tsx`. En este
-worktree faltaba `expo-audio` en `node_modules` del taller (el typecheck
-fallaba en `sonido.ts` antes de tocar nada): `pnpm install
---frozen-lockfile` y listo.
+**What got touched along the way.** `demos.tsx` and `notes.tsx` glob
+`./components/pieces/*/index.tsx` and `*/notes.tsx`; Add to Exhibition writes
+the folder with both files and undoes both if the entry does not go in;
+`pnpm new` creates `<slug>-screen.tsx` + `index.tsx`. In this worktree
+`expo-audio` was missing from the workshop's `node_modules` (the typecheck
+failed in `sound.ts` before anything was touched): `pnpm install
+--frozen-lockfile` and done.
 
-**Verificado.** `pnpm typecheck && pnpm lint && pnpm build` (las cuatro
-rutas en `vercel.json`, los chunks ahora se llaman `notes-*.js` y
-`<slug>-*.js`); `pnpm --dir nativo typecheck`; `pnpm referencias` en cero
-muertas después de barrer la bitácora, los dos `AGENTS.md`, `VIDRIO.md` y
-los comentarios; `npx expo export --platform ios` empaqueta las dos piezas
-(3.7 MB de Hermes, con las 24 imágenes de swipeable-tabs adentro, o sea
-que el registro las encontró); y un Chrome headless por CDP recorrió
-`/`, las cuatro piezas y `/no-existe`: cada detalle con su `h1`, sus tres
-secciones, su demo vivo o su video (el oscuro de hold-to-commit bajo
-`prefers-color-scheme: dark`), y el 404 intacto.
+**Verified.** `pnpm typecheck && pnpm lint && pnpm build` (the four routes in
+`vercel.json`, the chunks are now called `notes-*.js` and `<slug>-*.js`);
+`pnpm --dir native typecheck`; `pnpm references` at zero dead ones after
+sweeping the log, both `AGENTS.md`, `GLASS.md` and the comments;
+`npx expo export --platform ios` packages both pieces (3.7 MB of Hermes, with
+swipeable-tabs' 24 images inside, meaning the registry found them); and a
+headless Chrome over CDP walked `/`, the four pieces and `/no-existe`: each
+detail with its `h1`, its three sections, its live demo or its video
+(hold-to-commit's dark one under `prefers-color-scheme: dark`), and the 404
+intact.
 
-**El costo que queda afuera de este worktree.** La rama
-`vcompagnucci/title-to-actions-glass` agrega `src/piezas/title-to-actions.tsx`
-y una entrada en `PIECES` sin `slug`. Al rebasear tiene que mover el
-archivo a `src/components/pieces/title-to-actions/title-to-actions.tsx`,
-escribir el `index.tsx` al lado y ponerle `slug: 'title-to-actions'` a la
-entrada; con el glob nuevo, en el lugar viejo el demo no se dibuja y el
-typecheck avisa por el campo que falta.
+**The cost that stays outside this worktree.** The branch
+`vcompagnucci/title-to-actions-glass` adds `src/piezas/title-to-actions.tsx`
+and an entry in `PIECES` with no `slug`. On rebase it has to move the file to
+`src/components/pieces/title-to-actions/title-to-actions.tsx`, write the
+`index.tsx` beside it and give the entry `slug: 'title-to-actions'`; with the
+new glob, in the old place the demo is not drawn and the typecheck complains
+about the missing field.
 
-### El slug es un campo, no una cuenta
+### The slug is a field, not a calculation
 
-Hasta hoy la URL, la carpeta del taller, los archivos del video y el del
-demo salían de `slug(name)` en cada lectura, y eso ataba el título a todo
-lo demás: cambiar "Hold to commit" habría renombrado `/hold-to-commit`,
-`public/piezas/hold-to-commit.webm`, la carpeta del taller, los másters
-de `.context/mockup/master/`, las planillas de `.context/hold-to-commit/`
-y el clip de referencia del vault, que se llama como la pieza. Ahora
-`Piece` lleva `slug`, asignado UNA vez —Add to Exhibition lo calcula del
-nombre de ese día y lo escribe; `pnpm nueva` usa la misma cuenta— y el
-título es libre. Es exactamente la forma de `data/animations.ts` en la
-referencia: `title: 'Stack Toast', slug: 'spring-toast'`. La página, el
-scrollspy, `rutas.mjs`, `pieza-video.mjs` y el chequeo de duplicados al
-publicar leen el campo; `slug()` queda para quien asigna. Las cuatro
-URLs de producción siguen abriendo.
+Until today the URL, the workshop folder, the video files and the demo's came
+out of `slug(name)` on every read, and that tied the title to everything else:
+changing "Hold to commit" would have renamed `/hold-to-commit`,
+`public/pieces/hold-to-commit.webm`, the workshop folder, the masters in
+`.context/mockup/master/`, the spreadsheets in `.context/hold-to-commit/` and
+the vault's reference clip, which is named after the piece. Now `Piece` carries
+`slug`, assigned ONCE (Add to Exhibition computes it from that day's name and
+writes it; `pnpm new` uses the same calculation) and the title is free. It is
+exactly the shape of `data/animations.ts` in the reference:
+`title: 'Stack Toast', slug: 'spring-toast'`. The page, the scrollspy,
+`routes.mjs`, `piece-video.mjs` and the duplicate check when publishing read
+the field; `slug()` is left for whoever assigns it. The four production URLs
+still open.
 
-### Los nombres, en montaña
+### The names, as a mountain
 
-Cada título pasó por la regla de nombres (`AGENTS.md › Cómo se nombra`:
-el término técnico de la parte, el verbo de especificación), con dos
-condiciones más: que sea una frase que **ya esté en las notas de su
-pieza** —así el título y la página nombran la cosa igual, que es la
-regla de un solo nombre por cosa— y que el largo lo decida el lugar en
-el índice. El orden no se tocó: es editorial y Vito lo fijó ese mismo
-día (Buttons separate abre la muestra; la captura del pedido mostraba
-el orden anterior).
+Every title went through the naming rule (`AGENTS.md › How a piece is named`:
+the technical term of the part, the specification verb), with two more
+conditions: that it be a phrase that is **already in its piece's notes**, so
+that the title and the page name the thing the same way, which is the rule of
+one name per thing; and that its length be decided by its place in the index.
+The order was not touched: it is editorial and Vito fixed it that same day
+(Buttons separate opens the showcase; the capture in the request showed the
+previous order).
 
-| | antes | ahora | caracteres | tinta en el índice |
+| | before | now | characters | ink in the index |
 | --- | --- | ---: | ---: | ---: |
 | Web | Buttons separate | Fan out | 7 | 45.7 px |
 | | Select summary | Selection summary | 17 | 117.9 px |
 | App | Swipeable tabs | Swipe between tabs | 18 | 124.7 px |
 | | Hold to commit | Hold to buy | 11 | 70.6 px |
 
-RUNTIME: el ancho del texto de cada link del índice (Inter 13 px, peso
-460), medido con Chrome headless por CDP sobre la página servida en
-`localhost:3100`, después de `document.fonts.ready`. La tinta sube de
-45.7 a 124.7 y baja a 70.6: una montaña con la cima en el tercero.
+RUNTIME: the text width of each index link (Inter 13 px, weight 460), measured
+with headless Chrome over CDP on the page served at `localhost:3100`, after
+`document.fonts.ready`. The ink rises from 45.7 to 124.7 and comes down to
+70.6: a mountain with its peak at the third one.
 
-- **Fan out** (era Buttons separate, 16). "The four buttons fan out from
-  where the first one sits", dice su Anatomy; es el verbo de
-  especificación del gesto y el más corto que lo dice entero. Se
-  descartaron "Hover to open" (13, no es corto) y "Split buttons" (13,
-  *split button* ya es otro control: el que trae un menú al lado).
-- **Selection summary** (era Select summary, 14). Lo que el botón resume
-  es la selección: el sustantivo donde había un verbo usado de
-  sustantivo, y tres caracteres más para el medio de la lista.
-- **Swipe between tabs** (era Swipeable tabs, 14). Es la línea que Vito
-  aprobó el 2026-09-07 ("Swipe between tabs, tap to select one") con el
-  término de la HIG; dice la acción en vez del adjetivo. La oración de
-  Use cases que empieza "Swipeable tabs fit one screen…" se queda: ahí
-  describe la clase de control, no nombra la pieza.
-- **Hold to buy** (era Hold to commit, 14). "Commit" es palabra de
-  especificación —la de las transacciones— y era el nombre del catálogo
-  de 60fps.design; pero el botón dice "Hold to Buy" desde que Vito lo
-  pidió como botón de compra (2026-09-04), y el título dice lo que el
-  botón dice. Once caracteres para cerrar la lista.
+- **Fan out** (was Buttons separate, 16). "The four buttons fan out from where
+  the first one sits", says its Anatomy; it is the specification verb of the
+  gesture and the shortest one that says it whole. "Hover to open" (13, not
+  short) and "Split buttons" (13, *split button* is already another control:
+  the one that carries a menu beside it) were discarded.
+- **Selection summary** (was Select summary, 14). What the button summarizes is
+  the selection: the noun where there was a verb used as a noun, and three more
+  characters for the middle of the list.
+- **Swipe between tabs** (was Swipeable tabs, 14). It is the line Vito approved
+  on 2026-09-07 ("Swipe between tabs, tap to select one") with the HIG's term;
+  it says the action instead of the adjective. The Use cases sentence that
+  starts "Swipeable tabs fit one screen…" stays: there it describes the class
+  of control, it does not name the piece.
+- **Hold to buy** (was Hold to commit, 14). "Commit" is a specification word,
+  the one from transactions, and it was the name in the 60fps.design catalog;
+  but the button has said "Hold to Buy" ever since Vito asked for it as a
+  purchase button (2026-09-04), and the title says what the button says. Eleven
+  characters to close the list.
 
-**El tope de 15 caracteres** (Toolbars › Titles de la HIG) nació en el
-vault, donde el título comparte fila con la flecha y el inspector; el
-detalle de la exhibition lo pone solo en su `h1`. Vale para las puntas;
-en el medio se pasa a propósito, y queda dicho en `AGENTS.md`. Una pieza
-nueva entra con el largo que le toque por su lugar.
+**The cap of 15 characters** (Toolbars › Titles in the HIG) was born in the
+vault, where the title shares a row with the arrow and the inspector; the
+exhibition's detail puts it alone in its `h1`. It holds for the ends; in the
+middle it is exceeded on purpose, and that is said in `AGENTS.md`. A new piece
+comes in with whatever length its place gives it.
 
-**Lo que no cambió.** Los slugs y las URLs (sección anterior); los
-títulos de las secciones de las notas; la prosa de las notas, porque los
-cuatro nombres salieron de ella. El taller nativo sigue listando el slug
-en frase ("Hold to commit"): no lee `pieces.ts` del repo web, y es una
-herramienta.
+**What did not change.** The slugs and the URLs (previous section); the titles
+of the notes' sections; the notes' prose, because the four names came out of
+it. The native workshop still lists the slug as a phrase ("Hold to commit"): it
+does not read `pieces.ts` from the web repo, and it is a tool.
