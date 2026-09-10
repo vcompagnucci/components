@@ -163,6 +163,27 @@ import { Seccion } from '../notas'
    stands out. Motion is a spice, not the meal». Está el curso entero
    atrás de que la pieza tenga UNA animación y no cuatro.
 
+   MÁS TÉCNICO, Y COMO LO CUENTA ÉL (pedido del usuario, 2026-09-10). Su
+   forma es nombrar la propiedad y el número en la misma frase que la
+   razón, no hablar de sensaciones: «only animate transform and opacity»,
+   «start entrances from scale(0.9–0.95)», «press feedback is felt, not
+   seen». Así que el texto dice la curva y los milisegundos —370 ms sobre
+   cubic-bezier(.19, 1, .22, 1)—, dice el mecanismo —transición y no
+   keyframe, y por eso dos toques seguidos retoman en vez de reiniciar— y
+   dice qué hace el press en vez de escalar.
+
+   LA CURVA ES DE LAS SUYAS, y por casualidad: el mejor ajuste de 14
+   curvas × 39 duraciones sobre 18 muestras de la referencia dio
+   cubic-bezier(.19, 1, .22, 1), que es exactamente el --ease-out-expo de
+   su catálogo, «strong ease-out». Salió de medir un video, no de copiar
+   su lista.
+
+   LO QUE NO ENTRA AL TEXTO AUNQUE SEA TÉCNICO: que el chip que entra
+   nace en scale 0, que es lo que él prohíbe. La excepción tiene número
+   —a 11.8 px, arrancar en 0.95 son 0.6 px de recorrido— pero explicarla
+   pide una tercera oración y la sección tiene cuatro líneas. Queda acá,
+   donde ya estaba.
+
    Lo que la pieza NO anima está respaldado por ese mismo skill:
      · el acuse del apretar, que no escala: «Not every button needs it;
        skip it on high-frequency controls».
@@ -197,19 +218,19 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          Select someone and the cluster of photos rearranges. It is the only thing here that
-          animates, because it is the only thing that answers a question.
+          Select someone and the cluster rearranges. Each photo scales from its top left corner,
+          370ms on cubic-bezier(.19, 1, .22, 1).
         </p>
         <p>
-          The label changes in one frame, the button never resizes, and pressing it moves nothing.
-          Leaving those still took longer than building the one that moves.
+          It is the only animation here, because it is the only one that answers a question. The
+          label swaps in a frame, the width holds, and the press paints instead of scaling.
         </p>
       </Seccion>
 
       <Seccion titulo="Performance">
         <p>
-          CSS transitions, no animation library. Only transform, opacity and color animate, so
-          nothing forces the page to lay out again.
+          Transform and opacity only, plus the color of a row. Each one is a CSS transition and not a
+          keyframe, so two fast selections retarget instead of restarting.
         </p>
         <p>
           In every state, nothing drifts by a pixel. A control you use all day should sit still.
