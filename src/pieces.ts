@@ -68,6 +68,14 @@ export const slug = (name: string) =>
    saben vivir con cero. */
 export const PIECES: Piece[] = [
   {
+    name: 'Select summary',
+    platform: 'Web',
+    /* Sin `desc`: el título ya dice qué es, que es la primera regla de
+       AGENTS.md › Cómo se nombra, y es lo que hacen las otras tres
+       piezas. La tuvo un día y se borró por lo mismo que la de Swipeable
+       tabs. */
+  },
+  {
     name: 'Swipeable tabs',
     platform: 'App',
     video: '/piezas/swipeable-tabs.webm',
@@ -82,5 +90,13 @@ export const PIECES: Piece[] = [
     videoHevc: '/piezas/hold-to-commit.mov',
     videoOscuro: '/piezas/hold-to-commit-oscuro.webm',
     videoHevcOscuro: '/piezas/hold-to-commit-oscuro.mov',
+  },
+  /* La primera pieza Web, y por eso la primera sin `video`: corre viva
+     en la lista y en el detalle, resuelta por slug en demos.tsx. Sin
+     `desc` por la misma regla que Swipeable tabs — el título ya dice
+     cuál es el gesto. */
+  {
+    name: 'Buttons separate',
+    platform: 'Web',
   },
 ]

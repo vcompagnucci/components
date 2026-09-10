@@ -11,3 +11,10 @@ dist/
 # El mockup (Remotion): los assets con licencia y los renders no viajan.
 mockup/public/
 mockup/out/
+
+# El taller de una pieza: harness de desarrollo, fuera del build.
+# Hoy tiene el banco de cuadros, que monta N copias de una pieza en una
+# página. Un comentario NO puede ir al final de esta línea: en un
+# .gitignore el # sólo abre comentario al principio de la línea, y ahí
+# el patrón pasaría a ser "proto/ # ..." y dejaría de ignorar nada.
+proto/

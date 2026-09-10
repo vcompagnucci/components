@@ -54,8 +54,23 @@ const remotion = (...a) => execFileSync('npx', ['remotion', ...a], { cwd: AQUI, 
    texto en los flicks; descartado). */
 const ESCALA = String(1120 / 2160)
 
+/* CRF 32, Y ANTES ERA 18. El 18 es calidad de máster y acá el archivo
+   se sirve por red en cada carga: `swipeable-tabs.webm` pesaba 8.89 MB
+   y la página de detalle bajaba 9.07 MB, medido en Chrome sin caché.
+
+   El 32 salió de un barrido con la referencia al lado, no de un gusto.
+   Recortando el peor bloque de 80×80 —el de mayor diferencia contra el
+   original, buscado y no elegido a dedo— y mirándolo al 200 %, el grano
+   del papel de la ilustración sigue entero en 32; recién a 40 se
+   empieza a perder. Queda margen a propósito: la pieza es la vitrina.
+
+   Una trampa de ffmpeg que costó una vuelta: para volver a codificar un
+   WebM con alfa hay que pedir `-c:v libvpx-vp9` EN LA ENTRADA. El
+   decodificador VP9 por defecto descarta la capa alfa sin avisar y el
+   resultado sale opaco —esquina 255 en vez de 0— aunque la salida diga
+   yuva420p. */
 console.log('1/3  WebM VP9 con alfa (1280²)')
-remotion('render', composicion, `out/${salida}.webm`, '--codec=vp9', '--pixel-format=yuva420p', '--crf=18', `--scale=${ESCALA}`, `--props=${props}`, '--log=error')
+remotion('render', composicion, `out/${salida}.webm`, '--codec=vp9', '--pixel-format=yuva420p', '--crf=32', `--scale=${ESCALA}`, `--props=${props}`, '--log=error')
 
 console.log('2/3  máster ProRes 4444 con alfa (1280²)')
 /* --pixel-format=yuva444p10le, y no es opcional: sin él Remotion escribe
@@ -67,9 +82,18 @@ console.log('3/3  HEVC con alfa para Safari (VideoToolbox)')
 execFileSync(
   'ffmpeg',
   ['-v', 'error', '-y', '-i', path.join(OUT, `${salida}-master.mov`), '-vf', 'format=bgra',
-    /* calidad 85 de 100, sin priorizar velocidad: Safari es la mitad de los
-       que miran, y a 0.5× cada cuadro se mira el doble de tiempo */
-    '-c:v', 'hevc_videotoolbox', '-alpha_quality', '0.95', '-q:v', '85', '-realtime', 'false', '-prio_speed', 'false', '-tag:v', 'hvc1', '-an', '-movflags', '+faststart',
+    /* BITRATE FIJO Y NO `-q:v`, sin priorizar velocidad: Safari es la
+       mitad de los que miran, y a 0.5× cada cuadro se mira el doble de
+       tiempo. Antes decía `-q:v 85` y `swipeable-tabs.mov` salía de
+       20.60 MB — el archivo más pesado del sitio por lejos.
+
+       El control por bitrate rinde mucho más que la escala de calidad
+       en este encoder: medido sobre los mismos 4 s, `-q:v 65` da
+       2.71 MB con SSIM 0.9948 y `-b:v 3000k` da 1.65 MB con 0.9937.
+       Casi la misma calidad por el 60 % del tamaño. Se eligió 4000k y
+       no 3000k para dejar margen: a 2000k el grano del papel se
+       borronea y se ve al 200 %. */
+    '-c:v', 'hevc_videotoolbox', '-alpha_quality', '0.95', '-b:v', '4000k', '-realtime', 'false', '-prio_speed', 'false', '-tag:v', 'hvc1', '-an', '-movflags', '+faststart',
     path.join(OUT, `${salida}.mov`)],
   { stdio: 'inherit' },
 )

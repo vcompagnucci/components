@@ -1096,6 +1096,25 @@ a:hover {
   transition: var(--focus-transition);
 }
 
+/* SIN ZOOM POR DOBLE TOQUE EN LOS CONTROLES. En un teléfono, dos toques
+   seguidos sobre un botón o un link son dos activaciones, no un zoom, y
+   el navegador se queda esperando 300 ms para decidir cuál de las dos
+   cosas era. `manipulation` deja el pan y el pinch —que sí son del
+   usuario— y saca sólo el doble toque.
+
+   Va acá y no en cada componente porque es de todos los controles, no
+   de ninguno en particular. Las superficies que manejan su propio gesto
+   ponen `touch-action: none` en su clase y ganan por especificidad: el
+   lienzo del playground, el reproductor del área privada y el 404. */
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  touch-action: manipulation;
+}
+
 /* Sin ::-moz-selection. Benji y emil lo mandan los dos, pero es su
    autoprefixer, no una necesidad: firefox soporta ::selection sin
    prefijo desde la 62 (2018). */

@@ -26,12 +26,45 @@ export { slug }
    Vive acá y no adentro de un componente porque lo usan dos: la pieza de
    la lista y las solapas del área privada. Es la regla, no un detalle de
    ninguno de los dos. */
+function esClicPelado(e: MouseEvent<HTMLElement>) {
+  if (e.defaultPrevented) return false
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false
+  return e.button === 0
+}
+
 export function clicDeLink(accion: () => void) {
   return (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.defaultPrevented) return
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    if (e.button !== 0) return
+    if (!esClicPelado(e)) return
     e.preventDefault()
+    accion()
+  }
+}
+
+/* EL MISMO CLIC, PERO SOBRE LA CARD Y NO SOBRE EL ANCLA. El ancla cubre
+   la card con un ::after, pero el preview va ENCIMA de esa capa para que
+   el demo siga vivo —el botón de velocidad del video, el hover de una
+   pieza Web—, así que un clic ahí no cae en el ancla. Sube igual, y acá
+   se convierte en la misma navegación de cliente.
+
+   No hay preventDefault porque no hay nada que prevenir: es un <article>.
+   Y `defaultPrevented` filtra dos casos de una: el clic que ya atendió el
+   ancla, y los controles del demo, que llaman preventDefault y
+   stopPropagation por su cuenta.
+
+   SOBRE EL PREVIEW NO HAY CMD-CLICK NI MENÚ CONTEXTUAL, y es una
+   decisión, no una deuda: ahí el ancla no está debajo del puntero.
+   Sobre el título y el resto de la card sí.
+
+   Las dos salidas se probaron y las dos son peores. Poner el ancla
+   ENCIMA del preview devuelve el cmd-click y mata lo que el preview
+   tiene adentro: los cuatro botones de Buttons separate, las cinco filas
+   de Select summary y el botón de velocidad del video, que son
+   justamente lo que se viene a probar. Y rehacer el cmd-click a mano con
+   window.open contradice la regla de clicDeLink —dejar pasar todo lo que
+   el navegador hace mejor— y ni así devuelve el menú contextual. */
+export function clicDeTarjeta(accion: () => void) {
+  return (e: MouseEvent<HTMLElement>) => {
+    if (!esClicPelado(e)) return
     accion()
   }
 }
@@ -63,9 +96,23 @@ export function Masthead() {
   )
 }
 
-/* La pieza entera es el botón: el título también es clickeable y entra
-   por teclado, no sólo el rectángulo. El id lo usa el índice para
-   saltar hasta acá. */
+/* UNA CARD DE LA LISTA: el título arriba y el preview vivo abajo. El id
+   lo usa el índice para saltar hasta acá.
+
+   EL ANCLA YA NO ENVUELVE LA CARD ENTERA. Era un <a> con todo adentro, y
+   un <a> no puede contener contenido interactivo: adentro del preview
+   viven los cuatro <button> de una pieza Web y el botón de velocidad del
+   video, un lector anunciaba "botón" adentro de "link" y tabular por la
+   lista paraba en cada uno. Ahora la card es un <article>, el ancla
+   envuelve SÓLO el título y se estira sobre ella con un ::after, que le
+   devuelve el área clickeable sin volver a meter nada adentro. El clic
+   sobre el preview lo recoge el <article>, y el porqué de esa segunda
+   vía está arriba de clicDeTarjeta.
+
+   Y ES UN <a href> DE VERDAD, no un botón con pushState: con un botón,
+   un lector anuncia "botón" y no hay ninguna de las affordances de un
+   link. El interceptor que lo convierte en navegación de cliente está
+   arriba, en clicDeLink. */
 export function Item({
   piece,
   onOpen,
@@ -77,10 +124,6 @@ export function Item({
      "Web" se apoya en la misma línea que este título. */
   primera?: boolean
 }) {
-  /* ES UN <a href> DE VERDAD, no un botón. Era un <button> con pushState
-     y por eso un lector de pantalla anunciaba "botón" y no había ninguna
-     de las affordances de un link. El porqué del interceptor está arriba,
-     en clicDeLink. */
   /* EN LA LISTA EL VIDEO ARRANCA CON EL PUNTERO, como en el vault: la
      card entera es el disparador (apuntarle sólo al video dejaría
      media card muerta), entra con el mouse o con el foco del teclado,
@@ -91,23 +134,28 @@ export function Item({
   const entrar = () => setActivo(true)
   const salir = () => setActivo(false)
   return (
-    <a
+    <article
       className={css.streamItem}
       id={slug(piece.name)}
-      href={`/${slug(piece.name)}`}
-      onClick={clicDeLink(() => onOpen(piece))}
+      onClick={clicDeTarjeta(() => onOpen(piece))}
       onMouseEnter={entrar}
       onMouseLeave={salir}
-      onFocus={entrar}
-      onBlur={salir}
     >
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
-        {piece.name}
+        <a
+          className={css.streamLink}
+          href={`/${slug(piece.name)}`}
+          onClick={clicDeLink(() => onOpen(piece))}
+          onFocus={entrar}
+          onBlur={salir}
+        >
+          {piece.name}
+        </a>
       </div>
       <div className={css.streamPreview}>
         <Muestra piece={piece} modo="lista" activo={activo} />
       </div>
-    </a>
+    </article>
   )
 }
 
@@ -284,7 +332,7 @@ function Muestra({ piece, modo, activo }: { piece: Piece; modo: Modo; activo?: b
      con alfa. Al revés, Safari tomaría el WebM y lo dibujaría sobre
      negro. Ver Reproductor. */
   if (piece.video) return <Reproductor piece={piece} modo={modo} activo={activo} />
-  if (piece.platform === 'Web') return <DemoVivo name={piece.name} />
+  if (piece.platform === 'Web') return <DemoVivo name={piece.name} modo={modo} />
   return null
 }
 

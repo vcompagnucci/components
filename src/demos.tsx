@@ -23,14 +23,26 @@ import { slug } from './pieces'
    Es el mismo trío que bocetos.tsx —glob perezoso, cache por ref,
    Suspense sin fallback— y no se comparte código a propósito: aquel
    archivo es del área privada y éste viaja al bundle. */
-const MODULOS = import.meta.glob<{ default: ComponentType }>('./piezas/*.tsx')
+/* LA ÚNICA PROP QUE RECIBE UNA PIEZA: dónde está montada. En la lista
+   es un PREVIEW adentro de una card que promete abrir el detalle, y eso
+   cambia lo que puede hacer —un campo que se escribe ahí pelea con el
+   clic de la card, y cuatro botones más por card ensucian el tabulador—.
+   Es opcional: una pieza que no la mire no cambia en nada.
+
+   Antes lo resolvía la pieza sola, mirando si tenía un <a> arriba. Dejó
+   de servir el día que la card dejó de ser un ancla, que es exactamente
+   por qué no era el camino: la pieza pasaba a depender del MARKUP del
+   producto, que no es suyo. */
+export type Montaje = 'lista' | 'detalle'
+
+const MODULOS = import.meta.glob<{ default: ComponentType<{ modo?: Montaje }> }>('./piezas/*.tsx')
 
 /* Uno por pieza y no uno por render: `lazy` guarda adentro la promesa
    del módulo, y crear otro remontaría el demo —con su estado— en cada
    render de la lista. */
-const cache = new Map<string, ComponentType>()
+const cache = new Map<string, ComponentType<{ modo?: Montaje }>>()
 
-function componenteDe(name: string): ComponentType | null {
+function componenteDe(name: string): ComponentType<{ modo?: Montaje }> | null {
   const clave = './piezas/' + slug(name) + '.tsx'
   const cargar = MODULOS[clave]
   if (!cargar) return null
@@ -46,13 +58,13 @@ function componenteDe(name: string): ComponentType | null {
    detalle, que es la misma con otro piso. Si el archivo no está —una
    entrada escrita a mano sin su pieza— no se dibuja nada, que es la
    caja vacía que ya había. */
-export function DemoVivo({ name }: { name: string }) {
+export function DemoVivo({ name, modo }: { name: string; modo: Montaje }) {
   const C = componenteDe(name)
   if (!C) return null
   return (
     <div className={css.demoVivo}>
       <Suspense fallback={null}>
-        <C />
+        <C modo={modo} />
       </Suspense>
     </div>
   )

@@ -115,7 +115,16 @@
   color: var(--type-nav-c);
   white-space: nowrap;
 }
+/* EL BLANCO LLEGA A 24, que es el mínimo de la norma para un blanco de
+   puntero (WCAG 2.5.8, AA). Los 44 de Apple no entran: los links están a
+   8 px uno de otro, y estirarlos hasta ahí les haría pisarse el blanco
+   entre ellos. Con 4 de cada lado los blancos se TOCAN y no se
+   superponen, que es el máximo que da este ritmo.
+
+   El texto no se mueve: el ::before no ocupa layout, así que el hueco de
+   8 medido contra benji sigue siendo el que se ve. */
 .indexLink {
+  position: relative;
   padding: 0;
   border: 0;
   background: transparent;
@@ -128,6 +137,11 @@
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
+}
+.indexLink::before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
 }
 /* La pieza que estás mirando se pinta. La regla es la de benji: activa
    es la última cuyo borde superior ya pasó una línea a 128px del tope
@@ -247,6 +261,19 @@
 }
 .demo {
   display: block;
+  /* LA CAJA SE RESERVA ANTES DE QUE LLEGUE EL ARCHIVO. Sin esto, con
+     `height: auto` la altura no existe hasta que el video entrega sus
+     metadatos, y cuando entrega, la card cambia de alto y empuja todo lo
+     de abajo. Medido en la home: cinco cargas daban 0.0516, 0, 0.0294, 0
+     y 0.0516 de CLS, y el cero en dos de cinco es la firma de una
+     carrera, no de un layout roto.
+
+     `auto 1` y no `1` a secas: manda la proporción REAL del archivo en
+     cuanto se conoce, y el 1 sólo cubre el hueco hasta entonces. Las dos
+     grabaciones de hoy son 1120×1120 —el lienzo del mockup es cuadrado—
+     así que el 1 acierta y no hay ningún salto; si mañana entra una que
+     no lo sea, la caja se corrige sola en vez de deformar el video. */
+  aspect-ratio: auto 1;
   /* EL VIDEO ES LA CAJA. Con la grabación transparente, el cuadrado del
      mockup ocupa la caja entera —sin el padding de 40/60 que reservaba
      el hueco— y así el borde del video ES el borde de la caja: cuando
@@ -311,6 +338,13 @@
   transition:
     opacity var(--dur-surface) var(--ease-surface),
     width var(--dur-surface) var(--ease-surface);
+}
+/* 28×20 a la vista, 44 de blanco. Está solo en su esquina, así que
+   crecer hacia adentro no le pisa el blanco a nadie. */
+.velocidad::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
 }
 .velocidad[data-velocidad='0.5'] {
   width: 40px;
@@ -395,14 +429,40 @@
    color heredado, en vez de border, background y text-align. El
    `color: inherit` importa: sin él el título de la pieza tomaría el
    color de link del navegador. */
+/* LA CARD YA NO ES EL ANCLA. Era un <a> que envolvía todo, y un <a> no
+   puede contener contenido interactivo: adentro del preview viven los
+   cuatro <button> de una pieza Web y el de velocidad del video. Ahora es
+   un <article>, el ancla envuelve el título y se estira sobre la card
+   con un ::after, y el preview va DESPUÉS en el documento, así que pinta
+   encima de esa capa y el demo sigue vivo. El porqué completo está en
+   parts.tsx, arriba de Item. */
 .streamItem {
+  position: relative;
   display: block;
   width: 100%;
   padding: 0;
   border-radius: var(--card-radio);
+  cursor: pointer;
+}
+.streamLink {
   color: inherit;
   text-decoration: none;
-  cursor: pointer;
+}
+.streamLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--card-radio);
+}
+/* El foco se ve sobre la CARD y no sobre las letras del título: el área
+   que el ancla activa es la card entera, y el anillo tiene que decir
+   eso. Va en el ::after, que es esa área. */
+.streamLink:focus-visible {
+  outline: none;
+}
+.streamLink:focus-visible::after {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 .streamItem + .streamItem {
   margin-top: var(--piece-gap);
@@ -430,6 +490,10 @@
    volver acá a discutir el número la primera vez que un componente no
    entre. */
 .streamPreview {
+  /* Posicionado para quedar POR ENCIMA de la capa del ancla: si no, el
+     ::after tapa el demo y no hay hover ni botón de velocidad. Sin
+     z-index a propósito — alcanza con el orden del documento. */
+  position: relative;
   min-height: var(--card-alto);
   background: var(--surface);
   border-radius: var(--card-radio);
@@ -469,6 +533,8 @@
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
+  /* El cuadrado se ve de 34; el blanco llega a 44 sin mover nada. */
+  position: relative;
   /* SE PINTA LA FLECHA, NO EL CUADRADO. Antes el hover rellenaba los
      34×34 con --a1; ahora sólo cambia el color del glifo. Es unánime en
      las dos referencias, medido en vivo:
@@ -486,6 +552,14 @@
      no hay un elemento que anime superficie y texto a la vez, así que
      la regla queda limpia — manda la propiedad, y nada más. */
   transition: color var(--dur-text) var(--ease-text);
+}
+/* 34×34 a la vista, 44 de blanco. La flecha está sola arriba a la
+   izquierda del detalle, así que crecer 5 px por lado no le pisa el
+   blanco a nadie. */
+.back::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
 }
 /* El cuadrado de 34×34 se queda, pero invisible: es el área de click. Y
    el radio también, porque es lo que le da forma al anillo de foco —
