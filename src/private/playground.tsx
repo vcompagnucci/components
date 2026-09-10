@@ -130,7 +130,7 @@ export function Playground({
         key={view.id}
         view={view}
         update={update}
-        remove={remove}
+        deleteView={remove}
         go={go}
         clips={clips.status.loading || !clips.status.connected ? null : clips.status.clips}
       />
@@ -1684,3 +1684,480 @@ function Canvas({
      reads like broken data and the word says the same thing better. */
   const n = view.frames.length
   const count = n === 0 ? 'No clips' : n === 1 ? '1 clip' : `${n} clips`
+
+  return (
+    <div
+      className={css.canvas}
+      ref={canvas}
+      /* Collapsed, the attribute says so and the CSS does the rest: the
+         panel leaves in transform and the board keeps the room. The
+         sidebar goes on being drawn the same way. Not one value of its
+         own changes. */
+      data-no-panel={panelOpen ? undefined : ''}
+    >
+      {/* ─── THE SIDEBAR ───
+          Everything the application has to say about this view, in one
+          column: where you came back from, what it is called, and what
+          you can do. It reads top to bottom in that order, which is the
+          order in which it is needed. */}
+      {/* `inert` when collapsed, the same recipe as the vault's details:
+          a panel that has left cannot go on receiving the tab key or the
+          pointer. Without this, tabbing from the board landed inside a
+          column that is not on screen and the focus disappeared. */}
+      <aside className={css.panel} inert={!panelOpen}>
+        <div className={css.panelTitle}>
+          {/* With the tab bar off on this route, THIS IS THE ONLY WAY
+              OUT. You go back through history, the same thing the
+              trackpad's back gesture and ⌘Z do, so there is a single way
+              to close, and if there is no history of your own, because
+              you came in straight from a link, the list gets pushed: the
+              arrow cannot take you out of the app. */}
+          <Back onClick={() => (history.length > 1 ? history.back() : go('/playground'))} />
+          {/* The name is edited in place. There is no "rename" mode: it
+              is the title, and you write over it. */}
+          <input
+            className={css.name}
+            value={view.name}
+            aria-label="View name"
+            /* THE COLUMN CUTS LONG NAMES AND DOES NOT HIDE IT. A
+               one-line input clips with no ellipsis, since no
+               `text-overflow` counts in an editable field, so the only
+               honest signal is the native tooltip, which shows the whole
+               name without taking you out of where you are.
+               Measured: the column is 176px, that is about 24 characters
+               at 14px. A name of 40 hides some 245px. It stands as an
+               accepted limit: a canvas gets a short name, and the whole
+               name is seen and edited right here by moving the cursor. */
+            title={view.name}
+            /* Typing the name is ONE undo step, not one per letter: the
+               label merges consecutive keystrokes on this same view. See
+               MERGE in views.ts. */
+            onChange={(e) =>
+              update(view.id, (v) => ({ ...v, name: e.target.value }), 'name:' + view.id)
+            }
+          />
+        </div>
+        {/* ─── THE BOARD'S INDEX ───
+            The sidebar said "Add clip" and "1 clip" and nothing else:
+            the canvas had content and its chrome did not know how to
+            NAME it. This is the list of what is there, with the same
+            anatomy as the product's index (a label that weighs the same
+            as its rows, 16 of air, 8 between lines) because it is the
+            same job.
+
+            Touching a row is `select`: exactly what touching the frame
+            on the board does. It selects, brings to the front, and takes
+            the focus off the name if you were writing. One single verb
+            for the same fact, whether it comes from the index or from
+            the board, and that is why both sides stay in sync with no
+            extra state.
+
+            The + goes BARE, without the vault's circle, and it is not a
+            whim: in a section heading the naked glyph is what both
+            measured references do, "Pages +" in Paper (SOURCE: official
+            capture of the app at paper.design) and "Pages"/"Layers" in
+            Figma's new sidebar (SOURCE: help.figma.com, art. 360039831974).
+            The circle stays for the BARS (the vault and the grid of
+            views), which is another context: over there the + lives
+            among nav words and needs a body of its own; here it hangs
+            off a label that already anchors it. It replaces "Add clip",
+            which was a gray word that weighed LESS than the view's name
+            while being the board's most frequent action. Chosen in a
+            prototype (round 2, "Edge") against the references' line of
+            zones and against the heading-menu. */}
+        <div className={css.clips}>
+          <div className={css.clipsHeader}>
+            <span className={css.clipsLabel}>Clips</span>
+            <button
+              className={css.barePlus}
+              aria-label="Add clip"
+              onClick={() => setAdding(true)}
+            >
+              <Plus />
+            </button>
+          </div>
+          {n > 0 ? (
+            <ul className={css.rows} aria-label="Clips in this view">
+              {drawOrder.map((f) => {
+                /* The same name the frame already shows on the board
+                   (`label`, further down): a piece is called by its ref
+                   and a clip by its file name with no folder. */
+                const name = f.kind === 'piece' ? f.ref : nameOfPath(f.ref)
+                return (
+                  <li key={f.id} className={css.rowItem}>
+                    <button
+                      className={css.row}
+                      /* `aria-current` and not `aria-selected`: the
+                         listbox's options are the board's frames. This
+                         is their index, and the selected one's row is
+                         "the current one". */
+                      aria-current={selected === f.id || undefined}
+                      data-selected={selected === f.id ? '' : undefined}
+                      data-new={appeared.includes(f.id) ? '' : undefined}
+                      data-leaving={leaving === f.id ? '' : undefined}
+                      /* The column cuts with an ellipsis; the native
+                         tooltip shows the whole name. The same signal
+                         the view's name above already gives. */
+                      title={name}
+                      onClick={() => select(f.id)}
+                    >
+                      {name}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            /* ─── THE EMPTY STATE IS A DASH, NOT A SENTENCE ───
+               This used to say "No clips", and that was two problems in
+               one line. The first is that the sentence is already said:
+               the footer's aria-live announces that same count, so the
+               emptiness was told twice. The second is where it was said.
+               A gray label in the exact place of the rows reads as one
+               more row, which means the empty list showed an item to
+               warn that there is none.
+
+               THE DASH IS THE ANSWER THIS HOUSE ALREADY GAVE FOR AN
+               ABSENT VALUE, and not a new decision: it is the
+               placeholder of Source and of Notes in a clip's details
+               (see details.tsx, and its color in `.field::placeholder`).
+               It comes with that same typographic pair, `--type-meta-c`
+               at `--text-secondary`, which is what `.noClips` already
+               used, so there is no value to choose. It does not compete
+               with the label above, it asks for no translation, and it
+               takes one row: when the first clip comes in the list does
+               not jump.
+
+               `aria-hidden` because for whoever listens it says nothing:
+               a dash is typography, not information. The count in words
+               is still alive in the footer's aria-live, which is where
+               it has to be. See the note on `count`. */
+            <p className={css.noClips} aria-hidden="true">
+              —
+            </p>
+          )}
+          {/* ─── THE SELECTION'S ACTION, VISIBLE ───
+              Publishing was only in the right click, and it is the
+              lesson already learned in the vault: a context menu
+              announces nothing. The reference pattern is Figma's right
+              panel, an area that shows the actions of what is selected,
+              but ONE action does not pay for a new surface, so the area
+              is born inside the sidebar that already exists: it appears
+              with the selection, under the index that names it. The day
+              the selection's actions pile up, this block is the one that
+              moves to the inspector (it is in the README as pending).
+
+              At 16 from the index, the system's GROUP air, double the 8
+              between rows, so that it does not read as one more frame:
+              the rows are nouns and this is a verb. The right click goes
+              on offering it, as a shortcut. */}
+          {selectedFrame && selectedFrame.kind !== 'piece' && (
+            <button className={css.publish} onClick={() => setPublishing(selectedFrame)}>
+              Add to Exhibition
+            </button>
+          )}
+        </div>
+
+        {/* ─── THE FOOTER: WHAT TAKES EVERYTHING AWAY ───
+            "Delete view" lives alone, at the bottom. In this house there
+            are no state colors, not one red in the whole product, so the
+            protection of the only destructive action is put in the
+            SPACE: the whole column of distance between it and what gets
+            used all the time. With the confirmation it asks for
+            afterwards, that is two layers: getting down here, and saying
+            yes. */}
+        <div className={css.panelFooter}>
+          <button className={css.action} onClick={() => setDeleting(true)}>
+            Delete view
+          </button>
+          {/* THE COUNT IS NO LONGER SEEN: the index above IS the count
+              for whoever looks. But it stays in the DOM, clipped with
+              the vault's `.hidden` recipe, because `aria-live` is the
+              ONLY confirmation that a Backspace deleted something
+              without a pointer. It used to be visible and got turned off
+              with display:none at ≤560, which meant that at that width
+              deleting was not announced. That was written down as debt.
+              Clipped instead of turned off, it announces at every width.
+              `polite` so as not to interrupt. */}
+          <p className={css.count} aria-live="polite">
+            {count}
+          </p>
+        </div>
+      </aside>
+
+      <div
+        className={css.board}
+        ref={board}
+        /* The container of each frame's `option` role. Without it the
+           frames would be options with no list and `aria-selected` would
+           mean nothing. */
+        role="listbox"
+        aria-label="Canvas"
+        aria-multiselectable={false}
+        /* THE EMPTY SPACE DESELECTS. It goes on pointerdown and not on
+           click because that is the same phase in which a frame gets
+           selected: with both in the same phase, starting a drag and
+           ending it over the board cannot deselect what you have just
+           moved. */
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) select(null)
+        }}
+      >
+        {drawOrder.map((f) => (
+          <FrameBox
+            key={f.id}
+            frame={f}
+            clip={clips?.find((c) => c.path === f.ref) ?? null}
+            /* The same name that is seen: the clip's if it is there, and
+               the one it had if it is gone. Never the raw path. */
+            label={f.kind === 'piece' ? f.ref : nameOfPath(f.ref)}
+            known={clips !== null}
+            selected={selected === f.id}
+            isNew={appeared.includes(f.id)}
+            leaving={leaving === f.id}
+            layer={layers.get(f.id) ?? 0}
+            measureBoard={measureBoard}
+            onSelect={select}
+            onMove={move}
+            onMeasure={measured}
+            onMenu={(id, x, y) => {
+              const frame = view.frames.find((f) => f.id === id)
+              if (frame) setFrameMenu({ frame, where: { x, y } })
+            }}
+          />
+        ))}
+      </div>
+
+      {/* The frame's menu and the publish dialog. subjectFrame is the
+          last frame something was opened over. It survives the close so
+          the exit has something to animate. */}
+      {subjectFrame && (
+        <>
+          <Menu
+            where={frameMenu?.where ?? null}
+            label={subjectFrame.kind === 'piece' ? subjectFrame.ref : nameOfPath(subjectFrame.ref)}
+            onClose={() => setFrameMenu(null)}
+            /* Only what can be published: a sketch or a clip. A piece
+               frame is already published, so its menu offers nothing
+               yet. */
+            items={
+              subjectFrame.kind === 'piece'
+                ? []
+                : [{ text: 'Add to Exhibition', action: () => setPublishing(subjectFrame) }]
+            }
+          />
+          <PublishDialog
+            open={publishing?.id === subjectFrame.id}
+            initialName={
+              subjectFrame.kind === 'sketch'
+                ? sketchName(subjectFrame.ref)
+                : nameOfPath(subjectFrame.ref)
+            }
+            /* The sentence says where the file goes, which is the only
+               thing that changes between the two branches. */
+            message={
+              subjectFrame.kind === 'sketch'
+                ? 'The sketch joins the product and the piece goes live as Web.'
+                : 'The recording joins the repo and the piece goes live as App.'
+            }
+            publish={(name, desc) =>
+              subjectFrame.kind === 'sketch'
+                ? publishSketch(subjectFrame.ref, name, desc)
+                : publishClip(subjectFrame.ref, name, desc)
+            }
+            onClose={() => setPublishing(null)}
+          />
+        </>
+      )}
+
+      <AddDialog
+        open={adding}
+        clips={clips ?? []}
+        onAdd={addClip}
+        onSketch={(ref) => place('sketch', ref, null)}
+        onNewSketch={newSketch}
+        onClose={() => setAdding(false)}
+      />
+
+      <DeleteViewDialog
+        view={view}
+        open={deleting}
+        onClose={() => setDeleting(false)}
+        onDelete={() => {
+          deleteView(view.id)
+          if (history.length > 1) history.back()
+          else go('/playground')
+        }}
+      />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WHICH CLIP TO ADD: the dialog.
+
+   It is the vault's <dialog>, the same class and therefore the same
+   recipe: showModal, trapped focus, Escape, ::backdrop, and the exit
+   with `overlay`/`display` in allow-discrete plus @starting-style. The
+   only thing of its own is the width and the grid inside.
+
+   YOU CHOOSE BY LOOKING, not by reading a list of file names: it is the
+   same decision that makes the upload dialog show the two cards instead
+   of asking "native or web?" flat out.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* THE PROPORTION IS MEASURED OFF THE ELEMENT YOU ARE LOOKING AT. The
+   thumbnail has already loaded, it is on screen, so its natural size is
+   a fact available in the click's own event, with no network request and
+   with no waiting for the frame to mount. If it has not loaded yet it
+   returns null and the frame is born provisional. */
+function measureOption(el: HTMLElement) {
+  const m = el.querySelector('video, img')
+  if (m instanceof HTMLVideoElement) return sizeFrom(m.videoWidth, m.videoHeight)
+  if (m instanceof HTMLImageElement) return sizeFrom(m.naturalWidth, m.naturalHeight)
+  return null
+}
+
+function AddDialog({
+  open,
+  clips,
+  onAdd,
+  onSketch,
+  onNewSketch,
+  onClose,
+}: {
+  open: boolean
+  clips: Clip[]
+  onAdd: (c: Clip, m: { width: number; height: number } | null) => void
+  onSketch: (ref: string) => void
+  onNewSketch: () => void
+  onClose: () => void
+}) {
+  const box = useRef<HTMLDialogElement | null>(null)
+  /* The grid mounts the FIRST time it opens and never unmounts again.
+     The two reasons are opposite and both matter: mounted from the
+     start, thirteen videos would ask for their metadata every time you
+     open a canvas even if you never touch "Add clip"; unmounted on
+     close, the dialog empties on the exit's first frame and what you see
+     leaving is a blank box. */
+  const [mounted, setMounted] = useState(false)
+
+  /* BOTH EFFECTS ARE LAYOUT EFFECTS, and on that depends not seeing the
+     system's blue ring. `showModal()` focuses the <dialog> ITSELF when
+     nothing inside asks for the focus, and a focused <dialog> draws the
+     ring around its 936px. The critique caught it in two themes. With
+     layout effects, mounting the grid and moving the focus to the first
+     option both happen before the browser paints, so the ring never gets
+     to exist. With `useEffect` there would be one frame with the whole
+     dialog framed.
+     It is the same solution as the vault's dialogs, which focus their
+     text field: in a dialog, the focus starts INSIDE. */
+  useLayoutEffect(() => {
+    const d = box.current
+    if (!d) return
+    if (open) setMounted(true)
+    if (open && !d.open) d.showModal()
+    if (!open && d.open) d.close()
+  }, [open])
+
+  useLayoutEffect(() => {
+    if (!open || !mounted) return
+    box.current?.querySelector<HTMLElement>('button')?.focus()
+  }, [open, mounted])
+
+  return (
+    <dialog
+      className={`${dlg.dialog} ${css.addDialog}`}
+      ref={box}
+      /* Clicking outside closes. Choosing a clip is the app's lightest
+         decision, it deletes nothing and writes nothing, so getting out
+         has to cost the same as getting in. The browser does it with
+         `closedby="any"`, which fires `close` and leaves through the
+         same onClose as Escape. */
+      closedby="any"
+      onClose={onClose}
+    >
+      {/* "Add" and not "Add clip": since sketches get added too, the
+          title named one of the two things inside. */}
+      <h2 className={css.addTitle}>Add</h2>
+      {mounted && (
+        <>
+          <div className={css.grid}>
+            {/* ─── STARTING A COMPONENT FROM SCRATCH ───
+                It goes FIRST and with the same box as everything else:
+                it is one more option of the grid, not a button apart, so
+                there is no second geometry to decide. The + inside the
+                middle slot takes the place of the thumbnail, which is
+                exactly what this option does not have yet.
+
+                It creates the file and puts it on the board. It does not
+                ask for the name: it is the rule "New view" already uses,
+                since a modal before you see anything forces you to
+                christen something that does not exist yet. */}
+            <button className={`${dlg.card} ${css.option}`} onClick={onNewSketch}>
+              <div className={css.optionBox}>
+                <Plus />
+              </div>
+              <div className={dlg.title}>New sketch</div>
+            </button>
+            {/* The ones you have already written. With no thumbnail:
+                drawing the sketch in here would mount it thirteen times
+                per opening of the dialog, and a half-finished component
+                can do anything. The word says what it is. */}
+            {SKETCHES.map((ref) => (
+              <button
+                className={`${dlg.card} ${css.option}`}
+                key={ref}
+                onClick={() => onSketch(ref)}
+              >
+                <div className={css.optionBox}>Sketch</div>
+                <div className={dlg.title}>{sketchName(ref)}</div>
+              </button>
+            ))}
+            {clips.map((c) => (
+              /* ─── IT IS THE VAULT'S CARD, NOT A THUMBNAIL OF ITS OWN ───
+                 The same classes: its proportion (550/528, benji's), its
+                 radius, its background, its hover and its label. And
+                 above all its `data-source`, which is what makes a phone
+                 clip come in WHOLE with proportional air and a screen
+                 recording fill the box.
+
+                 There used to be a 16/9 box here with `cover`, and it
+                 cropped: of the vault's 13 clips, 5 are vertical and in
+                 the dialog they came out as nearly empty rectangles. The
+                 critique measured that it hid 74% of the image. Choosing
+                 a clip by looking at it stops working when what you show
+                 is not the clip.
+
+                 The problem was already solved on the other side, and
+                 with a measured decision: benji's card is almost square
+                 EXACTLY because it takes both orientations. Reusing it
+                 is inheriting that decision instead of taking a worse
+                 one. */
+              <button
+                className={`${dlg.card} ${css.option}`}
+                key={c.path}
+                data-source={c.source ?? undefined}
+                onClick={(e) => onAdd(c, measureOption(e.currentTarget))}
+              >
+                <div className={dlg.media}>
+                  {c.medium === 'video' ? (
+                    <video src={firstFrame(c.url)} preload="metadata" muted playsInline />
+                  ) : (
+                    <img src={c.url} alt="" loading="lazy" />
+                  )}
+                </div>
+                <div className={dlg.title}>{c.name}</div>
+              </button>
+            ))}
+          </div>
+          {/* The notice stays BELOW the grid and no longer replaces it:
+              with an empty vault you can still start a sketch, so
+              swapping the whole grid for a line of text would hide the
+              only action available. */}
+          {clips.length === 0 && <p className={css.notice}>Nothing in the vault yet.</p>}
+        </>
+      )}
+    </dialog>
+  )
+}
