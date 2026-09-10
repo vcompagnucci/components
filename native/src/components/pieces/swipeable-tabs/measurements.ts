@@ -50,7 +50,7 @@ export const COLOR = {
   icon: '#FFFFFF',
 
   /* RUNTIME · the `+` gives a mode of 105 (129 px), dimmer than an
-     inactive label. It may be that in the reference it is a normal grey
+     inactive label. It may be that in the reference it is a normal gray
      and the edge mask is what dims it; here it is drawn ON TOP of the
      mask, so for the result to come out the same as the clip the value
      has to be the measured one and not the "true" one. */
@@ -603,7 +603,7 @@ export const LABEL = {
 
      The cost is stated: someone who enlarges the system text does not
      see these tabs any bigger. It is accepted for two reasons. The
-     first is that copying the reference's behaviour is the point of the
+     first is that copying the reference's behavior is the point of the
      piece. The second weighs more: this gets RECORDED and compared
      against the clip frame by frame, and a measurement that changes
      with a system setting makes two takes of the same piece

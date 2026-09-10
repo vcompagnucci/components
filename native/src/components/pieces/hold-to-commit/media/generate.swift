@@ -227,7 +227,7 @@ let VEIL_WIDTH = TIP_INSIDE + TIP_RECEDE + 3 * (TIP_SIGMA + 10)   // 147
 // THE VEIL IS INVERTED PER CHANNEL. What you see at the clip's tip is
 // coverage × the color of the blob's edge (pale green) + (1 − coverage) ×
 // the pill: (150,172,156) at 18 pt, (211,246,222) at 36. A NEUTRAL dark
-// veil over the white body gives grey, never that green (it cannot lower R
+// veil over the white body gives gray, never that green (it cannot lower R
 // without lowering G). So for each pixel the TARGET color is worked out and
 // the veil (alpha, color) that, composited over what it has underneath (the
 // body, with its rim), produces it exactly is solved for: alpha = max

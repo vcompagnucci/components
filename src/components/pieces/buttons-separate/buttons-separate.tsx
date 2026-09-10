@@ -69,7 +69,7 @@ const GEOMETRY = {
 const STEP = GEOMETRY.button + GEOMETRY.gap // 45. 64 pt · 5/7 = 45.7
 const TOTAL_WIDTH =
   GEOMETRY.field + GEOMETRY.gap + 4 * GEOMETRY.button + 3 * GEOMETRY.gap // 456. 640 pt
-/* The first slot: the centre of the first button, and the point the
+/* The first slot: the center of the first button, and the point the
    other three come out of. It never moves (note 2 above). */
 const FIRST_SLOT = GEOMETRY.field + GEOMETRY.gap + GEOMETRY.button / 2
 
@@ -81,11 +81,11 @@ const FIRST_SLOT = GEOMETRY.field + GEOMETRY.gap + GEOMETRY.button / 2
 const BLEED = 96
 
 /* THE BACKGROUND COMES FROM THE SYSTEM: every stop is the page's canvas
-   with ink mixed in, so it follows the theme. It used to be a blue-grey
+   with ink mixed in, so it follows the theme. It used to be a blue-gray
    gradient with a palette of its own.
 
    THE PERCENTAGES MATCH THE LUMINANCE of the stops that were there, not
-   the colour. The glass is a blurred copy of this background and its
+   the color. The glass is a blurred copy of this background and its
    veil is measured against the native material: if the background
    changes lightness, the glass changes.
 
@@ -843,7 +843,7 @@ const STYLESHEET = `
        dark   output = 0.444 · background +  31   (rms 10.4)
 
      And that is exactly a veil: 1 - gain is the alpha, and the offset
-     divided by the alpha is the colour. No saturate and no brightness:
+     divided by the alpha is the color. No saturate and no brightness:
      the fit with a free saturate does not improve. See
      .context/buttons-separate/vidrio/. */
   --piece-veil: rgba(235, 235, 235, 0.675);
@@ -859,7 +859,7 @@ const STYLESHEET = `
   --piece-highlight: rgba(46, 68, 97, 0.1);
   /* ONE SINGLE INK. In the reference the placeholder, the magnifier and
      the four glyphs measure the same, rgb(47,69,99), rgb(48,69,97) and
-     rgb(44,65,95): there is no separate placeholder grey.
+     rgb(44,65,95): there is no separate placeholder gray.
 
      AND IT COMES OUT OF THE SYSTEM, the same as the background and by
      the same method: the mix that matches the LUMINANCE of the measured
@@ -985,7 +985,7 @@ const STYLESHEET = `
    detail, so that the text does not move a pixel between one and the
    other: the whole pill, with the inset on the left as padding and the
    line at the height of the bar. With the line height equal to the
-   height, the half leading centres the glyph exactly where line height
+   height, the half leading centers the glyph exactly where line height
    1 left it before, same metric, same baseline, and it also leaves room
    for the tails of the g and the y, which an input does clip against
    its box. */
@@ -1013,7 +1013,7 @@ const STYLESHEET = `
      on each side stick out of the pill and land on the scene, which
      does not listen for the click, so they take hit area away from
      nobody. The line height goes up with the box, 40 to 44, and that is
-     why the text does not move: the half leading recentres it and the
+     why the text does not move: the half leading recenters it and the
      baseline stays where it was. The four buttons already reached 44
      through their ::before. */
   top: -2px;
@@ -1024,13 +1024,13 @@ const STYLESHEET = `
   /* The caret IS the focus indicator of this field (note below), so the
      ink of the piece is set on it and it is not left to the browser. */
   caret-color: var(--piece-ink);
-  /* On touch, Android and iOS paint a grey rectangle on top. It is the
+  /* On touch, Android and iOS paint a gray rectangle on top. It is the
      same family of problem as the ring: chrome of the browser drawn
      over the glass. */
   -webkit-tap-highlight-color: transparent;
 }
 /* In the reference the placeholder, the magnifier and the typed text
-   measure the same: there is no separate placeholder grey. Firefox
+   measure the same: there is no separate placeholder gray. Firefox
    gives it 0.54 of opacity on its own. */
 [data-piece='buttons-separate'] .input::placeholder {
   color: var(--piece-ink);

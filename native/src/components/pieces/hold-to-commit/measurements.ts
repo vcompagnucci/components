@@ -61,7 +61,7 @@ export const COLOR = {
   toggleKnob: '#FFFFFF',
 
   /* RUNTIME · the day circles are pure white and the letter reaches
-     (0,0,0): black, not the grey of the background. */
+     (0,0,0): black, not the gray of the background. */
   circle: '#FFFFFF',
   circleLetter: '#000000',
 
@@ -75,7 +75,7 @@ export const COLOR = {
 
   /* RUNTIME · "Keep Holding..." over the white fill, on the plateau
      (f146–f177): the darkest pixel gives (29,36,32) and the darkest 10 %
-     (30–51, 36–64, 32–54). It is a GREENISH grey, not black: G runs 8
+     (30–51, 36–64, 32–54). It is a GREENISH gray, not black: G runs 8
      higher. */
   darkInk: '#202B24',
 
@@ -182,13 +182,13 @@ export const TEXT = {
      "Selected" and the O in "On these days" give the same. */
   body: 17,
 
-  /* THE GREY VALUES ARE 17 EXCEPT THE TIME. Measured on screen against
+  /* THE GRAY VALUES ARE 17 EXCEPT THE TIME. Measured on screen against
      the clip with the same threshold: "Everyday" at 15 gave 58.0 against
      65.0 in the clip (×17/15 = 65.7 ✓), "5 Apps" 45.0 against 50.2
      (×17/15 = 51), "No unblocks allowed" at 17 gives 153.7 against 151.
      But "10:00 PM" at 15 gave 60.3 against 63.1: ×16/15 = 64.3 ✓ and
      ×17/15 = 68.3 ✗. The time is 16, the rest is 17. The cap heights of
-     the greys (31 px) are one pixel less than the whites' because of the
+     the grays (31 px) are one pixel less than the whites' because of the
      threshold over duller ink, not because of the size. */
   value: 17,
   time: 16,
@@ -736,7 +736,7 @@ export const PARTICLES = {
   lifetime: 700,
   tau: 330,
   fadeFrom: 0.4,
-  /* RUNTIME · in a capture at 120 ms (burst=0.17) the dots came out grey
+  /* RUNTIME · in a capture at 120 ms (burst=0.17) the dots came out gray
      where the clip (f190) has them white: their own brightness does not
      go below .75, and the τ is the one from the clip's first stretch
      (330), not the tail's. */
@@ -750,7 +750,7 @@ export const PARTICLES = {
   /* RUNTIME · diameters from 1.6 to 10.7 px = 0.6–4 pt, median 2.6. With
      1.5–4 even, a lossless capture from the workshop gives median 2.8 and
      maximum 4.0, measured with the same threshold as the clip (2.7 / 4.0).
-     CAREFUL: the simctl recording showed them as grey dust and led to
+     CAREFUL: the simctl recording showed them as gray dust and led to
      enlarging them to 2–4.5 biased towards the big ones — that gave a
      median of 4.2 and four times as many white pixels as the clip. Video
      compresses small dots; the measurement only holds on a capture. */

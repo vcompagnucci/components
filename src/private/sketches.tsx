@@ -1,94 +1,97 @@
 import { Component, Suspense, lazy, type ComponentType, type ReactNode } from 'react'
 import css from './playground.module.css'
-import { nombreDeRuta } from './clips'
+import { nameOfPath } from './clips'
 
 /* ═══════════════════════════════════════════════════════════════
-   LOS BOCETOS — escribir un componente desde cero, adentro del lienzo.
+   THE SKETCHES — writing a component from scratch, inside the canvas.
 
-   Un boceto es UN ARCHIVO DE VERDAD en src/privado/bocetos/, que exporta
-   un componente por defecto. El frame lo dibuja, Vite lo recarga al
-   guardar, y el lienzo no se entera: no hay recarga de página, no se
-   pierde la posición de nada.
+   A sketch is A REAL FILE in src/private/sketches/, exporting a default
+   component. The frame draws it, Vite reloads it when you save, and the
+   canvas never finds out: no page reload, nothing loses its position.
 
-   ─── POR QUÉ NO UN EDITOR EN EL NAVEGADOR ───
-   La alternativa era Monaco o CodeMirror más un transformador en el
-   cliente (esbuild-wasm), y sería una dependencia grande para darte un
-   editor PEOR que el que ya tenés abierto al lado. Y sobre todo: un
-   agente escribe archivos, no tipea en un textarea. Si el boceto es un
-   archivo, las dos formas de trabajar —vos en el editor, un agente en
-   la terminal— son la MISMA, y ninguna necesita interfaz.
+   ─── WHY NOT AN EDITOR IN THE BROWSER ───
+   The alternative was Monaco or CodeMirror plus a transform in the
+   client (esbuild-wasm), and it would be a big dependency to give you
+   an editor WORSE than the one you already have open next to this. And
+   above all: an agent writes files, it does not type into a textarea.
+   If the sketch is a file, the two ways of working, you in the editor
+   and an agent in the terminal, are the SAME one, and neither of them
+   needs an interface.
 
-   Todo esto vive en src/privado/, así que el glob no toca el bundle.
+   All of this lives in src/private/, so the glob never touches the
+   bundle.
 
-   ─── ES SÓLO WEB, Y ES A PROPÓSITO ───
-   Una pieza de App no se construye acá: se construye contra el
-   simulador, con el agente al lado, y llega a la exposición como video.
-   El lienzo no intenta simular un teléfono — react-native-web dibujaría
-   la forma y mentiría justo en lo que este vault estudia, que es el
-   gesto.
+   ─── IT IS WEB ONLY, AND THAT IS ON PURPOSE ───
+   An App piece does not get built here: it gets built against the
+   simulator, with the agent alongside, and it reaches the exhibition as
+   video. The canvas does not try to simulate a phone. react-native-web
+   would draw the shape and would lie about exactly what this vault
+   studies, which is the gesture.
    ═══════════════════════════════════════════════════════════════ */
 
-/* El glob trae las CLAVES ya, y el módulo sólo cuando se pide. Eager
-   sería importar los treinta bocetos al abrir cualquier lienzo. */
-const MODULOS = import.meta.glob<{ default: ComponentType }>('./sketches/*.tsx')
+/* The glob brings the KEYS right away, and the module only when it is
+   asked for. Eager would import the thirty sketches every time you open
+   any canvas. */
+const MODULES = import.meta.glob<{ default: ComponentType }>('./sketches/*.tsx')
 
-const PRE = './sketches/'
-const POS = '.tsx'
-const refDe = (clave: string) => clave.slice(PRE.length, -POS.length)
+const PREFIX = './sketches/'
+const SUFFIX = '.tsx'
+const refOf = (key: string) => key.slice(PREFIX.length, -SUFFIX.length)
 
-/* Los que existen hoy, para el diálogo de agregar. Se recalcula al
-   recargar el módulo, y Vite recarga este módulo cuando aparece un
-   archivo nuevo que matchea el glob: por eso un boceto recién creado
-   aparece en la lista sin tocar nada. */
-export const BOCETOS = Object.keys(MODULOS).map(refDe).sort()
+/* The ones that exist today, for the add dialog. It is recomputed when
+   the module reloads, and Vite reloads this module when a new file
+   matching the glob shows up: that is why a sketch you just created
+   appears in the list without touching anything. */
+export const SKETCHES = Object.keys(MODULES).map(refOf).sort()
 
-export const nombreDeBoceto = (ref: string) => nombreDeRuta(ref)
+export const sketchName = (ref: string) => nameOfPath(ref)
 
-/* UNO POR REF Y NO UNO POR RENDER. `lazy` guarda adentro la promesa del
-   módulo: crear uno nuevo en cada render volvería a montar el boceto
-   —y a tirarle el estado— cada vez que movés el frame. */
+/* ONE PER REF AND NOT ONE PER RENDER. `lazy` keeps the module's promise
+   inside it: creating a new one on every render would mount the sketch
+   again, and throw its state away, every time you move the frame. */
 const cache = new Map<string, ComponentType>()
 
-function componenteDe(ref: string): ComponentType | null {
-  const cargar = MODULOS[PRE + ref + POS]
-  if (!cargar) return null
+function componentOf(ref: string): ComponentType | null {
+  const load = MODULES[PREFIX + ref + SUFFIX]
+  if (!load) return null
   let c = cache.get(ref)
   if (!c) {
-    c = lazy(cargar)
+    c = lazy(load)
     cache.set(ref, c)
   }
   return c
 }
 
-/* ─── LA SUPERFICIE DE "TODAVÍA NO" ───
-   La misma caja que usa un clip que ya no está: el nombre y una palabra
-   que dice por qué está vacía. Se ve en dos momentos, los dos cortos —
-   mientras el módulo viaja, y en los milisegundos entre que se crea el
-   archivo y Vite avisa que existe— y en uno largo: cuando el boceto
-   está roto. */
-function Hueco({ ref_, estado }: { ref_: string; estado: string }) {
+/* ─── THE SURFACE FOR "NOT YET" ───
+   The same box a clip that is no longer there uses: the name and one
+   word that says why it is empty. It shows up at two short moments,
+   while the module travels and in the milliseconds between the file
+   being created and Vite saying it exists, and at one long one: when
+   the sketch is broken. */
+function Placeholder({ sketchRef, reason }: { sketchRef: string; reason: string }) {
   return (
-    <div className={css.hueco}>
-      <span className={css.huecoNombre}>{nombreDeBoceto(ref_)}</span>
-      <span className={css.huecoFalta}>{estado}</span>
+    <div className={css.placeholder}>
+      <span className={css.placeholderName}>{sketchName(sketchRef)}</span>
+      <span className={css.placeholderReason}>{reason}</span>
     </div>
   )
 }
 
-/* ─── UN BOCETO ROTO NO PUEDE TIRAR EL TABLERO ───
-   Escribir libremente significa que la mitad del tiempo el archivo está
-   a medias, y sin esto un `undefined.map` en un boceto desmonta el
-   lienzo entero: perdés los otros frames, la selección y el gesto que
-   estabas haciendo. Con el límite, lo único que se apaga es su frame.
+/* ─── A BROKEN SKETCH CANNOT TAKE THE BOARD DOWN ───
+   Writing freely means that half the time the file is half done, and
+   without this an `undefined.map` in a sketch unmounts the whole
+   canvas: you lose the other frames, the selection and the gesture you
+   were making. With the boundary, the only thing that goes dark is its
+   frame.
 
-   SE LIMPIA SOLO AL SIGUIENTE HOT UPDATE, que es exactamente cuando
-   arreglaste el archivo. Sin eso el frame quedaría en rojo para siempre
-   y habría que recargar la página — o sea, perder lo mismo que este
-   componente vino a salvar. Y se limpia SÓLO si hay error: pisar el
-   estado en cada guardado remontaría todos los bocetos del tablero cada
-   vez que tocás cualquier archivo. */
-class Limite extends Component<
-  { ref_: string; children: ReactNode },
+   IT CLEARS ITSELF ON THE NEXT HOT UPDATE, which is exactly when you
+   fixed the file. Without that the frame would stay red forever and you
+   would have to reload the page, that is, lose the same thing this
+   component came to save. And it clears ONLY if there is an error:
+   overwriting the state on every save would remount every sketch on the
+   board every time you touch any file. */
+class ErrorBoundary extends Component<
+  { sketchRef: string; children: ReactNode },
   { error: Error | null }
 > {
   state: { error: Error | null } = { error: null }
@@ -97,97 +100,98 @@ class Limite extends Component<
     return { error }
   }
 
-  limpiar = () => this.setState((s) => (s.error ? { error: null } : s))
+  clear = () => this.setState((s) => (s.error ? { error: null } : s))
 
   componentDidMount() {
-    import.meta.hot?.on('vite:afterUpdate', this.limpiar)
+    import.meta.hot?.on('vite:afterUpdate', this.clear)
   }
 
   componentWillUnmount() {
-    import.meta.hot?.off('vite:afterUpdate', this.limpiar)
+    import.meta.hot?.off('vite:afterUpdate', this.clear)
   }
 
   render() {
     if (!this.state.error) return this.props.children
-    return <Hueco ref_={this.props.ref_} estado="Error" />
+    return <Placeholder sketchRef={this.props.sketchRef} reason="Error" />
   }
 }
 
-/* El boceto en su frame. `key` en el límite y no adentro: cambiar de
-   boceto tiene que empezar de cero, incluido el error del anterior.
+/* The sketch in its frame. `key` on the boundary and not inside it:
+   switching sketches has to start from zero, including the previous
+   one's error.
 
-   `data-boceto` es el contrato con el lienzo: es lo que mira el gesto
-   del frame para apartarse cuando el puntero cae adentro de un boceto
-   elegido. Va en el atributo y no en la clase porque una clase de CSS
-   Modules cambia de nombre al compilar. */
-export function Boceto({ ref_ }: { ref_: string }) {
-  const C = componenteDe(ref_)
-  if (!C) return <Hueco ref_={ref_} estado="Sketch" />
+   `data-sketch` is the contract with the canvas: it is what the frame's
+   gesture looks at to step aside when the pointer lands inside a
+   selected sketch. It goes in the attribute and not in the class
+   because a CSS Modules class changes its name when it compiles. */
+export function Sketch({ sketchRef }: { sketchRef: string }) {
+  const C = componentOf(sketchRef)
+  if (!C) return <Placeholder sketchRef={sketchRef} reason="Sketch" />
   return (
-    <div className={css.boceto} data-boceto="">
-      <Limite key={ref_} ref_={ref_}>
-        {/* Sin fallback: el módulo llega en un cuadro o dos y un
-            parpadeo gris en el medio sería más ruido que el vacío. */}
+    <div className={css.sketch} data-sketch="">
+      <ErrorBoundary key={sketchRef} sketchRef={sketchRef}>
+        {/* No fallback: the module arrives in a frame or two and a gray
+            flicker in between would be more noise than the emptiness. */}
         <Suspense fallback={null}>
-          {/* oxlint-disable-next-line react/static-components -- `C` no se
-              crea en cada render: `componenteDe` cachea el `lazy()` en un Map
-              de nivel de módulo y devuelve la misma referencia por clave. El
-              bug que la regla busca —perder el estado en cada render— acá no
-              puede pasar. */}
+          {/* oxlint-disable-next-line react/static-components -- `C` is not
+              created on every render: `componentOf` caches the `lazy()` in a
+              module-level Map and returns the same reference per key. The bug
+              the rule looks for, losing the state on every render, cannot
+              happen here. */}
           <C />
         </Suspense>
-      </Limite>
+      </ErrorBoundary>
     </div>
   )
 }
 
-/* PUBLICAR un boceto como pieza Web. El servidor copia el archivo a
-   src/components/pieces/<slug>/<slug>.tsx —el lado público de la
-   frontera, donde demos.tsx lo encuentra por slug— con un index.tsx al
-   lado que lo exporta, y anota la entrada en pieces.ts, las dos cosas o
-   ninguna. Es COPIA: el boceto se queda en el tablero, y desde
-   la publicación la pieza se edita en su archivo publicado. Devuelve el
-   slug, que es a dónde navegar. */
-export async function publicarBoceto(
+/* PUBLISH a sketch as a Web piece. The server copies the file to
+   src/components/pieces/<slug>/<slug>.tsx, the public side of the
+   boundary, where demos.tsx finds it by slug, with an index.tsx next to
+   it that exports it, and writes the entry down in pieces.ts, both or
+   neither. It is a COPY: the sketch stays on the board, and from
+   publication on the piece is edited in its published file. It returns
+   the slug, which is where to navigate. */
+export async function publishSketch(
   ref: string,
-  nombre: string,
+  name: string,
   desc: string,
 ): Promise<string> {
-  const r = await fetch('/vault-media/__publicar', {
+  const r = await fetch('/vault-media/__publish', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ tipo: 'boceto', ref, nombre, desc }),
+    body: JSON.stringify({ kind: 'sketch', ref, name, desc }),
   })
   const d = await r.json().catch(() => ({}))
   if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`)
   return d.slug as string
 }
 
-/* UN NOMBRE LIBRE PARA EL PRÓXIMO. El servidor igual rechaza los
-   repetidos —escribe con 'wx'— así que esto no es la guarda: es para no
-   pedirte un nombre antes de que exista la cosa, que es la misma regla
-   que ya usa "New view". Renombrar es renombrar el archivo. */
-export function refLibre(base = 'sketch') {
-  if (!BOCETOS.includes(base)) return base
-  for (let n = 2; n < 200; n++) if (!BOCETOS.includes(`${base}-${n}`)) return `${base}-${n}`
-  return `${base}-${BOCETOS.length + 1}`
+/* A FREE NAME FOR THE NEXT ONE. The server rejects duplicates anyway,
+   it writes with 'wx', so this is not the guard: it is here so you are
+   not asked for a name before the thing exists, which is the same rule
+   "New view" already uses. Renaming is renaming the file. */
+export function freeRef(base = 'sketch') {
+  if (!SKETCHES.includes(base)) return base
+  for (let n = 2; n < 200; n++) if (!SKETCHES.includes(`${base}-${n}`)) return `${base}-${n}`
+  return `${base}-${SKETCHES.length + 1}`
 }
 
-/* ─── CREAR UNO ───
-   Lo escribe el servidor porque el navegador no puede escribir en tu
-   disco, y tiene que ser un archivo de verdad o no lo puede abrir ni tu
-   editor ni un agente. La plantilla y las guardas están en
-   scripts/vault-media.mjs.
+/* ─── CREATE ONE ───
+   The server writes it because the browser cannot write to your disk,
+   and it has to be a real file or neither your editor nor an agent can
+   open it. The template and the guards are in scripts/vault-media.mjs.
 
-   Devuelve el `ref` —el nombre del archivo sin extensión— o null si el
-   servidor lo rechazó. */
-export async function crearBoceto(nombre: string): Promise<string | null> {
-  const r = await fetch('/vault-media/__boceto?nombre=' + encodeURIComponent(nombre), {
+   It returns the `ref`, the file name without the extension, or null if
+   the server rejected it. */
+export async function createSketch(name: string): Promise<string | null> {
+  const r = await fetch('/vault-media/__sketch?name=' + encodeURIComponent(name), {
     method: 'POST',
   })
-  /* `r.ok` y no sólo la forma de la respuesta: el 409 de "ya existe"
-     TAMBIÉN devuelve un ref —el del archivo que ya estaba— y tomarlo
-     sería poner en la tela un boceto ajeno creyendo que se creó uno. */
+  /* `r.ok` and not only the shape of the response: the 409 for "it
+     already exists" ALSO returns a ref, the one for the file that was
+     already there, and taking it would put somebody else's sketch on
+     the canvas believing one had been created. */
   if (!r.ok) return null
   const d = await r.json().catch(() => null)
   return typeof d?.ref === 'string' ? d.ref : null

@@ -352,7 +352,7 @@ function Showcase({ piece, mode, active }: { piece: Piece; mode: Mode; active?: 
    its own row. Since the header of the vault's detail is ONE row (the
    arrow, the title and the toggle together, see the detail header in
    vault.module.css), that margin down there pushes the height of the
-   row and knocks the arrow off centre. The caller that needs it turns
+   row and knocks the arrow off center. The caller that needs it turns
    it off; the others never find out. */
 /* ─── IT IS A CHEVRON, NOT AN ARROW ───
    It was "←", the character. Toolbars › Navigation changes that: it
@@ -368,8 +368,8 @@ function Showcase({ piece, mode, active }: { piece: Piece; mode: Mode; active?: 
 
    AND IT IS DRAWN, not written, for the same reason as the + in the
    grid: a glyph sits on the baseline, so inside a box it is never
-   centred. 16×16 and a 1.5 stroke, the measurements of the rest of the
-   glyphs; the tip at x=6 and the arms at 10 leave it exactly centred. */
+   centered. 16×16 and a 1.5 stroke, the measurements of the rest of the
+   glyphs; the tip at x=6 and the arms at 10 leave it exactly centered. */
 export function Back({ onClick, extraClass }: { onClick: () => void; extraClass?: string }) {
   return (
     <button

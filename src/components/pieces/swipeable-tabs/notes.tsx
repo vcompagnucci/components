@@ -98,7 +98,7 @@ import { Section } from '../../../notes'
        transform, several steps cheaper than layout.
      · The standard way out of an expensive paint property is the one
        the skill itself prescribes for Android shadows and for blur:
-       stack two static layers and cross their opacities, here a grey
+       stack two static layers and cross their opacities, here a gray
        label and a white one. IT IS NOT DONE: two antialiased texts on
        top of each other add coverage at the edge of every glyph and
        read thicker in the middle of the crossing, which is exactly

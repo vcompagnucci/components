@@ -48,7 +48,7 @@ import { COLOR, COMMIT, LABEL, SYMBOL, TEXT } from './measurements'
    that is neither transform nor opacity, and that the platform
    re-rasterizes. Now "Hold to Buy" and "Keep Holding..." exist THREE
    TIMES, in the three measured inks (the resting one (white; black over
-   glass in light mode), the greenish grey (#202B24) and the black), each
+   glass in light mode), the greenish gray (#202B24) and the black), each
    set with its FIXED color and inside a layer whose opacity is the
    partition the button derives from the progress (white 1−t₁, dark
    t₁(1−t₂), black t₂; receipt in HOLD). Two identical texts stacked and

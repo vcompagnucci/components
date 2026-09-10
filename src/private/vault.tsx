@@ -258,7 +258,7 @@ function Card({
      family-values videos. He starts them when they enter the screen,
      linear on hover.
 
-     Its exact behaviour, the four points:
+     Its exact behavior, the four points:
 
        at rest         paused, showing the first frame
        on hover        play(), and loop

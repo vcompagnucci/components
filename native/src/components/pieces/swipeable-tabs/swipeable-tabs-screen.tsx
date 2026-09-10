@@ -41,7 +41,7 @@ import { Theme } from './theme'
    two feeds of your own carry a CHEVRON on the right (they are menus,
    they unfold) and the topic tabs carry an ICON on the left, which
    names them. That is also why they are painted differently: the
-   chevron grey, the icon white. Both values are measured off the clip.
+   chevron gray, the icon white. Both values are measured off the clip.
 
    They are SF Symbols, that is, the system's icon typeface: the same
    optical weight as the text next to it and no asset to maintain. */
@@ -169,7 +169,7 @@ const css = StyleSheet.create({
  *   `measurements.ts` and MEDICIONES.md.
  *
  * — The symbol's fade has TWO curves: the white icon goes with r^1.5
- *   STARTING at `ICON.floor` and the grey chevron goes linear. And the
+ *   STARTING at `ICON.floor` and the gray chevron goes linear. And the
  *   label interpolates color with `gamma: 1` (raw sRGB), not in linear
  *   space. Matching the curves brings back the "it appears all at
  *   once"; removing the floor brings back the ghost stuck to the word.

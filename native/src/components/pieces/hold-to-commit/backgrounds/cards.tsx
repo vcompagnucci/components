@@ -52,7 +52,7 @@ export function ValueAndSymbol({ value, symbol }: { value: string; symbol: 'chev
   )
 }
 
-/* The section header: a grey SF Symbol and the text in bold. */
+/* The section header: a gray SF Symbol and the text in bold. */
 export function SectionHeader({ symbol, text }: { symbol: 'lock' | 'clock'; text: string }) {
   const s = SYMBOL[symbol]
   return (

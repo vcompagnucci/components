@@ -117,7 +117,7 @@ const TAP_MS = 300
      on screen. Jumping, you see all of that, instant and complete.
 
    So an instant tab change under reduced motion is the correct
-   behaviour, not a debt. The public text says "Reduced motion is
+   behavior, not a debt. The public text says "Reduced motion is
    respected", which is true on both readings. If this is ever
    revisited, the real change is splitting `Segment` in two, and it has
    to be measured on the phone with the setting turned on, not reasoned

@@ -1,927 +1,593 @@
-# El taller nativo
+# The native workshop
 
-**Leé primero el [`AGENTS.md` de la raíz](../AGENTS.md)** — el recorrido
-completo (vault → playground → exhibition), la regla de evidencia y el
-método de trabajo están ahí. Esto es sólo el taller donde se construyen
-las piezas **App**.
+**Read the [root `AGENTS.md`](../AGENTS.md) first.** The whole journey
+(vault → playground → exhibition), the evidence rule and the working
+method are there. This is only the workshop where the **App** pieces
+get built.
 
-> **El procedimiento numerado es el
-> [Camino B](../AGENTS.md#camino-b-una-pieza-app-expo-react-native)**,
-> en el AGENTS de la raíz: del `pnpm nueva` hasta la pieza publicada.
-> Este archivo explica cómo funciona el taller por dentro y qué hacer
-> cuando algo falla.
+> **The numbered procedure is
+> [Path B](../AGENTS.md#path-b-an-app-piece-expo--react-native)**, in
+> the root AGENTS: from `pnpm new` to the published piece. This file
+> explains how the workshop works on the inside and what to do when
+> something fails.
 
-> **Expo cambió.** Antes de escribir código, leé la doc de la versión
-> exacta: <https://docs.expo.dev/versions/v57.0.0/>
+> **Expo changed.** Before writing code, read the docs of the exact
+> version: <https://docs.expo.dev/versions/v57.0.0/>
 
-## Qué es esto
+## What this is
 
-Una app de Expo que vive adentro del repo pero con su propio toolchain.
-Es el equivalente nativo del lienzo del playground: acá se itera una
-pieza contra el simulador, y cuando está lista se **graba** — y esa
-grabación es lo que entra al vault y se publica.
+An Expo app that lives inside the repo but with its own toolchain. It
+is the native equivalent of the playground's canvas: here you iterate a
+piece against the simulator, and when it is ready you **record** it.
+That recording is what goes into the vault and gets published.
 
-**Una sola app-taller, una carpeta por pieza.** No un repo por pieza:
-está medido contra lo que hacen los referentes (Mangano sostiene 127
-animaciones en una app; Candillon una carpeta por episodio; Gitter un
-archivo por interfaz), y el repo propio es el premio de la pieza que se
-volvió librería, nunca el punto de partida. La recon está en
-`.context/recon/TALLER-NATIVO.md` de la raíz — gitignoreada, así que sus
-conclusiones viven acá y en el AGENTS de arriba.
+**One workshop app, one folder per piece.** Not one repo per piece: it
+is measured against what the references do (Mangano holds 127
+animations in a single app; Candillon one folder per episode; Gitter
+one file per interface), and a repo of its own is the prize for the
+piece that turned into a library, never the starting point. The recon
+is in `.context/recon/TALLER-NATIVO.md` at the root, gitignored, so its
+conclusions live here and in the AGENTS above.
 
-## Los comandos
+## The commands
 
 ```bash
-pnpm install                  # una vez por worktree
-pnpm ios:build                # UNA vez por máquina: compila el dev client
-pnpm ios                      # el día a día: Metro + la app en el simulador
-pnpm telefono                 # Metro para Expo Go, con QR — ver "en tu iPhone"
-pnpm nueva "Swipe to pay"     # crea src/components/pieces/swipe-to-pay/
-pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
-pnpm mockup swipe-to-pay --verificar   # primero: ¿el hueco del bisel queda lleno en toda la cámara?
-pnpm mockup swipe-to-pay               # la grabación en un iPhone negro, fondo neutro, cámara: para X
+pnpm install                  # once per worktree
+pnpm ios:build                # ONCE per machine: builds the dev client
+pnpm ios                      # day to day: Metro + the app in the simulator
+pnpm phone                    # Metro for Expo Go, with a QR: see "on your real iPhone"
+pnpm new "Swipe to pay"       # creates src/components/pieces/swipe-to-pay/
+pnpm record swipe-to-pay      # records into the vault and closes the loop
+pnpm mockup swipe-to-pay --verify   # first: does the bezel slot stay full through the whole camera?
+pnpm mockup swipe-to-pay            # the recording in a black iPhone, neutral background, camera, for X
 ```
 
-`pnpm ios:build` compila el **dev client** —la app `Taller` que queda
-instalada en el simulador— y sólo hace falta repetirlo cuando entra una
-dependencia NATIVA nueva. El resto del tiempo alcanza `pnpm ios`, que
-levanta Metro y abre la app ya instalada. Todo lo que sea TypeScript
-recarga en caliente.
+`pnpm ios:build` builds the **dev client**, the `Workshop` app that
+ends up installed in the simulator, and it only has to be repeated when
+a new NATIVE dependency comes in. The rest of the time `pnpm ios` is
+enough: it starts Metro and opens the app that is already installed.
+Everything that is TypeScript hot reloads.
 
-**No es Expo Go.** Expo Go sirve para arrancar, pero no trae
-`@shopify/react-native-skia` —es un módulo nativo de terceros— y Skia es
-justamente una de las razones de este taller.
+**It is not Expo Go.** Expo Go is fine to get going, but it does not
+carry `@shopify/react-native-skia` (a third-party native module) and
+Skia is precisely one of the reasons this workshop exists.
 
-### El parche de `expo-modules-jsi`, y por qué existe
+### The `expo-modules-jsi` patch, and why it exists
 
-`pnpm ios:build` falla de fábrica con **Xcode 26.2**: `expo-modules-jsi`
-57.0.5 anota dos constructores de `RuntimeScheduler` con
-`SWIFT_RETURNS_RETAINED`, pero la clase recién se declara
-`SWIFT_SHARED_REFERENCE` en su llave de cierre. Clang lee el header en
-orden, así que en el constructor el tipo todavía no es shared reference
-y rechaza la anotación. El issue
-[expo/expo#49426](https://github.com/expo/expo/issues/49426) lo cerró un
-mantenedor de Expo el 2026-08-27 con *"Upgrade Xcode to 26.4 or newer
-which is required for SDK 57"*.
+`pnpm ios:build` fails out of the box with **Xcode 26.2**:
+`expo-modules-jsi` 57.0.5 annotates two constructors of
+`RuntimeScheduler` with `SWIFT_RETURNS_RETAINED`, but the class is only
+declared `SWIFT_SHARED_REFERENCE` at its closing brace. Clang reads the
+header in order, so inside the constructor the type is not a shared
+reference yet and it rejects the annotation. Issue
+[expo/expo#49426](https://github.com/expo/expo/issues/49426) was closed
+by an Expo maintainer on 2026-08-27 with *"Upgrade Xcode to 26.4 or
+newer which is required for SDK 57"*.
 
-**No hizo falta actualizar Xcode.** Las dos anotaciones **entraron en
-57.0.5**: 57.0.0 a 57.0.4 no las tienen, y el diff de ese header entre
-57.0.4 y 57.0.5 son exactamente esas dos líneas y nada más (verificado
-leyendo los dos archivos de unpkg, sin instalarlos). Así que
-`patches/expo-modules-jsi@57.0.5.patch` las saca, y el header queda
-**idéntico byte a byte al de 57.0.4** — una versión que Expo publicó y
-que compila. No es un parche inventado: es volver a lo último que
-funcionaba.
+**Updating Xcode was not necessary.** The two annotations **came in
+with 57.0.5**: 57.0.0 through 57.0.4 do not have them, and the diff of
+that header between 57.0.4 and 57.0.5 is exactly those two lines and
+nothing else (verified by reading both files from unpkg, without
+installing them). So `patches/expo-modules-jsi@57.0.5.patch` takes them
+out, and the header ends up **byte for byte identical to 57.0.4's**, a
+version Expo published and that compiles. It is not an invented patch:
+it is going back to the last thing that worked.
 
-Bajar el paquete a 57.0.4 no era opción: `expo-modules-core` pide
-`~57.0.5`.
+Dropping the package to 57.0.4 was not an option: `expo-modules-core`
+asks for `~57.0.5`.
 
-**Cuándo sacarlo:** cuando esta máquina tenga Xcode 26.4+. Ahí se borra
-el patch, se saca `patchedDependencies` de `pnpm-workspace.yaml`, y a
-reconstruir. El parche viaja con el repo, así que cualquier worktree
-compila igual mientras tanto.
+**When to take it out:** when this machine has Xcode 26.4 or newer.
+Then you delete the patch, take `patchedDependencies` out of
+`pnpm-workspace.yaml`, and rebuild. The patch travels with the repo, so
+any worktree compiles the same in the meantime.
 
-### El otro paso que no es obvio
+### The other step that is not obvious
 
-Skia necesita bajar sus binarios **antes** de que corra `pod install`:
+Skia needs to download its binaries **before** `pod install` runs:
 
 ```bash
 npx install-skia
 ```
 
-Con pnpm el postinstall no lo hace solo. Si `pnpm ios:build` se queja de
-*"Skia prebuilt binaries not found"*, es esto.
+With pnpm the postinstall does not do it on its own. If
+`pnpm ios:build` complains about *"Skia prebuilt binaries not found"*,
+this is it.
 
-`pnpm nueva` es el `New sketch` de este lado: crea la carpeta y nada
-más. **El índice se deriva de las carpetas** (`require.context` en
-`src/components/pieces/registry.ts`), así que no hay ninguna lista que
-mantener — la misma decisión que hace que el vault no pueda mentir.
+`pnpm new` is the `New sketch` of this side: it creates the folder and
+nothing else. **The index is derived from the folders**
+(`require.context` in `src/components/pieces/registry.ts`), so there is
+no list to keep up to date, the same decision that keeps the vault from
+lying.
 
-`pnpm grabar` hace las tres cosas del cierre: clava la barra de estado
-en 9:41 con batería y señal llenas, graba con `--codec h264` (el default
-de `simctl` es **HEVC**, y un HEVC puede no reproducirse en el `<video>`
-de la exposición — es la trampa más cara del camino porque no falla al
-grabar, falla en la pieza ya publicada), y escribe **directo a
-`VAULT_DIR/native/`**. Parás la grabación y el clip ya está en la grilla
-de `/vault`: de ahí, Open in Playground → Add to Exhibition.
+`pnpm record` does the three things of the closing step: it pins the
+status bar at 9:41 with the battery and the signal full, records with
+`--codec h264` (the default of `simctl` is **HEVC**, and an HEVC may
+not play in the exhibition's `<video>`, which is the most expensive
+trap on the way because it does not fail while recording, it fails in
+the piece that is already published), and writes **straight into
+`VAULT_DIR/native/`**. You stop the recording and the clip is already
+in the `/vault` grid: from there, Open in Playground → Add to
+Exhibition.
 
-## La forma de una pieza
+## The shape of a piece
 
 ```
 src/app/
-├── _layout.tsx          el Stack, sin header en ninguna pantalla
-├── index.tsx            el índice: decide si hay lista y la monta
-└── [slug].tsx           UNA ruta para todas: busca la pantalla en el registro
+├── _layout.tsx          the Stack, with no header on any screen
+├── index.tsx            the index: decides whether there is a list and mounts it
+└── [slug].tsx           ONE route for all of them: looks the screen up in the registry
 src/components/
-├── piece-list.tsx       la lista del índice, dibujada
+├── piece-list.tsx       the index's list, drawn
 └── pieces/
-    ├── registry.ts      slug → pantalla, DERIVADO de las carpetas de abajo
-    ├── abrir.ts         la perilla: abrir el taller directo en una pieza
+    ├── registry.ts      slug → screen, DERIVED from the folders below
+    ├── open.ts          the knob: open the workshop straight into a piece
     └── <slug>/
-        ├── index.tsx            exporta la pantalla por defecto, y nada más
-        ├── <slug>-screen.tsx    la pieza montada: datos, paleta, perillas,
-        │                        composición y el bloque "No tocar sin
-        │                        volver a medir" al pie
-        ├── <slug>.tsx           el mecanismo: lo que se mueve
-        ├── <parte>.tsx          sus partes, en archivos por responsabilidad
-        ├── medidas.ts           cada valor con su recibo, y las paletas
-        ├── theme.ts             el contexto de la paleta
-        └── <datos>.ts, media/   contenido del mock, si lo hay
+        ├── index.tsx            exports the screen by default, and nothing else
+        ├── <slug>-screen.tsx    the piece mounted: data, palette, knobs,
+        │                        composition and the "Do not touch without
+        │                        measuring again" block at the foot
+        ├── <slug>.tsx           the mechanism: what moves
+        ├── <part>.tsx           its parts, in files by responsibility
+        ├── measurements.ts      every value with its receipt, and the palettes
+        ├── theme.ts             the palette's context
+        └── <data>.ts, media/    the mock's content, if there is any
 ```
 
-**El slug es el mismo string en los tres lados**: la carpeta acá, el
-nombre del archivo de la grabación, y la URL de la pieza publicada. Por
-eso `pnpm nueva` usa la misma cuenta que `slug()` en `src/pieces.ts` del
-repo web. Si divergieran, la pieza publicada no apuntaría a su taller.
-Y se asigna una vez: el título de la exhibition puede cambiar después
-—el 2026-09-10 cambiaron los cuatro— y la carpeta no, porque el slug es
-un campo de `PIECES` y no una cuenta sobre el nombre.
+**The slug is the same string in the three places**: the folder here,
+the name of the recording's file, and the URL of the published piece.
+That is why `pnpm new` uses the same arithmetic as `slug()` in
+`src/pieces.ts` of the web repo. If they diverged, the published piece
+would not point at its workshop. And it is assigned once: the
+exhibition's title can change later (on 2026-09-10 all four of them
+changed) and the folder does not, because the slug is a field of
+`PIECES` and not a computation over the name.
 
-**La ruta es una sola y la pieza vive en `src/components/pieces/<slug>/`.**
-No es gusto: Expo Router convierte en ruta **todo** `.tsx` que cuelgue
-de `src/app/` (su doc: *"Non-navigation components live outside the
-src/app directory"*), así que un `barra.tsx` al lado de una ruta sería
-`/swipeable-tabs/barra`. La carpeta tiene la forma y los nombres de un
-componente de
+**The route is a single one and the piece lives in
+`src/components/pieces/<slug>/`.** It is not a matter of taste: Expo
+Router turns **every** `.tsx` hanging off `src/app/` into a route (its
+docs: *"Non-navigation components live outside the src/app
+directory"*), so a `tab-bar.tsx` next to a route would be
+`/swipeable-tabs/tab-bar`. The folder has the shape and the names of a
 [react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations)
-—`index.tsx` que exporta la pantalla, `<slug>-screen.tsx`, `<slug>.tsx`
-con el mecanismo, `theme.ts`, y las partes y los datos al lado— y
-también su registry, con una diferencia: allá se escribe a mano y acá
-`registry.ts` se DERIVA de las carpetas con `require.context`, por lo
-mismo que el vault no puede mentir, y porque con varios worktrees
-construyendo en paralelo un archivo central es un conflicto por pieza
-nueva. `src/app/[slug].tsx` busca ahí y monta. Hasta el 2026-09-10 había
-un puntero por pieza en `src/app/<slug>/index.tsx` y el índice salía de
-esas carpetas.
+component (`index.tsx` exporting the screen, `<slug>-screen.tsx`,
+`<slug>.tsx` with the mechanism, `theme.ts`, and the parts and the data
+next to them) and its registry too, with one difference: over there it
+is written by hand and here `registry.ts` is DERIVED from the folders
+with `require.context`, for the same reason the vault cannot lie, and
+because with several worktrees building in parallel a central file is
+one conflict per new piece. `src/app/[slug].tsx` looks there and
+mounts. Until 2026-09-10 there was one pointer per piece in
+`src/app/<slug>/index.tsx` and the index came out of those folders.
 
-**Verificado de punta a punta** el 2026-08-27: `pnpm nueva` creó una
-pieza, el dev build la dibujó con **Skia** en el simulador, `pnpm grabar`
-escribió el clip en el vault, y `scripts/cuadros.mjs` del repo web lo
-parseó (tasa fija, 40 unidades por cuadro) — o sea que el reproductor
-puede ir cuadro a cuadro sobre lo que sale de acá.
+**Verified end to end** on 2026-08-27: `pnpm new` created a piece, the
+dev build drew it with **Skia** in the simulator, `pnpm record` wrote
+the clip into the vault, and `scripts/frames.mjs` of the web repo
+parsed it (fixed rate, 40 units per frame), which means the player can
+go frame by frame over what comes out of here.
 
-**Con dos piezas o más hay índice, y para medir eso estorba.** Las
-sondas de una pieza y `pnpm grabar` necesitan que la app arranque en la
-pieza; `simctl openurl` con el esquema del dev client pide confirmación
-en iOS 26. `src/components/pieces/abrir.ts` es la perilla: el slug ahí y el índice
-redirige. Queda `undefined` en el repo (el otro worktree tiene su pieza).
+**With two pieces or more there is an index, and for measuring it gets
+in the way.** A piece's probes and `pnpm record` need the app to start
+in the piece; `simctl openurl` with the dev client's scheme asks for
+confirmation on iOS 26. `src/components/pieces/open.ts` is the knob:
+the slug goes there and the index redirects. It stays `undefined` in
+the repo (the other worktree has its own piece).
 
-**Sin header, y se graba así.** Una pieza ocupa la pantalla entera: todo
-lo que no sea la pieza terminaría adentro del video. Para volver al
-índice, **swipe desde el borde izquierdo** — el gesto nativo del stack,
-que no dibuja nada. Si tu pieza necesita ese borde, apagalo en su propia
-pantalla con `<Stack.Screen options={{ gestureEnabled: false }} />`.
+**No header, and that is how it gets recorded.** A piece takes the
+whole screen: anything that is not the piece would end up inside the
+video. To get back to the index, **swipe from the left edge**, the
+stack's native gesture, which draws nothing. If your piece needs that
+edge, turn it off in its own screen with
+`<Stack.Screen options={{ gestureEnabled: false }} />`.
 
-### Al pie de la pieza va lo que es de la pieza
+### At the foot of the piece goes what belongs to the piece
 
-Cuando termines, cerrá `<slug>-screen.tsx` con un bloque de invariantes: los
-valores que alguien tendría que volver a medir antes de tocarlos, y por
-qué. Uno por línea, con su grado de evidencia.
+When you finish, close `<slug>-screen.tsx` with a block of invariants:
+the values somebody would have to measure again before touching them,
+and why. One per line, with its evidence grade.
 
 ```
 /*
- * No tocar sin volver a medir
+ * Do not touch without measuring again
  *
- * — El long press dura 500 ms, y el pan arranca con
- *   activateAfterLongPress(500). Es el mismo número a propósito: si se
- *   separan, el menú abre pero el dedo no llega a arrastrar.
- *   SOURCE: los dos gestos leen LONG_PRESS_MS.
+ * - The long press lasts 500 ms, and the pan starts with
+ *   activateAfterLongPress(500). It is the same number on purpose: if
+ *   they come apart, the menu opens but the finger never gets to drag.
+ *   SOURCE: both gestures read LONG_PRESS_MS.
  *
- * — El overlay entra en 210 ms y sale en 170 ms, ease-in-out.
- *   RUNTIME: medido cuadro a cuadro sobre la grabación de referencia.
+ * - The overlay comes in over 210 ms and goes out over 170 ms,
+ *   ease-in-out.
+ *   RUNTIME: measured frame by frame over the reference recording.
  *
- * — El release se sigue con un contador que incrementa, no con un
- *   booleano.  SIN RECIBO: falta anotar qué se rompe con el booleano.
+ * - The release is followed with a counter that increments, not with a
+ *   boolean.  NO RECEIPT: what breaks with the boolean is not written
+ *   down.
  */
 ```
 
-Esa última línea es la más importante del bloque. **Un valor sin recibo
-por lo menos avisa que le falta**; una razón inventada que suena bien no
-avisa nada.
+That last line is the most important one in the block. **A value with
+no receipt at least warns that it is missing one**; an invented reason
+that sounds good warns of nothing.
 
-Y ojo con qué entra acá: sólo lo de esta pieza. Lo que valga para
-cualquier otra va en la sección de abajo, una sola vez.
+And watch what goes in here: only what belongs to this piece. Whatever
+holds for any other one goes in the section below, once.
 
-## Lo que vale para toda pieza
+## What holds for every piece
 
-Estas reglas no son de ninguna pieza en particular — son cómo se usa el
-stack acá. Van escritas **una sola vez, en este archivo**.
+These rules do not belong to any particular piece. They are how the
+stack is used here. They are written **once, in this file**.
 
-No es manía de orden. En `SchroederNathan/react-native-motion` la misma
-regla está copiada a mano en cuatro briefs, y en el cuarto quedó vieja:
-el del radial menu manda usar `runOnJS`, pero su propio código usa
-`scheduleOnRN` trece veces y `runOnJS` ninguna. Se copió a cuatro
-lugares y se actualizaron tres.
+It is not a mania for order. In `SchroederNathan/react-native-motion`
+the same rule is copied by hand into four briefs, and in the fourth one
+it went stale: the radial menu's says to use `runOnJS`, but its own
+code uses `scheduleOnRN` thirteen times and `runOnJS` none. It was
+copied to four places and three of them were updated.
 
-### Llamar a JS desde un worklet: `scheduleOnRN`
+### Calling JS from a worklet: `scheduleOnRN`
 
 ```ts
 import { scheduleOnRN } from 'react-native-worklets'
 ```
 
-`runOnJS` **está deprecada**. SOURCE: `react-native-worklets@0.10.1`,
-`lib/typescript/threads.native.d.ts:103` — *"@deprecated Use
-`scheduleOnRN` instead."* Sigue funcionando y sigue exportada desde
-`react-native-reanimated`, así que nada se rompe; simplemente no se
-escribe más.
+`runOnJS` **is deprecated**. SOURCE: `react-native-worklets@0.10.1`,
+`lib/typescript/threads.native.d.ts:103`: *"@deprecated Use
+`scheduleOnRN` instead."* It still works and it is still exported from
+`react-native-reanimated`, so nothing breaks; it just does not get
+written any more.
 
-**No es un reemplazo textual** — cambia la forma de llamarla:
+**It is not a textual replacement.** The way you call it changes:
 
 | | |
 | --- | --- |
-| vieja | `runOnJS(fn)(a, b)` — devuelve una función, y esa se llama |
-| nueva | `scheduleOnRN(fn, a, b)` — los argumentos van directo |
+| old | `runOnJS(fn)(a, b)`: it returns a function, and that one is called |
+| new | `scheduleOnRN(fn, a, b)`: the arguments go straight in |
 
 ### Shared values: `.get()` / `.set()`
 
-`.value` **no** está deprecada: los tres conviven en `SharedValue` y
-ninguno está marcado (SOURCE: `react-native-reanimated@4.5.1`,
-`lib/typescript/commonTypes.d.ts:129-136`). Elegimos `.get()`/`.set()`
-para que el taller sea uno solo, no porque el otro esté mal. Si algún
-día la doc de Reanimated dice otra cosa, esto se cambia en un lugar.
+`.value` is **not** deprecated: the three of them live together in
+`SharedValue` and none is marked (SOURCE:
+`react-native-reanimated@4.5.1`,
+`lib/typescript/commonTypes.d.ts:129-136`). We chose `.get()`/`.set()`
+so the workshop is one single thing, not because the other one is
+wrong. If one day Reanimated's docs say otherwise, this changes in one
+place.
 
-## Lo que ya sabemos que muerde
+## What we already know bites
 
-Treinta y una cosas que no son obvias y cuestan una tarde cada una. Las
-ocho primeras salieron de leer `SchroederNathan/react-native-motion` el
-2026-08-28 — allá están escritas como reglas de una pieza puntual, pero
-ninguna lo es. La novena salió de medirla acá, en swipeable-tabs, y la
-décima la escribieron las dos piezas por separado, cada una con su
-recibo; las demás las dejaron hold-to-commit, Android y la medición de
-rendimiento.
+Thirty-one things that are not obvious and cost an afternoon each. The
+first eight came out of reading `SchroederNathan/react-native-motion`
+on 2026-08-28. Over there they are written as rules for one specific
+piece, but none of them is. The ninth came out of measuring it here, in
+swipeable-tabs, and the tenth was written by the two pieces separately,
+each with its own receipt; the rest were left behind by
+hold-to-commit, Android and the performance measurement.
 
-Vienen de un repo donde las constantes se sacan cuadro a cuadro de la
-referencia y cada decisión tiene su comentario arriba. **Tratalas como
-reglas, no como sugerencias**: si una te parece mal, medí antes de
-cambiarla.
+They come from a repo where the constants are taken frame by frame off
+the reference and every decision has its comment above it. **Treat them
+as rules, not as suggestions**: if one of them looks wrong to you,
+measure before changing it.
 
-**Gestos y animación**
+**Gestures and animation**
 
-1. **Cancelá lo que está corriendo antes de arrancar otra animación**
-   sobre el mismo shared value. Dos springs encimados sobre el mismo
-   valor pelean. Se nota sobre todo en press y en efectos que siguen al
-   dedo, donde los disparos se pisan.
+1. **Cancel whatever is running before starting another animation** on
+   the same shared value. Two springs stacked on the same value fight
+   each other. It shows up most in press and in effects that follow the
+   finger, where the triggers step on each other.
 
-2. **Al soltar un pan, proyectá la velocidad antes de redondear.** Si
-   decidís a qué ítem cae un carrusel sólo por la posición, un flick
-   corto y rápido se queda donde estaba y se siente pegajoso. Se redondea
-   `posición + velocidad × factor`, no la posición sola.
+2. **When you release a pan, project the velocity before rounding.** If
+   you decide which item a carousel lands on by position alone, a short
+   fast flick stays where it was and feels sticky. What gets rounded is
+   `position + velocity × factor`, not the position on its own.
 
-3. **Dos gestos que tienen que coincidir salen de una sola constante.**
-   Un long-press de 500 ms con un pan que activa a 500 ms tiene que leer
-   la misma variable: si se separan, alguien toca uno y el gesto abre
-   pero no arrastra.
+3. **Two gestures that have to match come out of a single constant.** A
+   500 ms long press with a pan that activates at 500 ms has to read
+   the same variable: if they come apart, somebody touches one and the
+   gesture opens but does not drag.
 
 **Render**
 
-4. **Props primitivas si querés que `memo` corte de verdad.** Un objeto o
-   una función nueva en cada render hace que la comparación dé distinto
-   siempre y `memo` no ahorre nada. Misma regla que del lado web, pero
-   acá se paga en cuadros.
+4. **Primitive props if you want `memo` to actually cut.** A new object
+   or a new function on every render makes the comparison come out
+   different every time and `memo` saves nothing. Same rule as on the
+   web side, but here it is paid in frames.
 
 **Skia**
 
-5. **El layout de texto sale de los avances de glifo, no de los bounds.**
-   Los bounds miden la tinta dibujada, así que una `o` y una `l` dan
-   anchos distintos y el texto baila. El avance es cuánto corre el
-   cursor: es lo que usa la tipografía para maquetar.
+5. **Text layout comes out of the glyph advances, not the bounds.** The
+   bounds measure the drawn ink, so an `o` and an `l` give different
+   widths and the text dances. The advance is how far the cursor moves:
+   it is what typography uses to lay text out.
 
-6. **Poné el `origin` si querés que un glifo escale desde su centro.**
-   Por defecto escala desde la baseline y la letra se va para abajo.
+6. **Set the `origin` if you want a glyph to scale from its center.**
+   By default it scales from the baseline and the letter drops
+   downward.
 
-**Composición de vistas**
+**Composing views**
 
-7. **El `BlurView` va afuera del `MaskedView`, no adentro.** Sale de su
-   carrusel, que tiene un fondo desenfocado atrás de una máscara — o sea
-   de haberlo armado al derecho y al revés. El brief no dice qué se
-   rompe; lo que sí sabemos es de dónde muestrea un blur (punto 8), y
-   adentro de la máscara lo que encuentra no es la pantalla.
+7. **The `BlurView` goes outside the `MaskedView`, not inside.** It
+   comes from his carousel, which has a blurred background behind a
+   mask, so from having built it the right way round and the wrong way
+   round. The brief does not say what breaks; what we do know is where
+   a blur samples from (point 8), and inside the mask what it finds is
+   not the screen.
 
-8. **Un `BlurView` sólo ve lo que hay en su propia ventana.** En Android,
-   una hoja hospedada sobre el teclado vive en otra ventana: el blur no
-   encuentra nada detrás y sale el tinte solo. Si tu pieza depende del
-   desenfoque, en Android hay que caer a un color plano — y ese color
-   también se mide, no se elige.
+8. **A `BlurView` only sees what is in its own window.** On Android, a
+   sheet hosted over the keyboard lives in another window: the blur
+   finds nothing behind it and the tint comes out on its own. If your
+   piece depends on the blur, on Android you have to fall back to a
+   flat color, and that color gets measured too, not chosen.
 
-**Consistencia entre shared values**
+**Consistency between shared values**
 
-9. **Si dos valores tienen que ser ciertos AL MISMO TIEMPO, son un valor,
-   no dos.** Reanimated ordena sus mappers topológicamente, pero arma las
-   aristas con las **salidas declaradas** — y `useAnimatedReaction` llama
-   a `startMapper(fun, inputs)` sin ninguna (SOURCE: reanimated 4.5.1,
-   `src/hook/useAnimatedReaction.ts:68`, contra `useDerivedValue.ts:71`
-   que sí la pasa). O sea que **nada garantiza que una reacción corra
-   antes de quien lee lo que escribe**, y su propio `mappers.ts` lo
-   advierte: *"the updated value can be read by mappers that run later in
-   the same frame but previous mappers would access the old value"*.
+9. **If two values have to be true AT THE SAME TIME, they are one
+   value, not two.** Reanimated orders its mappers topologically, but
+   it builds the edges out of the **declared outputs**, and
+   `useAnimatedReaction` calls `startMapper(fun, inputs)` without any
+   (SOURCE: reanimated 4.5.1, `src/hook/useAnimatedReaction.ts:68`,
+   against `useDerivedValue.ts:71`, which does pass one). Which means
+   **nothing guarantees that a reaction runs before whoever reads what
+   it writes**, and its own `mappers.ts` warns about it: *"the updated
+   value can be read by mappers that run later in the same frame but
+   previous mappers would access the old value"*.
 
-   Cómo se ve cuando muerde: un par de valores que se cruzan queda
-   inconsistente por un cuadro y la propiedad que dependa de los dos
-   pega un salto. En swipeable-tabs eran `desde`/`hasta` (de una
-   reacción) más `avance` (derivado): cada cruce de página dejaba a los
-   estilos con los extremos nuevos y el avance viejo —saturado en 1— y
-   **cada ícono prendía del todo un cuadro antes de hacer su fundido**.
-   Medido: los seis tabs de un barrido hacían `0.000 → 1.000 → 0.008`.
+   What it looks like when it bites: a pair of values that cross each
+   other stays inconsistent for one frame and the property that depends
+   on both jumps. In swipeable-tabs it was `from`/`to` (from a
+   reaction) plus `progress` (derived): every page crossing left the
+   styles with the new ends and the old progress, saturated at 1, and
+   **every icon lit all the way up one frame before doing its fade**.
+   Measured: the six tabs of a sweep did `0.000 → 1.000 → 0.008`.
 
-   El arreglo no es reordenar nada: es un solo `useDerivedValue` que
-   devuelve el objeto entero. Ahí no queda orden que equivocar, y como es
-   un derived value declara su salida y el sort lo pone antes de todos
-   sus lectores.
+   The fix is not reordering anything: it is one single
+   `useDerivedValue` that returns the whole object. There is no order
+   left to get wrong, and since it is a derived value it declares its
+   output and the sort puts it before all of its readers.
 
-   **Y el instrumento importa tanto como la regla.** Esto es invisible
-   para una grabación mirada de a un cuadro: se ve anotando, desde
-   adentro del propio mapper del estilo, el valor que se pinta cada
-   cuadro. Ojo también con `simctl recordVideo`, que escribe a **tasa
-   variable**: pasarlo por `fps=60` antes de mirarlo cuadro a cuadro
-   inventa cuadros y fabrica glitches que no existen.
+   **And the instrument matters as much as the rule.** This is
+   invisible to a recording looked at one frame at a time: you see it
+   by writing down, from inside the style's own mapper, the value that
+   gets painted each frame. Watch out for `simctl recordVideo` too,
+   which writes at a **variable rate**: running it through `fps=60`
+   before looking at it frame by frame invents frames and manufactures
+   glitches that do not exist.
 
-**Símbolos**
+**Symbols**
 
-10. **El `size` de `SymbolView` no es el tamaño del glifo.** Las dos
-    piezas chocaron con esto por su cuenta, así que va con los dos
-    recibos. SOURCE: `expo-symbols/ios/SymbolView.swift:127` arma la
-    configuración con `pointSize: UIFont.systemFontSize` (14) SIEMPRE, y
-    el `contentMode` escala la imagen a la CAJA de la vista; con
-    `resizeMode: 'center'` todos los símbolos salen a 14 pt, sea cual
-    sea `size`. O sea que el número que le pasás no es el que usarías en
-    una fuente y no hay forma de acertarle de memoria.
+10. **`SymbolView`'s `size` is not the size of the glyph.** Both pieces
+    ran into this on their own, so it comes with both receipts. SOURCE:
+    `expo-symbols/ios/SymbolView.swift:127` builds the configuration
+    with `pointSize: UIFont.systemFontSize` (14) ALWAYS, and the
+    `contentMode` scales the image to the view's BOX; with
+    `resizeMode: 'center'` every symbol comes out at 14 pt, whatever
+    `size` says. So the number you pass it is not the one you would use
+    in a font and there is no way to guess it right.
 
-    Dos maneras de dimensionarlo bien, y las dos son medir. En
-    hold-to-commit: caja = la caja natural del símbolo al tamaño que
-    querés (`NSImage(systemSymbolName:).size` en un script Swift la
-    imprime), `scaleAspectFit` (el default) y `scale: 'large'` para que
-    el escalado sea hacia abajo. En swipeable-tabs: medir la TINTA
-    contra la referencia — `size: 17` pinta 13.0 pt de tinta, que es
-    exactamente lo que mide el `+` del original (`BORDE.simboloMas` en
-    su `medidas.ts`). Nunca por el tamaño del label que tiene al lado.
+    Two ways to size it properly, and both of them are measuring. In
+    hold-to-commit: box = the symbol's natural box at the size you want
+    (`NSImage(systemSymbolName:).size` in a Swift script prints it),
+    `scaleAspectFit` (the default) and `scale: 'large'` so the scaling
+    goes downward. In swipeable-tabs: measure the INK against the
+    reference. `size: 17` paints 13.0 pt of ink, which is exactly what
+    the `+` of the original measures (`EDGE.plusSymbol` in its
+    `measurements.ts`). Never by the size of the label next to it.
 
-    Y `SymbolView` es una **vista nativa**: iOS la reconfigura cuando le
-    cambian las props, así que reservale su caja con un ancho fijo y
-    animá la caja, no el símbolo (`css.ranuraChevron` y `estiloSimbolo`
-    en el `barra.tsx` de swipeable-tabs). Un símbolo que aparece y
-    desaparece cambiando el layout de la fila es el camino corto al
-    titileo.
+    And `SymbolView` is a **native view**: iOS reconfigures it when its
+    props change, so reserve its box with a fixed width and animate the
+    box, not the symbol (`css.chevronSlot` and `symbolStyle` in
+    swipeable-tabs' `tab-bar.tsx`). A symbol that appears and
+    disappears changing the row's layout is the short road to flicker.
 
-### Lo que dejó hold-to-commit (2026-09-02)
+### What hold-to-commit left behind (2026-09-02)
 
-11. **La grabación de `simctl` no sirve para medir puntos chicos ni
-    tiempos.** Comprime los detalles de 1–4 pt hasta volverlos polvo gris,
-    y pone pts a 60 fps a cuadros que captura a ~33: el tiempo sale
-    comprimido ~1.8×. Para medir, captura sin pérdida con una sonda de
-    estado fijo (`sonda.ts` de la pieza), y la grabación sólo para ver
-    el orden de las cosas.
+11. **`simctl`'s recording is no good for measuring small points or
+    times.** It crushes the 1 to 4 pt details into gray dust, and it
+    puts 60 fps pts on frames it captures at about 33: time comes out
+    compressed about 1.8×. To measure, capture losslessly with a
+    fixed-state probe (the piece's `probe.ts`), and use the recording
+    only to see the order of things.
 
-12. **`CI=1` apaga el watch mode de Metro.** `CI=1 pnpm ios` arranca, pero
-    "reloads are disabled": ningún cambio llega a la app. Sin la variable.
+12. **`CI=1` turns off Metro's watch mode.** `CI=1 pnpm ios` starts,
+    but "reloads are disabled": no change reaches the app. Leave the
+    variable out.
 
-13. **Dos worktrees, dos simuladores.** El dev client está clavado a
-    `localhost:8081` (trampa 8 de la memoria del proyecto). Si el otro
-    worktree tiene el simulador, no se le saca: se crea otro iPhone del
-    mismo tipo y se le instala el mismo `Taller.app`:
+13. **Two worktrees, two simulators.** The dev client is nailed to
+    `localhost:8081` (trap 8 of the project's memory). If the other
+    worktree has the simulator, you do not take it away from it: you
+    create another iPhone of the same type and install the same
+    `Workshop.app` on it:
     ```bash
-    APP=$(xcrun simctl get_app_container <udid-del-otro> com.anonymous.nativo)
+    APP=$(xcrun simctl get_app_container <udid-of-the-other> com.anonymous.nativo)
     UDID=$(xcrun simctl create "Pro Max B" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max com.apple.CoreSimulator.SimRuntime.iOS-26-2)
     xcrun simctl boot $UDID && xcrun simctl install $UDID "$APP"
     ```
-    Y al terminar, `shutdown` + `delete`: `pnpm grabar` habla con
-    `booted` y con dos prendidos elige uno cualquiera.
+    And when you are done, `shutdown` + `delete`: `pnpm record` talks
+    to `booted` and with two of them running it picks whichever.
 
-14. **Un worklet no captura un namespace de módulo.** Dos SIGABRT en
-    `worklets::toOptimizedObject` mientras un worklet llamaba
-    `scheduleOnRN(haptica.tic)` con `import * as haptica`. Se pasó a
-    imports con nombre y las funciones se declaran ANTES del worklet que
-    las usa. SIN RECIBO exacto (no se reprodujo aislado); queda como
-    sospecha fundada.
+14. **A worklet does not capture a module namespace.** Two SIGABRTs in
+    `worklets::toOptimizedObject` while a worklet called
+    `scheduleOnRN(haptics.tick)` with `import * as haptics`. It moved
+    to named imports and the functions are declared BEFORE the worklet
+    that uses them. NO exact RECEIPT (it was not reproduced in
+    isolation); it stands as a well-founded suspicion.
 
-15. **Una sonda que parquea dos valores con un parámetro miente.** Con
-    `cruce=q` (Hold a 1−q, Keep a q) las capturas mostraban los dos
-    labels superpuestos en estados que la animación nunca produce: el
-    saliente se va en 48 ms y el entrante tarda 360. La sonda va en
-    MILISEGUNDOS y pone cada shared value donde lo tendría la animación
-    a ese instante, con las mismas curvas y retardos, para compararla con
-    el cuadro del clip del mismo instante.
+15. **A probe that parks two values with one parameter lies.** With
+    `crossfade=q` (Hold at 1−q, Keep at q) the captures showed the two
+    labels overlapping in states the animation never produces: the one
+    leaving goes in 48 ms and the one arriving takes 360. The probe
+    goes in MILLISECONDS and puts each shared value where the animation
+    would have it at that instant, with the same curves and delays, to
+    compare it against the frame of the clip at the same instant.
 
-16. **La captura espera a que la pantalla se asiente.** Un `sleep 4`
-    después de escribir `sonda.ts` sacaba la primera foto vieja tras una
-    recarga. `sondas.sh` compara el hash del tercio de abajo de la
-    pantalla (el reloj de la barra cambia solo) hasta que dos capturas
-    seguidas coincidan y difieran de la sonda anterior. Y si Metro tiró
-    un error a mitad de una edición (un `medidas.ts` a medio escribir),
-    Fast Refresh puede quedar sirviendo módulos viejos sin avisar:
-    `simctl terminate` + `launch` y a comprobar en el bundle
-    (`curl localhost:8081/...entry.bundle | grep valor`).
+16. **The capture waits for the screen to settle.** A `sleep 4` after
+    writing `probe.ts` took the first photo stale, after a reload.
+    `sondas.sh` compares the hash of the bottom third of the screen
+    (the clock in the bar changes on its own) until two captures in a
+    row match and differ from the previous probe. And if Metro threw an
+    error in the middle of an edit (a half-written `measurements.ts`),
+    Fast Refresh can end up serving old modules without warning:
+    `simctl terminate` + `launch` and then check in the bundle
+    (`curl localhost:8081/...entry.bundle | grep value`).
 
-17. **Los montajes se miran a resolución completa.** Dieciséis filas de
-    texto a 3× se muestran achicadas a la mitad y un blur de σ 1 pt
-    desaparece: se corrigió un "entrante demasiado borroso" que no
-    existía. Ocho filas por imagen, a 2×, y recién ahí se compara.
+17. **The montages get looked at at full resolution.** Sixteen rows of
+    text at 3× are shown shrunk to half and a blur of σ 1 pt
+    disappears: an "incoming label too blurry" that did not exist got
+    corrected. Eight rows per image, at 2×, and only then do you
+    compare.
 
-18. **El simulador B se apaga solo.** Tres veces en una sesión apareció
-    `(Shutdown)` entre dos capturas (probablemente al cerrarse su
-    ventana). Antes de capturar, `simctl list devices | grep <udid>`, y
-    si hace falta `boot` + `launch` + 10 s.
+18. **Simulator B shuts itself down.** Three times in one session
+    `(Shutdown)` showed up between two captures (probably when its
+    window was closed). Before capturing,
+    `simctl list devices | grep <udid>`, and if you need to, `boot` +
+    `launch` + 10 s.
 
-19. **Reanimated apaga las animaciones con Reduce Motion, y el progreso
-    también.** `withTiming`, `withDelay` y `withSequence` traen
-    `reduceMotion: System` por defecto: con Reduce Motion prendido en
-    iOS saltan al valor final en el primer cuadro (SOURCE:
-    `react-native-reanimated/src/animation/util.ts:506`), y las
-    modificadoras se lo contagian a sus hijas. Un `withTiming` que ES
-    el gesto (el relleno de 2 s del hold) o que cuenta un estado con
-    opacidad lleva `reduceMotion: ReduceMotion.Never`, y reduce motion
-    se aplica a mano: queda opacidad y color, se va escala y traslación
-    (animate-expo § 9). RUNTIME: el pill pasaba de 64 a 182 de
-    luminancia en un cuadro y se quedaba ahí los 2 s. Para probarlo en
-    el simulador: `xcrun simctl spawn <udid> defaults write
-    com.apple.Accessibility ReduceMotionEnabled -bool true` y relanzar
-    la app (`useReducedMotion` lee el valor al arrancar). Dynamic Type:
-    `xcrun simctl ui <udid> content_size
-    accessibility-extra-extra-extra-large`, y `large` para volver.
+19. **Reanimated turns animations off with Reduce Motion, and the
+    progress too.** `withTiming`, `withDelay` and `withSequence` come
+    with `reduceMotion: System` by default: with Reduce Motion on in
+    iOS they jump to the final value on the first frame (SOURCE:
+    `react-native-reanimated/src/animation/util.ts:506`), and the
+    modifiers pass it on to their children. A `withTiming` that IS the
+    gesture (the 2 s fill of the hold) or that counts a state with
+    opacity carries `reduceMotion: ReduceMotion.Never`, and reduce
+    motion is applied by hand: opacity and color stay, scale and
+    translation go (animate-expo § 9). RUNTIME: the pill went from 64
+    to 182 of luminance in one frame and stayed there for the 2 s. To
+    test it in the simulator: `xcrun simctl spawn <udid> defaults write
+    com.apple.Accessibility ReduceMotionEnabled -bool true` and
+    relaunch the app (`useReducedMotion` reads the value at startup).
+    Dynamic Type: `xcrun simctl ui <udid> content_size
+    accessibility-extra-extra-extra-large`, and `large` to go back.
 
-20. **Una sonda deja la pieza parqueada hasta que algo la desparquee.**
-    `sonda.ts` vuelto a `undefined` no hacía nada, así que la pieza se
-    quedaba en el último estado: un `commit` dejaba `terminado` en true
-    y un `auto` posterior no apretaba (la ráfaga de capturas dio 221.5
-    plano y parecía que la receta `skill` no andaba). Ahora la sonda
-    `undefined` devuelve al reposo. Igual, una tanda de `auto` se hace
-    después de relanzar.
+20. **A probe leaves the piece parked until something unparks it.**
+    `probe.ts` set back to `undefined` did nothing, so the piece stayed
+    in its last state: a `commit` left the finished flag at true and a
+    later `auto` did not press (the burst of captures gave a flat 221.5
+    and it looked like the `skill` recipe was not working). Now the
+    `undefined` probe returns it to rest. Even so, a round of `auto` is
+    done after relaunching.
 
-21. **Un cambio de Dynamic Type en vivo no re-mide el `Text`.** Con la
-    app abierta, pasar a AX5 agrandó los glifos pero la caja del label
-    quedó la de 17 pt: texto recortado. El label se remonta con
-    `key={factor}` cuando cambia `useWindowDimensions().fontScale`.
+21. **A live Dynamic Type change does not re-measure the `Text`.** With
+    the app open, switching to AX5 made the glyphs bigger but the
+    label's box stayed the 17 pt one: clipped text. The label remounts
+    with `key={factor}` when `useWindowDimensions().fontScale` changes.
 
-### Lo que dejó Android y la medición de rendimiento (2026-09-07)
+### What Android and the performance measurement left behind (2026-09-07)
 
-22. **`PlatformColor` con nombres de UIKit es TRANSPARENTE en Android,
-    sin error.** `PlatformColor('systemFillColor')` es un `resource_paths`
-    en Android, que sólo resuelve `@android:color/…` y `?attr/…`; si
-    nada resuelve, `FabricUIManager.getColor` devuelve 0 (SOURCE:
-    react-native 0.86, `FabricUIManager.java:573`). El fondo `accion`
-    salía sin fondo y sin barras. Los colores de sistema se escriben con
-    sus valores (los de la tabla de UIKit) y `useColorScheme` los cambia.
+22. **`PlatformColor` with UIKit names is TRANSPARENT on Android, with
+    no error.** `PlatformColor('systemFillColor')` is a
+    `resource_paths` on Android, which only resolves
+    `@android:color/…` and `?attr/…`; if nothing resolves,
+    `FabricUIManager.getColor` returns 0 (SOURCE: react-native 0.86,
+    `FabricUIManager.java:573`). The `stock` background came out with
+    no background and no bars. System colors get written with their
+    values (the ones from the UIKit table) and `useColorScheme`
+    switches them.
 
-23. **`SymbolView` con un nombre string no dibuja NADA en Android.**
-    SOURCE: `expo-symbols/src/SymbolView.tsx:32` — sin `props.name.android`
-    devuelve `props.fallback`. Con el nombre como objeto (`{ ios:
-    'checkmark', android: 'check' }`) dibuja el glifo de Material Symbols
-    con la fuente de `@expo-google-fonts/material-symbols`, y el peso
-    para Android es un objeto `{ name, font }` que hay que armar (los
-    de `expo-symbols/src/android/weights` no se exportan). En Android
-    `size` sí es el tamaño (es un `Text` con `fontSize`), al revés que
-    en iOS (trampa 10).
+23. **`SymbolView` with a string name draws NOTHING on Android.**
+    SOURCE: `expo-symbols/src/SymbolView.tsx:32`: without
+    `props.name.android` it returns `props.fallback`. With the name as
+    an object (`{ ios: 'checkmark', android: 'check' }`) it draws the
+    Material Symbols glyph with the font from
+    `@expo-google-fonts/material-symbols`, and the weight for Android
+    is an object `{ name, font }` you have to build yourself (the ones
+    in `expo-symbols/src/android/weights` are not exported). On Android
+    `size` is the size (it is a `Text` with `fontSize`), the other way
+    round from iOS (trap 10).
 
-24. **El blur de `filter` existe en Android desde la API 31, y en iOS
-    no.** SOURCE: `BaseViewManager.java:558` (`RenderEffect`, sólo con
-    `SDK_INT >= S`). Las copias borrosas del label son PNG de SF Pro en
-    iOS y el mismo `Text` con `filter: [{ blur: σ }]` en Android: una
-    mancha de SF sobre un nítido de Roboto se ve doble.
+24. **The `filter` blur exists on Android from API 31, and on iOS it
+    does not.** SOURCE: `BaseViewManager.java:558` (`RenderEffect`,
+    only with `SDK_INT >= S`). The blurred copies of the label are PNGs
+    of SF Pro on iOS and the same `Text` with `filter: [{ blur: σ }]`
+    on Android: a smudge of SF over a sharp Roboto looks doubled.
 
-25. **Un worklet que llama a una `const` declarada más abajo la captura
-    como `undefined`.** El callback del `withTiming` del reinicio llamaba
-    a `reiniciar`, definida después de `completar`: "undefined is not a
-    function" recién a los 5 s, en producción y en dev. Las funciones que
-    un worklet llama van ANTES del worklet (ya lo decía la 14 para el
-    caso de los namespaces).
+25. **A worklet that calls a `const` declared further down captures it
+    as `undefined`.** The callback of the reset's `withTiming` called
+    `reset`, defined after `complete`: "undefined is not a function"
+    only at 5 s, in production and in dev. The functions a worklet
+    calls go BEFORE the worklet (trap 14 already said it for the
+    namespace case).
 
-26. **`modify` de un shared value desde JS manda el modificador a UI como
-    worklet.** Un closure creado en JS no lo es: "[Worklets] Tried to
-    synchronously call a Remote Function" en la cola de animaciones, y
-    de paso rompía lo que venía después en esa cola. Si un dato se
-    escribe desde los dos hilos, un depósito por hilo: un `makeMutable`
-    que sólo toca UI (y JS lee al final con `.get()`, que es sincrónico)
-    y un objeto de JS para lo de JS.
+26. **`modify` on a shared value from JS sends the modifier to UI as a
+    worklet.** A closure created in JS is not one: "[Worklets] Tried to
+    synchronously call a Remote Function" in the animation queue, and
+    on top of that it broke whatever came next in that queue. If a
+    piece of data is written from both threads, one store per thread: a
+    `makeMutable` that only UI touches (and JS reads at the end with
+    `.get()`, which is synchronous) and a JS object for the JS side.
 
-27. **En el emulador de Android el bundle de DESARROLLO pierde cuadros
-    que el de producción no.** RUNTIME (Pixel 9 / Android 16, Expo Go
-    57.0.9, `medidor.tsx`): en dev, 47 cuadros perdidos de 372 en la
-    secuencia sin ninguna carga (17 de 44 durante el hold); en
-    producción (`expo start --no-dev --minify`), 0–2. Antes de optimizar
-    una animación por lo que muestra un emulador en dev, medirla en
-    producción. Y con `--no-dev` el `console.log` de la app NO llega a
-    Metro: el medidor manda el informe por POST a `RECEPTOR`
-    (`sonda.ts`).
+27. **On the Android emulator the DEVELOPMENT bundle drops frames that
+    the production one does not.** RUNTIME (Pixel 9 / Android 16, Expo
+    Go 57.0.9, `meter.tsx`): in dev, 47 frames dropped out of 372 in
+    the sequence with no load at all (17 out of 44 during the hold); in
+    production (`expo start --no-dev --minify`), 0 to 2. Before
+    optimizing an animation for what an emulator shows in dev, measure
+    it in production. And with `--no-dev` the app's `console.log` does
+    NOT reach Metro: the meter sends the report by POST to `RECEIVER`
+    (`probe.ts`).
 
-28. **Android compone los hijos de una vista con opacidad uno por uno.**
-    Durante el fundido del reinicio, el solape de 1 px entre las dos
-    texturas del relleno se veía como una línea clara. La vista que se
-    funde lleva `needsOffscreenAlphaCompositing` (Android; iOS lo hace
-    solo con `allowsGroupOpacity`).
+28. **Android composites the children of a view with opacity one by
+    one.** During the reset's fade, the 1 px overlap between the fill's
+    two textures showed up as a light line. The view that fades carries
+    `needsOffscreenAlphaCompositing` (Android; iOS does it on its own
+    with `allowsGroupOpacity`).
 
-29. **Una función que un worklet llama lleva `'worklet'` aunque sólo
-    construya un objeto.** `tiempo()` y `spring()` (`receta.ts`) armaban
-    el `Movimiento` que `mover()` consume; llamadas desde `apretar` o
-    `completar`, "[Worklets] Tried to synchronously call a Remote
-    Function. Called 'tiempo' on the UI Runtime". El typecheck no lo ve
-    y en el hilo de JS anda: se ve en el log de Metro, no en pantalla.
+29. **A function a worklet calls carries `'worklet'` even if all it
+    does is build an object.** `timing()` and `spring()` (`recipe.ts`)
+    built the `Movement` that `move()` consumes; called from `press` or
+    `complete`, "[Worklets] Tried to synchronously call a Remote
+    Function. Called 'tiempo' on the UI Runtime" (the function is now
+    `timing`). The typecheck does not see it and on the JS thread it
+    works: it shows up in Metro's log, not on the screen.
 
-30. **La tinta medida no es la opacidad si la cosa además escala.** Para
-    comparar si dos elementos entran juntos se mide la TINTA —Σ (255 −
-    luminancia) sobre el fondo claro, que el blur conserva porque sólo
-    la desparrama—, pero un elemento que crece aporta tinta proporcional
-    a su ÁREA: el factor es escala², no escala. El tilde contextual de
-    hold-to-commit, con la misma opacidad que el texto, mide 34 % contra
-    74 % a q = .30 sólo por estar al 63 % de su tamaño (0.63² = 0.40).
-    Antes de leer un retraso en la diferencia, dividir por escala². Y la
-    banda que se integra tiene que sobrar 3σ del blur más ancho por cada
-    lado: con menos, la tinta desparramada cae afuera y todos los
-    estados intermedios miden de menos. `tilde.py` de la pieza hace las
-    dos cosas.
+30. **The ink measured is not the opacity if the thing also scales.**
+    To compare whether two elements come in together you measure the
+    INK, Σ (255 − luminance) over the light background, which the blur
+    preserves because all it does is spread it, but an element that
+    grows contributes ink in proportion to its AREA: the factor is
+    scale², not scale. hold-to-commit's contextual checkmark, at the
+    same opacity as the text, measures 34 % against 74 % at q = .30
+    only because it is at 63 % of its size (0.63² = 0.40). Before
+    reading a delay into the difference, divide by scale². And the band
+    being integrated has to have 3σ of the widest blur to spare on each
+    side: with less, the spread ink falls outside and every
+    intermediate state measures short. The piece's `tilde.py` does both
+    things.
 
-31. **Para medir un estado del botón, la ventana va ADENTRO del
-    control, no alrededor.** Para alinear dos tomas de la misma
-    coreografía se promediaba una banda de 1080×200 px alrededor del
-    pill. En modo oscuro anduvo; en claro, la ficha blanca que rodea al
-    botón domina el promedio y el evento se detecta 200 ms corrido. Las
-    dos tomas salieron desfasadas y en el video de X cada apariencia
-    mostraba un instante distinto. Con la ventana adentro del control
-    (800×70 px, que es todo pill en los dos modos) coinciden en 33 ms.
-    Y el síntoma no apareció en ningún número: se vio poniendo los
-    cuatro cuadros del mismo instante uno al lado del otro.
+31. **To measure a state of the button, the window goes INSIDE the
+    control, not around it.** To align two takes of the same
+    choreography, a band of 1080×200 px around the pill was averaged.
+    In dark mode it worked; in light, the white card around the button
+    dominates the average and the event gets detected 200 ms off. The
+    two takes came out out of sync and in the video for X each
+    appearance showed a different instant. With the window inside the
+    control (800×70 px, which is all pill in both modes) they agree
+    within 33 ms. And the symptom did not show up in any number: it was
+    seen by putting the four frames of the same instant side by side.
 
-## El vidrio
+## The glass
 
-`expo-glass-effect` ya está instalado (57.0.1) y tiene trampas que no se
-ven venir — la principal es que **un `GlassView` bajo una opacidad
-animada no dibuja nada**. Está todo en [`VIDRIO.md`](VIDRIO.md).
+`expo-glass-effect` is already installed (57.0.1) and it has traps you
+do not see coming. The main one is that **a `GlassView` under an
+animated opacity draws nothing**. It is all in [`GLASS.md`](GLASS.md).
 
-## El stack, y por qué NO son las últimas versiones
+## The stack, and why these are NOT the latest versions
 
-| | instalado | último en npm |
+| | installed | latest on npm |
 | --- | --- | --- |
 | react-native-reanimated | 4.5.1 | 4.6.0 |
 | react-native-gesture-handler | 2.32.0 | 3.2.1 |
 | @shopify/react-native-skia | 2.6.2 | 2.11.1 |
 | expo-haptics | 57.0.1 | 57.0.2 |
 
-**Las tres primeras las elige `expo install`, y es lo correcto acá.** En
-React Native una dependencia trae código nativo que se compila contra el
-runtime del SDK: instalar la última de npm contra SDK 57 es instalar una
-combinación que nadie probó, y rompe el build nativo — no el typecheck,
-el build. La regla del repo (*siempre la última estable*) se cumple
-igual, en el único lugar donde acá significa algo: **el SDK es el
-último**, 57. Dentro de un SDK, "la última" es la que él verificó.
+**The first three are chosen by `expo install`, and that is the right
+thing here.** In React Native a dependency brings native code that gets
+compiled against the SDK's runtime: installing the latest from npm
+against SDK 57 is installing a combination nobody tested, and it breaks
+the native build, not the typecheck, the build. The repo's rule
+(*always the latest stable*) is met all the same, in the one place
+where it means something here: **the SDK is the latest**, 57. Inside an
+SDK, "the latest" is the one it verified.
 
-`expo-haptics` es otro caso: 57.0.2 salió el 2026-08-26 y el cooldown de
-24h del sistema lo bloqueó a propósito. Se instaló 57.0.1. Cuando pase
-la ventana, `npx expo install --fix` lo sube.
+`expo-haptics` is another case: 57.0.2 came out on 2026-08-26 and the
+system's 24h cooldown blocked it on purpose. 57.0.1 was installed. When
+the window passes, `npx expo install --fix` bumps it.
 
-Las versiones van **exactas**, sin `~`, como en el repo web.
-
-## Probar en tu iPhone de verdad
-
-**Hoy sí, con Expo Go de la App Store**, y sin build: el 2026-09-02 la
-tienda publicó Expo Go 57.0.9 y el taller es SDK 57. Antes de mandar a
-nadie a firmar nada, medir qué versión hay, porque la tienda atrasa
-(estuvo en SDK 54 desde septiembre de 2025 hasta ese día):
-
-```bash
-curl -s "https://itunes.apple.com/lookup?id=982107779" | grep -o '"version":"[^"]*"'
-```
-
-### Cuando la tienda atrasa: sign.expo.dev
-
-Pasó desde septiembre de 2025 hasta el 2026-09-02, y puede volver a
-pasar. **El Expo Go de la App Store era la versión 54.0.2, publicada el
-2025-09-23** — verificado el 2026-08-27 en la ficha de la App Store y en
-cuatro tiendas — con este taller en **SDK 57** y el manifiesto que sirve
-Metro pidiendo `runtimeVersion: exposdk:57.0.0`. Expo Go en iOS
-implementa **un solo SDK a la vez**, así que el de SDK 54 no abre un
-proyecto de SDK 57, y actualizar no era cuestión de apretar un botón.
-
-Lo que pasó: **Apple no aprobó Expo Go de SDK 55 en adelante** durante
-meses, y la tienda quedó clavada en 54. Está contado por Expo en
-`expo.dev/changelog/expo-go-and-app-store-may-2026`. El teléfono decía
-*"necesitás una versión más nueva"* y tenía razón — pero el botón de
-actualizar no existía, porque no había nada más nuevo publicado ahí.
-
-**La salida es <https://sign.expo.dev>**, que es de Expo: firma el Expo
-Go de la versión que le pidas con **tu Apple ID gratis** y lo instala en
-el teléfono. La doc de Expo lo dice con todas las letras, en
-`troubleshooting/expo-go-version-mismatch`:
-
-> "This installer uses your Apple ID's free developer provisioning, so it
-> does not require a paid Apple Developer Program membership. The
-> certificate is valid for about seven days."
-
-El binario existe y es público: la API de Expo
-(`api.expo.dev/v2/versions/latest`) da para SDK 57 el cliente **57.0.9**,
-en `github.com/expo/expo-go-releases`.
-
-**El procedimiento, una vez:**
-
-1. En <https://sign.expo.dev>: elegís SDK **57**, entrás con tu cuenta de
-   Expo, elegís el dispositivo y ponés tu Apple ID. (Expo dice que esas
-   credenciales las usa como proxy de sesión y no las guarda.)
-2. En el iPhone: **Ajustes › Privacidad y seguridad › Modo de
-   desarrollador**, encender y reiniciar. Sin eso, iOS no corre una app
-   firmada para desarrollo.
-3. Acá: `pnpm telefono` —que es `expo start --go`— y escaneás el QR. La
-   misma red Wi-Fi que la Mac. Si la red no coopera (Wi-Fi de invitados,
-   VPN), `pnpm telefono --tunnel`.
-
-**A los 7 días vence** —cuando iOS dice «"Expo Go" ya no está
-disponible», es eso— y hay que volver al paso 1. No hay que rehacer
-nada del proyecto: se re-firma la app y listo.
-
-**Y ojo con lo que Expo Go no trae.** Es el runtime de Expo, no el dev
-client de este taller: si una pieza usa `@shopify/react-native-skia` no
-va a andar ahí, y va a fallar en el teléfono aunque ande en el
-simulador. Todo lo demás —reanimated, gesture-handler, expo-symbols,
-expo-haptics— sí está.
-
-**Las alternativas sin vencimiento cuestan plata.** `eas go` compila tu
-propio Expo Go y lo sube a TU TestFlight, y EAS Build hace lo mismo con
-la app: los dos necesitan el **Apple Developer Program pago**, porque la
-distribución ad hoc de iOS exige un perfil que liste el UDID de cada
-teléfono. Está en `build/internal-distribution` de la doc de Expo. Y un
-detalle que muerde: un teléfono recién registrado con `eas device:create`
-tarda **24 a 72 horas** en procesarse del lado de Apple.
-
-Con cualquiera de los dos Expo Go: la misma Wi-Fi que la Mac,
-`pnpm telefono` (`expo start --go`) con `EXPO_TOKEN` de la MISMA cuenta que el Expo Go del teléfono —un Expo
-Go logueado no abre proyectos anónimos— y escanear el QR. Antes de
-arrancar, `REACT_NATIVE_PACKAGER_HOSTNAME=<ip de en0>`: si la Mac tiene
-VPN o cambió de IP (cuatro veces en una semana), el manifest apunta mal.
-El nombre Bonjour de la Mac no sirvió desde el iPhone; la IP sí. Un
-`EXPO_TOKEN` inválido no falla al arrancar: el manifest devuelve 500
-(`The bearer token is invalid`); comprobarlo antes con `curl -H
-"Authorization: Bearer $T" https://api.expo.dev/v2/auth/userInfo`. El
-`--tunnel` (`@expo/ngrok` está en el proyecto) sirve en una red normal,
-pero NO en la de la facultad: intercepta TLS y el agente ngrok lo
-rechaza (`x509: certificate signed by unknown authority`); esa red no
-aísla clientes, así que el LAN por IP alcanza. Vale lo mismo que en el
-simulador: todo menos Skia.
-
-Vale la pena aunque el simulador ande: **el simulador no tiene háptica
-ni pantalla de 120Hz**, que son justo dos de las cosas que este vault
-estudia. Un gesto que se siente bien en el simulador puede sentirse mal
-en la mano.
-
-**Grabar desde el teléfono es distinto** de grabar del simulador (ver
-"Grabar la pieza", más abajo). `pnpm grabar` usa `simctl`, que
-sólo habla con simuladores: contra un iPhone real no sirve. Ahí se graba
-con la grabación de pantalla de iOS (Centro de Control) y el archivo se
-pasa a `VAULT_DIR/native/` a mano — AirDrop, o cable con QuickTime. El
-resto del recorrido no cambia: la grilla lo levanta igual.
-
-Queda dicho para cuando moleste: si grabar desde el teléfono se vuelve
-frecuente, el paso a automatizar es ese traslado, no la grabación.
-
-## Probar en Android
-
-**Lo que hay en esta Mac desde el 2026-09-07** (instalado con Homebrew,
-sin Android Studio): `openjdk@21` (keg-only: `JAVA_HOME=$(brew --prefix
-openjdk@21)/libexec/openjdk.jdk/Contents/Home`), el cask
-`android-commandlinetools`, y con `sdkmanager --sdk_root=$HOME/Library/
-Android/sdk` los paquetes `platform-tools`, `emulator`,
-`platforms;android-36` y `system-images;android-36;google_apis;arm64-v8a`.
-Un AVD `taller` (Pixel 9). Nada de esto viaja con el repo.
-
-```bash
-export ANDROID_HOME=$HOME/Library/Android/sdk
-$ANDROID_HOME/emulator/emulator -avd taller -no-snapshot-load -no-boot-anim -gpu auto &
-adb() { $ANDROID_HOME/platform-tools/adb "$@"; }
-adb shell getprop sys.boot_completed        # 1 cuando arrancó (~35 s)
-```
-
-**Expo Go, no el dev client**: el dev client es iOS. La versión de Expo
-Go para el SDK sale de la API de versiones, con la URL del APK:
-
-```bash
-curl -s https://exp.host/--/api/v2/versions/latest | python3 -c \
-  "import sys,json; s=json.load(sys.stdin)['data']['sdkVersions']['57.0.0']; print(s['androidClientVersion'], s['androidClientUrl'])"
-adb install -r Expo-Go-57.0.9.apk
-adb shell am start -a android.intent.action.VIEW -d "exp://<ip de en0>:8083"
-```
-
-El server es el mismo `pnpm telefono` del iPhone (con `EXPO_TOKEN` y
-`REACT_NATIVE_PACKAGER_HOSTNAME`); el emulador llega a la Mac por la IP
-de la LAN. Un Expo Go sin sesión abre el proyecto igual: la CLI sólo
-firma el manifest cuando la app lo pide. La primera vez aparece la hoja
-del dev menu encima de la pieza: se cierra con su ✕ (y ojo con tocar a
-ciegas: un tap que cae en el menú apaga Fast Refresh).
-
-```bash
-adb shell input swipe 540 2271 540 2271 1400   # un hold de 1.4 s en el botón
-adb exec-out screencap -p > captura.png
-adb shell cmd uimode night yes                 # modo oscuro (no: claro)
-adb shell am force-stop host.exp.exponent      # relanzar limpio
-```
-
-Vale lo de siempre: todo menos Skia. Y lo que dice la trampa 27: los
-cuadros se miden con `--no-dev --minify`, no con el bundle de dev.
-
-## Grabar la pieza, y el mockup para X
-
-Lo que se aprendió grabando la primera pieza (2026-09-03), en orden de
-lo que muerde:
-
-**`simctl` graba a tasa variable.** Mientras algo se mueve escribe 60
-cuadros por segundo (deltas de 17 ms, medido); con la pantalla quieta no
-escribe ninguno. El `<video>` lo reproduce bien, pero **normalizá con
-`fps=60` ANTES de recortar**: un `-ss` sobre el archivo crudo cae en el
-primer cuadro escrito después del punto de corte y el reposo inicial
-desaparece entero. Orden correcto: `fps=60,trim=start=…,setpts=PTS-STARTPTS`,
-y `tpad` para sostener el último cuadro, que tampoco se grabó.
-
-**La tuerca azul es Expo Go**, el botón flotante de su menú de
-desarrollo; en el teléfono no aparece y el dev client no lo tiene. En el
-simulador se apaga con la preferencia de Expo Go, sin matar nada:
-
-```bash
-xcrun simctl spawn booted defaults write host.exp.Exponent EXDevMenuShowFloatingActionButton -bool false
-```
-
-y relanzar Expo Go. Queda apagada para ese simulador.
-
-**La sonda de grabación de hold-to-commit** vive en su `hold-to-commit.tsx`,
-rama `sonda === 'demo'`, con su timeline arriba. Llama a los MISMOS
-worklets que llama el dedo (`apretar`, `completar`, `reiniciar`), así
-que curvas, tiempos, háptica y sonido son los del camino real. Dos
-cosas que costaron una vuelta cada una: el reposo inicial tiene que
-sobrar (con 1800 ms, la toma en claro cargó más lento y el corte de 1.2
-s antes del gesto caía ANTES de que la pieza terminara de montarse), y
-el reinicio se adelanta a los 2 s porque los 5 s del taller son tres
-segundos de nada en un video; para que el reloj de los 5 s no dispare
-después sobre el reposo, `reiniciar` cancela `espera`.
-
-**Y si la pieza se ve distinta en claro y en oscuro, son DOS tomas**, la
-misma sonda con `simctl ui <udid> appearance light|dark`. Se cortan
-alineadas por el mismo evento —el commit, no el primer gesto— o los dos
-videos muestran instantes distintos de la coreografía. Ojo con dónde se
-mide para encontrar ese evento: ver la trampa 31.
-
-**Mirá la barra de estado ANTES de gastar las tomas.** `status_bar
-override` clava la hora, la señal y la batería, pero no toca la
-miga de pan que iOS deja arriba a la izquierda —«◀ Safari»— después de
-abrir la app desde un link. Aparece sola, no la pone el script, y una
-toma con eso adentro se nota en el video de X, donde la cámara abre y
-muestra el teléfono entero. Se va con un `terminate` + `launch` de más.
-Cuesta quince segundos comprobarlo (`simctl io <udid> screenshot` y
-mirar los primeros 180 px) y dos tomas arreglarlo después.
-
-**La sonda de grabación (`?demo=1`), para copiar.** Es lo que grabó
-el video de swipeable-tabs y no viaja con la pieza; queda acá para la
-próxima. Tres reglas que salieron de tres tomas fallidas:
-
-1. **Nacer en el tab inicial de verdad:** `contentOffset={{ x: width, y: 0 }}`
-   en el pager y `scrollX` naciendo en `width`. Un `scrollTo` en el
-   primer efecto no llega al pager y deja la barra en un tab con el
-   contenido de otro.
-2. **Los arrastres van por el puente que ya existe** (`destino`, cuya
-   reacción hace `scrollTo` por cuadro y cuyo `onScroll` alimenta
-   `scrollX`), con `movimiento` en `arrastre` y `destino` de vuelta a
-   `NADIE` al terminar. Una reacción propia sobre otro shared value
-   saltaba en vez de arrastrar.
-3. **Los toques son `alTocar`.** Y la barra tiene que tomar "hay un
-   toque" de `movimiento === toque`, no de `destino !== NADIE`, o lee
-   el tramo del toque durante un arrastre sintético.
-
-```tsx
-const arrastre = (a: number, b: number, lento: boolean) =>
-  scheduleOnUI((a: number, b: number, ancho: number, lento: boolean) => {
-    'worklet'
-    movimiento.set(MOVIMIENTO.arrastre)
-    destino.set(a * ancho)
-    const fin = (t?: boolean) => { 'worklet'; if (t) { destino.set(NADIE); movimiento.set(MOVIMIENTO.quieto) } }
-    destino.set(lento
-      ? withTiming(b * ancho, { duration: 1700, easing: Easing.inOut(Easing.sin) }, fin)
-      : withSequence(
-          withTiming((a + (b - a) * 0.15) * ancho, { duration: 110, easing: Easing.in(Easing.quad) }),
-          withTiming(b * ancho, { duration: 430, easing: Easing.out(Easing.cubic) }, fin)))
-  }, a, b, width, lento)
-// espera 1500 · arrastre(1, 2, true) · espera 2600 · alTocar(0) · espera 1000
-// · flicks 0→5 cada 1000 · dos de vuelta cada 1000
-```
-
-La toma: `status_bar override --time 9:41 … --batteryState discharging
---batteryLevel 100`, `terminate host.exp.Exponent`, `recordVideo --codec
-h264`, `openurl exp://127.0.0.1:8082/--/<slug>?demo=1`, 25–30 s; medir
-los gestos con la diferencia entre cuadros a 60 fps y cortar 1.2 s antes
-del primero. El máster va a `.context/mockup/master/`.
-
-**El agente puede grabar solo.** No hay forma de mandarle un dedo al
-simulador, pero la pieza se maneja desde adentro con una sonda temporal:
-los toques son `alTocar(i)`, el camino real; los arrastres se sintetizan
-moviendo el offset del pager cuadro a cuadro con
-`withSequence(withTiming(15 % del viaje, 110 ms, easeInQuad), withTiming(destino, 430 ms, easeOutCubic))`
-—un dedo que acelera y suelta, ajustado a ojo contra los arrastres
-medidos de X— con `movimiento` puesto a mano en `arrastre`/`quieto`. La
-sonda se borra antes de cerrar, como todas.
-
-**El máster de una pieza no tiene por qué estar en el vault.** El vault
-es lo ajeno; `swipeable-tabs` se sacó de ahí a pedido y su máster vive
-en `.context/mockup/master/<slug>.mp4` (gitignoreado). Al mockup se le
-pasa con `--clip=…`. Y el video que va a la exhibition entra con
-`pnpm pieza:video <slug> <archivo>` desde la raíz, no con Add to Exhibition
-(ver el AGENTS.md de la raíz, camino B).
-
-**El video se arma en `mockup/` (Remotion), no acá.** Los mismos
-números —bisel medido, fondo, sombra, cámara y curvas— viven en
-`mockup/src/parametros.ts` como controles de Remotion Studio: se
-iteran en vivo y se renderiza una vez (2160² · 60 fps en un par de
-minutos). El script de ffmpeg de abajo queda como referencia de cómo se
-midió cada número y como camino sin Chrome; pedirle iteraciones a él es
-re-encodear por cada ajuste. Ver `mockup/AGENTS.md`.
-
-**`pnpm mockup <slug>`** mete la grabación del vault en el bisel
-oficial de Apple, sobre un fondo neutro, con una cámara que entra y
-sale, a 2160² y 60 fps. **La referencia es el clip de @nater02**
-(x.com/nater02/status/2092952884987957708) y está medida cuadro a
-cuadro: fondo RGB (235, 230, 232) plano; teléfono negro al 95.3 % del
-alto, centrado; sombra sólo a la derecha y abajo, dos capas (una
-apretada y una ancha) ajustadas contra el perfil de luma; la cámara
-entra a 1.576× en 0.65 s, se queda, y sale a 1.161× en 0.62 s, con las
-dos curvas ajustadas a una bézier cúbica (rms 0.005). El teléfono es el
-**iPhone 17 en Black** —el de la referencia por proporción y color; el
-Pro Max no viene en negro— y la grabación del Pro Max entra en su hueco
-escalada (misma proporción al 0.1 %). Los recibos, uno por número,
-están arriba de `scripts/mockup.mjs`.
-
-Perillas: `--espera` (segundos con el teléfono entero antes de entrar),
-`--hasta` (cuándo salir: el final del primer gesto), `--foco` (dónde
-apunta la entrada, como fracción del alto del cuerpo; 0.145 es la fila
-de tabs de esta pieza), `--camara=quieta`, `--modelo`, `--color`,
-`--fondo`, `--lado`. Con una imagen (`pnpm mockup <slug> <imagen>`) el
-lienzo sale de la imagen —el múltiplo entero más grande que entra, con
-vecino más cercano, píxel por píxel— y la cámara va quieta salvo que se
-pida (`--blur`, `--luz`, `--lienzo` siguen ahí).
-
-**Antes de mirar el resultado, `pnpm mockup <slug> --verificar`.** Mete
-un rojo pleno en vez de la grabación, renderiza la cámara entera sin
-pérdida y comprueba píxel por píxel que el hueco del bisel está lleno
-en doce estados de la cámara. Existe porque la primera versión de la
-cámara apoyaba la pantalla 15×20 px corrida y en la esquina de arriba
-a la izquierda asomaba el fondo; en el cuadro entero no se veía, en el
-zoom del usuario sí ("mirá los bordes, no se fillean", 2026-09-04).
-Cada capa se posiciona por su cuenta y se redondea a píxel por cuadro:
-un origen mal tomado no falla, se ve. Los PNG del bisel viven en
-`.context/mockup/`, gitignoreados: la licencia de Apple permite usarlos
-para mockups de interfaces de sus plataformas y no redistribuirlos. Se
-bajan de <https://developer.apple.com/design/resources/>
-(Bezel-iPhone-17.dmg).
-
-**Lo que este pipeline no da, y qué lo daría.** Los gestos son
-sintéticos (la sonda mueve el pager con curvas medidas), no un dedo. Si
-se quiere el feel de un dedo real, la grabación se hace en el teléfono
-con Expo Go y una herramienta que grabe por USB con marco: Screen
-Studio lo hace pero sin auto-zoom en iOS (no ve los toques); Matte
-graba simulador o iPhone con marco y zoom. Lo demás —fondo, cámara,
-sombra— ya está acá, medido, y es gratis.
-
-## El agente al lado del simulador
-
-Los MCP que le dan ojos —`expo-mcp` para screenshots y automation del
-simulador, XcodeBuildMCP para el lado Xcode— están relevados en la recon
-y **todavía no están conectados acá**. Mientras tanto el agente escribe
-los archivos y vos mirás el simulador, que es el modo que ya funciona:
-Metro recarga en caliente y la pieza se actualiza sin perder el estado.
-
-## Lo que no viaja
-
-`node_modules/`, `.expo/`, `/ios` y `/android` están gitignoreados. Lo
-que viaja es **el código de las piezas**, que es el punto de tenerlo
-adentro del repo: un worktree nuevo hace `pnpm install` y tiene todo el
-taller.
-
-**El dev client se construye una vez por máquina, no por worktree.** Las
-dependencias nativas viven en la app instalada en el simulador, así que
-mientras una pieza sea sólo TypeScript —el caso normal— cualquier
-worktree la alimenta con su propio Metro. Recién si entra una
-dependencia nativa nueva hay que reconstruir.
-
-## Un worktree por vez contra el simulador
-
-Pero **de a uno**: dos worktrees no pueden usar el simulador al mismo
-tiempo, y la forma en que falla es traicionera.
-
-El dev client se compila con `expo run:ios`, y ese build **no incluye
-`expo-dev-client`** — no está en `package.json`, y está verificado:
-adentro de `Taller.app` no hay `EXDevLauncher` ni nada del launcher. Sin
-launcher no hay pantalla para elegir servidor, así que la app pide el
-bundle **siempre a `localhost:8081`**, el puerto que `expo run:ios` le
-horneó.
-
-Entonces el segundo `pnpm ios` encuentra el 8081 ocupado, ofrece el 8082
-—y en modo no interactivo ni eso: corta— y si lo levantás igual, la app
-sigue leyendo del primero. Nadie avisa, porque del lado tuyo compila
-todo bien. **El síntoma es el peor posible: el índice del taller aparece
-sin tu pieza**, como si `require.context` no la hubiera encontrado.
-
-Se descarta en diez segundos:
-
-```bash
-lsof -nP -iTCP:8081 -sTCP:LISTEN     # ¿de quién es el puerto?
-```
-
-Si ese pid no es tu Metro, es el de otro worktree, y la única salida es
-cortarlo y levantar el tuyo en 8081. No hay atajo — se probaron los dos
-que parecían obvios y ninguno anda: `simctl openurl` con el esquema del
-dev client (la app no entiende ese URL, no tiene launcher) y forzar
-`RCT_jsLocation` en el plist de la app (Expo lo pisa con el puerto del
-build en cada arranque).
-
-Si esto empieza a molestar seguido, lo que hay que agregar es
-`expo-dev-client`. Es una dependencia nativa: obliga a `pnpm ios:build`
-de nuevo, y por eso es una decisión y no un arreglo al pasar.
+The versions go in **exact**, with no `~`, the same as in the web repo.

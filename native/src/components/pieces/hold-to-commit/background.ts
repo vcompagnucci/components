@@ -13,7 +13,7 @@
  *   'plain'     nothing but the button, where the clip has it (at the foot)
  *   'centered'  nothing but the button, in the middle of the screen
  *   'blocks'    the Opal screen as a skeleton: same grid and heights,
- *               grey bars for text, silhouettes for controls. The
+ *               gray bars for text, silhouettes for controls. The
  *               context without the content. CHOSEN on 2026-09-03 over
  *               the board of all four.
  *   'opal'      the measured screen from the clip, with its blotches

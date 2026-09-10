@@ -22,7 +22,7 @@ const PROFILE = require('./media/profile.jpg')
    that comes a strip of 44, the same height as the tab bar.
 
    The photo is the user's, fixed, cropped to the same 32 pt circle the
-   reference's avatar measures. Underneath goes the divider's grey while
+   reference's avatar measures. Underneath goes the divider's gray while
    it loads, which is the same block the feed's avatars use.
    ═══════════════════════════════════════════════════════════════ */
 export function Header() {

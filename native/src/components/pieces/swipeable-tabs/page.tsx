@@ -14,7 +14,7 @@ import { usePalette } from './theme'
    what you need when the thing under study is the bar) and REAL MEDIA:
    the user assigned the images tab by tab (2026-09-01, see `media.ts`),
    as a mockup of real tweets. All six pages have photos; a page with no
-   list (if a tab is added) keeps the grey blocks of the original mock.
+   list (if a tab is added) keeps the gray blocks of the original mock.
 
    The photos go in the ODD rows (1, 3, 5…), in the order of the list:
    each page opens with a text tweet and then alternates, deterministic
@@ -88,7 +88,7 @@ export function Page({ id, index }: { id: string; index: number }) {
       {Array.from({ length: ROWS }, (_, row) => {
         const seed = index * 31 + row
         /* The photos take the odd rows in order; past the end of the
-           list, text rows only. With no photos assigned, the grey block
+           list, text rows only. With no photos assigned, the gray block
            of the original mock with its usual rhythm. */
         const photo = photos && row % 2 === 1 ? photos[(row - 1) / 2] : undefined
         return (
@@ -128,8 +128,8 @@ const css = StyleSheet.create({
   body: { flex: 1, gap: 4 },
   heading: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
 
-  /* The two grey blocks use the ONLY surface grey the reference left
-     measured, the divider, because adding a new grey would mean
+  /* The two gray blocks use the ONLY surface gray the reference left
+     measured, the divider, because adding a new gray would mean
      inventing a value for something that is not even the subject of the
      piece. The concrete color comes from `tint`, per the palette. */
   avatar: { width: 40, height: 40, borderRadius: 20 },
@@ -140,7 +140,7 @@ const css = StyleSheet.create({
      that from 0.76 on. Without this, even the "correct" radius looks
      foreign. `overflow: hidden` because the real photo goes inside and
      it is the box that clips to the squircle, not the image. The 16/9
-     is the grey block's fallback; with a photo, the clamped ratio
+     is the gray block's fallback; with a photo, the clamped ratio
      overrides it. */
   media: {
     marginTop: 8,

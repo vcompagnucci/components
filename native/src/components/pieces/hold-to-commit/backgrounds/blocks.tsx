@@ -5,11 +5,11 @@ import { CARD, COLOR, DAYS, GAP, SCREEN, SECTION, TOGGLE } from '../measurements
 /* ═══════════════════════════════════════════════════════════════
    THE "BLOCKS" BACKGROUND — the Opal screen as a skeleton: the same grid,
    the same measured heights and paddings, with no text, no color and no
-   blotches. Each text is a grey bar, each control is its silhouette. That
+   blotches. Each text is a gray bar, each control is its silhouette. That
    way the button has context (it is at the foot of a form) without
    anything competing with it.
 
-   THREE GREYS, all neutral: the background (COLOR.background), the cards
+   THREE GRAYS, all neutral: the background (COLOR.background), the cards
    (COLOR.card) and the bars (`BAR`, one step lighter). Nothing has a tint.
 
    THE BUTTON IS NEITHER TOUCHED NOR OVERLAPPED: the last block ends
@@ -62,7 +62,7 @@ export function BlocksBackground({ paddingTop }: { paddingTop: number }) {
           <Row left={30} right={92} />
         </View>
         <View style={{ height: CARD.separation }} />
-        {/* The days: the text row and the seven circles, in grey. */}
+        {/* The days: the text row and the seven circles, in gray. */}
         <View style={css.card}>
           <Row left={128} right={66} />
           <View style={{ height: GAP.textToCircles }} />

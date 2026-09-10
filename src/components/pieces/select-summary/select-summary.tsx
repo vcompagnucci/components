@@ -1,306 +1,313 @@
 /* ═══════════════════════════════════════════════════════════════
-   SELECT SUMMARY — el resumen de una selección múltiple.
+   SELECT SUMMARY: the summary of a multiple selection.
 
-   PIEZA WEB, y corre viva: el archivo de este lado de la frontera es el
-   canónico (ver AGENTS.md › La exhibition). Es AUTOCONTENIDO a propósito —
-   no importa nada de src/privado/ ni de ninguna otra pieza— y por eso
-   las cuatro personas y su chip viven acá adentro y no en un módulo
-   aparte.
+   A WEB PIECE, and it runs live: the file on this side of the boundary
+   is the canonical one (see AGENTS.md › The exhibition). It is
+   SELF-CONTAINED on purpose (it imports nothing from src/private/ and
+   nothing from any other piece), and that is why the four people and
+   their chip live in here and not in a module of their own.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ─── DE DONDE SALE CADA VALOR ───
-   La referencia, reconstruida desde la medición.
+/* ─── WHERE EVERY VALUE COMES FROM ───
+   The reference, rebuilt from the measurement.
 
-   Referencia: VAULT_DIR/web/Select summary.mp4 (X, @abjt14). Todo lo
-   que sigue se midió
-   cuadro a cuadro sobre el máster de 1322×1058 a 60 fps, no a ojo.
+   Reference: VAULT_DIR/web/Select summary.mp4 (X, @abjt14). Everything
+   that follows was measured
+   frame by frame off the 1322×1058 master at 60 fps, not by eye.
 
-   LA UNIDAD ES EL ALTO DEL DISPARADOR. La grabación tiene zoom
-   variable, así que un ancho en píxeles de video no es un ancho en
-   píxeles de CSS: lo único que sobrevive es la RAZÓN contra el alto del
-   botón. Cada número de abajo lleva su razón medida al lado. El alto
-   —40 px— es LA ÚNICA DECISIÓN nuestra: la medición lo acota entre 38 y
-   44 (el anillo de 1 px mide 4.8 px de video) y adentro de esa banda no
-   hay nada que medir.
+   THE UNIT IS THE HEIGHT OF THE TRIGGER. The recording zooms in and
+   out, so a width in video pixels is not a width in CSS pixels: the
+   only thing that survives is the RATIO against the height of the
+   button. Every number below carries its measured ratio beside it. The
+   height, 40 px, is THE ONLY DECISION of ours: the measurement bounds
+   it between 38 and 44 (the 1 px ring measures 4.8 px of video) and
+   inside that band there is nothing to measure.
 
-   LO QUE SE MUEVE Y LO QUE NO. La referencia gasta todo su presupuesto
-   de motion en el resumen y nada en el resto: la casilla y el relleno
-   de la fila cambian en UN cuadro (≤17 ms, medido). Eso no es
-   descuido, es la pieza: se llama Select summary porque el sumario es
-   lo que se anima.
+   WHAT MOVES AND WHAT DOES NOT. The reference spends its whole motion
+   budget on the summary and nothing on the rest: the checkbox and the
+   fill of the row change in ONE frame (≤17 ms, measured). That is not
+   carelessness, it is the piece: it is called Selection summary because
+   the summary is what animates.
    ═══════════════════════════════════════════════════════════════ */
 
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
-import type { Montaje } from '../../../demos'
+import type { Mount } from '../../../demos'
 
-/* Las cuatro personas de la pieza, y el chip que las contiene.
+/* The four people of the piece, and the chip that holds them.
 
-   ─── DE DÓNDE SALE CADA FOTO ───
-   Son fotos de perfil de X de cuatro personas conocidas, bajadas el
-   2026-09-10 y guardadas en public/pieces/select-summary/. Cada una se
-   miró antes de entrar: una foto que uno no verificó es una foto
-   equivocada.
+   ─── WHERE EVERY PHOTO COMES FROM ───
+   They are X profile photos of four known people, downloaded on
+   2026-09-10 and kept in public/pieces/select-summary/. Each one was
+   looked at before it came in: a photo nobody checked is the wrong
+   photo.
 
-     karri      @karrisaarinen   Karri Saarinen, CEO de Linear
-     john       @johnternus      John Ternus, CEO de Apple desde el
+     karri      @karrisaarinen   Karri Saarinen, CEO of Linear
+     john       @johnternus      John Ternus, CEO of Apple since
                                  2026-09-01
      elon       @elonmusk        Elon Musk
-     guillermo  @rauchg          Guillermo Rauch, CEO de Vercel
+     guillermo  @rauchg          Guillermo Rauch, CEO of Vercel
 
-   LA DE ELON NO ES UNA CARA, y queda dicho: su avatar de hoy es un
-   lanzamiento de Starship. Es su foto de perfil de verdad; si tiene que
-   ser una cara, se cambia la foto o se cambia la persona.
+   ELON'S IS NOT A FACE, and it is said here: his avatar today is a
+   Starship launch. It is his real profile photo. If it has to be a
+   face, either the photo changes or the person does.
 
-   ENTERAS Y SIN TOCAR. Los cuatro archivos son los bytes que sirve X,
-   copiados tal cual: 400 × 400, entre 20 y 33 KB, sha256 idéntico al de
-   la descarga. Ni recorte ni reescala ni un segundo JPEG encima de otro
-   JPEG — cada una de esas tres cosas cuesta calidad y ninguna hace
-   falta.
+   WHOLE AND UNTOUCHED. The four files are the bytes X serves, copied as
+   they are: 400 × 400, between 20 and 33 KB, sha256 identical to the
+   download. No crop, no resample and no second JPEG on top of another
+   JPEG. Each of those three costs quality and none of them is needed.
 
-   400 es el máximo que publica X y sobra: el chip más grande mide 21 px
-   de CSS, así que ni en una pantalla de 3× —63 px— llega a pedir un
-   sexto de lo que hay. Quien reduce es el navegador, que lo hace mejor
-   que un reencodeo nuestro y sin dejarlo escrito en el archivo.
+   400 is the most X publishes and it is plenty: the largest chip
+   measures 21 px of CSS, so not even on a 3× screen (63 px) does it ask
+   for a sixth of what is there. The one that scales down is the
+   browser, which does it better than a re-encode of ours and without
+   writing the result into the file.
 
-   Y no se recortan aunque tengan de más: la de Guillermo lleva un búho
-   apoyado en el hombro, y encuadrarle la cara le come la cabeza. El
-   círculo del chip ya recorta lo que sobra.
+   And they are not cropped even though they have room to spare:
+   Guillermo's has an owl sitting on his shoulder, and framing his face
+   cuts the owl's head off. The circle of the chip already crops what is
+   left over.
 
-   ANTES ACÁ HUBO DOS VERSIONES, y las dos pedían encuadre a mano.
-   Logotipos de marcas (simple-icons, CC0) costaron tres vueltas —caja,
-   tinta y centroide, las tres medían bien y ninguna se veía bien—, y
-   las iniciales sobre discos de color costaron medir dónde cae la letra
-   en un tipo variable. Una cara no pide nada de eso, y a 10 px sigue
-   siendo una persona cuando una letra ya no es nadie. */
+   THERE WERE TWO VERSIONS HERE BEFORE, and both of them asked for
+   framing by hand. Brand logos (simple-icons, CC0) cost three rounds
+   (box, ink and centroid: all three measured right and none of them
+   looked right), and initials on colored discs cost measuring where the
+   letter falls in a variable typeface. A face asks for none of that,
+   and at 10 px it is still a person when a letter is already nobody. */
 
-type Persona = {
+type Person = {
   id: string
-  nombre: string
-  /* La foto, servida desde public/. Una pieza Web es autocontenida en
-     cuanto a CÓDIGO —no importa nada de otra pieza ni del área privada—
-     y esto no es un import: es una URL, igual que el video de una pieza
-     App. */
-  foto: string
+  name: string
+  /* The photo, served from public/. A Web piece is self-contained as
+     far as CODE goes (it imports nothing from another piece and nothing
+     from the private area) and this is not an import: it is a URL, the
+     same as the video of an App piece. */
+  photo: string
 }
 
-const PERSONAS: Persona[] = [
-  { id: 'karri', nombre: 'Karri', foto: '/pieces/select-summary/karri.jpg' },
-  { id: 'john', nombre: 'John', foto: '/pieces/select-summary/john.jpg' },
-  { id: 'elon', nombre: 'Elon', foto: '/pieces/select-summary/elon.jpg' },
-  { id: 'guillermo', nombre: 'Guillermo', foto: '/pieces/select-summary/guillermo.jpg' },
+const PEOPLE: Person[] = [
+  { id: 'karri', name: 'Karri', photo: '/pieces/select-summary/karri.jpg' },
+  { id: 'john', name: 'John', photo: '/pieces/select-summary/john.jpg' },
+  { id: 'elon', name: 'Elon', photo: '/pieces/select-summary/elon.jpg' },
+  { id: 'guillermo', name: 'Guillermo', photo: '/pieces/select-summary/guillermo.jpg' },
 ]
 
-/* Un chip: la foto recortada en círculo, al tamaño que le toque.
+/* A chip: the photo cropped into a circle, at whatever size it gets.
 
-   El círculo lo hace el border-radius del propio <svg> y no un
-   clip-path: el SVG ya recorta lo que se sale de su caja, así que con
-   la caja redonda la foto sale redonda. La misma esquina redondeada
-   dibuja el aro exterior con box-shadow. */
+   The circle is the border-radius of the <svg> itself and not a
+   clip-path: the SVG already crops whatever leaves its box, so with a
+   round box the photo comes out round. That same rounded corner draws
+   the outer ring with box-shadow. */
 function Chip({
-  persona,
-  tamano,
-  aro,
+  person,
+  size,
+  ring,
 }: {
-  persona: Persona
-  /* en rem, como todo lo que tiene que crecer con el texto */
-  tamano: number
-  /* El anillo del color de la SUPERFICIE que separa un chip del que
-     tiene debajo cuando se superponen; la referencia lo usa con dos
-     elegidas. Va afuera y no adentro, que es donde vive el contorno de
-     la foto. En rem, ya dividido por la escala del chip para que mida
-     un píxel de pantalla y no uno del chip. */
-  aro?: number
+  person: Person
+  /* in rem, like everything that has to grow with the text */
+  size: number
+  /* The ring in the color of the SURFACE that separates one chip from
+     the one underneath when they overlap; the reference uses it with
+     two chosen. It goes outside and not inside, which is where the
+     outline of the photo lives. In rem, already divided by the scale of
+     the chip so that it measures one screen pixel and not one chip
+     pixel. */
+  ring?: number
 }) {
   return (
     <svg
       viewBox="0 0 40 40"
       style={{
-        width: `${tamano}rem`,
-        height: `${tamano}rem`,
+        width: `${size}rem`,
+        height: `${size}rem`,
         flex: 'none',
         borderRadius: '50%',
-        boxShadow: aro ? `0 0 0 ${aro}rem var(--pieza-superficie)` : undefined,
+        boxShadow: ring ? `0 0 0 ${ring}rem var(--piece-surface)` : undefined,
       }}
       aria-hidden
     >
-      <image href={persona.foto} width="40" height="40" preserveAspectRatio="xMidYMid slice" />
-      {/* El contorno, 1 px hacia adentro de los 40. Lo necesita la foto
-          clara sobre superficie clara —la de Karri tiene fondo blanco—:
-          sin esta línea el chip no termina en ningún lado. */}
-      <circle cx="20" cy="20" r="19.5" fill="none" stroke="var(--pieza-contorno)" />
+      <image href={person.photo} width="40" height="40" preserveAspectRatio="xMidYMid slice" />
+      {/* The outline, 1 px inside the 40. The one that needs it is the
+          light photo on a light surface (Karri's has a white
+          background): without this line the chip does not end
+          anywhere. */}
+      <circle cx="20" cy="20" r="19.5" fill="none" stroke="var(--piece-outline)" />
     </svg>
   )
 }
 
-/* ─── EL MODELO: "TODAS" ES LA AUSENCIA DE FILTRO ───
-   La referencia hace otra cosa: ahí "All Chains" es una quinta fila que
-   se tilda y apaga a las otras cuatro (medido en el cuadro: con el modo
-   puesto, las filas de cada cadena tienen el aro vacío). O sea un radio
-   disfrazado de casilla, y un estado "todas" que hay que elegir.
+/* ─── THE MODEL: "ALL" IS THE ABSENCE OF A FILTER ───
+   The reference does something else: there "All Chains" is a fifth row
+   that gets checked and turns the other four off (measured in the
+   frame: with the mode on, the rows of each chain have an empty ring).
+   That is a radio button dressed up as a checkbox, and an "all" state
+   you have to choose.
 
-   Acá no. `todas` es CERO tildes, y la fila de arriba deja de ser un
-   estado para ser la acción que limpia. Los recibos, leídos de la API
-   de documentación de Apple el 2026-09-09:
+   Not here. "all" is ZERO checkmarks, and the top row stops being a
+   state to become the action that clears. The receipts, read from
+   Apple's documentation API on 2026-09-09:
 
-   · La página de los toggles cuenta cómo resuelve esto su propio
-     teléfono: el filtro de Recents alterna entre todas las llamadas y
-     las opciones de filtro, y el botón se dibuja con fondo detrás del
-     símbolo cuando hay un filtro puesto y SIN nada detrás cuando se
-     vuelve a la vista principal. "Todas" es el estado sin marca.
-   · La de los menús recomienda ofrecer un ítem que quite todos los
-     atributos conmutados de una vez —su ejemplo es "Plain"—, y pedir
-     un verbo en el rótulo cuando no se distingue una acción de un
-     estado (su ejemplo: "Turn HDR On", no "HDR On"). De ahí sale
-     "Show all people" y no "All people".
-   · La de los menús contextuales resume una selección múltiple con la
-     cuenta de lo elegido, que es lo que hace el disparador con
+   · The toggles page tells how their own phone solves this: the
+     Recents filter alternates between all the calls and the filter
+     options, and the button is drawn with a background behind the
+     symbol when a filter is on and with NOTHING behind it when you go
+     back to the main view. "All" is the state with no mark.
+   · The menus one recommends offering an item that removes every
+     toggled attribute at once (its example is "Plain"), and asking for
+     a verb in the label when an action cannot be told apart from a
+     state (its example: "Turn HDR On", not "HDR On"). That is where
+     "Show all people" comes from, and not "All people".
+   · The contextual menus one summarizes a multiple selection with the
+     count of what is chosen, which is what the trigger does with
      "3 people".
 
-   Estas guías explican, no autorizan: son de las plataformas de Apple
-   y esto corre en la web. Lo que aportan es que el modelo no es un
-   invento nuestro, y que la referencia se apartó de él. */
-type Seleccion = 'todas' | string[]
+   These guidelines explain, they do not authorize: they belong to
+   Apple's platforms and this runs on the web. What they add is that the
+   model is not an invention of ours, and that the reference departed
+   from it. */
+type Selection = 'all' | string[]
 
-function alternar(s: Seleccion, id: string): Seleccion {
-  if (s === 'todas') return [id]
-  const proxima = s.includes(id) ? s.filter((otro) => otro !== id) : [...s, id]
-  /* LOS DOS EXTREMOS VUELVEN A "todas", y por el mismo motivo: un filtro
-     que no filtra. Sin nada elegido es evidente; con las cuatro puestas
-     también, y ahí además hay una casilla que lo dice —la de "All"—, así
-     que dejarla apagada mientras el filtro no filtra sería mentir sobre
-     el estado. Es el parent checkbox de Carbon.
+function toggle(s: Selection, id: string): Selection {
+  if (s === 'all') return [id]
+  const next = s.includes(id) ? s.filter((other) => other !== id) : [...s, id]
+  /* BOTH ENDS GO BACK TO "all", and for the same reason: a filter that
+     does not filter. With nothing chosen it is obvious; with all four
+     on it is too, and there there is also a checkbox that says so (the
+     "All" one), so leaving it off while the filter does not filter
+     would be lying about the state. It is Carbon's parent checkbox.
 
-     Hubo una versión sin el colapso de arriba, con el argumento de que
-     hacer desaparecer las cuatro tildes de golpe se lee como un error.
-     Cayó cuando "All" pasó de ser un comando a ser un estado: un comando
-     no refleja nada, una casilla sí. */
-  if (proxima.length === 0 || proxima.length === PERSONAS.length) return 'todas'
-  return proxima
+     There was a version without the collapse at the top, with the
+     argument that making the four checkmarks disappear at once reads as
+     an error. It fell when "All" went from being a command to being a
+     state: a command reflects nothing, a checkbox does. */
+  if (next.length === 0 || next.length === PEOPLE.length) return 'all'
+  return next
 }
 
-const elegidas = (s: Seleccion): Persona[] =>
-  s === 'todas' ? PERSONAS : PERSONAS.filter((p) => s.includes(p.id))
+const selectedPeople = (s: Selection): Person[] =>
+  s === 'all' ? PEOPLE : PEOPLE.filter((p) => s.includes(p.id))
 
-/* ─── EL ROTULO ES UNA CADENA, Y CAMBIA EN UN CUADRO ───
-   Sin fundido y sin partir en palabras, que son las dos cosas que hace
-   la referencia y las dos que se descartaron mirándolas correr.
+/* ─── THE LABEL IS ONE STRING, AND IT CHANGES IN ONE FRAME ───
+   No fade and no splitting into words, which are the two things the
+   reference does and the two that were dropped after watching them run.
 
-   Ella lo anima POR TOKEN: yendo de "3 Chains" a "All Chains" la palabra
-   "Chains" no se funde —su cuenta de píxeles claros no baja en ningún
-   cuadro— y sólo cambia el de adelante. Reproducirlo pide que el token
-   que se va quede fuera de flujo, y ahí, cuando es más ancho que el que
-   entra, se monta encima de la palabra de al lado durante los 200 ms del
-   cruce. Las dos salidas —recortar la palabra que se va, o correr la de
-   al lado y devolverla— son peores que el defecto.
+   The reference animates it BY TOKEN: going from "3 Chains" to "All
+   Chains" the word "Chains" does not fade (its count of light pixels
+   does not drop in any frame) and only the one in front changes.
+   Reproducing that asks for the token that leaves to be out of flow,
+   and there, when it is wider than the one coming in, it lands on top
+   of the word next to it for the 200 ms of the crossing. The two ways
+   out (clip the word that leaves, or move the one next to it and bring
+   it back) are worse than the defect.
 
-   Y el fundido entero tampoco: el cambio de estado ya lo cuentan TRES
-   cosas —la casilla que se marca, el color de la fila y el racimo—, así
-   que fundir sólo retrasa la lectura y deja uno o dos cuadros donde el
-   rótulo no dice nada.
+   And the whole fade is out too: the change of state is already told by
+   THREE things (the checkbox that gets marked, the color of the row and
+   the cluster), so fading only delays the reading and leaves one or two
+   frames where the label says nothing.
 
-   Queda dicho lo que se pierde, que está medido: la referencia funde el
-   rótulo en ~110 ms al salir y ~133 al entrar, en secuencia y sin
-   solape. Es una diferencia deliberada, no un olvido. */
-function rotulo(s: Seleccion): string {
-  if (s === 'todas') return 'All people'
-  if (s.length === 1) return elegidas(s)[0].nombre
+   What is lost is said, and it is measured: the reference fades the
+   label out in ~110 ms and in in ~133, in sequence and with no overlap.
+   It is a deliberate difference, not an oversight. */
+function label(s: Selection): string {
+  if (s === 'all') return 'All people'
+  if (s.length === 1) return selectedPeople(s)[0].name
   return `${s.length} people`
 }
 
 
-/* ─── EL RACIMO ───
-   Medido: el cuadrado del racimo mide SIEMPRE 0.523 del alto del botón,
-   con 1, 2, 3 o 4 personas adentro, y los círculos se anclan a sus
-   esquinas.
+/* ─── THE CLUSTER ───
+   Measured: the square of the cluster ALWAYS measures 0.523 of the
+   height of the button, with 1, 2, 3 or 4 people inside, and the
+   circles anchor to its corners.
 
-   Se dibuja con transform y nada más: cada chip nace del tamaño del
-   cuadrado entero y se lleva a su lugar con translate + scale desde su
-   esquina superior izquierda — que es de donde escala en la referencia
-   (medido: el borde superior izquierdo del chip que persiste no se
-   mueve un píxel mientras el chip pasa de 100 a 64). */
-/* El lado del racimo, en rem: 21 px sobre la raíz de 16. Es el MISMO 21
-   que --ss-racimo, y tienen que seguir siéndolo: el ancho del disparador
-   se suma con la variable y el racimo se dibuja con esta constante, así
-   que si una se mueve sin la otra el botón queda con el aire cambiado. */
-const RACIMO = 21 / 16
+   It is drawn with transform and nothing else: every chip is born the
+   size of the whole square and is taken to its place with translate +
+   scale from its top left corner, which is where it scales from in the
+   reference (measured: the top left edge of the chip that stays does
+   not move a pixel while the chip goes from 100 to 64). */
+/* The side of the cluster, in rem: 21 px over a root of 16. It is the
+   SAME 21 as --ss-cluster, and they have to stay that way: the width of
+   the trigger is added up with the variable and the cluster is drawn
+   with this constant, so if one moves without the other the button ends
+   up with its spacing changed. */
+const CLUSTER = 21 / 16
 
-/* ─── CUÁNTO SE PISAN LOS CHIPS ───
-   Con dos, medido: diámetro 0.643 del cuadrado y centros a 0.357 en cada
-   eje. La distancia entre centros es 0.357·√2 = 0.505 y la suma de
-   radios 0.643, así que se PISAN 0.138 del cuadrado, que es el 21.5 %
-   de un diámetro.
+/* ─── HOW MUCH THE CHIPS OVERLAP ───
+   With two, measured: diameter 0.643 of the square and centers at 0.357
+   on each axis. The distance between centers is 0.357·√2 = 0.505 and
+   the sum of the radii is 0.643, so they OVERLAP 0.138 of the square,
+   which is 21.5 % of a diameter.
 
-   Con tres se conserva ESA PROPORCIÓN, no el diámetro. No es lo mismo:
-   en una pirámide dentro del mismo cuadrado, tres círculos de 0.643 se
-   comen 44 % del vecino —el doble— y el chip de abajo tapa a los dos de
-   arriba. Con la pirámide los vecinos quedan a (1−k) y se pisan (2k−1),
-   así que (2k−1)/k = 0.215 da k = 0.56. */
-const APILADO_2 = 0.643
-const APILADO_3 = 0.56
+   With three THAT PROPORTION is kept, not the diameter. They are not
+   the same thing: in a pyramid inside the same square, three circles of
+   0.643 eat 44 % of their neighbor, twice as much, and the chip at the
+   bottom covers the two on top. With the pyramid the neighbors sit at
+   (1−k) and overlap (2k−1), so (2k−1)/k = 0.215 gives k = 0.56. */
+const STACK_DIAMETER_2 = 0.643
+const STACK_DIAMETER_3 = 0.56
 
-function plaza(n: number, i: number): { x: number; y: number; k: number } {
+function place(n: number, i: number): { x: number; y: number; k: number } {
   if (n <= 1) return { x: 0, y: 0, k: 1 }
   if (n === 2) {
-    const k = APILADO_2
+    const k = STACK_DIAMETER_2
     return i === 0 ? { x: 0, y: 0, k } : { x: 1 - k, y: 1 - k, k }
   }
-  /* ─── CON TRES, PIRAMIDE Y SE PISAN ───
-     Dos arriba y una centrada abajo, apiladas como el estado de dos y
-     con el mismo aro de 1 px del color de la superficie.
+  /* ─── WITH THREE, A PYRAMID AND THEY OVERLAP ───
+     Two on top and one centered below, stacked like the state of two
+     and with the same 1 px ring in the color of the surface.
 
-     Acá la referencia hace otra cosa: deja las tres chicas en la
-     rejilla de cuatro y dibuja la cuarta celda vacía, un círculo del
-     color del hover. Se descartó mirándolo. Un hueco no es una persona, y
-     puesto al lado de tres que sí lo son se lee como una cuarta foto que
-     no cargó. Y con el diámetro de la rejilla —0.47— la pirámide
-     quedaba suelta: tres puntos chicos separados por una canaleta, que
-     es la misma lectura de "acá falta algo". Apiladas se leen como un
-     grupo.
+     Here the reference does something else: it leaves the three small
+     ones in the grid of four and draws the fourth cell empty, a circle
+     in the color of the hover. It was dropped after watching it. A hole
+     is not a person, and put next to three that are it reads as a
+     fourth photo that did not load. And with the diameter of the grid,
+     0.47, the pyramid came out loose: three small dots separated by a
+     gutter, which is the same reading of "something is missing here".
+     Stacked they read as a group.
 
-     El cuadrado no se toca: sigue midiendo 0.523 H en los cuatro
-     estados, que es el invariante medido de la referencia. */
+     The square is not touched: it still measures 0.523 H in the four
+     states, which is the measured invariant of the reference. */
   if (n === 3) {
-    const k = APILADO_3
+    const k = STACK_DIAMETER_3
     return i < 2 ? { x: i * (1 - k), y: 0, k } : { x: (1 - k) / 2, y: 1 - k, k }
   }
-  const k = 0.47 /* medido: 47.5 sobre 101, con canaleta de 1 px */
+  const k = 0.47 /* measured: 47.5 over 101, with a 1 px gutter */
   return { x: i % 2 === 0 ? 0 : 1 - k, y: i < 2 ? 0 : 1 - k, k }
 }
 
-/* `lado` va en REM, no en píxeles: el racimo crece con el tamaño de
-   texto del sistema igual que el resto de la pieza. */
-function Racimo({ personas, lado }: { personas: Persona[]; lado: number }) {
-  const n = personas.length
-  /* El primer pintado no anima: los chips que ya están cuando la pieza
-     aparece están en reposo, no acaban de entrar. El atributo se pone
-     después del primer cuadro y a partir de ahí @starting-style
-     encuentra el selector. */
-  const [montado, setMontado] = useState(false)
+/* `side` goes in REM, not in pixels: the cluster grows with the
+   system's text size just like the rest of the piece. */
+function Cluster({ people, side }: { people: Person[]; side: number }) {
+  const n = people.length
+  /* The first paint does not animate: the chips that are already there
+     when the piece appears are at rest, they have not just come in. The
+     attribute is set after the first frame and from there on
+     @starting-style finds the selector. */
+  const [mounted, setMounted] = useState(false)
   useEffect(() => {
-    const id = requestAnimationFrame(() => setMontado(true))
+    const id = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(id)
   }, [])
   return (
     <span
-      className="ss-racimo"
-      data-montado={montado ? '' : undefined}
-      style={{ width: `${lado}rem`, height: `${lado}rem` }}
+      className="ss-cluster"
+      data-mounted={mounted ? '' : undefined}
+      style={{ width: `${side}rem`, height: `${side}rem` }}
     >
-      {personas.map((persona, i) => {
-        const celda = plaza(n, i)
+      {people.map((person, i) => {
+        const cell = place(n, i)
         return (
           <span
-            key={persona.id}
+            key={person.id}
             className="ss-chip"
             style={{
-              width: `${lado}rem`,
-              height: `${lado}rem`,
-              transform: `translate(${celda.x * lado}rem, ${celda.y * lado}rem) scale(${celda.k})`,
+              width: `${side}rem`,
+              height: `${side}rem`,
+              transform: `translate(${cell.x * side}rem, ${cell.y * side}rem) scale(${cell.k})`,
               zIndex: i,
             }}
           >
-            {/* el aro va donde los chips se pisan: con dos y con tres */}
-            <Chip persona={persona} tamano={lado} aro={n === 2 || n === 3 ? 1 / 16 / celda.k : undefined} />
+            {/* the ring goes where the chips overlap: with two and with three */}
+            <Chip person={person} size={side} ring={n === 2 || n === 3 ? 1 / 16 / cell.k : undefined} />
           </span>
         )
       })}
@@ -308,201 +315,203 @@ function Racimo({ personas, lado }: { personas: Persona[]; lado: number }) {
   )
 }
 
-/* ─── EN LA LISTA TAMBIÉN SE USA ───
-   La pieza no reproduce nada: no hay guion, no hay bucle y no hay un
-   estado que avance solo. En la lista es el mismo control que en el
-   detalle y contesta al puntero, que es como se comporta la otra pieza
-   Web de la exhibition.
+/* ─── IT IS USED IN THE LIST TOO ───
+   The piece plays nothing: there is no script, no loop and no state
+   that moves on its own. In the list it is the same control as in the
+   detail and it answers the pointer, which is how the other Web piece
+   of the exhibition behaves.
 
-   Acá vivía un guion de cuatro estados que corría cada 1500 ms mientras
-   el puntero estuviera sobre la card. Se leía como una grabación, que es
-   justo lo que una pieza Web no es. */
-export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } = {}) {
-  /* EN LA LISTA NO SE TABULA, PERO SÍ SE TOCA. Ahí el demo es un preview
-     adentro de una card que promete abrir el detalle: seis paradas más
-     de tabulador por card la ensucian, así que los controles salen del
-     orden de tabulación y el clic de cada uno se frena para que no
-     navegue. Con el puntero la pieza funciona entera, que es lo que un
-     preview vivo tiene que hacer. */
-  const esPreview = modo === 'lista'
-  const [vista, setVista] = useState<Seleccion>('todas')
-  /* EL FRENO DEL CLIC. En la lista la card entera navega al detalle, y
-     el clic de un control de la pieza sube hasta ella. `preventDefault`
-     alcanza: el manejador de la card sale si el evento ya fue atendido
-     (clicDeTarjeta, en parts.tsx). En el detalle no hay card y el
-     preventDefault no le saca nada a un <button type="button">, así que
-     es el mismo código para los dos. */
-  const frenar = (e: MouseEvent) => {
+   A script of four states used to live here, running every 1500 ms as
+   long as the pointer was over the card. It read like a recording,
+   which is exactly what a Web piece is not. */
+export default function SelectSummary({ mode = 'detail' }: { mode?: Mount } = {}) {
+  /* IN THE LIST THERE IS NO TABBING, BUT THERE IS TOUCHING. There the
+     demo is a preview inside a card that promises to open the detail:
+     six more tab stops per card make a mess of it, so the controls come
+     out of the tab order and the click of each one is stopped so that
+     it does not navigate. With the pointer the piece works whole, which
+     is what a live preview has to do. */
+  const isPreview = mode === 'list'
+  const [selection, setSelection] = useState<Selection>('all')
+  /* STOPPING THE CLICK. In the list the whole card navigates to the
+     detail, and the click of a control of the piece goes up to it.
+     `preventDefault` is enough: the card's handler bails out if the
+     event was already handled (cardClick, in parts.tsx). In the detail
+     there is no card and preventDefault takes nothing away from a
+     <button type="button">, so it is the same code for both. */
+  const stopClick = (e: MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
   }
-  /* ARRANCA ABIERTO, y es de la pieza y no del control: lo que hay que
-     ver es de dónde sale el resumen, y con el panel cerrado la card
-     muestra una píldora sola sin nada que la explique. En un producto
-     el estado inicial sería el contrario. */
-  const [abierto, setAbierto] = useState(true)
-  const raiz = useRef<HTMLDivElement>(null)
+  /* IT STARTS OPEN, and that belongs to the piece and not to the
+     control: what has to be seen is where the summary comes from, and
+     with the panel closed the card shows a lone pill with nothing to
+     explain it. In a product the initial state would be the opposite. */
+  const [open, setOpen] = useState(true)
+  const root = useRef<HTMLDivElement>(null)
   const panel = useRef<HTMLDivElement>(null)
   const id = useId()
 
-  /* Cerrar al tocar afuera, que es lo que hace cualquier menú y lo que
-     la referencia hace al final del clip. */
+  /* Close on touching outside, which is what any menu does and what the
+     reference does at the end of the clip. */
   useEffect(() => {
-    if (!abierto) return
-    const afuera = (e: PointerEvent) => {
-      if (!raiz.current?.contains(e.target as Node)) setAbierto(false)
+    if (!open) return
+    const closeIfOutside = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('pointerdown', afuera)
-    return () => document.removeEventListener('pointerdown', afuera)
-  }, [abierto])
+    document.addEventListener('pointerdown', closeIfOutside)
+    return () => document.removeEventListener('pointerdown', closeIfOutside)
+  }, [open])
 
-  /* ─── ESCAPE LO CONSUME EL PANEL, NO LA PÁGINA ───
-     Cierra y DEVUELVE EL FOCO al disparador: sin eso el foco se queda en
-     una fila que pasa a visibility hidden y el tabulador vuelve a
-     arrancar desde el principio del documento.
+  /* ─── ESCAPE IS CONSUMED BY THE PANEL, NOT BY THE PAGE ───
+     It closes and GIVES THE FOCUS BACK to the trigger: without that the
+     focus stays on a row that goes to visibility hidden and the tab key
+     starts over from the beginning of the document.
 
-     VA EN LA RAÍZ DE LA PIEZA Y NO EN EL DOCUMENTO, y eso es lo que
-     arregla un choque medido. La página también cierra con Escape —el
-     detalle vuelve a la lista, app.tsx— y su listener vive en
-     `document`. Con los dos escuchando ahí, una sola tecla hacía las dos
-     cosas: medido, el foco llegaba al disparador y 300 ms después
-     estabas en la home con la pieza remontada. Escuchando en la raíz, el
-     stopPropagation corta el evento ANTES de que salga de la pieza —el
-     listener de React vive en el contenedor de la app, que está por
-     debajo de document— y la página no se entera.
+     IT GOES ON THE ROOT OF THE PIECE AND NOT ON THE DOCUMENT, and that
+     is what fixes a measured collision. The page also closes with
+     Escape (the detail goes back to the list, app.tsx) and its listener
+     lives on `document`. With both of them listening there, a single
+     key did both things: measured, the focus reached the trigger and
+     300 ms later you were on the home with the piece remounted.
+     Listening on the root, the stopPropagation cuts the event BEFORE it
+     leaves the piece (React's listener lives on the app's container,
+     which is below document) and the page never finds out.
 
-     Sólo consume la tecla si el panel está abierto y el foco está
-     adentro. Con el panel cerrado, o con el foco en otro lado, Escape
-     vuelve a ser de la página: es su tecla, y un menú que no tiene el
-     foco no tiene por qué quedársela. */
-  const alTecladoRaiz = (e: React.KeyboardEvent) => {
-    if (e.key !== 'Escape' || !abierto) return
+     It only consumes the key if the panel is open and the focus is
+     inside. With the panel closed, or with the focus somewhere else,
+     Escape belongs to the page again: it is its key, and a menu that
+     does not have the focus has no reason to keep it. */
+  const onRootKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Escape' || !open) return
     e.stopPropagation()
-    setAbierto(false)
-    raiz.current?.querySelector<HTMLElement>('.ss-disparador')?.focus()
+    setOpen(false)
+    root.current?.querySelector<HTMLElement>('.ss-trigger')?.focus()
   }
 
-  const personas = elegidas(vista)
-  const texto = rotulo(vista)
+  const people = selectedPeople(selection)
+  const text = label(selection)
 
-  /* ─── "All" ES UNA CASILLA MÁS, Y VA ABAJO ───
-     La posición sale de shadcn/ui: primero el contenido, después lo que
-     habla del contenido, y las personas quedan pegadas al disparador de
-     donde venís. La forma —una casilla que se marca sola cuando no hay
-     filtro— es el parent checkbox de Carbon (IBM).
+  /* ─── "All" IS ONE MORE CHECKBOX, AND IT GOES AT THE BOTTOM ───
+     The position comes from shadcn/ui: first the content, then what
+     talks about the content, and the people stay stuck to the trigger
+     you come from. The form, a checkbox that marks itself when there is
+     no filter, is Carbon's (IBM) parent checkbox.
 
-     Se probaron y se descartaron otras dos, mirándolas correr. Una era
-     un COMANDO arriba, sin casilla, atenuado cuando no había nada que
-     limpiar: es lo que pide la guía de menús de Apple, y medido no lo
-     hace ninguno de los productos que miré —Apple y shadcn esconden ese
-     control en vez de atenuarlo—. La otra era no tener la fila: el
-     modelo no la necesita, porque cero tildes ya es "todas", pero se
-     pierde volver ahí en un toque.
+     Two others were tried and dropped, watching them run. One was a
+     COMMAND at the top, with no checkbox, dimmed when there was nothing
+     to clear: that is what Apple's menus guideline asks for, and
+     measured, none of the products I looked at does it (Apple and
+     shadcn hide that control instead of dimming it). The other was not
+     having the row: the model does not need it, because zero checkmarks
+     is already "all", but you lose going back there in one tap.
 
-     Con "All" siendo un estado y no una acción, TODAS las filas son
-     casillas y el panel tiene un solo rol. */
-  const filaTodas = {
-    id: 'todas',
-    nombre: 'All',
-    personas: PERSONAS,
-    puesta: vista === 'todas',
-    todas: true,
+     With "All" being a state and not an action, ALL the rows are
+     checkboxes and the panel has a single role. */
+  const allRow = {
+    id: 'all',
+    name: 'All',
+    people: PEOPLE,
+    checked: selection === 'all',
+    all: true,
   }
-  const filas = [
-    ...PERSONAS.map((p) => ({
+  const rows = [
+    ...PEOPLE.map((p) => ({
       id: p.id,
-      nombre: p.nombre,
-      personas: [p],
-      puesta: vista !== 'todas' && vista.includes(p.id),
-      todas: false,
+      name: p.name,
+      people: [p],
+      checked: selection !== 'all' && selection.includes(p.id),
+      all: false,
     })),
-    filaTodas,
+    allRow,
   ]
 
-  /* La fila dice de qué fila se trata; el id es sólo su clave. */
-  const tocar = (fila: (typeof filas)[number]) => {
-    setVista((s) => (fila.todas ? 'todas' : alternar(s, fila.id)))
+  /* The row says which row it is; the id is only its key. */
+  const selectRow = (row: (typeof rows)[number]) => {
+    setSelection((s) => (row.all ? 'all' : toggle(s, row.id)))
   }
 
-  const filasDom = () =>
-    Array.from(panel.current?.querySelectorAll<HTMLElement>('.ss-fila') ?? [])
+  const rowElements = () =>
+    Array.from(panel.current?.querySelectorAll<HTMLElement>('.ss-row') ?? [])
 
-  /* i negativo cuenta desde el final, como un slice. */
-  const enfocarFila = (i: number) => {
-    const nodos = filasDom()
-    nodos[i < 0 ? nodos.length + i : i]?.focus()
+  /* A negative i counts from the end, like a slice. */
+  const focusRow = (i: number) => {
+    const elements = rowElements()
+    elements[i < 0 ? elements.length + i : i]?.focus()
   }
 
-  /* Flechas dentro de la lista, que es lo que espera un listbox. */
-  const alTeclado = (e: React.KeyboardEvent) => {
+  /* Arrows inside the list, which is what a listbox expects. */
+  const onPanelKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
     e.preventDefault()
-    const nodos = filasDom()
-    const i = nodos.indexOf(document.activeElement as HTMLElement)
+    const elements = rowElements()
+    const i = elements.indexOf(document.activeElement as HTMLElement)
     const j = e.key === 'ArrowDown' ? i + 1 : i - 1
-    nodos[(j + nodos.length) % nodos.length]?.focus()
+    elements[(j + elements.length) % elements.length]?.focus()
   }
 
-  /* ─── DEL DISPARADOR AL PANEL, CON LAS FLECHAS ───
-     El patrón de menú de WAI-ARIA pide que un botón con aria-haspopup
-     abra Y deje el foco en el primer ítem cuando se baja la flecha.
-     Medido antes de esto: seis ArrowDown seguidas y el foco no se movía
-     del botón. Se llegaba igual con Tab, así que no era un control
-     inalcanzable, pero sí un menú que no se maneja como un menú.
+  /* ─── FROM THE TRIGGER TO THE PANEL, WITH THE ARROWS ───
+     WAI-ARIA's menu pattern asks that a button with aria-haspopup open
+     AND leave the focus on the first item when the down arrow is
+     pressed. Measured before this: six ArrowDown in a row and the focus
+     did not move off the button. You got there with Tab anyway, so it
+     was not an unreachable control, but it was a menu that is not
+     driven like a menu.
 
-     El foco no se puede pedir en el mismo cuadro: las filas están en
-     visibility hidden mientras el panel está cerrado, y un elemento
-     invisible no toma foco. Por eso la intención se guarda y la cobra el
-     efecto de abajo, ya con el panel abierto. */
-  const focoAlAbrir = useRef<number | null>(null)
+     The focus cannot be asked for in the same frame: the rows are at
+     visibility hidden while the panel is closed, and an invisible
+     element does not take focus. That is why the intent is stored and
+     the effect below collects it, with the panel already open. */
+  const focusOnOpen = useRef<number | null>(null)
 
-  const alTecladoDisparador = (e: React.KeyboardEvent) => {
+  const onTriggerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
     e.preventDefault()
-    const destino = e.key === 'ArrowDown' ? 0 : -1
-    if (abierto) return enfocarFila(destino)
-    focoAlAbrir.current = destino
-    setAbierto(true)
+    const index = e.key === 'ArrowDown' ? 0 : -1
+    if (open) return focusRow(index)
+    focusOnOpen.current = index
+    setOpen(true)
   }
 
   useEffect(() => {
-    if (!abierto || focoAlAbrir.current === null) return
-    enfocarFila(focoAlAbrir.current)
-    focoAlAbrir.current = null
+    if (!open || focusOnOpen.current === null) return
+    focusRow(focusOnOpen.current)
+    focusOnOpen.current = null
   })
 
   return (
     /* oxlint-disable-next-line jsx-a11y/no-static-element-interactions --
-       esta raíz no es un control: sólo DELEGA el teclado (Escape y las
-       flechas) a los controles de adentro, que sí tienen su rol. Darle
-       un `role` acá anunciaría un widget que no existe. */
+       this root is not a control: it only DELEGATES the keyboard
+       (Escape and the arrows) to the controls inside, which do have
+       their role. Giving it a `role` here would announce a widget that
+       does not exist. */
     <div
       className="ss"
-      ref={raiz}
-      data-lista={esPreview ? '' : undefined}
-      onKeyDown={alTecladoRaiz}
+      ref={root}
+      data-list={isPreview ? '' : undefined}
+      onKeyDown={onRootKeyDown}
     >
       <style href="select-summary" precedence="default">
         {CSS}
       </style>
 
       <button
-        className="ss-disparador"
+        className="ss-trigger"
         type="button"
-        tabIndex={esPreview ? -1 : undefined}
+        tabIndex={isPreview ? -1 : undefined}
         aria-haspopup="menu"
-        aria-expanded={abierto}
+        aria-expanded={open}
         aria-controls={`${id}-panel`}
         onClick={(e) => {
-          frenar(e)
-          setAbierto((v) => !v)
+          stopClick(e)
+          setOpen((v) => !v)
         }}
-        onKeyDown={alTecladoDisparador}
+        onKeyDown={onTriggerKeyDown}
       >
-        <span className="ss-contenido">
-          <Racimo personas={personas} lado={RACIMO} />
-          <span className="ss-rotulo">
-            <span className="ss-rotulo-texto">{texto}</span>
+        <span className="ss-content">
+          <Cluster people={people} side={CLUSTER} />
+          <span className="ss-label">
+            <span className="ss-label-text">{text}</span>
           </span>
           <svg className="ss-chevron" viewBox="0 0 8 13" aria-hidden>
             <path
@@ -518,42 +527,43 @@ export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } =
       </button>
 
       {/* oxlint-disable-next-line jsx-a11y/interactive-supports-focus --
-          en un menú el foco vive en los ITEMS, no en el contenedor (ARIA
-          APG), y acá los items son `<button>` nativos, ya focusables.
-          Ponerle `tabIndex={-1}` al contenedor haría que un clic lo
-          enfoque y le robe el foco al botón. */}
+          in a menu the focus lives on the ITEMS, not on the container
+          (ARIA APG), and here the items are native `<button>`s, already
+          focusable. Giving the container a `tabIndex={-1}` would make a
+          click focus it and steal the focus from the button. */}
       <div
           className="ss-popover"
-          data-abierto={abierto ? '' : undefined}
+          data-open={open ? '' : undefined}
           id={`${id}-panel`}
-          /* Un MENU, no un listbox: cuatro conmutadores y una acción no
-             son una lista de opciones. Es el mapeo ARIA del pull-down
-             button de Apple, que es el componente que admite elegir
-             varias. */
+          /* A MENU, not a listbox: four toggles and an action are not a
+             list of options. It is the ARIA mapping of Apple's pull-down
+             button, which is the component that allows choosing
+             several. */
           role="menu"
           aria-label="People"
           ref={panel}
-          onKeyDown={alTeclado}
+          onKeyDown={onPanelKeyDown}
         >
-          {filas.map((f) => (
+          {rows.map((row) => (
             <button
-              key={f.id}
-              className="ss-fila"
+              key={row.id}
+              className="ss-row"
               type="button"
-              tabIndex={esPreview ? -1 : undefined}
+              tabIndex={isPreview ? -1 : undefined}
               role="menuitemcheckbox"
-              aria-checked={f.puesta}
-              data-puesta={f.puesta ? '' : undefined}
-              data-pie={f.todas ? '' : undefined}
+              aria-checked={row.checked}
+              data-checked={row.checked ? '' : undefined}
+              data-footer={row.all ? '' : undefined}
               onClick={(e) => {
-                frenar(e)
-                tocar(f)
+                stopClick(e)
+                selectRow(row)
               }}
             >
-              {/* Medido: las cinco filas alinean su casilla, su racimo y
-                  su nombre en un solo x, 0.00 px de diferencia. */}
-              <span className="ss-casilla" data-puesta={f.puesta ? '' : undefined}>
-                <svg className="ss-tilde" viewBox="0 0 20 20" aria-hidden>
+              {/* Measured: the five rows line up their checkbox, their
+                  cluster and their name on a single x, 0.00 px of
+                  difference. */}
+              <span className="ss-checkbox" data-checked={row.checked ? '' : undefined}>
+                <svg className="ss-checkmark" viewBox="0 0 20 20" aria-hidden>
                   <path
                     d="m5.4 10.4 3.1 3.1 6.1-6.6"
                     fill="none"
@@ -564,8 +574,8 @@ export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } =
                   />
                 </svg>
               </span>
-              <Racimo personas={f.personas} lado={RACIMO} />
-              <span className="ss-nombre">{f.nombre}</span>
+              <Cluster people={row.people} side={CLUSTER} />
+              <span className="ss-name">{row.name}</span>
             </button>
           ))}
         </div>
@@ -574,504 +584,525 @@ export default function SelectSummary({ modo = 'detalle' }: { modo?: Montaje } =
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Las razones medidas están al lado de cada número. H = 40 px.
+   The measured reasons are beside every number. H = 40 px.
    ═══════════════════════════════════════════════════════════════ */
 const CSS = `
-/* La pieza es autocontenida: no hereda el box-sizing de la página. */
+/* The piece is self-contained: it does not inherit the page's
+   box-sizing. */
 .ss, .ss *, .ss *::before, .ss *::after {
   box-sizing: border-box;
 }
 
 .ss {
-  /* ─── TODO EN REM, MENOS LAS LINEAS ───
-     Si alguien sube el tamaño de texto del navegador, la pieza tiene
-     que crecer entera y no sólo las letras: por eso cada medida va en
-     rem contra la raíz de 16 px. Lo único que se queda en píxeles son
-     las líneas de 1 px —el anillo del botón, el anillo del popover, el
-     separador y el aro que despega un chip del que tiene debajo—:
-     una línea existe para verse fina, y multiplicarla la convierte en
-     una barra. Los comentarios llevan el valor en píxeles a 100 % y su
-     razón medida contra el alto. */
-  --ss-h: 2.5rem;            /* 40 px · LA DECISIÓN. Todo cae de acá. */
-  --ss-pad: 0.875rem;        /* 14 · 0.342 H = 13.7 */
-  --ss-racimo: 1.3125rem;    /* 21 · 0.523 H = 20.9 · el mismo 21 que RACIMO */
-  --ss-hueco: 0.5625rem;     /* 9 · 0.233 H = 9.3 */
-  --ss-hueco-casilla: 0.625rem;  /* 10 · 0.241 H = 9.6 */
-  --ss-tipo: 0.9375rem;      /* 15 · altura de mayúscula 0.269 H = 10.8 */
-  --ss-hueco-chevron: 1rem;  /* 16 · 0.41 H, mínimo: el chevron va a la derecha */
-  --ss-hueco-popover: 1rem;  /* 16 · 0.389 H = 15.6 */
-  --ss-radio: 0.8125rem;     /* 13 · 0.332 H = 13.3 */
-  --ss-casilla: 1.25rem;     /* 20 · 0.491 H = 19.6 */
-  --ss-aro: 0.09375rem;      /* 1.5 · 0.041 H = 1.6 */
-  --ss-chevron-ancho: 0.5rem;     /* 8 · 0.197 H */
-  --ss-chevron-alto: 0.8125rem;   /* 13 · 0.332 H */
-  --ss-aire: 2.5rem;         /* 40 · UN ALTO DE BOTÓN de aire arriba y abajo */
-  /* Acá vivían un resorte muestreado a linear() y su duración de
-     355 ms, los dos sólo para el relleno de la casilla. Se fueron con
-     la coreografía: ver LA CASILLA, más abajo. */
-  /* ─── EL ANCHO DEL DISPARADOR: LA SUMA DE SUS PARTES ───
-     Es fijo —no se anima y no se mide en tiempo de ejecución— y no se
-     escribe como número suelto: se SUMA, con las mismas variables que
-     dibujan el botón. Lo único que se elige es la RANURA DEL RÓTULO.
-     Así el ancho no puede quedar incoherente con lo que tiene adentro:
-     si mañana cambia el padding, el racimo o el chevron, el ancho los
-     sigue en vez de recortar el texto.
+  /* ─── EVERYTHING IN REM, EXCEPT THE LINES ───
+     If somebody raises the browser's text size, the piece has to grow
+     whole and not only the letters: that is why every measure goes in
+     rem against the root of 16 px. The only thing that stays in pixels
+     are the 1 px lines (the ring of the button, the ring of the
+     popover, the separator and the ring that lifts a chip off the one
+     underneath): a line exists to look thin, and multiplying it turns
+     it into a bar. The comments carry the value in pixels at 100 % and
+     its measured ratio against the height. */
+  --ss-h: 2.5rem;                 /* 40 px · THE DECISION. Everything falls from here. */
+  --ss-pad: 0.875rem;             /* 14 · 0.342 H = 13.7 */
+  --ss-cluster: 1.3125rem;        /* 21 · 0.523 H = 20.9 · the same 21 as CLUSTER */
+  --ss-gap: 0.5625rem;            /* 9 · 0.233 H = 9.3 */
+  --ss-checkbox-gap: 0.625rem;    /* 10 · 0.241 H = 9.6 */
+  --ss-font-size: 0.9375rem;      /* 15 · cap height 0.269 H = 10.8 */
+  --ss-chevron-gap: 1rem;         /* 16 · 0.41 H, minimum: the chevron goes on the right */
+  --ss-popover-gap: 1rem;         /* 16 · 0.389 H = 15.6 */
+  --ss-radius: 0.8125rem;         /* 13 · 0.332 H = 13.3 */
+  --ss-checkbox: 1.25rem;         /* 20 · 0.491 H = 19.6 */
+  --ss-ring: 0.09375rem;          /* 1.5 · 0.041 H = 1.6 */
+  --ss-chevron-width: 0.5rem;     /* 8 · 0.197 H */
+  --ss-chevron-height: 0.8125rem; /* 13 · 0.332 H */
+  --ss-outer-padding: 2.5rem;     /* 40 · ONE BUTTON HEIGHT of space above and below */
+  /* A spring sampled to linear() and its duration of 355 ms used to
+     live here, both of them only for the fill of the checkbox. They
+     went with the choreography: see THE CHECKBOX, further down. */
+  /* ─── THE WIDTH OF THE TRIGGER: THE SUM OF ITS PARTS ───
+     It is fixed (it does not animate and it is not measured at run
+     time) and it is not written as a loose number: it is ADDED UP, with
+     the same variables that draw the button. The only thing chosen is
+     the SLOT OF THE LABEL. That way the width cannot end up incoherent
+     with what it holds: if tomorrow the padding, the cluster or the
+     chevron changes, the width follows them instead of clipping the
+     text.
 
-        28  padding      --ss-pad × 2
-        21  racimo       --ss-racimo
-         9  hueco        --ss-hueco
-        76  RANURA       --ss-rotulo-ancho
-        16  al chevron   --ss-hueco-chevron
-         8  chevron      --ss-chevron-ancho
+        28  padding         --ss-pad × 2
+        21  cluster         --ss-cluster
+         9  gap             --ss-gap
+        76  SLOT            --ss-label-width
+        16  to the chevron  --ss-chevron-gap
+         8  chevron         --ss-chevron-width
        ───
-       158  más el anillo, que no ocupa lugar
+       158  plus the ring, which takes up no room
 
-     Y son 160 con el redondeo a 4 H, la unidad de toda la pieza: la
-     ranura del rótulo se lleva los 2 px que sobran. Todo está en rem, así
-     que a raíz 20 px el botón mide 200 clavados.
+     And it is 160 with the rounding to 4 H, the unit of the whole
+     piece: the slot of the label takes the 2 px left over. Everything
+     is in rem, so at a root of 20 px the button measures exactly 200.
 
-     LA RANURA ENTRA EL MÁS ANCHO DE LOS SIETE RÓTULOS POSIBLES. Medidos
-     en la página, InterVariable a 15 px: "All people" 69.59 ·
-     "Guillermo" 67.25 · "2 people" y "3 people" 61.61 · "John" 35.06 ·
-     "Karri" 33.61 · "Elon" 30.28. Con 76 el más ancho tiene 6.4 px de
-     aire, y el nombre más largo 8.75. El rótulo no lleva ese ancho
-     escrito: es flex y se queda con lo que sobra, que por la cuenta de
-     arriba es exactamente la ranura.
+     THE SLOT FITS THE WIDEST OF THE SEVEN POSSIBLE LABELS. Measured on
+     the page, InterVariable at 15 px: "All people" 69.59 · "Guillermo"
+     67.25 · "2 people" and "3 people" 61.61 · "John" 35.06 · "Karri"
+     33.61 · "Elon" 30.28. With 76 the widest one has 6.4 px of room,
+     and the longest name 8.75. The label does not carry that width
+     written down: it is flex and it keeps whatever is left over, which
+     by the sum above is exactly the slot.
 
-     NI MÁS FINO NI MÁS GORDO, y está mirado a cuatro anchos, no
-     razonado: a 148 el botón corta la "e" de "All people" —el piso
-     exacto es 153.59—; a 176 el rótulo flota y se lee como un botón a
-     medio llenar. 160 es el valor redondo adentro de esa banda.
+     NEITHER THINNER NOR FATTER, and this was looked at across four
+     widths, not reasoned: at 148 the button cuts the "e" of "All
+     people" (the exact floor is 153.59); at 176 the label floats and
+     reads like a button half filled. 160 is the round value inside that
+     band.
 
-     Y COMO EL ANCHO NO SIGUE AL RÓTULO, con un nombre corto sobra aire
-     hasta el chevron —46 px con "Elon" contra 22 con "All people"—. Es
-     el precio del ancho fijo y es lo que hace cualquier select: el
-     texto queda anclado a la izquierda y el chevron a la derecha, y lo
-     que no se mueve nunca es el control.
+     AND SINCE THE WIDTH DOES NOT FOLLOW THE LABEL, with a short name
+     there is room to spare up to the chevron: 46 px with "Elon" against
+     22 with "All people". It is the price of the fixed width and it is
+     what any select does: the text stays anchored on the left and the
+     chevron on the right, and what never moves is the control.
 
-     Que sea fijo cuesta la transición medida de la referencia, y el
-     porqué está entero abajo, en .ss-disparador. */
-  --ss-rotulo-ancho: 4.875rem;   /* 78 · el rótulo más ancho + 8.4 */
-  --ss-disparador-ancho: calc(
-    var(--ss-pad) * 2 + var(--ss-racimo) + var(--ss-hueco) +
-    var(--ss-rotulo-ancho) + var(--ss-hueco-chevron) + var(--ss-chevron-ancho)
-  );                             /* 160 · 4 H */
-  --ss-fila: 2.5rem;         /* 40 · 1.013 H */
+     Being fixed costs the measured transition of the reference, and the
+     why of that is written whole below, in .ss-trigger. */
+  --ss-label-width: 4.875rem;   /* 78 · the widest label + 8.4 */
+  --ss-trigger-width: calc(
+    var(--ss-pad) * 2 + var(--ss-cluster) + var(--ss-gap) +
+    var(--ss-label-width) + var(--ss-chevron-gap) + var(--ss-chevron-width)
+  );                            /* 160 · 4 H */
+  --ss-row: 2.5rem;             /* 40 · 1.013 H */
 
-  /* ─── LAS SUPERFICIES: LAS PONE EL SISTEMA ───
-     Antes esto trasladaba el ESCALÓN de la referencia. La referencia es
-     oscura y sus tres niveles son #0f0f0f la página, #191919 el control
-     y #232323 la fila con el puntero: +5.2, +6.3 y +4.5 de ΔL*. Copiar
-     los hex no servía —quince unidades de gris cerca del blanco no se
-     ven como quince cerca del negro—, así que cada nivel se calculaba
-     para reproducir esos mismos ΔL* contra la card de cada tema. Doce
-     porcentajes escritos a mano en cuatro ramas.
+  /* ─── THE SURFACES: THE SYSTEM SETS THEM ───
+     This used to carry over the STEP of the reference. The reference is
+     dark and its three levels are #0f0f0f the page, #191919 the control
+     and #232323 the row with the pointer: +5.2, +6.3 and +4.5 of ΔL*.
+     Copying the hex did not work, because fifteen units of gray near
+     white do not look like fifteen near black, so each level was
+     computed to reproduce those same ΔL* against the card of each
+     theme. Twelve percentages written by hand across four branches.
 
-     Eso se cambió por la escalera que el sistema ya tiene. Medido, con
-     la card en --surface como cero:
+     That was swapped for the staircase the system already has.
+     Measured, with the card at --surface as zero:
 
-       token            claro  oscuro  claro+C  oscuro+C
-       --canvas          +1.8    -1.5     +3.5      -3.5
-       --surface          0.0     0.0      0.0       0.0
-       --surface-hover   -1.4    +1.5     -2.9      +3.8
-       --hairline        -4.5    +5.3     -8.8     +11.6
-       lo de antes       -5.2    +4.3     -5.3      +4.8   (el control)
+       token             light    dark  light+C   dark+C
+       --canvas           +1.8    -1.5     +3.5     -3.5
+       --surface           0.0     0.0      0.0      0.0
+       --surface-hover    -1.4    +1.5     -2.9     +3.8
+       --hairline         -4.5    +5.3     -8.8    +11.6
+       what was here      -5.2    +4.3     -5.3     +4.8   (the control)
 
-     Cualquiera de esos dos escalones cambia de signo solo con el tema y
-     se agranda solo en contraste alto, que es exactamente lo que hacían
-     a mano los doce porcentajes. --hairline hace lo mismo con las
-     líneas, y ya trae su propio 5.1 % → 10.2 %. Cuál de los dos va lo
-     decide el párrafo de abajo.
+     Either of those two steps changes sign on its own with the theme
+     and grows on its own in high contrast, which is exactly what the
+     twelve percentages did by hand. --hairline does the same with the
+     lines, and it already brings its own 5.1 % → 10.2 %. Which of the
+     two goes is decided by the paragraph below.
 
-     Lo que se pierde, dicho: el control ya NO reproduce el escalón de la
-     referencia. Es un control mucho más claro y mucho más plano que el
-     del video, y es a propósito: la referencia es oscura y esta exhibition
-     es clara, y acá manda la exhibition.
+     What is lost, said out loud: the control does NOT reproduce the
+     step of the reference any more. It is a much lighter and much
+     flatter control than the one in the video, and that is on purpose:
+     the reference is dark and this exhibition is light, and here the
+     exhibition rules.
 
-     --selection-bg quedó descartado y vale la pena anotar por qué: en
-     oscuro mide #fafaf9, L* 98.2. Es el fondo de selección de TEXTO, y
-     es casi blanco en las dos ramas. Leído en la hoja parecía una
-     superficie más; medido, no lo es.
+     --selection-bg was dropped and it is worth writing down why: in
+     dark it measures #fafaf9, L* 98.2. It is the background of a TEXT
+     selection, and it is nearly white in both branches. Read off the
+     stylesheet it looked like one more surface; measured, it is not.
 
-     ─── Y ES --canvas, NO --surface-hover ───
-     Acá decía --surface-hover, y colisionaba. La card de la exhibition se
-     pinta --surface y pasa a --surface-hover con el puntero encima, que
-     es EXACTAMENTE cuando la pieza corre en la home: el bucle sólo
-     avanza con el puntero sobre la card. Medido en la home, con el
-     puntero puesto:
+     ─── AND IT IS --canvas, NOT --surface-hover ───
+     This used to say --surface-hover, and it collided. The card of the
+     exhibition is painted --surface and goes to --surface-hover with
+     the pointer over it, which is EXACTLY when the piece runs on the
+     home: the loop only advanced with the pointer over the card.
+     Measured on the home, with the pointer on it:
 
-       card     rgb(244,244,241)      claro    rgb(18,18,17)   oscuro
+       card     rgb(244,244,241)      light    rgb(18,18,17)   dark
        control  rgb(244,244,241)               rgb(18,18,17)
        panel    rgb(244,244,241)               rgb(18,18,17)
 
-     El mismo color los tres. El control y el panel desaparecían dentro
-     de la card justo mientras la pieza se mostraba, y lo único que
-     quedaba era su línea de 1 px.
+     The same color, the three of them. The control and the panel
+     disappeared inside the card just while the piece was showing, and
+     the only thing left was their 1 px line.
 
-     --canvas es el otro escalón que el sistema ya tiene, y queda a
-     distancia de la card EN SUS DOS ESTADOS: 5 unidades en reposo y 9
-     con el puntero, en las dos ramas. Y cae del lado correcto sin que
-     haya que escribir nada — en claro el control queda MÁS CLARO que la
-     card y en oscuro MÁS OSCURO, que es como se comportan los controles
-     en los dos temas. Lo hace solo porque el sistema ya invierte la
-     dirección de sus distancias en oscuro. */
-  --pieza-superficie: var(--canvas);
-  /* Los dos escalones de arriba del control salen de acá y no de un
-     token del sistema: el hairline encima de la superficie de la pieza,
-     resuelto como color opaco y no como capa —la fila cruza esta
-     propiedad con una transición, y background-image no interpola—. El
-     5.1 % es el alfa del propio --hairline. */
-  --pieza-superficie-hover: color-mix(in srgb, var(--ink) 5.1%, var(--pieza-superficie));
-  /* El press es el hairline DOBLADO, que es el mismo salto que el
-     sistema hace entre su rama normal y la de contraste alto. Así los
-     tres escalones son parejos —panel, hover, press— en vez de que el
-     último sea tres veces el anterior. */
-  --pieza-superficie-press: color-mix(in srgb, var(--ink) 10.2%, var(--pieza-superficie));
-  --pieza-borde: var(--hairline);
-  --pieza-separador: var(--hairline);
-  /* ─── LA CASILLA PUESTA VA EN TINTA, NO EN UN COLOR ───
-     Acá vivía el violeta de la referencia, medido: #867df9 en oscuro y
-     #5b4fe0 en claro para que el blanco encima llegara a contraste.
+     --canvas is the other step the system already has, and it stays at
+     a distance from the card IN BOTH ITS STATES: 5 units at rest and 9
+     with the pointer, in both branches. And it falls on the right side
+     without anything having to be written: in light the control ends up
+     LIGHTER than the card and in dark DARKER, which is how controls
+     behave in both themes. It does it on its own because the system
+     already inverts the direction of its distances in dark. */
+  --piece-surface: var(--canvas);
+  /* The two steps above the control come from here and not from a token
+     of the system: the hairline over the surface of the piece, resolved
+     as an opaque color and not as a layer (the row crosses this
+     property with a transition, and background-image does not
+     interpolate). The 5.1 % is the alpha of --hairline itself. */
+  --piece-surface-hover: color-mix(in srgb, var(--ink) 5.1%, var(--piece-surface));
+  /* The press is the hairline DOUBLED, which is the same jump the
+     system makes between its normal branch and the high contrast one.
+     That way the three steps are even (panel, hover, press) instead of
+     the last one being three times the one before. */
+  --piece-surface-press: color-mix(in srgb, var(--ink) 10.2%, var(--piece-surface));
+  --piece-border: var(--hairline);
+  --piece-separator: var(--hairline);
+  /* ─── THE CHECKED CHECKBOX GOES IN INK, NOT IN A COLOR ───
+     The violet of the reference used to live here, measured: #867df9 in
+     dark and #5b4fe0 in light so that the white on top reached
+     contrast.
 
-     Se fue porque esta exhibition NO TIENE COLOR DE ACENTO. Su sistema
-     entero es un texto, tres superficies y una línea; los únicos dos
-     colores que existen son el rojo de lo destructivo y el azul del
-     anillo de foco, y los dos tienen su motivo escrito. Un violeta que
-     viene de la grabación de otro producto era el único color de la
-     página, y se veía como tal.
+     It went because this exhibition HAS NO ACCENT COLOR. Its whole
+     system is one text, three surfaces and one line; the only two
+     colors that exist are the red of the destructive and the blue of
+     the focus ring, and both have their reason written down. A violet
+     coming from the recording of another product was the only color on
+     the page, and it looked like it.
 
-     Tinta sobre canvas es lo que ya hace el sistema cuando algo se
-     promueve: es su regla de selección de texto en oscuro, inversión
-     total. Y se da vuelta solo con el tema, así que la rama oscura se
-     quedó sin una sola línea escrita. */
-  --pieza-acento: var(--ink);
-  --pieza-acento-glifo: var(--canvas);
-  /* ─── EL CONTORNO DE LA FOTO: NEGRO O BLANCO PUROS, AL 10 % ───
-     Una línea de 1 px hacia adentro del chip. Quien la necesita es la
-     foto CLARA sobre superficie clara —la de Karri tiene el fondo
-     blanco—: sin ella el chip no termina en ningún lado.
+     Ink over canvas is what the system already does when something gets
+     promoted: it is its rule for text selection in dark, total
+     inversion. And it flips on its own with the theme, so the dark
+     branch was left without a single line written. */
+  --piece-accent: var(--ink);
+  --piece-accent-glyph: var(--canvas);
+  /* ─── THE OUTLINE OF THE PHOTO: PURE BLACK OR WHITE, AT 10 % ───
+     A 1 px line inside the chip. The one that needs it is the LIGHT
+     photo on a light surface (Karri's has a white background): without
+     it the chip does not end anywhere.
 
-     Y no es el --hairline del sistema, que es lo que había. El contorno
-     de una imagen es el único color de la pieza que NO se elige: negro
-     puro al 10 % en claro, blanco puro al 10 % en oscuro, nunca un
-     neutro teñido, porque un neutro con tinte recoge la superficie de
-     atrás y se lee como mugre en el borde de la foto. Mirado a los dos
-     valores sobre la foto de Karri: con el 5.1 % del hairline el disco
-     se funde con el panel, con el 10 % termina.
+     And it is not the system's --hairline, which is what was here. The
+     outline of an image is the only color of the piece that is NOT
+     chosen: pure black at 10 % in light, pure white at 10 % in dark,
+     never a tinted neutral, because a neutral with a tint picks up the
+     surface behind it and reads as dirt on the edge of the photo.
+     Looked at with both values over Karri's photo: with the hairline's
+     5.1 % the disc melts into the panel, with 10 % it ends.
 
-     light-dark() en vez de una consulta de tema: la raíz ya declara
-     color-scheme light dark, así que la pieza sigue sin un solo bloque
-     de color por tema. */
-  --pieza-contorno: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.1));
+     light-dark() instead of a theme query: the root already declares
+     color-scheme light dark, so the piece still has not a single block
+     of color per theme. */
+  --piece-outline: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.1));
 
   position: relative;
   display: flex;
   flex-direction: column;
-  /* SE ALINEAN POR LA IZQUIERDA. El popover se pega al borde izquierdo
-     del disparador —medido, la sangría es 0 en los cinco estados—.
-     Cuando el disparador todavía cambiaba de ancho esto además evitaba
-     29 px de vaivén lateral por vuelta; con el ancho fijo los dos miden
-     lo mismo y ninguno se mueve. Lo que se centra en la card es el par.
-     Verificado: pieza, disparador y panel, un solo valor en los siete
-     estados. */
+  /* THEY ARE ALIGNED ON THE LEFT. The popover sticks to the left edge
+     of the trigger (measured, the indent is 0 in the five states). When
+     the trigger still changed width this also avoided 29 px of
+     side-to-side swing per round; with the fixed width both measure the
+     same and neither one moves. What gets centered in the card is the
+     pair. Verified: piece, trigger and panel, a single value across the
+     seven states. */
   align-items: flex-start;
-  /* El aire alrededor. La card de la exhibition no trae padding para una
-     pieza Web: lo pone la pieza, que es la que sabe cuánto necesita. Es
-     un alto de botón a cada lado, o sea el mismo H del que cae toda la
-     geometría, y con eso la card de la lista pasa de su piso de 260 a
-     338. */
-  padding: var(--ss-aire) 0;
+  /* The space around it. The card of the exhibition brings no padding
+     for a Web piece: the piece puts it there, since it is the one that
+     knows how much it needs. It is one button height on each side, that
+     is the same H the whole geometry falls from, and with that the card
+     of the list goes from its floor of 260 to 338. */
+  padding: var(--ss-outer-padding) 0;
   box-sizing: content-box;
-  font-size: var(--ss-tipo);
+  font-size: var(--ss-font-size);
   line-height: 1;
   letter-spacing: -0.006em;
 }
 
-/* ─── CONTRASTE ALTO ───
-   Las superficies siguen solas a la rama: --canvas y --hairline ya
-   cambian, y los dos escalones derivan de --ink. Lo único que queda
-   escrito es el alfa del velo, y acompaña al hairline del sistema en su
-   propio salto de 5.1 % a 10.2 %. */
+/* ─── HIGH CONTRAST ───
+   The surfaces follow the branch on their own: --canvas and --hairline
+   already change, and the two steps derive from --ink. The only thing
+   left written is the alpha of the veil, and it follows the system's
+   hairline in its own jump from 5.1 % to 10.2 %. */
 @media (prefers-contrast: more) {
   .ss {
-    --pieza-superficie-hover: color-mix(in srgb, var(--ink) 10.2%, var(--pieza-superficie));
-    --pieza-superficie-press: color-mix(in srgb, var(--ink) 20.4%, var(--pieza-superficie));
+    --piece-surface-hover: color-mix(in srgb, var(--ink) 10.2%, var(--piece-surface));
+    --piece-surface-press: color-mix(in srgb, var(--ink) 20.4%, var(--piece-surface));
   }
 }
 
-/* ─── OSCURO ───
-   NO HAY BLOQUE, y eso es el resultado. Acá vivían el violeta del acento
-   y el contorno acromático dado vuelta a mano. Con el acento en tinta
-   sobre canvas y el contorno en el hairline del sistema, los cuatro
-   colores de la pieza se invierten solos con el tema y no queda una
-   sola línea que mantener sincronizada. */
+/* ─── DARK ───
+   THERE IS NO BLOCK, and that is the result. The violet of the accent
+   and the achromatic outline flipped by hand used to live here. With
+   the accent in ink over canvas and the outline in the system's
+   hairline, the four colors of the piece invert on their own with the
+   theme and there is not one line left to keep in sync. */
 
-/* ─── EL DISPARADOR ─────────────────────────────────────────── */
-.ss-disparador {
+/* ─── THE TRIGGER ───────────────────────────────────────────── */
+.ss-trigger {
   display: flex;
   align-items: center;
   height: var(--ss-h);
   padding: 0 var(--ss-pad);
   border: 0;
-  /* ─── EL BORDE ES UN ANILLO, NO UN BORDE ───
-     Un box-shadow inset de 1 px dibuja la misma línea en el mismo
-     lugar, y no ocupa una sola unidad de layout. Dos cosas se
-     arreglan con eso:
+  /* ─── THE BORDER IS A RING, NOT A BORDER ───
+     An inset box-shadow of 1 px draws the same line in the same place,
+     and it takes up not one unit of layout. Two things get fixed with
+     that:
 
-     · La cuenta del ancho deja de tener un término en píxeles. Con
-       border, los 2 px del borde eran lo único de la suma que no
-       escalaba con el rem, y el botón medía 199.5 en vez de 200 con la
-       raíz en 20. Ahora la suma es proporcional entera.
-     · El anillo es translúcido y compone sobre lo que tenga debajo, que
-       es la razón por la que un color de borde sólido no sirve: está
-       afinado contra un fondo y sólo contra ése. El --hairline del
-       sistema ya era translúcido; lo que cambia es que ahora tampoco
-       empuja el contenido.
+     · The sum of the width stops having a term in pixels. With border,
+       the 2 px of the border were the only part of the sum that did not
+       scale with the rem, and the button measured 199.5 instead of 200
+       with the root at 20. Now the sum is proportional all the way
+       through.
+     · The ring is translucent and composites over whatever it has
+       underneath, which is the reason a solid border color does not
+       work: it is tuned against one background and only against that
+       one. The system's --hairline was already translucent; what
+       changes is that now it does not push the content either.
 
-     Va INSET y no afuera: afuera la píldora se vería 2 px más ancha que
-     su caja, y acá el ancho es la decisión de la que cae todo. */
-  box-shadow: inset 0 0 0 1px var(--pieza-borde);
-  /* Píldora: verificado contra el círculo en 48 filas del cuadro, con
-     error menor a 1 px. No es un radio grande, es la mitad del alto. */
+     It goes INSET and not outside: outside, the pill would look 2 px
+     wider than its box, and here the width is the decision everything
+     falls from. */
+  box-shadow: inset 0 0 0 1px var(--piece-border);
+  /* A pill: verified against the circle across 48 rows of the frame,
+     with an error under 1 px. It is not a large radius, it is half the
+     height. */
   border-radius: 999px;
-  background: var(--pieza-superficie);
+  background: var(--piece-surface);
   color: var(--ink);
   font: inherit;
   letter-spacing: inherit;
   cursor: pointer;
-  /* Sin esto el navegador reserva el doble toque para hacer zoom y
-     retrasa el primero para ver si viene el segundo. En un control que
-     se abre y se cierra, ese retraso es lo único que se siente. */
+  /* Without this the browser reserves the double tap for zooming and
+     delays the first one to see whether the second one is coming. In a
+     control that opens and closes, that delay is the only thing you
+     feel. */
   touch-action: manipulation;
-  width: var(--ss-disparador-ancho);
-  /* ─── EL ANCHO NO SE ANIMA, Y ES UNA DECISIÓN CONTRA LA REFERENCIA ───
-     Acá vivía la transición firma de la pieza: 370 ms con
-     cubic-bezier(.19,1,.22,1), el mejor ajuste de 14 curvas × 39
-     duraciones sobre 18 muestras de dos transiciones de la referencia,
+  width: var(--ss-trigger-width);
+  /* ─── THE WIDTH DOES NOT ANIMATE, AND IT GOES AGAINST THE REFERENCE ───
+     The signature transition of the piece used to live here: 370 ms
+     with cubic-bezier(.19,1,.22,1), the best fit of 14 curves × 39
+     durations over 18 samples of two transitions of the reference,
      RMSE 0.034.
 
-     Se cayó al elegir que el rótulo cambie en un cuadro. Las dos cosas
-     no conviven: con el texto cambiando de golpe y la píldora creciendo
-     370 ms, el rótulo nuevo queda RECORTADO mientras el botón lo
-     alcanza. Medido, de "Ana" a "All people": 42 px cortados al arranque
-     y unos 200 ms hasta que entra. Fotografiado se lee "All p" →
-     "All pec" → "All peop": no parece una revelación, parece un rótulo
-     truncado, porque el chevron queda pegado al corte.
+     It fell when the label was chosen to change in one frame. The two
+     do not live together: with the text changing at once and the pill
+     growing for 370 ms, the new label stays CLIPPED while the button
+     catches up with it. Measured, from "Ana" to "All people": 42 px cut
+     off at the start and some 200 ms until it fits. Photographed it
+     reads "All p" → "All pec" → "All peop": it does not look like a
+     reveal, it looks like a truncated label, because the chevron sits
+     right against the cut.
 
-     El fundido de la referencia existe justamente para eso — sale en
-     ~110 ms, hay un cuadro sin nada, entra en ~133 — y la píldora se
-     redimensiona mientras no hay texto que cortar. Sin fundido, lo único
-     que evita el recorte es que el ancho llegue en el mismo cuadro.
+     The fade of the reference exists exactly for that (it goes out in
+     ~110 ms, there is one frame with nothing, it comes in in ~133) and
+     the pill resizes while there is no text to cut. Without a fade, the
+     only thing that avoids the clipping is the width arriving in the
+     same frame.
 
-     Y con el ancho quieto no queda nada que animar acá: el disparador
-     no tiene transición. El acuse del apretar es el de abajo, que
-     tampoco se mueve. */
+     And with the width still there is nothing left to animate here: the
+     trigger has no transition. The feedback of the press is the one
+     below, which does not move either. */
 }
-/* ─── EL ACUSE VA EN EL APRETAR, Y NO MUEVE EL BOTÓN ───
-   La pseudoclase :active de CSS dispara al bajar el puntero, no al
-   levantarlo, así que el acuse llega en el mismo cuadro que el toque.
-   Esperar al clic deja el control muerto durante el gesto, y es lo
-   primero que se nota.
+/* ─── THE FEEDBACK IS IN THE PRESS, AND IT DOES NOT MOVE THE BUTTON ───
+   CSS's :active pseudo-class fires when the pointer goes down, not when
+   it comes up, so the feedback arrives in the same frame as the touch.
+   Waiting for the click leaves the control dead during the gesture, and
+   that is the first thing you notice.
 
-   LO QUE ACUSA ES EL RELLENO, NO LA ESCALA. Acá había un scale de 0.985
-   afinado en píxeles —la píldora es ancha, así que un mismo scale corre
-   los lados 4.6 veces más que el techo: 0.97 metía los lados 2.74 px,
-   0.985 los metía 1.37 y el techo 0.30—. Medido en pantalla, apretando
-   sin soltar, el borde izquierdo del botón se corría 1.20 px y el de
-   arriba 0.30.
+   WHAT GIVES THE FEEDBACK IS THE FILL, NOT THE SCALE. There used to be
+   a scale of 0.985 here, tuned in pixels: the pill is wide, so one same
+   scale moves the sides 4.6 times more than the top (0.97 pulled the
+   sides in 2.74 px, 0.985 pulled them in 1.37 and the top 0.30).
+   Measured on screen, pressing without releasing, the left edge of the
+   button moved 1.20 px and the top one 0.30.
 
-   Se fue porque el control NO SE MUEVE DE LUGAR, y eso vale para todo:
-   ni el ancho, ni la posición, ni al apretarlo. El relleno dice lo
-   mismo sin correr nada, es lo que ya hacen las cinco filas del panel
-   —con el argumento escrito ahí abajo— y es lo que la pieza ya hacía
-   con movimiento reducido. Ahora las dos ramas hacen lo mismo.
+   It went because the control DOES NOT MOVE FROM ITS PLACE, and that
+   holds for everything: not the width, not the position, not on being
+   pressed. The fill says the same thing without moving anything, it is
+   what the five rows of the panel already do (with the argument written
+   down below) and it is what the piece already did with reduced motion.
+   Now both branches do the same.
 
-   Y no queda contra las referencias: DESIGN.md › El press cuenta que se
-   barrieron 23 páginas de benji y josh buscando :active, que hay uno
-   solo vivo y que las utilidades active:scale del bundle de josh las
-   usa CERO elementos. El scale de press es una regla de guía, no algo
-   que se vea en las páginas que miramos.
+   And it does not go against the references: DESIGN.md › The press
+   tells that 23 pages of benji and josh were swept looking for :active,
+   that there is a single live one and that the active:scale utilities
+   of josh's bundle are used by ZERO elements. The press scale is a rule
+   from a guideline, not something you see on the pages we looked at.
 
-   Sin transición, como las filas: medido en la referencia, este tipo de
-   relleno aparece y desaparece en un cuadro (≤17 ms). Y la asimetría
-   que había —90 ms bajando, 160 subiendo— se va con la escala: no hay
-   nada que volver. */
-.ss-disparador:active {
-  background: var(--pieza-superficie-press);
+   With no transition, like the rows: measured in the reference, this
+   kind of fill appears and disappears in one frame (≤17 ms). And the
+   asymmetry that was here, 90 ms going down and 160 coming up, goes
+   with the scale: there is nothing to come back from. */
+.ss-trigger:active {
+  background: var(--piece-surface-press);
 }
-.ss-disparador:focus-visible {
+.ss-trigger:focus-visible {
   outline: var(--focus-outline);
   outline-offset: var(--focus-outline-offset);
 }
 
-.ss-contenido {
+.ss-content {
   display: flex;
   align-items: center;
-  gap: var(--ss-hueco);
+  gap: var(--ss-gap);
   width: 100%;
 }
 
-.ss-rotulo {
+.ss-label {
   display: flex;
   align-items: center;
-  /* ─── LA CAJA DEL ROTULO ES LA RANURA, Y RECORTA ───
-     flex: 1 la hace ocupar todo lo que sobra entre el racimo y el
-     chevron: con el ancho del botón fijo, eso ES la ranura de 76 px de
-     la cuenta de arriba —medido, 76.00 en los siete estados— y el
-     chevron queda clavado contra el padding derecho.
+  /* ─── THE BOX OF THE LABEL IS THE SLOT, AND IT CLIPS ───
+     flex: 1 makes it take up everything left over between the cluster
+     and the chevron: with the width of the button fixed, that IS the
+     76 px slot of the sum above (measured, 76.00 in the seven states)
+     and the chevron stays nailed against the right padding.
 
-     El recorte es la última defensa: si algún día un rótulo no entra en
-     la ranura, la caja lo corta en vez de empujar al chevron afuera del
-     botón. Hoy no corta a ninguno de los siete, y eso también está
-     medido.
+     The clipping is the last defense: if some day a label does not fit
+     in the slot, the box cuts it instead of pushing the chevron out of
+     the button. Today it cuts none of the seven, and that is measured
+     too.
 
-     Va clip y no hidden porque hidden fuerza el otro eje a auto, y hay
-     variantes que mueven el rótulo en vertical. Y el hueco hasta el
-     chevron va en MARGIN y no en padding: el recorte ocurre en la caja
-     de relleno, así que con padding la palabra podría llegar a tocar el
-     ícono. */
+     It goes clip and not hidden because hidden forces the other axis to
+     auto, and there are variants that move the label vertically. And
+     the gap up to the chevron goes in MARGIN and not in padding: the
+     clipping happens in the padding box, so with padding the word could
+     get to touch the icon. */
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: clip;
   overflow-y: visible;
-  margin-right: calc(var(--ss-hueco-chevron) - var(--ss-hueco));
+  margin-right: calc(var(--ss-chevron-gap) - var(--ss-gap));
   white-space: nowrap;
 }
 
-/* Las dos medidas salen de las variables y no de un px escrito acá: el
-   ancho del botón las suma, y un chevron que no crece con el resto
-   dejaría esa cuenta corta apenas alguien suba el tamaño de texto. */
+/* Both measures come out of the variables and not from a px written
+   here: the width of the button adds them up, and a chevron that does
+   not grow with the rest would leave that sum short as soon as somebody
+   raises the text size. */
 .ss-chevron {
-  width: var(--ss-chevron-ancho);   /* 8 · 0.197 H */
-  height: var(--ss-chevron-alto);   /* 13 · 0.332 H */
+  width: var(--ss-chevron-width);   /* 8 · 0.197 H */
+  height: var(--ss-chevron-height); /* 13 · 0.332 H */
   flex: none;
   color: var(--text-secondary);
 }
 
-/* ─── EL ROTULO ─────────────────────────────────────────────── */
-.ss-rotulo-texto {
+/* ─── THE LABEL ─────────────────────────────────────────────── */
+.ss-label-text {
   white-space: nowrap;
-  /* El rótulo lleva un número que cambia —"2 people", "3 people"— y el
-     texto está anclado a la izquierda, así que lo que se movería es la
-     palabra que sigue al dígito. Medido en InterVariable: con cifras
-     proporcionales los dos rótulos miden 61.11 y 61.27, o sea 0.16 px
-     de corrimiento; con tabulares miden 61.61 los dos. Es una
-     diferencia que no se ve —antes, con nombres de empresa, era 0.60—
-     y se queda igual porque no cuesta nada y porque acá hay un número
-     que cambia. */
+  /* The label carries a number that changes, "2 people", "3 people",
+     and the text is anchored on the left, so what would move is the
+     word after the digit. Measured in InterVariable: with proportional
+     figures the two labels measure 61.11 and 61.27, that is 0.16 px of
+     shift; with tabular ones both measure 61.61. It is a difference you
+     do not see (before, with company names, it was 0.60) and it stays
+     the way it is because it costs nothing and because there is a
+     number here that changes. */
   font-variant-numeric: tabular-nums;
 }
-/* ─── EL RACIMO ─────────────────────────────────────────────── */
-.ss-racimo {
+/* ─── THE CLUSTER ───────────────────────────────────────────── */
+.ss-cluster {
   position: relative;
   flex: none;
-  /* Los chips se apilan con z-index 0..3 para decidir cuál tapa a cuál.
-     Sin esto no hay contexto de apilamiento propio —position: relative
-     con z-index auto no lo crea— y esos números compiten con el resto
-     de la página en vez de quedarse acá adentro. */
+  /* The chips stack with z-index 0..3 to decide which one covers which.
+     Without this there is no stacking context of its own (position:
+     relative with z-index auto does not create one) and those numbers
+     compete with the rest of the page instead of staying in here. */
   isolation: isolate;
 }
 .ss-chip {
   position: absolute;
   top: 0;
   left: 0;
-  /* Escala desde su esquina superior izquierda: es de donde escala en
-     la referencia (el borde del chip que persiste no se mueve). */
+  /* It scales from its top left corner: that is where it scales from in
+     the reference (the edge of the chip that stays does not move). */
   transform-origin: 0 0;
-  transition: transform 370ms var(--ease-dialogo);
+  transition: transform 370ms var(--ease-dialog);
 }
 
 /* ─────────────────────────────────────────────────────────────
-   EL CHIP QUE ENTRA
-     0 ms   nace en scale 0, centrado en la celda que le toca
-    90 ms   llega a su tamaño, ease-out
-   Mientras tanto, y en paralelo, los que ya estaban viajan a su
-   nueva celda con la transición de arriba, que es más larga.
+   THE CHIP THAT COMES IN
+     0 ms   born at scale 0, centered in the cell it gets
+    90 ms   reaches its size, ease-out
+   Meanwhile, and in parallel, the ones that were already there
+   travel to their new cell with the transition above, which is
+   longer.
    ─────────────────────────────────────────────────────────────
 
-   DOS CAJAS PORQUE SON DOS ORÍGENES. El chip que se reacomoda escala
-   desde su esquina superior izquierda —medido: ese borde no se mueve
-   mientras el chip pasa de 100 a 64 px—. El que entra escala desde su
-   CENTRO: medido, su centro se queda en (0.245, 0.767) del racimo
-   mientras el diámetro va de 0.059 a 0.475. Un solo elemento no puede
-   tener dos orígenes, así que el de afuera pone el lugar y el tamaño
-   de la celda, y el de adentro pone la entrada.
+   TWO BOXES BECAUSE THERE ARE TWO ORIGINS. The chip that rearranges
+   scales from its top left corner (measured: that edge does not move
+   while the chip goes from 100 to 64 px). The one that comes in scales
+   from its CENTER: measured, its center stays at (0.245, 0.767) of the
+   cluster while the diameter goes from 0.059 to 0.475. A single element
+   cannot have two origins, so the outer one sets the place and the size
+   of the cell, and the inner one sets the entrance.
 
-   EL PAR ESTÁ MEDIDO. Tres tomas de la referencia con umbral de
-   detección bajado a 0.02 —hace falta para ver el chip cuando todavía
-   mide 6 px— barridas contra ocho curvas × 73 duraciones, con la fase
-   ajustada por toma porque la cámara no cae en el cuadro del arranque:
+   THE PAIR IS MEASURED. Three takes of the reference with the detection
+   threshold lowered to 0.02 (needed to see the chip while it still
+   measures 6 px) swept against eight curves × 73 durations, with the
+   phase fitted per take because the camera does not land on the frame
+   of the start:
 
      ease-out    cubic-bezier(0,0,.58,1)     90 ms   RMSE 0.056
      out-quad    cubic-bezier(.25,.46,.45,.94)  105   0.060
      out-cubic   cubic-bezier(.33,1,.68,1)     135   0.064
      --ease-surface                            205   0.068
-     --ease-dialogo                            255   0.073
+     --ease-dialog                             255   0.073
 
-   Las dos curvas del sistema son las que PEOR ajustan: necesitan 205 y
-   255 ms y aun así puntúan último. Son curvas de arranque brutal para
-   superficies que aparecen, y esto es más suave y mucho más corto. Por
-   eso el valor va escrito acá con su recibo y no sale de un token, que
-   es lo mismo que ya hacen los 370 del ancho y los 67 del popover.
+   The two curves of the system are the ones that fit WORST: they need
+   205 and 255 ms and even so they score last. They are curves with a
+   brutal start, for surfaces that appear, and this is softer and much
+   shorter. That is why the value is written here with its receipt and
+   does not come out of a token, which is the same thing the 370 of the
+   width and the 67 of the popover already do.
 
-   ARRANCA EN 0, Y ESO CONTRADICE UNA REGLA. "Nunca entrar desde
-   scale(0)" existe porque nada aparece de la nada. Acá no se aplica por
-   aritmética: el chip mide 11.8 px, así que arrancar en 0.95 son 0.6 px
-   de recorrido y la animación no existiría. O crece desde chico o no
-   anima. Medido, la referencia arranca en 0.059 del racimo sobre un
-   final de 0.475 —el 12 %— y la curva ajustada extrapola a 0.
+   IT STARTS AT 0, AND THAT CONTRADICTS A RULE. "Never enter from
+   scale(0)" exists because nothing appears out of nothing. Here it does
+   not apply, by arithmetic: the chip measures 11.8 px, so starting at
+   0.95 is 0.6 px of travel and the animation would not exist. Either it
+   grows from small or it does not animate. Measured, the reference
+   starts at 0.059 of the cluster over an end of 0.475, that is 12 %,
+   and the fitted curve extrapolates to 0.
 
-   SIMÉTRICA, y no más rápida al salir. Es la misma discusión que la
-   caja que se abría, resuelta igual: DESIGN.md dice que su motion es
-   simétrico y reserva la asimetría para el press.
+   SYMMETRIC, and not faster on the way out. It is the same discussion
+   as the box that used to open, settled the same way: DESIGN.md says
+   its motion is symmetric and reserves the asymmetry for the press.
 
-   NO HAY SALIDA, Y NO ES UN OLVIDO. La referencia nunca saca un chip
-   solo: va de cuatro a uno de golpe y después suma de a uno. La salida
-   no se puede medir ahí, y animarla pide mantener vivo un chip que
-   React ya desmontó. Queda pendiente y dicho. */
+   THERE IS NO EXIT, AND IT IS NOT AN OVERSIGHT. The reference never
+   takes a single chip out: it goes from four to one at once and then
+   adds them one at a time. The exit cannot be measured there, and
+   animating it asks for keeping alive a chip that React already
+   unmounted. It is pending and it is said. */
 .ss-chip > span {
   scale: 1;
   transition: scale 90ms ease-out;
 }
 @starting-style {
-  .ss-racimo[data-montado] .ss-chip > span {
+  .ss-cluster[data-mounted] .ss-chip > span {
     scale: 0;
   }
 }
 
-/* ─── EL POPOVER ────────────────────────────────────────────── */
-/* ─── DONDE CAE EL POPOVER ───
-   Pegado al borde IZQUIERDO del disparador, no centrado bajo él:
-   medido en cinco estados distintos, la sangría es 0 en los cinco. Con
-   el ancho fijo los dos bordes izquierdos coinciden solos y no hay nada
-   que corregir; la pieza los alinea por la izquierda y el popover no se
-   desplaza nunca. */
+/* ─── THE POPOVER ───────────────────────────────────────────── */
+/* ─── WHERE THE POPOVER LANDS ───
+   Stuck to the LEFT edge of the trigger, not centered under it:
+   measured in five different states, the indent is 0 in all five. With
+   the fixed width both left edges line up on their own and there is
+   nothing to correct; the piece aligns them on the left and the popover
+   never shifts. */
 .ss-popover {
-  /* EN FLUJO, NO FLOTANDO. Así el alto de la pieza sale solo —antes era
-     un calc a mano que había que mantener— y el ancho de la pieza es el
-     del popover, que es lo que se centra en la card. Sigue presente
-     cuando está cerrado: si se desmontara, la card cambiaría de alto al
-     abrir y cerrar. */
-  margin-top: var(--ss-hueco-popover);
-  /* NUNCA MAS ANGOSTO QUE EL CONTROL QUE LO ABRE, y es esta línea la que
-     lo sostiene: medido, el panel pide 157.25 por su cuenta —su fila más
-     ancha es casilla, racimo y "Guillermo"— contra los 160 del
-     disparador. Sin el mínimo saldría 2.75 px más angosto que su botón,
-     que se lee como un recorte y no como su continuación. Con nombres
-     más cortos la diferencia era de 39 px. */
-  min-width: var(--ss-disparador-ancho);
-  /* El mismo anillo del disparador, por lo mismo: ver .ss-disparador. */
+  /* IN FLOW, NOT FLOATING. That way the height of the piece comes out
+     on its own (it used to be a calc by hand that had to be maintained)
+     and the width of the piece is the one of the popover, which is what
+     gets centered in the card. It stays present when it is closed: if
+     it were unmounted, the card would change height on opening and
+     closing. */
+  margin-top: var(--ss-popover-gap);
+  /* NEVER NARROWER THAN THE CONTROL THAT OPENS IT, and it is this line
+     that holds it up: measured, the panel asks for 157.25 on its own
+     (its widest row is checkbox, cluster and "Guillermo") against the
+     160 of the trigger. Without the minimum it would come out 2.75 px
+     narrower than its button, which reads as a clipping and not as its
+     continuation. With shorter names the difference was 39 px. */
+  min-width: var(--ss-trigger-width);
+  /* The same ring as the trigger, for the same reason: see
+     .ss-trigger. */
   border: 0;
-  box-shadow: inset 0 0 0 1px var(--pieza-borde);
-  border-radius: var(--ss-radio);
-  background: var(--pieza-superficie);
+  box-shadow: inset 0 0 0 1px var(--piece-border);
+  border-radius: var(--ss-radius);
+  background: var(--piece-surface);
   overflow: hidden;
   transform-origin: 0 0;
-  /* Medido: 67ms —cuatro cuadros a 60 fps— y casi lineal, en los dos
-     sentidos. La escala arranca en 0.98 desde la esquina superior
-     izquierda; el popover no se desplaza. La visibilidad lo saca del
-     árbol de accesibilidad y del tabulador cuando está cerrado, y su
-     transición sin duración se difiere para que el fundido se vea. */
+  /* Measured: 67ms, four frames at 60 fps, and almost linear, in both
+     directions. The scale starts at 0.98 from the top left corner; the
+     popover does not shift. The visibility takes it out of the
+     accessibility tree and out of the tab order when it is closed, and
+     its transition with no duration is deferred so that the fade can be
+     seen. */
   opacity: 0;
   scale: 0.98;
   visibility: hidden;
@@ -1080,7 +1111,7 @@ const CSS = `
     scale 67ms linear,
     visibility 0s linear 67ms;
 }
-.ss-popover[data-abierto] {
+.ss-popover[data-open] {
   opacity: 1;
   scale: 1;
   visibility: visible;
@@ -1090,12 +1121,12 @@ const CSS = `
     visibility 0s;
 }
 
-.ss-fila {
+.ss-row {
   display: flex;
   align-items: center;
-  gap: var(--ss-hueco);
+  gap: var(--ss-gap);
   width: 100%;
-  height: var(--ss-fila);
+  height: var(--ss-row);
   padding: 0 var(--ss-pad);
   border: 0;
   background: transparent;
@@ -1105,63 +1136,67 @@ const CSS = `
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  /* el mismo motivo que en el disparador: sin esto, el doble toque
-     queda reservado para el zoom y el primero llega tarde */
+  /* the same reason as in the trigger: without this, the double tap
+     stays reserved for zooming and the first one arrives late */
   touch-action: manipulation;
-  /* EL NOMBRE SE ENCIENDE, Y NO EN UN CUADRO. Medido en la referencia:
-     el color del rótulo de la fila cruza en ~67 ms con ease-out. Va con
-     el par de TEXTO del sistema, que es el que DESIGN.md asigna a lo que
-     cruza un color; son 100 ms contra los 67 medidos, y gana el sistema
-     como en el resto de la pieza.
+  /* THE NAME LIGHTS UP, AND NOT IN ONE FRAME. Measured in the
+     reference: the color of the name in the row crosses in ~67 ms with
+     ease-out. It goes with the TEXT pair of the system, which is the
+     one DESIGN.md assigns to whatever crosses a color; that is 100 ms
+     against the 67 measured, and the system wins as in the rest of the
+     piece.
 
-     Sólo se nombra color: el relleno del hover NO lleva transición, y
-     eso también está medido —aparece y desaparece en un cuadro—. */
+     Only color is named: the fill of the hover carries NO transition,
+     and that is measured too (it appears and disappears in one
+     frame). */
   transition: color var(--dur-text) var(--ease-text);
 }
-/* ─── LA FILA DE "All", ABAJO ───
-   Separador arriba y nada más. La guía de los menús pide separador
-   entre grupos, y "All" es su propio grupo: habla de las otras cuatro,
-   no es una quinta empresa.
+/* ─── THE "All" ROW, AT THE BOTTOM ───
+   A separator above it and nothing else. The menus guideline asks for a
+   separator between groups, and "All" is its own group: it talks about
+   the other four, it is not a fifth company.
 
-   Y va a la misma altura que las demás. En la referencia esa fila mide
-   1.202 H contra 1.013 —48 contra 40— pero ahí es un ENCABEZADO de
-   sección, arriba del todo. Abajo y siendo una casilla igual a las
-   otras, la altura de más no la explicaba nada y la dejaba como la
-   única fila distinta de cinco. */
-.ss-fila[data-pie] {
-  box-shadow: 0 -1px 0 var(--pieza-separador);
+   And it goes at the same height as the others. In the reference that
+   row measures 1.202 H against 1.013, 48 against 40, but there it is a
+   section HEADER, at the very top. At the bottom and being a checkbox
+   like the others, nothing explained the extra height and it left the
+   row as the only one of five that was different. */
+.ss-row[data-footer] {
+  box-shadow: 0 -1px 0 var(--piece-separator);
 }
-/* EL HOVER SÓLO DONDE HAY PUNTERO. Sin la consulta, tocar una fila en
-   una pantalla táctil dispara :hover y el relleno QUEDA PEGADO hasta
-   que se toca otra cosa: el dedo no se va a ningún lado, así que nada
-   apaga el estado. El :active de abajo no necesita la guardia —dura lo
-   que dura el toque— y el foco tampoco. */
+/* THE HOVER ONLY WHERE THERE IS A POINTER. Without the query, touching
+   a row on a touch screen fires :hover and the fill STAYS STUCK until
+   something else is touched: the finger does not go anywhere, so
+   nothing turns the state off. The :active below does not need the
+   guard, it lasts as long as the touch does, and neither does the
+   focus. */
 @media (hover: hover) and (pointer: fine) {
-  .ss-fila:hover {
-    /* Sin transición, y es una medición: el relleno aparece y
-       desaparece en un cuadro (≤17 ms). */
-    background: var(--pieza-superficie-hover);
+  .ss-row:hover {
+    /* No transition, and it is a measurement: the fill appears and
+       disappears in one frame (≤17 ms). */
+    background: var(--piece-surface-hover);
   }
 }
-/* Y el apretar pinta un escalón más, en el mismo cuadro del toque. Una
-   fila no escala —es un rectángulo al ancho del panel y encogerlo se
-   lee como un error—: lo que acusa es el relleno. */
-.ss-fila:active {
-  background: var(--pieza-superficie-press);
+/* And pressing paints one more step, in the same frame as the touch. A
+   row does not scale (it is a rectangle the width of the panel and
+   shrinking it reads as an error): what gives the feedback is the
+   fill. */
+.ss-row:active {
+  background: var(--piece-surface-press);
 }
-.ss-fila:focus-visible {
+.ss-row:focus-visible {
   outline: var(--focus-outline);
   outline-offset: calc(var(--focus-outline-offset) * -1);
 }
-.ss-fila[data-puesta] {
+.ss-row[data-checked] {
   color: var(--ink);
 }
 
 
-/* ─── LA CASILLA: UN CUADRADO CON UNA TILDE ───
-   Antes era un aro con un punto adentro, o sea un RADIO. La guía de
-   Apple, leída de su API de documentación el 2026-09-08, es explícita
-   en las dos direcciones:
+/* ─── THE CHECKBOX: A SQUARE WITH A CHECKMARK ───
+   It used to be a ring with a dot inside, that is, a RADIO BUTTON.
+   Apple's guideline, read from their documentation API on 2026-09-08,
+   is explicit in both directions:
 
      "A radio button is a small, circular button… radio buttons present
       a set of mutually exclusive choices."
@@ -1170,113 +1205,119 @@ const CSS = `
      "A checkbox is a small, square button that's empty when the button
       is off, contains a checkmark when the button is on."
 
-   Este control elige VARIAS, así que va cuadrado y con tilde. El radio
-   prometía lo contrario de lo que hace.
+   This control chooses SEVERAL, so it goes square and with a checkmark.
+   The radio button promised the opposite of what it does.
 
-   El radio del cuadrado es 0.3 de su lado: no es un número suelto, es
-   lo que mantiene la curva del contorno interior concéntrica con la
-   del chip redondo que tiene al lado.
+   The radius of the square is 0.3 of its side: it is not a loose
+   number, it is what keeps the curve of the inner outline concentric
+   with the one of the round chip next to it.
 
-   ─── COMO SE ANIMA: UN SOLO TIEMPO PARA UN SOLO BOOLEANO ───
-   Borde, relleno y tilde cruzan juntos, todos con --dur-surface y
-   --ease-surface. Nada tiene retraso y nada tiene su propia duración.
+   ─── HOW IT ANIMATES: ONE SINGLE TIME FOR ONE SINGLE BOOLEAN ───
+   Border, fill and checkmark cross together, all of them with
+   --dur-surface and --ease-surface. Nothing has a delay and nothing has
+   a duration of its own.
 
-   ANTES ERA UNA COREOGRAFÍA DE TRES ACTOS, y medida en pantalla duraba
-   374 ms:
+   IT USED TO BE A CHOREOGRAPHY IN THREE ACTS, and measured on screen it
+   lasted 374 ms:
 
-     6 ms    relleno en scale 0.4, tilde sin empezar
-    74 ms    la tilde SIGUE sin empezar (llevaba 70 de retraso)
-    91 ms    recién ahí arranca a dibujarse con stroke-dashoffset
-   257 ms    la tilde termina
-   374 ms    el relleno recién llega a 1
+     6 ms    fill at scale 0.4, checkmark not started
+    74 ms    the checkmark is STILL not started (it had 70 of delay)
+    91 ms    only then does it start to draw itself with
+             stroke-dashoffset
+   257 ms    the checkmark ends
+   374 ms    the fill only then reaches 1
 
-   Tres problemas, y el primero es el que se ve. La confirmación llegaba
-   TARDE: durante los primeros cinco cuadros después del clic la tilde
-   no existía, en un control cuyo único trabajo es decir "sí, ésta".
-   Segundo, cuatro duraciones distintas para un solo cambio de estado
-   —140, 374, 107 y 70+200— cuando la regla del sistema es que lo que se
-   mueve como una unidad comparte tiempo. Tercero, 374 ms es más del
-   doble del presupuesto de un acuse.
+   Three problems, and the first one is the one you see. The
+   confirmation arrived LATE: during the first five frames after the
+   click the checkmark did not exist, in a control whose only job is to
+   say "yes, this one". Second, four different durations for a single
+   change of state, 140, 374, 107 and 70+200, when the rule of the
+   system is that whatever moves as a unit shares its time. Third,
+   374 ms is more than double the time budget for feedback.
 
-   Y sobre todo: MEDIDO, LA REFERENCIA NO ANIMA ESTO. La casilla cambia
-   en un cuadro, ≤17 ms, sin transición. Toda la coreografía era
-   invención nuestra sobre la interacción que más se repite en la pieza.
+   And above all: MEASURED, THE REFERENCE DOES NOT ANIMATE THIS. The
+   checkbox changes in one frame, ≤17 ms, with no transition. The whole
+   choreography was an invention of ours on top of the interaction that
+   repeats the most in the piece.
 
-   Lo que queda es el punto medio entre esa medición y no tener nada:
-   un cruce corto y de una sola pieza. El relleno arranca en 0.8 y no en
-   0.4 —12 px de recorrido pasan a 4— y la tilde se funde en vez de
-   dibujarse. Se pierde el trazo, que era lo lindo; se gana que el
-   control conteste en el cuadro en que lo tocás.
+   What is left is the middle point between that measurement and having
+   nothing: a short crossing, of one piece. The fill starts at 0.8 and
+   not at 0.4, so 12 px of travel become 4, and the checkmark fades
+   instead of drawing itself. The stroke is lost, which was the pretty
+   part; what is gained is that the control answers in the frame you
+   touch it in.
 
-   Simétrico al desmarcar, como todo lo demás de la pieza. */
-.ss-casilla {
+   Symmetric on unchecking, like everything else in the piece. */
+.ss-checkbox {
   position: relative;
   display: grid;
   place-items: center;
-  width: var(--ss-casilla);
-  height: var(--ss-casilla);
-  margin-right: calc(var(--ss-hueco-casilla) - var(--ss-hueco));
-  border: var(--ss-aro) solid var(--pieza-borde);
-  border-radius: calc(var(--ss-casilla) * 0.3);
+  width: var(--ss-checkbox);
+  height: var(--ss-checkbox);
+  margin-right: calc(var(--ss-checkbox-gap) - var(--ss-gap));
+  border: var(--ss-ring) solid var(--piece-border);
+  border-radius: calc(var(--ss-checkbox) * 0.3);
   flex: none;
-  color: var(--pieza-acento-glifo);
+  color: var(--piece-accent-glyph);
   transition: border-color var(--dur-surface) var(--ease-surface);
 }
-/* el relleno, en su propia capa para poder escalarlo sin mover el borde */
-.ss-casilla::before {
+/* the fill, on a layer of its own so it can be scaled without moving
+   the border */
+.ss-checkbox::before {
   content: '';
   position: absolute;
-  inset: calc(var(--ss-aro) * -1);
+  inset: calc(var(--ss-ring) * -1);
   border-radius: inherit;
-  background: var(--pieza-acento);
+  background: var(--piece-accent);
   scale: 0.8;
   opacity: 0;
   transition:
     scale var(--dur-surface) var(--ease-surface),
     opacity var(--dur-surface) var(--ease-surface);
 }
-.ss-tilde {
+.ss-checkmark {
   position: relative;
   width: 100%;
   height: 100%;
   opacity: 0;
   transition: opacity var(--dur-surface) var(--ease-surface);
 }
-.ss-casilla[data-puesta] {
-  border-color: var(--pieza-acento);
+.ss-checkbox[data-checked] {
+  border-color: var(--piece-accent);
 }
-.ss-casilla[data-puesta]::before {
+.ss-checkbox[data-checked]::before {
   scale: 1;
   opacity: 1;
 }
-.ss-casilla[data-puesta] .ss-tilde {
+.ss-checkbox[data-checked] .ss-checkmark {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Movimiento reducido: se va lo único que se mueve, el crecimiento
-     del relleno. El fundido se queda: explica el cambio sin desplazar
-     nada en la pantalla. */
-  .ss-casilla::before,
-  .ss-casilla[data-puesta]::before {
+  /* Reduced motion: the only thing that moves goes away, the growth of
+     the fill. The fade stays: it explains the change without displacing
+     anything on the screen. */
+  .ss-checkbox::before,
+  .ss-checkbox[data-checked]::before {
     scale: 1;
   }
 }
 
-.ss-nombre {
+.ss-name {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ─── MOVIMIENTO REDUCIDO ───────────────────────────────────────
-   Queda mucho menos que antes, porque la pieza ya casi no se mueve: el
-   ancho es fijo, el rótulo cambia en un cuadro y el acuse del apretar
-   es un relleno. Lo que se va acá es lo único que viaja —los chips del
-   racimo, que se reacomodan y crecen— y la escala con la que aparece el
-   panel. El fundido se queda: la opacidad no corre nada en la pantalla.
+/* ─── REDUCED MOTION ────────────────────────────────────────────
+   Much less is left than before, because the piece hardly moves any
+   more: the width is fixed, the label changes in one frame and the
+   feedback of the press is a fill. What goes away here is the only
+   thing that travels, the chips of the cluster, which rearrange and
+   grow, and the scale the panel appears with. The fade stays: opacity
+   moves nothing on the screen.
 
-   El acuse del apretar NO se toca: ya no tiene movimiento que sacarle y
-   es comprensión, no decoración. */
+   The feedback of the press is NOT touched: it has no movement left to
+   take away and it is comprehension, not decoration. */
 @media (prefers-reduced-motion: reduce) {
   .ss-chip,
   .ss-chip > span {

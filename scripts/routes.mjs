@@ -36,7 +36,7 @@ const config = {
   /* With no pieces there is no rewrite: only `/` exists, and any other
      URL gets the host's 404. */
   ...(routes.length
-    ? { rewrites: [{ source: `/:pieza(${routes.join('|')})`, destination: '/index.html' }] }
+    ? { rewrites: [{ source: `/:piece(${routes.join('|')})`, destination: '/index.html' }] }
     : {}),
   /* THE CACHE, and it goes here and not in vercel.json by hand because
      this script OVERWRITES that whole file on every prebuild. Editing

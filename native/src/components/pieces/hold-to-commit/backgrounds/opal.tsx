@@ -18,7 +18,7 @@ import { TOP, CARD, COLOR, GAP, SCREEN, SECTION, SYMBOL } from '../measurements'
    sacrificed, what gets sacrificed is what was invented.
 
    The blotches in the background are in the clip: four remnants of color
-   down the left margin (red, brown, grey, blue-grey), measured in position
+   down the left margin (red, brown, gray, blue-gray), measured in position
    and color. They do not decorate: without them the background is cleaner
    than the reference's, and the piece stops being a copy.
 

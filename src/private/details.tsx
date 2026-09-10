@@ -161,7 +161,7 @@ function useSavedDetails(
    ─── THE SWAP ONLY EXISTS IF THERE IS A LINK ───
    With no links, this is exactly the usual textarea. It is the property
    that makes the feature cheap: 90% of the notes change neither their
-   behaviour nor their tree.
+   behavior nor their tree.
 
    ─── EDITING IS TOUCHING AND TYPING, HERE TOO ───
    Touching the reading view opens the editor WITH THE CURSOR WHERE YOU

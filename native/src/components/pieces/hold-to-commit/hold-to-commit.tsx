@@ -41,7 +41,7 @@ import { LEAD_MS, prepareSound, playSound } from './sound'
  *      0ms   front translateX 4.5 % → 95.5 % of the width, linear 1000: it is the gesture
  *      0ms   "Hold to Buy" exits 48 · "Keep Holding..." enters 360, blur-replace
  *    150ms   first haptic tick (twelve in all, closer and closer together)
- *    550ms   label white → greenish grey, by progress, until 700
+ *    550ms   label white → greenish gray, by progress, until 700
  *    940ms   Apple Pay sound, 60 ms before the end
  *    965ms   label → black
  * RELEASE before the end — the finger comes up

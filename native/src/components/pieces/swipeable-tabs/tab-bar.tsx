@@ -347,7 +347,7 @@ export const TabBar = memo(function TabBar({ tabs, segment, motion, viewport, on
     const limits = states.map(({ total }) => Math.max(0, total - usable))
 
     /* THE ROW CENTERS THE ACTIVE TAB IN THE WHOLE SCREEN, AND THEN IT
-       RUNS INTO THE LIMIT. There is the entire behaviour the reference
+       RUNS INTO THE LIMIT. There is the entire behavior the reference
        has and this did not have: with the first tabs the centering asks
        for a negative number, the clamp leaves it at 0 and the row DOES
        NOT MOVE; from the fourth on it asks for more than there is, the
@@ -679,7 +679,7 @@ const TabItem = memo(function TabItem({
     'worklet'
     /* WITH NO TRANSITION UNDER WAY, both ends being the same tab, the
        active one is fully revealed. Without this line, `t` is 0 when
-       `d === h` and the active tab stayed at 0: grey and with no icon.
+       `d === h` and the active tab stayed at 0: gray and with no icon.
        It happens on the LAST tab at rest, because there `h` cannot
        advance and ends up equal to `d`. */
     if (d === h) return index === d ? 1 : 0
@@ -741,7 +741,7 @@ const TabItem = memo(function TabItem({
     return {
       /* TWO DIFFERENT CURVES, and both measured off the clip (the
          receipt with the table is in `measurements.ts`): the white icon
-         fades with r^1.5 and the grey chevron fades linearly. No scale:
+         fades with r^1.5 and the gray chevron fades linearly. No scale:
          the width of the reference's ink is constant through the whole
          transition.
 

@@ -13,8 +13,8 @@
 /* ═══════════ MASTHEAD ═══════════
    Stack arrangement: title on top, one line below.
    The subtitle does NOT change size. It only drops in weight and in
-   colour, which is the rule benji shares (h1 500 ink / time 460 at 40%)
-   with josh (name and description at the same size, only the colour
+   color, which is the rule benji shares (h1 500 ink / time 460 at 40%)
+   with josh (name and description at the same size, only the color
    changes). */
 .mast {
   max-width: var(--page-content-max-width);
@@ -150,7 +150,7 @@
 }
 /* The piece you are looking at gets painted. The rule is benji's:
    active is the last one whose top edge has already crossed a line
-   128px from the top of the viewport. He marks it by raising the colour
+   128px from the top of the viewport. He marks it by raising the color
    and nothing else, no bar and no dot. */
 .indexLink[data-active] {
   color: var(--active-c);
@@ -162,7 +162,7 @@
 
    Touching a link of the index does not navigate, it only scrolls, so
    the :hover stays stuck to it until the next touch. And since hover
-   and active paint the same colour, the stuck one is indistinguishable
+   and active paint the same color, the stuck one is indistinguishable
    from the real one: measured on an iPad Pro in landscape, touching
    "Switch" and scrolling far away leaves TWO links painted at once,
    "Switch" stuck and "Tab Bar" active, and the index lies about where
@@ -219,7 +219,7 @@
    markup is empty: what paints is the div React wraps around it).
 
    He runs the line across the whole rail and mounts on top of it a span
-   painted the colour of the background, which punches a hole in it; his
+   painted the color of the background, which punches a hole in it; his
    8px padding-right is the gap. Here the same pixel is reached with
    flex, without depending on that background matching the page's.
 
@@ -239,7 +239,7 @@
    In App the box does NOT declare a height. It reserves the phone slot
    (228 wide, capped at the available width, and the aspect ratio makes
    it taller) and the height comes out of that plus the padding. That
-   reproduces benji's behaviour without a single media query: while the
+   reproduces benji's behavior without a single media query: while the
    slot fits, the box always measures the same; when it stops fitting,
    it shrinks on its own. */
 .group[data-platform='App'] .streamPreview {
@@ -310,16 +310,16 @@
 /* ─── THE PLAYER: the video and its speed ───
    The speed button of benji.org (Family Values), measured in his CSS:
    top right with 1rem of padding; 0.75rem/460, height 1.25rem, pill
-   radius, colour #989897; width 1.75rem at 1x and 2.5rem at 0.5x; the
+   radius, color #989897; width 1.75rem at 1x and 2.5rem at 0.5x; the
    two labels on top of each other (position:absolute; inset:0) and
-   crossed by opacity; on hover, colour at 60 % and background #f2f2f2;
-   all with `transition: all .2s ease`. Here the colours are the tokens
+   crossed by opacity; on hover, color at 60 % and background #f2f2f2;
+   all with `transition: all .2s ease`. Here the colors are the tokens
    that already say the same thing, text-secondary and surface-hover,
    and the type is nav's (13/460), the smallest in the system, instead
    of 12. Where it shows: in the DETAIL always, as on benji; in the hub
    of the exhibition only with the mouse over the video (there it is a
    list, and one control per card is noise) and always where there is no
-   hover (touch). No change of background and no change of colour when
+   hover (touch). No change of background and no change of color when
    you pass over it: the label is enough (the user's request,
    2026-09-05; benji does paint #f2f2f2). */
 .player {
@@ -393,7 +393,7 @@
 /* ─── THE STAGE OF A LIVE DEMO (Web piece) ───
    The box of the card already decides the floor (260 in the list, 400
    in the detail, benji's measured decision) and this wrapper only
-   INHERITS it and centres whatever the component draws. `inherit` and
+   INHERITS it and centers whatever the component draws. `inherit` and
    not the token again: that way the floor is written once and the stage
    cannot fall out of sync with its box. The component rules everything
    else. */
@@ -406,7 +406,7 @@
   padding-top: calc(var(--section-first-gap) - 8px); /* 8 = the mast's margin */
 }
 /* --section-content-gap is the gap you SEE: from the line to the first
-   text. It is not the margin, because the line is centred in the
+   text. It is not the margin, because the line is centered in the
    label's box and (box height − 1px of line) / 2 is left below it. That
    difference is taken off here and not in the token, so the number you
    choose is the number you measure. It comes out of --type-h2-lh, so it
@@ -442,9 +442,9 @@
    reached by keyboard, not only the rectangle. */
 /* It is an <a href> and not a button, see the comment in parts.tsx.
    That is why what gets neutralised here is the anchor's and not the
-   button's: the underline and the inherited colour, instead of border,
+   button's: the underline and the inherited color, instead of border,
    background and text-align. The `color: inherit` matters: without it
-   the title of the piece would take the browser's link colour. */
+   the title of the piece would take the browser's link color. */
 /* THE CARD IS NO LONGER THE ANCHOR. It was an <a> that wrapped
    everything, and an <a> cannot contain interactive content: inside the
    preview live the four <button> of a Web piece and the video's speed
@@ -553,7 +553,7 @@
      anything. */
   position: relative;
   /* THE ARROW GETS PAINTED, NOT THE SQUARE. The hover used to fill the
-     34×34 with --a1; now it only changes the colour of the glyph. It is
+     34×34 with --a1; now it only changes the color of the glyph. It is
      unanimous in both references, measured live:
 
        benji .styles_backButton   "Index" 122×28, radius 0, pad 4px 0
@@ -562,7 +562,7 @@
        josh  /melt-effect         "Home" 62×20, radius 0, pad 0
                                   rgb(163,163,163) → rgb(23,23,23)
 
-     Both of them: they paint no background, they change the colour,
+     Both of them: they paint no background, they change the color,
      they do not move. And benji's 0.1s is exactly the --dur-text we
      already had.
 
@@ -589,7 +589,7 @@
      does NOT reach his ink. It stops at 51 over his canvas. We stop at
      65, because the 80% is written from our ink base and not from pure
      black: it is the same "one alpha, two bases" structure that already
-     rules the text greys.
+     rules the text grays.
 
      And it is the SAME token that marks the active piece in the index.
      In his system hover and active are a single declaration,
@@ -601,7 +601,7 @@
      "Home" goes from neutral-400 to neutral-900) and so was reaching
      the level of the text hover (102, --link-underline-hover). The
      second one was tempting because it would unify everything that
-     reacts to the pointer in a single colour, but in dark it lands on
+     reacts to the pointer in a single color, but in dark it lands on
      160 against a resting 155: five units, invisible. */
   color: var(--active-c);
 }
@@ -645,7 +645,7 @@
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
   line-height: var(--type-body-lh);
-  /* ink and not grey: it is prose, and prose goes in ink. See
+  /* ink and not gray: it is prose, and prose goes in ink. See
      DESIGN.md. */
   color: var(--ink);
   /* No widows, like .notes p: one line of description is exactly the
@@ -705,8 +705,8 @@
   font-weight: var(--type-body-fw);
   letter-spacing: var(--type-body-ls);
   line-height: var(--type-body-lh);
-  /* ink and not grey, the same as .detailDesc: it is prose, and prose
-     gets read. Grey is for what annotates. See DESIGN.md. */
+  /* ink and not gray, the same as .detailDesc: it is prose, and prose
+     gets read. Gray is for what annotates. See DESIGN.md. */
   color: var(--ink);
   /* No widows: `pretty` keeps a single word from being left on the last
      line. It is better-typography's rule for descriptions (short

@@ -31,7 +31,7 @@ import css from './app.module.css'
    how, not from the implementation (the user's request, 2026-09-07).
    "Performance" is where it runs and what was measured. And, only when
    the piece calls for it, "Use cases". Two or three sentences per
-   paragraph, and no library name the reader would not recognise:
+   paragraph, and no library name the reader would not recognize:
    "React Native", not "Reanimated" (same request). Decided with the
    first piece (2026-09-05). And IT IS PROSE: a subhead per part inside
    "Anatomy" was tried, an h3 with the name and its paragraph below,

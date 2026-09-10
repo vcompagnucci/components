@@ -19,10 +19,10 @@ import { useTick } from '../load'
    iOS's Large Title: the scale closes. Everything below the range picker
    (where the screenshot ends) is ASSUMED and is marked as such.
 
-   ONE SINGLE GREY AND NO COLOR. Each text is a bar (height 0.82 × the
+   ONE SINGLE GRAY AND NO COLOR. Each text is a bar (height 0.82 × the
    font size it replaces, centered in its line box), the chart is a smooth
-   curve in the same grey, with no noise, and the selected range is a pill
-   in the same grey with a bar the color of the background inside it. The
+   curve in the same gray, with no noise, and the selected range is a pill
+   in the same gray with a bar the color of the background inside it. The
    reference has the line and the pill in lime (204,255,0): it was
    measured and it is NOT used, on request. Nothing competes with the
    button.
@@ -33,7 +33,7 @@ import { useTick } from '../load'
    values. SOURCE: UIKit's system color table (HIG › Color): systemFill is
    (120,120,128) at 20 % in light and at 36 % in dark; separator,
    (60,60,67) at 29 % and (84,84,88) at 60 %. Over black, systemFill gives
-   (43,43,46): the same grey measured in `blocks` (#2A2A2A, 42) to within
+   (43,43,46): the same gray measured in `blocks` (#2A2A2A, 42) to within
    one level, so dark mode did not change. RUNTIME in the `sim/modo-*`
    captures.
 

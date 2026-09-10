@@ -168,7 +168,7 @@ const viewToDisk = (v) => ({
   })),
 })
 
-/* Everything coming in goes through here. What is not recognised does
+/* Everything coming in goes through here. What is not recognized does
    NOT get stored: it is the same rule as the details, which drop the
    extra fields instead of writing them. */
 const clampNumber = (v, min, max, fallback) =>

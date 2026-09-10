@@ -175,7 +175,7 @@ function Screen({ probe, background: requestedBackground, recipe: requestedRecip
 }
 
 /* A row of chips: chrome for the exploration, not a candidate. It follows
-   the screen's color scheme: in light mode, iOS's system greys. */
+   the screen's color scheme: in light mode, iOS's system grays. */
 function Selector<T extends string>({ options, active, choose, scheme }: { options: readonly T[]; active: T; choose: (o: T) => void; scheme: ColorScheme }) {
   const light = scheme === 'light'
   return (
@@ -238,7 +238,7 @@ const css = StyleSheet.create({
  * — The blob's left tip DARKENS and WIDENS as the front moves away: the
  *   veil's texture is the one from the end (f181) and it gets scaled in x
  *   from the tip, s = .25 + .75·p; it is inverted PER CHANNEL against the
- *   target color (pale green). A grey veil cannot give (150,172,156), and
+ *   target color (pale green). A gray veil cannot give (150,172,156), and
  *   a fixed one cannot give 249 → 183 at 38 pt.
  *   RUNTIME: f88…f181 every 6 frames; verified exactly at four progresses.
  *
@@ -262,7 +262,7 @@ const css = StyleSheet.create({
  *   holds just the same. The blurred copies are regenerated with
  *   `media/generate.swift`.
  *
- * — The label's color comes out of the PROGRESS: white → greenish grey
+ * — The label's color comes out of the PROGRESS: white → greenish gray
  *   (#202B24) between .55 and .70 with ease-out, and a step to black at
  *   .965.
  *   RUNTIME: luminance minimum in "Ke": 253 in f128 → 47 in f146 →
@@ -341,7 +341,7 @@ const css = StyleSheet.create({
  *
  * — The backgrounds are variants (`background.ts`): `stock`, the chosen
  *   one, is an asset's detail page measured from Robinhood's official
- *   screenshot, in a single grey; `opal` is the clip's screen and the only
+ *   screenshot, in a single gray; `opal` is the clip's screen and the only
  *   one with a spill. `stock` follows light/dark mode with system colors
  *   (`PlatformColor`): nothing to maintain. RUNTIME: bar (43,43,46) in
  *   dark and (228,228,230) in light.
@@ -358,7 +358,7 @@ const css = StyleSheet.create({
  *   only with `stock` does it follow the system; the Opal backgrounds are
  *   always dark. In light mode the opaque pill stays dark but with no
  *   sheen and no veil, and the burst is the color of the pill; the chips
- *   use the system greys (`LIGHT`, ASSUMED). RUNTIME:
+ *   use the system grays (`LIGHT`, ASSUMED). RUNTIME:
  *   `cmp/claro-tablero.png`.
  *
  * — Android draws the same thing as iOS: system colors written out
@@ -414,7 +414,7 @@ const css = StyleSheet.create({
  * — THE BUTTON IS NOT A LITERAL COPY OF THE CLIP, and in three things it
  *   departs from it on purpose: the 1 pt ring is not drawn and a two-layer
  *   shadow goes in its place; "✓ Order Placed" is moved 6.6 pt to the
- *   left; and in light mode the page is iOS's grouped grey and not pure
+ *   left; and in light mode the page is iOS's grouped gray and not pure
  *   white. RUNTIME: the ring pulled +54.5 away from what it had 2 pt
  *   outside against +4 in the clip; the label's text fell +13.67 pt to the
  *   right of the center and the centroid +6.60, and the correction is that
