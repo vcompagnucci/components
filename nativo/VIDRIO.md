@@ -107,7 +107,7 @@ habernos puesto de acuerdo. Buena señal para las dos partes.
 
 ## Cómo lo usa el botón de hold-to-commit (2026-09-04)
 
-La variante `vidrio` (`piezas/hold-to-commit/material.ts`) es el mismo
+La variante `vidrio` (`components/pieces/hold-to-commit/material.ts`) es el mismo
 botón con la cápsula en `GlassView` estilo `regular`. Tres decisiones que
 salen de las trampas de arriba:
 

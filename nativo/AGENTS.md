@@ -36,7 +36,7 @@ pnpm install                  # una vez por worktree
 pnpm ios:build                # UNA vez por máquina: compila el dev client
 pnpm ios                      # el día a día: Metro + la app en el simulador
 pnpm telefono                 # Metro para Expo Go, con QR — ver "en tu iPhone"
-pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
+pnpm nueva "Swipe to pay"     # crea src/components/pieces/swipe-to-pay/
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
 pnpm mockup swipe-to-pay --verificar   # primero: ¿el hueco del bisel queda lleno en toda la cámara?
 pnpm mockup swipe-to-pay               # la grabación en un iPhone negro, fondo neutro, cámara: para X
@@ -94,8 +94,8 @@ Con pnpm el postinstall no lo hace solo. Si `pnpm ios:build` se queja de
 
 `pnpm nueva` es el `New sketch` de este lado: crea la carpeta y nada
 más. **El índice se deriva de las carpetas** (`require.context` en
-`src/app/index.tsx`), así que no hay ninguna lista que mantener — la
-misma decisión que hace que el vault no pueda mentir.
+`src/components/pieces/registry.ts`), así que no hay ninguna lista que
+mantener — la misma decisión que hace que el vault no pueda mentir.
 
 `pnpm grabar` hace las tres cosas del cierre: clava la barra de estado
 en 9:41 con batería y señal llenas, graba con `--codec h264` (el default
@@ -110,32 +110,49 @@ de `/vault`: de ahí, Open in Playground → Add to Exhibition.
 ```
 src/app/
 ├── _layout.tsx          el Stack, sin header en ninguna pantalla
-├── index.tsx            el índice, derivado de las carpetas
-└── <slug>/index.tsx     UNA pieza = UNA carpeta = UNA ruta — un puntero
-src/piezas/<slug>/
-├── index.tsx            exporta la pantalla, y nada más
-├── pantalla.tsx         la pieza montada: datos, paleta, composición y
-│                        el bloque "No tocar sin volver a medir" al pie
-├── <mecanismo>.tsx      lo que se mueve, en archivos por responsabilidad
-├── medidas.ts           cada valor con su recibo, y las paletas
-├── tema.ts              el contexto de la paleta
-└── <datos>.ts, media/   contenido del mock, si lo hay
+├── index.tsx            el índice: decide si hay lista y la monta
+└── [slug].tsx           UNA ruta para todas: busca la pantalla en el registro
+src/components/
+├── piece-list.tsx       la lista del índice, dibujada
+└── pieces/
+    ├── registry.ts      slug → pantalla, DERIVADO de las carpetas de abajo
+    ├── abrir.ts         la perilla: abrir el taller directo en una pieza
+    └── <slug>/
+        ├── index.tsx            exporta la pantalla por defecto, y nada más
+        ├── <slug>-screen.tsx    la pieza montada: datos, paleta, perillas,
+        │                        composición y el bloque "No tocar sin
+        │                        volver a medir" al pie
+        ├── <slug>.tsx           el mecanismo: lo que se mueve
+        ├── <parte>.tsx          sus partes, en archivos por responsabilidad
+        ├── medidas.ts           cada valor con su recibo, y las paletas
+        ├── theme.ts             el contexto de la paleta
+        └── <datos>.ts, media/   contenido del mock, si lo hay
 ```
 
 **El slug es el mismo string en los tres lados**: la carpeta acá, el
 nombre del archivo de la grabación, y la URL de la pieza publicada. Por
 eso `pnpm nueva` usa la misma cuenta que `slug()` en `src/pieces.ts` del
 repo web. Si divergieran, la pieza publicada no apuntaría a su taller.
+Y se asigna una vez: el título de la exhibition puede cambiar después
+y la carpeta no, porque el slug es
+un campo de `PIECES` y no una cuenta sobre el nombre.
 
-**La ruta es un puntero y la pieza vive en `src/piezas/<slug>/`.** No
-es gusto: Expo Router convierte en ruta **todo** `.tsx` que cuelgue de
-`src/app/` (su doc: *"Non-navigation components live outside the src/app
-directory"*), así que un `barra.tsx` al lado de la ruta sería
-`/swipeable-tabs/barra`. La carpeta tiene la forma de un componente de
+**La ruta es una sola y la pieza vive en `src/components/pieces/<slug>/`.**
+No es gusto: Expo Router convierte en ruta **todo** `.tsx` que cuelgue
+de `src/app/` (su doc: *"Non-navigation components live outside the
+src/app directory"*), así que un `barra.tsx` al lado de una ruta sería
+`/swipeable-tabs/barra`. La carpeta tiene la forma y los nombres de un
+componente de
 [react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components/animations)
-—una pantalla que se monta sola, un `index.tsx` que la exporta, el
-mecanismo, el tema y los datos al lado— menos su registry a mano: acá
-el índice sigue saliendo de las carpetas de `src/app/`.
+—`index.tsx` que exporta la pantalla, `<slug>-screen.tsx`, `<slug>.tsx`
+con el mecanismo, `theme.ts`, y las partes y los datos al lado— y
+también su registry, con una diferencia: allá se escribe a mano y acá
+`registry.ts` se DERIVA de las carpetas con `require.context`, por lo
+mismo que el vault no puede mentir, y porque con varios worktrees
+construyendo en paralelo un archivo central es un conflicto por pieza
+nueva. `src/app/[slug].tsx` busca ahí y monta. Hasta el 2026-09-10 había
+un puntero por pieza en `src/app/<slug>/index.tsx` y el índice salía de
+esas carpetas.
 
 **Verificado de punta a punta** el 2026-08-27: `pnpm nueva` creó una
 pieza, el dev build la dibujó con **Skia** en el simulador, `pnpm grabar`
@@ -146,7 +163,7 @@ puede ir cuadro a cuadro sobre lo que sale de acá.
 **Con dos piezas o más hay índice, y para medir eso estorba.** Las
 sondas de una pieza y `pnpm grabar` necesitan que la app arranque en la
 pieza; `simctl openurl` con el esquema del dev client pide confirmación
-en iOS 26. `src/piezas/abrir.ts` es la perilla: el slug ahí y el índice
+en iOS 26. `src/components/pieces/abrir.ts` es la perilla: el slug ahí y el índice
 redirige. Queda `undefined` en el repo (el otro worktree tiene su pieza).
 
 **Sin header, y se graba así.** Una pieza ocupa la pantalla entera: todo
@@ -157,7 +174,7 @@ pantalla con `<Stack.Screen options={{ gestureEnabled: false }} />`.
 
 ### Al pie de la pieza va lo que es de la pieza
 
-Cuando termines, cerrá `pantalla.tsx` con un bloque de invariantes: los
+Cuando termines, cerrá `<slug>-screen.tsx` con un bloque de invariantes: los
 valores que alguien tendría que volver a medir antes de tocarlos, y por
 qué. Uno por línea, con su grado de evidencia.
 
@@ -718,7 +735,7 @@ xcrun simctl spawn booted defaults write host.exp.Exponent EXDevMenuShowFloating
 
 y relanzar Expo Go. Queda apagada para ese simulador.
 
-**La sonda de grabación de hold-to-commit** vive en su `boton.tsx`,
+**La sonda de grabación de hold-to-commit** vive en su `hold-to-commit.tsx`,
 rama `sonda === 'demo'`, con su timeline arriba. Llama a los MISMOS
 worklets que llama el dedo (`apretar`, `completar`, `reiniciar`), así
 que curvas, tiempos, háptica y sonido son los del camino real. Dos

@@ -16,12 +16,14 @@
    cambiaba de forma (por eso existía el guard de "vacío a propósito"),
    y el slug copiado divergía del de la página. Node ≥24 —que engines ya
    exige— corre TypeScript sin tipos ejecutables, así que se puede leer
-   la lista real con la cuenta real. Si pieces.ts no compila, esto
-   revienta acá y el build no sale: mismo freno, sin regex. */
+   la lista real. Si pieces.ts no compila, esto revienta acá y el build
+   no sale: mismo freno, sin regex. El slug de cada pieza es un CAMPO de
+   su entrada desde el 2026-09-10, no una cuenta sobre el nombre: acá se
+   lee, no se calcula. */
 import { writeFileSync, readFileSync } from 'node:fs'
-import { PIECES, slug } from '../src/pieces.ts'
+import { PIECES } from '../src/pieces.ts'
 
-const rutas = PIECES.map((p) => slug(p.name))
+const rutas = PIECES.map((p) => p.slug)
 
 const INMUTABLE = 'public, max-age=31536000, immutable'
 

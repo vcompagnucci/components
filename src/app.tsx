@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import css from './app.module.css'
-import { Detail, Item, Masthead, baseDeTexto, slug } from './parts'
+import { Detail, Item, Masthead, baseDeTexto } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { NotFound } from './not-found'
 
@@ -128,14 +128,14 @@ const desdeUrl = (): Vista => {
       return { tipo: 'privado', privada, resto: ruta.slice(privada.ruta.length + 1) }
     }
   }
-  const encontrada = PIECES.find((p) => slug(p.name) === ruta.slice(1))
+  const encontrada = PIECES.find((p) => p.slug === ruta.slice(1))
   return encontrada ? { tipo: 'pieza', piece: encontrada } : { tipo: 'nada' }
 }
 
 /* 80px de descuento: el mismo aire superior de la página, así el título
    de la pieza no queda pegado al borde al llegar. */
-const goTo = (name: string) => {
-  const el = document.getElementById(slug(name))
+const goTo = (slug: string) => {
+  const el = document.getElementById(slug)
   if (!el) return
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   window.scrollTo({
@@ -179,15 +179,15 @@ function piezaActiva(): string | null {
   if (PIECES.length === 0) return null
   let activa: string | null = null
   for (const p of PIECES) {
-    const el = document.getElementById(slug(p.name))
-    if (el && el.getBoundingClientRect().top < LINEA_SPY) activa = slug(p.name)
+    const el = document.getElementById(p.slug)
+    if (el && el.getBoundingClientRect().top < LINEA_SPY) activa = p.slug
   }
   /* Al final del documento gana la última sí o sí: la que queda abajo de
      todo puede ser demasiado corta para llegar nunca a la línea. También
      es de él. */
   const d = document.documentElement
   if (d.scrollHeight - window.scrollY - window.innerHeight < 24) {
-    activa = slug(PIECES[PIECES.length - 1].name)
+    activa = PIECES[PIECES.length - 1].slug
   }
   return activa
 }
@@ -213,9 +213,9 @@ function Index({ activa }: { activa: string | null }) {
             {by(pl).map((p) => (
               <button
                 className={css.indexLink}
-                key={p.name}
-                data-active={activa === slug(p.name) ? '' : undefined}
-                onClick={() => goTo(p.name)}
+                key={p.slug}
+                data-active={activa === p.slug ? '' : undefined}
+                onClick={() => goTo(p.slug)}
               >
                 {p.name}
               </button>
@@ -347,7 +347,7 @@ export function App() {
 
   const open = (p: Piece) => {
     listScroll.current = window.scrollY
-    history.pushState({ fromList: true }, '', `/${slug(p.name)}`)
+    history.pushState({ fromList: true }, '', `/${p.slug}`)
     setVista({ tipo: 'pieza', piece: p })
   }
 
@@ -418,7 +418,7 @@ export function App() {
               <span className={css.groupLine} aria-hidden />
             </div>
             {by(pl).map((p, i) => (
-              <Item piece={p} onOpen={open} primera={pl === PLATFORMS[0] && i === 0} key={p.name} />
+              <Item piece={p} onOpen={open} primera={pl === PLATFORMS[0] && i === 0} key={p.slug} />
             ))}
           </section>
         ))}

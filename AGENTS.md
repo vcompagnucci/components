@@ -106,9 +106,10 @@ Las tres reglas que valen para los dos caminos, antes de empezar:
 | 9 | **Escribí el porqué** | Comentario arriba del archivo + entrada en la bitácora (`README.md`) |
 
 Qué pasó por detrás en el paso 7: el archivo se **copió** de
-`src/privado/bocetos/` a `src/piezas/<slug>.tsx` —cruzó la frontera, ver
-abajo— y entró la entrada en `PIECES`. **A partir de ahí el canónico es
-el archivo publicado**; el boceto se queda en tu tablero.
+`src/privado/bocetos/` a `src/components/pieces/<slug>/<slug>.tsx`, con
+un `index.tsx` al lado que lo exporta —cruzó la frontera, ver abajo— y
+entró la entrada en `PIECES`, con su `slug`. **A partir de ahí el
+canónico es el archivo publicado**; el boceto se queda en tu tablero.
 
 > Una pieza publicada **no puede importar nada de `src/privado/`**. El
 > boceto nace autocontenido y tiene que seguir siéndolo.
@@ -119,7 +120,7 @@ el archivo publicado**; el boceto se queda en tu tablero.
 | --- | --- | --- |
 | 0 | Levantá el taller | `cd nativo && pnpm install`. **La primera vez en la máquina**, además `pnpm ios:build` (compila el dev client). Después alcanza `pnpm ios` |
 | 1 | **Juntá la referencia** *(opcional)* | Soltá la grabación ajena en `VAULT_DIR/native/`, estudiala en `/vault` como en el camino A |
-| 2 | **Creá la pieza** | `pnpm nueva "Swipe to pay"` → `nativo/src/app/swipe-to-pay/index.tsx`. El índice del taller la levanta solo |
+| 2 | **Creá la pieza** | `pnpm nueva "Swipe to pay"` → `nativo/src/components/pieces/swipe-to-pay/swipe-to-pay-screen.tsx`, con su `index.tsx`. El índice del taller la levanta solo |
 | 3 | **Escribí** | Editá ese archivo. Metro recarga en caliente. Disponibles: Reanimated, Gesture Handler, Skia, expo-haptics |
 | 4 | **Miralo correr** | En el simulador. Para volver al índice, **swipe desde el borde izquierdo** |
 | 5 | **Probalo en el teléfono** | Vale la pena: el simulador **no tiene háptica ni 120Hz**. Expo Go + misma Wi-Fi, o `pnpm start --tunnel` |
@@ -182,10 +183,13 @@ entero y cada mini-decisión están en `mockup/AGENTS.md`.
 ### Lo que vale para los dos
 
 **El slug es el mismo string en todos lados.** La carpeta del taller
-nativo, el nombre del archivo de la grabación, el archivo del demo web,
-y la URL pública. Sale de `slug()` en `src/pieces.ts`, que es la única
-cuenta que existe. Si dos divergen, la pieza no encuentra su propio
-material.
+nativo, el nombre del archivo de la grabación, la carpeta del demo web,
+y la URL pública. Es el campo `slug` de la entrada en `src/pieces.ts`:
+lo asigna **una vez** quien publica —Add to Exhibition, con `slug()`
+sobre el nombre de ese día; `pnpm nueva` usa la misma cuenta— y no se
+vuelve a tocar. El título puede cambiar después y la URL no: es la forma de `data/animations.ts` en
+react-native-motion (`title: 'Stack Toast', slug: 'spring-toast'`). Si
+dos divergen, la pieza no encuentra su propio material.
 
 **Cómo se nombra.** Menos de 15 caracteres (Toolbars › Titles de la
 HIG). El título dice **QUÉ es el gesto**; `Source` dice **de dónde
@@ -257,7 +261,7 @@ la bitácora tiene cada vuelta y cada rechazo):
    algo, auditar el código contra los skills `animate-expo`,
    `interface-craft` y `better-ui`. Entran sólo las reglas que cumple,
    cada una con su recibo —archivo y símbolo— en el comentario de
-   `src/notas/<slug>.tsx`; las que no cumple a propósito, por la
+   `src/components/pieces/<slug>/notes.tsx`; las que no cumple a propósito, por la
    referencia, quedan en el comentario y no en el texto. Si una se
    rompe sin razón, se arregla el código primero (así entró la
    interrupción del toque lejano).
@@ -321,7 +325,7 @@ la bitácora tiene cada vuelta y cada rechazo):
    si se tocó el CSS. Y después del merge, la misma lectura en
    producción.
 9. **El registro.** Cada decisión y cada rechazo en `README.md` y en
-   el comentario arriba de `src/notas/<slug>.tsx`, con la cita del
+   el comentario arriba de `src/components/pieces/<slug>/notes.tsx`, con la cita del
    usuario y la fecha. `pnpm typecheck && pnpm build`, un commit por
    mini-decisión que dice qué y por qué, push, PR con squash.
 
@@ -341,7 +345,7 @@ pnpm --dir nativo typecheck           # el taller, si lo tocaste
 - **No publicar material ajeno.** Los clips del vault son referencias de
   otras apps; el inventario lleva sólo piezas construidas de verdad. Si
   publicás algo para probar, revertilo: borrá la entrada de `PIECES` y
-  el archivo de `public/piezas/` o `src/piezas/`.
+  el archivo de `public/piezas/` o la carpeta de `src/components/pieces/`.
 - **No importar de `src/privado/` desde el producto.** La dependencia va
   en un solo sentido o el área privada termina en el bundle.
 - **No agregar placeholders.** Acá se borraron 18 piezas de scaffolding
@@ -467,8 +471,9 @@ línea, el detalle va del preview a las notas (Swipeable tabs, desde el
 la dice el frame**, no un selector:
 
 - un frame **boceto** publica una pieza **Web**: su archivo se copia de
-  `src/privado/bocetos/` a `src/piezas/<slug>.tsx` — el lado público de
-  la frontera — y el demo corre **vivo** en la lista y el detalle.
+  `src/privado/bocetos/` a `src/components/pieces/<slug>/<slug>.tsx`,
+  con su `index.tsx` — el lado público de la frontera — y el demo corre
+  **vivo** en la lista y el detalle.
 - un frame **clip** (una grabación tuya que entró por el vault) publica
   una pieza **App**: el video se copia a `public/piezas/<slug>.<ext>` y
   autoreproduce en el hueco del teléfono.
@@ -477,9 +482,12 @@ El servidor hace las dos escrituras o ninguna —el archivo del demo y la
 entrada en `PIECES`— y no pisa nada nunca: repetir un nombre es un 409.
 Al terminar te deja parado en la página nueva, que es la confirmación.
 
-**Cómo vive una pieza Web**: `src/piezas/<slug>.tsx` exporta el
-componente por defecto y `demos.tsx` lo resuelve **por nombre** — el
-slug es el mapa, no hay registro que mantener. Publicar es COPIA, no
+**Cómo vive una pieza Web**: `src/components/pieces/<slug>/<slug>.tsx`
+exporta el componente por defecto, `index.tsx` lo re-exporta y
+`demos.tsx` lo resuelve **por slug** — la carpeta es el mapa, no hay
+registro que mantener. Es la forma de `components/animations/<slug>/`
+en react-native-motion, y la misma carpeta lleva las notas del detalle
+(`notes.tsx`, ver `notas.tsx`). Publicar es COPIA, no
 mudanza: el boceto queda en el tablero; desde ahí la pieza se edita en
 su archivo publicado. Y como es producto, **no puede importar nada de
 `src/privado/`**.
@@ -523,7 +531,7 @@ importante vive acá). En tres comandos:
 
 ```bash
 cd nativo && pnpm install && pnpm ios:build   # el build es una vez por máquina
-pnpm nueva "Swipe to pay"     # crea src/app/swipe-to-pay/index.tsx
+pnpm nueva "Swipe to pay"     # crea src/components/pieces/swipe-to-pay/
 pnpm grabar swipe-to-pay      # graba al vault y cierra el circuito
 ```
 
@@ -597,12 +605,13 @@ de la pieza y no su componente.
 | dónde | qué |
 | --- | --- |
 | `src/app.tsx` | el router (sin librería: `pushState` y dos vistas), el scrollspy, la puerta de lo privado |
-| `src/pieces.ts` | el inventario público y el `slug` canónico. Hoy vacío |
-| `src/demos.tsx` | el mapa nombre → componente de las piezas Web |
-| `src/piezas/` | **el demo de cada pieza Web**, un archivo por slug. Acá aterriza un boceto publicado |
+| `src/pieces.ts` | el inventario público: nombre, `slug` y plataforma de cada pieza, en orden editorial |
+| `src/demos.tsx` | el mapa slug → componente de las piezas Web |
+| `src/components/pieces/<slug>/` | **una carpeta por pieza**, con la forma de `components/animations/<slug>/` de react-native-motion: `index.tsx` + `<slug>.tsx` (el demo de una Web; acá aterriza un boceto publicado) y `notes.tsx` (las notas del detalle, de las dos plataformas) |
+| `src/notas.tsx` | el mapa slug → notas |
 | `nativo/` | **el taller nativo**: app Expo con su propio toolchain. Ver su `AGENTS.md` |
 | `nativo/VIDRIO.md` | referencia del material de vidrio: por qué un `GlassView` no se anima por opacidad |
-| `nativo/src/app/<slug>/` | una pieza App en construcción, una carpeta = una ruta |
+| `nativo/src/components/pieces/<slug>/` | una pieza App: `index.tsx`, `<slug>-screen.tsx`, `<slug>.tsx` y lo suyo al lado. La ruta es una para todas (`nativo/src/app/[slug].tsx`) y el registro se deriva de las carpetas (`registry.ts`) |
 | `nativo/scripts/nueva.mjs` | crea una pieza. El `New sketch` de este lado |
 | `nativo/scripts/grabar.mjs` | graba el simulador **directo al vault**: barra limpia + h264 |
 | `mockup/` | **el video para X de una pieza App**, en Remotion: bisel oficial, fondo neutro, cámara medida; se itera en Studio. Ver su `AGENTS.md` |

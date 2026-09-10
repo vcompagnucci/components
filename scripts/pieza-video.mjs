@@ -14,9 +14,9 @@
    un h264, y el par ya sale a 1280². `--oscuro` quedó para piezas con
    un fondo horneado por tema; la exhibition de hoy no lo usa.
 
-   Hace tres cosas, en orden: (1) busca la pieza en PIECES por su slug
-   —la MISMA cuenta `slug()` de pieces.ts, así el archivo y la URL no
-   pueden divergir—; (2) re-encodea el archivo para la web: h264,
+   Hace tres cosas, en orden: (1) busca la pieza en PIECES por su `slug`
+   —el campo de la entrada, que es también la URL, así el archivo y la
+   URL no pueden divergir—; (2) re-encodea el archivo para la web: h264,
    yuv420p, faststart, sin audio, al ancho pedido (720 por default: el
    doble del hueco del detalle, que mide 319) conservando la proporción
    del archivo, y a 60 fps si el origen los trae; (3) escribe
@@ -45,7 +45,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { PIECES, slug as slugDePieza } from '../src/pieces.ts'
+import { PIECES } from '../src/pieces.ts'
 
 const RAIZ = fileURLToPath(new URL('../', import.meta.url))
 const PIEZAS_TS = path.join(RAIZ, 'src/pieces.ts')
@@ -67,7 +67,7 @@ if (!fs.existsSync(archivo) && opciones.alfa !== 'true') {
   console.error(`No existe ${archivo}`)
   process.exit(1)
 }
-const pieza = PIECES.find((p) => slugDePieza(p.name) === slug)
+const pieza = PIECES.find((p) => p.slug === slug)
 if (!pieza) {
   console.error(`No hay ninguna pieza con slug "${slug}" en PIECES. Publicala primero (Add to Exhibition) o agregá la entrada a mano.`)
   process.exit(1)
@@ -76,7 +76,6 @@ if (pieza.platform !== 'App') {
   console.error(`"${pieza.name}" es una pieza Web: se demuestra corriendo, no en video.`)
   process.exit(1)
 }
-const aLiteral = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
 const oscuro = opciones.oscuro === 'true'
 const alfa = opciones.alfa === 'true'
 const campo = oscuro ? 'videoOscuro' : 'video'
@@ -89,7 +88,7 @@ if (!alfa && pieza[campo] && opciones.pisar !== 'true') {
 /* ─── EL PAR CON ALFA, tal cual. Reemplaza lo que haya: es LA versión
    de la exhibition, y `pnpm render:exhibition` es su único origen. ─── */
 function ponerCampo(src, nombreCampo, valor) {
-  const inicio = src.indexOf(`name: '${aLiteral(pieza.name)}'`)
+  const inicio = src.indexOf(`slug: '${slug}'`)
   const cierre = src.indexOf('\n  },', inicio)
   if (inicio < 0 || cierre < 0) throw new Error('No encontré la entrada en pieces.ts con la forma esperada')
   const bloque = src.slice(inicio, cierre)
@@ -159,10 +158,11 @@ execFileSync(
 )
 fs.renameSync(temporal, destino)
 
-/* La entrada en pieces.ts: se localiza por su `name` y se toca sólo el
-   bloque de esa pieza, hasta el `},` que lo cierra. */
+/* La entrada en pieces.ts: se localiza por su `slug` —el campo, que no
+   cambia cuando cambia el título— y se toca sólo el bloque de esa
+   pieza, hasta el `},` que lo cierra. */
 const src = fs.readFileSync(PIEZAS_TS, 'utf8')
-const inicio = src.indexOf(`name: '${aLiteral(pieza.name)}'`)
+const inicio = src.indexOf(`slug: '${slug}'`)
 const cierre = src.indexOf('\n  },', inicio)
 if (inicio < 0 || cierre < 0) {
   console.error('No encontré la entrada en pieces.ts con la forma esperada; el mp4 quedó escrito, agregá `video` a mano.')

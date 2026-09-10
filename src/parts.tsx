@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
-import { slug, type Piece } from './pieces'
+import type { Piece } from './pieces'
 import { DemoVivo } from './demos'
 import { Notas } from './notas'
 
 /* Piezas de la página, cada una con una sola responsabilidad. Viven
    acá y no en app.tsx para que app quede sólo con la composición. */
-
-/* El slug vive en pieces.ts —lo comparten la página, rutas.mjs y el
-   puente que publica— y de acá sólo se re-exporta para los lectores
-   que ya lo importaban de este lado. */
-export { slug }
 
 /* EL INTERCEPTOR DE UN LINK DE CLIENTE. Medido en benji: su ítem de
    lista es un <a href="/drawesome"> y el clic normal navega del lado del
@@ -143,7 +138,7 @@ export function Item({
        activaciones por Enter sobre el link. */
     <article
       className={css.streamItem}
-      id={slug(piece.name)}
+      id={piece.slug}
       onClick={clicDeTarjeta(() => onOpen(piece))}
       onMouseEnter={entrar}
       onMouseLeave={salir}
@@ -151,7 +146,7 @@ export function Item({
       <div className={css.streamTitle} data-primera-pieza={primera ? '' : undefined}>
         <a
           className={css.streamLink}
-          href={`/${slug(piece.name)}`}
+          href={`/${piece.slug}`}
           onClick={clicDeLink(() => onOpen(piece))}
           onFocus={entrar}
           onBlur={salir}
@@ -339,7 +334,7 @@ function Muestra({ piece, modo, activo }: { piece: Piece; modo: Modo; activo?: b
      con alfa. Al revés, Safari tomaría el WebM y lo dibujaría sobre
      negro. Ver Reproductor. */
   if (piece.video) return <Reproductor piece={piece} modo={modo} activo={activo} />
-  if (piece.platform === 'Web') return <DemoVivo name={piece.name} modo={modo} />
+  if (piece.platform === 'Web') return <DemoVivo slug={piece.slug} modo={modo} />
   return null
 }
 
@@ -408,12 +403,13 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
         </div>
         {/* La línea de PIECES es la entrada, y las notas lo que sigue.
             Son dos cosas distintas: ésta se escribe al publicar y cabe
-            en un renglón; aquéllas viven en src/notas/<slug>.tsx. Una
+            en un renglón; aquéllas viven en src/components/pieces/<slug>/
+            notes.tsx. Una
             pieza puede no tener ninguna de las dos: sin línea no se
             dibuja el párrafo, o dejaría sus 24 px de margen vacíos
             (Swipeable tabs, 2026-09-07: el título ya dice qué es). */}
         {piece.desc ? <p className={css.detailDesc}>{piece.desc}</p> : null}
-        <Notas name={piece.name} />
+        <Notas slug={piece.slug} />
       </div>
     </div>
   )

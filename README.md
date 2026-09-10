@@ -503,9 +503,9 @@ el gesto vive donde está el trabajo.
 | **La acción es visible, no sólo clic derecho** | elegís el frame y `Add to Exhibition` aparece en la sidebar, debajo del índice, a **16** —el aire de grupo, medido— para que no se lea como un renglón más: los renglones son sustantivos y esto es un verbo | la lección ya aprendida en el vault: *un menú contextual no anuncia nada*. El patrón de referencia es el panel derecho de Figma —las acciones de lo elegido— pero UNA acción no paga una superficie nueva: la zona nace adentro de la sidebar que ya existe. El clic derecho queda como atajo |
 | **La plataforma la dice el frame**, sin selector | un frame `boceto` publica Web; un frame `clip` publica App | es la regla que ya existía —*App se demuestra en video, Web va viva*— leída al revés. Un selector ofrecería combinaciones que el sistema ya declaró inválidas |
 | El formulario es el molde de la pieza | dos campos: nombre y una línea de descripción — exactamente los dos renglones del detalle público. El nombre llega puesto; la descripción arranca vacía porque es el único dato que el archivo no sabe de sí mismo | la carpeta-es-el-manifiesto del vault, aplicada al publicar: no se pide nada que ya se sepa |
-| **Cómo vive una pieza Web** | su archivo en `src/piezas/<slug>.tsx`, resuelto **por nombre** en `demos.tsx` — glob perezoso, cache por ref, mismo trío que los bocetos | el slug es el mapa, así que no hay registro que mantener a mano — la decisión de la carpeta-manifiesto, ahora del lado público. En el build cada pieza sale como su propio chunk (**verificado**: `press-counter-….js`, 0.44 kB) |
+| **Cómo vive una pieza Web** | su carpeta en `src/components/pieces/<slug>/` (desde el 2026-09-10; antes un archivo, `src/piezas/<slug>.tsx`), resuelta **por slug** en `demos.tsx` — glob perezoso, cache por ref, mismo trío que los bocetos | el slug es el mapa, así que no hay registro que mantener a mano — la decisión de la carpeta-manifiesto, ahora del lado público. En el build cada pieza sale como su propio chunk (**verificado**: `press-counter-….js`, 0.44 kB) |
 | ↳ publicar es COPIA, no mudanza | el boceto queda en el tablero; la pieza se edita en su archivo publicado | mover el archivo rompería los frames que lo referencian. El costo —dos archivos que pueden divergir— queda dicho: desde la publicación, el canónico es `src/piezas/` |
-| ↳ y cruza la frontera de verdad | de `src/privado/bocetos/` a `src/piezas/` | `src/privado/` no llega al build, así que una pieza publicada necesita su archivo del lado público. Por lo mismo, una pieza no puede importar nada de `src/privado/` — era cierto para el boceto (nace autocontenido) y tiene que seguir siéndolo |
+| ↳ y cruza la frontera de verdad | de `src/privado/bocetos/` a `src/components/pieces/` | `src/privado/` no llega al build, así que una pieza publicada necesita su archivo del lado público. Por lo mismo, una pieza no puede importar nada de `src/privado/` — era cierto para el boceto (nace autocontenido) y tiene que seguir siéndolo |
 | Las dos escrituras o ninguna | el archivo del demo se copia y la entrada entra a `pieces.ts`; si la segunda falla, la primera se deshace | el vault y `src/privado/` viven fuera del deploy; sin el copiado la pieza apuntaría a algo que producción no tiene |
 | No se pisa nada nunca | nombre o archivo repetidos → **409**, no un reemplazo | la misma regla que subir un clip y crear un boceto: `COPYFILE_EXCL`, chequeo y copia en una sola operación. **Verificado**: mismo slug con otro nombre devuelve 409 |
 | La confirmación es la página | al publicar navegás a `/​<slug>` y ves el demo andando | este sistema no tiene toast (el undo de Sonner sigue pospuesto); la exhibition real es mejor confirmación que cualquier cartel. Navegación dura a propósito: `pieces.ts` acaba de cambiar en disco y recargar garantiza que todos los módulos la vean |
@@ -555,8 +555,8 @@ tiene la dependencia al revés.
 ## Hold to commit — el botón de Opal, pieza App
 
 **El 2026-09-02** entró al taller nativo la primera pieza construida
-contra un clip del vault: `nativo/src/app/hold-to-commit/` (la ruta) y
-`nativo/src/piezas/hold-to-commit/` (el mecanismo). La referencia es
+contra un clip del vault: `nativo/src/components/pieces/hold-to-commit/` (la pantalla y el
+mecanismo; la ruta es una para todas desde el 2026-09-10). La referencia es
 `VAULT_DIR/nativo/Hold to commit.mp4` —el botón de **Opal** (Screen Time
 Control, Apple Design Award 2025), publicado por @60fpsdesign en X y
 catalogado en [60fps.design](https://60fps.design/shots/opal-hold-to-commit-button-interaction)
@@ -564,7 +564,7 @@ como "Opal Hold to Commit Button Interaction"; 60 fps, recorte de un
 2160×2160— y se midió entera cuadro a cuadro leyendo píxeles crudos
 (ffmpeg → rgb24 → Python), con la escala fijada por la pantalla del
 teléfono del clip: 1192 px = 440 pt (iPhone 17 Pro Max) → 2.709 px/pt.
-Cada valor lleva su recibo arriba de `piezas/hold-to-commit/medidas.ts`;
+Cada valor lleva su recibo arriba de `components/pieces/hold-to-commit/medidas.ts`;
 las planillas y los scripts están en `.context/hold-to-commit/`, que no
 viaja. Lo que el clip no muestra —la cabeza de la pantalla, la háptica,
 el reinicio— está marcado SUPUESTO.
@@ -667,7 +667,7 @@ skill, y cada desvío tiene su medida— y tres eran deuda. Lo que cambió:
 | La háptica sigue la tabla del skill | Light al apretar, Soft al soltar, doce impactos de Soft a Medium en los detentes | `selectionAsync` en los doce detentes (misma cadencia, 300 → 60 ms) y Success al completar; apretar y soltar no vibran | animate-expo § 8: "a value ticks past a step → `selectionAsync`"; apretar y soltar no están en la tabla. Sigue SIN RECIBO (el clip es video) y se ajusta con el teléfono en la mano |
 | Reduce motion de verdad | `useReducedMotion` apagaba ráfaga, chispas, blur y la escala del Committed… pero el default `reduceMotion: System` de Reanimated hacía que TODO `withTiming` saltara al final en un cuadro: el relleno se llenaba entero al apretar y los doce tics disparaban juntos | todo `withTiming` del botón pasa por `animar`, con `ReduceMotion.Never`, y la política es a mano (§ 9): sin escala del press, sin barrido (el relleno entero, con el progreso como opacidad), sin chispas, ráfaga ni copias borrosas; quedan opacidad y color | SOURCE `reanimated/src/animation/util.ts:506`. RUNTIME en el simulador B con `com.apple.Accessibility ReduceMotionEnabled`: luminancia media del pill 64.2 → **182.0 en un cuadro** y clavada los 2 s (antes); 64 / 87 / 123 / 148 / 166 / 185 / 207 a lo largo de los 2 s (ahora). `lum.py`, `sim/rm-auto-*` y `rm2-auto-*` |
 | El label sigue a Dynamic Type | `allowFontScaling={false}` en los tres textos | `maxFontSizeMultiplier` = 1.786 (AX1), y las copias borrosas, el tilde y su hueco escalan con el mismo factor; el label se remonta cuando el factor cambia | SOURCE RCTAccessibilityManager.mm:267; caja de línea 20.3 × 1.786 = 36.3 pt en 52. Captura a AX5 (`sim/dt-*`): los tres textos entran y el cruce sigue calzando. Sin remontar, un cambio en vivo dejaba el texto grande recortado en la caja de 17 pt |
-| Las curvas y los tiempos son una receta | constantes sueltas en `boton.tsx` | `receta.ts`: `clip` (lo medido, cada valor con recibo en `medidas.ts`) y `skill` (las tablas del skill a la letra, con la sección citada en cada valor); con `'elegir'`, un selector en vivo al lado del de fondo. Las sondas miden `clip` | regresión: siete sondas antes y después del cambio, **0 píxeles distintos** en la banda del pill (`dif.py`). Lo que no cambia entre recetas: el relleno lineal de 2 s, el color por progreso, chispas y ráfaga, la geometría, la háptica |
+| Las curvas y los tiempos son una receta | constantes sueltas en `hold-to-commit.tsx` | `receta.ts`: `clip` (lo medido, cada valor con recibo en `medidas.ts`) y `skill` (las tablas del skill a la letra, con la sección citada en cada valor); con `'elegir'`, un selector en vivo al lado del de fondo. Las sondas miden `clip` | regresión: siete sondas antes y después del cambio, **0 píxeles distintos** en la banda del pill (`dif.py`). Lo que no cambia entre recetas: el relleno lineal de 2 s, el color por progreso, chispas y ráfaga, la geometría, la háptica |
 
 Lo que queda en rojo a propósito, para mirarlo con la receta `skill`
 puesta: las curvas (el bezier del skill contra el ease-out cuadrático
@@ -718,11 +718,11 @@ mide 24 pt de mayúscula, o sea 34 pt de fuente, el Large Title de iOS.
 | Sólo transform y opacity: el color del label también es opacidad | "Hold to Buy" y "Keep Holding..." existen tres veces, en las tres tintas medidas (reposo, gris verdoso #202B24, negro), cada tanda con color fijo y una opacidad que es la PARTICIÓN derivada del progreso (blanco 1−t₁, oscuro t₁(1−t₂), negro t₂). Ninguna vista anima `color` ni `tintColor` | pedido del 2026-09-07 ("¿hay chance de lograr lo mismo animando sólo transform y opacity?"). Dos textos idénticos apilados y cruzados por opacidad dan exactamente la interpolación del color en los píxeles cubiertos: blanco·(1−t) + oscuro·t. Cada tanda lleva `needsOffscreenAlphaCompositing` para que Android no componga sus tres capas una por una (trampa 28). RUNTIME (`cmp/tilde-contextual-tablero.png`, última fila): a p = .62 el label sale gris verdoso como antes; la secuencia entera bajo `pesada`, 0 cuadros perdidos en iOS (`medidor.tsx`) |
 | Springs, con los dos parámetros de Apple, en la receta `skill` | `receta.ts`: un `Movimiento` es por tiempo con curva o un spring con DURACIÓN y REBOTE, los parámetros de `Spring(duration:bounce:)` de SwiftUI (WWDC23 "Animate with springs"), que Reanimated toma como `duration` + `dampingRatio` (= 1 − rebote). Spring donde hubo un dedo: press 150 rebote 0, vuelta 400 rebote 0, retirada del frente 400 rebote 0 clavado en 0, commit 400 rebote 0. Lo que no tiene dedo (labels, velo, fundido) sigue por tiempo con los beziers de la tabla. `RECETA` pasa a `skill`; la `clip` medida queda entera a un `?receta=clip` | pedido del 2026-09-07 ("¿se puede implementar spring? ¿cómo haría Apple?"). SOURCE: animate-expo § 5 ("If a finger was involved, use a spring"; tabla "Default settle, no overshoot: {duration: 400, dampingRatio: 1}"; "bounce only when the gesture carried momentum"); Apple: rebote 0 es `.smooth`, el default de sus controles, y un hold no lleva momento. `overshootClamping` donde el valor tiene un borde (§ 5: "must not pass a hard edge"). Un recibo de la implementación: los constructores `tiempo()` y `spring()` se llaman desde worklets y llevan `'worklet'` (trampa 29). RUNTIME (`auto`, iOS, receta `skill`): hold 1002–1004 ms, reinicio a los 5028–5031, 0 cuadros perdidos bajo `pesada`, 2 de 414 sin carga (uno en la ráfaga, uno en el fundido) |
 | El tilde de "Order Placed" entra con la técnica de ícono contextual de better-ui | en la receta `skill` el tilde entra SOLO: opacidad 0 → 1, escala .25 → 1 y blur 4 → 0 sobre un spring de 300 ms con rebote 0; el blur son dos capas, la PNG a σ 4 pt (`tilde-borroso@3x.png`, o el `filter` en Android) y la nítida, con la opacidad repartida q(1−q) y q². El texto sigue con su blur-replace, con PNG nuevas sin tilde (`placed-borroso-*`). Para que el tilde caiga donde lo pone la fila nítida, su capa es la misma fila con el texto invisible | pedido del 2026-09-07 ("usá la técnica de ícono contextual de better-ui"). SOURCE: better-ui "Contextual icon animations": "scale 0.25 to 1, opacity 0 to 1, blur 4px to 0px", "spring, duration 0.3, bounce 0". La receta `clip` no cambia: ahí el tilde entra pegado al texto, como en Opal. RUNTIME: `cmp/tilde-contextual-tablero.png` (sonda `tilde=` a .25, .5, .75 y 1: el tilde crece y enfoca sin mover el texto) y `cmp/android-skill-tablero.png` (un hold real en el emulador con el `check` de Material) |
-| Storyboard arriba del botón y una sola etapa | `boton.tsx` abre con el storyboard ASCII de interface-craft (ms → evento, receta `skill` con la `clip` entre corchetes) y el estado del botón es UN entero, `etapa` (reposo, hold, sonando, commit, reinicio): cada worklet lo lee para saber si le toca. Antes eran dos banderas (`terminado`, `sono`) | pedido del 2026-09-07 ("cumplir todo lo que está en amarillo de interface-craft"): storyboard legible, un solo estado, spring-first (fila anterior). De paso, `piezas/abrir.ts`: con dos piezas en el taller el índice ya no redirige, y las sondas y `pnpm grabar` necesitan arrancar en la pieza; el slug se escribe ahí y el índice redirige (queda `undefined` en el repo). Y el hint de VoiceOver decía "two seconds" con un hold de uno: ahora sale de `HOLD.duracion` |
+| Storyboard arriba del botón y una sola etapa | `hold-to-commit.tsx` abre con el storyboard ASCII de interface-craft (ms → evento, receta `skill` con la `clip` entre corchetes) y el estado del botón es UN entero, `etapa` (reposo, hold, sonando, commit, reinicio): cada worklet lo lee para saber si le toca. Antes eran dos banderas (`terminado`, `sono`) | pedido del 2026-09-07 ("cumplir todo lo que está en amarillo de interface-craft"): storyboard legible, un solo estado, spring-first (fila anterior). De paso, `components/pieces/abrir.ts`: con dos piezas en el taller el índice ya no redirige, y las sondas y `pnpm grabar` necesitan arrancar en la pieza; el slug se escribe ahí y el índice redirige (queda `undefined` en el repo). Y el hint de VoiceOver decía "two seconds" con un hold de uno: ahora sale de `HOLD.duracion` |
 | ↳ el texto y el final vuelven a los tiempos medidos | la receta `skill` toma de `CRUCE`, `COMMIT` y `REINICIO` los cruces del label (press 360/48; suelta 600 lineal +150 / 250 +80; commit 450 lineal +210 / 280 +40; reinicio 300/250), el velo (330), el deslizamiento (250 + 400) y el fundido (400), con la curva medida; conserva los springs donde hay dedo y el tilde contextual. Los valores de § 5 (200/150 sin retardos, 250, 200, 200) quedan anotados en `receta.ts` | Vito, 2026-09-07, con la receta `skill` recién activa: "no me gusta cómo quedó la animación ahora, el texto cambia muy abrupto y la animación del final es muy rápida". Lo abrupto era exactamente lo que la tabla prescribe para un "small state change"; lo aprobado antes eran los tiempos del clip. La referencia es piso: se tocan las perillas que nombró, no la arquitectura |
 | ↳ y la receta activa vuelve a `clip` | `RECETA = 'clip'`: la medida, la del commit `679b0db`. La `skill` (springs, tilde contextual) queda entera a un `?receta=skill` | Vito, 2026-09-07: "está diferente a antes, sobre todo el final, revisá y dejalo como antes". Con `skill` el pill vuelve al completar con un spring de 400 ms en vez del salto del 25 % más 220 ms medidos, y el tilde entra solo. RUNTIME: con `clip` activa, las cuatro sondas de estado (reposo, 0.5, commit, cruce-commit=150) dan PSNR infinito contra `sim/b-claro-*.png`, capturadas esa mañana con el código anterior: píxel por píxel lo mismo, pantalla entera. El label con tres tintas y la etapa única no cambian nada visible: es la misma coreografía por otro camino |
 | ↳ el tilde y "Order Placed" van de la mano, garantizado | el tilde contextual pierde su reloj propio: lee `pListo`, la presencia del texto, y sus dos capas llevan la MISMA partición de la escalera —la nítida, `nitido`; la borrosa, `ancho + angosto`—. La escala .25 → 1 de better-ui queda, con el mismo ease-out que la del texto. En la receta activa, `clip`, el tilde ya iba adentro de la fila: son literalmente las mismas capas | Vito, 2026-09-07: "¿el ícono y el Order Placed van de la mano al mismo tiempo? Aseguralo". Había DOS formas de separarse y las dos están cerradas: un spring propio de 300 ms contra los 450 + 210 del texto (el tilde llegaba primero), y después, con el reloj ya compartido, una rampa de opacidad distinta (q contra la escalera, que satura en q = .4: el tilde llegaba último). RUNTIME (`cmp/tilde-de-la-mano.png`, sonda `tilde=` a .10/.20/.30/.40/.60/1, medido con `tilde.py` como tinta —Σ 255−luminancia— sobre el pill blanco, normalizada a la de q = 1): en `clip` el tilde y el texto van a ±1.5 puntos porcentuales en cada q; en `skill` antes iban 13 % contra 74 % a q = .30, y ahora 34 % contra 74 %, que es exactamente el área que le falta al tilde por estar al 63 % de su tamaño —la diferencia que queda es el crecimiento prescripto, no un retraso—. Y `clip` no se movió un píxel: commit, `cruce-commit=150` y progreso .5 dan PSNR infinito contra el mismo estado sacado del código de `898eece` |
-| La pieza grabada y publicada en la exhibition, en claro y en oscuro | dos másters en `.context/mockup/master/hold-to-commit-{oscuro,claro}.mp4`, 5.45 s cada uno; cuatro videos para X (`mockup/out/hold-to-commit-<apariencia>-<fondo>.mp4`) y dos pares con alfa para la card. La coreografía es la sonda `demo` (`boton.tsx`), que llama a los MISMOS worklets que el gesto —`apretar`, `completar`, `reiniciar`— así que curvas, tiempos, háptica y sonido son los del camino real. `MATERIAL = 'opaco'`, que de paso cierra la decisión abierta desde el 2026-09-07 y saca los chips de la pantalla | pedido del 2026-09-08 ("graba y subí a library, quiero dark y light mode, en modo opaco, respetando zooms"). El modo sale de `useColorScheme`, así que las dos tomas son el mismo código con `simctl ui appearance`. RUNTIME: las dos tomas alineadas POR EL COMMIT quedan a 33 ms una de otra (`cortar.py`) |
+| La pieza grabada y publicada en la exhibition, en claro y en oscuro | dos másters en `.context/mockup/master/hold-to-commit-{oscuro,claro}.mp4`, 5.45 s cada uno; cuatro videos para X (`mockup/out/hold-to-commit-<apariencia>-<fondo>.mp4`) y dos pares con alfa para la card. La coreografía es la sonda `demo` (`hold-to-commit.tsx`), que llama a los MISMOS worklets que el gesto —`apretar`, `completar`, `reiniciar`— así que curvas, tiempos, háptica y sonido son los del camino real. `MATERIAL = 'opaco'`, que de paso cierra la decisión abierta desde el 2026-09-07 y saca los chips de la pantalla | pedido del 2026-09-08 ("graba y subí a library, quiero dark y light mode, en modo opaco, respetando zooms"). El modo sale de `useColorScheme`, así que las dos tomas son el mismo código con `simctl ui appearance`. RUNTIME: las dos tomas alineadas POR EL COMMIT quedan a 33 ms una de otra (`cortar.py`) |
 | ↳ el corte se mide ADENTRO de la píldora, no en la banda | `cortar.py` promedia una ventana de 800×70 px que es toda píldora en los dos modos | RUNTIME: con la banda de 1080×200 que se usó primero, en claro la domina la ficha blanca que rodea al botón y el corte salió 200 ms desfasado del de oscuro; en el video de X las dos apariencias mostraban instantes distintos de la coreografía. Se vio en un tablero de los cuatro cuadros del commit, no en los números |
 | ↳ la cámara mira la píldora, y el encuadre está medido | `parametros.ts`, `HOLD_TO_COMMIT`: `foco` 0.9105 (el centro de la píldora está a 2650 de 2868 px de la pantalla, o sea al 91.05 % del CUERPO con el bisel medido de `geometria.ts`) y `focoEnLienzo` 0.58 para X. Todo lo demás —bisel, tamaño, sombra, zooms, curvas— es lo medido en la referencia de @nater02 y no se tocó | el criterio del encuadre no es el gusto: dejar abajo el mismo aire que la referencia deja arriba (`aireArriba`, 7.2 %). RUNTIME: la sombra termina al 84.4 / 89.4 / 92.5 / 96.4 / 99.9 % del lienzo con focoEnLienzo 0.50 / 0.55 / 0.58 / 0.62 / 0.67; 0.58 deja 7.5 % |
 | ↳ en la exhibition el teléfono llena la caja: `focoEnLienzo` 0.85 | el video de la exhibition ES la caja entera de la card, así que el corte del zoom cae en su borde | RUNTIME: con el 0.58 de X el cuerpo llegaba al 70.9 % de la caja y quedaba un 29.1 % de card vacía debajo del teléfono; con 0.85 llega al 97.9 % y la píldora entra entera |
@@ -730,20 +730,20 @@ mide 24 pt de mayúscula, o sea 34 pt de fuente, el Large Title de iOS.
 | ↳ la grabación es un solo gesto | la sonda `demo` era reposo, hold abandonado a los 700 ms, hold completo y reinicio; ahora es reposo, hold completo y reinicio, y el máster pasó de 6.65 a 4.65 s más 0.8 de cola | Vito, 2026-09-08: "que en la grabación se ejecute todo de una, sacá esa parte del principio que se aprieta el botón y se corta en la mitad". La retirada sigue en la pieza y en las notas, contada como propiedad del botón: cortarse a la mitad antes de haber mostrado una vez qué pasa al final se lee como un error |
 | ↳ el video termina cuando termina la animación | el máster sigue entero (5.45 s, con el reinicio); lo que se corta es la ENTREGA, a 4.10 s, y se corta UNA VEZ: `pnpm assets --duracion=4.10` deja el clip ya cortado en `public/` y de ahí salen los seis videos, los cuatro de X y los dos pares de la exhibition | Vito, 2026-09-08: "hacé que el video se corte antes, o sea cuando termina la animación y listo, bien natural, que no se espere a volver", y después "que haya más tiempo luego que termine". RUNTIME (`quietud.py`, diferencia entre cuadros consecutivos en la franja de abajo entera, que es por donde sale la ráfaga): las dos apariencias se quedan quietas a los 2.73 y 2.78 s —"✓ Order Placed" enfocado y la ráfaga apagada— y siguen quietas hasta los **4.333 en las dos**, que es cuando el reinicio se mueve. 4.10 deja 1.35 s con el resultado en pantalla y 0.23 de margen. La medición fija el techo; el aire lo eligió él |
 | ↳ y se corta ANTES de renderizar, no después | primero se rendía entero y se cortaba el WebM y el .mov con `-c copy`; ahora el corte está en el clip | un `-c copy` sólo puede cortar en un cuadro clave, y dejaba el WebM en 4.121 contra 4.100 del .mov: los dos formatos del mismo video duraban distinto. Cortando el clip los dos dan 246 cuadros exactos, se rinde un 25 % menos y desaparece un paso. El `--duracion` de `pnpm assets` lleva el recibo |
-| Las notas de la pieza | `src/notas/hold-to-commit.tsx`: Anatomy, Performance y Use cases, 12 párrafos. Sin línea de descripción, que es la primera regla: el título ya dice qué es el gesto | el procedimiento entero es AGENTS.md › Cómo se escriben la línea y las notas. Las fuentes se leyeron servidas el 2026-09-08: josh puckett (19 párrafos suyos dan mediana de 25 palabras y 2 oraciones), benji, y la guía de interfaz de Apple por su API de documentación, que entra como explicación y sin nombrarla |
+| Las notas de la pieza | `src/components/pieces/hold-to-commit/notes.tsx`: Anatomy, Performance y Use cases, 12 párrafos. Sin línea de descripción, que es la primera regla: el título ya dice qué es el gesto | el procedimiento entero es AGENTS.md › Cómo se escriben la línea y las notas. Las fuentes se leyeron servidas el 2026-09-08: josh puckett (19 párrafos suyos dan mediana de 25 palabras y 2 oraciones), benji, y la guía de interfaz de Apple por su API de documentación, que entra como explicación y sin nombrarla |
 | ↳ lo que las notas NO afirman | que el hold mida un segundo con 4 ms de error, aunque la fila de rendimiento lo tenga | esa medición sale de la sonda `auto`, que dispara `apretar` y `completar` con dos `setTimeout` de JavaScript: mide la puntería de esos timers, no el reloj del reconocedor de gestos. Lo que sí se afirma es lo que la medición prueba: que el reconocedor y el relleno leen la misma constante, y los cuadros perdidos. Y nada sobre un teléfono real, que la sección dice con todas las letras |
 | El botón revisado contra las guías de interfaz | el botón se aparta del clip en tres cosas: el anillo de 1 pt no se dibuja y en su lugar va una sombra de dos capas transparentes; "✓ Order Placed" se corre 6.6 pt a la izquierda (`LABEL.correccionOptica`); y la página pasa de blanco puro al gris agrupado de iOS | pedido del 2026-09-08 ("corregí todo esto para cumplir tal cual dice better-ui") |
 | ↳ y la perilla que sirvió para decidirlo se borró | las dos versiones convivieron detrás de un chip (el archivo acabado.ts, con los valores referencia y revisado) hasta que se eligió una. El 2026-09-09 se borró el archivo entero y con él el tipo, el chip, el parámetro `?acabado=`, la prop que bajaba por tres componentes y el código del anillo | primero quedó el chip fijo en `revisado`, y así era una perilla con una sola posición: la mitad del código existía para una rama que ya no se elige. El argumento para conservarlo era que `referencia` es "el registro de qué dice el clip", y ese registro no necesita código: los tres números están en esta bitácora y los recibos, arriba de `LABEL.correccionOptica` y donde estaba `COLOR.anillo`, en `medidas.ts`. Un valor medido se guarda escrito, no ejecutable |
 | ↳ el anillo era un contorno dibujado, no un borde | RUNTIME (`optico.py`, ocho puntos del borde de arriba, en reposo): el anillo se despega **+54.5** de lo que tiene a 2 pt afuera y **+16** de lo que tiene a 2 pt adentro; en el clip, **+4** y **−2**. O sea que en Opal el borde es una rampa y en el nuestro una línea clara por encima de sus dos vecinos | la prueba de interface-craft ("do outlines add structure or noise?") la contesta la medición, y better-ui da el reemplazo: "where a border exists only to create depth, prefer layered transparent box-shadow values". Ojo con la sombra: **`boxShadow` sigue la forma de la VISTA**, y sin `borderRadius` dibujaba una caja de esquinas vivas alrededor de la cápsula ("se nota todo el box del componente, muy feo") |
 | ↳ el label con ícono no estaba centrado para el ojo | RUNTIME (`optico.py`, tinta por columna sobre el pill blanco del commit; Δ contra el centro del pill): la caja de la fila cae en +0.83, pero el TEXTO queda en **+13.67 pt** y el centroide de tinta en +6.60. En el clip, +0.74 / +13.84 / +8.35: reproducíamos a Opal con 0.2 pt de diferencia, y Opal tampoco lo corrige | Vito, 2026-09-08: "revisá si respeta lo que dice better-ui sobre que algo esté centrado para el ojo, cuando hay icon me da esa sensación". La corrección es el Δ del centroide anulado, −6.6 pt, y sólo mueve al label que tiene tilde. Verificado: Δ −0.06. Se probó también centrar el texto (−13.7, Δ 0.00) y se descartó: el tilde queda colgando al margen |
 | ↳ el blanco en claro se arregla en la página, no en el botón | RUNTIME: en claro, al completar, el interior del pill medía 229.9 contra una ficha de 245.5, o sea **15.6 de contraste**: dejaba de existir como superficie. La primera solución fue un velo oscuro sobre el relleno, que llevó el contraste a 40.9 | Vito, 2026-09-08: "no me gusta cómo resolviste lo del color, de última cambiá un poco el color del fondo, ya que no es lo principal acá". Tenía razón: ensuciaba al protagonista para arreglar el escenario. El velo se sacó entero, el botón vuelve a blanco pleno como la referencia, y la página pasó a `systemGroupedBackground`. Vale como regla: **cuando el protagonista y el escenario no se separan, se mueve el escenario** |
-| ↳ el fondo termina ARRIBA del botón | `fondo-accion.tsx`: el `paddingBottom` estaba en el contenido, que sólo agrega aire al final; ahora acota el VIEWPORT del `ScrollView`. Y el contenido termina antes de ese borde: salieron la lista con miniaturas y la última grilla | Vito, 2026-09-08: "justo la parte de abajo del botón coincide con algo de abajo, aparentando que es más grande el botón". Era una fila del esqueleto cruzando el borde de abajo del pill. RUNTIME: con una fila de lista el contenido terminaba en 830.7 pt con el borde en 831, o sea cortada al ras; sin ella termina en 742 y sobran 89 pt. Quedan 121 pt de respiro hasta el pill, a propósito: una fila entera no entra |
-| Las notas, mucho más cortas | `src/notas/hold-to-commit.tsx`: de 750 palabras y 12 párrafos a **396 y 9**, un 47 %, en dos pasadas y sumando tres hechos en el medio. Salieron el reinicio (es del taller), cómo está hecho el relleno y el label (implementación), la latencia desmenuzada y la lista de acciones de ejemplo | pedido del 2026-09-08 ("hacela muchísima más corta, y fiel al código"). De los skills entra sólo lo que un lector puede ver: hilo de UI, sólo transform y opacity, reduce motion, Dynamic Type, la háptica que nunca es el único feedback, el reconocedor y el relleno leyendo una sola constante, la interrupción y la alineación óptica de better-interface, y la sombra en vez del contorno, que es lo que contesta la lente de crítica de interface-craft. NO entra lo que es craft del código —storyboard, etapa única, data-driven— porque habla de la fuente y no de la pieza |
+| ↳ el fondo termina ARRIBA del botón | `fondos/accion.tsx`: el `paddingBottom` estaba en el contenido, que sólo agrega aire al final; ahora acota el VIEWPORT del `ScrollView`. Y el contenido termina antes de ese borde: salieron la lista con miniaturas y la última grilla | Vito, 2026-09-08: "justo la parte de abajo del botón coincide con algo de abajo, aparentando que es más grande el botón". Era una fila del esqueleto cruzando el borde de abajo del pill. RUNTIME: con una fila de lista el contenido terminaba en 830.7 pt con el borde en 831, o sea cortada al ras; sin ella termina en 742 y sobran 89 pt. Quedan 121 pt de respiro hasta el pill, a propósito: una fila entera no entra |
+| Las notas, mucho más cortas | `src/components/pieces/hold-to-commit/notes.tsx`: de 750 palabras y 12 párrafos a **396 y 9**, un 47 %, en dos pasadas y sumando tres hechos en el medio. Salieron el reinicio (es del taller), cómo está hecho el relleno y el label (implementación), la latencia desmenuzada y la lista de acciones de ejemplo | pedido del 2026-09-08 ("hacela muchísima más corta, y fiel al código"). De los skills entra sólo lo que un lector puede ver: hilo de UI, sólo transform y opacity, reduce motion, Dynamic Type, la háptica que nunca es el único feedback, el reconocedor y el relleno leyendo una sola constante, la interrupción y la alineación óptica de better-interface, y la sombra en vez del contorno, que es lo que contesta la lente de crítica de interface-craft. NO entra lo que es craft del código —storyboard, etapa única, data-driven— porque habla de la fuente y no de la pieza |
 | ↳ los dos hechos que las notas ganaron | "The capsule has no outline: its edge is its own shape, lifted by a shadow on light backgrounds" y "The checkmark and the words are centered by eye, not by box" | son las dos correcciones del acabado, contadas desde lo que se ve. La frase de la sombra es CONDICIONAL a propósito: una sombra negra sobre el fondo negro del modo oscuro no se ve, así que decir que la sombra lleva el borde sería falso en la mitad de los casos |
 | ↳ la háptica dejó de llamarse "tick" | ahora son "detents", que es el nombre que el código ya usaba (`DETENTES` en `haptica.ts`) | con el tilde nombrado en el texto público, "tick" nombraba dos cosas: el glifo (que en inglés es un tick) y el pulso háptico. `precise-naming` lo cazó. "Detent" es el término de especificación —un tope mecánico que se siente— y el glifo se queda con "checkmark" |
 | ↳ los cuadros perdidos salieron del texto | eran ciertos —0 en iOS, 1 de 416 en Android con el hilo bloqueado— pero son de simulador y de emulador | contarlos invita a leerlos como si fueran de un teléfono. Queda el hecho que se sostiene: lo que se ve no depende del hilo de JavaScript. Los números siguen en esta bitácora |
 | ↳ el teléfono entra como prueba, no como medición | el 2026-09-08 se pidió decir que se había probado en un teléfono y NO se escribió, porque no había con qué sostenerlo. El 2026-09-09 Vito lo confirmó ("ya testeado en celular real") y entró: "Measured on the iOS Simulator and an Android emulator, and tested on a phone, where the haptic can be felt" | **los dos verbos son distintos a propósito.** Los números siguen atribuidos a donde se midieron; del teléfono sale lo único que sólo se puede saber ahí. El simulador no vibra —está en el encabezado de `haptica.ts`, y por eso toda esa pista está marcada SIN RECIBO—, así que la háptica es la parte de la pieza que no se puede juzgar de otra manera. Lo que sigue sin escribirse es un cuadro por segundo o una latencia medidos en un teléfono: esos no existen |
-| ↳ dos recibos del taller habían quedado viejos | `haptica.ts` decía que el último detente cae justo antes del salto a negro del label; el último es 0.985 y el salto arranca en 0.965, así que el que cae ahí es el ANTEÚLTIMO (0.955). Y `boton.tsx` contaba el recorrido del frente como 3 % → 94 % en tres lugares, cuando `medidas.ts` dice `arranque` .045 y `recorrido` .91, o sea 4.5 % → 95.5 % | los dos son comentarios, no código: nada se veía mal en pantalla. Es el modo en que un recibo falla —el valor se corrige en un lado y la explicación se queda en el otro— y por eso auditar los comentarios contra el código es parte de cerrar una pieza, no un lujo |
+| ↳ dos recibos del taller habían quedado viejos | `haptica.ts` decía que el último detente cae justo antes del salto a negro del label; el último es 0.985 y el salto arranca en 0.965, así que el que cae ahí es el ANTEÚLTIMO (0.955). Y `hold-to-commit.tsx` contaba el recorrido del frente como 3 % → 94 % en tres lugares, cuando `medidas.ts` dice `arranque` .045 y `recorrido` .91, o sea 4.5 % → 95.5 % | los dos son comentarios, no código: nada se veía mal en pantalla. Es el modo en que un recibo falla —el valor se corrige en un lado y la explicación se queda en el otro— y por eso auditar los comentarios contra el código es parte de cerrar una pieza, no un lujo |
 | La regla de nombres, como skill | `~/.claude/skills/precise-naming/`: la regla del vocabulario de una especificación de IBM de 1972, con las tres preguntas para aplicarla, la tabla de correcciones, la parte de texto público, y cuándo NO se aplica (`useEffect`, `stdin`, `SIGKILL` se quedan) | pedido del 2026-09-08. Corrida sobre lo escrito ese mismo día encontró tres nombres míos: look.ts → acabado.ts ("look" es jerga de diseño, y en inglés en una carpeta que nombra en castellano), pulido | fiel → revisado | referencia ("pulido" nombra una sensación), y EMPUJON_OPTICO → CORRECCION_OPTICA. Y una colisión: `RECETAS` existía dos veces en la misma carpeta, para dos cosas distintas |
 | Se volvió a grabar, y los seis videos son nuevos | dos tomas nuevas del simulador con el botón revisado, dos másters, los cuatro de X y los dos pares con alfa de la exhibition | los videos publicados eran de antes del acabado `revisado`: mostraban el anillo, la página blanca y el label sin corregir, y el esqueleto cruzando el borde de abajo del pill. Un video que no muestra la pieza que está publicada es peor que no tener video. Las dos tomas nuevas coinciden en el commit dentro de **16 ms** (1.483 y 1.467 s desde el corte, contra el mínimo de 1.2 que pide el taller) |
 | ↳ y la barra de estado se mira antes de gastar dos tomas | la primera captura de control traía el "◀ Safari" que iOS deja después de abrir la app desde un link; se va con un `terminate` + `launch` de más | no lo tenía ninguno de los másters viejos, así que era del estado del simulador y no del script. Cuesta 15 segundos comprobarlo y una toma entera arreglarlo después |
@@ -824,7 +824,7 @@ le dan ojos al agente.
 **El detalle existía para esto** y estaba vacío: *"la lista muestra, el
 detalle explica"*. Desde el 2026-09-04 una pieza puede traer un texto
 largo bajo su preview, partido en secciones: de dónde salió, qué se
-midió, qué peleó. Vive en `src/notas/<slug>.tsx`, con el mismo mecanismo
+midió, qué peleó. Vive en `src/components/pieces/<slug>/notes.tsx`, con el mismo mecanismo
 que los demos —glob perezoso por slug, sin registro que mantener— y una
 pieza sin notas no dibuja nada.
 
@@ -870,7 +870,7 @@ página, y están marcadas como pendientes en el CSS.
 
 ## La primera pieza App: los tabs de X, medidos contra la app real
 
-**Swipeable tabs** (`nativo/src/piezas/swipeable-tabs/`) es la primera
+**Swipeable tabs** (`nativo/src/components/pieces/swipeable-tabs/`) es la primera
 pieza que sale del taller nativo, y fija cómo se construye una: **nada se
 afirma sin medir**. La referencia no fue una idea de cómo se mueve X sino
 X mismo — el clip del vault y después cuatro grabaciones de la cuenta del
@@ -898,7 +898,10 @@ pliegue— quedaron anotadas arriba del código para que nadie las repita.
 una pantalla autocontenida, un `index.tsx` que la exporta, el mecanismo
 en archivos por responsabilidad, el tema y los datos al lado. La ruta en
 `src/app/` es un puntero. Su registry a mano no viajó, por lo mismo de
-siempre: el índice del taller se deriva de las carpetas.
+siempre: el índice del taller se deriva de las carpetas. (Así fue hasta
+el 2026-09-10: desde entonces la ruta es una para todas y el registry
+existe, derivado de las carpetas de las piezas — ver *La estructura de
+react-native-motion*, más abajo.)
 
 **Lo que aprendimos del método**, más que de la pieza: una sonda
 determinista es UN estado por recarga, no una línea de tiempo de timers;
@@ -1368,7 +1371,7 @@ esas.** Pedido del usuario (2026-09-07): "aclará reglas que sigan a
 código", y que no se diga de dónde son los símbolos. Se auditó el
 código contra los tres skills antes de escribir una palabra; entraron
 ocho reglas con recibo en archivo y línea (el detalle está arriba de
-`src/notas/swipeable-tabs.tsx`): sólo transform y opacity, con el
+`src/components/pieces/swipeable-tabs/notes.tsx`): sólo transform y opacity, con el
 subrayado como el único ancho animado y dentro de la excepción (hijo
 absoluto sin hijos); el gesto interrumpe la animación; ease-out, nunca
 ease-in; una háptica por acción, en el cuadro del cambio y nunca como
@@ -1400,7 +1403,7 @@ especificación ("in progress", "bound to", "synchronized", "feedback");
 render"; la medición dicha en llano ("the recording holds 60 fps
 through every gesture"); y una frase que estaba en Anatomy y en
 Performance quedó sólo donde explica algo. La lista completa de cambios
-está arriba de `src/notas/swipeable-tabs.tsx`.
+está arriba de `src/components/pieces/swipeable-tabs/notes.tsx`.
 
 **Performance, con el método de Anatomy.** Pedido del usuario
 (2026-09-07): mejorarla "siguiendo todas las mismas reglas de
@@ -1417,7 +1420,7 @@ evitan; (3) un solo valor del que derivan subrayado, labels y símbolos
 en el mismo cuadro, y lo medido: 60 fps en cada gesto y una traza de
 492 cuadros sin titileo. Ningún nombre de librería; "moves as one
 object" es la regla de cohesión de better-ui dicha en llano. Los
-recibos, archivo y símbolo, están arriba de `src/notas/swipeable-tabs.tsx`.
+recibos, archivo y símbolo, están arriba de `src/components/pieces/swipeable-tabs/notes.tsx`.
 
 **Chequeo de veracidad de Performance y Anatomy.** Pedido del usuario
 (2026-09-07): "chequeá que toda esa información sea verdadera y
@@ -1434,7 +1437,7 @@ tabs, porque el ancho del subrayado sí es layout de su propio nodo.
 Todo lo demás se confirmó con su recibo: la fila se corre desde un
 worklet, el layout precalculado depende sólo de los labels medidos, las
 páginas están memoizadas, la completitud fue 100.7 %, 101.1 % y
-100.2 %, y la traza de 492 cuadros es la que está en `pantalla.tsx`.
+100.2 %, y la traza de 492 cuadros es la que está en `swipeable-tabs-screen.tsx`.
 
 **El dedo interrumpe también un toque lejano.** De la auditoría contra
 los skills (2026-09-07) quedó una sola regla en contra: `animate-expo`
@@ -1777,7 +1780,7 @@ píxeles crudos.
 **Los pendientes cerrados, y uno cerrado diciendo que no.** Pedido del
 usuario (2026-09-08): "arreglá todo así te archivo".
 
-- **`silencio` pasa a `hapticaSuprimida`** (`tabs-deslizables.tsx`,
+- **`silencio` pasa a `hapticaSuprimida`** (`swipeable-tabs.tsx`,
   cuatro usos). Era la única palabra del código nuevo que no pasaba la
   regla de nombres del repo: metáfora en vez de especificación.
 - **"The row scrolls only when the active tab does not fit" pasa a "The
@@ -1811,7 +1814,7 @@ teléfono con el ajuste prendido, no razonarlo.
 ## Buttons separate — el Spotlight de macOS Tahoe, la primera pieza Web
 
 **El 2026-09-09** entró la primera pieza que corre viva en el navegador:
-`src/piezas/buttons-separate.tsx`, sin `desc` y sin video. La referencia
+`src/components/pieces/buttons-separate/buttons-separate.tsx`, sin `desc` y sin video. La referencia
 es `VAULT_DIR/web/Buttons separate.mp4` —el Spotlight de **macOS 26
 Tahoe**, grabación de pantalla propia— y se midió sobre el original de
 3420×2214 a 60 fps, leyendo píxeles crudos (ffmpeg → rgb24 → Python).
@@ -2823,3 +2826,104 @@ De regalo, medido A/B con el mismo Chrome y el mismo viewport:
 cuatro y su preview llegaba tarde; abajo, lo que empuja pesa menos. Los
 dos números están lejísimos del 0.1, así que no es la razón del cambio.
 Es sólo lo que pasó.
+
+## La estructura de react-native-motion, y los nombres en montaña
+
+2026-09-10. Dos pedidos en uno: que "toda la estructura de este repo de
+componentes siga la estructura" de `apps/expo/components` en
+[react-native-motion](https://github.com/SchroederNathan/react-native-motion/tree/main/apps/expo/components),
+y que los cuatro títulos pasen por la regla de nombres y, "sin alterar el
+orden", dibujen una montaña en el índice: "lo más largo en el medio y en
+las puntas los nombres cortos a propósito".
+
+### Una carpeta por pieza, con los nombres de la referencia
+
+La referencia es una carpeta por animación bajo `components/animations/`,
+y adentro siempre lo mismo: `index.tsx` que exporta, `<slug>-screen.tsx`
+con la pantalla, `<slug>.tsx` con el mecanismo, `theme.ts`, los datos y
+las partes al lado (sub-carpetas cuando son muchas), más un `registry`
+que va del slug a la pantalla y una sola ruta `[slug].tsx` que lo lee.
+El taller ya tenía la forma —lo decía su propio `AGENTS.md`— pero con
+otros nombres y sin el registry; el lado web tenía las piezas sueltas en
+dos carpetas planas (`src/piezas/`, `src/notas/`). Ahora:
+
+| antes | ahora |
+| --- | --- |
+| `src/piezas/<slug>.tsx` | `src/components/pieces/<slug>/<slug>.tsx`, con `index.tsx` que lo re-exporta |
+| `src/notas/<slug>.tsx` | `src/components/pieces/<slug>/notes.tsx` — la misma carpeta, también para las piezas App |
+| `nativo/src/piezas/<slug>/pantalla.tsx` | `nativo/src/components/pieces/<slug>/<slug>-screen.tsx` |
+| `boton.tsx` · `tabs-deslizables.tsx` | `hold-to-commit.tsx` · `swipeable-tabs.tsx`, y sus componentes `HoldToCommit` · `SwipeableTabs` |
+| `tema.ts` | `theme.ts` |
+| `fondo-accion.tsx` · `fondo-bloques.tsx` · `fondo-opal.tsx` · `cards.tsx` | `fondos/accion.tsx` · `bloques.tsx` · `opal.tsx` · `cards.tsx` |
+| `nativo/src/app/<slug>/index.tsx`, un puntero por pieza | `nativo/src/app/[slug].tsx`, una ruta, y `components/pieces/registry.ts` |
+| el índice dibujado adentro de `app/index.tsx` | `components/piece-list.tsx`, el `animation-list.tsx` de allá |
+| `nativo/src/piezas/abrir.ts` | `nativo/src/components/pieces/abrir.ts` |
+
+**Lo que se copió con una diferencia: el registry se deriva, no se
+escribe.** Allá es un import y una línea por animación, a mano. Acá
+`registry.ts` hace `require.context` sobre `./<slug>/index.tsx` y arma
+el mapa solo, por lo mismo de siempre —una lista a mano se desincroniza
+el día que agregás una carpeta sin anotarla— y por una razón que allá no
+tienen: acá se construye en varios worktrees a la vez, y un archivo
+central que todos editan es un conflicto por pieza nueva. La ruta
+`[slug].tsx` busca ahí; un slug que no existe vuelve al índice. Cada
+`index.tsx` exporta su pantalla **por defecto**, que es lo único que el
+registro necesita saber. Las perillas de hold-to-commit (`?parcar=`,
+`?fondo=`…) las lee ahora su propia pantalla, como las piezas de allá,
+que son autocontenidas; la ruta no sabe qué pieza monta. El bloque "No
+tocar sin volver a medir" de hold-to-commit, que vivía en la ruta, pasó
+al pie de la pantalla, donde ya estaba el de swipeable-tabs.
+
+**Lo que no se copió, y por qué.** `data/animations.ts` es nuestro
+`src/pieces.ts` y se queda donde está: lo importan tres scripts y no es
+un componente. El sistema de temas de allá (`theme/`) no hace falta:
+cada pieza trae su paleta medida. Y **los identificadores de adentro de
+las piezas siguen en castellano** (`Etiqueta`, `BARRA`, `usePaleta`): la
+regla de nombres es de precisión, no de idioma; son unas 6.000 líneas
+con recibo, y la bitácora, `nativo/AGENTS.md` y los comentarios los
+nombran a cada paso. Se renombraron sólo los archivos que la referencia
+nombra por convención y los dos componentes que llevan el nombre de la
+carpeta.
+
+**Lo que se tocó por el camino.** `demos.tsx` y `notas.tsx` globean
+`./components/pieces/*/index.tsx` y `*/notes.tsx`; Add to Exhibition
+escribe la carpeta con los dos archivos y deshace los dos si la entrada
+no entra; `pnpm nueva` crea `<slug>-screen.tsx` + `index.tsx`. En este
+worktree faltaba `expo-audio` en `node_modules` del taller (el typecheck
+fallaba en `sonido.ts` antes de tocar nada): `pnpm install
+--frozen-lockfile` y listo.
+
+**Verificado.** `pnpm typecheck && pnpm lint && pnpm build` (las cuatro
+rutas en `vercel.json`, los chunks ahora se llaman `notes-*.js` y
+`<slug>-*.js`); `pnpm --dir nativo typecheck`; `pnpm referencias` en cero
+muertas después de barrer la bitácora, los dos `AGENTS.md`, `VIDRIO.md` y
+los comentarios; `npx expo export --platform ios` empaqueta las dos piezas
+(3.7 MB de Hermes, con las 24 imágenes de swipeable-tabs adentro, o sea
+que el registro las encontró); y un Chrome headless por CDP recorrió
+`/`, las cuatro piezas y `/no-existe`: cada detalle con su `h1`, sus tres
+secciones, su demo vivo o su video (el oscuro de hold-to-commit bajo
+`prefers-color-scheme: dark`), y el 404 intacto.
+
+**El costo que queda afuera de este worktree.** La rama
+`vcompagnucci/title-to-actions-glass` agrega `src/piezas/title-to-actions.tsx`
+y una entrada en `PIECES` sin `slug`. Al rebasear tiene que mover el
+archivo a `src/components/pieces/title-to-actions/title-to-actions.tsx`,
+escribir el `index.tsx` al lado y ponerle `slug: 'title-to-actions'` a la
+entrada; con el glob nuevo, en el lugar viejo el demo no se dibuja y el
+typecheck avisa por el campo que falta.
+
+### El slug es un campo, no una cuenta
+
+Hasta hoy la URL, la carpeta del taller, los archivos del video y el del
+demo salían de `slug(name)` en cada lectura, y eso ataba el título a todo
+lo demás: cambiar "Hold to commit" habría renombrado `/hold-to-commit`,
+`public/piezas/hold-to-commit.webm`, la carpeta del taller, los másters
+de `.context/mockup/master/`, las planillas de `.context/hold-to-commit/`
+y el clip de referencia del vault, que se llama como la pieza. Ahora
+`Piece` lleva `slug`, asignado UNA vez —Add to Exhibition lo calcula del
+nombre de ese día y lo escribe; `pnpm nueva` usa la misma cuenta— y el
+título es libre. Es exactamente la forma de `data/animations.ts` en la
+referencia: `title: 'Stack Toast', slug: 'spring-toast'`. La página, el
+scrollspy, `rutas.mjs`, `pieza-video.mjs` y el chequeo de duplicados al
+publicar leen el campo; `slug()` queda para quien asigna. Las cuatro
+URLs de producción siguen abriendo.

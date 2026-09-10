@@ -142,9 +142,10 @@ export function Boceto({ ref_ }: { ref_: string }) {
 }
 
 /* PUBLICAR un boceto como pieza Web. El servidor copia el archivo a
-   src/piezas/<slug>.tsx —el lado público de la frontera, donde demos.tsx
-   lo encuentra por nombre— y anota la entrada en pieces.ts, las dos
-   cosas o ninguna. Es COPIA: el boceto se queda en el tablero, y desde
+   src/components/pieces/<slug>/<slug>.tsx —el lado público de la
+   frontera, donde demos.tsx lo encuentra por slug— con un index.tsx al
+   lado que lo exporta, y anota la entrada en pieces.ts, las dos cosas o
+   ninguna. Es COPIA: el boceto se queda en el tablero, y desde
    la publicación la pieza se edita en su archivo publicado. Devuelve el
    slug, que es a dónde navegar. */
 export async function publicarBoceto(

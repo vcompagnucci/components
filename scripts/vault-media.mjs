@@ -457,14 +457,22 @@ const identificadorDe = (ref) => {
    Hace DOS cosas y las dos tienen que quedar o ninguna:
 
      1. copia el archivo del demo al lado público de la frontera:
-          una grabación  →  public/piezas/<slug><ext>   (pieza App)
-          un boceto      →  src/piezas/<slug>.tsx       (pieza Web)
+          una grabación  →  public/piezas/<slug><ext>                       (pieza App)
+          un boceto      →  src/components/pieces/<slug>/<slug>.tsx         (pieza Web)
+                            + src/components/pieces/<slug>/index.tsx, que
+                            lo exporta: la carpeta tiene la forma de
+                            components/animations/<slug>/ de
+                            react-native-motion, y demos.tsx busca el
+                            index
         El vault y src/privado/ no viajan al deploy; por eso el copiado
         existe. Y es COPIA, no mudanza: el frame del tablero sigue
         apuntando a lo suyo — desde acá, la pieza se edita en su archivo
         publicado.
      2. agrega la entrada a src/pieces.ts, que es el inventario real:
         de ahí salen la página, el índice y el vercel.json del prebuild.
+        Con su `slug`, calculado del nombre ACÁ y una sola vez: desde el
+        2026-09-10 el título de una pieza puede cambiar y su URL no (ver
+        `Piece` en pieces.ts).
 
    Si el segundo paso falla, el primero se deshace. No se pisa nada
    nunca: publicar dos veces es un 409, no un reemplazo silencioso.
@@ -473,7 +481,7 @@ const identificadorDe = (ref) => {
    pieza App y un boceto ES una pieza Web — es la regla de `platform`
    (App va en video, Web va viva) leída al revés. */
 const PIEZAS_DIR = fileURLToPath(new URL('../public/piezas/', import.meta.url))
-const PIEZAS_SRC = fileURLToPath(new URL('../src/piezas/', import.meta.url))
+const PIEZAS_SRC = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
 const PIEZAS_TS = fileURLToPath(new URL('../src/pieces.ts', import.meta.url))
 
 /* Los textos viajan a un archivo .ts entre comillas simples: se escapan
@@ -481,27 +489,29 @@ const PIEZAS_TS = fileURLToPath(new URL('../src/pieces.ts', import.meta.url))
    nombre o una descripción no tienen renglones. */
 const aLiteral = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\s+/g, ' ').trim()
 
-function agregarPieza(nombre, desc, plataforma, video) {
+function agregarPieza(nombre, s, desc, plataforma, video) {
   const src = fs.readFileSync(PIEZAS_TS, 'utf8')
 
   /* El duplicado se chequea por SLUG y no por nombre: dos nombres
      distintos que cayeran en la misma URL romperían el rewrite. Se lee
      el archivo fresco en cada pedido — el import de arriba quedó
-     congelado al arrancar el servidor y no vería lo recién publicado. */
-  const tomados = [...src.matchAll(/name: '((?:[^'\\]|\\.)*)'/g)].map((m) =>
-    slugDePieza(m[1].replace(/\\(.)/g, '$1')),
-  )
-  if (tomados.includes(slugDePieza(nombre))) return { error: 'ya hay una pieza con esa URL' }
+     congelado al arrancar el servidor y no vería lo recién publicado.
+     Y se leen los campos `slug` escritos, no los nombres: un título
+     renombrado ya no coincide con su URL, y la URL es la que no puede
+     repetirse. */
+  const tomados = [...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1])
+  if (tomados.includes(s)) return { error: 'ya hay una pieza con esa URL' }
 
   const entrada = [
     '  {',
     `    name: '${aLiteral(nombre)}',`,
+    `    slug: '${s}',`,
     `    platform: '${plataforma}',`,
     /* La línea es opcional (2026-09-07): vacía, no se escribe el campo,
        y el detalle no dibuja el párrafo. */
     ...(desc ? [`    desc: '${aLiteral(desc)}',`] : []),
-    /* Una pieza Web no lleva video: su demo es el archivo en
-       src/piezas/, que se resuelve por slug — ver demos.tsx. */
+    /* Una pieza Web no lleva video: su demo es la carpeta en
+       src/components/pieces/, que se resuelve por slug — ver demos.tsx. */
     ...(video ? [`    video: '${video}',`] : []),
     '  },',
   ].join('\n')
@@ -872,8 +882,10 @@ export function vaultMedia(dirCrudo) {
 
             /* Resuelto el origen, las dos ramas terminan igual: copiar
                con EXCL, anotar en pieces.ts, y deshacer la copia si la
-               anotación no entró. */
-            const publicar = (origen, destino, plataforma, video) => {
+               anotación no entró. La pieza Web lleva además su
+               `index.tsx` —`acompanante`—, y deshacer es borrar los dos
+               y la carpeta que se creó para ellos. */
+            const publicar = (origen, destino, plataforma, video, acompanante) => {
               try {
                 fs.mkdirSync(path.dirname(destino), { recursive: true })
                 /* COPYFILE_EXCL: chequeo y copia en una sola operación,
@@ -884,16 +896,34 @@ export function vaultMedia(dirCrudo) {
                   return json(res, 409, { error: 'ya hay una pieza publicada con esa URL' })
                 return json(res, 500, { error: String(e?.message ?? e) })
               }
-              try {
-                const r = agregarPieza(nombre, desc, plataforma, video)
-                if (r.error) {
-                  fs.unlinkSync(destino)
-                  return json(res, 409, { error: r.error })
-                }
-              } catch (e) {
+              const deshacer = () => {
                 try {
                   fs.unlinkSync(destino)
                 } catch {}
+                if (!acompanante) return
+                try {
+                  fs.unlinkSync(acompanante.ruta)
+                } catch {}
+                try {
+                  fs.rmdirSync(path.dirname(destino))
+                } catch {}
+              }
+              if (acompanante) {
+                try {
+                  fs.writeFileSync(acompanante.ruta, acompanante.contenido, { flag: 'wx' })
+                } catch (e) {
+                  deshacer()
+                  return json(res, 500, { error: String(e?.message ?? e) })
+                }
+              }
+              try {
+                const r = agregarPieza(nombre, s, desc, plataforma, video)
+                if (r.error) {
+                  deshacer()
+                  return json(res, 409, { error: r.error })
+                }
+              } catch (e) {
+                deshacer()
                 return json(res, 500, { error: String(e?.message ?? e) })
               }
               return json(res, 200, { ok: true, slug: s })
@@ -908,7 +938,11 @@ export function vaultMedia(dirCrudo) {
               if (!ref) return json(res, 400, { error: 'ref no admitido' })
               const origen = path.join(BOCETOS_DIR, ref + '.tsx')
               if (!fs.existsSync(origen)) return json(res, 404, { error: 'no existe' })
-              return publicar(origen, path.join(PIEZAS_SRC, s + '.tsx'), 'Web', null)
+              const carpeta = path.join(PIEZAS_SRC, s)
+              return publicar(origen, path.join(carpeta, s + '.tsx'), 'Web', null, {
+                ruta: path.join(carpeta, 'index.tsx'),
+                contenido: `export { default } from './${s}'\n`,
+              })
             }
 
             /* ─── UN CLIP → PIEZA APP ─── */

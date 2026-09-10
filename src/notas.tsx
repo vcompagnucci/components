@@ -1,6 +1,5 @@
 import { Suspense, lazy, type ComponentType, type ReactNode } from 'react'
 import css from './app.module.css'
-import { slug } from './pieces'
 
 /* ═══════════════════════════════════════════════════════════════
    LAS NOTAS DE UNA PIEZA — el texto largo del detalle.
@@ -11,11 +10,14 @@ import { slug } from './pieces'
    corrido bajo la pieza—; esto es lo otro: de dónde salió, cómo se
    midió, qué peleó.
 
-   EL MECANISMO ES EL DE demos.tsx, a propósito: un archivo por slug en
-   src/notas/, glob perezoso, cache por ref y Suspense sin fallback. El
-   nombre ES el mapa y no hay registro que mantener — la misma decisión
-   que hace que la carpeta del vault sea el manifiesto. Una pieza sin
-   notas no dibuja nada y no rompe nada.
+   EL MECANISMO ES EL DE demos.tsx, a propósito: un `notes.tsx` en la
+   carpeta de cada pieza, src/components/pieces/<slug>/, glob perezoso,
+   cache por ref y Suspense sin fallback. La carpeta ES el mapa y no hay
+   registro que mantener — la misma decisión que hace que la carpeta
+   del vault sea el manifiesto. Una pieza sin notas no dibuja nada y no
+   rompe nada. Las notas de una pieza App viven en la misma carpeta que
+   tendría su demo si fuera Web: es lo único de ella que hay de este
+   lado del repo (su código está en `nativo/`).
 
    Y son .tsx y no datos: una nota puede querer un link. Lo que NO puede
    es traerse tipografía propia — el estilo vive todo acá abajo, así que
@@ -36,12 +38,12 @@ import { slug } from './pieces'
    en la página ("no me gusta esta estructura", 2026-09-07). Las partes
    se nombran al pasar, en el párrafo, con su término técnico (regla de
    nombres del repo, AGENTS.md › Método de trabajo). */
-const MODULOS = import.meta.glob<{ default: ComponentType }>('./notas/*.tsx')
+const MODULOS = import.meta.glob<{ default: ComponentType }>('./components/pieces/*/notes.tsx')
 
 const cache = new Map<string, ComponentType>()
 
-function componenteDe(name: string): ComponentType | null {
-  const clave = './notas/' + slug(name) + '.tsx'
+function componenteDe(slug: string): ComponentType | null {
+  const clave = `./components/pieces/${slug}/notes.tsx`
   const cargar = MODULOS[clave]
   if (!cargar) return null
   let c = cache.get(clave)
@@ -75,8 +77,8 @@ export function Seccion({ titulo, children }: { titulo: string; children: ReactN
   )
 }
 
-export function Notas({ name }: { name: string }) {
-  const C = componenteDe(name)
+export function Notas({ slug }: { slug: string }) {
+  const C = componenteDe(slug)
   if (!C) return null
   return (
     <div className={css.notas}>
