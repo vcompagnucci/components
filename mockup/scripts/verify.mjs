@@ -42,7 +42,7 @@ const cam = props.camera
 const times = [0.1, cam.wait + 0.15, cam.wait + 0.35, cam.wait + 0.55, cam.wait + cam.in, cam.until - 0.5, cam.until + 0.07, cam.until + 0.23, cam.until + 0.4, cam.until + cam.out, cam.until + cam.out + 0.2, composition.durationInFrames / composition.fps - 0.05]
 const frames = times.map((t) => Math.min(composition.durationInFrames - 1, Math.round(t * composition.fps)))
 
-/* The alpha of the bezel, to know what is slot. */
+/* The alpha of the bezel, to know what counts as slot. */
 const bezel = path.join(MOCKUP, 'public', props.bezel)
 const alphaPng = execFileSync('ffmpeg', ['-v', 'error', '-i', bezel, '-vf', 'alphaextract', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 28 })
 const { png, body, screen } = IPHONE_17

@@ -9,7 +9,7 @@
    and the scripts that reproduce it are in
    .context/buttons-separate/MEDICION.md.
 
-   FUSED IT IS A PILL, not four circles stuck together: the height
+   FUSED, IT IS A PILL, not four circles stuck together: the height
    profile reads 56.0 pt from one end to the other, with no dip. That is
    why the five shapes go under ONE goo and are not drawn touching.
 
@@ -45,7 +45,7 @@ import type { Mount } from '../../../demos'
 
 /* THE GEOMETRY, in screen px. It is the reference times 5/7: the field
    at 56 pt tall would go into the 544 card raw, but 640 long would not,
-   and shrinking it across only would break the proportion that makes
+   and shrinking it only across would break the proportion that makes
    this read as a control and not as a bar. Every value carries the
    point it came from beside it. */
 const GEOMETRY = {
@@ -123,7 +123,7 @@ const FIELD = { duration: 0.365, bounce: 0.38 } // 365 ms, rms 1.57 pt
 const FAN = { duration: 0.532, bounce: 0.32 } //   532 ms, rms 1.42 pt
 const DELAY = 0.042 //                             s, measured
 
-/* THE GLYPHS DO NOT FADE IN: THEY COME IN OUT OF FOCUS AND SHARPEN.
+/* THE GLYPHS DO NOT FADE IN: THEY ARRIVE OUT OF FOCUS AND SHARPEN.
    Measured over two cycles and the four buttons
    (.context/…/desenfoque.py):
 
@@ -162,7 +162,7 @@ const BLUR = 2.14 // px
 
       THIS USED TO SAY "before the shapes overlap" AND IT IS NOT TRUE.
       Measured with the piece running (`sonda/salida.cjs`): the shapes
-      touch again, step below 38, the diameter, at 49 ms, and there the
+      touch again (step below 38, the diameter) at 49 ms, and there the
       glyphs are worth 0.25. Only at 115 do they get to 0.02. What was
       fixed is the order, not that they reach zero first.
    2. THE FIELD WENT 14 px past its resting length at 300 ms. That
@@ -185,8 +185,8 @@ const ICON_CLOSE = { duration: 0.11, bounce: 0 }
 const PRESS = { duration: 0.16, bounce: 0 }
 const PRESS_SCALE = 0.96
 
-/* With reduced motion the separation does not turn off, it is the
-   content of the piece and not an ornament, but the bounce and the
+/* With reduced motion the separation does not turn off, because it is
+   the content of the piece and not an ornament, but the bounce and the
    delay do: one short segment and no overshoot. */
 const NO_BOUNCE = { duration: 0.15, bounce: 0 }
 
@@ -251,8 +251,8 @@ function advance(s: Spring, now: number, dt: number) {
 }
 
 /* THE GOO. σ = 6.6 pt measured · 5/7 = 4.7 px. The threshold of the
-   feColorMatrix sits at alpha 0.5, which is where the sum for the neck
-   holds.
+   feColorMatrix sits at alpha 0.5, which is where the calculation of
+   the neck holds.
 
    THE GOO ONLY PUTS IN THE NECKS. The edge of each shape is put there
    by the shape itself, drawn again on top and with no filter. It is not
@@ -458,18 +458,18 @@ export default function ButtonsSeparate({ mode = 'detail' }: { mode?: Mount } = 
      four writes. */
   const paint = useCallback(() => {
     const { field, fan, icon, sharpen, press } = springs.current
-    const width = TOTAL_WIDTH + (GEOMETRY.field - TOTAL_WIDTH) * field.x
-    fieldRect.current?.setAttribute('width', String(width))
+    const fieldWidth = TOTAL_WIDTH + (GEOMETRY.field - TOTAL_WIDTH) * field.x
+    fieldRect.current?.setAttribute('width', String(fieldWidth))
     const step = STEP * fan.x
-    const opaque = Math.max(0, Math.min(1, icon.x))
-    const visible = String(opaque)
+    const opacity = Math.max(0, Math.min(1, icon.x))
+    const opacityText = String(opacity)
     /* The empty string is written and not `blur(0px)`: a filter, even
        when it does nothing, forces the browser to rasterize the glyph
        on a surface of its own, and at rest that is four for free. The
        cut at 0.4 px does not show: below 0.5 Chrome already rounds to
        zero. */
     const radius = BLUR * (1 - sharpen.x)
-    const blurFilter = opaque > 0.001 && radius > 0.4 ? `blur(${radius.toFixed(2)}px)` : ''
+    const blurFilter = opacity > 0.001 && radius > 0.4 ? `blur(${radius.toFixed(2)}px)` : ''
     for (let i = 0; i < BUTTONS.length; i++) {
       const shrunk = 1 - (1 - PRESS_SCALE) * press[i].x
       circles.current[i]?.setAttribute('cx', String(FIRST_SLOT + step * i))
@@ -477,7 +477,7 @@ export default function ButtonsSeparate({ mode = 'detail' }: { mode?: Mount } = 
       const button = buttons.current[i]
       if (button) {
         button.style.transform = `translateX(${step * i}px) scale(${shrunk})`
-        button.style.opacity = visible
+        button.style.opacity = opacityText
       }
       const glyph = glyphs.current[i]
       if (glyph) glyph.style.filter = blurFilter
@@ -606,9 +606,9 @@ export default function ButtonsSeparate({ mode = 'detail' }: { mode?: Mount } = 
         <svg className="definitions" aria-hidden="true" focusable="false">
           <defs>
             {/* THE GOO: blur and harden the alpha again. The threshold
-                stays at 0.5 with 24/-12, which is where the sum for the
-                neck holds. Explicit sRGB: by default an SVG filter
-                works in linearRGB and the threshold shifts. */}
+                stays at 0.5 with 24/-12, which is where the calculation
+                of the neck holds. Explicit sRGB: by default an SVG
+                filter works in linearRGB and the threshold shifts. */}
             <filter id={`goo-${id}`} {...REGION} colorInterpolationFilters="sRGB">
               <feGaussianBlur stdDeviation={SIGMA * box.scale} result="blurred" />
               <feColorMatrix in="blurred" type="matrix" values={ALPHA_THRESHOLD} />
