@@ -1807,3 +1807,641 @@ de tab instantáneo bajo reduced motion es el comportamiento correcto, no
 una deuda. El razonamiento entero quedó arriba de `CFG`, con la salida
 por si algún día se revisa: partir `Tramo` en dos, y medirlo en el
 teléfono con el ajuste prendido, no razonarlo.
+
+## Buttons separate — el Spotlight de macOS Tahoe, la primera pieza Web
+
+**El 2026-09-09** entró la primera pieza que corre viva en el navegador:
+`src/piezas/buttons-separate.tsx`, sin `desc` y sin video. La referencia
+es `VAULT_DIR/web/Buttons separate.mp4` —el Spotlight de **macOS 26
+Tahoe**, grabación de pantalla propia— y se midió sobre el original de
+3420×2214 a 60 fps, leyendo píxeles crudos (ffmpeg → rgb24 → Python).
+Los scripts y la tabla entera están en `.context/buttons-separate/`, que
+no viaja; las conclusiones están acá y arriba del archivo.
+
+**La escala de la referencia: 2 px físicos por punto.** El panel lógico
+es 1710×1107. Verificado con la barra de menú: el ascendente del tipo de
+13 pt mide 20 px, y para SF Pro eso son 2.05 px/pt. Sin este número
+ninguna de las medidas de abajo quiere decir nada.
+
+**Y la grabación es VFR.** El contenedor declara 60 fps y trae 535
+cuadros para 9.61 s; 22 pasos son de 33 ms y uno de 350. Decodificada a
+60 constantes da 577 y el índice ES el tiempo. La trampa: el `select` de
+ffmpeg cuenta cuadros del ORIGEN, así que un `eq(n,120)` no cae en el
+mismo lugar que el índice 120 del array — hay que transcodificar a CFR
+antes de sacar tiras.
+
+| Decisión | Valor | Fuente |
+| --- | --- | --- |
+| **Fundido es UNA píldora**, no cuatro círculos pegados | una cápsula de 640 × 56 | RUNTIME: el perfil de altura da 56.0 constante de x=880 a x=1140, sin una sola hondonada entre botones. Con círculos fundidos por un goo habría festón |
+| **El primer botón no se mueve** | los cuatro salen en abanico desde la primera ranura; lo que se abre es el PASO, de 0 a 64 | RUNTIME: el borde izquierdo del primero está en 929 desde el cuadro 92 y sigue ahí en reposo. Y con los cuatro quietos en su ranura el extremo derecho no podría bajar de 1175, y baja hasta 1010 |
+| **Son dos resortes** | campo 365 ms / rebote 0.38; abanico 532 ms / rebote 0.32, 42 ms más tarde | RUNTIME: mínimos cuadrados sobre la respuesta al escalón de un oscilador de segundo orden, 1.57 y 1.42 pt de error en 64 cuadros. Los dos ciclos limpios del video dan lo mismo por separado |
+| ↳ 365 y no 395 | el ajuste con desfase libre da 395 ms y 0.58 pt | ese ajuste se come un t0 de −8 ms: el cuadro 80 es el primero donde el borde YA se movió, no el instante en que arrancó. En la pieza el resorte arranca cuando entra el puntero, así que hay que ajustar con ese modelo puesto |
+| La geometría | campo 384 × 56 (radio 28), botón 54, hueco 10, paso 64, conjunto 640 × 56 | RUNTIME con subpíxel sobre el cuadro 150: el campo mide 55.93 y los botones 53.95, los cinco centrados en y = 292.76 |
+| ↳ en pantalla, por 5/7 | alto 40, campo 276, botón 38, hueco 7, paso 45, total 456 | 640 crudos no entran en la card de 544, y encoger sólo a lo ancho rompe la proporción que hace que esto se lea como un control |
+| **El goo** | desenfoque σ = 4.7 px y umbral en alfa 0.5 | RUNTIME: dos centros a 61 pt de distancia dan un cuello de 25 pt de alto, y con el modelo de desenfoque + umbral —cuello = 2√((r+0.674σ)² − d²/4)— eso es σ ≈ 6.6 pt de la referencia. El puente se corta en un hueco de ~9 y en reposo el hueco es 10 |
+| ↳ por qué no un filete de radio constante | para dar ese cuello necesita k ≈ 9, y con ese k el puente aguantaría hasta un hueco de 16 | la referencia lo corta en 9 |
+| El material | relleno que sube el fondo ~120 niveles, anillo de **1 pt** a +40 y sombra de contacto de ~3 pt, simétrica | RUNTIME, muestras radiales sobre el cuarto botón: relleno rgb(178,197,230) casi constante, borde rgb(218,241,255) igual en las cuatro orientaciones, y afuera el fondo por 0.62 a 0.9 |
+| ↳ el desenfoque es GRANDE | sobre la nube clara el vidrio da casi neutro | rgb(186,152,137) detrás → rgb(219,217,228) delante: el vidrio no muestra lo que tiene justo atrás sino el promedio de un vecindario del ancho de la nube |
+| Una tinta sola para texto, lupa y glifos | rgb(46,68,97) | RUNTIME: placeholder (47,69,99), lupa (48,69,97), glifo (44,65,95). No hay un gris de marcador aparte |
+| El disparo es el **hover** | pedido del usuario, 2026-09-09 | y la grabación no dice otra cosa: el puntero nunca sube a la barra —se para 200 pt abajo— y las tres esperas entre abrir y separar son 733, 217 y 933 ms. No hay retardo fijo que copiar |
+
+**El vidrio no es un `backdrop-filter`.** Es una segunda copia del mismo
+fondo, desenfocada una vez, con la máscara del goo encima. Tres razones:
+el desenfoque de la referencia es enorme y `backdrop-filter` con máscara
+SVG no está garantizado en todos los motores; el fondo acá es nuestro,
+así que copiarlo es exacto; y sale más barato, porque la capa
+desenfocada no cambia nunca y lo único que se mueve es la máscara. Las
+dos copias se dibujan sobre la MISMA caja agrandada 96 px por lado: un
+desenfoque se come el borde de su propia capa, y si terminaran donde
+termina la escena, la mitad izquierda del vidrio mostraría el
+desvanecido en vez del fondo.
+
+**Un `<mask>` y un `<filter>` con el mismo id son un id duplicado.**
+Costó una hora: `url(#halo-…)` resolvía al filtro y la capa entera salía
+en blanco, sin un error en ningún lado. Las máscaras llevan prefijo
+`mascara-`. Y una máscara referenciada desde CSS necesita `x`, `y`,
+`width` y `height` explícitos: los valores por defecto se resuelven
+contra el `<svg>` de las definiciones, que mide cero, y la máscara sale
+vacía.
+
+**`motion` se fue del bundle.** La pieza usaba `useSpring` y traía 14 kB
+comprimidos de librería para mover dos números; en producción era su
+único lector (el otro está en `src/privado/`, que no llega al build). En
+su lugar hay un integrador de Euler semi-implícito con sub-paso fijo de
+1/240 s, 40 líneas, con el tope de 50 ms para cuando la pestaña vuelve
+de segundo plano. El chunk pasó de 36.8 kB a 13.6 (13.95 → 5.26
+comprimidos), y la interrupción sale gratis: entrar y salir rápido con
+el puntero sólo cambia el destino, y la posición y la velocidad siguen
+siendo las que había.
+
+**Verificado contra la referencia con la pieza corriendo.** Se muestreó
+cuadro a cuadro el borde derecho del conjunto y se comparó contra la
+misma traza del video: **4.95 pt de error cuadrático medio y 18.7 de
+máximo sobre el primer segundo**, sin latencia que descontar. El máximo
+cae en el mínimo de la curva, que es donde la medición del video es
+menos confiable porque ahí el goo ensancha la silueta.
+
+**Corrección del 2026-09-09.** Este párrafo decía 2.35 pt. La sonda
+modelaba el borde del botón en r = 19.58 —el radio compensado que tenía
+el goo— cuando lo dibujado mide 19; con las formas nítidas encima el
+modelo y lo dibujado coinciden y el número honesto es 4.95. Lo que se
+mueve no cambió: cambió la sonda.
+
+**Cuadros:** 62 en un segundo, mediana 16.7 ms, ninguno arriba de 20,
+con el procesador cuatro veces más lento y dos copias de la pieza en la
+página (Chrome, 2026-09-09).
+
+**La salida no es la entrada al revés** (2026-09-09, Vito: "la salida
+sobre todo, no me convence"). Posando el cierre cuadro a cuadro en siete
+instancias a la vez se ven las tres fallas, y ninguna se ve razonándola:
+los botones se tocan cuando el paso baja de 38 —el diámetro—, a los
+~55 ms, y con el tramo de 300 ms los iconos todavía valían **0.28 a los
+120**, o sea cuatro glifos apilados encima del campo; el campo se pasaba
+**14 px** de su largo de reposo a los 300 ms, un rebote que está medido
+pero en la CONTRACCIÓN de la apertura y que al cerrar no tiene causa; y
+duraba lo mismo que la entrada, contra la regla de que la salida va un
+cuarto más corta. Ahora el cierre tiene su propio juego: campo 280 ms
+sin rebote, abanico 400 con 0.1, iconos 110. Termina en ~300 ms. **La
+entrada no se tocó**: sigue siendo la medida.
+
+**El press ahora presiona.** Escalaba sólo el `<svg>` a 0.94 y se leía
+"se achicó el ícono". Ahora achica el **círculo de la máscara** en el
+mismo lazo de cuadro, con un resorte propio por botón, así que se hunde
+el vidrio entero; y a 0.96, que abajo de 0.95 se ve exagerado. Verificado
+leyendo el atributo: el radio va de 19 a 18.24 y vuelve.
+
+**Los cuadros, medidos con el peor caso que puede pasar de verdad.** En
+Chrome, con el procesador **veinte veces** más lento y **ocho copias** de
+la pieza en la página: scrolleando se pierde 1 de 59, y con una
+abriéndose y las otras siete en reposo se pierden 2 de 54. A 4× no se
+pierde ninguno. Las ocho animando a la vez sí caen a 30 cuadros, y no
+puede pasar: hay un solo puntero. Lo que hace que las que están quietas
+no cuesten nada es que el lazo **no pide cuadro en reposo**.
+
+**Y tres detalles que sólo aparecen midiendo.** La opacidad de los
+iconos iba en una variable CSS del padre, que obliga a recalcular el
+estilo de todo el subárbol por cuadro: ahora son cuatro escrituras
+directas. El `:hover` del realce no estaba detrás de
+`(hover: hover) and (pointer: fine)`, así que un dedo lo dejaba pegado
+al tocar. Y con movimiento reducido las transiciones de CSS seguían
+corriendo.
+
+**Los baches del camino A, que era la primera vez.** El alto pide `100%`
+Y `min-height: inherit`: en la card lo pone un min-height heredado y el
+100 % no resuelve; en el lienzo del playground el frame tiene alto fijo
+y el que no resuelve es el min-height. Y el `<style href>` de React 19
+se iza **una sola vez**: al editar el CSS de una pieza, Vite recarga el
+módulo pero la hoja vieja se queda, así que hay que recargar la página.
+*(Este último ya no pasa; el arreglo está más abajo, en el campo
+escribible.)*
+
+### El disparo lo eligió un picker de tres
+
+**El 2026-09-09**, después de ver que en Apple la barra se abre sola al
+mover el cursor, la pregunta era si eso sirve en una library. Se armó un
+picker con el skill `prototype`: **tres disparos, la misma pieza debajo**
+—una copia generada por script del archivo de producción, parchando sólo
+el estado y los manejadores, así que las formas, el goo, el material y
+los dos resortes son los mismos bytes— y las dos cajas reales, el detalle
+de 544×400 y la card de la lista de 544×260.
+
+| | eje | cuándo gana | qué cuesta |
+| --- | --- | --- | --- |
+| **Ahora** | abre al entrar el puntero a la barra | el lector controla cuándo verla | hay que apuntarle a una franja de 40 px de alto, y barriendo el mouse se abre y se cierra sin que la mires |
+| **Apple** | abre al mover el puntero en la card | no pide puntería, y se rearma sola al salir | pasar de largo por una lista dispara la animación de cada card que cruzás |
+
+Se llama **Apple** por lo que Vito vio en su Mac —Spotlight se abre al
+mover el cursor—, **no por la grabación**: ahí el puntero nunca sube a la
+barra y las tres esperas entre abrir y separar son distintas, así que la
+grabación no dice nada del disparo. El nombre es del picker, no un
+recibo.
+| **Reposo** | abre cuando el puntero se queda quieto | no dispara al pasar de largo | a 700 ms ya se siente la espera; a 2 s parece que no anda |
+
+**Eligió Apple, con el umbral en 20 px.** El dial existe porque cero no
+sirve: dispara con el temblor de un píxel y con el primer evento que
+manda el navegador al entrar. Con 20, entrar a la card y seguir de largo
+abre; apoyar el puntero quieto en el borde, no. Verificado en la pieza ya
+publicada: un solo evento no abre, 8 px no abren, 25 px sí, salir cierra,
+el foco del teclado abre y el desenfoque de foco cierra.
+
+**El de reposo arrancaba en 700 ms y no en los 2 s del pedido.** Probados
+los dos, a 2 s la pieza parece rota antes de abrirse. Quedó como dial
+para que la decisión fuera de él y no del número que yo eligiera.
+
+**Producción no se tocó durante la exploración**, que es la regla del
+skill: `proto/` estaba en `.gitignore` y `git status` quedó limpio hasta
+que se promovió la elegida.
+
+### Los glifos no se funden: entran fuera de foco
+
+**Vito, mirando los cuatro iconos: "se nota cuando cargan, tiene que ser
+mejor eso, fijate cómo hace la refe y copialo tal cual".** Tenía razón y
+el mecanismo estaba mal, no el tiempo: la pieza los fundía —opacidad de 0
+a 1— y **la referencia los enfoca**. Recortando el interior de un botón
+cuadro a cuadro y ampliando, a los 267 ms hay un borrón que se va
+cerrando; a los 500 es un dibujo nítido.
+
+**La primera medición decía lo contrario y era la sonda, no la pieza.**
+Proyectando cada cuadro contra el glifo NÍTIDO del reposo, un borrón
+correlaciona poco y se lee como "poca opacidad": salía un fundido de 310
+ms de retraso y 350 de duración, prolijo y falso. El desenfoque no
+aparece si la plantilla no puede representarlo.
+
+**El estimador que sirve, y los tres que no.** El modelo final es lineal
+y sin filtros: `L(t) ≈ fondo cúbico + α · gauss(glifo del reposo, σ)`.
+Para un σ dado sale de un solo mínimos cuadrados; σ se barre en grilla.
+Antes de creerle una sola cifra se lo calibró con **cuadros sintéticos de
+α y σ conocidos**, y esa calibración descartó tres estimadores anteriores:
+
+1. **Maximizar α** en vez de minimizar el residuo: α crece sin techo con
+   el desenfoque libre, y σ se clavaba en el tope hasta en los cuadros ya
+   quietos.
+2. **Desenfocar el cuadro entero** en la plantilla: el glifo se dibuja
+   ENCIMA del vidrio, así que el desenfoque va sobre el glifo y no sobre
+   el fondo. Con esto, un α real de 0.4 a 2 pt de σ se leía **0.87** — de
+   ahí salió la conclusión falsa de que la opacidad casi no se movía.
+3. **Trabajar en alta frecuencia con la plantilla ya filtrada**: el
+   pasa-altos aplicado dos veces deja un residuo suave que α absorbe. Un
+   α real de 0.2 se leía **2.54**.
+
+El bueno devuelve α y σ **exactos** hasta 4 pt de σ, y por encima satura
+—6 pt se lee igual que 4—, así que esos cuadros no entran a ningún
+ajuste.
+
+**Lo que hace la referencia**, dos ciclos y los cuatro botones, con el
+reloj anclado al mismo cero que `RETRASO` (el ajuste del extremo derecho
+del conjunto, 2.01 pt de error en el ciclo limpio):
+
+| | retraso | duración | rebote | rms |
+| --- | --- | --- | --- | --- |
+| **α, la opacidad** | 270 ms | 260 ms | 0.14 | 0.043 |
+| **σ, el desenfoque** | 290 ms | 350 ms | 0 | 0.122 pt |
+
+σ arranca en **3.0 pt** y cierra a cero. El resorte le gana a la rampa y
+al ease en los dos casos. **Son dos tramos y no uno**: con α ya pegado a
+1 —0.93 a los 417 ms— σ sigue bajando de 1.02 a 0.30, así que σ no es
+función de α. Y **no hay escala**: el ajuste devuelve 1.00 en todo el
+tramo medible, o sea que el glifo no crece.
+
+**No hay desfase entre botones.** Con la sonda mala parecía que el
+primero entraba 27 ms antes que los otros tres, consistente en los tres
+ciclos. Con la buena, el orden cambia de cuadro en cuadro: era ruido. Los
+cuatro entran juntos.
+
+**Por qué se notaba.** El tramo viejo arrancaba a los 200 ms y duraba
+300: a los 300 los glifos ya valían **0.62** y en la referencia valen
+**0.14**. Aparecían mientras los botones todavía volaban, y nítidos desde
+el primer cuadro. Eso es exactamente la lectura de "se están cargando".
+
+**El `blur()` de CSS, medido y no supuesto.** Sobre un borde duro con una
+rampa de valores: en pantalla Retina `blur(N px)` da una gaussiana de
+σ = N px con un 8 % de error, y **por debajo de 0.5 px la redondea a
+cero** —son tres cajas de desenfoque, no una gaussiana—. A 1× la
+cuantización es mucho más gruesa: `blur(0.75px)` no desenfoca nada.
+Por eso la cola no se escribe y el filtro vuelve a la cadena vacía: un
+filtro que no hace nada igual obliga a rasterizar el glifo aparte.
+
+**Los dos retrasos estuvieron unidos en 280 ms** —20 ms son poco más de
+un cuadro— hasta que se midió la pieza contra la referencia con el mismo
+estimador: unidos, la opacidad iba un cuadro atrás y el desenfoque uno
+adelante. Separados, los dos errores se van.
+
+**Y no cuesta cuadros.** Con el procesador 40 veces más lento y ocho
+copias montadas, una abriéndose pierde 14 de 55 cuadros **con el
+desenfoque y sin él**: el mismo número. A 20× no se pierde ninguno en
+ninguno de los tres escenarios. El costo de esa escena está en las
+máscaras, no en los cuatro glifos.
+
+**La pieza contra la referencia, con el mismo estimador de los dos
+lados** —grabando la apertura con `Page.screencast`, que es lo único que
+entrega el cuadro CON su marca de tiempo—: sobre tres corridas y 46
+cuadros entre los 356 y los 554 ms, **0.039 de error cuadrático medio en
+la opacidad** (0.133 de máximo) y **0.228 pt en el desenfoque** (0.448).
+Lo del desenfoque es del orden del ruido del método: dos corridas leen el
+mismo instante con 0.25 pt de diferencia, porque el `blur()` de Chrome
+cuantiza y los cuadros del screencast pasan por PNG.
+
+**Tres formas de sacar la tira que no servían, todas por el reloj.**
+Cuatro fotos seguidas, una por botón: entre la primera y la cuarta pasan
+~200 ms, así que el mismo resorte sale enfocado abajo y borroso arriba.
+Esperar en la página al cuadro correcto y recién ahí pedir la foto: el
+viaje de ida y vuelta se suma, distinto cada vez, y a los 267 ms se ve
+menos que a los 200. Y el tiempo virtual de CDP, que congela el reloj y
+lo avanza exacto pero con la carga adentro del presupuesto no deja montar
+la pieza. La marca de tiempo tiene que venir CON el cuadro.
+
+### El campo se escribe, y no hace nada más
+
+**Pedido de Vito el 2026-09-09**: poder escribir en la barra de búsqueda,
+que no se despliegue nada, con un tope de caracteres, que el texto dure
+mientras estés en la página y que al borrarlo vuelva el placeholder.
+
+**El tope es 24 y sale de medir la caja.** El campo abierto son 276 px;
+descontando los 44 de sangría hasta el glifo y los 14 del otro lado
+quedan **218 px de texto**, y con el tipo del sitio a 18 px un carácter
+promedio mide 8.69 —medido con `measureText` sobre el tipo real, no
+estimado—, o sea que entran 25. El tope es 24: se llena la caja y ni uno
+más. Con mayúsculas anchas (una W mide 17.6) la caja se llena antes y el
+texto se corre adentro del input, que es lo que hace cualquier campo. Lo
+que no puede pasar es que empuje algo, y no puede: el ancho está fijo.
+
+**No sobrevive a una recarga, a propósito.** Es estado del componente y
+nada más. Sin `localStorage` no hay nada que restaurar al cargar, así que
+no hay ni un cuadro con el texto viejo ni un salto de layout;
+`autoComplete="off"` apaga además la restauración de formularios del
+navegador, que es el otro camino por el que un valor vuelve solo.
+Verificado: al recargar el valor es `""` y el scroll queda en 0.
+
+**En la lista NO se escribe, y es la misma decisión de siempre.** Ahí el
+demo vive adentro del `<a>` de la card y un `<a>` no puede contener
+contenido interactivo: un lector anunciaría un cuadro de texto adentro de
+un link, tabular por la lista pararía en cada uno y el clic pelearía con
+la navegación. En la lista es un `<span>` y el clic abre la pieza
+—verificado: `/` → `/buttons-separate`—; en el detalle, que no tiene
+link, es un `<input>`. La pieza lo resuelve mirando el árbol
+(`closest('a')`) y no con una prop, porque una pieza publicada es UN
+archivo autocontenido y `demos.tsx` no le pasa nada.
+
+**El campo pasó a ser la píldora entera.** Era un flex de dos —glifo,
+texto— cuyo ancho lo ponía la palabra: con un input adentro eso sería un
+campo que se agranda al escribir. Ahora la caja mide lo que mide el campo
+abierto, el glifo va absoluto en su posición medida y el input ocupa
+todo, así que **el clic cae en cualquier parte de la píldora, incluida la
+lupa**. El texto no se movió: la comparación píxel a píxel del "Search"
+antes y después da **0 píxeles distintos** sobre 192.000. Lo que hace que coincida es
+la altura de línea igual al alto de la barra: el medio interlineado deja la
+línea de base donde la dejaba el `line-height: 1` del `<span>`, y de paso
+da aire para las colas de la g y la y, que un input sí recorta.
+
+**Y no se cierra mientras escribís.** Sacando el mouse de la card con el
+cursor puesto, la barra se cerraba y el campo crecía por encima de los
+botones. Ahora el `pointerleave` no cierra si el foco está adentro;
+cerrar es cosa del `blur`, que ya estaba.
+
+**El `<style href>` de React 19, resuelto.** Este bache se cobró la
+primera prueba del campo escribible: con la hoja vieja todavía puesta, el
+`<input>` se ve como un control del sistema sin estilar adentro de la
+píldora, y parece un bug de la pieza. Ahora **en desarrollo la hoja va en
+línea, sin `href`**: React no la iza, le reescribe el texto en cada
+render y el cambio se ve al toque —y deshacerlo también—. En producción
+sigue izada y deduplicada, que es para lo que existe; `import.meta.env.DEV`
+saca la rama del bundle (verificado: cero `import.meta.env` en el
+archivo construido, y una sola hoja en el `<head>` del build).
+
+Antes se probó ponerle **la huella de la hoja al `href`**, y hay que
+anotarlo porque parece la solución obvia y no lo es: arregla la ida pero
+rompe la vuelta. La hoja vieja ya quedó insertada más arriba, así que al
+volver a un CSS anterior sigue ganando la última que entró. Medido con la
+página abierta, editando el archivo desde la sonda: con la huella,
+`-0.18px → -0.9px → -0.9px`; con la hoja en línea, `-0.18px → -0.9px →
+-0.18px`.
+
+**El campo no lleva anillo de foco, y no es un olvido.** Le puse el token
+del sitio y estaba mal por tres razones, las tres visibles en la captura
+que mandó Vito ("horrible el borde azul, que no vuelva a pasar"):
+
+1. **Salía con el mouse**, no sólo con el teclado. En un campo de texto
+   Chrome hace coincidir `:focus-visible` **siempre** —el elemento acepta
+   teclas—, así que un clic normal para escribir dibujaba el anillo. Eso
+   no es un indicador de foco: es un borde permanente.
+2. **Era un rectángulo sobre una píldora.** El radio del campo lo dibuja
+   la máscara y no ese elemento, así que el `border-radius: inherit`
+   heredaba 0 y el anillo salía cuadrado alrededor de una forma redonda.
+3. **Es chrome del navegador encima del vidrio.** El azul del token es el
+   del sitio y no tiene nada que ver con este material.
+
+El indicador es **el cursor**, que en un campo de texto está siempre que
+el campo tiene el foco —con el mouse y con el tabulador— y va con la
+tinta de la pieza (`caret-color`), no con la del navegador. Es lo que
+hace la referencia: el campo de Spotlight no tiene anillo. Los cuatro
+botones sí lo llevan y se quedan como están: un botón no tiene cursor, y
+sin anillo no habría manera de saber dónde está el foco al tabular.
+Verificado: con clic, `:focus-visible` coincide pero el contorno es
+`none` y el cursor es `rgb(43,64,92)`; el botón sigue en `solid 2px`.
+
+De la misma familia, y por eso va acá: `-webkit-tap-highlight-color:
+transparent`, que saca el rectángulo gris que Android e iOS pintan encima
+al tocar.
+
+### El fondo sale del design system
+
+**Vito, 2026-09-10: "el fondo, ¿no podés poner los del design system
+según el theme?".** Era un degradado azul-gris escrito a mano, con su
+propia paleta, adentro de una card que es `--surface`. Ahora cada parada
+es `--canvas` con `--ink` mezclado, así que sigue al tema sin traer
+colores propios. La geometría no se toca: el mismo radial y el mismo
+lineal, en las mismas posiciones.
+
+**Los porcentajes no son a ojo.** Cada uno es la mezcla que iguala la
+**luminancia (L\*)** de la parada que había, buscada sobre
+`color-mix(in srgb, …)`, que es lineal por canal:
+
+| | claro | oscuro |
+| --- | --- | --- |
+| radial 0 % | `#f2f5fa` → **3.5 %** de tinta | `#5b74a2` → **44.2 %** |
+| radial 38 % | `#cdd6e5` → **16.8 %** | `#35486d` → **26.2 %** |
+| radial 76 % | `#9aa7bd` → **36.8 %** | `#1a2338` → **10.9 %** |
+| radial 100 % | `#8492aa` → **45.7 %** | `#131a2b` → **7.2 %** |
+| lineal 0 % → 100 % | **7.0 %** → **47.8 %** | **29.4 %** → **3.6 %** |
+
+Igualar la luminancia y no el color importa porque **el vidrio es una
+copia desenfocada de este fondo** y su velo está medido contra el
+material nativo: si el fondo cambia de claridad, cambia el vidrio. Se
+pierde el TONO —el azul del cielo de la referencia— y se conserva la
+luz, que es lo que el material lee.
+
+**Medido antes y después, con el fondo viejo puesto de nuevo para tener
+el par:**
+
+| | vidrio contra el fondo | tinta sobre el vidrio |
+| --- | --- | --- |
+| claro, fondo viejo | 1.06:1 | **7.88:1** |
+| claro, del sistema | **1.06:1** | **7.88:1** |
+| oscuro, fondo viejo | 1.05:1 | 5.77:1 |
+| oscuro, del sistema | **1.02:1** | **5.81:1** |
+
+O sea: el material se lee igual y la tinta también. Lo único que se movió
+es el tono.
+
+**Por qué en claro el fondo no puede ser `--surface` a secas.** El vidrio
+es claro: sobre una card de `#f8f8f6` sería una forma casi blanca sobre
+casi blanco y no se vería nada. El degradado baja hasta L\* 58, que es el
+mismo piso que tenía, y ahí el vidrio despega. Con el sistema en oscuro
+pasa lo natural: fondo casi negro y vidrio claro encima, que es
+literalmente la referencia. Si el gris del tema claro pesa demasiado, la
+perilla es el último porcentaje del radial y el del lineal; subir el piso
+achica el contraste del vidrio en la misma proporción.
+
+**La tinta NO se tocó.** Sigue siendo `#2e4461`, que es la medida de la
+referencia. Queda una tinta fría sobre un fondo neutro, que es la única
+costura que dejó el cambio.
+
+### Las cinco puntas sueltas, cerradas
+
+**Vito, 2026-09-10: "corregí absolutamente todas".** Eran las cinco que
+quedaron anotadas como abiertas. Tres se arreglaron, dos se cerraron
+midiendo y el resultado fue que la falla no existía. Va una por una,
+porque dos de ellas terminan en "el hallazgo anterior no se sostiene" y
+eso hay que decirlo con el mismo detalle que un arreglo.
+
+**1. El cuello del goo: el hallazgo no sobrevivió a la medición.** Decía
+que con el mismo hueco los cuellos de la referencia son más profundos que
+los míos (0.40-0.63 contra 0.35). Ese "mismo hueco" suponía que los tres
+huecos valen lo mismo en cada cuadro, que es lo que hace el modelo de UN
+resorte. Midiendo la serie entera aparecieron dos cosas:
+
+- Con el umbral bien puesto —el vidrio SUBE la luminancia, así que el
+  corte va sobre la subida y no sobre la diferencia; con la diferencia
+  entra la sombra de contacto y da cuello en reposo, donde no hay
+  puente— los tres cuellos se cortan con huecos distintos: el primero
+  cerca de 5 pt, el tercero cerca de 13.
+- Y la distancia entre cuellos vecinos, que es una medida directa sin
+  modelo, da 57.8 y 46.0 en el mismo cuadro.
+
+O sea que **los cuatro botones no se abren con un solo paso**, o el
+modelo tiene un error grande. No pude decidir cuál: para separar los
+cuatro centros hay que encadenar `c_{k+1} = 2·cuello_k − c_k`, y eso
+multiplica el error por 2, 4 y 8. Contra la verdad conocida en reposo
+—10, 10 y 10— el método devuelve **8.8, 10.2 y 11.9**. Con ±1.5 pt de
+error no se puede afirmar un desfase de unos pocos pt.
+
+Así que lo que se corrige es la afirmación: no hay evidencia de que mis
+cuellos sean más chatos que los de la referencia, porque la comparación
+se hacía contra un hueco que nunca se midió. Lo que sí queda anotado, y
+es más grande, es la duda sobre el abanico de un solo resorte. Los
+scripts son `cuellos.py`, `pasos.py` y `abanico.py`.
+
+**2. La refracción: correcta, y su efecto acá es de 1 nivel sobre 255.**
+La capa no es adorno, es el vidrio: la copia del fondo que se ve a través
+del material. Lo que estaba en duda era el desenfoque de 2.9 px encima.
+Medido rindiendo el mismo degradado con y sin él: **media 0.25 niveles,
+máximo 1.00, cero subpíxeles por encima de 1**, sobre un degradado con
+78 niveles de recorrido. Es exactamente lo que tiene que pasar: un
+desenfoque de un degradado liso es el mismo degradado. Y no cuesta nada
+medible (ver el punto 5). Se queda, porque es una propiedad medida del
+material nativo y el día que el fondo tenga textura es lo único que la
+mostrará. Deja de estar anotada como problema: está cuantificada.
+
+**3. El `<a>` con cuatro `<button>` adentro: arreglado de verdad.** Un
+`<a>` no puede contener contenido interactivo. La card ya no es el ancla:
+es un `<article>`, el ancla envuelve **sólo el título** y se estira sobre
+la card con un `::after`, y el preview va después en el documento, así
+que pinta encima de esa capa y el demo sigue vivo. El clic sobre el
+preview lo recoge el `<article>` con la misma regla de `clicDeLink`.
+Verificado en la página: **cero elementos interactivos adentro de un
+`<a>`**, el orden de tabulación pasó de parar en cada botón de cada card
+a un ancla por card, y el clic abre la pieza tanto desde el título como
+desde el preview.
+
+Lo que se pierde, dicho para que no se descubra después: **sobre el
+preview no hay cmd-click ni menú contextual**, porque ahí el ancla no
+está debajo del puntero. Sobre el título y el resto de la card sí.
+
+Y de paso apareció un error mío: la pieza sabía si era preview mirando
+`closest('a')`, y ese arreglo lo rompió —al sacar el demo del ancla, la
+lista volvió a renderizar el `<input>`—. Ahora lo dice una **prop**,
+`modo`, que baja de `demos.tsx`. Es la única prop que recibe una pieza y
+es opcional. Que la pieza dependiera del MARKUP del producto era el
+problema de fondo, no un detalle: el markup no es suyo.
+
+**4. La tinta fría sobre fondo neutro: sale del sistema, como el fondo.**
+Mismo método y mismo recibo: la mezcla que iguala la LUMINANCIA de la
+tinta medida. `#2e4461` está en L\* 28.32 y `color-mix(in srgb, --ink
+78.9%, --canvas)` da L\* 28.32; en oscuro, 22.4 % da L\* 26.6. La
+legibilidad no se movió: **7.88 → 7.85 en claro** y **5.81 → 5.81 en
+oscuro**. Se pierde el tono, se conserva el peso, y la pieza queda entera
+sobre el eje neutro del sistema.
+
+**5. Los cuadros: remedidos en un Chrome de verdad, cinco veces.** La
+cifra publicada (1 de 59, 2 de 54) salía de una sola corrida con otra
+herramienta, y mi medición nueva daba 0. No eran contradictorias: es la
+misma medición con su ruido. Remedido con el MCP de chrome-devtools —un
+Chrome real, con GPU— a 20× y con ocho copias, cinco corridas del mismo
+contador de rAF:
+
+| | perdidos |
+| --- | --- |
+| en reposo | 0, 0, 0, 0, 0 |
+| scrolleando | 0, 0, 0, 0, 0 |
+| una abriéndose | 1, 0, 1, 0, 0 (de ~55) |
+
+El texto público pasa a **"scrolling drops no frames, and one copy
+opening while the other seven rest drops at most 1 in 55"**. "At most" y
+cinco corridas: es lo único defendible con una cifra que varía.
+
+### La auditoría de toque, accesibilidad y rendimiento
+
+**2026-09-10, con `emil-touch-and-accessibility` y `emil-performance`.**
+Todo medido en la página, no leído del código. Las sondas quedaron en
+`.context/buttons-separate/sonda/` (`a11y.cjs`, `perf.cjs`, `teclado.cjs`).
+
+**Lo que se arregló:**
+
+| | antes | ahora |
+| --- | --- | --- |
+| el campo escribible | 276×**40** de blanco | 276×**44**, y el texto no se movió (0 píxeles de diferencia) |
+| la flecha de volver | 34×34 | 34×34 a la vista, **44×44** de blanco |
+| el botón de velocidad | 28×20 | 28×20 a la vista, **52×44** de blanco |
+| `touch-action` | en ningún control | `manipulation` en `button, a, input, select, textarea, summary`, una sola regla en tokens.css |
+
+Los 44 del campo salen sin mover el texto porque la altura de línea sube
+con la caja, de 40 a 44: el medio interlineado lo recentra y la línea de
+base queda donde estaba. Los 2 px que sobresalen de la píldora caen sobre
+la escena, que no escucha el clic.
+
+`touch-action: manipulation` saca el zoom por doble toque de los
+controles y deja el pan y el pinch. Las superficies con gesto propio
+—el lienzo del playground, el reproductor del área privada, el 404—
+ponen `touch-action: none` en su clase y ganan por especificidad.
+
+**Tres hallazgos que se cerraron midiendo, no tocando:**
+
+1. **Los cuatro botones son focalizables con opacidad 0.** Tabular hacia
+   algo invisible es un defecto, salvo que el foco lo revele: acá el
+   `onFocus` vive en el contenido y focusin burbujea, así que **el foco
+   ABRE la barra**. Verificado tabulando de verdad: el foco llega primero
+   al campo, que ya la abre, así que ninguno de los cuatro recibe el foco
+   invisible; y entrando por atrás, el que lo recibe la abre en el mismo
+   cuadro. Esconderlos con `visibility: hidden` cerraría el único camino
+   que tiene el teclado.
+2. **El ancla de cada card medía 112×17.** Falso positivo de la sonda: su
+   `::after` cubre la card entera. Medido: **560×292** y **560×592**.
+3. **El botón de velocidad arranca en opacidad 0.** Con `.focus()` no se
+   revela, pero con la tecla Tab sí: `:focus-visible` sólo coincide con
+   foco de teclado, que es el caso que importa. Verificado con eventos de
+   teclado reales. Y en toque lo muestra `@media (hover: none)`.
+
+**Lo que queda anotado y no se tocó:** los links del índice miden 104×16.
+Es una decisión escrita en `.indexList` —"cada link mide lo que su
+palabra… el costo es un área de click más chica, y se acepta"— y el
+índice sólo se muestra arriba de 1080 px, donde el único dispositivo
+medido sin mouse es un iPad Pro horizontal. Agrandarles el blanco a 44
+les pisaría el blanco entre ellos.
+
+**Rendimiento, medido:**
+
+- **React no re-renderiza mientras la pieza se mueve**: cero cambios de
+  hijos en 1.2 s de apertura, con un MutationObserver puesto.
+- **En reposo no se pide un solo cuadro**, ni en la lista ni en el
+  detalle: 0 rAF en 1.5 s. La apertura pide 61.
+- **La apertura no corre el layout**: CLS 0.
+- **Sin tareas largas** al cargar ninguna de las dos páginas.
+- **Los cuadros con el fondo nuevo**: a 20× con ocho copias, 0 perdidos
+  scrolleando y 1 de 55 en el peor caso al abrir. A 40×, 17 de 55, el
+  mismo número que antes del cambio de fondo: el `color-mix` del
+  degradado se resuelve una vez, no por cuadro.
+- Cero `transition: all` y cero `will-change` en el producto. Los dos que
+  hay viven en `src/privado/`, que no entra al build.
+
+**Un hallazgo de rendimiento que NO es de esta pieza: CLS en la lista.**
+Cinco cargas dan `0.0516  0  0.0294  0  0.0516`. Que sea cero en dos de
+cinco dice que es una carrera, no un layout roto: el hueco reservado para
+la silueta del teléfono (`::before` con `aspect-ratio`) se apaga cuando
+entra el `<video>`, y la altura pasa a ser la del archivo, que recién se
+sabe con los metadatos. **No lo causa el overlay del ancla**: sacándolo,
+el CLS sube a 0.0516. El detalle de la pieza Web da **0**, y la card de
+Buttons separate es la primera de la lista, así que no se mueve.
+
+El arreglo es declarar la proporción de cada grabación para que la caja
+esté reservada antes de que el archivo llegue. Es un cambio de datos y de
+CSS en el camino de las cards App, con sus propias decisiones escritas, y
+queda para su propio turno: 0.05 está bien por debajo del 0.1 que Google
+llama bueno.
+
+### La auditoría de código
+
+**2026-09-10, con `emil-unslop-code`.** El repo escribe el porqué arriba
+del archivo, así que la densidad de comentarios NO es el problema: el
+skill pide "match the room". El problema es el otro, y el skill lo nombra
+igual — **comentarios que hablan del diff**, nombres que mienten y
+defensa que no defiende. Seis cosas:
+
+1. **El bloque de comentario de las notas se había vuelto un changelog.**
+   164 líneas, y una parte era cronología: "el primer intento bajó de 434
+   palabras a 433", los dos arreglos de oído. Eso va en este README, que
+   ES la bitácora. **164 → 133 líneas.**
+
+   **Y en el primer intento corté de más**, aplicando el skill por encima
+   de la regla del repo. La regla es "el porqué se escribe arriba del
+   archivo Y en la bitácora", y el recibo existe para PROTEGER UN VALOR:
+   ése es el test, no si la frase habla del pasado. Volvieron tres que lo
+   pasan: qué párrafos se cortaron del texto y por qué —si no, alguien
+   los re-agrega—, que no hay que volver a 1 de 59 y 2 de 54, y que el
+   peor caso sintético de 30 cuadros no se publica porque hay un solo
+   puntero.
+
+   Y **"ya no" y "antes" son el idioma de la casa**, no un tell: están en
+   `tokens.css:20` ("el radio YA NO está pendiente"), en `:403`
+   ("REESCRITO: la nav ya NO sale del --ink"), en `app.module.css:187` y
+   en la propia pieza dos veces, todas de antes de hoy. El skill dice
+   "match the room" y eso ES la room: un recibo que nombra el estado
+   anterior es lo que impide volver a él. Los tres que había reescrito en
+   presente —la card, el ancla y el campo— volvieron al idioma.
+2. **`dentroDeLink` pasó a `esPreview`.** El nombre venía de cuando la
+   pieza miraba si tenía un `<a>` arriba. Desde que lo decide una prop,
+   ese nombre nombra algo que ya no existe.
+3. **Tres comentarios apilados sobre `Item`, dos hablando del mismo
+   tema**, y el primero —"La pieza entera es el botón"— ya era falso: la
+   card es un `<article>`. Quedó uno solo que dice la estructura y sus
+   dos porqués.
+4. **La misma explicación vivía dos veces** —por qué el montaje lo dice
+   una prop y no una consulta al DOM—, en `demos.tsx` y en la pieza. Ahora
+   está donde se define el tipo, y la pieza apunta ahí. Los otros tres
+   comentarios contra el estado anterior quedaron en presente conservando
+   el porqué entero.
+5. **`if (glifo && glifo.style.filter !== foco)`**: la comparación era
+   relleno, y la línea de arriba —`boton.style.opacity = visible`— no la
+   tiene. El lazo no corre en reposo, así que no ahorraba nada.
+6. **`HojaIzada()` existía para sostener dos líneas.** Un componente que
+   sólo reenvía es indirección sin política: la rama va en línea en el
+   JSX.
+
+**Lo que se revisó y estaba bien:** cero `console.log`, cero TODO, cero
+código comentado, cero `as any` ni `@ts-ignore`, cero `catch` que se
+trague nada, cero fallback silencioso. `noUnusedLocals` está prendido, así
+que no sobrevive un import ni una variable muerta. Y las guardas que
+quedan —`if (!el) return` sobre un ref, `if (boton)` sobre el arreglo de
+refs— son las mismas que ya usaba el archivo.
+
+El texto público quedó en 381 palabras; el comentario de arriba decía 386
+y también se corrigió.

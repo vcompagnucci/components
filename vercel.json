@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/:pieza(swipeable-tabs|hold-to-commit)",
+      "source": "/:pieza(swipeable-tabs|hold-to-commit|buttons-separate)",
       "destination": "/index.html"
     }
   ]
