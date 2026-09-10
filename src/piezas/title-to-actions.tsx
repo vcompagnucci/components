@@ -28,10 +28,9 @@
    veces seguidas, y con una transición de CSS la segunda arranca de
    cero. Con un resorte, sólo cambia el destino.
 
-   Los tres de la pieza, y de dónde sale cada uno:
+   Los de la pieza, y de dónde sale cada uno:
 
      geometría   0.45 s · rebote 0.30   la fila, el rótulo, la tapa
-     tarjeta     0.50 s · rebote 0      crece del botón que la abrió
      glifo       0.30 s · rebote 0      el corazón que se cruza
      like        0.35 s · rebote 0.30   y el pop de encenderlo
 
@@ -40,10 +39,6 @@
    pero la regla de motion pone el techo en 0.30 y "nunca más", así que
    va 0.30. Es la única cifra de la pieza que se aparta a propósito de
    lo medido, y queda dicho.
-
-   El de la tarjeta no rebota, y no es una excepción: el rebote se
-   reserva para lo que se siente físico, y una superficie que crece de
-   40 a 320 px con rebote se lee como una goma, no como un resorte.
 
    ─── LO QUE CUESTA LA LIBRERÍA, MEDIDO ───
    Los resortes los corre Motion, que ya estaba declarado en
@@ -70,14 +65,7 @@
    `.context/title-to-actions/version-vidrio.tsx`.
    ═══════════════════════════════════════════════════════════════ */
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ComponentProps,
-  type MouseEvent,
-} from 'react'
+import { useEffect, useRef, useState, type ComponentProps, type MouseEvent } from 'react'
 /* `m` Y NO `motion`, CON LazyMotion, y es por peso. El componente
    `motion` trae adentro TODAS las capacidades de la librería —gestos,
    layout, scroll, SVG— aunque uses tres. Medido sobre el build de esta
@@ -108,11 +96,6 @@ import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react'
  *   fue —100 ms contra 130— porque el que vuelve ya decidió volver, y
  *   el título es justamente lo que quiere ver otra vez.
  *
- *   LA TARJETA DE COMPARTIR
- *      0ms   nace siendo el círculo del botón y crece hasta la píldora
- *      0ms   el contenido ya está adentro; lo revela la forma al crecer
- *    500ms   quieta
- *
  * NADA ESPERA A NADA. No hay escenas ni temporizadores: los tres
  * estados son booleanos y lo que mueve la pieza es física. Apretar dos
  * veces seguidas cambia el destino y conserva la velocidad.
@@ -121,11 +104,6 @@ import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react'
 /* EL RESORTE DE LA GEOMETRÍA. La duración es la medida sobre la
    grabación; el rebote es el techo que fija la regla de motion. */
 const RESORTE = { type: 'spring', duration: 0.45, bounce: 0.3 } as const
-/* EL DE LA TARJETA. Sin rebote y un poco más lento: es la superficie
-   más grande de la pieza y la que más viaja, y la regla de motion pide
-   más tiempo para lo más grande. Es además el valor por omisión que esa
-   misma regla propone cuando no hay nada medido. */
-const MORFEO = { type: 'spring', duration: 0.5, bounce: 0 } as const
 /* EL DEL GLIFO. Corto, porque es un dibujo de 16 px y no una geometría
    de 420. */
 const GLIFO = { type: 'spring', duration: 0.3, bounce: 0 } as const
@@ -159,7 +137,6 @@ const TIMING = {
   rotuloVuelve: 100, // y vuelve, más rápido
   color: 100, //        un cambio de color, como el resto del producto
   press: 100, //        el hundido de un control, como `.glifo:active`
-  copiado: 1500, //     cuánto se queda la marca de que el link se copió
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -200,11 +177,15 @@ const PADDING = 8
 const CONTROL = ALTO - 2 * PADDING //  40
 const RADIO_BARRA = ALTO / 2 //        28, la píldora
 const RADIO_CONTROL = CONTROL / 2 //   20 = 28 − 8, concéntrico
-/* La tapa NO es concéntrica, y es la única que se aparta: una portada es
-   contenido y no un control, así que se queda cuadrada con el radio que
-   las dos referencias usan en cosas chicas. Un disco redondo sería otra
-   cosa. */
-const RADIO_TAPA = 6
+/* La tapa es un CÍRCULO, del mismo lado que un control: la fila entera
+   es de círculos de 40 y la portada era lo único cuadrado adentro.
+   Estuvo cuadrada con radio 6 hasta el 2026-09-10 ("hacelo redondo").
+
+   Que se pueda es una medida y no una preferencia: un círculo inscripto
+   en esta tapa se lleva el 0.4 % de la luz del arte, porque las cuatro
+   esquinas son negro puro y todo lo que se ve —el rayo, el prisma, el
+   arcoíris— cae adentro. Con otra portada el número sería otro. */
+const RADIO_TAPA = '50%'
 /* El aire entre dos controles vecinos. Adentro de un componente la regla
    de ×4 no rige (DESIGN.md § 2). Subió de 4 a 6 con el resto del aire:
    con los rellenos puestos, cuatro píxeles entre dos círculos los dejan
@@ -303,10 +284,6 @@ const ACCIONES = [
   { id: 'close', nombre: 'Close', trazo: CERRAR },
 ] as const
 const ULTIMO = ACCIONES.length - 1
-/* Quién abre la tarjeta. Sale del arreglo y no de un número escrito a
-   mano: si mañana entra una acción antes, el que la abre sigue siendo
-   éste. */
-const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === 'share')
 /* EL ANCHO DE LA BARRA NO CAMBIA NUNCA, y eso es una decisión y no una
    omisión. Estuvo encogiéndose al abrir —anclada a la derecha, para no
    mover la ranura— y el usuario lo frenó (2026-09-10: "cambiaste mucho
@@ -317,108 +294,41 @@ const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === 'share')
    paga. */
 const ANCHO = 460
 
-/* ─────────────────────────────────────────────────────────
- * EL MODAL DE COMPARTIR
- *
- * Era una tarjeta de una sola fila —la portada, el título y un botón de
- * copiar— y el usuario pidió el componente entero (2026-09-10: "que se
- * abra un modal para compartir bien completo"). Lo que sigue sale de
- * pasarlo por las dos reglas que aplican, jerarquía y campos.
- *
- * ─── QUÉ LLEVA, Y EN QUÉ ORDEN ───
- * Tres bloques, de arriba abajo, y el orden es el de las preguntas que
- * alguien se hace al abrirlo:
- *
- *   1. QUÉ estoy compartiendo   la portada, el título y el enlace
- *   2. A DÓNDE                  cuatro destinos
- *   3. O SI NO                  el enlace, para copiarlo a mano
- *
- * ─── UNA SOLA ACCIÓN PRIMARIA ───
- * Es copiar. La regla es que si tres botones pesan lo mismo, ninguno es
- * el paso siguiente, así que los cuatro destinos van como controles sin
- * relleno y el de copiar es el único con fondo. Cerrar es terciario y
- * vive arriba a la derecha, lejos de todo lo demás.
- *
- * ─── EL ENLACE NO ES UN <input> ───
- * Un campo de sólo lectura con el enlace adentro es lo que hace medio
- * mundo, y trae dos problemas que acá no hacen falta. El primero es de
- * iOS: un input de menos de 16 px hace que Safari acerque la página al
- * enfocarlo, y el sistema de este repo tiene un solo tamaño de texto y
- * es 14. El segundo es que un input promete que se puede escribir, y no
- * se puede.
- *
- * Va como texto con `user-select: all`, que selecciona el enlace entero
- * con un solo clic — lo que un campo de sólo lectura daba— y sin
- * prometer nada que no sea cierto.
- * ───────────────────────────────────────────────────────── */
-const MODAL = {
-  /* Entra en la caja corta de la lista, que mide 260: con 208 de alto
-     quedan 26 de aire arriba y abajo. */
-  ancho: 380,
-  alto: 208,
-  padding: 16,
-  /* El botón redondo de los destinos. Más chico que el de la barra
-     porque abajo lleva su nombre, y los dos juntos son el control. */
-  destino: 44,
-  radio: 16,
-}
-/* Dónde nace: el círculo del botón de compartir, igual que antes. Lo
-   único que cambió es a qué crece. */
-const MODAL_DESDE = { ancho: CONTROL, alto: CONTROL, radio: RADIO_CONTROL }
-const MODAL_HASTA = { ancho: MODAL.ancho, alto: MODAL.alto, radio: MODAL.radio }
-
-/* LOS CUATRO DESTINOS. Símbolos del sistema, medidos como los demás, y
-   ninguna marca de terceros: un logo ajeno en una pieza de exposición
-   sería material que no es nuestro, y la regla del repo es no publicar
-   material ajeno. Los cuatro que Apple pone primero en su propia hoja
-   de compartir son de sistema y alcanzan para contar qué hace la fila.
-
-     message.fill  418×345   1.212 de ancho sobre alto
-     envelope.fill 458×314   1.459
-     note.text     392×332   1.181
-     doc.on.doc    400×438   0.913 */
-const DESTINOS = [
-  {
-    id: 'messages',
-    nombre: 'Messages',
-    trazo:
-      'M8 2.6C4.6 2.6 1.9 4.8 1.9 7.6c0 2.8 2.7 5 6.1 5 .6 0 1.2-.1 1.7-.2l3.1 1.5-.8-2.5c1.3-.9 2.1-2.3 2.1-3.8 0-2.8-2.7-5-6.1-5Z',
-  },
-  {
-    id: 'mail',
-    nombre: 'Mail',
-    trazo:
-      'M2.4 5.4a1.6 1.6 0 0 1 1.6-1.6h8a1.6 1.6 0 0 1 1.6 1.6v5.2a1.6 1.6 0 0 1-1.6 1.6H4a1.6 1.6 0 0 1-1.6-1.6V5.4M2.7 5 8 8.8 13.3 5',
-  },
-  {
-    id: 'notes',
-    nombre: 'Notes',
-    trazo:
-      'M2.4 4.4a1.6 1.6 0 0 1 1.6-1.6h8a1.6 1.6 0 0 1 1.6 1.6v7.2a1.6 1.6 0 0 1-1.6 1.6H4a1.6 1.6 0 0 1-1.6-1.6V4.4M5 6.2h6M5 8.4h6M5 10.6h3.4',
-  },
-  {
-    id: 'copy',
-    nombre: 'Copy',
-    trazo:
-      'M5.6 5.6V3.9a1.4 1.4 0 0 1 1.4-1.4h5.1a1.4 1.4 0 0 1 1.4 1.4v5.1a1.4 1.4 0 0 1-1.4 1.4h-1.7M3.5 5.6h5.1a1.4 1.4 0 0 1 1.4 1.4v5.1a1.4 1.4 0 0 1-1.4 1.4H3.5a1.4 1.4 0 0 1-1.4-1.4V7a1.4 1.4 0 0 1 1.4-1.4Z',
-  },
-] as const
-
 /* EL ÍTEM. Es el mismo que nombraría la página de atrás: la barra dice
    qué estás mirando, que es la mitad de para qué existe. */
 const ITEM = { titulo: 'The Dark Side of the Moon', autor: 'Pink Floyd' }
 
 /* LA TAPA. El arte oficial, servido por la API de artwork de Apple para
-   el álbum de 1973 (collectionId 1065973699), a 600 px de lado. Cuadrado
-   y sin recortar, que es lo que pidió el usuario el 2026-09-10 ("usá la
-   real y oficial y que no pierda calidad y que no se recorte"). Queda
-   dicho que la tapa es del sello y no nuestra. */
-const TAPA = '/piezas/title-to-actions-cover.jpg'
+   el álbum de 1973 (collectionId 1065973699). Queda dicho que la tapa es
+   del sello y no nuestra.
 
-/* Lo que se LEE en la tarjeta. No es el link que se copia —ése se arma
-   con el origen real en el momento de copiar— sino la parte que dice a
-   dónde va. */
-const ENLACE_VISIBLE = 'components / title-to-actions'
+   ─── EL ENCUADRE, MEDIDO ───
+   El arte de Apple no está centrado: el perfil de luminancia por fila
+   del máster de 1500 px pone la franja que se ve entre las filas 352 y
+   820, o sea con su centro en 586 y no en el 749 geométrico. Servido
+   entero, el prisma queda 11 % arriba del medio y la mitad de abajo del
+   círculo es negro vacío — que es lo que el usuario vio el 2026-09-10
+   ("mejor centrado").
+
+   Lo que se sirve es una ventana de 1050 px centrada en esa franja
+   (x 225, y 61). El rayo y el arcoíris son líneas que van de borde a
+   borde, así que recortar el 15 % de cada lado los acorta pero no les
+   saca nada: entran y salen igual, por el borde del círculo.
+
+   ─── EL TAMAÑO, MEDIDO ───
+   Se sirve al tamaño EXACTO de píxeles del dispositivo y no uno grande
+   para todos. El navegador reduciendo la imagen pierde nitidez, y se
+   midió cuánta: se fotografió cada candidato a 3× contra el máster
+   reducido con lanczos, y la energía de gradiente da 7.46 sirviendo
+   120 px para una caja de 40 a 3×, 6.71 sirviendo 256 y 6.63 sirviendo
+   400. El archivo de 600 px que se servía antes daba 5.06 — un 32 %
+   menos de nitidez que la que hay disponible.
+
+   Y son PNG, no JPEG: al mismo tamaño el JPEG se aparta 1.21 RMS del
+   máster —el timbre alrededor de un rayo blanco sobre negro es el peor
+   caso para el DCT— y el PNG, cero. Cuesta 3.6 kB más y no hay ninguno
+   que pese más que el JPEG de 600 px que reemplaza. */
+const TAPA = '/piezas/title-to-actions-cover'
 
 /* ─────────────────────────────────────────────────────────
  * EL CONTROL
@@ -498,115 +408,56 @@ function Glifo({
   )
 }
 
+/* LA TAPA. Recibe el lado al que se dibuja y arma con él las tres
+   fuentes: el navegador baja UNA, la del dispositivo, y por eso la
+   nitidez medida arriba es la que llega. Los archivos existen para el
+   lado que la pieza usa —40, el de la barra— por sus tres densidades.
+
+   `aria-hidden`: el título está al lado en texto, y un alt que lo
+   repita hace que un lector de pantalla lo diga dos veces. */
+function Tapa({ lado, className = 'tapa' }: { lado: number; className?: string }) {
+  return (
+    <img
+      className={className}
+      src={`${TAPA}-${lado * 2}.png`}
+      srcSet={[1, 2, 3].map((d) => `${TAPA}-${lado * d}.png ${d}x`).join(', ')}
+      alt=""
+      /* Con `width` y `height` la caja queda reservada antes de que la
+         imagen llegue, así que la barra no salta. */
+      width={lado}
+      height={lado}
+      decoding="async"
+      aria-hidden="true"
+    />
+  )
+}
+
 export default function TitleToActions() {
   /* TRES ESTADOS, y cada uno es una cosa que el que mira puede hacer:
-     cambiar el rótulo por las acciones, marcar el ítem, y abrir la
-     tarjeta de compartir. Ninguno es un modo del otro. */
+     cambiar el rótulo por las acciones, marcar el ítem, y compartir.
+     Ninguno es un modo del otro.
+
+     COMPARTIR NO DIBUJA NADA TODAVÍA. La tarjeta que había —una modal
+     blanca con sombra y velo, la única cosa del producto que flotaba—
+     se borró el 2026-09-10 ("horrible, borrá y dame opciones") y la
+     superficie nueva se está eligiendo entre cinco en el banco de
+     src/privado/proto. El estado y el botón quedan: lo que falta es lo
+     que se muestra. */
   const [acciones, setAcciones] = useState(false)
   const [gustado, setGustado] = useState(false)
   const [compartir, setCompartir] = useState(false)
-  const [copiado, setCopiado] = useState(false)
   const reducido = useReducedMotion()
 
   const puntosBoton = useRef<HTMLButtonElement>(null)
   const botones = useRef<(HTMLButtonElement | null)[]>([])
-  const tarjeta = useRef<HTMLDivElement>(null)
-  const copiarBoton = useRef<HTMLButtonElement>(null)
-  const cerrarModal = useRef<HTMLButtonElement>(null)
   const conTeclado = useRef(false)
-  const conTecladoTarjeta = useRef(false)
 
-  /* Los tres resortes, ya resueltos contra la preferencia del sistema:
-     así el JSX de abajo lee una constante y no repite el condicional en
+  /* Los resortes, ya resueltos contra la preferencia del sistema: así
+     el JSX de abajo lee una constante y no repite el condicional en
      cada elemento. */
   const resorte = reducido ? QUIETO : RESORTE
-  const morfeo = reducido ? QUIETO : MORFEO
   const glifo = reducido ? QUIETO : GLIFO
   const pop = reducido ? QUIETO : POP
-
-  /* SE CIERRA CON ESCAPE Y TOCANDO AFUERA, que es lo que hace cualquier
-     cosa que flota sobre lo demás. Los dos escuchas se ponen SÓLO
-     mientras está abierta: una pieza en reposo no deja nada colgado del
-     documento. */
-  useEffect(() => {
-    if (!compartir) return
-    const alTeclear = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      /* EN CAPTURA Y FRENANDO LA PROPAGACIÓN, y no por prolijidad: la
-         página del detalle también cierra con Escape, así que sin esto
-         descartar la tarjeta se lleva puesta la pieza entera y el que
-         miraba termina en la lista sin haberlo pedido. Lo tiene que
-         consumir el de más adentro, y para ganarle a un escucha que ya
-         estaba puesto en el documento hay que llegar antes: la fase de
-         captura corre antes que la de burbujeo. */
-      e.stopPropagation()
-      conTecladoTarjeta.current = true
-      setCompartir(false)
-    }
-    const alApuntar = (e: PointerEvent) => {
-      const t = e.target as Node | null
-      if (!t) return
-      if (tarjeta.current?.contains(t)) return
-      if (botones.current[COMPARTIR_I]?.contains(t)) return
-      setCompartir(false)
-    }
-    /* EL FOCO NO SE ESCAPA DEL MODAL, que es la regla para cualquier
-       cosa con `aria-modal`: si el Tab puede salirse, el contenido de
-       atrás queda alcanzable y un lector de pantalla se pierde. El ciclo
-       se hace a mano y no con una librería —son ocho líneas— y usa el
-       orden del DOM, así que no hay una lista que mantener. */
-    const alTabular = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
-      const caja = tarjeta.current
-      if (!caja) return
-      const focos = caja.querySelectorAll<HTMLElement>(
-        'button, [href], [tabindex]:not([tabindex="-1"])',
-      )
-      if (!focos.length) return
-      const primero = focos[0]
-      const ultimo = focos[focos.length - 1]
-      const activo = document.activeElement
-      if (e.shiftKey && activo === primero) {
-        e.preventDefault()
-        ultimo.focus()
-      } else if (!e.shiftKey && activo === ultimo) {
-        e.preventDefault()
-        primero.focus()
-      } else if (!caja.contains(activo)) {
-        e.preventDefault()
-        primero.focus()
-      }
-    }
-    document.addEventListener('keydown', alTeclear, true)
-    document.addEventListener('keydown', alTabular)
-    document.addEventListener('pointerdown', alApuntar)
-    return () => {
-      document.removeEventListener('keydown', alTeclear, true)
-      document.removeEventListener('keydown', alTabular)
-      document.removeEventListener('pointerdown', alApuntar)
-    }
-  }, [compartir])
-
-  /* EL FOCO ENTRA A LA TARJETA Y VUELVE AL BOTÓN QUE LA ABRIÓ, y sólo
-     si el que la abrió fue el teclado. Con el puntero no se toca nada:
-     mover el foco ahí sólo dibujaría un anillo que nadie pidió.
-
-     Y ESTO ES LO QUE OBLIGÓ A NO ESCONDERLA CON `visibility`. La
-     primera versión la escondía como el menú del área privada, y un
-     elemento con `visibility: hidden` NO SE PUEDE ENFOCAR: `focus()` no
-     hace nada y no avisa. Al abrir con Enter el foco se perdía en
-     silencio. Un `requestAnimationFrame` tampoco alcanza —su callback
-     corre antes de que el navegador recalcule el estilo—, y está medido:
-     con el efecto instrumentado, el ref estaba poblado, el `focus()`
-     corría, y el elemento activo seguía siendo el botón de compartir
-     (sonda/teclado.mjs). `inert` sola hace las tres cosas por las que
-     aquel menú usa `visibility`. */
-  useEffect(() => {
-    if (!conTecladoTarjeta.current) return
-    conTecladoTarjeta.current = false
-    const destino = compartir ? cerrarModal.current : botones.current[COMPARTIR_I]
-    destino?.focus({ preventScroll: true })
-  }, [compartir])
 
   /* EL FOCO NO SE CAE AL CUERPO. El botón que se apaga queda `inert`, y
      un elemento inert pierde el foco: si el cambio lo pidió el teclado,
@@ -619,30 +470,6 @@ export default function TitleToActions() {
     const destino = acciones ? botones.current[ULTIMO] : puntosBoton.current
     destino?.focus({ preventScroll: true })
   }, [acciones])
-
-  /* LA MARCA DE COPIADO SE APAGA SOLA. Un botón de copiar sin
-     confirmación se aprieta tres veces para ver si anduvo. */
-  useEffect(() => {
-    if (!copiado) return
-    const t = setTimeout(() => setCopiado(false), TIMING.copiado)
-    return () => clearTimeout(t)
-  }, [copiado])
-
-  /* EL LINK QUE SE COPIA es el de la pieza, no el de la página: en la
-     lista la URL es la portada y ahí el link correcto sigue siendo éste.
-     Se arma en el momento porque el origen cambia entre el servidor de
-     desarrollo y el publicado. */
-  const copiar = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(`${location.origin}/title-to-actions`)
-    } catch {
-      /* Si el navegador no dejó copiar —sin permiso, o sin contexto
-         seguro— NO se dibuja la marca: confirmar algo que no pasó es
-         peor que no confirmar nada. */
-      return
-    }
-    setCopiado(true)
-  }, [])
 
   /* El tramo del rótulo NO es el resorte, y tiene dos duraciones: se va
      más lento de lo que vuelve. Es lo medido en la referencia, y la
@@ -700,22 +527,7 @@ export default function TitleToActions() {
                 animate={{ x: acciones ? -VIAJE : 0 }}
                 transition={resorte}
               >
-                {/* aria-hidden: el título y el autor están al lado, y un alt
-                que los repita hace que un lector de pantalla los diga
-                dos veces. */}
-                <img
-                  className="tapa"
-                  src={TAPA}
-                  alt=""
-                  width={CONTROL}
-                  height={CONTROL}
-                  /* Con `width` y `height` la caja está reservada antes de
-                 que la imagen llegue, así que la barra no salta. El
-                 decodificado va fuera del hilo principal: son 600 px de
-                 lado para una caja de 40. */
-                  decoding="async"
-                  aria-hidden="true"
-                />
+                <Tapa lado={CONTROL} />
 
                 {/* EL RÓTULO NO SE VA, y eso cambió lo que la pieza
                     hace: antes el título se apagaba y las acciones
@@ -773,7 +585,6 @@ export default function TitleToActions() {
                           return
                         }
                         if (a.id === 'share') {
-                          conTecladoTarjeta.current = e.detail === 0
                           setCompartir((v) => !v)
                           return
                         }
@@ -869,133 +680,6 @@ export default function TitleToActions() {
               </div>
             </div>
           </div>
-
-          {/* EL VELO Y EL MODAL CUELGAN DE LA ESCENA, no del riel: el
-              modal va centrado en la caja de la pieza y el riel sólo da
-              el ancho de la barra. Arriba de la barra no hay lugar —en
-              la caja corta de la lista quedan 90 px y el modal necesita
-              208— así que el modal tapa la barra, que es lo que un modal
-              hace, y el velo se encarga de que se entienda. */}
-          {/* EL VELO. Un modal que no separa lo que tapa se lee como
-                una capa más de la barra. Va adentro de la escena y no
-                del documento: la pieza es una exposición, así que todo
-                lo suyo pasa dentro de su caja. */}
-          <m.div
-            className="velo"
-            aria-hidden="true"
-            initial={false}
-            animate={{ opacity: compartir ? 1 : 0 }}
-            transition={{ duration: reducido ? 0 : 0.16 }}
-            onPointerDown={() => setCompartir(false)}
-          />
-
-          {/* EL MODAL. Está siempre en el documento —así la salida se
-                puede animar sin desmontarlo— y lo que lo apaga es el
-                tamaño del botón más `inert`, que lo saca del orden de
-                tabulación, de los lectores y del puntero.
-
-                Nace siendo el círculo del botón que lo abrió y crece
-                hasta su caja: es la regla de que un modal con disparador
-                anclado sale de él y no del centro de la pantalla. */}
-          <m.div
-            className="modal"
-            ref={tarjeta}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Share this piece"
-            inert={!compartir}
-            initial={false}
-            animate={{
-              width: compartir ? MODAL_HASTA.ancho : MODAL_DESDE.ancho,
-              height: compartir ? MODAL_HASTA.alto : MODAL_DESDE.alto,
-              borderRadius: compartir ? MODAL_HASTA.radio : MODAL_DESDE.radio,
-              opacity: compartir ? 1 : 0,
-            }}
-            transition={{
-              ...morfeo,
-              opacity: { duration: reducido ? 0 : 0.12 },
-            }}
-          >
-            {/* EL CONTENIDO VA A SU ANCHO FINAL desde el primer
-                  cuadro: si se encogiera con la forma, cada cuadro
-                  reacomodaría el texto y los cuatro destinos. Lo que lo
-                  revela es el recorte de la caja que crece. */}
-            <div className="dentro">
-              {/* 1 · QUÉ SE COMPARTE */}
-              <div className="cabeza">
-                <img
-                  className="tapa"
-                  src={TAPA}
-                  alt=""
-                  width={CONTROL}
-                  height={CONTROL}
-                  decoding="async"
-                  aria-hidden="true"
-                />
-                <div className="quePasa">
-                  <p className="titulo">{ITEM.titulo}</p>
-                  <p className="enlace">{ENLACE_VISIBLE}</p>
-                </div>
-                <Control
-                  ref={cerrarModal}
-                  className="cerrar"
-                  label="Close"
-                  onClick={(e) => {
-                    frenar(e)
-                    conTecladoTarjeta.current = e.detail === 0
-                    setCompartir(false)
-                  }}
-                >
-                  <Glifo d={CERRAR} />
-                </Control>
-              </div>
-
-              {/* 2 · A DÓNDE. Cuatro controles del mismo peso, todos
-                    sin relleno: ninguno es la acción principal, y la
-                    regla es que si tres botones pesan lo mismo ninguno
-                    es el paso siguiente. El que pesa está abajo. */}
-              <div className="destinos">
-                {DESTINOS.map((d) => (
-                  <button
-                    key={d.id}
-                    type="button"
-                    className="destino"
-                    /* El nombre de la acción y no el del ícono: lo que
-                         se anuncia es a dónde va, no qué dibujo es. */
-                    aria-label={`Share to ${d.nombre}`}
-                    onClick={frenar}
-                  >
-                    <span className="destinoCaja">
-                      <Glifo d={d.trazo} />
-                    </span>
-                    <span className="destinoNombre">{d.nombre}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* 3 · O SI NO, EL ENLACE A MANO. `user-select: all` lo
-                    selecciona entero con un clic, que es lo único que un
-                    campo de sólo lectura daba de más. */}
-              <div className="campo">
-                <p className="campoEnlace">{ENLACE_VISIBLE}</p>
-                <button
-                  ref={copiarBoton}
-                  type="button"
-                  className="copiar"
-                  data-copiado={copiado ? '' : undefined}
-                  onClick={(e) => {
-                    frenar(e)
-                    copiar()
-                  }}
-                >
-                  {/* El texto cambia con el resultado y es lo que lee
-                        un lector de pantalla: sin eso, el copiado ocurre
-                        y nadie se entera. */}
-                  {copiado ? 'Copied' : 'Copy link'}
-                </button>
-              </div>
-            </div>
-          </m.div>
         </div>
       </div>
     </LazyMotion>
@@ -1031,13 +715,6 @@ const HOJA = `
    tema del producto sin traer una paleta propia. Lo único suyo es el
    aire a los costados, que es el padding lateral de la página. */
 [data-pieza='title-to-actions'] .escena {
-  /* Los tokens del modal viven acá y no en la barra: el modal es su
-     hermano y no heredaría nada declarado allá. */
-  --glifo-modal: var(--activo-c, rgba(18, 18, 18, 0.8));
-  --destino-fondo: rgba(0, 0, 0, 0.05);
-  --destino-hover: rgba(0, 0, 0, 0.09);
-  --campo-fondo: rgba(0, 0, 0, 0.05);
-
   min-height: inherit;
   display: grid;
   place-items: center;
@@ -1113,12 +790,6 @@ const HOJA = `
   gap: ${PADDING}px;
 }
 @media (prefers-color-scheme: dark) {
-  [data-pieza='title-to-actions'] .escena {
-    --glifo-modal: var(--activo-c, rgba(250, 250, 249, 0.93));
-    --destino-fondo: rgba(255, 255, 255, 0.08);
-    --destino-hover: rgba(255, 255, 255, 0.14);
-    --campo-fondo: rgba(255, 255, 255, 0.08);
-  }
   [data-pieza='title-to-actions'] .barra {
     --barra: #1d1d1c;
     --control: #262625;
@@ -1144,8 +815,7 @@ const HOJA = `
    Da el ancho máximo y no se mueve nunca. La barra se ancla a su borde
    derecho, con margin-left auto, así que puede encogerse sin correr ese
    borde, que es el de la ranura: el punto de la pantalla que se aprieta
-   dos veces. La tarjeta se ancla al mismo borde y por eso tampoco se
-   entera de que la barra cambia de ancho. */
+   dos veces. */
 [data-pieza='title-to-actions'] .riel {
   position: relative;
   width: 100%;
@@ -1221,10 +891,9 @@ const HOJA = `
     color: var(--glifo-activo);
   }
 }
-/* CON SU TARJETA ABIERTA EL BOTÓN SE QUEDA ENCENDIDO. Sin esto, al
-   sacar el puntero para ir a la tarjeta el glifo se apaga y la tarjeta
-   queda colgando de nada. Es la misma regla que el disparador de menú
-   del área privada. */
+/* MIENTRAS SE COMPARTE EL BOTÓN SE QUEDA ENCENDIDO. Sin esto, al sacar
+   el puntero de él el glifo se apaga y lo que abrió queda colgando de
+   nada. Es la misma regla que el disparador de menú del área privada. */
 [data-pieza='title-to-actions'] .control[aria-expanded='true'] {
   color: var(--glifo-activo);
   background: var(--control-hover);
@@ -1245,16 +914,17 @@ const HOJA = `
 }
 
 /* ─── LA TAPA ───
-   Cuadrada, del mismo lado que un control, así que la fila entera se
-   apoya en una sola altura. 'contain' y no 'cover': los dos dan lo mismo
-   con una fuente cuadrada en una caja cuadrada, pero contain no puede
-   recortar nunca. */
+   Redonda y del mismo lado que un control, así que la fila entera se
+   apoya en una sola altura y en una sola forma. El lado lo pone el
+   atributo width, que es el que la parte recibe; acá va sólo lo que no
+   depende del tamaño.
+
+   El fondo negro cubre el hueco mientras la imagen no llegó: el arte es
+   negro en el borde, así que el círculo aparece completo desde el
+   primer cuadro y lo único que entra después es el prisma. */
 [data-pieza='title-to-actions'] .tapa {
-  width: ${CONTROL}px;
-  height: ${CONTROL}px;
   flex: none;
-  border-radius: ${RADIO_TAPA}px;
-  object-fit: contain;
+  border-radius: ${RADIO_TAPA};
   background: #000;
   display: block;
 }
@@ -1365,268 +1035,8 @@ const HOJA = `
   color: var(--glifo-activo);
   background: var(--control-hover);
 }
-[data-pieza='title-to-actions'] .control[aria-pressed='true'] .encendido,
-[data-pieza='title-to-actions'] .control[data-copiado] .encendido {
+[data-pieza='title-to-actions'] .control[aria-pressed='true'] .encendido {
   opacity: 1;
 }
-[data-pieza='title-to-actions'] .control[data-copiado] .cambia { opacity: 0; }
 
-/* ─── EL VELO ───
-   Un modal que no separa lo que tapa se lee como una capa más de la
-   barra. Va adentro de la escena y no del documento: la pieza es una
-   exposición, así que todo lo suyo pasa dentro de su caja, y un velo a
-   pantalla completa se comería la página que la rodea. */
-[data-pieza='title-to-actions'] .velo {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--card-radio, 8px);
-  background: rgb(0 0 0 / 0.28);
-  opacity: 0;
-  /* CERRADO NO EXISTE PARA EL PUNTERO, y esto rompió la pieza entera:
-     el velo cubre la escena y viene después en el DOM, así que con
-     opacidad cero seguía tapando la barra y se comía TODOS los clics.
-     Apretar cualquier botón no hacía nada.
-
-     No lo vio ninguna sonda porque todas llamaban .click() sobre el
-     elemento, y eso saltea el hit-testing: el clic llega aunque haya
-     algo encima. Lo que sí lo ve es un evento de entrada de verdad, que
-     es con lo que se verifica desde ahora. */
-  pointer-events: none;
-}
-[data-pieza='title-to-actions'][data-compartiendo] .velo {
-  pointer-events: auto;
-}
-@media (prefers-color-scheme: dark) {
-  [data-pieza='title-to-actions'] .velo { background: rgb(0 0 0 / 0.5); }
-}
-
-/* ─── EL MODAL ───
-   Es la única cosa de la pieza que FLOTA, y por eso la única con fondo
-   propio y sombra. El resto se define por contraste, que es la regla del
-   sistema; éste no puede, porque tapa a la barra y a lo que haya debajo.
-   Son los valores del menú del clic derecho: fondo --canvas y la sombra
-   que ahí está anotada como "la única sombra del sistema".
-
-   CRECE DESDE EL BOTÓN QUE LO ABRIÓ, y no con una escala: su caja va del
-   círculo del control a la suya, así que lo que cambia es la FORMA y el
-   contenido nunca se deforma. Su borde derecho se queda clavado donde
-   está el botón, que es lo que hace que se lea saliendo de él.
-
-   'overflow: hidden' es lo que revela el contenido: está en su lugar
-   final desde el primer cuadro y la forma lo va destapando. */
-[data-pieza='title-to-actions'] .modal {
-  /* CENTRADO EN LA CAJA DE LA PIEZA, y no apoyado sobre la barra:
-     arriba de ella no hay lugar. En la caja corta de la lista quedan 90
-     px sobre la barra y el modal necesita 208, así que tapa la barra —
-     que es lo que un modal hace— y el velo cuenta que hay algo debajo.
-
-     EL ORIGEN SIGUE SIENDO EL BOTÓN. Un modal con disparador anclado
-     sale de él y no del centro de la pantalla, y ese botón cae contra
-     el borde derecho del modal y a su misma altura: el riel termina a
-     50 px del borde de la escena y el botón a otros 54 de ahí, o sea a
-     14 px del borde derecho del modal. Verticalmente coinciden, porque
-     la barra y el modal están los dos centrados. */
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  translate: -50% -50%;
-  transform-origin: calc(100% - 14px) 50%;
-  padding: ${MODAL.padding}px;
-  background: var(--canvas, #fdfdfc);
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 0.06),
-    0 8px 24px rgb(0 0 0 / 0.12),
-    0 2px 6px rgb(0 0 0 / 0.06);
-  overflow: hidden;
-  /* El contenido se alinea al borde que NO se mueve, para que no se
-     corra de costado mientras la forma crece. */
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  text-align: left;
-}
-@media (prefers-color-scheme: dark) {
-  [data-pieza='title-to-actions'] .modal {
-    box-shadow:
-      0 0 0 1px rgb(255 255 255 / 0.08),
-      0 8px 24px rgb(0 0 0 / 0.4),
-      0 2px 6px rgb(0 0 0 / 0.24);
-  }
-}
-/* A su ancho y alto finales desde el primer cuadro: si se encogiera con
-   la forma, cada cuadro reacomodaría el texto y los cuatro destinos. */
-[data-pieza='title-to-actions'] .dentro {
-  width: ${MODAL.ancho - 2 * MODAL.padding}px;
-  height: ${MODAL.alto - 2 * MODAL.padding}px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: ${MODAL.padding}px;
-}
-
-/* ─── 1 · QUÉ SE COMPARTE ───
-   La misma fila que la barra de atrás, para que se lea como lo mismo:
-   la portada, dos renglones y un control. */
-[data-pieza='title-to-actions'] .cabeza {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: ${PADDING}px;
-}
-[data-pieza='title-to-actions'] .quePasa {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  user-select: none;
-}
-[data-pieza='title-to-actions'] .quePasa p {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* CERRAR ES TERCIARIO: sin relleno, y arriba a la derecha, lejos de
-   todo lo demás. La regla de no poner una acción de salida al lado de
-   la que sí querés que se apriete. */
-[data-pieza='title-to-actions'] .cerrar {
-  width: 32px;
-  height: 32px;
-  background: transparent;
-}
-[data-pieza='title-to-actions'] .cerrar svg { width: 14px; height: 14px; }
-
-/* ─── 2 · A DÓNDE ───
-   Cuatro columnas del mismo peso. Ninguna tiene relleno permanente: la
-   acción principal es la de abajo, y si estos cuatro pesaran lo mismo
-   que ella, ninguno sería el paso siguiente. */
-[data-pieza='title-to-actions'] .destinos {
-  flex: none;
-  display: grid;
-  grid-template-columns: repeat(${DESTINOS.length}, 1fr);
-  gap: ${PADDING / 2}px;
-}
-[data-pieza='title-to-actions'] .destino {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--glifo-modal);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: color ${TIMING.color}ms var(--ease-text, ease);
-}
-/* El círculo del destino: el relleno vive acá y no en el botón, así el
-   nombre de abajo queda afuera de la forma y el hover no lo tiñe de
-   fondo. */
-[data-pieza='title-to-actions'] .destinoCaja {
-  width: ${MODAL.destino}px;
-  height: ${MODAL.destino}px;
-  border-radius: 50%;
-  background: var(--destino-fondo);
-  display: grid;
-  place-items: center;
-  transition:
-    background-color ${TIMING.color}ms var(--ease-text, ease),
-    transform ${TIMING.press}ms var(--ease-dialogo, cubic-bezier(0.19, 1, 0.22, 1));
-}
-@media (hover: hover) and (pointer: fine) {
-  [data-pieza='title-to-actions'] .destino:hover { color: var(--ink, #111111); }
-  [data-pieza='title-to-actions'] .destino:hover .destinoCaja {
-    background: var(--destino-hover);
-  }
-}
-[data-pieza='title-to-actions'] .destino:active .destinoCaja { transform: scale(0.97); }
-[data-pieza='title-to-actions'] .destino:focus-visible {
-  outline: var(--focus-outline, 2px solid #005fcc);
-  outline-offset: var(--focus-outline-offset, 2px);
-  border-radius: 10px;
-  transition: none;
-}
-[data-pieza='title-to-actions'] .destinoNombre {
-  font-size: var(--type-body-fs, 14px);
-  line-height: var(--type-body-lh, 20px);
-  font-weight: var(--type-body-fw, 460);
-  letter-spacing: var(--type-body-ls, -0.00563rem);
-  white-space: nowrap;
-}
-
-/* ─── 3 · EL ENLACE, Y LA ÚNICA ACCIÓN PRIMARIA ───
-   El campo no es un <input>: el porqué está arriba de MODAL. Lo que sí
-   conserva es lo único que un campo de sólo lectura daba de más, que es
-   poder llevarse el enlace entero de un clic. */
-[data-pieza='title-to-actions'] .campo {
-  flex: none;
-  margin-top: auto;
-  height: 40px;
-  padding: 0 4px 0 14px;
-  border-radius: 20px;
-  background: var(--campo-fondo);
-  display: flex;
-  align-items: center;
-  gap: ${PADDING / 2}px;
-}
-[data-pieza='title-to-actions'] .campoEnlace {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* Un clic se lleva el enlace entero, que es lo que se quiere copiar:
-     media URL seleccionada no sirve para nada. */
-  user-select: all;
-  cursor: text;
-  font-size: var(--type-body-fs, 14px);
-  line-height: var(--type-body-lh, 20px);
-  font-weight: var(--type-body-fw, 460);
-  letter-spacing: var(--type-body-ls, -0.00563rem);
-  color: var(--type-body-c, rgba(0, 0, 0, 0.37));
-}
-/* LA ÚNICA CON RELLENO SÓLIDO de todo el modal, y por eso se lee como
-   el paso siguiente sin que haya que decirlo. */
-[data-pieza='title-to-actions'] .copiar {
-  flex: none;
-  height: 32px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 16px;
-  background: var(--ink, #111111);
-  color: var(--canvas, #fdfdfc);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--type-body-fs, 14px);
-  line-height: 32px;
-  font-weight: var(--type-h3-fw, 500);
-  letter-spacing: var(--type-body-ls, -0.00563rem);
-  /* EL ANCHO ES EL DEL TEXTO MÁS LARGO, y está medido: sin esto el
-     botón pasa de 89 px a 84 al cambiar a "Copied" y pega un salto
-     justo en el cuadro en que confirma. Los 90 son "Copy link"
-     redondeado hacia arriba (sonda/copiar.mjs). */
-  min-width: 90px;
-  transition:
-    opacity ${TIMING.color}ms var(--ease-text, ease),
-    transform ${TIMING.press}ms var(--ease-dialogo, cubic-bezier(0.19, 1, 0.22, 1));
-}
-@media (hover: hover) and (pointer: fine) {
-  [data-pieza='title-to-actions'] .copiar:hover { opacity: 0.86; }
-}
-[data-pieza='title-to-actions'] .copiar:active { transform: scale(0.97); }
-[data-pieza='title-to-actions'] .copiar:focus-visible {
-  outline: var(--focus-outline, 2px solid #005fcc);
-  outline-offset: var(--focus-outline-offset, 2px);
-  transition: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-pieza='title-to-actions'] .destinoCaja,
-  [data-pieza='title-to-actions'] .copiar {
-    transition-property: background-color, color, opacity;
-  }
-  [data-pieza='title-to-actions'] .destino:active .destinoCaja,
-  [data-pieza='title-to-actions'] .copiar:active {
-    transform: none;
-  }
-}
 `

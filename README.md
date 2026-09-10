@@ -1997,6 +1997,54 @@ La regla que queda: **cualquier capa que exista siempre y se apague con
 opacidad necesita `pointer-events: none` en su estado apagado**, y eso no
 se verifica con clics sintéticos.
 
+### La tapa: redonda, encuadrada y servida al tamaño del dispositivo
+
+Tres pedidos en una línea (Vito: "hacelo redondo y mejor centrado y
+calidad"), y los tres tenían un número atrás.
+
+**Redonda.** La fila entera es de círculos de 40 y la portada era lo
+único cuadrado adentro. Que se pueda recortar redonda no es una
+preferencia: un círculo inscripto en esta tapa se lleva el **0.4 %** de la
+luz del arte, porque las cuatro esquinas son negro puro y todo lo que se
+ve —el rayo, el prisma, el arcoíris— cae adentro. Se midió sobre el
+archivo, píxel por píxel. Con otra portada el número sería otro y habría
+que volver a medir.
+
+**Centrada.** El arte de Apple no está centrado. El perfil de luminancia
+por fila del máster de 1500 px pone la franja visible entre las filas
+352 y 820: centro en **586**, contra el 749 geométrico. Servido entero,
+el prisma queda un 11 % arriba del medio y la mitad de abajo del círculo
+es negro vacío, que es exactamente lo que se veía. Lo que se sirve es una
+ventana de 1050 px centrada en esa franja. Se probaron tres: 1172 (el
+mayor cuadrado que cabe centrado ahí: el prisma queda chico), 900
+(demasiado cerca: el arcoíris se corta bruto) y 1050. El rayo y el
+arcoíris son líneas de borde a borde, así que recortar los costados los
+acorta pero no les saca nada.
+
+**Calidad.** El navegador reduciendo una imagen pierde nitidez, y se
+midió cuánta: cada candidato dibujado en un `<img>` de 40 px,
+fotografiado a 3× y comparado contra el máster reducido con lanczos.
+
+| se sirve | energía de gradiente | RMS contra el máster |
+|---|---|---|
+| 120 px, PNG | **7.46** | **0** |
+| 120 px, JPEG | 7.46 | 1.21 |
+| 256 px | 6.71 | 2.69 |
+| 400 px | 6.63 | 2.77 |
+| el JPEG de 600 px que había | 5.06 | — |
+
+O sea que lo que se servía tenía un **32 % menos de nitidez** que la
+disponible, y la mitad de la pérdida era del navegador reduciendo 15×.
+Ahora hay un archivo por densidad —40, 80 y 120 para la barra— y un
+`srcset` elige uno: el navegador nunca reduce. Y son PNG: el JPEG se
+aparta 1.21 RMS del máster al mismo tamaño —el timbre alrededor de un
+rayo blanco sobre negro es el peor caso del DCT— y cuesta 3.6 kB menos.
+Ninguno de los seis archivos pesa más que el JPEG de 600 px que
+reemplazan.
+
+La parte `Tapa` recibe el lado y arma las tres fuentes sola; la sonda que
+decidió esto quedó en `sonda/nitidez.mjs`.
+
 ### Cuatro correcciones sobre las capturas
 
 Cuatro cosas que sólo se vieron mirando la pieza corriendo, con la
