@@ -76,7 +76,7 @@ import {
   useState,
   type ComponentProps,
   type MouseEvent,
-} from "react";
+} from 'react'
 /* `m` Y NO `motion`, CON LazyMotion, y es por peso. El componente
    `motion` trae adentro TODAS las capacidades de la librería —gestos,
    layout, scroll, SVG— aunque uses tres. Medido sobre el build de esta
@@ -85,7 +85,7 @@ import {
    entera. `m` sólo trae el componente, y `domAnimation` carga el juego
    de capacidades mínimo que esto necesita: animar valores con resortes.
    El número de después está abajo. */
-import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react'
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -119,19 +119,19 @@ import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
 
 /* EL RESORTE DE LA GEOMETRÍA. La duración es la medida sobre la
    grabación; el rebote es el techo que fija la regla de motion. */
-const RESORTE = { type: "spring", duration: 0.45, bounce: 0.3 } as const;
+const RESORTE = { type: 'spring', duration: 0.45, bounce: 0.3 } as const
 /* EL DE LA TARJETA. Sin rebote y un poco más lento: es la superficie
    más grande de la pieza y la que más viaja, y la regla de motion pide
    más tiempo para lo más grande. Es además el valor por omisión que esa
    misma regla propone cuando no hay nada medido. */
-const MORFEO = { type: "spring", duration: 0.5, bounce: 0 } as const;
+const MORFEO = { type: 'spring', duration: 0.5, bounce: 0 } as const
 /* EL DEL GLIFO DEL PIN. Corto, porque es un dibujo de 20 px y no una
    geometría de 420. */
-const GLIFO = { type: "spring", duration: 0.3, bounce: 0 } as const;
+const GLIFO = { type: 'spring', duration: 0.3, bounce: 0 } as const
 /* CON MOVIMIENTO REDUCIDO no queda un resorte más corto: no queda
    ninguno. La regla es que el cambio se siga entendiendo, y lo que lo
    cuenta es el cruce de contenido, no el viaje. */
-const QUIETO = { duration: 0 } as const;
+const QUIETO = { duration: 0 } as const
 
 const TIMING = {
   rotuloSale: 130, //   el rótulo se va
@@ -139,7 +139,7 @@ const TIMING = {
   color: 100, //        un cambio de color, como el resto del producto
   press: 100, //        el hundido de un control, como `.glifo:active`
   copiado: 1500, //     cuánto se queda la marca de que el link se copió
-};
+}
 
 /* ─────────────────────────────────────────────────────────
  * LA GEOMETRÍA
@@ -168,34 +168,42 @@ const TIMING = {
  *     menos el padding          − 4
  *     radio del control        = 20 = 40 / 2, o sea un círculo
  * ───────────────────────────────────────────────────────── */
-const ALTO = 48;
-const PADDING = 4;
-const CONTROL = ALTO - 2 * PADDING; //  40
-const RADIO_BARRA = ALTO / 2; //        24, la píldora
-const RADIO_CONTROL = CONTROL / 2; //   20 = 24 − 4, concéntrico
+const ALTO = 48
+const PADDING = 4
+const CONTROL = ALTO - 2 * PADDING //  40
+const RADIO_BARRA = ALTO / 2 //        24, la píldora
+const RADIO_CONTROL = CONTROL / 2 //   20 = 24 − 4, concéntrico
 /* La tapa NO es concéntrica, y es la única que se aparta: una portada es
    contenido y no un control, así que se queda cuadrada con el radio que
    las dos referencias usan en cosas chicas. Un disco redondo sería otra
    cosa. */
-const RADIO_TAPA = 6;
+const RADIO_TAPA = 6
 /* El aire entre dos controles vecinos. Adentro de un componente la regla
    de ×4 no rige (DESIGN.md § 2), y 4 deja los glifos de 20 a 24 px uno
    de otro: se leen como tres botones y no como una fila continua. */
-const AIRE = 4;
-const PASO = CONTROL + AIRE; //  44
+const AIRE = 4
+const PASO = CONTROL + AIRE //  44
 
 /* CUÁNTO VIAJAN LA TAPA Y EL RÓTULO. En la grabación la portada viaja
    55.5 pt mientras el abanico abre su paso de 64, o sea 0.867 del paso.
    Acá el paso es 44, así que el viaje es 38. Es una razón medida y no un
    número elegido: lo que empuja a la tapa es el lugar que piden las
    acciones, así que los dos tienen que salir de la misma cuenta. */
-const VIAJE = Math.round(0.867 * PASO); //  38
+const VIAJE = Math.round(0.867 * PASO) //  38
 
 /* ─────────────────────────────────────────────────────────
  * LOS GLIFOS
  *
- * Sobre una caja de 20 y con trazo 1.5, que es el peso que el producto
- * ya dibuja en el chevron de `Volver` (parts.tsx).
+ * ─── LA CAJA ES 16 Y EL TRAZO 1.5, QUE ES EL DEL PRODUCTO ───
+ * Estuvieron en una caja de 20 con el mismo trazo 1.5, y eso los dejaba
+ * un 25 % más finos de lo que este repo dibuja: el peso de un ícono no
+ * es el grosor absoluto sino el grosor CONTRA SU CAJA. Censo de todos
+ * los glifos del repo: `strokeWidth` 1.5 en los nueve, y `viewBox 0 0
+ * 16 16` en siete de nueve —los dos que faltaban eran los de esta
+ * pieza—. O sea 1.5 sobre 16, que es 0.094; los de acá daban 0.075.
+ *
+ * Los trazados se escalaron por 16/20 en vez de redibujarse, así que
+ * las proporciones medidas de abajo se conservan exactas.
  *
  * ─── DIBUJADOS CONTRA LOS DEL SISTEMA, MEDIDOS ───
  * Antes eran a mano alzada. Ahora cada uno sale de medir el símbolo que
@@ -218,37 +226,38 @@ const VIAJE = Math.round(0.867 * PASO); //  38
  * Los tres sin número toman el de los otros, que coinciden en 0.07–0.08
  * del alto. Sobre un glifo de 16 eso da 1.2, y acá va 1.5 porque es el
  * peso del producto: la pieza prefiere parecerse a la página que tiene
- * alrededor antes que al símbolo del que copió la forma.
+ * alrededor antes que al símbolo del que copió la forma. Es la misma
+ * decisión que arriba, mirada desde el otro lado.
  *
  * SE DIBUJAN, NO SE INCRUSTAN, que es lo mismo que ya hizo el chevron
  * de `Volver`: se toma la forma estándar y se traza acá, con las
  * medidas al lado. El arte de Apple no viaja en el bundle.
  * ───────────────────────────────────────────────────────── */
 const PIN =
-  "M7.6 2.8h4.8M8.6 2.8v3.9c0 .6-.3 1.2-.8 1.5L5.8 9.6a1.1 1.1 0 0 0 .7 2h7a1.1 1.1 0 0 0 .7-2l-2-1.4a1.9 1.9 0 0 1-.8-1.5V2.8M10 11.6v5.6";
+  'M6.08 2.24h3.84M6.88 2.24v3.12c0 0.48-0.24 0.96-0.64 1.2L4.64 7.68a0.88 0.88 0 0 0 0.56 1.6h5.6a0.88 0.88 0 0 0 0.56-1.6l-1.6-1.12a1.52 1.52 0 0 1-0.64-1.2V2.24M8 9.28v4.48'
 const COMPARTIR =
-  "M10 12.6V3M10 3 6.9 6.1M10 3l3.1 3.1M6.6 8.6H5.4a1.9 1.9 0 0 0-1.9 1.9v5.6a1.9 1.9 0 0 0 1.9 1.9h9.2a1.9 1.9 0 0 0 1.9-1.9v-5.6a1.9 1.9 0 0 0-1.9-1.9h-1.2";
-const CERRAR = "M4.9 4.9 15.1 15.1M15.1 4.9 4.9 15.1";
+  'M8 10.08V2.4M8 2.4 5.52 4.88M8 2.4l2.48 2.48M5.28 6.88H4.32a1.52 1.52 0 0 0-1.52 1.52v4.48a1.52 1.52 0 0 0 1.52 1.52h7.36a1.52 1.52 0 0 0 1.52-1.52v-4.48a1.52 1.52 0 0 0-1.52-1.52h-0.96'
+const CERRAR = 'M3.92 3.92 12.08 12.08M12.08 3.92 3.92 12.08'
 const ENLACE =
-  "M8.6 11.4a3.3 3.3 0 0 0 4.7 0l2.1-2.1a3.3 3.3 0 0 0-4.7-4.7l-1.2 1.2M11.4 8.6a3.3 3.3 0 0 0-4.7 0l-2.1 2.1a3.3 3.3 0 0 0 4.7 4.7l1.2-1.2";
-const MARCA = "M4.4 10.6 8.3 14.6 15.6 4.8";
-const CHEVRON = "M12.5 4 6.5 10l6 6";
-const PUNTOS = "M4.7 10h.01M10 10h.01M15.3 10h.01";
+  'M6.88 9.12a2.64 2.64 0 0 0 3.76 0l1.68-1.68a2.64 2.64 0 0 0-3.76-3.76l-0.96 0.96M9.12 6.88a2.64 2.64 0 0 0-3.76 0l-1.68 1.68a2.64 2.64 0 0 0 3.76 3.76l0.96-0.96'
+const MARCA = 'M3.52 8.48 6.64 11.68 12.48 3.84'
+const CHEVRON = 'M10 3.2 5.2 8l4.8 4.8'
+const PUNTOS = 'M3.76 8h0.01M8 8h0.01M12.24 8h0.01'
 
 /* LAS TRES ACCIONES, en el orden de la fila. El de cerrar va último
    porque comparte lugar con el de puntos suspensivos: se aprieta dos
    veces en el mismo punto de la pantalla, que es lo que hace que abrir y
    cerrar sean el mismo gesto. */
 const ACCIONES = [
-  { id: "pin", nombre: "Pin", trazo: PIN },
-  { id: "share", nombre: "Share", trazo: COMPARTIR },
-  { id: "close", nombre: "Close", trazo: CERRAR },
-] as const;
-const ULTIMO = ACCIONES.length - 1;
+  { id: 'pin', nombre: 'Pin', trazo: PIN },
+  { id: 'share', nombre: 'Share', trazo: COMPARTIR },
+  { id: 'close', nombre: 'Close', trazo: CERRAR },
+] as const
+const ULTIMO = ACCIONES.length - 1
 /* Quién abre la tarjeta. Sale del arreglo y no de un número escrito a
    mano: si mañana entra una acción antes, el que la abre sigue siendo
    éste. */
-const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === "share");
+const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === 'share')
 
 /* ─────────────────────────────────────────────────────────
  * LA TARJETA DE COMPARTIR
@@ -265,30 +274,30 @@ const COMPARTIR_I = ACCIONES.findIndex((a) => a.id === "share");
  * es lo mismo que allá hacía el recorte. Un contenido escalado sería
  * tipografía deformada, que es lo que una tarjeta que crece no hace.
  * ───────────────────────────────────────────────────────── */
-const TARJETA_ANCHO = 320;
+const TARJETA_ANCHO = 320
 /* Dónde nace: el centro del botón de compartir, que es el segundo de la
    fila contando desde la derecha. */
-const TARJETA_DESDE = { ancho: CONTROL, alto: CONTROL, radio: RADIO_CONTROL };
-const TARJETA_HASTA = { ancho: TARJETA_ANCHO, alto: ALTO, radio: RADIO_BARRA };
+const TARJETA_DESDE = { ancho: CONTROL, alto: CONTROL, radio: RADIO_CONTROL }
+const TARJETA_HASTA = { ancho: TARJETA_ANCHO, alto: ALTO, radio: RADIO_BARRA }
 /* Lo que hay que correr la caja para que su borde derecho quede donde
    está el del botón mientras crece. El botón vive a PASO del borde. */
-const TARJETA_DERECHA = PADDING + PASO;
+const TARJETA_DERECHA = PADDING + PASO
 
 /* EL ÍTEM. Es el mismo que nombraría la página de atrás: la barra dice
    qué estás mirando, que es la mitad de para qué existe. */
-const ITEM = { titulo: "The Dark Side of the Moon", autor: "Pink Floyd" };
+const ITEM = { titulo: 'The Dark Side of the Moon', autor: 'Pink Floyd' }
 
 /* LA TAPA. El arte oficial, servido por la API de artwork de Apple para
    el álbum de 1973 (collectionId 1065973699), a 600 px de lado. Cuadrado
    y sin recortar, que es lo que pidió el usuario el 2026-09-10 ("usá la
    real y oficial y que no pierda calidad y que no se recorte"). Queda
    dicho que la tapa es del sello y no nuestra. */
-const TAPA = "/piezas/title-to-actions-cover.jpg";
+const TAPA = '/piezas/title-to-actions-cover.jpg'
 
 /* Lo que se LEE en la tarjeta. No es el link que se copia —ése se arma
    con el origen real en el momento de copiar— sino la parte que dice a
    dónde va. */
-const ENLACE_VISIBLE = "components / title-to-actions";
+const ENLACE_VISIBLE = 'components / title-to-actions'
 
 /* ─────────────────────────────────────────────────────────
  * EL CONTROL
@@ -313,11 +322,11 @@ const ENLACE_VISIBLE = "components / title-to-actions";
  * apilados se leen como UN botón que se abre en tres. La forma es la que
  * cuenta el movimiento; el glifo sólo dice cuál es cuál.
  * ───────────────────────────────────────────────────────── */
-type ControlProps = ComponentProps<"button"> & {
-  label: string;
-  pressed?: boolean;
-  expanded?: boolean;
-};
+type ControlProps = ComponentProps<'button'> & {
+  label: string
+  pressed?: boolean
+  expanded?: boolean
+}
 
 function Control({
   label,
@@ -330,7 +339,7 @@ function Control({
   return (
     <button
       type="button"
-      className={className ? `control ${className}` : "control"}
+      className={className ? `control ${className}` : 'control'}
       aria-label={label}
       aria-pressed={pressed}
       aria-expanded={expanded}
@@ -338,7 +347,7 @@ function Control({
     >
       {children}
     </button>
-  );
+  )
 }
 
 /* Un glifo. `relleno` dibuja el MISMO trazado también relleno, que es
@@ -348,61 +357,56 @@ function Glifo({
   relleno,
   className,
 }: {
-  d: string;
-  relleno?: boolean;
-  className?: string;
+  d: string
+  relleno?: boolean
+  className?: string
 }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-    >
+    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path
         d={d}
-        fill={relleno ? "currentColor" : "none"}
+        fill={relleno ? 'currentColor' : 'none'}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
-  );
+  )
 }
 
 export default function TitleToActions() {
   /* TRES ESTADOS, y cada uno es una cosa que el que mira puede hacer:
      cambiar el rótulo por las acciones, fijar el ítem, y abrir la
      tarjeta de compartir. Ninguno es un modo del otro. */
-  const [acciones, setAcciones] = useState(false);
-  const [fijado, setFijado] = useState(false);
-  const [compartir, setCompartir] = useState(false);
-  const [copiado, setCopiado] = useState(false);
-  const reducido = useReducedMotion();
+  const [acciones, setAcciones] = useState(false)
+  const [fijado, setFijado] = useState(false)
+  const [compartir, setCompartir] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const reducido = useReducedMotion()
 
-  const puntosBoton = useRef<HTMLButtonElement>(null);
-  const botones = useRef<(HTMLButtonElement | null)[]>([]);
-  const tarjeta = useRef<HTMLDivElement>(null);
-  const copiarBoton = useRef<HTMLButtonElement>(null);
-  const conTeclado = useRef(false);
-  const conTecladoTarjeta = useRef(false);
+  const puntosBoton = useRef<HTMLButtonElement>(null)
+  const botones = useRef<(HTMLButtonElement | null)[]>([])
+  const tarjeta = useRef<HTMLDivElement>(null)
+  const copiarBoton = useRef<HTMLButtonElement>(null)
+  const conTeclado = useRef(false)
+  const conTecladoTarjeta = useRef(false)
 
   /* Los tres resortes, ya resueltos contra la preferencia del sistema:
      así el JSX de abajo lee una constante y no repite el condicional en
      cada elemento. */
-  const resorte = reducido ? QUIETO : RESORTE;
-  const morfeo = reducido ? QUIETO : MORFEO;
-  const glifo = reducido ? QUIETO : GLIFO;
+  const resorte = reducido ? QUIETO : RESORTE
+  const morfeo = reducido ? QUIETO : MORFEO
+  const glifo = reducido ? QUIETO : GLIFO
 
   /* SE CIERRA CON ESCAPE Y TOCANDO AFUERA, que es lo que hace cualquier
      cosa que flota sobre lo demás. Los dos escuchas se ponen SÓLO
      mientras está abierta: una pieza en reposo no deja nada colgado del
      documento. */
   useEffect(() => {
-    if (!compartir) return;
+    if (!compartir) return
     const alTeclear = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
+      if (e.key !== 'Escape') return
       /* EN CAPTURA Y FRENANDO LA PROPAGACIÓN, y no por prolijidad: la
          página del detalle también cierra con Escape, así que sin esto
          descartar la tarjeta se lleva puesta la pieza entera y el que
@@ -410,24 +414,24 @@ export default function TitleToActions() {
          consumir el de más adentro, y para ganarle a un escucha que ya
          estaba puesto en el documento hay que llegar antes: la fase de
          captura corre antes que la de burbujeo. */
-      e.stopPropagation();
-      conTecladoTarjeta.current = true;
-      setCompartir(false);
-    };
+      e.stopPropagation()
+      conTecladoTarjeta.current = true
+      setCompartir(false)
+    }
     const alApuntar = (e: PointerEvent) => {
-      const t = e.target as Node | null;
-      if (!t) return;
-      if (tarjeta.current?.contains(t)) return;
-      if (botones.current[COMPARTIR_I]?.contains(t)) return;
-      setCompartir(false);
-    };
-    document.addEventListener("keydown", alTeclear, true);
-    document.addEventListener("pointerdown", alApuntar);
+      const t = e.target as Node | null
+      if (!t) return
+      if (tarjeta.current?.contains(t)) return
+      if (botones.current[COMPARTIR_I]?.contains(t)) return
+      setCompartir(false)
+    }
+    document.addEventListener('keydown', alTeclear, true)
+    document.addEventListener('pointerdown', alApuntar)
     return () => {
-      document.removeEventListener("keydown", alTeclear, true);
-      document.removeEventListener("pointerdown", alApuntar);
-    };
-  }, [compartir]);
+      document.removeEventListener('keydown', alTeclear, true)
+      document.removeEventListener('pointerdown', alApuntar)
+    }
+  }, [compartir])
 
   /* EL FOCO ENTRA A LA TARJETA Y VUELVE AL BOTÓN QUE LA ABRIÓ, y sólo
      si el que la abrió fue el teclado. Con el puntero no se toca nada:
@@ -444,13 +448,11 @@ export default function TitleToActions() {
      (sonda/teclado.mjs). `inert` sola hace las tres cosas por las que
      aquel menú usa `visibility`. */
   useEffect(() => {
-    if (!conTecladoTarjeta.current) return;
-    conTecladoTarjeta.current = false;
-    const destino = compartir
-      ? copiarBoton.current
-      : botones.current[COMPARTIR_I];
-    destino?.focus({ preventScroll: true });
-  }, [compartir]);
+    if (!conTecladoTarjeta.current) return
+    conTecladoTarjeta.current = false
+    const destino = compartir ? copiarBoton.current : botones.current[COMPARTIR_I]
+    destino?.focus({ preventScroll: true })
+  }, [compartir])
 
   /* EL FOCO NO SE CAE AL CUERPO. El botón que se apaga queda `inert`, y
      un elemento inert pierde el foco: si el cambio lo pidió el teclado,
@@ -458,19 +460,19 @@ export default function TitleToActions() {
      —de puntos suspensivos a cerrar y al revés—, que además es el mismo
      lugar de la pantalla. */
   useEffect(() => {
-    if (!conTeclado.current) return;
-    conTeclado.current = false;
-    const destino = acciones ? botones.current[ULTIMO] : puntosBoton.current;
-    destino?.focus({ preventScroll: true });
-  }, [acciones]);
+    if (!conTeclado.current) return
+    conTeclado.current = false
+    const destino = acciones ? botones.current[ULTIMO] : puntosBoton.current
+    destino?.focus({ preventScroll: true })
+  }, [acciones])
 
   /* LA MARCA DE COPIADO SE APAGA SOLA. Un botón de copiar sin
      confirmación se aprieta tres veces para ver si anduvo. */
   useEffect(() => {
-    if (!copiado) return;
-    const t = setTimeout(() => setCopiado(false), TIMING.copiado);
-    return () => clearTimeout(t);
-  }, [copiado]);
+    if (!copiado) return
+    const t = setTimeout(() => setCopiado(false), TIMING.copiado)
+    return () => clearTimeout(t)
+  }, [copiado])
 
   /* EL LINK QUE SE COPIA es el de la pieza, no el de la página: en la
      lista la URL es la portada y ahí el link correcto sigue siendo éste.
@@ -478,38 +480,31 @@ export default function TitleToActions() {
      desarrollo y el publicado. */
   const copiar = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(
-        `${location.origin}/title-to-actions`,
-      );
+      await navigator.clipboard.writeText(`${location.origin}/title-to-actions`)
     } catch {
       /* Si el navegador no dejó copiar —sin permiso, o sin contexto
          seguro— NO se dibuja la marca: confirmar algo que no pasó es
          peor que no confirmar nada. */
-      return;
+      return
     }
-    setCopiado(true);
-  }, []);
+    setCopiado(true)
+  }, [])
 
   /* El tramo del rótulo NO es el resorte, y tiene dos duraciones: se va
      más lento de lo que vuelve. Es lo medido en la referencia, y la
      razón es de lectura y no de física — el que cierra ya decidió, y el
      título es justamente lo que quiere ver otra vez. */
   const fundido = {
-    duration: reducido
-      ? 0
-      : (acciones ? TIMING.rotuloSale : TIMING.rotuloVuelve) / 1000,
-    ease: "easeOut" as const,
-  };
+    duration: reducido ? 0 : (acciones ? TIMING.rotuloSale : TIMING.rotuloVuelve) / 1000,
+    ease: 'easeOut' as const,
+  }
 
   return (
     /* `strict` no deja usar `motion.*` por error en toda la pieza: si
        alguien lo escribe, tira en vez de traer la librería entera de
        vuelta y volver a duplicar el peso sin que nadie lo note. */
     <LazyMotion features={domAnimation} strict>
-      <div
-        data-pieza="title-to-actions"
-        data-abierto={acciones ? "" : undefined}
-      >
+      <div data-pieza="title-to-actions" data-abierto={acciones ? '' : undefined}>
         <style href="pieza-title-to-actions" precedence="medium">
           {HOJA}
         </style>
@@ -593,33 +588,33 @@ export default function TitleToActions() {
                 >
                   <Control
                     ref={(el) => {
-                      botones.current[i] = el;
+                      botones.current[i] = el
                     }}
                     /* Un botón transparente y con los clics apagados sigue
                      estando en el orden de tabulación y sigue
                      anunciándose: `inert` lo saca de los dos. */
                     inert={!acciones}
                     label={a.nombre}
-                    pressed={a.id === "pin" ? fijado : undefined}
-                    expanded={a.id === "share" ? compartir : undefined}
-                    aria-haspopup={a.id === "share" ? "dialog" : undefined}
+                    pressed={a.id === 'pin' ? fijado : undefined}
+                    expanded={a.id === 'share' ? compartir : undefined}
+                    aria-haspopup={a.id === 'share' ? 'dialog' : undefined}
                     onClick={(e) => {
-                      frenar(e);
-                      if (a.id === "pin") {
-                        setFijado((v) => !v);
-                        return;
+                      frenar(e)
+                      if (a.id === 'pin') {
+                        setFijado((v) => !v)
+                        return
                       }
-                      if (a.id === "share") {
-                        conTecladoTarjeta.current = e.detail === 0;
-                        setCompartir((v) => !v);
-                        return;
+                      if (a.id === 'share') {
+                        conTecladoTarjeta.current = e.detail === 0
+                        setCompartir((v) => !v)
+                        return
                       }
-                      conTeclado.current = e.detail === 0;
+                      conTeclado.current = e.detail === 0
                       /* Cerrar la fila cierra también lo que la fila
                        abrió: si la tarjeta quedara flotando sin su
                        botón, no habría con qué cerrarla salvo Escape. */
-                      setCompartir(false);
-                      setAcciones(false);
+                      setCompartir(false)
+                      setAcciones(false)
                     }}
                   >
                     {/* EL PIN SE CLAVA. Un pin se levanta antes de
@@ -630,7 +625,7 @@ export default function TitleToActions() {
 
                       El par es el MISMO trazado con y sin relleno, así
                       que al cruzarse no cambia la silueta: se llena. */}
-                    {a.id === "pin" ? (
+                    {a.id === 'pin' ? (
                       <m.span
                         className="pinIcono"
                         animate={{ y: fijado ? 1 : 0, rotate: fijado ? 12 : 0 }}
@@ -657,12 +652,12 @@ export default function TitleToActions() {
                   expanded={acciones}
                   inert={acciones}
                   onClick={(e) => {
-                    frenar(e);
+                    frenar(e)
                     /* Un clic disparado con Enter o con la barra llega con
                      detail 0; uno del puntero, con 1. Sirve para
                      devolver el foco sólo a quien lo estaba usando. */
-                    conTeclado.current = e.detail === 0;
-                    setAcciones(true);
+                    conTeclado.current = e.detail === 0
+                    setAcciones(true)
                   }}
                 >
                   <Glifo d={PUNTOS} />
@@ -684,9 +679,7 @@ export default function TitleToActions() {
               animate={{
                 width: compartir ? TARJETA_HASTA.ancho : TARJETA_DESDE.ancho,
                 height: compartir ? TARJETA_HASTA.alto : TARJETA_DESDE.alto,
-                borderRadius: compartir
-                  ? TARJETA_HASTA.radio
-                  : TARJETA_DESDE.radio,
+                borderRadius: compartir ? TARJETA_HASTA.radio : TARJETA_DESDE.radio,
                 opacity: compartir ? 1 : 0,
               }}
               transition={{
@@ -713,11 +706,11 @@ export default function TitleToActions() {
                   /* El nombre cambia con el resultado, que es lo que un
                    lector de pantalla necesita para saber que el copiado
                    ocurrió. */
-                  label={copiado ? "Link copied" : "Copy link"}
-                  data-copiado={copiado ? "" : undefined}
+                  label={copiado ? 'Link copied' : 'Copy link'}
+                  data-copiado={copiado ? '' : undefined}
                   onClick={(e) => {
-                    frenar(e);
-                    copiar();
+                    frenar(e)
+                    copiar()
                   }}
                 >
                   <Glifo d={ENLACE} className="cambia" />
@@ -729,15 +722,15 @@ export default function TitleToActions() {
         </div>
       </div>
     </LazyMotion>
-  );
+  )
 }
 
 /* En la lista el preview vive adentro del <a> de la card: sin esto un
    clic acá navega. Es el mismo freno que el botón de velocidad del
    reproductor. */
 function frenar(e: MouseEvent) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 /* La hoja va adentro del archivo porque una pieza publicada es UN
@@ -907,8 +900,8 @@ const HOJA = `
     transform ${TIMING.press}ms var(--ease-dialogo, cubic-bezier(0.19, 1, 0.22, 1));
 }
 [data-pieza='title-to-actions'] .control svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -1026,8 +1019,8 @@ const HOJA = `
    comparten silueta y lo único que se ve es que se llena. */
 [data-pieza='title-to-actions'] .pinIcono {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: grid;
   place-items: center;
 }
@@ -1109,4 +1102,4 @@ const HOJA = `
   flex-direction: column;
   user-select: none;
 }
-`;
+`
