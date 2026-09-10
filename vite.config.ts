@@ -1,6 +1,22 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { vaultMedia } from './scripts/vault-media.mjs'
+import { SITE } from './src/site'
+
+/* THE META TAGS READ src/site.ts, they do not hold their own copy.
+   index.html carries %SITE_NAME% and %SITE_DESCRIPTION% and this fills
+   them in, in dev and on a build alike. `order: 'pre'` so it runs
+   before anything else that rewrites the HTML. Without this the name
+   lived in five places and the sentence in three, and the two nobody
+   ever looks at are exactly the meta tags. */
+const siteMeta = () => ({
+  name: 'site-meta',
+  transformIndexHtml: {
+    order: 'pre' as const,
+    handler: (html: string) =>
+      html.replaceAll('%SITE_NAME%', SITE.name).replaceAll('%SITE_DESCRIPTION%', SITE.description),
+  },
+})
 
 export default defineConfig(({ mode }) => {
   /* The empty prefix loads ALL the variables in .env, not only the ones
@@ -13,7 +29,7 @@ export default defineConfig(({ mode }) => {
   return {
     /* vaultMedia is apply:'serve', so on a build it is not even
        instantiated. See scripts/vault-media.mjs. */
-    plugins: [react(), vaultMedia(env.VAULT_DIR)],
+    plugins: [siteMeta(), react(), vaultMedia(env.VAULT_DIR)],
     server: {
       port: 3000,
       // Without this Vite moves itself to the next free port when its

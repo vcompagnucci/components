@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 're
 import css from './app.module.css'
 import { Detail, Item, Masthead, textBaseline } from './parts'
 import { PIECES, type Piece, type Platform } from './pieces'
+import { SITE } from './site'
 import { NotFound } from './not-found'
 
 const PLATFORMS = ['Web', 'App'] as const
@@ -317,18 +318,16 @@ export function App() {
      does not exist, keeps saying the name of the product, the same as
      before.
 
-     And it is the SAME string as the masthead's H1, whole: the name is
-     not shortened anywhere. Leaving "Exhibition" up here and the full
-     one in the title was tried, leaning on the subtitle saying what the
-     exhibition is about; it was dropped, because the name of a product
-     that changes length depending on where you read it is two names. */
+     It is `SITE.name`, the same string the masthead's H1 reads, and
+     since 2026-09-10 that is enforced by there being one string: the
+     why of not shortening it is written above it in src/site.ts. */
   useEffect(() => {
-    if (view.kind === 'piece') document.title = `${view.piece.name} — Interface exhibition`
+    if (view.kind === 'piece') document.title = `${view.piece.name} — ${SITE.name}`
     /* The DEV in front folds the literal 'private' out of the bundle,
        see the third fold in fromUrl. In production this branch is
        unreachable anyway (fromUrl never returns that kind). */
     else if (import.meta.env.DEV && view.kind === 'private') document.title = view.route.name
-    else document.title = 'Interface exhibition'
+    else document.title = SITE.name
   }, [view])
 
   /* Going back to the list returns the scroll to where you were.

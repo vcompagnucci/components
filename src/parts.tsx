@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import type { Piece } from './pieces'
+import { SITE } from './site'
 import { LiveDemo } from './demos'
 import { Notes } from './notes'
 
@@ -68,7 +69,7 @@ export function cardClick(action: () => void) {
 
 /* The BASELINE of a line of text: the line the letters sit on. It is
    what two texts get aligned by, and not the middle of their boxes: the
-   index's lines are 13/16 and the page's are 14/20, so centring them
+   index's lines are 13/16 and the page's are 14/20, so centering them
    leaves the letters sitting at two different heights.
 
    There is no API that gives it, so it gets measured with a probe: an
@@ -87,8 +88,8 @@ export function textBaseline(el: HTMLElement) {
 export function Masthead() {
   return (
     <header className={css.mast}>
-      <h1 className={css.mastTitle}>Interface exhibition</h1>
-      <div className={css.mastSub}>Components for web and native apps that feel right.</div>
+      <h1 className={css.mastTitle}>{SITE.name}</h1>
+      <div className={css.mastSub}>{SITE.description}</div>
     </header>
   )
 }
