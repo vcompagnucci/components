@@ -2,73 +2,41 @@
    BUTTONS SEPARATE — una sola forma de vidrio que se abre en cuatro
    botones redondos al pasar el puntero, y se vuelve a cerrar al salir.
 
-   La referencia es el Spotlight de macOS 26 Tahoe (VAULT_DIR/web/
-   "Buttons separate.mp4"). Todo número que sigue está MEDIDO sobre el
-   original de 3420×2214 —2 px físicos por punto, verificado contra el
-   ascendente de la barra de menú— y la tabla completa, con los scripts
-   que la reproducen, está en .context/buttons-separate/MEDICION.md.
+   La referencia es el Spotlight de macOS 26 Tahoe. Todo número de este
+   archivo está MEDIDO sobre el original de 3420×2214 —2 px físicos por
+   punto— y cada uno lleva su recibo al lado. La tabla completa y los
+   scripts que la reproducen: .context/buttons-separate/MEDICION.md.
 
-   Lo que la grabación deja probado, y por eso está acá:
+   FUNDIDO ES UNA PÍLDORA, no cuatro círculos pegados: el perfil de
+   altura da 56.0 pt de un extremo al otro, sin una hondonada. Por eso
+   las cinco formas van bajo UN goo y no se dibujan pegadas.
 
-   1. FUNDIDO ES UNA PÍLDORA, no cuatro círculos pegados. El perfil de
-      altura da 56.0 pt constante de un extremo al otro, sin una sola
-      hondonada entre botones.
-   2. EL PRIMER BOTÓN NO SE MUEVE. Su borde izquierdo está en 929 desde
-      los 200 ms y sigue ahí en reposo. Lo que se abre es el PASO entre
-      botones, de 0 a 64: salen en abanico desde la primera ranura.
-   3. SON DOS RESORTES, no uno. El ancho del campo se cierra en 365 ms y
-      el paso se abre en 532 ms, 42 ms más tarde. Ajustados por mínimos
-      cuadrados sobre la respuesta al escalón de un oscilador de segundo
-      orden: 1.57 y 1.42 pt de error sobre 64 cuadros, y los dos ciclos
-      limpios de la grabación dan lo mismo por separado.
-   4. MIENTRAS ESTÁN CERCA, EL VIDRIO LAS UNE con un cuello. Medido: dos
-      centros a 61 pt de distancia dan un cuello de 25 pt de alto, que
-      con el modelo de desenfoque y umbral es σ ≈ 6.6 pt; el puente se
-      corta en un hueco de ~9 y en reposo el hueco es 10.
-
-   QUÉ NO SE COPIÓ, Y POR QUÉ. En la grabación el puntero nunca sube a
-   la barra: entra por abajo, se para a 200 pt del campo y ahí se queda,
-   y las tres esperas entre abrir y separar son distintas (733, 217 y
-   933 ms). O sea que la grabación no dice qué dispara la separación.
-   Acá la dispara el hover, que es lo que pidió el usuario (2026-09-09).
-
-   LA VERIFICACIÓN. Con la pieza corriendo se muestreó cuadro a cuadro el
-   borde derecho del conjunto y se comparó contra la misma traza de la
-   grabación: 4.95 pt de error cuadrático medio y 18.7 de máximo sobre el
-   primer segundo, sin latencia que descontar (el mejor desfase da −2 ms).
-   El máximo cae justo en el mínimo de la curva, donde la medición del
-   video es menos confiable porque el goo ensancha la silueta.
-
-   CORRECCIÓN, 2026-09-09: acá decía 2.35 pt. Ese número salía de una
-   sonda que modelaba el borde del botón en r = 19.58 —el radio
-   compensado que tenía el goo— cuando lo que se dibuja mide 19. Con las
-   formas nítidas encima, el modelo y lo dibujado coinciden, y el número
-   honesto es 4.95. Lo que se mueve no cambió: cambió la sonda.
-   La sonda está en .context/buttons-separate/.
-
-   EL CAMPO NO ES UN <input>. En la lista, el preview vive adentro del
-   <a> de la card: un campo de texto ahí adentro es un link que contiene
-   un control de texto, y un lector de pantalla lo anuncia así. Los
-   cuatro botones sí son <button>, con el mismo freno que el botón de
-   velocidad del reproductor —preventDefault y stopPropagation— que es
-   el precedente que ya existe en parts.tsx.
+   LA PIEZA CONTRA LA GRABACIÓN, con la pieza corriendo: 4.95 pt de error
+   cuadrático medio en el borde del conjunto sobre el primer segundo, y
+   0.039 / 0.228 pt en la opacidad y el desenfoque de los glifos. Acá
+   decía 2.35 pt: ese número salía de una sonda que modelaba el borde del
+   botón en r = 19.58 y lo dibujado mide 19. No volver a 2.35.
    ═══════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 
 /* ─────────────────────────────────────────────────────────
- * STORYBOARD — cada tiempo es ms desde que entra el puntero
+ * STORYBOARD — cada tiempo es ms desde que el puntero recorre sus
+ * primeros 20 px adentro de la card
  *
  *     0ms   el campo empieza a acortarse, 456 → 276
  *    42ms   los botones empiezan a abrirse en abanico, paso 0 → 45
  *   ~90ms   el campo pasa por su ancho final y sigue de largo
  *   ~140ms  asoma el cuarto botón por el extremo derecho
- *   ~200ms  empiezan a aparecer los iconos, y terminan a los ~460
+ *   ~270ms  los glifos empiezan a subir de opacidad
+ *   ~290ms  y a enfocarse, desde 2.14 px de desenfoque
  *   ~400ms  el paso pasa por 45 y rebota un 6 %
+ *   ~530ms  los glifos ya están, opacos y nítidos
  *   ~730ms  todo quieto
  *
- * Al salir el puntero, lo mismo al revés y con el retraso del otro
- * lado: primero se juntan los botones, después los tapa el campo.
+ * Al salir el puntero de la card, lo mismo al revés y con el retraso
+ * del otro lado: primero se juntan los botones, después los tapa el
+ * campo.
  * ───────────────────────────────────────────────────────── */
 
 /* LA GEOMETRÍA, en px de pantalla. Es la referencia por 5/7: el campo
@@ -108,6 +76,30 @@ const RANURA = G.campo + G.hueco + G.boton / 2
    siguen coincidiendo píxel a píxel. */
 const DESBORDE = 96
 
+/* EL FONDO SALE DEL SISTEMA: cada parada es el lienzo de la página con
+   tinta mezclada, así que sigue al tema. Antes era un degradado
+   azul-gris con paleta propia.
+
+   LOS PORCENTAJES IGUALAN LA LUMINANCIA de las paradas que había, no el
+   color. El vidrio es una copia desenfocada de este fondo y su velo está
+   medido contra el material nativo: si el fondo cambia de claridad,
+   cambia el vidrio.
+
+   EN CLARO NO PUEDE SER `--surface` A SECAS: el vidrio es claro y sobre
+   #f8f8f6 no se vería. El degradado baja a L* 58, que es donde despega. */
+const RAMPA = {
+  claro: { lienzo: '#fdfdfc', tinta: '#111111', radial: [3.5, 16.8, 36.8, 45.7], lineal: [7.0, 47.8] },
+  oscuro: { lienzo: '#090908', tinta: '#fafaf9', radial: [44.2, 26.2, 10.9, 7.2], lineal: [29.4, 3.6] },
+} as const
+
+function degradado({ lienzo, tinta, radial, lineal }: (typeof RAMPA)[keyof typeof RAMPA]) {
+  const m = (p: number) => `color-mix(in srgb, var(--ink, ${tinta}) ${p}%, var(--canvas, ${lienzo}))`
+  const paradas = [0, 38, 76, 100]
+  return `radial-gradient(118% 150% at 20% 8%, ${radial
+    .map((p, i) => `${m(p)} ${paradas[i]}%`)
+    .join(', ')}), linear-gradient(160deg, ${m(lineal[0])} 0%, ${m(lineal[1])} 100%)`
+}
+
 /* El aire mínimo a cada lado de la barra. Por debajo de 456 + 2·44 la
    barra se achica en bloque, con un solo factor que va al transform de
    las formas y al del contenido. */
@@ -125,14 +117,31 @@ const CAMPO = { duracion: 0.365, rebote: 0.38 } //   365 ms, rms 1.57 pt
 const ABANICO = { duracion: 0.532, rebote: 0.32 } // 532 ms, rms 1.42 pt
 const RETRASO = 0.042 //                             s, medido
 
-/* LOS ICONOS TIENEN SU PROPIO TRAMO, y no una ventana sobre el abanico.
-   En la grabación el primer glifo se distingue a los 200 ms y termina de
-   aparecer a los 500. El abanico ya vale ~1 a los 300, así que colgado de
-   él el tramo no puede durar 300 ms: terminaba a los 307 y entraba un
-   40 % más rápido que la referencia. Un resorte sin rebote de 300 ms que
-   arranca a los 158 después del abanico llega lleno a los ~460. */
-const ICONO = { duracion: 0.3, rebote: 0 }
-const RETRASO_ICONO = 0.158
+/* LOS GLIFOS NO SE FUNDEN: ENTRAN FUERA DE FOCO Y SE ENFOCAN. Medido
+   sobre dos ciclos y los cuatro botones (.context/…/desenfoque.py):
+
+     α  →  270 ms de retraso, 260 ms, rebote 0.14   (rms 0.043)
+     σ  →  290 ms de retraso, 350 ms, sin rebote    (rms 0.122 pt)
+
+   SON DOS TRAMOS, no uno con dos lecturas: con α ya pegado a 1 —0.93 a
+   los 417— σ sigue bajando de 1.02 a 0.30, así que σ no es función de α.
+   Y los 20 ms entre los dos retrasos no se unen: unidos, la opacidad va
+   un cuadro atrás y el desenfoque uno adelante.
+
+   ANTES ERA UN FUNDIDO de 200 ms de retraso y 300 de duración. A los
+   300 ms los glifos valían 0.62 y en la referencia valen 0.14:
+   aparecían mientras los botones todavía volaban, y nítidos desde el
+   primer cuadro. Eso es la lectura de "se están cargando". */
+const ICONO = { duracion: 0.26, rebote: 0.14 }
+const RETRASO_ICONO = 0.228 //                       270 − 42 ms
+const FOCO = { duracion: 0.35, rebote: 0 }
+const RETRASO_FOCO = 0.248 //                        290 − 42 ms
+/* 3.0 pt de la referencia por 5/7. Verificado en Chrome con una rampa de
+   valores sobre un borde duro: en pantalla Retina `blur(Npx)` da una
+   gaussiana de σ = N px con un 8 % de error, y por debajo de 0.5 px la
+   redondea a cero —son tres cajas, no una gaussiana—, así que la cola no
+   se escribe. */
+const DESENFOQUE = 2.14 // px
 
 /* LA SALIDA NO ES LA ENTRADA AL REVÉS, y por tres razones que se ven
    posando el cierre cuadro a cuadro (Vito, 2026-09-09: "la salida sobre
@@ -266,6 +275,30 @@ const BOTONES = [
   },
 ] as const
 
+/* LO QUE ABRE LA BARRA: el puntero moviéndose 20 px en la card, no el
+   hover sobre la barra. Elegido sobre un picker de tres disparos; la
+   tabla con lo que cuesta cada uno está en el README.
+
+   LA GRABACIÓN NO DICE CUÁL VA: ahí el puntero nunca sube a la barra y
+   las tres esperas son distintas. Es lo único de la pieza que no salió
+   de medir.
+
+   NO PONER CERO: dispara con el temblor de un píxel y con el primer
+   evento que manda el navegador al entrar. */
+const UMBRAL_MOVIMIENTO = 20 // px
+
+/* EL CAMPO SE ESCRIBE Y NO HACE NADA MÁS: sin sugerencias, sin
+   desplegable y sin cambiar de tamaño.
+
+   24 ES LO QUE ENTRA. La caja del texto mide 218 px (276 − 44 − 14) y un
+   carácter promedio con el tipo del sitio a 18 px mide 8.69: entran 25.
+
+   NO SOBREVIVE A UNA RECARGA a propósito: es estado del componente, sin
+   localStorage, así que no hay nada que restaurar ni un salto al cargar.
+   `autoComplete="off"` apaga la restauración de formularios, que es el
+   otro camino por el que un valor vuelve solo. */
+const MAXIMO = 24
+
 /* Un puntero fino que no puede hacer hover —un dedo— no tiene cómo
    pedir la separación, así que la pieza arranca abierta y se queda. Es
    lo mismo que hace el botón de velocidad del reproductor. */
@@ -289,7 +322,7 @@ function useMovimientoReducido() {
 
 type Asiento = { x: number; y: number; escala: number; ancho: number; alto: number }
 
-export default function ButtonsSeparate() {
+export default function ButtonsSeparate({ modo = 'detalle' }: { modo?: 'lista' | 'detalle' } = {}) {
   /* Sin los dos puntos: `useId` los devolvía en versiones anteriores de
      React y un id con `:` no se puede escribir en un `url(#…)`. */
   const id = useId().replace(/:/g, '')
@@ -298,12 +331,62 @@ export default function ButtonsSeparate() {
   const circulos = useRef<(SVGCircleElement | null)[]>([])
   const contenido = useRef<HTMLDivElement>(null)
   const botones = useRef<(HTMLButtonElement | null)[]>([])
+  /* El desenfoque va en el GLIFO y no en el botón: el botón también
+     lleva el velo del hover, y ese no se enfoca. */
+  const glifos = useRef<(SVGSVGElement | null)[]>([])
 
   /* Se decide ANTES del primer render y no en un efecto: con un efecto,
      un teléfono pintaría un cuadro con la forma cerrada y la abriría
      después. */
   const [abierto, setAbierto] = useState(sinHover)
   const reducido = useMovimientoReducido()
+  const [texto, setTexto] = useState('')
+
+  /* EN LA LISTA EL CAMPO NO SE ESCRIBE Y LOS BOTONES NO SE TOCAN. Ahí
+     el demo es un PREVIEW adentro de una card que promete abrir el
+     detalle: un campo de texto pelea con ese clic, y cuatro botones más
+     por card ensucian el tabulador. En el detalle la pieza es la cosa y
+     se usa entera.
+
+     LO DECIDE LA PROP, no el árbol: `modo` es la única prop que recibe
+     una pieza, y por qué es una prop y no una consulta al DOM está
+     arriba de Montaje, en demos.tsx. */
+  const esPreview = modo === 'lista'
+
+  /* EL DISPARO ESCUCHA LA ESCENA ENTERA, no la barra. Va en un efecto y
+     no en props de React porque el que tiene que escuchar es el <div> de
+     la escena, que también es el que enmascara: colgarle manejadores en
+     el JSX obligaría a re-renderizar la pieza para cambiarlos.
+     `pointermove` es pasivo: no llama a preventDefault. */
+  useEffect(() => {
+    const el = escena.current
+    if (!el) return
+    let desde: { x: number; y: number } | null = null
+    const mover = (e: PointerEvent) => {
+      if (!desde) {
+        desde = { x: e.clientX, y: e.clientY }
+        return
+      }
+      if (Math.hypot(e.clientX - desde.x, e.clientY - desde.y) >= UMBRAL_MOVIMIENTO) {
+        setAbierto(true)
+      }
+    }
+    const salir = () => {
+      desde = null
+      /* SI EL FOCO ESTÁ ADENTRO, NO SE CIERRA. Escribiendo en el campo y
+         sacando el mouse de la card, la barra se cerraba y el campo
+         crecía por encima de los botones con el cursor todavía puesto.
+         Cerrar es cosa del blur, que ya está más abajo. */
+      if (el.contains(document.activeElement)) return
+      setAbierto(sinHover())
+    }
+    el.addEventListener('pointermove', mover, { passive: true })
+    el.addEventListener('pointerleave', salir)
+    return () => {
+      el.removeEventListener('pointermove', mover)
+      el.removeEventListener('pointerleave', salir)
+    }
+  }, [])
 
   /* LOS RESORTES VIVEN EN UN REF y no en estado: los toca el lazo de
      cuadro, y un estado por cuadro volvería a renderizar la pieza
@@ -312,9 +395,16 @@ export default function ButtonsSeparate() {
     campo: nace(abierto ? 1 : 0, CAMPO),
     abanico: nace(abierto ? 1 : 0, ABANICO),
     icono: nace(abierto ? 1 : 0, ICONO),
+    foco: nace(abierto ? 1 : 0, FOCO),
     presion: BOTONES.map(() => nace(0, PRESION)),
   })
-  const todos = (r: typeof resortes.current) => [r.campo, r.abanico, r.icono, ...r.presion]
+  const todos = (r: typeof resortes.current) => [
+    r.campo,
+    r.abanico,
+    r.icono,
+    r.foco,
+    ...r.presion,
+  ]
 
   /* DÓNDE CAE LA BARRA DENTRO DE LA ESCENA. Las máscaras se dibujan en
      el espacio de la escena, así que el origen y la escala tienen que
@@ -347,10 +437,17 @@ export default function ButtonsSeparate() {
      variable CSS del padre: una variable obliga a recalcular el estilo
      de todo el subárbol por cuadro, y esto son cuatro escrituras. */
   const pintar = useCallback(() => {
-    const { campo: rc, abanico: ra, icono: ri, presion } = resortes.current
+    const { campo: rc, abanico: ra, icono: ri, foco: rf, presion } = resortes.current
     campo.current?.setAttribute('width', String(TOTAL + (G.campo - TOTAL) * rc.x))
     const paso = PASO * ra.x
-    const visible = String(Math.max(0, Math.min(1, ri.x)))
+    const opaco = Math.max(0, Math.min(1, ri.x))
+    const visible = String(opaco)
+    /* Se escribe la cadena vacía y no `blur(0px)`: un filtro, aunque no
+       haga nada, obliga al navegador a rasterizar el glifo en su propia
+       superficie, y en reposo son cuatro de gratis. El corte en 0.4 px
+       no se ve: por debajo de 0.5 Chrome ya redondea a cero. */
+    const radio = DESENFOQUE * (1 - rf.x)
+    const foco = opaco > 0.001 && radio > 0.4 ? `blur(${radio.toFixed(2)}px)` : ''
     for (let i = 0; i < BOTONES.length; i++) {
       const encogido = 1 - (1 - PRESION_ESCALA) * presion[i].x
       circulos.current[i]?.setAttribute('cx', String(RANURA + paso * i))
@@ -360,6 +457,8 @@ export default function ButtonsSeparate() {
         boton.style.transform = `translateX(${paso * i}px) scale(${encogido})`
         boton.style.opacity = visible
       }
+      const glifo = glifos.current[i]
+      if (glifo) glifo.style.filter = foco
     }
   }, [])
   useLayoutEffect(() => {
@@ -397,24 +496,39 @@ export default function ButtonsSeparate() {
      primer cuadro del resorte cae después de pintar, y eso son 16 ms
      sobre una separación de 730. */
   useLayoutEffect(() => {
-    const { campo: rc, abanico: ra, icono: ri } = resortes.current
+    const { campo: rc, abanico: ra, icono: ri, foco: rf } = resortes.current
     const salida = !abierto
     afinar(rc, reducido ? SIN_REBOTE : salida ? CAMPO_SALIDA : CAMPO)
     afinar(ra, reducido ? SIN_REBOTE : salida ? ABANICO_SALIDA : ABANICO)
     afinar(ri, reducido ? SIN_REBOTE : salida ? ICONO_SALIDA : ICONO)
+    afinar(rf, salida ? ICONO_SALIDA : FOCO)
+
+    /* CON MOVIMIENTO REDUCIDO NO HAY DESENFOQUE. Lo demás se acorta;
+       esto se apaga entero, porque un glifo fuera de foco no es una
+       versión más suave de un glifo nítido: es texto que no se lee. */
+    if (reducido) {
+      rf.x = 1
+      rf.v = 0
+    }
 
     /* Al montar, el destino ya es el que hay: no hay nada que integrar y
        pedir cuadros sería tenerlos girando por el retraso. */
     const destino = abierto ? 1 : 0
-    if (rc.x === destino && ra.x === destino && ri.x === destino) return
+    const enfoque = reducido ? 1 : destino
+    if (rc.x === destino && ra.x === destino && ri.x === destino && rf.x === enfoque) return
 
     const ahora = performance.now() / 1000
     rc.destino = ra.destino = ri.destino = destino
-    /* Al abrir sigue el abanico; al cerrar, el campo. Los iconos entran
-       tarde y se van enseguida: al cerrar no hay nada que esperar. */
-    rc.desde = ra.desde = ri.desde = ahora
+    rf.destino = enfoque
+    /* Al abrir sigue el abanico; al cerrar, el campo. Los glifos entran
+       tarde y se van enseguida: al cerrar no hay nada que esperar, y el
+       foco se va con ellos. */
+    rc.desde = ra.desde = ri.desde = rf.desde = ahora
     ;(abierto ? ra : rc).desde = ahora + (reducido ? 0 : RETRASO)
-    if (abierto && !reducido) ri.desde = ahora + RETRASO + RETRASO_ICONO
+    if (abierto && !reducido) {
+      ri.desde = ahora + RETRASO + RETRASO_ICONO
+      rf.desde = ahora + RETRASO + RETRASO_FOCO
+    }
     animar()
   }, [abierto, reducido, animar])
 
@@ -445,9 +559,15 @@ export default function ButtonsSeparate() {
 
   return (
     <div className="pieza" data-pieza="buttons-separate">
-      <style href="pieza-buttons-separate" precedence="medium">
-        {HOJA}
-      </style>
+      {/* Ver LA HOJA, abajo: izada y deduplicada en producción, en línea
+          en desarrollo para que un cambio de CSS se vea sin recargar. */}
+      {import.meta.env.DEV ? (
+        <style>{HOJA}</style>
+      ) : (
+        <style href="pieza-buttons-separate" precedence="medium">
+          {HOJA}
+        </style>
+      )}
 
       <div className="escena" ref={escena}>
         <div className="fondo" aria-hidden="true" />
@@ -532,26 +652,24 @@ export default function ButtonsSeparate() {
         </div>
         <div className="borde" style={mascara('anillo')} aria-hidden="true" />
 
-        {/* LA CAJA QUE ESCUCHA AL PUNTERO ES LA BARRA VISIBLE, no la
-            escena: sobre una card de 544×400 el puntero está siempre
-            adentro y no se vería nunca la forma cerrada, que es la
-            mitad de la pieza. */}
+        {/* EL PUNTERO LO ESCUCHA LA ESCENA, en el efecto de arriba. Acá
+            quedan sólo el foco y el desenfoque de foco, que son el
+            camino del teclado: sin ellos la separación no existiría para
+            quien no usa un puntero. */}
         <div
           className="contenido"
           ref={contenido}
           data-abierto={abierto ? '' : undefined}
           style={{ transform: asiento }}
-          onPointerEnter={() => setAbierto(true)}
-          onPointerLeave={() => setAbierto(sinHover)}
           onFocus={() => setAbierto(true)}
           onBlur={(e) => {
             if (!e.currentTarget.contains(e.relatedTarget)) setAbierto(sinHover)
           }}
         >
-          <div className="campo" aria-hidden="true">
+          <div className="campo" aria-hidden={esPreview || undefined}>
             {/* El glifo llena la caja de 0.75 a 15.25; el trazo de 1.27
                 da los 2 pt medidos en la referencia (1.43 px). */}
-            <svg className="lupa" viewBox="0 0 16 16" fill="none">
+            <svg className="lupa" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <circle cx="6.4" cy="6.4" r="5" stroke="currentColor" strokeWidth="1.27" />
               <path
                 d="M9.95 9.95 14.8 14.8"
@@ -560,7 +678,29 @@ export default function ButtonsSeparate() {
                 strokeLinecap="round"
               />
             </svg>
-            <span className="marcador">Search</span>
+            {esPreview ? (
+              <span className="marcador">Search</span>
+            ) : (
+              <input
+                className="marcador entrada"
+                type="text"
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                placeholder="Search"
+                aria-label="Search"
+                maxLength={MAXIMO}
+                /* Ninguno de los cuatro es decorativo: `off` apaga la
+                   restauración del navegador al recargar —que es por
+                   donde volvería un valor viejo—, y los otros tres
+                   sacan la corrección, el subrayado rojo y la barra de
+                   dictado, que son cosas de un formulario y acá no hay
+                   ninguno. */
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+            )}
           </div>
           {BOTONES.map((b, i) => (
             <button
@@ -572,6 +712,14 @@ export default function ButtonsSeparate() {
               className="boton"
               style={{ left: RANURA - G.boton / 2 }}
               aria-label={b.nombre}
+              /* EN LA LISTA NO SE TABULA NI SE TOCA, por lo mismo que el
+                 campo no se escribe: ahí el demo es un preview adentro
+                 de una card que promete abrir la pieza. Sin esto,
+                 tabular por la lista para en cuatro botones por card que
+                 no hacen nada. Con pointer-events en none el clic cae en
+                 la card y navega, que es lo que el lector espera. */
+              tabIndex={esPreview ? -1 : undefined}
+              data-inerte={esPreview ? '' : undefined}
               onPointerDown={() => apretar(i, true)}
               onPointerUp={() => apretar(i, false)}
               onPointerCancel={() => apretar(i, false)}
@@ -584,7 +732,14 @@ export default function ButtonsSeparate() {
                 e.stopPropagation()
               }}
             >
-              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+                ref={(el) => {
+                  glifos.current[i] = el
+                }}
+              >
                 <path
                   d={b.trazo}
                   stroke="currentColor"
@@ -632,9 +787,10 @@ const HOJA = `
   /* El mismo radio que la card. Va escrito con respaldo porque una
      pieza no importa nada del producto: si el token está, manda. */
   border-radius: var(--card-radio, 8px);
-  --fondo:
-    radial-gradient(118% 150% at 20% 8%, #f2f5fa 0%, #cdd6e5 38%, #9aa7bd 76%, #8492aa 100%),
-    linear-gradient(160deg, #e8edf5 0%, #7f8da5 100%);
+  /* Ver RAMPA: cada parada es el lienzo de la página con tinta
+     mezclada, en el porcentaje que iguala la luminancia que tenía el
+     degradado escrito a mano. */
+  --fondo: ${degradado(RAMPA.claro)};
   /* EL VELO Y EL DESENFOQUE SALEN DEL MATERIAL NATIVO, medidos en esta
      misma Mac con una sonda de SwiftUI: .glassEffect() sobre tres rampas
      de valor conocido, capturado con screencapture y ajustado por
@@ -658,14 +814,19 @@ const HOJA = `
   --realce: rgba(46, 68, 97, 0.1);
   /* UNA SOLA TINTA. En la referencia el placeholder, la lupa y los
      cuatro glifos miden lo mismo —rgb(47,69,99), rgb(48,69,97) y
-     rgb(44,65,95)—: no hay un gris de marcador aparte. */
-  --tinta: #2e4461;
+     rgb(44,65,95)—: no hay un gris de marcador aparte.
+
+     Y SALE DEL SISTEMA, igual que el fondo y por el mismo método: la
+     mezcla que iguala la LUMINANCIA de la tinta medida. #2e4461 está en
+     L* 28.32 y 78.9 % de tinta sobre el lienzo da L* 28.32. Se pierde el
+     tono frío y se conserva el peso, que es lo que decide la lectura: el
+     contraste contra el vidrio queda en los mismos 7.88:1. Con el fondo
+     ya neutro, una tinta fría era la única costura que quedaba. */
+  --tinta: color-mix(in srgb, var(--ink, #111111) 78.9%, var(--canvas, #fdfdfc));
 }
 @media (prefers-color-scheme: dark) {
   [data-pieza='buttons-separate'] .escena {
-    --fondo:
-      radial-gradient(118% 150% at 20% 8%, #5b74a2 0%, #35486d 38%, #1a2338 76%, #131a2b 100%),
-      linear-gradient(160deg, #3d5075 0%, #0c1120 100%);
+    --fondo: ${degradado(RAMPA.oscuro)};
     /* Más velo que en claro: el vidrio de la referencia sube el fondo
        unos 120 niveles en los tres canales, y sobre un fondo oscuro eso
        pide más blanco para llegar al mismo lugar. */
@@ -680,7 +841,9 @@ const HOJA = `
     --anillo: rgba(226, 246, 255, 0.42);
     --sombra: 0.42;
     --realce: rgba(255, 255, 255, 0.2);
-    --tinta: #2b405c;
+    /* La misma cuenta con los tokens del tema: 22.4 % de tinta sobre el
+       lienzo oscuro da L* 26.6, que es la tinta que había. */
+    --tinta: color-mix(in srgb, var(--ink, #fafaf9) 22.4%, var(--canvas, #090908));
   }
 }
 [data-pieza='buttons-separate'] .fondo,
@@ -750,26 +913,93 @@ const HOJA = `
   z-index: 1;
   color: var(--tinta);
 }
+/* EL CAMPO ES LA PÍLDORA ENTERA y no una fila que crece con su
+   contenido. Antes era un flex de dos —glifo, texto— y el ancho lo ponía
+   la palabra; con un input adentro eso es un campo que se agranda al
+   escribir. Ahora la caja mide lo que mide el campo abierto y las dos
+   partes se apoyan encima, cada una en su lugar medido, así que el clic
+   cae en cualquier parte de la píldora, incluida la lupa. */
 [data-pieza='buttons-separate'] .campo {
   position: absolute;
-  inset: 0 auto 0 ${G.lupaSangria}px;
-  display: flex;
-  align-items: center;
-  gap: ${G.lupaTexto}px;
+  inset: 0 auto 0 0;
+  width: ${G.campo}px;
   pointer-events: none;
   user-select: none;
 }
 [data-pieza='buttons-separate'] .lupa {
+  position: absolute;
+  left: ${G.lupaSangria}px;
+  top: ${(G.alto - G.lupa) / 2}px;
   width: ${G.lupa}px;
   height: ${G.lupa}px;
-  flex: none;
   color: var(--tinta);
 }
+/* LA MISMA CAJA PARA LOS DOS, el <span> de la lista y el <input> del
+   detalle, para que el texto no se mueva ni un píxel entre uno y otro:
+   la píldora entera, con la sangría de la izquierda como padding y la
+   línea del alto de la barra. Con la altura de línea igual al alto, el
+   medio interlineado centra el glifo exactamente donde lo dejaba la
+   altura de línea 1 de antes —misma métrica, misma línea de base— y de
+   paso deja aire para las colas de la g y la y, que un input sí recorta
+   contra su caja. */
 [data-pieza='buttons-separate'] .marcador {
+  position: absolute;
+  inset: 0;
+  padding: 0 ${G.lupaSangria}px 0 ${G.lupaSangria + G.lupa + G.lupaTexto}px;
   font-size: ${G.texto}px;
-  line-height: 1;
+  line-height: ${G.alto}px;
   letter-spacing: -0.01em;
   color: var(--tinta);
+}
+[data-pieza='buttons-separate'] .entrada {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-weight: inherit;
+  appearance: none;
+  pointer-events: auto;
+  user-select: text;
+  /* EL BLANCO LLEGA A 44 aunque la barra mida 40. Los 2 px de cada lado
+     sobresalen de la píldora y caen sobre la escena, que no escucha el
+     clic, así que no le sacan blanco a nadie. La altura de línea sube
+     con la caja —40 → 44— y por eso el texto no se mueve: el medio
+     interlineado lo recentra y la línea de base queda donde estaba.
+     Los cuatro botones ya llegaban a 44 por su ::before. */
+  top: -2px;
+  bottom: -2px;
+  line-height: 44px;
+  /* Sin esto, un toque doble sobre el campo hace zoom en vez de escribir. */
+  touch-action: manipulation;
+  /* El cursor ES el indicador de foco de este campo (nota de abajo), así
+     que se le fija la tinta de la pieza y no se deja al navegador. */
+  caret-color: var(--tinta);
+  /* Al tocar, Android e iOS pintan un rectángulo gris encima. Es la
+     misma familia de problema que el anillo: chrome del navegador
+     dibujado sobre el vidrio. */
+  -webkit-tap-highlight-color: transparent;
+}
+/* En la referencia el marcador, la lupa y el texto escrito miden lo
+   mismo: no hay un gris de placeholder aparte. Firefox le pone 0.54 de
+   opacidad por su cuenta. */
+[data-pieza='buttons-separate'] .entrada::placeholder {
+  color: var(--tinta);
+  opacity: 1;
+}
+/* EL CAMPO NO LLEVA ANILLO DE FOCO, Y NO ES UN OLVIDO. En un campo de
+   texto Chrome hace coincidir :focus-visible SIEMPRE —el elemento acepta
+   teclas—, así que un clic normal para escribir dibuja el anillo: no es
+   un indicador de foco, es un borde permanente. Y salía rectangular
+   sobre una píldora, porque el radio lo dibuja la máscara y no este
+   elemento.
+
+   El indicador es EL CURSOR, que está siempre que el campo tiene el
+   foco, con el mouse y con el tabulador. Los cuatro botones sí llevan
+   anillo: un botón no tiene cursor. */
+[data-pieza='buttons-separate'] .entrada:focus,
+[data-pieza='buttons-separate'] .entrada:focus-visible {
+  outline: none;
 }
 [data-pieza='buttons-separate'] .boton {
   position: absolute;
@@ -789,6 +1019,7 @@ const HOJA = `
   place-items: center;
   cursor: pointer;
   isolation: isolate;
+  touch-action: manipulation;
   /* Cerrado están los cuatro apilados y transparentes: sin esto, un
      clic ahí le pega al último de la pila. */
   pointer-events: none;
@@ -796,17 +1027,37 @@ const HOJA = `
 [data-pieza='buttons-separate'] .contenido[data-abierto] .boton {
   pointer-events: auto;
 }
+[data-pieza='buttons-separate'] .boton[data-inerte] {
+  pointer-events: none;
+  cursor: inherit;
+}
 /* El área de toque llega a 44 sin tocar la del vecino: el hueco es de
-   7, y 3 de cada lado dejan 1 entre las dos. */
+   7, y 3 de cada lado dejan 1 entre las dos.
+
+   CON LA BARRA CERRADA, ESTOS BOTONES SON FOCALIZABLES Y VALEN CERO DE
+   OPACIDAD. Una auditoría lo marca —tabular hacia algo invisible es un
+   defecto— y acá no lo es: el foco ABRE la barra, porque el onFocus vive
+   en el contenido y focusin burbujea. Verificado tabulando de verdad: el
+   foco llega primero al campo, que ya la abre, así que ninguno de los
+   cuatro recibe el foco invisible; y entrando por atrás, el que lo
+   recibe la abre en el mismo cuadro. Es el patrón de un disclosure:
+   esconderlos con visibility hidden cerraría el único camino que tiene
+   el teclado para abrirla. */
 [data-pieza='buttons-separate'] .boton::before {
   content: '';
   position: absolute;
   inset: -3px;
 }
+/* El filtro lo escribe el lazo de cuadro mientras el glifo se enfoca, y
+   vuelve a la cadena vacía cuando llega. El borrón es más grande que el
+   glifo, así que necesita lugar para desbordar: overflow visible es el
+   valor por defecto de un svg en línea, pero se deja escrito porque de
+   eso depende que el borrón no salga recortado. */
 [data-pieza='buttons-separate'] .boton svg {
   position: relative;
   width: ${G.icono}px;
   height: ${G.icono}px;
+  overflow: visible;
 }
 /* EL HOVER ENCIENDE EL VIDRIO, no el glifo. El relleno del botón lo
    dibuja la capa enmascarada, que es una sola para las cinco formas: un
@@ -841,3 +1092,15 @@ const HOJA = `
   outline-offset: var(--focus-outline-offset, 2px);
 }
 `
+
+/* LA HOJA se iza en producción y va en línea en desarrollo. React 19 iza
+   un <style href> UNA sola vez por href: eso deduplica la lista y el
+   detalle, y con HMR deja la hoja VIEJA puesta hasta recargar a mano.
+   Sin href no hay izado y el cambio de CSS se ve al toque, también al
+   deshacerlo.
+
+   NO PONERLE LA HUELLA DE LA HOJA AL href: arregla la ida y rompe la
+   vuelta, porque al volver a un CSS anterior gana la última que entró.
+   Medido. En desarrollo quedan dos <style> iguales; es inofensivo y la
+   rama no llega al bundle. */
+

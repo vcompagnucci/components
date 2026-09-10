@@ -28,6 +28,11 @@ import { Seccion } from '../notas'
    página: la falla que `better-writing` encontró en Swipeable tabs fue
    justamente una contracción suelta en once párrafos.
 
+   Sin primera persona, la voz sale de la frase que corrige: "They do not
+   fade in", "The first button never moves", "React sees none of it",
+   "Hover cannot be the only way in". Es la misma que usa Hold to commit
+   ("the fill is the progress, not a bar beside it").
+
    UN SOLO NOMBRE POR COSA, en toda la página y no por sección: "the
    field" para el campo (nunca "bar", "input" ni "search box"), "the
    buttons" para los cuatro (nunca "circles" ni "pills"), "one shape"
@@ -41,18 +46,66 @@ import { Seccion } from '../notas'
    el gesto que da nombre a la pieza. La referencia se nombra en el
    cierre, junto con cómo se midió.
 
+   LOS GLIFOS TIENEN PÁRRAFO PROPIO, y no una frase colgada del de los
+   resortes. Es el único punto de la pieza donde lo que se mueve no es
+   una posición, y decirlo en una subordinada lo escondía. La frase que
+   carga el peso es "They do not fade in": el lector ya vio cien cosas
+   aparecer con opacidad y hay que sacarle esa lectura de encima antes de
+   contarle cuál es.
+
+   LA FORMA es la de Hold to commit y Swipeable tabs: Anatomy en tres
+   párrafos más el de la referencia, Performance en dos, Use cases en
+   dos. Acortar es CORTAR HECHOS, no apretar frases, y los números no se
+   tocan: un texto más corto que además redondea es un texto menos
+   cierto.
+
+   LO QUE SE CORTÓ, para que no vuelva a entrar sin decidirlo:
+     · LA SALIDA ("The way back is shorter…"). Falta a propósito: se ve
+       al sacar el puntero y no hace falta anunciarla. Su porqué está en
+       la pieza, arriba de CAMPO_SALIDA.
+     · MOVIMIENTO REDUCIDO y el camino del teclado no tienen párrafo
+       propio: son dos oraciones adentro del de los glifos, que es lo
+       que hace Hold to commit con lo mismo.
+     · Del vidrio, la segunda mitad —el umbral, la tira—: es cómo está
+       hecha la máscara, no algo que se vea.
+
+   DOS DOS-PUNTOS EN MEDIO DE ORACIÓN, y no más. Hubo cinco, cuatro de
+   ellos como conector, y cinco juntos son una marca de agua aunque cada
+   uno se defienda solo. Los que quedan hacen trabajo: presentar el
+   mecanismo que reemplaza al fundido y presentar los resultados de la
+   medición.
+
+   "THIS AREA" para el rectángulo donde vive la pieza. Es el nombre que
+   ya usa Swipeable tabs ("panes of content in one area"). No es "card":
+   la pieza corre en dos cajas distintas y "card" es vocabulario del
+   sitio, no de la pieza.
+
    LOS NÚMEROS, verificados contra el código y contra la medición:
      · 365 ms y 532 ms son las duraciones de los dos resortes en la
        parametrización de Apple (ω = 2π/duración), ajustadas por mínimos
        cuadrados sobre la grabación con 1.57 y 1.42 pt de error en 64
        cuadros. Están en `CAMPO` y `ABANICO`.
      · 42 ms es el retraso entre los dos, medido. Está en `RETRASO`.
-     · Los cuadros, medidos en Chrome el 2026-09-09 con el procesador
-       VEINTE veces más lento y OCHO copias de la pieza en la página:
-       scrolleando se pierde 1 de 59, y con una abriéndose y las otras
-       siete en reposo se pierden 2 de 54. A 4× no se pierde ninguno.
-       El peor caso sintético —las ocho animando a la vez a 20×— cae a
-       30 cuadros, y no puede pasar: hay un solo puntero.
+     · 20 px es el recorrido del puntero que abre la barra, y no sale de
+       la grabación: la eligió Vito el 2026-09-09 sobre un picker de tres
+       disparos. Por eso el texto NO dice que sea lo que hace la
+       referencia — la grabación no muestra qué la dispara.
+     · 290 ms y 640 son el principio y el final del desenfoque de los
+       glifos: el tramo medido arranca a los 290 y dura 350. La opacidad
+       es otro tramo, más corto (270 y 260), y NO se nombra: que sean dos
+       resortes es una decisión de implementación, y el lector ve un solo
+       hecho, que el glifo se enfoca en vez de fundirse.
+     · Los cuadros, remedidos el 2026-09-10 en un Chrome de verdad, con
+       GPU, y sobre CINCO corridas: a 20× y con ocho copias montadas,
+       scrolleando no se pierde ninguno, y con una abriéndose y las otras
+       siete en reposo se pierde 1 de 55 en el peor caso (0 en tres de
+       las cinco). El texto dice "at most", que es lo único honesto con
+       una cifra que varía entre corridas, y por eso son cinco y no una.
+       NO VOLVER a 1 de 59 y 2 de 54: era la misma medición de una sola
+       corrida, y exageraba el costo. Y NO PUBLICAR el peor caso
+       sintético —las ocho copias animando a la vez, que cae a 30
+       cuadros—: no puede pasar, hay un solo puntero. A 4× no se pierde
+       ninguno.
 
    LA SALIDA NO ES LA ENTRADA AL REVÉS, y el texto lo dice porque se
    ve. Los tres arreglos, con su porqué, están arriba de CAMPO_SALIDA en
@@ -88,61 +141,49 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          A search field, and beside it a single shape of glass. Bring the pointer over the group
-          and the shape opens into four round buttons; take the pointer away and the four close
-          back into one.
+          A search field, and beside it a single shape of glass. Move the pointer anywhere over this
+          area and the shape opens into four round buttons; take the pointer away and they close
+          back into one. Twenty pixels of travel are enough. The pointer never has to reach the
+          group. The field takes text and does nothing with it.
         </p>
         <p>
-          The field carries the opening. It shortens from the full width of the group down to its
-          own, then the four buttons fan out from where the first one sits. The first button never
-          moves: what opens is the spacing.
+          The field carries the opening. It shortens from the full width of the group to its own,
+          and the four buttons fan out from where the first one sits. The first button never moves;
+          what opens is the spacing. Two springs run it. The field settles in 365 ms. The spacing
+          starts 42 ms later and settles in 532. While the shapes are still close the glass joins
+          them with a neck that thins and snaps.
         </p>
         <p>
-          Two springs run it, not one. The field settles in 365 ms and the spacing in 532, and the
-          spacing starts 42 ms later, so the field is already pulling back before the first button
-          shows. While the shapes are still close the glass joins them with a neck that thins and
-          snaps. The icons arrive last, once the buttons are nearly in place.
-        </p>
-        <p>
-          The way back is shorter. The four gather first and the field grows over them, and the
-          icons are gone before the shapes touch.
-        </p>
-        <p>
-          With reduced motion the four still separate, in one short step and without the overshoot.
-          Where the pointer cannot hover, on a phone, the buttons stay out; moving keyboard focus
-          into the group opens them.
+          The icons arrive last and out of focus. They do not fade in: a blur opens over them at
+          290 ms and closes to nothing by 640. With reduced motion they come in sharp and the four
+          separate in one short step. Where the pointer cannot hover, the buttons stay out, and
+          keyboard focus opens them.
         </p>
         <p>
           The reference is Spotlight in macOS Tahoe, measured frame by frame at 60 fps. Both springs
-          come from a least squares fit to the moving edge of that recording, and the piece running
-          here was measured back against it.
+          come from a least squares fit to that recording, and the piece was measured back against
+          it.
         </p>
       </Seccion>
 
       <Seccion titulo="Performance">
         <p>
-          Nothing re-renders while it moves. The springs write the field width, the button
-          positions, their radius and their opacity straight into the document, and React sees none
-          of it.
-        </p>
-        <p>
-          The glass is not a live blur of the page behind it. It is a second copy of the same
-          backdrop, blurred once and never again, and what moves each frame is the mask that cuts it
-          to shape. That mask is one blur and one threshold over the strip the group occupies, which
-          is also what fuses the shapes while they are close.
+          Nothing re-renders while it moves. The springs write the shapes and their opacity straight
+          into the document, and React sees none of it. The glass is not a live blur of the page
+          behind it. It is a second copy of the same backdrop, blurred once, and what moves each
+          frame is the mask that cuts it to shape.
         </p>
         <p>
           Measured in Chrome with the processor slowed twenty times and eight copies of the piece on
-          the page: scrolling drops 1 frame in 59, and one copy opening while the other seven rest
-          drops 2 in 54.
+          the page, over five runs: scrolling drops no frames, and one copy opening while the other
+          seven rest drops at most 1 in 55.
         </p>
       </Seccion>
 
       <Seccion titulo="Use cases">
         <p>
-          A group of controls can rest as one shape and open when the pointer arrives. The resting
-          state is quieter, and nothing is hidden from view: what opens is the same glass, in the
-          same place, at the same size.
+          A group of controls can rest as one shape and open when the pointer arrives. Nothing is
+          hidden. What opens is the same glass, in the same place, at the same size.
         </p>
         <p>
           Hover cannot be the only way in. A pointer that cannot hover never gets the opening, so
