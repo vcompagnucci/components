@@ -2233,172 +2233,139 @@ medida hace exactamente esto, y ahí el hueco lo llenaba el material; acá
 queda vacío y se ve. Si algún día molesta, la salida es encoger la barra
 anclada al borde derecho, y hay que medir qué cuesta animar el ancho.
 
-## De un disco a un centro de control
+## El disco se fue, y las opciones volvieron de la referencia medidas
 
-**El pedido** (2026-09-10): *"vamos a hacer de este componente una cosa
-mucho más simple que no sea algo de música, que sea un centro de control
-de verdad usable"*. Y, preguntado si el gesto sobrevivía: **se mantiene**
-—el rótulo se sigue corriendo y los controles siguen saliendo del botón
-de la derecha—, y sobre qué controlar: **"buscá referencias"**.
+Tres pedidos del 2026-09-10, en orden: *"que no sea algo de música, que
+sea un centro de control de verdad usable"*, después *"poné las opciones
+como en la referencia, tal cual"*, y *"en vez de pin poné corazón"*.
 
-### Lo que estaba mal no era la música
+### Lo que estaba mal no era el disco
 
 La barra nombraba *The Dark Side of the Moon* y tenía tres acciones:
 `like`, `share` y `close`. **Dos de las tres no hacían nada.** `share`
 abría una tarjeta que ya se había borrado, y `like` marcaba un ítem que
-no existe. Una pieza de exposición sobre una barra de controles cuyos
-controles no controlan nada es una contradicción, y el disco era sólo la
-parte visible.
+no existe. El disco era la parte visible; lo de fondo eran los botones
+muertos.
 
-### Las referencias, medidas en esta máquina
+Entre medio se probó un camino que no quedó, y vale anotarlo con lo que
+dejó: la barra como **centro de control del display**, con tres
+interruptores —modo oscuro, aumentar contraste, reducir movimiento— que
+de verdad redibujaban la pieza. La referencia salió del catálogo de
+controles de esta Mac, `defaults export com.apple.controlcenter`, donde
+`Dark Mode` figura con `ControlType 1` y la descripción "Toggle whether
+Dark Mode is enabled". Se descartó porque las opciones tenían que ser las
+de la grabación. **Lo que sobrevive de esa vuelta es que ningún botón
+puede no hacer nada**, y eso ahora se cumple sin interruptores:
 
-No salieron de buscar imágenes: salieron del catálogo de controles del
-sistema, leído de sus propias preferencias en macOS 26.6.1.
+- **el corazón** marca el ítem, y el glifo se llena;
+- **compartir** copia el enlace de la pieza al portapapeles, y el segundo
+  renglón lo dice por dos segundos;
+- **cerrar** cierra la fila.
 
-```
-defaults export com.apple.controlcenter -
-  → ControlCenterDisplayableChronoControlsProviderConfiguration
-```
+Compartir copia y avisa, y no abre nada. Es lo único honesto en un
+navegador: Mensajes, Mail y Notas no existen acá, así que una hoja con
+cuatro destinos serían cuatro botones muertos otra vez. Y si el
+portapapeles rechaza —sin permiso, sin gesto— **el rótulo no dice que
+copió**.
 
-Devuelve tres controles, cada uno con su tipo — y los dos tipos que
-existen son exactamente los dos que la guía nombra, "a button or toggle":
+Y el ítem dejó de ser un disco sin volver a ser el libro de la
+grabación: la barra nombra la exposición misma. No hay arte de terceros
+en el bundle, y hace que compartir sea verdad, porque lo que copia es el
+enlace de esta pieza.
 
-| control | descripción, textual | `ControlType` |
-| --- | --- | --- |
-| Capture Screen | "Button to take a screenshot" | 2 · botón |
-| Dark Mode | "Toggle whether Dark Mode is enabled" | 1 · interruptor |
-| Stage Manager | "Enable Stage Manager" | 1 · interruptor |
+### "Tal cual" es una instrucción con números atrás
 
-Y el módulo que los agrupa —`ControlCenter.app/Contents/PlugIns/
-DisplayControls.appex`, bundle `com.apple.controls.display`— declara
-seis: `dark-mode`, `night-shift` y `true-tone` como interruptores, y
-`lock`, `screen-saver` y `sleep` como botones. Su ícono lo declara su
-`Info.plist`: `ISTypeIdentifier = com.apple.graphic-icon.display`, que es
-la placa que ahora abre la fila.
+Del cuadro 0080 de la grabación, con la fila abierta y asentada, sobre
+una cápsula de 782×138:
 
-**De esa lista, en un navegador sólo `dark-mode` puede ser verdad.** Night
-Shift y True Tone son la temperatura del panel. Así que los otros dos
-interruptores salen de Accesibilidad, que es donde el sistema pone las
-dos preferencias que esta pieza YA escuchaba y nadie podía ver sin ir a
-cambiar los ajustes: aumentar contraste y reducir movimiento.
+| | referencia | | antes | ahora |
+| --- | --- | --- | --- | --- |
+| botón / alto de la barra | 120/138 | 0.87 | 0.71 | 0.857 |
+| paso / botón | 127.5/120 | 1.0625 | 1.15 | 1.0625 |
+| padding / alto de la barra | 9/138 | 0.065 | 0.143 | 0.071 |
+| caja del glifo / botón | | ~0.625 | 0.40 | 0.625 |
+| trazo / alto del glifo | 7.4/39 | 0.19 | 0.125 | 0.19 |
+| tinta del glifo | 0.0 | negro | 80 % | tinta |
 
-El resultado es que los tres interruptores de la pieza son las **tres
-ramas que DESIGN.md ya tenía medidas**. No hubo que inventar un solo
-color: los cuatro juegos —claro, oscuro, y los dos de alto contraste— son
-los mismos que ya estaban en las cuatro `@media`, movidos a atributos.
+Los centros de los tres botones caen en 546, 673.5 y 801: un paso de
+**127.5 exacto**, que es de donde sale 1.0625.
 
-### Dos glifos por interruptor, y por qué
+**El tamaño del glifo no se eligió: convergió.** Las tres cajas de tinta
+de la grabación son pin 35×53, share 44×55 y xmark 39×39; despejando cada
+una contra la proporción del trazado que dibujamos acá dan S = 29.3, 30.6
+y 30.2. Tres mediciones independientes en 30 no son un promedio, son un
+acuerdo. Antes el glifo era 16 sobre un botón de 40.
 
-De la guía de controles, servida ese día:
+**El trazo de 0.19 es el peso en negrita**, y se aparta del censo del
+repo —1.5 sobre una caja de 16, o sea 0.125— a propósito y por pedido. La
+diagonal del xmark se midió corrigiendo por el corte: la corrida
+horizontal da 10.5 px y sobre una diagonal a 45° el trazo real es
+10.5/√2 = 7.4.
 
-> "For control toggles, provide a symbol for both the on and off states.
-> For example, use the SF Symbols `door.garage.open` and
-> `door.garage.closed`."
+**El radio concéntrico sigue cerrando exacto**, que es la prueba de que
+el número entra en el sistema en vez de romperlo: 28 de la píldora menos
+4 de padding dan 24, que es la mitad de 48. Y 48 sigue por encima del
+mínimo de área de toque, que es 40: el botón creció, no se achicó.
 
-> "Use symbol animations to highlight state changes. For control toggles,
-> animate the transition between both on and off states."
+### La tapa no es un control, y también estaba medida mal
 
-Por eso cada interruptor lleva **dos dibujos distintos** y no el mismo
-relleno y sin rellenar, que es lo que hacía el corazón. Los seis salen de
-medir el símbolo del sistema con `apple/simbolos.swift` —512 px, peso
-regular, y de ahí la proporción y el grosor—:
-
-| símbolo | tinta | ancho/alto | trazo/alto |
-| --- | --- | --- | --- |
-| `sun.max` | 338×338 | 1.000 | 0.080 |
-| `moon.fill` | 314×315 | 0.997 | — (relleno) |
-| `circle` | 318×318 | 1.000 | 0.085 |
-| `circle.lefthalf.filled` | 318×318 | 1.000 | 0.085 |
-| `waveform.path` | 383×356 | 1.076 | 0.053 |
-| `display` | 373×314 | 1.188 | 0.083 |
-
-Que `circle` y `circle.lefthalf.filled` midan **lo mismo** es el dato que
-decide el par del contraste: son el mismo aro, y lo único que cambia es
-la media cara. Medido en la fila del medio del segundo, la tinta va de
-0.0 a 0.5 —maciza hasta el borde— y después sólo el trazo de la derecha.
-
-**Una de las seis formas es nuestra y hay que decirlo.** La onda de
-`waveform.path` tiene siete picos de alturas distintas —su fila central
-la cruza en ocho corridas— y a 16 px eso es una mancha. La de la pieza
-son tres medios períodos de 4 de ancho y 2.2 de amplitud. Los dos
-extremos del par sí son del sistema: la onda y `minus`.
-
-**Y el encendido es la línea, no la onda.** El interruptor se llama
-"reducir movimiento", así que prendido tiene que mostrar el movimiento
-reducido: cada estado dibuja lo que ES, que es la regla del
-`door.garage.open` / `door.garage.closed`.
-
-### La paleta se fue de `@media` a atributos, y es una necesidad
-
-Con la paleta en `@media (prefers-color-scheme: dark)`, apretar el
-interruptor **no puede ganarle a la consulta** salvo subiendo
-especificidad, y esa pelea la pierde siempre alguien. Ahora la consulta
-se lee **una sola vez, en JavaScript y sincrónico** —en el inicializador
-del `useState`, así que el primer cuadro ya sale con la apariencia
-correcta y no hay salto— y desde ahí el atributo del DOM es la única
-fuente. Los valores no cambiaron ni uno.
-
-Y los tres **siguen al sistema hasta que los tocás**: cambiar el tema del
-Mac con la pieza en pantalla la cambia con ella; después de apretar un
-interruptor, ese queda tuyo y deja de escuchar.
-
-### El texto tuvo que mudarse adentro de la pieza
-
-Si el rótulo siguiera al `--ink` de la página, el modo oscuro del
-interruptor dejaría **letras negras sobre una píldora negra**: la página
-no se da vuelta, la pieza sí. Así que la tinta y el gris de anotación se
-escriben en la barra, con los alfas del sistema —37 % en claro, 59.2 % en
-oscuro, y 57.4 / 78.8 en alto contraste, que es donde los dos grises se
-colapsan en uno—.
-
-Lo que **no** cambió es que la pieza no trae fondo propio: todo lo que se
-da vuelta vive adentro de la píldora, así que el modo oscuro de acá no le
-pinta un rectángulo negro a la card. La regla de DESIGN.md § Elevación
-sigue intacta.
-
-### El hueco de 200 px se cerró solo
-
-El costo que la vuelta anterior aceptaba —la barra con la tapa a la
-izquierda, los botones a la derecha y un vacío en el medio— desapareció
-al sacar el disco: el rótulo ahora ocupa ese lugar. Y el viaje del
-rótulo, que sin la tapa se quedaba sin razón, la recuperó: **lo que le
-abre lugar es la placa del módulo, que se apaga**, igual que el chevron
-de volver en la grabación de referencia. Son 40 + 8 = 48 de ranura contra
-40 de viaje, y 40 es `0.867 × 46`, la misma razón medida de siempre.
-
-### Lo que se verificó, con eventos de entrada de verdad
-
-`sonda/controles.mjs` mide tres cosas por paso, y las tres tienen que
-moverse juntas: quién recibe el clic en esas coordenadas, el estado que
-la pieza declara, y **el píxel** —el relleno de la barra computado por el
-navegador—. Un interruptor que dice estar encendido y no cambia nada en
-pantalla es el botón muerto que esta vuelta vino a sacar.
+Medida de la misma grabación:
 
 ```
-qué se aprieta        recibe     tema    contr  relleno
-(al cargar)                      claro   false  rgb(233, 233, 228)
-Dark Mode             el botón   oscuro  false  rgb(29, 29, 28)
-Increase Contrast     el botón   oscuro  true   rgb(49, 49, 47)
-Dark Mode otra vez    el botón   claro   true   rgb(213, 213, 204)
+tapa / alto de la cápsula    98/138 = 0.710   → 40 sobre 56
+radio / lado                  39/99 = 0.394   → 16 sobre 40
 ```
 
-- **El recorrido con teclado**: Dark Mode → Increase Contrast → Reduce
-  Motion → Close, y de ahí sale al link de volver de la página. El
-  ciclo no se traba y el foco no se cae al cuerpo.
-- **Movimiento reducido**: con la preferencia puesta, el interruptor
-  arranca encendido y el abanico está **en su destino a un cuadro** de
-  abrir (viaje 0). Sin ella, arranca a 560 y viaja −138, que es
-  `3 × 46` exacto.
+O sea que **la tapa es más chica que los botones** —0.71 contra 0.87— y
+**no es un círculo**: es un cuadrado muy redondeado. Con la tapa como un
+círculo del tamaño del botón, la fila entera era una sola forma repetida
+y la tapa dejaba de ser lo que se nombra.
+
+Y va **maciza, sin glifo adentro**. En la grabación ahí hay una
+fotografía —tinta densa de borde a borde— y lo que se lee a 40 px no es
+su dibujo sino su silueta. Un símbolo de documento en su lugar se cierra
+en una mancha: los dos renglones de `doc.text` caen a 2.8 uno del otro y
+a este tamaño se tocan, probado a 20 y a 26 px, con el trazo de la fila y
+con el del producto. La silueta es lo que la grabación aporta.
+
+**Y la cuenta del viaje cerró sola.** El rótulo viaja 0.867 del paso —la
+razón medida de siempre—, que sobre un paso de 51 da 44. La tapa ocupa 40
+y el aire que la separa del rótulo 4: 44 de ranura vacía contra 44 de
+viaje. El rótulo termina apoyado en el borde interno de la píldora, ni un
+píxel antes ni uno después.
+
+### Lo que no se copia, y por qué
+
+En la grabación la cápsula y los botones son **los dos blanco puro** —255
+los dos— y lo que los separa es el vidrio: un anillo y una sombra. Sin
+elevación eso no se puede copiar (DESIGN.md § Elevación: cero box-shadow
+en todo el producto), así que la separación la sigue haciendo la rampa,
+con el control un escalón más profundo que la barra.
+
+Y el rótulo no se va. En la referencia el título y el autor desaparecen y
+queda la tapa sola con un hueco de 200 px; acá se queda, que fue un
+pedido anterior del mismo día.
+
+### Verificado, con eventos de entrada de verdad
+
+`sonda/acciones.mjs` mide por paso quién recibe el clic en esas
+coordenadas —hit-testing, no `.click()`, que lo saltea— y qué cambió
+después. Para compartir mide lo único que prueba que copió: **lo que
+quedó en el portapapeles**.
+
+```
+copiar el enlace   el botón   {"like":"true","segundoRenglon":"Link copied"}
+  portapapeles   → http://localhost:3200/title-to-actions
+  a los 2.2 s    → {"segundoRenglon":"Vito Compagnucci"}
+```
+
+- **La geometría, del DOM**: barra 56, botón 48, botón/barra 0.857, glifo
+  30, glifo/botón 0.625, radios 28 y 24, paso 51 y 51 → paso/botón
+  1.0625.
+- **El recorrido con teclado**: corazón → copiar → cerrar, y de ahí sale
+  al link de volver de la página. El foco no se cae al cuerpo.
 - **En la lista**, adentro del `<a>` de la card: abre, cierra y **no
   navega**.
 - **Los cuadros** (`sonda/cuadros.mjs`), abriendo la fila y apretando dos
-  interruptores en una corrida: **0 perdidos a 1× y a 6×**.
-- Consola limpia en las cinco corridas.
-
-### Lo que se borró
-
-`src/privado/proto.tsx`, `src/privado/proto/` y la ruta `/proto` —el
-banco de las cinco direcciones para la tarjeta de compartir—, porque ya
-no hay nada que compartir. Y los tres PNG de la tapa del disco, con su
-`srcset` y las mediciones de nitidez que los eligieron: **eso queda en la
-bitácora de arriba y en el historial, no en el bundle**.
+  botones en una corrida: **0 perdidos a 1× y a 6×**.
+- Modo oscuro y consola limpia en todas las corridas.
