@@ -167,10 +167,19 @@ import { Seccion } from '../notas'
    forma es nombrar la propiedad y el número en la misma frase que la
    razón, no hablar de sensaciones: «only animate transform and opacity»,
    «start entrances from scale(0.9–0.95)», «press feedback is felt, not
-   seen». Así que el texto dice la curva y los milisegundos —370 ms sobre
-   cubic-bezier(.19, 1, .22, 1)—, dice el mecanismo —transición y no
-   keyframe, y por eso dos toques seguidos retoman en vez de reiniciar— y
-   dice qué hace el press en vez de escalar.
+   seen». Así que el texto dice el TIPO de ease y los milisegundos —370 ms
+   sobre un strong ease-out que arranca rápido y se asienta lento—, dice
+   el mecanismo —transición y no keyframe, y por eso dos toques seguidos
+   retoman en vez de reiniciar— y dice qué hace el press en vez de
+   escalar.
+
+   SIN LA CURVA LITERAL (pedido del usuario, 2026-09-10: "saca el cubic
+   bezier literal, mencioná qué tipo de ease es"). Cuatro números en el
+   medio de una oración son un dato que el lector no puede evaluar, y
+   nombrar el tipo dice además qué se siente, que es la forma del curso:
+   «fast start, gentle settle, feels responsive». Los cuatro números
+   siguen en la pieza, arriba del valor, que es donde alguien los va a
+   necesitar.
 
    LA CURVA ES DE LAS SUYAS, y por casualidad: el mejor ajuste de 14
    curvas × 39 duraciones sobre 18 muestras de la referencia dio
@@ -218,8 +227,8 @@ export default function Notas() {
     <>
       <Seccion titulo="Anatomy">
         <p>
-          Select someone and the cluster rearranges. Each photo scales from its top left corner,
-          370ms on cubic-bezier(.19, 1, .22, 1).
+          Select someone and the cluster rearranges. Each photo scales from its top left corner over
+          370ms, on a strong ease-out that starts fast and settles slowly.
         </p>
         <p>
           It is the only animation here, because it is the only one that answers a question. The
