@@ -337,7 +337,8 @@ import { Section } from '../../../notes'
    consistency, not taste:
    · "the bar" → "the row" (Performance, twice). The row was called
      "row" in Anatomy and in Use cases, and "bar" only here. It was the
-     internal file name (`barra.tsx`) leaking into the public text.
+     internal file name (barra.tsx then, `tab-bar.tsx` today) leaking
+     into the public text.
    · "the chosen tab doesn't fit" → "the active tab does not fit"
      (Anatomy). Two things: "chosen" and "active" were the same thing
      with two names in the same paragraph ("it becomes the active
