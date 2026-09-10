@@ -2955,7 +2955,9 @@ and an entry in `PIECES` with no `slug`. On rebase it has to move the file to
 `src/components/pieces/title-to-actions/title-to-actions.tsx`, write the
 `index.tsx` beside it and give the entry `slug: 'title-to-actions'`; with the
 new glob, in the old place the demo is not drawn and the typecheck complains
-about the missing field.
+about the missing field. Since the section at the end of this log, it also
+arrives with its comments and identifiers in Spanish, in a repo where nothing
+else is: translating that one file is part of the rebase.
 
 ### The slug is a field, not a calculation
 
@@ -3025,3 +3027,89 @@ comes in with whatever length its place gives it.
 of the notes' sections; the notes' prose, because the four names came out of
 it. The native workshop still lists the slug as a phrase ("Hold to commit"): it
 does not read `pieces.ts` from the web repo, and it is a tool.
+
+## Absolutely everything in English
+
+2026-09-10, right after the section above: "absolutely everything in English,
+and using /emil-unslop-writing". Not only the docs. The comments, the
+identifiers, the string literals, the console messages, the commit messages.
+About forty thousand lines of Spanish written over three weeks.
+
+**It has two halves and only the first one is mechanical.** The files and the
+folders moved with `git mv` in one commit, `src/privado/` to `src/private/`,
+`ficha.tsx` to `details.tsx`, `nativo/` to `native/`, and that half is safe:
+the compiler catches every import you forget. The second half is the CONTENT,
+and there is no compiler for prose. It went to subagents, a disjoint set of
+files each, all reading the same brief in `.context/i18n/PREAMBLE.md`: the
+fixed vocabulary (la pieza is the piece and never the component, la muestra is
+the showcase, el recibo is the receipt), what must NOT change even though it
+looks Spanish (`VAULT_DIR`, `com.anonymous.nativo`, the Expo `scheme`, the
+vault's own subfolders, the keys of the JSON on your disk), and the rule that
+a name in backticks promises it exists.
+
+### What the token limit taught, which was not about translating
+
+Three sessions ran out of tokens mid-flight. The first two lost every file
+that was in progress, because an agent handed a whole file builds the
+translation in its head and writes it once at the end. Relaunched with one
+sentence added to the brief, translate in chunks of about 120 lines and apply
+each chunk as soon as it is ready, a third cutoff still left 40 to 60 % of
+each file on disk. That sentence is worth more than any glossary.
+
+**And the check I was using was blind to it.** A file cut in half reads ZERO
+Spanish words, because what is missing is not there to be counted. Three
+truncations went through that filter:
+
+| file | looked like | actually was |
+| --- | --- | --- |
+| `native/AGENTS.md` | 593 lines, no Spanish | missing 334: seven sections from the phone to the simulator |
+| `src/private/playground.tsx` | 1686 lines, no Spanish | missing 422, and `tsc` only said `'}' expected` at the end |
+| `.context/i18n/readme-1.md` | 130 lines, no Spanish | missing 424: the whole body of "The private area" and nine sections |
+
+What catches it is COVERAGE, not language: the same number of headings as the
+original, and a last line that corresponds to the source's last line. With
+that, an audit of the 118 tracked files against the commit before the
+translation found no others. Repairing is cheap when the prefix is kept: pull
+the tail out with `git show <commit>:<file> | sed -n 'A,Bp'` and translate only
+that.
+
+Repairing `playground.tsx` turned up a real bug, hidden as long as the file did
+not parse: the call site passed `remove=` to a `Canvas` that declares
+`deleteView`, and `tsc` cannot typecheck a file it cannot read.
+
+### The dash, swept for real this time
+
+The writing skill forbids the em dash, and the Spanish uses it constantly. In
+the source there were 197, in `src`, `native`, `scripts` and `mockup`. Fifteen
+are left, and each one is the character itself and not punctuation: the
+placeholder for an empty value in a clip's details, the dash the empty clip
+list draws, `mdash` in the entity table of `scripts/link-card.mjs`, the
+separator class of the title parser, the `document.title` separator, and the
+comments that quote a sentence about the dash. Of the rest, the list markers
+took a hyphen, the ALL-CAPS box titles took a colon, and the 46 prose ones were
+rewritten one at a time, because swapping the dash for parentheses keeps the
+exact rhythm that made it wrong.
+
+Spelling went American in two passes, and the second one is the interesting
+one: the first swept the words I had seen (color, behavior, center, gray) and
+an agent found the ones I had not (traveled, neighbor, cataloged, modeled,
+canceled, license). 130 occurrences in total, every one inside a comment or
+prose. Before each pass, a check that none of them sat in an identifier, a CSS
+custom property or a string literal.
+
+### What stayed in Spanish, and why
+
+The vault's subfolders (`nativo/`, `web/`) and the keys of
+`.lima-vault.json` and `.lima-playground.json`: they are files on Vito's disk
+and this repo does not get to rename them. `com.anonymous.nativo`, and the
+Expo `scheme` and `slug`, which are baked into the installed dev client. The
+Python scripts under `.context/`, which is scratch. The AVD called `taller`.
+And two names inside two commit messages, `pieza-video` and `referencias`,
+because those messages describe the commit that renamed them.
+
+**Verified**: `pnpm typecheck`, `pnpm lint`, `pnpm build`, the workshop's and
+the mockup's typechecks, `pnpm references` at zero dead, a Metro export with
+both pieces inside, and headless Chrome over CDP walking the index, the four
+pages, the 404, the vault, the playground and `/vault-media/__index` with no
+console errors. The mountain still holds, measured in the served index: 45.7,
+117.9, 124.7, 70.6.
