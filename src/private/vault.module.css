@@ -997,7 +997,7 @@
    header changes height, which is taken from the clip.
 
    If a name does not fit, it PUSHES. It is ugly on purpose: the
-   15-character convention stops being a note in the README and becomes
+   15-character convention stops being a note in the log and becomes
    visible. */
 .detailTitleText {
   white-space: nowrap;

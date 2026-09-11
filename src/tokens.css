@@ -97,7 +97,7 @@
 
      There was a --surface-press #f0f0ec (linear's --color-bg-level-3,
      which lands exactly on our next step) and it was withdrawn when
-     josh's system was chosen. The derivation stays in README in case it
+     josh's system was chosen. The derivation stays in the log in case it
      comes back; when the Button piece needs a press it will be measured
      for a button, which is where all that evidence does apply. */
   --ink: #111111;
@@ -709,7 +709,7 @@
      Sorted by size the scale reads itself, all of them multiples of 4:
      4 · 8 · 12 · 40 · 48 · 60 · 64
 
-     The detail of each one and where it came from is in the README and
+     The detail of each one and where it came from is in the log and
      in .context/recon/NAVIGATION.md. */
 
   /* the subtitle, from its title. An exact analog of benji's: his

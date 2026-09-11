@@ -1,7 +1,7 @@
 import { Section } from '../../../notes'
 
 /* The notes of Swipe between tabs. Everything here is in the record:
-   the README (§ The first App piece), the piece's measurements.ts and
+   `LOG.md` (§ The pieces), the piece's measurements.ts and
    the sheet .context/recon/swipeable-tabs/MEDICIONES.md. If a sentence
    here stops being true, it gets fixed here AND there. The public text
    is not a free summary, it is the same evidence told for someone
@@ -166,7 +166,7 @@ import { Section } from '../../../notes'
      measured it on the real phone and it's at 60 fps the whole time",
      2026-09-07); the frame completeness of the simulator recording
      (100.7 %, 101.1 % and 100.2 % inside each gesture across three
-     takes, README § The video for X) is the receipt of the take, not
+     takes, `LOG.md` § The video for X) is the receipt of the take, not
      of the phone.
    · Review "like a good engineer" (2026-09-07): "not in JavaScript" →
      "not the JavaScript thread" (worklets are JavaScript too, they run
@@ -392,7 +392,7 @@ import { Section } from '../../../notes'
      "at 60 fps". The number went with the cut and it is good that it
      went: the record says the vault clip AND THEN four recordings by
      the user, that is five, so "four" was undercounting (found on
-     2026-09-08, see README).
+     2026-09-08, see `LOG.md`).
    WHAT IS STILL A CANDIDATE FOR CUTTING, if another round is ever
    asked for: "Every value is a named constant with its source" is the
    only sentence in Anatomy that talks about the source code and not

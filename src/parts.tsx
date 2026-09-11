@@ -376,7 +376,7 @@ function Showcase({ piece, mode, active }: { piece: Piece; mode: Mode; active?: 
    use a text label that says Back". Apple's standard is a chevron.
 
    The arrow did not come from anywhere measured, and that is worth
-   saying because the README went as far as citing benji and josh: both
+   saying because the log went as far as citing benji and josh: both
    of them use WORDS, "Index" and "Home", so neither one backed the "←".
    It was ours and it had no receipt.
 

@@ -5,7 +5,7 @@ import css from './app.module.css'
    THE NOTES OF A PIECE: the long text of the detail.
 
    It is what the detail exists for: "the list shows, the detail
-   explains" (README). The description in PIECES is one line and stays
+   explains" (the log). The description in PIECES is one line and stays
    one line. That is the one written when the piece is published, and
    the one you read straight through under the piece. This is the other
    thing: where it came from, how it was measured, what it fought.

@@ -176,7 +176,7 @@ function Plus() {
    IT IS NOT VALIDATED IN CODE, on purpose: the name IS the name of the
    file on your disk, and a tool that stops you from calling your files
    what you want has the dependency backwards. The convention lives in
-   the README and it is applied by writing, not by failing.
+   the log and it is applied by writing, not by failing.
    ═══════════════════════════════════════════════════════════════ */
 function TitleMenu({
   clip,

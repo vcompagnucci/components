@@ -37,12 +37,12 @@ cd native && pnpm install && pnpm ios:build   # the build is once per machine
 
 **What does NOT travel to the worktree.** `node_modules/`, `dist/`,
 `.env.local` and **the whole of `.context/`** are gitignored. That last
-one matters more than it looks: the README cites `.context/recon/*.md`
+one matters more than it looks: the log cites `.context/recon/*.md`
 as the source of almost every measurement (`TYPE-SYSTEMS.md`,
 `RESPONSIVE.md`, `NAVIGATION.md`, `CARDS.md`, `vault/GRILLA.md`,
 `vault/REPRODUCTOR.md`) and **none of those files exists here**: they
 were written in another worktree and they are not versioned. The
-conclusions did survive, because they are in `README.md` and in
+conclusions did survive, because they are in `LOG.md` and in
 `DESIGN.md`. If you need the raw number, measure it again. Citing the
 file without having opened it does not count.
 
@@ -108,7 +108,7 @@ The three rules that hold for both paths, before you start:
 | 6 | **Try it** | Click to choose the frame → there the sketch receives the clicks and you can press its buttons. `Escape` to go back to moving it |
 | 7 | **Publish** | With the frame chosen, `Add to Exhibition` in the sidebar → name + one line of description (optional: leave it empty and it is not written) → **Add** |
 | 8 | **Verify** | It leaves you at `/<slug>` with the component **running**. Look at the home too: the live preview goes in both views |
-| 9 | **Write the why** | A comment at the top of the file + an entry in the log (`README.md`) |
+| 9 | **Write the why** | A comment at the top of the file + an entry in the log (`LOG.md`) |
 
 What happened behind the scenes in step 7: the file was **copied** from
 `src/private/sketches/` to `src/components/pieces/<slug>/<slug>.tsx`,
@@ -355,7 +355,7 @@ has every round and every rejection):
    that no library names and no old sentences are left; light and dark
    if the CSS was touched. And after the merge, the same reading in
    production.
-9. **The record.** Every decision and every rejection in `README.md`
+9. **The record.** Every decision and every rejection in `LOG.md`
    and in the comment at the top of
    `src/components/pieces/<slug>/notes.tsx`, with the user's quotation
    and the date. `pnpm typecheck && pnpm build`, one commit per
@@ -706,7 +706,7 @@ that direction (private → product), and that is why the model stores the
 
 ## Where each thing is written
 
-- **`README.md`**: the log. Every decision, its value and where it came
+- **`LOG.md`**: the log. Every decision, its value and where it came
   from. It is the first thing to read before touching something that is
   already decided: almost everything that looks arbitrary has a
   measurement behind it.
@@ -816,6 +816,6 @@ describe what the thing is or who it is for, never how well made it is.
 
 ## Status
 
-What has been decided and its grounding is in `README.md`, and the list of
+What has been decided and its grounding is in `LOG.md`, and the list of
 **Pending** items is right there too. The pending token items are marked as
 such in `src/tokens.css`.
