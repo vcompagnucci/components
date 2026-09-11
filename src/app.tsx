@@ -260,7 +260,69 @@ function activePiece(): string | null {
   return active
 }
 
-function Index({ active, go }: { active: string | null; go: (path: string) => void }) {
+/* ═══════════════════════════════════════════════════════════════
+   THE WAY INTO THE PRIVATE AREA.
+
+   It was taken off this page once, by request, and it comes back by
+   request too (2026-09-10), on one condition: subtle. It ended up
+   PINNED TO THE BOTTOM LEFT, which is the corner the index does not
+   use: the index hangs from the top at 80 and this sits at 80 from the
+   two edges of the other corner, so they never meet and neither had to
+   give up room.
+
+   It is fixed and not part of the column because it is not part of the
+   index: those links scroll this page and these leave it. Sharing the
+   column made them read as two more pieces.
+
+   BELOW 1080 IT STOPS BEING FIXED, because at that width the index is
+   gone and a thing floating over the content with nothing to belong to
+   is chrome in the middle of the page. There it goes back into the
+   flow, at the foot of everything, which is what a footer is. Same
+   words, same ink, same order.
+
+   THE EXHIBITION IS IN THE LIST AND IT IS THE MARKED ONE. It is the
+   same trio the private area's own bar shows, in the same order, with
+   the one you are in painted: over there Vault is marked, here
+   Exhibition is. Three words that change which one is lit is one
+   control; three words in one place and two in another would be two.
+   The mark is `.indexLink[data-active]`, the rule that already paints
+   the piece you are looking at, and `aria-current` says the same thing
+   to whoever hears it.
+
+   THE LIST IS PRIVATE_ROUTES, so there is one fold and not two: in
+   production it is empty, this renders nothing, and the strings
+   "/vault" and "/playground" were already gone from the bundle for the
+   same reason. Verified after the build.
+
+   They are <a> and not <button> like the pieces: the difference is the
+   truth, and it also makes them linkable, which is what you want when
+   you hand a route to an agent.
+   ═══════════════════════════════════════════════════════════════ */
+function PrivateWays({ go }: { go: (path: string) => void }) {
+  if (PRIVATE_ROUTES.length === 0) return null
+  /* It only draws on the list, so the exhibition is always the one you
+     are in. It is written as a route and not as a special case so the
+     three read the same in the markup. */
+  const ways = [{ path: '/', name: 'Exhibition' }, ...PRIVATE_ROUTES]
+  return (
+    <div className={css.privateWays}>
+      {ways.map((r) => (
+        <a
+          className={css.indexLink}
+          key={r.path}
+          href={r.path}
+          data-active={r.path === '/' ? '' : undefined}
+          aria-current={r.path === '/' ? 'page' : undefined}
+          onClick={linkClick(() => go(r.path))}
+        >
+          {r.name}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+function Index({ active }: { active: string | null }) {
   /* With no pieces there is no index: a nav with two labels and zero
      links is scaffolding in plain sight. The same decision as the
      sections of the body, below. */
@@ -291,48 +353,6 @@ function Index({ active, go }: { active: string | null; go: (path: string) => vo
           </div>
         </div>
       ))}
-      {/* ─── THE WAY IN, LAST AND WITH NO LABEL ───
-          It was taken out of this page once, by request, and it comes
-          back by request too (2026-09-10), on one condition: subtle.
-
-          It goes at the FOOT of the index and not in the masthead or a
-          bar of its own, because this column is already the page's
-          navigation and this is navigation. It is the group gap of the
-          system that separates it, 32, the same one between Web and
-          App, so it reads as one more group in the column; what makes
-          it quieter is what it does NOT have, a label above it and an
-          active state.
-
-          The ink is not chosen here. It is `.indexLink`'s, which is
-          `--type-nav-c`, and that happens to be the very ink the
-          private area's own bar paints these two words with: the
-          lightest text in the system. There was no subtler value to
-          reach for without inventing one.
-
-          THE LIST IS PRIVATE_ROUTES, so there is one fold and not two.
-          In production it is empty, this renders nothing, and the
-          strings "/vault" and "/playground" were already gone from the
-          bundle for the same reason.
-
-          They are <a> and not <button> like the pieces above, and the
-          difference is the truth: those scroll this page, these leave
-          it. */}
-      {PRIVATE_ROUTES.length > 0 && (
-        <div className={css.indexGroup}>
-          <div className={css.indexList}>
-            {PRIVATE_ROUTES.map((r) => (
-              <a
-                className={css.indexLink}
-                key={r.path}
-                href={r.path}
-                onClick={linkClick(() => go(r.path))}
-              >
-                {r.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
     </nav>
   )
 }
@@ -519,7 +539,7 @@ export function App() {
 
   return (
     <div className={css.page}>
-      <Index active={active} go={go} />
+      <Index active={active} />
       <Masthead />
       <div className={css.content}>
         {/* The sections also stay with zero pieces, the same decision
@@ -542,6 +562,7 @@ export function App() {
           </section>
         ))}
       </div>
+      <PrivateWays go={go} />
     </div>
   )
 }

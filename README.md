@@ -3273,18 +3273,44 @@ downloads no demo it will not draw. And the vault's index now survives the
 unmount in a module variable, so coming back to the vault paints the clips you
 already had in the first frame and the fetch only corrects them.
 
-## The way in comes back, at the foot of the index
+## The way in comes back, pinned to the other corner
 
 2026-09-10. The front page had no link to the vault or to the playground, not
 even in development, and that was written down here as a decision: there had
 been a tab bar and it was taken out by request. It comes back by request too,
 with one condition, subtle.
 
-**It goes at the foot of the index** and not in the masthead or in a bar of its
-own, because that column is already the page's navigation and this is
-navigation. What separates it is the system's group gap, the same 32 that
-separates Web from App, so it reads as one more group in the column. What makes
-it quieter is what it does NOT have: no label above it and no active state.
+**It is pinned to the BOTTOM LEFT**, which is the corner the index does not
+use: the index hangs from the top at 80 and this sits at 80 from the two edges
+of the other corner, so they never meet and neither had to give up room. One
+inset, one corner, and no number chosen here.
+
+It went inside the index first and it was wrong: those links scroll this page
+and these leave it, so sharing the column made them read as two more pieces.
+
+**Below 1080 it stops floating.** At that width there is no index, and
+something fixed over the content with nothing to belong to is chrome dropped in
+the middle of the page. There it goes back into the flow, last, as a row, which
+is what a footer is. Same words, same ink, same order.
+
+That move turned up two owners paying for the same air: measured, 96 above the
+footer, which is the content's 32 of bottom padding plus my 64. The content's
+bottom padding is the page's bottom air for when nothing follows it; with the
+footer there, that air belongs to the footer. One owner each, and the gap is
+the 64 that already separates one section from the next.
+
+**The three words are the same trio the private area's bar shows**, in the same
+order, with the one you are in painted: `Exhibition · Vault · Playground`.
+Verified on the three routes:
+
+| route | marked |
+| --- | --- |
+| `/` | Exhibition |
+| `/vault` | Vault |
+| `/playground` | Playground |
+
+Three words that change which one is lit is one control. Three in one place and
+two in another would be two.
 
 The ink is not chosen. It is `.indexLink`'s, `--type-nav-c`, which happens to be
 the exact ink the private area's own bar paints these two words with, and the
@@ -3303,6 +3329,7 @@ is empty, nothing renders, and `/vault` and `/playground` were already absent
 from the bundle for that same reason. Verified after the build: zero
 occurrences of either.
 
-Measured in the served column: Vault at y = 445 and Playground at 469, 48 below
-the last piece, which is the same step there is between one group and the next.
-The first label still sits with the first piece, 237 against 235.
+Measured in the served page: on the desktop it sits at x = 80 and 80 off the
+bottom, the index's own inset; at 390 it is in the flow, aligned with the
+content column, 64 under the last piece and carrying the page's bottom air
+below it.
