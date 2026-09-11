@@ -368,9 +368,16 @@ file is withdrawn.
 **Before calling something finished**, on both paths:
 
 ```bash
-pnpm typecheck && pnpm build          # the web repo
+pnpm typecheck && pnpm lint && pnpm build && pnpm references
 pnpm --dir native typecheck           # the workshop, if you touched it
 ```
+
+Four commands and not two, because they see four different things.
+`tsc` says this does not close; oxlint says this compiles and is wrong;
+the build is the only place the production fold gets verified; and
+`pnpm references` reads the comments, which is the one thing the other
+three cannot (`scripts/references.mjs`). None of them gets weakened to
+pass: see *The code*.
 
 ### What NOT to do
 
@@ -813,6 +820,118 @@ describe what the thing is or who it is for, never how well made it is.
   list) and the actions with the specification verb ("select", not
   "jump"; "collapses", not "folds away"). A rule brought in by the user
   on 2026-09-07.
+
+## The code
+
+Nobody recognizes generated code by one bad line. What gives it away is
+the accumulation: a comment narrating the statement below it, a `catch`
+around something that cannot fail, a fallback to an empty list, a helper
+that already exists two files over. Each one is defensible on its own,
+and together they are a watermark. **The fix is almost always deletion
+and not rewriting.** This pass was run over the whole repo on
+2026-09-11 and every count below is from that day.
+
+**A comment says what the code cannot.** This repo comments a lot, on
+purpose (the rule above: the why goes at the top of the file), and the
+density is not permission to narrate. One test decides it: does the
+comment state something the code cannot? The measurement, the
+alternative that was tried and rejected, the user's request with its
+date, the trap that cost a day. Three kinds never come in:
+
+- **Narration**, which restates the line below it. It doubles the file
+  and adds nothing.
+- **The diff talked out loud**: "Updated to…", "Now handles null",
+  "NEW:", "Fixed:". The moment the change merges nobody has seen the
+  old version, so those sentences describe nothing. That belongs in the
+  commit message. Zero of them here, and it is worth keeping the
+  number.
+- **A comment that lies**, which is worse than no comment, because a
+  reader trusts it over the code. When you edit a region, reread every
+  comment in it: `pnpm references` only catches the class where a
+  backticked name died, and a comment that describes badly something
+  that does exist is found by reading, which that script says about
+  itself.
+
+No commented-out code, because git has it, and no stub of the "TODO:"
+kind: something pending goes into the Pending list of `LOG.md`, which
+is where this repo keeps them. Zero of both today. **A divider that
+heads an argument stays**, which is why the ones here read in capitals
+and carry a claim; one that only labels a region, "Helpers", is a
+heading for code that wanted to be a function with that name.
+
+**Failure is loud.** No `catch` that logs and carries on, no
+`catch { return [] }`, no fallback that leaves the screen looking right
+while the real path is broken. That last one is the most expensive
+pattern on this list, because it keeps the checks green over something
+that is already dead and after it you cannot tell what you are running.
+The repo already works this way and the receipts are in the sections
+above: the `piece` field answers 400 for a slug that names nothing
+instead of dropping it as an unknown field, publishing does both writes
+or neither and a repeated name is a 409, and with no `VAULT_DIR` the
+vault says "Vault not connected" instead of drawing an empty grid. A
+`catch` survives when it names the failure it is absorbing and why
+carrying on is the right thing: the pointer capture a system gesture
+already took (`src/not-found.tsx`), the autoplay the browser refuses
+(`src/parts.tsx`), the broken sketch that turns off its own frame and
+no other.
+
+And nothing is defended twice. A null check over what the type, the
+constructor or the three lines above already guarantee is noise, and if
+it turns out it is not guaranteed, the type gets fixed once instead of
+checked at every call site. Input that is not ours gets validated at
+the boundary, which here is the bridge and its three guards, and
+travels trusted from there on.
+
+**Nothing silences the compiler or the linter without the invariant
+written next to it.** Today: zero `as any`, zero `as unknown as` and
+zero `@ts-ignore` in the repo, and that is the number to hold. The
+error was information; the cast deletes it and moves the failure to
+somebody's screen. A linter disable is a cast in disguise: it goes on
+the line the rule fires on (over the declaration above it, it does
+nothing, measured with `react/static-components` in `src/app.tsx`) and
+it states its reason after the `--`. Sixteen of them in `src/` and
+`native/src`, thirteen with their reason; the three left are
+`exhaustive-deps` in `native/` and they are in the Pending list.
+
+**The old implementation goes away and the new one takes its name.** No
+"V2", no "New", no "Enhanced", no file with `-new` in it, no alias kept
+just in case: every caller lives in this repo, which is what makes it
+one repo. Zero such names today. Two calculations of the slug lived
+here and matched by luck; one was left. The front page's mirror of the
+private bar lasted a few hours on 2026-09-11 and it was removed, not
+hidden behind a flag. And the naming rule above covers the other half
+of this: `data`, `result`, `item`, `handler` and `processData` name
+what a value is shaped like, and the name is for what it means.
+
+**Build for the caller that exists.** An options object with one caller
+passing one value, an interface with one implementation, a flag for a
+case nobody has: every unused degree of freedom is something the next
+reader has to rule out before they understand the line. Eighteen
+placeholder pieces were deleted whole before the first real one. The
+one piece of scaffolding that survives on purpose, `kind: 'piece'` in
+the playground's model, is written down as missing in the section
+above: an exception that is written is not slop, a silent one is. And
+before adding a utility, look for whoever already owns that job; a
+helper that only forwards its arguments gets inlined.
+
+**The patch touches only what the task asked for.** It is one
+mini-decision at a time applied to the diff: no reformatting, no rename
+and no refactor riding along, because they bury the real change and
+make the reading slower. When the approach changes halfway, a
+minimum-patch pass at the end: whatever is not load bearing for the
+answer that shipped gets deleted.
+
+**And the gate does not get weakened to be passed.** The four commands
+are in *Before calling something finished*. A finding is not made to
+disappear with a disable, and a backticked name does not lose its
+backtick to quiet the checker while the sentence keeps the claim:
+either the thing exists, or the sentence is wrong and gets fixed.
+Naming something that is gone is done in prose, which is the convention
+that script imposes.
+
+**The last read before calling it finished**: what in here would make
+somebody think a model wrote it? That question finds what the list does
+not.
 
 ## Status
 

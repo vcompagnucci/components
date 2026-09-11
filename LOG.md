@@ -611,6 +611,37 @@ The em dashes went from 197 to 15 in the source, and each survivor is the
 character itself and not punctuation: the placeholder for an empty value, the
 dash the empty list draws, the entity table in `link-card.mjs`.
 
+## The rules for the code
+
+The repo said how to work and what to call things, and nothing about the shape
+of the code. That gap has a direction: an agent reading a file here copies the
+comment density, which is high on purpose, and what it copies is the form
+without the test. `AGENTS.md` now has *The code*, and its test is one question:
+does the comment state something the code cannot?
+
+Everything in it was measured over the 88 tracked source files before it was
+written, so no rule went in as an opinion. Zero `as any`, zero `as unknown as`
+and zero `@ts-ignore`. Zero comments that talk about the diff ("Updated to…",
+"NEW:"), zero stubs of the "TODO:" kind and zero blocks of commented-out code.
+Zero names with "V2", "New" or "Enhanced". Sixteen linter disables in `src/`
+and `native/src`, of which eleven stated their reason.
+
+Those five were the only finding, and two of them are fixed: the unmount flush
+and the focus on entering edit in `src/private/details.tsx` now say why their
+dependency list is short. The other three are `exhaustive-deps` in `native/`
+and they stay in Pending, because writing the reason means reading each effect
+whole and an invented reason is worse than none.
+
+The one rule that changed and is not about form: **the gate is four commands
+and it used to be two.** `pnpm typecheck && pnpm lint && pnpm build && pnpm
+references`. They see four different things, and the two that were missing are
+the ones that see what `tsc` cannot: oxlint reads code that compiles and is
+wrong, and `pnpm references` reads the comments, which is the way this repo
+breaks.
+
+What did not change: the density. A divider that heads an argument stays, and
+that is why the ones here read in capitals and carry a claim.
+
 ## What is pending
 
 - The `--space-*` scale does not cover what the page uses. It stops at 64 and
@@ -623,6 +654,10 @@ dash the empty list draws, the entity table in `link-card.mjs`.
   system says it does not have.
 - **Three of the four clips have no piece linked.** The field exists and the
   picker is in the details panel; only `hold-to-commit` is filled in.
+- **Three linter disables in `native/` with no reason written.** All three are
+  `exhaustive-deps`, in `hold-to-commit.tsx`, `meter.tsx` and
+  `swipeable-tabs.tsx`. The rule is in `AGENTS.md`; what is missing is reading
+  each effect whole, because the reason has to be the true one.
 - The canvas's selection inspector, for when there is more than one action to
   put in it. Today `Add to Exhibition` lives in the sidebar. Opening a surface
   now would be chrome for one word.

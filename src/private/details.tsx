@@ -129,7 +129,7 @@ function useSavedDetails(
       if (timer.current) window.clearTimeout(timer.current);
       send();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the cleanup has to run on unmount and not on every render; `send` reads refs, so its identity does not matter
   }, []);
 
   const change = (d: Details) => {
@@ -261,7 +261,7 @@ function Note({
     cursor.current = null;
     el.focus();
     el.setSelectionRange(i, i);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- it runs on entering edit and not on every keystroke; `value` is read to put the cursor at the end
   }, [reading]);
 
   const startEditing = (i: number | null) => {

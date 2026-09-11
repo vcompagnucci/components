@@ -38,3 +38,9 @@ What is not negotiable, and is spelled out in `AGENTS.md`:
    names. `deploy_dashboards.sh`, not `push_dashboards.sh`; and in the
    public text (title, description, notes), "tap to select", not "tap to
    jump".
+6. **A comment says what the code cannot, and failure is loud.** The
+   rules for the code itself are in
+   [AGENTS.md › The code](AGENTS.md#the-code): what a comment has to
+   earn, why no `catch` hides a failure and no cast silences the
+   compiler, and the four commands of the gate. The fix for almost
+   everything in there is deletion.
