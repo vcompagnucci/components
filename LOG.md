@@ -562,15 +562,26 @@ And it asks the vault, not the piece. `pieces.ts` is product code and a
 reference is a private note, so the search runs the other way, over the vault's
 index, with the same hook the vault itself uses.
 
-**The way into the private area is pinned to the bottom left.** It was taken off
-the front page once, by request, and it came back by request, subtle. The index
-hangs from the top at 80 and this sits at 80 from the two edges of the other
-corner, so they never meet. Below 1080 there is no index and it stops floating:
-it goes back into the flow as a footer.
+**The front page has no door into the private area**, which is where it started.
+A mirror of the private bar lived at the bottom left for a few hours on
+2026-09-11 and came out again the same day: a door in one direction was enough,
+and the front page is the page of the product.
 
-It shows the same trio the private bar shows, with the one you are in painted:
-Exhibition on `/`, Vault on `/vault`, Playground on `/playground`. Three words
-that change which one is lit is one control.
+The door that stayed is the private bar's `Exhibition`, and **it opens a new
+tab**. The two are things you look at at the same time, building on one side and
+checking the result on the other, so navigating in place would make you come
+back by hand every time.
+
+**And the transition only worked in one direction.** Leaving the vault
+crossfaded and entering it did not, which is the same `React.lazy` tick as the
+demos: measured with a screencast, the exhibition faded out to a blank page,
+held there for seven frames, and the vault appeared all at once. The resolved
+component now gets handed out directly.
+
+My first attempt at that did nothing and the screencast said so, byte for byte
+identical. The choice was being locked on the app's first render, which happens
+at `/` and always before the warm-up lands, so it froze on the lazy one forever.
+It gets locked now only when the private area is about to be drawn.
 
 ## Everything in English
 

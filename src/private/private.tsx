@@ -172,11 +172,24 @@ export default function PrivateArea({
               is no link to /vault on the front page. That one keeps the
               product free of the private area; this one is the private
               area pointing at the product, which is the direction that
-              costs nothing. */}
+              costs nothing. The mirror of this bar did exist on the
+              front page for a few hours and it was taken out again
+              (2026-09-11): a door in one direction was enough. */}
           <a
             className={css.tab}
             href="/"
-            onClick={linkClick(() => go('/'))}
+            /* IT OPENS A NEW TAB and the plain click is not taken over.
+               The private area and the exhibition are two things you
+               look at at the same time: you build on one side and you
+               check the result on the other, and navigating in place
+               would make you come back by hand every time. It is also
+               what the tab bar already promised, since cmd-click on the
+               other two has always opened a tab.
+
+               `rel="noreferrer"` because `target="_blank"` hands the new
+               page a `window.opener` it has no use for. */
+            target="_blank"
+            rel="noreferrer"
           >
             Exhibition
           </a>

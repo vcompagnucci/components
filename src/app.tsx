@@ -1,7 +1,8 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { ComponentType } from 'react'
 import { flushSync } from 'react-dom'
 import css from './app.module.css'
-import { Detail, Item, Masthead, linkClick, textBaseline } from './parts'
+import { Detail, Item, Masthead, textBaseline } from './parts'
 import { warmDemos } from './demos'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { SITE } from './site'
@@ -61,31 +62,65 @@ const PRIVATE_ROUTES: PrivateRoute[] = import.meta.env.DEV
     ]
   : []
 
-const PrivateArea = import.meta.env.DEV ? lazy(() => import('./private/private')) : null
+type PrivateAreaProps = {
+  routes: PrivateRoute[]
+  current: string
+  rest: string
+  go: (path: string) => void
+}
 
-/* ─── THE PRIVATE AREA GETS WARMED FROM THE EXHIBITION ───
+const LazyPrivateArea = import.meta.env.DEV ? lazy(() => import('./private/private')) : null
+
+/* ─── THE PRIVATE AREA GETS WARMED, AND THEN RENDERED WITH NO SUSPENSE ───
    A piece links back to the clip it was measured against, so the round
    trip is one click away from a page where the vault is not on screen.
    Reached cold, that click paid for two things at once: the chunk, and
-   the index the vault needs before it draws anything.
+   the index the vault needs before it draws anything. Both get asked
+   for here, once, as soon as the app mounts.
 
-   Both are asked for here, once, as soon as the app mounts. The chunk
-   because `lazy` only fetches on first render, and the index because
-   `useClips` starts empty and the vault renders null while it loads:
-   measured on the trip back from a piece, ONE FULLY WHITE FRAME.
+   WARMING THE CHUNK IS NOT ENOUGH ON ITS OWN, and that is what the
+   second variable is for. `lazy` needs a tick to resolve even when the
+   module is already in memory, one tick is one frame, and the view
+   transition photographs it: measured going from the exhibition into
+   the vault, the old page faded out to a BLANK page, held there for
+   seven frames, and the vault appeared all at once after. That reads
+   as no transition at all.
+
+   So the resolved component gets kept and handed out directly, which
+   is the same fix `demos.tsx` needed for the same reason. Whatever was
+   handed out first keeps being handed out: swapping the lazy one for
+   the resolved one between renders is another component for React, and
+   it would remount the whole private area mid-session.
 
    THE SAME TERNARY AS ABOVE and for the same reason: with
-   import.meta.env.DEV replaced by `false` this is null, the arrow
+   import.meta.env.DEV replaced by `false` these are null, the arrow
    function is dead code, and neither `import()` survives into the
    build. A `if (DEV) return` inside the effect would NOT do: the
    specifiers would still be in the source and Rollup would emit the
    chunks. */
+let readyPrivateArea: ComponentType<PrivateAreaProps> | null = null
+let servedPrivateArea: ComponentType<PrivateAreaProps> | null = null
+
 const warmPrivateArea = import.meta.env.DEV
   ? () => {
-      void import('./private/private')
+      void import('./private/private').then((m) => {
+        readyPrivateArea = m.default
+      })
       void import('./private/clips').then((m) => m.warmClips())
     }
   : null
+
+/* IT ONLY GETS CALLED WHEN THE PRIVATE AREA IS ABOUT TO BE DRAWN, and
+   that is not a detail of where the call sits. Calling it on every
+   render locked the choice on the app's FIRST render, which happens at
+   `/` and always before the warm-up has landed, so it froze on the lazy
+   one forever and the blank frame came back. Measured: identical
+   screencast, seven frames of nothing. */
+function privateArea(): ComponentType<PrivateAreaProps> | null {
+  if (!LazyPrivateArea) return null
+  servedPrivateArea ??= readyPrivateArea ?? LazyPrivateArea
+  return servedPrivateArea
+}
 
 /* ON PURPOSE THERE IS NO LINK TO /vault OR /playground on the front
    page, not even in dev: you enter the private area by typing the URL.
@@ -258,68 +293,6 @@ function activePiece(): string | null {
     active = PIECES[PIECES.length - 1].slug
   }
   return active
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   THE WAY INTO THE PRIVATE AREA.
-
-   It was taken off this page once, by request, and it comes back by
-   request too (2026-09-10), on one condition: subtle. It ended up
-   PINNED TO THE BOTTOM LEFT, which is the corner the index does not
-   use: the index hangs from the top at 80 and this sits at 80 from the
-   two edges of the other corner, so they never meet and neither had to
-   give up room.
-
-   It is fixed and not part of the column because it is not part of the
-   index: those links scroll this page and these leave it. Sharing the
-   column made them read as two more pieces.
-
-   BELOW 1080 IT STOPS BEING FIXED, because at that width the index is
-   gone and a thing floating over the content with nothing to belong to
-   is chrome in the middle of the page. There it goes back into the
-   flow, at the foot of everything, which is what a footer is. Same
-   words, same ink, same order.
-
-   THE EXHIBITION IS IN THE LIST AND IT IS THE MARKED ONE. It is the
-   same trio the private area's own bar shows, in the same order, with
-   the one you are in painted: over there Vault is marked, here
-   Exhibition is. Three words that change which one is lit is one
-   control; three words in one place and two in another would be two.
-   The mark is `.indexLink[data-active]`, the rule that already paints
-   the piece you are looking at, and `aria-current` says the same thing
-   to whoever hears it.
-
-   THE LIST IS PRIVATE_ROUTES, so there is one fold and not two: in
-   production it is empty, this renders nothing, and the strings
-   "/vault" and "/playground" were already gone from the bundle for the
-   same reason. Verified after the build.
-
-   They are <a> and not <button> like the pieces: the difference is the
-   truth, and it also makes them linkable, which is what you want when
-   you hand a route to an agent.
-   ═══════════════════════════════════════════════════════════════ */
-function PrivateWays({ go }: { go: (path: string) => void }) {
-  if (PRIVATE_ROUTES.length === 0) return null
-  /* It only draws on the list, so the exhibition is always the one you
-     are in. It is written as a route and not as a special case so the
-     three read the same in the markup. */
-  const ways = [{ path: '/', name: 'Exhibition' }, ...PRIVATE_ROUTES]
-  return (
-    <div className={css.privateWays}>
-      {ways.map((r) => (
-        <a
-          className={css.indexLink}
-          key={r.path}
-          href={r.path}
-          data-active={r.path === '/' ? '' : undefined}
-          aria-current={r.path === '/' ? 'page' : undefined}
-          onClick={linkClick(() => go(r.path))}
-        >
-          {r.name}
-        </a>
-      ))}
-    </div>
-  )
 }
 
 function Index({ active }: { active: string | null }) {
@@ -514,13 +487,21 @@ export function App() {
      that in production this does not exist. And a private view without
      a component cannot happen: both come out of the same
      import.meta.env.DEV. */
-  if (view.kind === 'private' && PrivateArea) {
+  const Area = view.kind === 'private' ? privateArea() : null
+  if (view.kind === 'private' && Area) {
     return (
       /* fallback of null and not a sign: the chunk is on disk, one fetch
          away from the local server, and anything drawn would be a
-         one-frame flicker. */
+         one-frame flicker. Once the warm-up has landed this Suspense
+         never suspends, because `Area` is the resolved component. */
       <Suspense fallback={null}>
-        <PrivateArea routes={PRIVATE_ROUTES} current={view.route.path} rest={view.rest} go={go} />
+        {/* oxlint-disable-next-line react/static-components -- `Area` is
+            not created on every render: `privateArea` picks once and
+            caches the choice in a module-level variable, so it returns
+            the same reference for the whole session. The bug the rule
+            looks for, losing the state on every render, cannot happen
+            here. Same case as `C` in demos.tsx. */}
+        <Area routes={PRIVATE_ROUTES} current={view.route.path} rest={view.rest} go={go} />
       </Suspense>
     )
   }
@@ -562,7 +543,6 @@ export function App() {
           </section>
         ))}
       </div>
-      <PrivateWays go={go} />
     </div>
   )
 }
