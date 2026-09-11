@@ -139,6 +139,12 @@
   letter-spacing: var(--type-nav-ls);
   line-height: var(--type-nav-lh);
   color: var(--type-nav-c);
+  /* The class is worn by a <button> (a piece, which scrolls this page)
+     and by an <a> (the private area, which leaves it). The browser
+     underlines the second one, and that made the two quietest words in
+     the column the loudest thing in it. What they have in common is
+     the typography; the difference is the element, not the ink. */
+  text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);

@@ -3272,3 +3272,37 @@ separate chunks asked for in idle time and an App piece's detail still
 downloads no demo it will not draw. And the vault's index now survives the
 unmount in a module variable, so coming back to the vault paints the clips you
 already had in the first frame and the fetch only corrects them.
+
+## The way in comes back, at the foot of the index
+
+2026-09-10. The front page had no link to the vault or to the playground, not
+even in development, and that was written down here as a decision: there had
+been a tab bar and it was taken out by request. It comes back by request too,
+with one condition, subtle.
+
+**It goes at the foot of the index** and not in the masthead or in a bar of its
+own, because that column is already the page's navigation and this is
+navigation. What separates it is the system's group gap, the same 32 that
+separates Web from App, so it reads as one more group in the column. What makes
+it quieter is what it does NOT have: no label above it and no active state.
+
+The ink is not chosen. It is `.indexLink`'s, `--type-nav-c`, which happens to be
+the exact ink the private area's own bar paints these two words with, and the
+lightest text in the system. There was no subtler value to reach for without
+inventing one.
+
+**The underline was the only thing that had to be fixed.** They are `<a>` and
+the pieces above are `<button>`, so the browser underlined them and the two
+quietest words in the column came out the loudest thing in it. `.indexLink` now
+says `text-decoration: none` instead of inheriting a default: the class is worn
+by both elements, what they share is the typography, and the difference is the
+element and not the ink.
+
+The list is `PRIVATE_ROUTES`, so there is one fold and not two: in production it
+is empty, nothing renders, and `/vault` and `/playground` were already absent
+from the bundle for that same reason. Verified after the build: zero
+occurrences of either.
+
+Measured in the served column: Vault at y = 445 and Playground at 469, 48 below
+the last piece, which is the same step there is between one group and the next.
+The first label still sits with the first piece, 237 against 235.

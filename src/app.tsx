@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import css from './app.module.css'
-import { Detail, Item, Masthead, textBaseline } from './parts'
+import { Detail, Item, Masthead, linkClick, textBaseline } from './parts'
 import { warmDemos } from './demos'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { SITE } from './site'
@@ -260,7 +260,7 @@ function activePiece(): string | null {
   return active
 }
 
-function Index({ active }: { active: string | null }) {
+function Index({ active, go }: { active: string | null; go: (path: string) => void }) {
   /* With no pieces there is no index: a nav with two labels and zero
      links is scaffolding in plain sight. The same decision as the
      sections of the body, below. */
@@ -291,6 +291,48 @@ function Index({ active }: { active: string | null }) {
           </div>
         </div>
       ))}
+      {/* ─── THE WAY IN, LAST AND WITH NO LABEL ───
+          It was taken out of this page once, by request, and it comes
+          back by request too (2026-09-10), on one condition: subtle.
+
+          It goes at the FOOT of the index and not in the masthead or a
+          bar of its own, because this column is already the page's
+          navigation and this is navigation. It is the group gap of the
+          system that separates it, 32, the same one between Web and
+          App, so it reads as one more group in the column; what makes
+          it quieter is what it does NOT have, a label above it and an
+          active state.
+
+          The ink is not chosen here. It is `.indexLink`'s, which is
+          `--type-nav-c`, and that happens to be the very ink the
+          private area's own bar paints these two words with: the
+          lightest text in the system. There was no subtler value to
+          reach for without inventing one.
+
+          THE LIST IS PRIVATE_ROUTES, so there is one fold and not two.
+          In production it is empty, this renders nothing, and the
+          strings "/vault" and "/playground" were already gone from the
+          bundle for the same reason.
+
+          They are <a> and not <button> like the pieces above, and the
+          difference is the truth: those scroll this page, these leave
+          it. */}
+      {PRIVATE_ROUTES.length > 0 && (
+        <div className={css.indexGroup}>
+          <div className={css.indexList}>
+            {PRIVATE_ROUTES.map((r) => (
+              <a
+                className={css.indexLink}
+                key={r.path}
+                href={r.path}
+                onClick={linkClick(() => go(r.path))}
+              >
+                {r.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
@@ -477,7 +519,7 @@ export function App() {
 
   return (
     <div className={css.page}>
-      <Index active={active} />
+      <Index active={active} go={go} />
       <Masthead />
       <div className={css.content}>
         {/* The sections also stay with zero pieces, the same decision
