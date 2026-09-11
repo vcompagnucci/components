@@ -274,7 +274,7 @@ function advance(s: Spring, now: number, dt: number) {
    of five values was tried in images and Vito chose this, with no
    necks, twice. Here the four buttons come apart loose because that is
    how it was preferred when looking at it. The measurement and the
-   staircase are in the README. */
+   staircase are in the log. */
 const SIGMA = 4.7
 
 /* THE FOUR BUTTONS. Stroke icons, 16×16: they are search scopes, which
@@ -300,7 +300,7 @@ const BUTTONS = [
 
 /* WHAT OPENS THE BAR: the pointer moving 20 px inside the card, not
    hover over the bar. Chosen with a picker of three triggers; the table
-   with what each one costs is in the README.
+   with what each one costs is in the log.
 
    THE RECORDING DOES NOT SAY WHICH ONE GOES: there the pointer never
    comes up to the bar and the three waits are different. It is the only

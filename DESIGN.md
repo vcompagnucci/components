@@ -3,7 +3,7 @@
 Everything that was decided, with its value, where it lives and where
 it came from.
 
-The README tells **what** was decided and why. This document is the
+`LOG.md` tells **what** was decided and why. This document is the
 reference: the tokens, their values at each viewport, and the rules
 that govern how the missing ones get added.
 

@@ -1,7 +1,7 @@
 import { Section } from '../../../notes'
 
 /* The notes of Buttons separate. Everything here is in the registry:
-   the README (§ Buttons separate), the header of `buttons-separate.tsx`
+   `LOG.md` (§ The pieces), the header of `buttons-separate.tsx`
    (in this folder) and the table in
    `.context/buttons-separate/MEDICION.md` with the scripts that
    reproduce it. If a sentence stops being true it gets fixed here AND

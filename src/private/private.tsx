@@ -21,7 +21,7 @@ import { Playground } from './playground'
    In the build Vite replaces import.meta.env.DEV with `false`, the
    ternary folds to `null` and Rollup deletes the whole dynamic import.
    It is not that the route gives a 404: it is that the code IS NOT
-   THERE. Verified by counting occurrences in dist/, see the README.
+   THERE. Verified by counting occurrences in dist/, see the log.
 
    That is why the boundary is a folder and not a flag spread around:
    any file added in here inherits the door without anyone having to

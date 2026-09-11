@@ -1,7 +1,7 @@
 import { Section } from '../../../notes'
 
 /* The notes of Hold to buy. Everything here is in the record: the
-   README (§ Hold to commit), the piece's `measurements.ts` and
+   `LOG.md` (§ The pieces), the piece's `measurements.ts` and
    `recipe.ts`, and the measurements in `.context/hold-to-commit/`. If a
    sentence stops being true, it gets fixed here AND there: the public
    text is not a free summary, it is the same evidence told for someone
@@ -97,7 +97,7 @@ import { Section } from '../../../notes'
    reader is watching.
 
    WHAT IS NOT CLAIMED, AND WHY. It does not say that the hold measures
-   one second with 4 ms of error, even though the README's table has
+   one second with 4 ms of error, even though the log's table has
    it: that measurement comes from the `auto` probe, which fires
    `press` and `complete` with two JavaScript `setTimeout`s
    (`hold-to-commit.tsx`), so it measures the aim of those timers and
@@ -124,7 +124,7 @@ import { Section } from '../../../notes'
    travel (HOLD.inkFrom); the retreat on release lasts 400 ms
    (HOLD.retreat); the hold lasts 1000 ms (HOLD.duration). The frames
    under load and the latencies with the thread blocked are in the
-   README.
+   the log.
 
    USE CASES WITHOUT CITING ANYONE. The concepts and the numbers come
    from Apple's interface guidelines, read on 2026-09-08 through their

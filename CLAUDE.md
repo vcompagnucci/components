@@ -17,7 +17,7 @@ cannot go stale.
 | file | what it is |
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | how the product works and how the work is done around here |
-| [`README.md`](README.md) | the log: every decision, its value and where it came from |
+| [`LOG.md`](LOG.md) | the log: every decision, its value and where it came from |
 | [`DESIGN.md`](DESIGN.md) | the reference: tokens, values per viewport, the four rules |
 
 What is not negotiable, and is spelled out in `AGENTS.md`:

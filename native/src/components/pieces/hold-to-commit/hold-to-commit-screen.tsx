@@ -425,7 +425,7 @@ const css = StyleSheet.create({
  *   when the exploration ended and the whole file was deleted afterwards:
  *   a knob with a single position is not a knob, and the record of what
  *   the clip does does not live in a dead branch of the code but in the
- *   README and in the receipts in `measurements.ts`.
+ *   the log and in the receipts in `measurements.ts`.
  *
  * - The shadow carries a `borderRadius` and it is not decoration:
  *   `boxShadow` follows the shape of the VIEW, and without the radius it

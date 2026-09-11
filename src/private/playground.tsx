@@ -1845,7 +1845,7 @@ function Canvas({
               is born inside the sidebar that already exists: it appears
               with the selection, under the index that names it. The day
               the selection's actions pile up, this block is the one that
-              moves to the inspector (it is in the README as pending).
+              moves to the inspector (it is in the log as pending).
 
               At 16 from the index, the system's GROUP air, double the 8
               between rows, so that it does not read as one more frame:

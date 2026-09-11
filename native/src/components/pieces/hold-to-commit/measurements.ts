@@ -45,7 +45,7 @@ export const COLOR = {
      has 2 pt outside and Opal's +4, which means that in the clip the
      edge is a ramp and ours was a drawn outline. The shadow in
      `css.shadow` in `hold-to-commit.tsx` replaces it. The whole receipt
-     is in the README, § Hold to commit. */
+     is in `LOG.md`, § The pieces. */
 
   /* RUNTIME · primary text: mode 255. */
   text: '#FFFFFF',
