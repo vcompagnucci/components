@@ -139,6 +139,12 @@
   letter-spacing: var(--type-nav-ls);
   line-height: var(--type-nav-lh);
   color: var(--type-nav-c);
+  /* The class is worn by a <button> (a piece, which scrolls this page)
+     and by an <a> (the private area, which leaves it). The browser
+     underlines the second one, and that made the two quietest words in
+     the column the loudest thing in it. What they have in common is
+     the typography; the difference is the element, not the ink. */
+  text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
@@ -746,3 +752,58 @@
    having it written once and not twice. The three readers, .mast,
    .content and .page, are all inside .page, so the change does not move
    a pixel: it was verified at 769 and at 768 in both forms. */
+
+/* ═══════════ THE WAY INTO THE PRIVATE AREA ═══════════
+   Pinned to the BOTTOM LEFT, which is the corner the index leaves free:
+   the index hangs from the top at --index-offset-top and this sits at
+   --index-offset-left from both edges of the other corner. One inset,
+   one corner, and no number chosen here. They cannot meet, so neither
+   had to give up room.
+
+   Gap and typography are the index's, --index-item-gap and .indexLink:
+   they are the same kind of word in the same column of the page, and
+   the ink is already the lightest in the system.
+
+   Why it is here at all, and why it is fixed, is above PrivateWays in
+   app.tsx. */
+.privateWays {
+  position: fixed;
+  left: var(--index-offset-left);
+  bottom: var(--index-offset-left);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--index-item-gap);
+}
+
+/* ─── AT THE SAME WIDTH THE INDEX GOES, IT STOPS FLOATING ───
+   Below 1080 there is no index, and something fixed over the content
+   with nothing to belong to is chrome dropped in the middle of the
+   page. Here it goes back into the flow, last, which is a footer.
+
+   It carries the content's own frame (max width, inline padding and
+   bottom air) because outside .content there is nothing giving it one,
+   and it has to line up with the column it follows. The air above is
+   --section-gap, the step that already separates one section from the
+   next: this is one more block at the end of the page, and it is read
+   as one. The row runs horizontal, because a footer of two words is a
+   row and not a column. */
+@media (max-width: 1080px) {
+  /* ONE OWNER FOR EACH GAP, which is the rule the index already states
+     for its own. The content's bottom padding is the page's bottom air
+     for when nothing follows it; with the footer there, that air
+     belongs to the footer, and leaving both would have the two of them
+     paying for the same space. Measured before fixing it: 96 above the
+     footer, which is 32 of content plus 64 of mine. */
+  .content:has(+ .privateWays) {
+    padding-bottom: 0;
+  }
+  .privateWays {
+    position: static;
+    flex-direction: row;
+    gap: var(--index-group-gap);
+    max-width: var(--page-content-max-width);
+    margin: var(--section-gap) auto 0;
+    padding: 0 var(--page-padding-inline) var(--page-padding-bottom);
+  }
+}

@@ -332,11 +332,54 @@ export function PlaygroundButton({ onOpen }: { onOpen: () => void }) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   THE SECOND WAY OUT: the piece this clip produced.
+
+   It sits next to the playground's arrow and it is drawn as the
+   DESTINATION, not as a departure. The two would be confusable with an
+   arrow each, and they are not the same gesture: the playground's takes
+   the clip WITH you and puts it on a canvas, while this one takes you
+   to something already finished, with nothing travelling.
+
+   ─── THE DRAWING ───
+   Not an SF Symbol: it is a card of the exhibition, which is a shape
+   this product owns. The showcase on top and the name underneath, the
+   anatomy of every card in the list. Same box, same 1.5 stroke and same
+   round joins as the arrow beside it.
+
+   It only exists when the clip HAS a piece. There is no disabled
+   state: a control you cannot press is a question you cannot answer,
+   and the answer lives in the details panel, one row above.
+   ═══════════════════════════════════════════════════════════════ */
+export function ExhibitionButton({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      className={css.trigger}
+      aria-label="Open in exhibition"
+      title="Open in exhibition"
+      onClick={onOpen}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <g
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="2.75" y="2.75" width="10.5" height="7" rx="1.5" />
+          <path d="M2.75 12.75h6.5" />
+        </g>
+      </svg>
+    </button>
+  );
+}
+
 export function ClipMenu({
   clip,
   where,
   onClose,
   onPlayground,
+  onExhibition,
   onRename,
   onTrash,
 }: {
@@ -353,6 +396,12 @@ export function ClipMenu({
      pixels apart. The grid does pass it: there is no bar there, and the
      right click is the only way. */
   onPlayground?: () => void;
+  /* OPTIONAL FOR ANOTHER REASON than onPlayground's. That one is absent
+     where the same action is already a button ten pixels away; this one
+     is absent when the action does not EXIST, because the clip has no
+     piece written down. So the menu of a clip that produced nothing is
+     the menu it always was. */
+  onExhibition?: () => void;
   onRename: () => void;
   onTrash: () => void;
 }) {
@@ -380,6 +429,20 @@ export function ClipMenu({
            feel like a jump you did not ask for. */
         ...(onPlayground
           ? [{ text: "Open in Playground", action: onPlayground }]
+          : []),
+        /* THE SECOND WAY OUT, and it goes right after the first
+           because they are the same class of thing: both take you
+           somewhere and neither touches the file. Between the two, this
+           one is the lighter, since the playground's also PLACES the
+           clip on a canvas and this one only navigates. The order of
+           the menu is by consequence, so the one that changes nothing
+           at all comes first of the two.
+
+           Same wording as the other: "Open in", not "Go to". It says
+           where you end up, and it says it the way the item above it
+           does. */
+        ...(onExhibition
+          ? [{ text: "Open in Exhibition", action: onExhibition }]
           : []),
         /* NO ELLIPSIS, AND IT IS A CONSCIOUS DIVERGENCE.
            Menus › Labels asks for it: "Append an ellipsis to a menu

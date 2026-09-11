@@ -6,9 +6,10 @@ import menu from "./actions.module.css";
 import { saveDetails, type Clip, type Details } from "./clips";
 import { NoteLink } from "./link";
 import { split, type Segment } from "./links";
+import { PIECES } from "../pieces";
 
 /* ═══════════════════════════════════════════════════════════════
-   THE DETAILS. Always visible, four values, editing is touching and
+   THE DETAILS. Always visible, five values, editing is touching and
    typing. See details.module.css for why it no longer collapses.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -329,19 +330,32 @@ function Note({
   );
 }
 
-/* ─── THE DEVICE PICKER ───
+/* ─── THE PICKER ───
    The same floating surface as the right-click menu (the only box in
    the private area) with its same entrance: it scales from the corner
    of the value that opened it, 0.96 → 1, nothing appears out of
    nothing. Escape, a click outside and scroll close it, the same as the
-   menu. */
-function DevicePicker({
+   menu.
+
+   It takes its options instead of knowing them, because there are two
+   rows that open one: Device, whose options are what they say, and
+   Piece, where what you read is the title and what gets stored is the
+   slug. That is why an option is a pair and not a string. */
+type Option = { value: string; label: string };
+
+function Picker({
   value,
+  options,
+  label,
   onChoose,
   onClose,
   anchor,
 }: {
   value: string;
+  options: Option[];
+  /* For whoever hears the list instead of seeing it: which row opened
+     it. */
+  label: string;
   onChoose: (v: string) => void;
   onClose: () => void;
   anchor: DOMRect;
@@ -392,8 +406,9 @@ function DevicePicker({
   }, [onClose]);
 
   /* "—" only when something is chosen: with no value there is nothing
-     to clear, and a dead option is noise. */
-  const options = value ? ["—", ...DEVICES] : [...DEVICES];
+     to clear, and a dead option is noise. Its value is empty, which is
+     what clearing the field means. */
+  const shown: Option[] = value ? [{ value: "", label: "—" }, ...options] : options;
 
   return (
     <div
@@ -401,28 +416,28 @@ function DevicePicker({
       className={menu.menu}
       data-open=""
       role="listbox"
-      aria-label="Device"
+      aria-label={label}
       style={
         pos
           ? { left: pos.left, top: pos.top, transformOrigin: pos.origin }
           : { visibility: "hidden", left: 0, top: 0 }
       }
     >
-      {options.map((o) => {
-        const selected = o === value;
+      {shown.map((o, i) => {
+        const selected = o.value === value;
         return (
           <button
-            key={o}
+            key={o.value || "—"}
             className={`${menu.item} ${css.option}`}
             role="option"
             aria-selected={selected}
-            autoFocus={selected || (o === options[0] && !value)}
+            autoFocus={selected || (i === 0 && !value)}
             onClick={() => {
-              onChoose(o === "—" ? "" : o);
+              onChoose(o.value);
               onClose();
             }}
           >
-            {o}
+            {o.label}
             {selected && <span className={css.selected} aria-hidden="true" />}
           </button>
         );
@@ -430,6 +445,54 @@ function DevicePicker({
     </div>
   );
 }
+
+/* ─── A ROW WHOSE VALUE IS CHOSEN, NOT TYPED ───
+   Device and Piece are the same control with different options, so
+   they are the same component. A popup SAYS it is a popup: a word when
+   it is empty (not a dash, which is an absent value, and this is an
+   action) and the chevron that announces the list, hanging in the
+   margin like Source's ↗ so the column does not break. */
+function ChoiceRow({
+  label,
+  shown,
+  open,
+  onOpen,
+}: {
+  label: string;
+  /* What the value reads as, empty when there is nothing chosen. */
+  shown: string;
+  open: boolean;
+  onOpen: (anchor: DOMRect) => void;
+}) {
+  return (
+    <div className={css.row}>
+      <span className={css.label}>{label}</span>
+      <button
+        className={`${css.value} ${css.trigger}`}
+        {...(shown ? {} : { "data-empty": "" })}
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={(e) => onOpen(e.currentTarget.getBoundingClientRect())}
+      >
+        {shown || "Choose"}
+        <span className={css.indicator} aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M6.5 4.5L10 8l-3.5 3.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+  );
+}
+
+const DEVICE_OPTIONS = DEVICES.map((d) => ({ value: d, label: d }));
 
 export function ClipDetails({
   clip,
@@ -441,8 +504,16 @@ export function ClipDetails({
   annotate: (path: string, d: Details | null) => void;
 }) {
   const [details, change] = useSavedDetails(clip, annotate);
-  const [picker, setPicker] = useState<DOMRect | null>(null);
+  /* WHICH row opened the list, and where. Two rows share one picker
+     because only one can be open at a time, and holding two anchors
+     would let both be. */
+  const [picker, setPicker] = useState<{
+    row: "device" | "piece";
+    anchor: DOMRect;
+  } | null>(null);
   const source = details.source ?? "";
+  const linked = details.piece ?? "";
+  const linkedName = PIECES.find((p) => p.slug === linked)?.name ?? "";
 
   return (
     <div className={css.panel}>
@@ -490,38 +561,39 @@ export function ClipDetails({
             )}
           </div>
 
-          <div className={css.row}>
-            <span className={css.label}>Device</span>
-            <button
-              className={`${css.value} ${css.trigger}`}
-              {...(details.device ? {} : { "data-empty": "" })}
-              aria-label="Device"
-              aria-haspopup="listbox"
-              aria-expanded={!!picker}
-              onClick={(e) => {
-                const r = e.currentTarget.getBoundingClientRect();
-                setPicker((p) => (p ? null : r));
-              }}
-            >
-              {/* A popup SAYS it is a popup: a word when it is empty
-                (not a dash, which is an absent value, and this is an
-                action) and the chevron that announces the list, hanging
-                in the margin like Source's ↗ so the column does not
-                break. */}
-              {details.device || "Choose"}
-              <span className={css.indicator} aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M6.5 4.5L10 8l-3.5 3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-            </button>
-          </div>
+          <ChoiceRow
+            label="Device"
+            shown={details.device ?? ""}
+            open={picker?.row === "device"}
+            onOpen={(anchor) =>
+              setPicker((p) => (p?.row === "device" ? null : { row: "device", anchor }))
+            }
+          />
+
+          {/* ─── WHICH PIECE CAME OUT OF THIS CLIP ───
+              The field that makes the door swing both ways. With it,
+              the clip offers Open in Exhibition and the piece's page
+              offers the way back to this clip.
+
+              It is a PICKER over the pieces that exist and not a text
+              field, for a harder reason than Device's: a slug typed by
+              hand that names nothing is a link that 404s, and a link
+              you cannot follow is worse than no link. The server
+              refuses one anyway, with a 400 instead of dropping it in
+              silence, but a control that cannot express the mistake is
+              better than an error message about it.
+
+              Publishing an App piece from this clip fills it in on its
+              own. It is here by hand for the clips whose piece was
+              published before the field existed. */}
+          <ChoiceRow
+            label="Piece"
+            shown={linkedName}
+            open={picker?.row === "piece"}
+            onOpen={(anchor) =>
+              setPicker((p) => (p?.row === "piece" ? null : { row: "piece", anchor }))
+            }
+          />
           {/* BY PORTAL, to body. Inside the table its div (even though
             it is position:fixed) got in between the Device row and the
             Notes block and broke the sibling selectors that hand out
@@ -529,12 +601,25 @@ export function ClipDetails({
             cannot live in the flow of what it covers. */}
           {picker &&
             createPortal(
-              <DevicePicker
-                value={details.device ?? ""}
-                anchor={picker}
-                onClose={() => setPicker(null)}
-                onChoose={(v) => change({ ...details, device: v })}
-              />,
+              picker.row === "device" ? (
+                <Picker
+                  label="Device"
+                  value={details.device ?? ""}
+                  options={DEVICE_OPTIONS}
+                  anchor={picker.anchor}
+                  onClose={() => setPicker(null)}
+                  onChoose={(v) => change({ ...details, device: v })}
+                />
+              ) : (
+                <Picker
+                  label="Piece"
+                  value={linked}
+                  options={PIECES.map((p) => ({ value: p.slug, label: p.name }))}
+                  anchor={picker.anchor}
+                  onClose={() => setPicker(null)}
+                  onChoose={(v) => change({ ...details, piece: v })}
+                />
+              ),
               document.body,
             )}
 

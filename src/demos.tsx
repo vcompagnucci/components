@@ -54,16 +54,62 @@ const MODULES = import.meta.glob<{ default: ComponentType<{ mode?: Mount }> }>(
    demo, with its state, on every render of the list. */
 const cache = new Map<string, ComponentType<{ mode?: Mount }>>()
 
+/* The module once it has ALREADY arrived, so it can be rendered with no
+   Suspense in between. `lazy` needs a tick to resolve even when the
+   module is in memory, and one tick is a whole frame: the list swapped
+   in and painted its boxes empty, with everything else of the page
+   already in place. Measured at 60 fps arriving from the vault.
+
+   Warming with `load()` alone was not enough for exactly that reason.
+   What was missing is this map: from here the component goes in
+   directly, and the boxes are full in the SAME frame as the title above
+   them. */
+const ready = new Map<string, ComponentType<{ mode?: Mount }>>()
+
 function componentFor(slug: string): ComponentType<{ mode?: Mount }> | null {
   const key = `./components/pieces/${slug}/index.tsx`
   const load = MODULES[key]
   if (!load) return null
+  /* Whatever was handed out first keeps being handed out. Swapping the
+     lazy one for the resolved one between renders is another component
+     for React, and it would remount the demo and lose its state. */
   let c = cache.get(key)
   if (!c) {
-    c = lazy(load)
+    c = ready.get(key) ?? lazy(load)
     cache.set(key, c)
   }
   return c
+}
+
+/* ─── THE DEMOS GET WARMED ONCE THE PAGE IS ALREADY THERE ───
+   Each demo is its own chunk, so the list paints its cards with the
+   boxes EMPTY until each one arrives. Measured at 60 fps arriving at
+   the exhibition from the vault: the page is fully laid out, index,
+   masthead and titles included, with the two Web boxes still gray.
+   Nothing shifts, the box is reserved, but the thing you came to look
+   at is the last to show up.
+
+   They are asked for in idle time and not eagerly imported, which is
+   the cheaper half of the trade: the first bundle stays the size it
+   was, the detail of an App piece still downloads no demo it will not
+   draw, and by the time anyone has read the title the module is in
+   memory. `lazy` then resolves from cache with no round trip.
+
+   It runs once per session and it does not race the first paint: an
+   idle callback yields to anything the browser still has to do, and
+   the timeout is the fallback for Safari, which does not have it. */
+let warmed = false
+
+export function warmDemos() {
+  if (warmed) return
+  warmed = true
+  const run = () => {
+    for (const [key, load] of Object.entries(MODULES)) {
+      void load().then((m) => ready.set(key, m.default))
+    }
+  }
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1000 })
+  else setTimeout(run, 200)
 }
 
 /* The demo inside the box of the card, the one in the list and the one
