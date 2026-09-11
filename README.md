@@ -3181,6 +3181,19 @@ index, with the same `useClips` the vault itself uses, so there is no second
 request. With no clip naming the piece it draws nothing, because a dev-only row
 that appears empty is a thing you have to explain on a page you are recording.
 
+**And the private area got the door too.** The bar that said `Vault ·
+Playground` now opens with **Exhibition**, first, because the bar reads the way
+the journey does and the exhibition is where it ends. It is written by hand and
+not added to `PRIVATE_ROUTES`: that list is what MAKES a path private, and `/`
+is the product. It never gets `data-active` either, since while that bar exists
+you are not in the exhibition. Measured in the served bar: Exhibition at x = 26,
+Vault at 102, Playground at 149, and the active state still follows the view
+you are in.
+
+It does not contradict the rule that there is no link to `/vault` on the front
+page. That one keeps the product free of the private area; this is the private
+area pointing at the product, which is the direction that costs nothing.
+
 **Measured end to end**, on the served page: the grid's menu comes out
 `Open in Playground · Open in Exhibition · Rename · Move to Trash`, the clip
 with a piece shows three buttons in its bar and the one without shows two, the

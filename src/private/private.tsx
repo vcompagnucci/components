@@ -156,6 +156,30 @@ export default function PrivateArea({
           in the list: cmd-click opens a new tab. */}
       {!noTabs && (
         <nav className={css.bar} aria-label="Private">
+          {/* ─── AND THE WAY OUT, FIRST ───
+              The exhibition is not one of `routes` and it cannot be:
+              that list is what makes a path private, and `/` is the
+              product. It is written here by hand, which is also what it
+              is, the one door out of the private area.
+
+              It goes at the head because the bar reads as the journey
+              does, and the exhibition is where the journey ends. It
+              never gets `data-active`: while this bar exists you are
+              not in the exhibition, so there is no state for it to be
+              in.
+
+              It does not contradict the rule in app.tsx that says there
+              is no link to /vault on the front page. That one keeps the
+              product free of the private area; this one is the private
+              area pointing at the product, which is the direction that
+              costs nothing. */}
+          <a
+            className={css.tab}
+            href="/"
+            onClick={linkClick(() => go('/'))}
+          >
+            Exhibition
+          </a>
           {routes.map((r) => (
             <a
               className={css.tab}
