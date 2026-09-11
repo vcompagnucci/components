@@ -257,45 +257,81 @@ export async function linkCardOf(url: string): Promise<LinkCard | null> {
   }
 }
 
+/* ═══════════ THE INDEX SURVIVES THE UNMOUNT ═══════════
+   The last answer the server gave, held in the module and not in the
+   component. It is what the hook STARTS from, so coming back to the
+   vault paints the clips you already had in the first frame and the
+   fetch only corrects them if something changed.
+
+   Without it the hook was born in `loading` on every mount, and the
+   vault draws nothing while it loads (`if (status.loading) return
+   null`): measured on the round trip from a piece back to its clip,
+   ONE FULLY WHITE FRAME between the two pages. The trip is the thing
+   this journey is for, so a blank frame in the middle of it is the
+   whole cost.
+
+   It is a cache of ONE and it never gets invalidated on purpose: the
+   fetch always runs, so what is on screen is at most one round trip
+   old and never wrong for longer than that. `annotate` writes through
+   it for the same reason, or editing a field and leaving would come
+   back showing the old value for a frame.
+
+   It is a module variable and not a context because the only thing
+   that would change with a provider is where it is written down: there
+   is one vault, one server and one index. */
+let lastIndex: Status | null = null;
+
+/* The index, asked for BEFORE anyone needs it. In the exhibition there
+   is no vault on screen, but the way back to a reference is one click
+   away, and the round trip has to be instant. Calling it twice costs
+   nothing: the second one finds the answer already in `lastIndex`. */
+/* The request and the shape it lands in, in one place, because two
+   callers need it now: the hook and the warm-up above. */
+async function fetchIndex(): Promise<Status> {
+  try {
+    const d = await (await fetch("/vault-media/__index")).json();
+    if (!d.connected) {
+      return { loading: false, connected: false, reason: d.reason };
+    }
+    const clips: Clip[] = d.clips.map((c: RawClip) => ({
+      ...c,
+      name: toSentence(c.file),
+      source: sourceOf(c.folder),
+      date: new Date(c.created),
+      url: "/vault-media/" + c.path.split("/").map(encodeURIComponent).join("/"),
+    }));
+    /* Newest first, which is the order you asked for and the one both
+       references have. */
+    clips.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return { loading: false, connected: true, folder: d.folder, clips };
+  } catch (e) {
+    return { loading: false, connected: false, reason: String(e) };
+  }
+}
+
+export function warmClips() {
+  if (lastIndex) return;
+  void fetchIndex().then((s) => {
+    lastIndex = s;
+  });
+}
+
 export function useClips() {
-  const [status, setStatus] = useState<Status>({ loading: true });
+  const [status, setStatus] = useState<Status>(lastIndex ?? { loading: true });
   /* Bumped to ask for the index again. It is what makes a clip you
      just uploaded show up without reloading the page. */
   const [round, setRound] = useState(0);
 
+  /* IT ALWAYS ASKS, even when it started from the cache. What is drawn
+     in the first frame is at most one round trip old, and this is what
+     corrects it. Nothing flashes when the answer is the same, because
+     the state that lands is equal to the one already there. */
   useEffect(() => {
     let alive = true;
-    fetch("/vault-media/__index")
-      .then((r) => r.json())
-      .then((d) => {
-        if (!alive) return;
-        if (!d.connected) {
-          setStatus({ loading: false, connected: false, reason: d.reason });
-          return;
-        }
-        const clips: Clip[] = d.clips.map((c: RawClip) => ({
-          ...c,
-          name: toSentence(c.file),
-          source: sourceOf(c.folder),
-          date: new Date(c.created),
-          url:
-            "/vault-media/" +
-            c.path.split("/").map(encodeURIComponent).join("/"),
-        }));
-        /* Newest first, which is the order you asked for and the one
-           both references have. */
-        clips.sort((a, b) => b.date.getTime() - a.date.getTime());
-        setStatus({
-          loading: false,
-          connected: true,
-          folder: d.folder,
-          clips,
-        });
-      })
-      .catch((e) => {
-        if (alive)
-          setStatus({ loading: false, connected: false, reason: String(e) });
-      });
+    void fetchIndex().then((s) => {
+      lastIndex = s;
+      if (alive) setStatus(s);
+    });
     return () => {
       alive = false;
     };
@@ -306,14 +342,19 @@ export function useClips() {
      stored, and re-reading 16 clips to change three fields of one
      would make the grid flicker. */
   const annotate = useCallback((path: string, details: Details | null) => {
-    setStatus((s) =>
+    /* THROUGH THE CACHE TOO. Without this, editing a field and leaving
+       the vault came back showing the value from before the edit until
+       the fetch answered, which is the same flash this cache came to
+       take out, only with the wrong content instead of none. */
+    const apply = (s: Status): Status =>
       s.loading || !s.connected
         ? s
         : {
             ...s,
             clips: s.clips.map((c) => (c.path === path ? { ...c, details } : c)),
-          },
-    );
+          };
+    if (lastIndex) lastIndex = apply(lastIndex);
+    setStatus(apply);
   }, []);
 
   return { status, reload: () => setRound((n) => n + 1), annotate };

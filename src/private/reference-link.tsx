@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import css from './reference-link.module.css'
 import { useClips } from './clips'
 
@@ -35,18 +34,15 @@ import { useClips } from './clips'
    explain.
    ═══════════════════════════════════════════════════════════════ */
 export default function ReferenceLink({ slug }: { slug: string }) {
+  /* NO DELAY OF ITS OWN. This used to wait one frame so it would not
+     appear together with the video's first paint. That was a fade-in
+     invented here, and it is exactly the flash this page cannot have:
+     with the index already warm the line is there in the FIRST frame,
+     which is what makes it read as part of the page and not as
+     something that arrived late. */
   const { status } = useClips()
-  /* The mount comes in one frame late on purpose. The link is the last
-     thing on a page whose showcase is still settling, and appearing in
-     the same frame as the video's first paint reads as part of the
-     piece. One frame later it reads as what it is, an annotation. */
-  const [shown, setShown] = useState(false)
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setShown(true))
-    return () => cancelAnimationFrame(id)
-  }, [])
 
-  if (!shown || status.loading || !status.connected) return null
+  if (status.loading || !status.connected) return null
   const clip = status.clips.find((c) => c.details?.piece === slug)
   if (!clip) return null
 

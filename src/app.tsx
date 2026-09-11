@@ -1,6 +1,8 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import css from './app.module.css'
 import { Detail, Item, Masthead, textBaseline } from './parts'
+import { warmDemos } from './demos'
 import { PIECES, type Piece, type Platform } from './pieces'
 import { SITE } from './site'
 import { NotFound } from './not-found'
@@ -61,11 +63,72 @@ const PRIVATE_ROUTES: PrivateRoute[] = import.meta.env.DEV
 
 const PrivateArea = import.meta.env.DEV ? lazy(() => import('./private/private')) : null
 
+/* ─── THE PRIVATE AREA GETS WARMED FROM THE EXHIBITION ───
+   A piece links back to the clip it was measured against, so the round
+   trip is one click away from a page where the vault is not on screen.
+   Reached cold, that click paid for two things at once: the chunk, and
+   the index the vault needs before it draws anything.
+
+   Both are asked for here, once, as soon as the app mounts. The chunk
+   because `lazy` only fetches on first render, and the index because
+   `useClips` starts empty and the vault renders null while it loads:
+   measured on the trip back from a piece, ONE FULLY WHITE FRAME.
+
+   THE SAME TERNARY AS ABOVE and for the same reason: with
+   import.meta.env.DEV replaced by `false` this is null, the arrow
+   function is dead code, and neither `import()` survives into the
+   build. A `if (DEV) return` inside the effect would NOT do: the
+   specifiers would still be in the source and Rollup would emit the
+   chunks. */
+const warmPrivateArea = import.meta.env.DEV
+  ? () => {
+      void import('./private/private')
+      void import('./private/clips').then((m) => m.warmClips())
+    }
+  : null
+
 /* ON PURPOSE THERE IS NO LINK TO /vault OR /playground on the front
    page, not even in dev: you enter the private area by typing the URL.
    There was a tab bar here and it was taken out by request. The front
    page is the page of the product, and the private area is not part of
    the product. */
+
+/* ═══════════ THE VIEW CHANGES WITHOUT A BLANK FRAME ═══════════
+   Measured with a screencast at 60 fps, every client navigation in this
+   app painted ONE degraded frame, and going from a piece into the vault
+   painted a FULLY WHITE one. It is not the video, not the lazy chunk
+   and not the index: the DOM, the layout and the scroll are all correct
+   in that frame (probed rAF by rAF). It is the browser needing a frame
+   to rasterize a viewport-sized subtree that React swapped in one
+   commit.
+
+   The instrument was calibrated before being believed: a navigation
+   with nothing to load, the list to a route that does not exist, drops
+   3 %, and a render of identical content drops 0. So the white frame is
+   real and not an artifact of the screencast.
+
+   `startViewTransition` is the cure the platform gives: it keeps a
+   snapshot of the OLD frame on screen until the new one is rastered, so
+   there is never a moment with neither. `flushSync` is what makes React
+   do the swap INSIDE the callback; without it the state update lands
+   after the transition has already taken its snapshot and nothing
+   changes.
+
+   THE CROSSFADE IS THE SYSTEM'S SURFACE PAIR, --dur-surface and
+   --ease-surface, and not a number chosen here. It is the shortest
+   thing that is still a transition and not a cut.
+
+   With no support, or with reduced motion asked for, it falls through
+   to the plain swap: the white frame comes back, which is exactly the
+   behaviour of the day before this. */
+const swapView = (change: () => void) => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reduce || !document.startViewTransition) {
+    change()
+    return
+  }
+  document.startViewTransition(() => flushSync(change))
+}
 
 /* Routes without a router: there are THREE views. `/` is the list,
    `/button` is the piece, and anything else is a route that does not
@@ -307,7 +370,9 @@ export function App() {
   }, [isList])
 
   useEffect(() => {
-    const onPop = () => setView(fromUrl())
+    /* The back button and the trackpad gesture go through the same
+       door: they are a view change like any other. */
+    const onPop = () => swapView(() => setView(fromUrl()))
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
@@ -343,19 +408,24 @@ export function App() {
     window.scrollTo(0, isList ? listScroll.current : 0)
   }, [view])
 
+  useEffect(() => {
+    warmDemos()
+    warmPrivateArea?.()
+  }, [])
+
   /* Generic client navigation: it pushes the URL and reads the view
      back out of it. That the view comes from fromUrl() and not from an
      argument is on purpose: that way reaching /vault by link, by the
      address bar or by the back button always goes down the same path. */
   const go = (path: string) => {
     history.pushState({}, '', path)
-    setView(fromUrl())
+    swapView(() => setView(fromUrl()))
   }
 
   const open = (p: Piece) => {
     listScroll.current = window.scrollY
     history.pushState({ fromList: true }, '', `/${p.slug}`)
-    setView({ kind: 'piece', piece: p })
+    swapView(() => setView({ kind: 'piece', piece: p }))
   }
 
   /* If you arrived from the list, you go back through the history and
@@ -367,7 +437,7 @@ export function App() {
       return
     }
     history.pushState({}, '', '/')
-    setView({ kind: 'list' })
+    swapView(() => setView({ kind: 'list' }))
   }
 
   useEffect(() => {

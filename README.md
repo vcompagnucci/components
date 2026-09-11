@@ -3201,3 +3201,74 @@ piece's foot reads *"Measured against Hold to commit"* and links to
 `/vault/nativo/Hold to commit.mp4`, and the click routes without reloading
 (`pushState` plus a `popstate`, which is what `app.tsx` already listens to).
 Zero console errors on both ends.
+
+## The white frame between two views
+
+2026-09-10, right after the two-way door. The request was that the journey
+load instantly and with no flashes, because it is going to be recorded from
+localhost. So it was measured first, with a screencast at 60 fps over the whole
+trip: vault, clip, piece, and back.
+
+**There was one fully white frame** going from a piece into its clip, and a
+degraded one on every other navigation. The DOM was not empty in that frame,
+the layout was right and the scroll was already at zero: probed rAF by rAF,
+every sample had the clip's 69 nodes, `scrollY = 0` and the frame box at the
+top with its real height. So it was not a loading state and not a layout shift.
+
+**The instrument got calibrated before it was believed.** A navigation with
+nothing to load (the list to a route that does not exist) drops 3 %, and a
+render of identical content drops 0. The white frame was real.
+
+Then it got isolated, one variable at a time:
+
+| what was swapped | drop |
+| --- | ---: |
+| piece with video to clip with video | 66 % |
+| piece with video to the playground | 62 % |
+| piece WITHOUT video to clip | 66 % |
+| the playground to a clip | 67 % |
+| the list to a piece, outside the private area | 56 % |
+
+It is not the video, not the lazy chunk and not the vault's index: it is the
+browser needing one frame to rasterize a viewport-sized subtree that React
+swaps in a single commit. It was happening on **every** navigation in the app
+and it had nothing to do with the link that had just been built.
+
+**The cure is the one the platform gives.** `startViewTransition` keeps a
+snapshot of the old frame on screen until the new one is rastered, so there is
+never a moment with neither. `flushSync` inside the callback is what makes
+React do the swap there; without it the state lands after the snapshot is
+already taken and nothing changes. The crossfade is the system's surface pair,
+`--dur-surface` and `--ease-surface`, not a number chosen here: it exists to
+remove a white frame, not to add an animation. With reduced motion asked for,
+or with no support, it falls through to the plain swap.
+
+**And that uncovered a second one.** With the white frame gone, the exhibition
+still arrived with the two Web boxes empty: the page complete, index, masthead
+and titles in place, and the demos missing. Each demo is its own chunk and
+`React.lazy` needs a tick to resolve even when the module is already in memory.
+One tick is one frame, and the transition photographs it.
+
+Warming the modules was not enough for exactly that reason. What was missing is
+a second map, from slug to the component ALREADY resolved, so a demo that
+arrived goes in with no Suspense between. Whatever was handed out first keeps
+being handed out, or swapping the lazy one for the resolved one would remount
+the demo and lose its state.
+
+Measured on the same trip, the worst frame of each step, in bytes of the same
+jpeg (lower means emptier):
+
+| step | before | after |
+| --- | ---: | ---: |
+| grid to clip | 9.6k | 21.8k |
+| clip to piece | 8.5k | 16.0k |
+| piece to clip | **7.2k, white** | 18.7k |
+| the Exhibition tab | 13.7k, boxes empty | 18.6k |
+
+The worst frame of the last step is now the page whole, with both demos drawn.
+
+**What did NOT change**: the first bundle, 210 kB, because the demos are still
+separate chunks asked for in idle time and an App piece's detail still
+downloads no demo it will not draw. And the vault's index now survives the
+unmount in a module variable, so coming back to the vault paints the clips you
+already had in the first frame and the fetch only corrects them.
