@@ -654,6 +654,17 @@ that is why the ones here read in capitals and carry a claim.
   system says it does not have.
 - **Three of the four clips have no piece linked.** The field exists and the
   picker is in the details panel; only `hold-to-commit` is filled in.
+- **The unslop audit of 2026-09-12 left 148 findings and nothing fixed.** Every
+  source file read in full, 24,332 lines plus the CSS. The reports are in
+  `.context/unslop/`, which does not travel, so what matters is here: about 60
+  of the 148 are comments whose lead describes a state that changed, with the
+  correction appended below or in another file, and the placeholder era
+  survives inside receipts that are quoted as measurements (`--piece-card-gap`
+  was chosen over 19 pieces; the index's ceiling in `DESIGN.md` is computed
+  over 19). One finding changes what is on screen: the sparks of
+  `hold-to-commit` overlap, because their spacing is 0.31 of a hold that went
+  from 2000 ms to 1000, and the comment that says they never overlap is doing
+  the arithmetic with the old number.
 - **Three linter disables in `native/` with no reason written.** All three are
   `exhaustive-deps`, in `hold-to-commit.tsx`, `meter.tsx` and
   `swipeable-tabs.tsx`. The rule is in `AGENTS.md`; what is missing is reading
