@@ -87,7 +87,7 @@ receipt in the file that is named.
 | 7 | **`pnpm verify`** before looking: the slot of the bezel filled in twelve states of the camera | `scripts/verify.mjs` |
 | 8 | **The camera is fitted to the take**: `until` = the end of the measured slow gesture; the way in and the way out are the ones from the reference | `src/parameters.ts` |
 | 9 | **You look at it in Studio**, you touch whatever needs touching, and **you render twice**: `pnpm render:both` → light and dark | below |
-| 10 | **The exhibition takes ONE single render, transparent and with no shadow**, like the Family videos on benji.org: `pnpm render:exhibition` produces `out/exhibition.webm` (VP9 with alpha, Chrome and Firefox) and `out/exhibition.mov` (HEVC with alpha through VideoToolbox, Safari), 1120² (1:1 with the box of 560 on retina), phone at 92 %, and the camera comes in to the tabs and STAYS there until the end: what is being shown are the tabs. The video is the whole box of the card, so the crop of the zoom falls on its edge; the card supplies the background, in whatever theme it is in. It goes in through `pnpm piece:video <slug> mockup/out/exhibition --alpha` from the root. The one for X is the pair with a background | root `AGENTS.md`, path B |
+| 10 | **The exhibition takes ONE single render, transparent and with no shadow**, like the measured videos: `pnpm render:exhibition` produces `out/exhibition.webm` (VP9 with alpha, Chrome and Firefox) and `out/exhibition.mov` (HEVC with alpha through VideoToolbox, Safari), 1120² (1:1 with the box of 560 on retina), phone at 92 %, and the camera comes in to the tabs and STAYS there until the end: what is being shown are the tabs. The video is the whole box of the card, so the crop of the zoom falls on its edge; the card supplies the background, in whatever theme it is in. It goes in through `pnpm piece:video <slug> mockup/out/exhibition --alpha` from the root. The one for X is the pair with a background | root `AGENTS.md`, path B |
 | 10b | **And if the piece draws itself differently in light and in dark, there are TWO pairs**, one per appearance of the app: `node scripts/exhibition.mjs <Composition>Exhibition <slug>-light` and the same with `-dark`, and they go in with `pnpm piece:video <slug> mockup/out/<slug>-light --alpha` and `… <slug>-dark --alpha --dark`. The pair WITHOUT a suffix is the app in light, which is what a reader with the system in light sees. This does not contradict what is above: the BACKGROUND of the card is still one single one, what changes is what you see inside the phone | root `AGENTS.md`, path B |
 
 ## The mini-decisions, and why
@@ -129,7 +129,7 @@ receipt in the file that is named.
   neutral taken down to 11 % with the same tint; no measured reference
   in the vault). The shadow does not change.
 - **In the exhibition, no background and no shadow:** the video goes
-  transparent over the surface of the card, like Family on benji.org,
+  transparent over the surface of the card, like the measured videos,
   and it IS the whole box (560 on a side, phone at 92 %): the crop when
   the camera comes in falls on the edge of the box, not on an invisible
   square further in. And in the exhibition the camera does not go out:

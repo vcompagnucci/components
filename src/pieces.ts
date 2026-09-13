@@ -55,7 +55,7 @@ export type Piece = {
   /* The same video with alpha in HEVC (.mov) for Safari, which does not
      play WebM's alpha. An App piece shows transparent and without a
      shadow over the surface of the card, like the Family videos on
-     benji.org: the exhibition puts the BACKGROUND there in whatever
+     the measured page: the exhibition puts the BACKGROUND there in whatever
      theme is in use, so the background is not baked per theme.
      `pnpm piece:video … --alpha` writes it; without this, `video` goes
      alone. */

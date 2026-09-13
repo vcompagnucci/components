@@ -14,7 +14,7 @@ import type { Clip } from './clips'
      from apple   the play/pause button: 38×38, a 20 icon, and its exact
                   colors in light and in dark. 28 videos of theirs use
                   it, so it renders for real
-     from benji   the speed toggle: two states (1.0x and 0.5x), NOT a
+     measured     the speed toggle: two states (1.0x and 0.5x), NOT a
                   menu, with the two texts crossing over by opacity so
                   the button does not change width. 45 elements
 
@@ -29,7 +29,7 @@ import type { Clip } from './clips'
    browser in 9 out of 9 clips.
    ═══════════════════════════════════════════════════════════════ */
 
-/* benji's two, and in that order: his button starts at 1x. */
+/* The measured two, and in that order: the button starts at 1x. */
 export const SPEEDS = [1, 0.5] as const
 
 /* ALWAYS ONE DECIMAL: "1.0x", not "1x".
@@ -315,7 +315,7 @@ export function Player({ clip }: { clip: Clip }) {
           )}
         </div>
 
-        {/* benji's toggle: two states, and the two texts stacked in the
+        {/* The measured toggle: two states, and the two texts stacked in the
             same cell crossing over by opacity. The labels go with one
             decimal so the two states measure the same, see `label`
             above. */}

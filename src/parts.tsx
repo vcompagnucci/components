@@ -23,9 +23,9 @@ import { Notes } from './notes'
    here and not in app.tsx so that app is left with the composition and
    nothing else. */
 
-/* THE INTERCEPTOR OF A CLIENT-SIDE LINK. Measured on benji: his list
-   item is an <a href="/drawesome"> and a normal click navigates on the
-   client, zero document requests, but cmd-click opens a new tab.
+/* THE INTERCEPTOR OF A CLIENT-SIDE LINK. MEASURED: the list item of a
+   served page is an <a href="/a-piece"> and a normal click navigates on
+   the client, zero document requests, but cmd-click opens a new tab.
 
    It lets through everything the browser does better: any modifier key,
    and any button that is not the primary one. Only the plain click
@@ -185,8 +185,8 @@ export function Item({
    the product decision is that the live preview is in both.
 
    The recording autoplays, muted and looping: here the movement IS the
-   content, and it is what benji's demos do in family-values, 45 videos
-   looping at once. The opposite rule in the playground (it starts
+   content, and it is what the measured demos do, 45 videos looping at
+   once. The opposite rule in the playground (it starts
    still, a click wakes it) belongs to a study board where eight loops
    fight for your attention; an exhibition exists to show itself without
    being asked.
@@ -197,12 +197,12 @@ export function Item({
    reserved that slot while it was empty turns itself off (see :has in
    app.module.css). */
 /* ─── THE SPEED OF THE VIDEO ───
-   What benji.org does in Family Values, measured in his code: a button
-   at the top right of the demo that toggles 1x ↔ 0.5x and writes
+   MEASURED, read off served code: a button at the top right of the
+   demo that toggles 1x ↔ 0.5x and writes
    `playbackRate`; the two labels sit on top of each other and cross by
    opacity, and the button changes width (1.75rem ↔ 2.5rem) with the
    same transition. Here it shows when the mouse passes over the video
-   (the user's request); on benji it is always visible. The numbers are
+   (the user's request); there it is always visible. The numbers are
    in app.module.css. The speed is written again on `loadedmetadata`
    because a change of source returns it to 1. */
 const SPEEDS = [1, 0.5] as const
@@ -266,8 +266,8 @@ function Player({ piece, mode, active = false }: { piece: Piece; mode: Mode; act
      software (Chrome has no hardware path for alpha), and at 1120² and
      60 fps that is two decodes per frame; with the list growing, ten
      videos looping off screen are ten times that, fighting for the CPU
-     with the one that is actually being watched. What benji does: his
-     player mounts only when it enters the screen. Here it pauses and
+     with the one that is actually being watched. What the measured page
+     does: its player mounts only when it enters the screen. Here it pauses and
      resumes with IntersectionObserver, and `preload="auto"` so that
      what is visible has the whole file before it starts. */
   useEffect(() => {
@@ -376,9 +376,9 @@ function Showcase({ piece, mode, active }: { piece: Piece; mode: Mode; active?: 
    use a text label that says Back". Apple's standard is a chevron.
 
    The arrow did not come from anywhere measured, and that is worth
-   saying because the log went as far as citing benji and josh: both
-   of them use WORDS, "Index" and "Home", so neither one backed the "←".
-   It was ours and it had no receipt.
+   saying because the log went as far as citing two sites that use
+   WORDS, "Index" and "Home", so neither one backed the "←". It was ours
+   and it had no receipt.
 
    AND IT IS DRAWN, not written, for the same reason as the + in the
    grid: a glyph sits on the baseline, so inside a box it is never
@@ -413,8 +413,8 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
             see the thing and then you read what it is: the list shows
             and the detail explains, so the prose comes in once the
             preview has already answered. Up top stays the pair that IS
-            measured on benji: a title and a secondary line 4px away,
-            his <h1> with his <time>. */}
+            measured: a title and a secondary line 4px away, an <h1>
+            with a <time>. */}
         <div className={css.detailHead}>
           <h1 className={css.detailTitle}>{piece.name}</h1>
           <div className={css.detailMeta}>{piece.platform}</div>

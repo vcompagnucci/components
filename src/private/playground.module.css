@@ -31,8 +31,7 @@
      tokens.css, but fitting the preview also needs the QUOTIENT, so it
      can be compared inside a calc(). A CSS <ratio> does not go into a
      calc, so that one number is written here with its arithmetic in
-     plain sight and its source cited: 550 × 528 is benji's card in
-     family-values, measured.
+     plain sight and its source cited: 550 × 528 is a measured card.
 
      THE OTHER THREE WENT TO tokens.css. They were declared here,
      duplicated from .vault, and before that not even duplicated: they
@@ -1443,7 +1442,7 @@
   align-items: start;
 }
 
-/* An option IS the vault's card: the whole class, with its benji aspect
+/* An option IS the vault's card: the whole class, with its measured aspect
    ratio, its radius, its background, its hover, its label and, what
    matters, its `data-source`, which makes a phone clip come in with air
    instead of cropping it. See the long why in the TSX.

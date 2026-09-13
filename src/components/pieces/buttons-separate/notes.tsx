@@ -15,15 +15,14 @@ import { Section } from '../../../notes'
    NO DESCRIPTION LINE. It is the first rule: the title already says
    what the gesture is. A line underneath would only repeat it.
 
-   THE TONE, read as served on 2026-09-09 and not from memory. From josh
-   puckett (joshpuckett.me/bloom) comes the way of opening: the first
-   word of the paragraph is the subject of the fact, and a sequence is
-   written with "then", in order, in a single sentence ("Automatically
-   sizes to fit the trigger content, then animates to the menu
-   dimensions"). From benji (benji.org/liveline) comes the prose that
-   goes from what you feel to the mechanism without turning into a
-   changelog ("It updates at 60fps through direct DOM manipulation, not
-   React re-renders").
+   THE TONE, read as served on 2026-09-09 and not from memory. From one
+   measured page comes the way of opening: the first word of the
+   paragraph is the subject of the fact, and a sequence is written with
+   "then", in order, in a single sentence ("Automatically sizes to fit
+   the trigger content, then animates to the menu dimensions"). From the
+   other comes the prose that goes from what you feel to the mechanism
+   without turning into a changelog ("It updates at 60fps through direct
+   DOM manipulation, not React re-renders").
 
    PERSON. Zero "I" and zero "we", like the two reference pages. "You"
    is whoever moves the pointer. And zero contractions on the whole

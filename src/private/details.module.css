@@ -61,7 +61,7 @@
 
 /* Label on the left and value on the right against a common edge.
    --type-meta-* is the token that already existed for "the platform, in
-   the detail": it is benji's secondary text decision already ported
+   the detail": it is the measured secondary text decision already ported
    (his measured ls, -0.09008px, is exactly -0.00563rem at 16px). */
 .table {
   font-size: var(--type-meta-fs);

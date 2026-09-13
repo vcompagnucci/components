@@ -117,7 +117,7 @@
      The numbers and where they came from are still written down in
      vault.module.css, which is where they were measured:
        gutter and row    openai.com/news, eight windows
-       aspect ratio      benji's card in family-values, 550×528
+       aspect ratio      a measured card, 550×528
        media-title       figma, 16 (against linear's 24) */
   --vault-gutter: 24px;
   --vault-row: 80px;

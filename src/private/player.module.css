@@ -10,15 +10,15 @@
      play button      38×38, glyph of 20×20            apple
      transition       opacity 100ms linear + transform .2s ease   apple
      disabled         opacity .32                      apple
-     speed            height 20, 12px/460, radius 38   benji
-     its transition   all .2s ease                     benji
-     cross-fade       two texts stacked                benji
+     speed            height 20, 12px/460, radius 38   measured
+     its transition   all .2s ease                     measured
+     cross-fade       two texts stacked                measured
 
    From the speed button everything gets copied except the WIDTH: the
    28px measured on it are the width of HIS label in HIS typography, not
    a measurement of the control. Here the content gives it, see .speed.
 
-   Both of them render for real (28 videos of apple's, 45 of benji's)
+   Both render for real (28 videos on one page, 45 on the other)
    and they are not dead rules in a bundle.
 
    ─── WHAT WAS CHOSEN BY LOOKING ───
@@ -26,7 +26,7 @@
    /prototype:
 
    1 · WHERE THE CONTROLS LIVE. Apple anchors them BOTTOM RIGHT on top
-       of the video; benji TOP RIGHT. Both measured, and they cannot
+       of the video; the other TOP RIGHT. Both measured, and they cannot
        both be right. Theirs was tried ("corners", with apple's scrim to
        hold the contrast over content we do not control) and A ROW BELOW
        THE VIDEO WON, which belongs to neither of them. The advantage:
@@ -52,9 +52,9 @@
 .player {
   --player-play: 38px; /* apple, measured */
   --player-glyph: 20px; /* apple, measured */
-  --player-small-height: 20px; /* benji, measured */
-  --player-pill-radius: 38px; /* benji, measured */
-  --player-gap: 8px; /* benji, measured */
+  --player-small-height: 20px; /* measured */
+  --player-pill-radius: 38px; /* measured */
+  --player-gap: 8px; /* measured */
 
   /* The track. These ARE OURS: there is no reference to copy.
      The rail is what you SEE; the height is the area to grab it by.
@@ -231,7 +231,7 @@
   fill: currentColor;
 }
 
-/* ─── THE SPEED · benji's, measured ───
+/* ─── THE SPEED · measured ───
    Two states and not a menu. The two texts are stacked in the same cell
    and cross over by opacity.
 
@@ -255,7 +255,7 @@
    gap, constant air of --player-gap, and the right edge pinned where
    the clip ends.
 
-   The 28 of width measured on benji is NOT copied: it is the width of
+   The 28 of width that was measured is NOT copied: it is the width of
    HIS label in HIS typography. What gets copied from him is the height,
    the size, the weight, the radius and the transition. */
 .speed {

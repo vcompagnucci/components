@@ -169,21 +169,21 @@ const swapView = (change: () => void) => {
    `/button` is the piece, and anything else is a route that does not
    exist.
 
-   The three answers are benji's and josh's, which match exactly,
-   measured with curl against both:
+   The three answers are measured, with curl, against two sites that
+   agree exactly:
 
-     /drawesome     200            the piece
+     /a-piece       200            the piece
      /no-existe     404            the URL STAYS, it does not redirect
-     /Drawesome     404            the capital is NOT normalised
-     /drawesome/    308 → no slash  permanent redirect to the canonical
+     /A-Piece       404            the capital is NOT normalised
+     /a-piece/      308 → no slash  permanent redirect to the canonical
 
    The trailing slash is resolved here with replaceState, the client
    equivalent of a 308 (it adds no entry to the history, so the back
    button does not get trapped bouncing) and on the host with the real
    config. Nothing else is touched: an invalid route stays where it is.
 
-   And the title does NOT change on the 404. Also measured: benji's
-   still says "Benji Taylor" and josh's "Josh Puckett".
+   And the title does NOT change on the 404. Also measured: on both
+   sites it still says the name of the site.
 
    The real HTTP status has to come from the host, because a SPA that
    already loaded cannot change it. Since the routes of the pieces are
@@ -265,8 +265,8 @@ const ALIGN = {
 /* Which piece is active: the LAST one whose top edge has already
    crossed a line at --index-spy-line from the top of the viewport.
 
-   It is benji's rule, which in his minified bundle looks more complex
-   than it is:
+   It is a measured rule, which in the minified bundle it came from
+   looks more complex than it is:
 
      point      = scrollY + 128 + 0.5·windowHeight
      condition  = point > absoluteTop + 0.5·windowHeight

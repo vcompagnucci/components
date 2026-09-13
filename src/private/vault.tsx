@@ -20,7 +20,7 @@ import {
 /* ═══════════════════════════════════════════════════════════════
    THE VAULT: the wall of references.
 
-   The card is benji's from family-values, measured and baked. The why
+   The card is the measured one, baked in. The why
    of every number is in vault.module.css and what was measured in
    .context/recon/vault/GRILLA.md.
 
@@ -56,9 +56,9 @@ type Filter = (typeof FILTERS)[number]["value"];
    difference in size is not visible.
 
    We went looking for how the references solve it and the answer was
-   that THEY DO NOT HAVE IT: across 7 pages, benji never has more than
-   one nav per page and neither does josh, and neither uses tabs or
-   pills as navigation (the 25 tabs and 21 pills in /pasito belong to an
+   that THEY DO NOT HAVE IT: across 7 measured pages there is never more
+   than one nav per page, and neither site uses tabs or
+   pills as navigation (the 25 tabs and 21 pills on one measured page belong to an
    embedded demo, not to his chrome). They avoid it instead of solving
    it.
 
@@ -258,8 +258,8 @@ function Card({
   const video = useRef<HTMLVideoElement | null>(null);
 
   /* THE CLIP PLAYS WHEN THE POINTER GOES OVER IT. Measured on
-     linear.app/now, which is the same thing benji does with his 53
-     family-values videos. He starts them when they enter the screen,
+     one of the measured pages, which is the same thing another does with its 53
+     measured videos. They start when they enter the screen,
      linear on hover.
 
      Its exact behavior, the four points:
@@ -343,7 +343,7 @@ function Card({
    THE ONLY TWO THINGS NOT COPIED FROM THEM, and both for the same
    reason (there is a decision of ours that was already taken):
 
-     the ratio    they use 1/1; here it is BENJI's card ratio, 550/528,
+     the ratio    they use 1/1; here it is the measured card ratio, 550/528,
                   which is the one sized so a phone fits standing up
                   with air around it
      the radius   they leave it at 0; here it is --card-radius, which
@@ -351,7 +351,7 @@ function Card({
 
    EVERY CARD MEASURES THE SAME, and that is the constraint that rules:
    that is why there is one ratio and not one per source. Inside, each
-   source behaves differently. The phone goes like benji's, whole and
+   source behaves differently. The phone goes like the measured one, whole and
    with air; the web one fills the card.
 
    The receipts are in .context/recon/vault/grillas/ and every number is
@@ -886,7 +886,7 @@ function WhereDialog({
           is right there in front of you.
 
           And it is not an imitation of the card: they are THE SAME
-          CLASSES, so the phone shows up whole with benji's air and the
+          CLASSES, so the phone shows up whole with the measured air and the
           screen fills the box with cover, exactly as they are going to
           end up in the grid. If tomorrow the card changes, this changes
           with it and there is nothing to keep in sync. */}

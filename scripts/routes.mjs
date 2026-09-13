@@ -1,7 +1,7 @@
 /* Generates vercel.json from pieces.ts.
 
    The host has to serve index.html ONLY for the routes that exist, and
-   return a real 404 for everything else, which is what benji and josh
+   return a real 404 for everything else, which is what both measured sites
    do, measured with curl. A blind fallback to index.html would give 200
    on any made-up URL.
 

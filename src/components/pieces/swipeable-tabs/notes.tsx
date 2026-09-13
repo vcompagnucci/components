@@ -9,23 +9,23 @@ import { Section } from '../../../notes'
 
    IT GOES IN THE FIRST PERSON SINGULAR. There is a single person in
    here, and the plural sounded like a team that does not exist. It is
-   also what josh does when he tells his own story ("I've applied an SVG
+   also what a measured page does when it tells its own story ("I've applied an SVG
    filter", "I'll never forget"), and he keeps the "we" only for walking
    the reader through a method. The "you" for the reader stays: it is
    his too.
 
-   THE TONE IS JOSH PUCKETT'S, measured on his pages (Bloom, Pasito,
+   THE TONE IS MEASURED, on three served pages (
    Melt Effect, 2026-09-05): one line under the title that says what it
    is ("An iOS inspired pull down menu for the web"), short sections
    with plain titles ("Anatomy", "A note on performance"), two or three
    sentences per paragraph, direct verbs, "you" when he talks to you.
-   Benji writes long essays about principles; from him comes the
+   The other measured site writes long essays about principles; from it comes the
    one-line caption under each demo and the shape of his "How it works"
-   in /liveline: running prose of short sentences that connects what you
+   there: running prose of short sentences that connects what you
    feel with the mechanism ("When a new value arrives, nothing jumps.
    [...] That's why it feels like one thing breathing"). The previous
    version of these notes was an essay: the user asked for "nice and
-   simple and concise, exactly josh's tone".
+   simple and concise, exactly that tone".
 
    THREE SECTIONS, NO MORE: "Anatomy", "Performance" and, when the piece
    calls for it, "Use cases". It is the rule for every note (the user's
@@ -42,7 +42,7 @@ import { Section } from '../../../notes'
    not the other way around: the version that told the implementation (a
    derived value, the pager handing a segment to the bar) was rejected
    as useless ("I don't feel this is useful", same day). It is prose,
-   with no subheads: an h3 per part was tried, josh's shape in /bloom,
+   with no subheads: an h3 per part was tried, a measured shape,
    and the user rejected it on the page ("I don't like this structure").
    And THE REFERENCE IS NAMED HERE: that it came from X is told where
    how it was measured is told. IT DOES NOT SAY WHERE THE SYMBOLS COME
@@ -67,7 +67,7 @@ import { Section } from '../../../notes'
    go in, checked on 2026-09-07 (the user's request: "spell out rules
    that follow /animate-expo and /interface-craft and /better-ui if the
    code meets them"). With no sentence announcing them: the paragraph
-   starts on the first rule, like benji's "How it works" ("It follows
+   starts on the first rule, like the measured "How it works" ("It follows
    the library's rules for motion" was rejected: "I don't like this
    sentence", same day). Each one with its receipt:
    · Transform, opacity and THE LABEL COLOR; the only animated `width`
@@ -295,7 +295,7 @@ import { Section } from '../../../notes'
    swipeable-tabs-screen.tsx (For you, Following · Stocks, Tech, AI,
    Design).
    IT WILL CARRY VIDEO: one video per case with a one-line caption like
-   benji's in /liveline ("Resting heart rate. Custom formatter,
+   the measured one ("Resting heart rate. Custom formatter,
    exaggerated Y-axis.": what it is and what changes). Until those
    exist, the section is prose (the user's request, 2026-09-07: "I plan
    to include more videos and so on").
@@ -318,7 +318,7 @@ import { Section } from '../../../notes'
 
    AND THE WRITING GOES THROUGH `better-writing` (2026-09-07, the
    user's request: that everything respect the vocabulary rule and that
-   the writing improve like benji's or josh's): words a tired reader
+   the writing improve like the measured pages): words a tired reader
    gets on the first pass, no idioms, and every word that does no work
    deleted. What came out of that pass: "mid-flight" → "in progress";
    "tied to" → "bound to"; "never runs ahead or lags behind" → "It is

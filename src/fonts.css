@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════
    THE FONT. InterVariable, self-hosted.
 
-   This is the official file from rsms.me (Rasmus Andersson, who wrote
-   Inter), downloaded and subset. It is NOT the Google Fonts version.
+   This is the official file from the author's own site, downloaded and
+   subset. It is NOT the Google Fonts version.
    The difference is concrete and verified: **Google Fonts does not
    serve Inter's opsz axis**. Ask it explicitly for
    `family=Inter:opsz,wght@14..32,100..900` and it answers with CSS that
@@ -10,23 +10,23 @@
    Our body uses font-optical-sizing:auto, which does nothing without
    that axis.
 
-   (Benji uses the Google one through next/font: his 8 subsets match the
-   unicode-range values of Google Fonts exactly. Which means he does NOT
-   have opsz and we do.)
+   (One of the measured sites uses the Google one through next/font: its
+   8 subsets match the unicode-range values of Google Fonts exactly,
+   which means it does NOT have opsz and we do.)
 
-   WHY SELF-HOSTED and not a <link> to rsms.me:
+   WHY SELF-HOSTED and not a <link> to the author's site:
    - The failure mode is ugly, and it is documented: if InterVariable
      does not load, CSS matching turns 460 into 500 and 560 into 600,
      the body text ends up as heavy as the name of a piece and the
      hierarchy collapses. Served from our own origin, if the font fails
      then everything already failed.
-   - rsms.me is the author's personal site, not a production CDN.
+   - it is a personal site, not a production CDN.
    - It was a blocking <link> to another origin: DNS + TLS to a third
      party before a single letter gets painted.
-   - And both references self-host. Neither one loads from a CDN.
+   - And both measured sites self-host. Neither loads from a CDN.
 
-   THE SUBSET: four files, split by unicode-range the way benji and
-   Google do it, so the browser downloads only the alphabet it needs.
+   THE SUBSET: four files, split by unicode-range the way Google does
+   it, so the browser downloads only the alphabet it needs.
    With the page in English that is one file of 102 KB against the
    343 KB of the original.
 
@@ -41,7 +41,7 @@
    browser does not download it until italic text shows up, so it costs
    nothing.
 
-   To regenerate: download from rsms.me/inter/font-files/ and run
+   To regenerate: download the font files from the author's site and run
    fontTools subset with --flavor=woff2 --layout-features='*'
    --no-hinting.
    ═══════════════════════════════════════════════════════════════ */

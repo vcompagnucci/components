@@ -1,5 +1,5 @@
-/* ═══════════ TOP AIR: 80px, like benji (measured and read off his
-   CSS: padding 5rem). The step down to 32 goes at 768, his ═══════════ */
+/* ═══════════ TOP AIR: 80px, MEASURED and read off served CSS
+   (padding 5rem). The step down to 32 goes at 768 ═══════════ */
 .page {
   /* --page-padding-top is the total air you SEE; the mast puts in 16 of
      its own padding, so the rest goes here. The token is the number
@@ -13,16 +13,16 @@
 /* ═══════════ MASTHEAD ═══════════
    Stack arrangement: title on top, one line below.
    The subtitle does NOT change size. It only drops in weight and in
-   color, which is the rule benji shares (h1 500 ink / time 460 at 40%)
-   with josh (name and description at the same size, only the color
-   changes). */
+   color, which is the rule both measured systems share: one has an h1
+   at 500 in ink over a time at 460 and 40%, the other a name and a
+   description at the same size with only the color changing. */
 .mast {
   max-width: var(--page-content-max-width);
   margin: 0 auto 8px; /* --section-first-gap takes it off */
   padding: 16px var(--page-padding-inline) 0;
-  /* A column with a gap, like benji's header: display:flex;
+  /* A column with a gap, like the measured header: display:flex;
      flex-direction:column; gap:.25rem. We already had the 8 below and
-     it is his too (padding:0 0 .5rem). */
+     it is measured too (padding:0 0 .5rem). */
   display: flex;
   flex-direction: column;
   gap: var(--masthead-subtitle-gap);
@@ -45,12 +45,12 @@
 
 /* ═══════════ SIDE INDEX ═══════════
    The navigation of the page. It is what both references do in 9 of the
-   13 pages measured: neither of them uses tabs in any of them. benji's
-   values (.context/recon/NAVIGATION.md): links 13px/460 at 40%, 8px of
+   13 pages measured: not one of them uses tabs. The measured values
+   (.context/recon/NAVIGATION.md): links 13px/460 at 40%, 8px of
    separation, width fitted to the longest label.
 
-   IT DOES HAVE A SCROLLSPY. Both mechanisms are benji's, decoded from
-   his bundle: active is the last piece whose top crossed a line 128px
+   IT DOES HAVE A SCROLLSPY. Both mechanisms are measured, decoded from
+   a served bundle: active is the last piece whose top crossed a line 128px
    from the top of the viewport, and at the end of the document the last
    one always wins, because the one at the bottom can be too short to
    ever reach the line. The code is in app.tsx, over SPY_LINE. */
@@ -74,8 +74,8 @@
    the gap lived here it would add to the label's air and the number
    written down would stop being the number you see. Each gap is asked
    for by a single owner: the label asks for its own, the list for the
-   one between links. It is benji's structure, nav > h2 + ul, with the
-   same two owners. */
+   one between links. It is the measured structure, nav > h2 + ul, with
+   the same two owners. */
 .indexGroup + .indexGroup {
   margin-top: var(--index-group-gap);
 }
@@ -88,10 +88,10 @@
      the focus ring draws the difference as emptiness beside the short
      ones.
 
-     It is also benji's shape: his links are inline <a> inside an <li>,
-     so they measure the text by nature. The cost is a smaller click
-     area, and it is accepted for the same reason: it is the one he
-     has. */
+     It is also the measured shape: those links are inline <a> inside
+     an <li>, so they measure the text by nature. The cost is a smaller
+     click area, and it is accepted for the same reason: it is the one
+     that was measured. */
   align-items: flex-start;
 }
 /* The label is always there. It does not appear with the scroll. It was
@@ -119,7 +119,7 @@
    do not overlap, which is the most this rhythm gives.
 
    The text does not move: the ::before takes up no layout, so the gap
-   of 8 measured against benji is still the one you see. */
+   of 8 that was measured is still the one you see. */
 .indexLink {
   position: relative;
   padding: 0;
@@ -145,10 +145,10 @@
   position: absolute;
   inset: -4px 0;
 }
-/* The piece you are looking at gets painted. The rule is benji's:
+/* The piece you are looking at gets painted. The rule is measured:
    active is the last one whose top edge has already crossed a line
-   128px from the top of the viewport. He marks it by raising the color
-   and nothing else, no bar and no dot. */
+   128px from the top of the viewport, marked by raising the color and
+   nothing else, no bar and no dot. */
 .indexLink[data-active] {
   color: var(--active-c);
 }
@@ -187,14 +187,15 @@
 }
 /* The index hides and is not replaced: it is a decision, not a debt.
    Measured at 390px, neither reference gives in-page navigation on
-   mobile. benji hides his section links and leaves only the "← Index";
-   josh hides the whole index. Both accept that you scroll there.
+   mobile. One hides its section links and leaves only a way back to
+   the index; the other hides the whole index. Both accept that you
+   scroll there.
 
-   It goes at 1080, which is benji's, from his served CSS:
+   It goes at 1080, measured from served CSS:
      @media(max-width:1080px){.styles_container__MZ8RH{display:none}}
    There used to be a 1200 here that came from neither of them: it was
-   ours and nobody had decided it. (Josh uses 1280 and the other way
-   around: he has it hidden and shows it with xl:block.) */
+   ours and nobody had decided it. (The other one uses 1280 and the
+   opposite direction: hidden by default, shown at xl.) */
 @media (max-width: 1080px) {
   .index {
     display: none;
@@ -212,17 +213,17 @@
   padding: 0 var(--page-padding-inline) var(--page-padding-bottom);
 }
 /* ═══════════ SECTION SEPARATOR ═══════════
-   benji's in /liveline and /drawesome, measured live (the <hr> in his
-   markup is empty: what paints is the div React wraps around it).
+   Measured live on two served pages (the <hr> in that markup is empty:
+   what paints is the div React wraps around it).
 
-   He runs the line across the whole rail and mounts on top of it a span
-   painted the color of the background, which punches a hole in it; his
-   8px padding-right is the gap. Here the same pixel is reached with
+   There the line runs across the whole rail with a span on top of it
+   painted the color of the background, which punches a hole in it, and
+   an 8px padding-right for the gap. Here the same pixel is reached with
    flex, without depending on that background matching the page's.
 
    Measured: label 14px/600/#111 · gap 8px · 64px above · 56px below
    (24 from his block + 32 from the next one's margin-top). */
-/* 64 between sections, benji's, measured. The first one carries the
+/* 64 between sections, measured. The first one carries the
    masthead's air minus the masthead's own margin, so that the token is
    the total gap and not one term of a sum. */
 .group {
@@ -236,7 +237,7 @@
    In App the box does NOT declare a height. It reserves the phone slot
    (228 wide, capped at the available width, and the aspect ratio makes
    it taller) and the height comes out of that plus the padding. That
-   reproduces benji's behavior without a single media query: while the
+   reproduces the measured behavior without a single media query: while the
    slot fits, the box always measures the same; when it stops fitting,
    it shrinks on its own. */
 .group[data-platform='App'] .streamPreview {
@@ -305,7 +306,7 @@
 }
 
 /* ─── THE PLAYER: the video and its speed ───
-   The speed button of benji.org (Family Values), measured in his CSS:
+   The speed button of a measured page, read off its CSS:
    top right with 1rem of padding; 0.75rem/460, height 1.25rem, pill
    radius, color #989897; width 1.75rem at 1x and 2.5rem at 0.5x; the
    two labels on top of each other (position:absolute; inset:0) and
@@ -313,12 +314,12 @@
    all with `transition: all .2s ease`. Here the colors are the tokens
    that already say the same thing, text-secondary and surface-hover,
    and the type is nav's (13/460), the smallest in the system, instead
-   of 12. Where it shows: in the DETAIL always, as on benji; in the hub
+   of 12. Where it shows: in the DETAIL always, as measured; in the hub
    of the exhibition only with the mouse over the video (there it is a
    list, and one control per card is noise) and always where there is no
    hover (touch). No change of background and no change of color when
    you pass over it: the label is enough (the user's request,
-   2026-09-05; benji does paint #f2f2f2). */
+   2026-09-05; the measured one does paint #f2f2f2). */
 .player {
   position: relative;
 }
@@ -389,7 +390,7 @@
 
 /* ─── THE STAGE OF A LIVE DEMO (Web piece) ───
    The box of the card already decides the floor (260 in the list, 400
-   in the detail, benji's measured decision) and this wrapper only
+   in the detail, a measured decision) and this wrapper only
    INHERITS it and centers whatever the component draws. `inherit` and
    not the token again: that way the floor is written once and the stage
    cannot fall out of sync with its box. The component rules everything
@@ -476,7 +477,7 @@
   margin-top: var(--piece-gap);
 }
 /* The air is claimed by the block below, not pushed by the title. It is
-   how benji does it: his h2 carries margin-top:0 and it is the p, the
+   how it is measured: the h2 carries margin-top:0 and it is the p, the
    pre and the figure that bring their own .75rem. Two real
    consequences: a block with no title above it breathes the same, and
    anything added to the piece (a note, a label) inherits the gap
@@ -507,14 +508,14 @@
   border-radius: var(--card-radius);
   transition: background-color var(--dur-surface) var(--ease-surface);
 }
-/* JOSH'S SYSTEM, WHOLE: the hover darkens the fill and nothing else
+/* THE MEASURED SYSTEM, WHOLE: the hover darkens the fill and nothing else
    happens. No shadow, no scale, no movement, no opacity, no press.
 
    His list row (580×76, the same object as this card) was measured
    live: transparent → rgb(245,245,245) in 0.15s cubic-bezier(.4,0,.2,1),
    nobody else moves, and the :active paints IDENTICAL to the :hover.
 
-   Only the card changes, not the whole item: benji's mechanism, dimming
+   Only the card changes, not the whole item: the other measured mechanism, dimming
    the siblings to .3, was dropped because it depends on seeing the
    complete list at once. His is 7 rows of 41px that touch each other,
    286px in total; ours is 8 screens and you see 2 cards at a time, so
@@ -549,14 +550,14 @@
      34×34 with --a1; now it only changes the color of the glyph. It is
      unanimous in both references, measured live:
 
-       benji .styles_backButton   "Index" 122×28, radius 0, pad 4px 0
-                                  transition: color 0.1s
-                                  rgba(0,0,0,.4) → rgba(0,0,0,.8)
-       josh  /melt-effect         "Home" 62×20, radius 0, pad 0
-                                  rgb(163,163,163) → rgb(23,23,23)
+       A   "Index" 122×28, radius 0, pad 4px 0
+           transition: color 0.1s
+           rgba(0,0,0,.4) → rgba(0,0,0,.8)
+       B   "Home" 62×20, radius 0, pad 0
+           rgb(163,163,163) → rgb(23,23,23)
 
      Both of them: they paint no background, they change the color,
-     they do not move. And benji's 0.1s is exactly the --dur-text we
+     they do not move. And that 0.1s is exactly the --dur-text we
      already had.
 
      It animates ONE family, so it takes the text pair and there is no
@@ -572,9 +573,9 @@
   inset: -5px;
 }
 .back:hover {
-  /* It reaches --active-c, not the ink. It is benji's, measured: his
-     .styles_backButton goes from rgba(0,0,0,.4) to rgba(0,0,0,.8) and
-     does NOT reach his ink. It stops at 51 over his canvas. We stop at
+  /* It reaches --active-c, not the ink. Measured: that back button goes
+     from rgba(0,0,0,.4) to rgba(0,0,0,.8) and does NOT reach its ink.
+     It stops at 51 over that canvas. We stop at
      65, because the 80% is written from our ink base and not from pure
      black.
 
@@ -584,8 +585,9 @@
          { color: hsla(0,0%,7%,.8) }
      because they say the same thing: "this one". Here too.
 
-     Reaching the ink was dropped (17, which is what josh does: his
-     "Home" goes from neutral-400 to neutral-900) and so was reaching
+     Reaching the ink was dropped (17, which is what the other measured
+     one does: its "Home" goes from neutral-400 to neutral-900) and so
+     was reaching
      the level of the text hover (102, --link-underline-hover). The
      second one was tempting because it would unify everything that
      reacts to the pointer in a single color, but in dark it lands on
@@ -616,7 +618,7 @@
 }
 /* No max-width of its own: the column is already 560 and it is the one
    that sets the measure for reading. There used to be a 36.375rem here,
-   benji's rail used as a text measure, which with the rail at 592 ended
+   a measured rail used as a text measure, which with our rail at 592 ended
    up above the column and could never apply: a number that read as a
    decision and did nothing. If the detail ever wants a measure narrower
    than its column, that is a separate decision and it gets taken with
@@ -639,18 +641,18 @@
      case for `pretty` in better-typography. */
   text-wrap: pretty;
 }
-/* When you open a piece the box grows. The relation is benji's and not
-   an invented number: inside a long page his demos measure 260, and
-   when the demo IS the page (drawesome) the frame measures 400. We have
-   exactly those two situations. */
+/* When you open a piece the box grows. The relation is measured and not
+   an invented number: inside a long page the demos measure 260, and
+   when the demo IS the page the frame measures 400. We have exactly
+   those two situations. */
 .detailPreview {
   min-height: var(--card-height-detail);
   background: var(--surface);
   border-radius: var(--card-radius);
 }
 /* In App what grows is not the box but the phone, and also with a
-   number of his: 319×628 is his other phone size in family-values, the
-   one he uses when the phone goes alone. The box follows it. */
+   measured number: 319×628 is the other phone size there, the one used
+   when the phone goes alone. The box follows it. */
 .detailPreview[data-platform='App'] {
   min-height: 0;
   padding: var(--card-app-padding);
@@ -714,9 +716,9 @@
   padding-top: var(--section-gap);
 }
 /* THE NOTES DIRECTLY BELOW THE PREVIEW carry 48 more: the preview is a
-   demo, and benji separates a demo from the next separator with 112,
-   not with the 64 that separate prose from a separator. RUNTIME
-   /liveline (2026-09-07, served page): 112 in the ten sections that end
+   demo, and the measurement separates a demo from the next separator
+   with 112, not with the 64 that separate prose from a separator.
+   RUNTIME (2026-09-07, served page): 112 in the ten sections that end
    in a demo, with a caption (from the caption to the line) or without
    one ("Just a line", from the edge of the demo to the line); 64 in the
    ones that end in prose. 112 = 48 + 64: his gap under a piece

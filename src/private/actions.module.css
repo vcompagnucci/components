@@ -128,7 +128,7 @@
    interface there is not one state color, and putting in the first
    would be inventing a whole level of the system". The premise was
    false. The level did not have to be invented: it was decided in the
-   Carousels log, and its line 374 is literally this case, a destructive
+   inherited log, and its line 374 is literally this case, a destructive
    menu item with its text, its tinted hover and its hairline in front.
    The full derivation and what was measured over our backgrounds are in
    tokens.css, in --destructive.

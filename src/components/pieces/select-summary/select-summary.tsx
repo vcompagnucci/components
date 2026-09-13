@@ -492,7 +492,7 @@ export default function SelectSummary({ mode = 'detail' }: { mode?: Mount } = {}
       onKeyDown={onRootKeyDown}
     >
       <style href="select-summary" precedence="default">
-        {CSS}
+        {STYLESHEET}
       </style>
 
       <button
@@ -586,7 +586,7 @@ export default function SelectSummary({ mode = 'detail' }: { mode?: Mount } = {}
 /* ═══════════════════════════════════════════════════════════════
    The measured reasons are beside every number. H = 40 px.
    ═══════════════════════════════════════════════════════════════ */
-const CSS = `
+const STYLESHEET = `
 /* The piece is self-contained: it does not inherit the page's
    box-sizing. */
 .ss, .ss *, .ss *::before, .ss *::after {
@@ -909,9 +909,9 @@ const CSS = `
    Now both branches do the same.
 
    And it does not go against the references: DESIGN.md › The press
-   tells that 23 pages of benji and josh were swept looking for :active,
+   tells that 23 measured pages were swept looking for :active,
    that there is a single live one and that the active:scale utilities
-   of josh's bundle are used by ZERO elements. The press scale is a rule
+   of one of those bundles are used by ZERO elements. The press scale is a rule
    from a guideline, not something you see on the pages we looked at.
 
    With no transition, like the rows: measured in the reference, this

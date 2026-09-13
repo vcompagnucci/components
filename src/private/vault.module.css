@@ -6,13 +6,13 @@
    served CSS is kept in .context/recon/vault/grillas/.
 
    ─── WHAT WAS HERE BEFORE, AND WHY IT LEFT ───
-   The card was benji's from family-values: 550 wide, padding 40 60, the
-   clip centered inside with `contain` and the box at a fixed height.
+   The card was the measured one: 550 wide, padding 40 60, the clip
+   centered inside with `contain` and the box at a fixed height.
 
-   It fell for one measurable reason: HIS CARD IS FOR NARROW, TALL
-   CONTENT. His 53 family-values clips are vertical (762×1502) and his
-   60 of air per side are generous precisely because of that. His box
-   uses 41% of the width and 84% of the height.
+   It fell for one measurable reason: THAT CARD IS FOR NARROW, TALL
+   CONTENT. Its 53 clips are vertical (762×1502) and its 60 of air per
+   side are generous precisely because of that. Its box uses 41% of the
+   width and 84% of the height.
 
    With a screen recording inside, the relation flips: 70% of the width
    and 31% of the height, and a 1440×900 capture ended up drawn at
@@ -36,17 +36,17 @@
    taken is that the component's view fills the whole card.
 
    ─── WHAT DOES NOT GET COPIED ───
-   The border. benji's card carries box-shadow:0 0 0 1px #f2f2f2 over
-   #fcfcfc. Our system already decided the opposite (josh's rule: the
-   card is defined by contrast against the canvas, with no ring and no
-   shadow) and it is settled in tokens.css.
+   The border. That card carries box-shadow:0 0 0 1px #f2f2f2 over
+   #fcfcfc. Our system already decided the opposite (the card is defined
+   by contrast against the canvas, with no ring and no shadow) and it is
+   settled in tokens.css.
    ═══════════════════════════════════════════════════════════════ */
-/* openai's rail: a maximum of 1440 and 32 of air, both declared in
+/* The measured rail: a maximum of 1440 and 32 of air, both declared in
    private.module.css so the bar and the grid land on the same x. With
    border-box, 1440 − 32 − 32 leaves the content at 1376, which is the
    number he has measured in four different windows. */
 .vault {
-  /* ─── THE SHAPE OF THE BOX: ONE ONLY, BENJI'S ───
+  /* ─── THE SHAPE OF THE BOX: ONE ONLY, MEASURED ───
      EVERY CARD MEASURES THE SAME. It is the hard constraint, and it is
      the one that rules over everything else in this block: the ratio
      CANNOT follow the clip, because clips come in two shapes.
@@ -57,22 +57,22 @@
      almost a whole screen and in "All" the rows ended up uneven. That
      is why it was dropped.
 
-     The number is benji's, measured in family-values and already
-     written down in tokens.css:
+     The number is measured and already written down in tokens.css:
 
        box        550 × 532.42
        phone      227.5 × 448.42   (natural 762×1502)
        padding    40px 60px
 
      532.42 = 40 + 448.42 + 4.42 + 40, where the 4.42 is the line gap
-     left by his display:inline-block. Our clean equivalent is 528,
-     which is also a multiple of 4. Hence 550/528, that is 25/24.
+     left by a display:inline-block. Our clean equivalent is 528, which
+     is also a multiple of 4. Hence 550/528, that is 25/24.
 
-     And it is NOT openai's. Their 1/1 is for square images they produce
-     themselves; benji's is sized so a phone fits standing up with air
-     around it, which is exactly the case that could not be solved here.
-     From openai we take the grid (columns, gutter, row, rail, maximum)
-     and from benji the card.
+     And it is NOT the other measured ratio. That 1/1 is for square
+     images produced in house; this one is sized so a phone fits
+     standing up with air around it, which is exactly the case that
+     could not be solved here. The grid comes from one measurement
+     (columns, gutter, row, rail, maximum) and the card from the
+     other.
 
      IT IS DECLARED IN `.frame` (private.module.css), not here: it moved
      up the day the playground drew its own grid with the same shape,
@@ -282,10 +282,10 @@
 }
 
 /* ─── THE BOX ───
-   benji's card. The background is --surface, the same as the product's
+   the measured card. The background is --surface, the same as the product's
    card: when the clip does not fill it, what you see is the system's
    surface and not a hole. */
-/* ALL THE SAME HEIGHT. It is a decision taken AGAINST benji, and let it
+/* ALL THE SAME HEIGHT. It is a decision taken AGAINST the measurement, and let it
    be said: he lets the content rule and that is why his 45 cards have
    five different heights. He can afford it because he has a single
    column; in three, variable height leaves the rows uneven (the worst
@@ -311,7 +311,7 @@
   /* NO AIR AND NO RADIUS, like them: padding 0 and inset 0/0 measured
      on their card, and border-radius 0. The clip reaches the edge.
 
-     This is what replaces --card-app-padding (40 60), which was benji's
+     This is what replaces --card-app-padding (40 60), which was the measured
      but from another card: 550 wide with a 228 phone inside. His 60 per
      side were generous because his content is narrow and tall; here
      they left a 1440×900 recording drawn at 285×178, 22% of the card's
@@ -324,7 +324,7 @@
      and linear at 5; our --card-radius is 8 and it already governs the
      product's card. Copying the 0 would put a card with a sharp corner
      next to a rounded one in the same app.
-     It is the same rule by which benji's border did not get copied: the
+     It is the same rule by which the measured border did not get copied: the
      geometry gets quoted, the system's decisions that are already taken
      get respected. `overflow: hidden` is what makes a clip that reaches
      the edge (the web recording does, across its width) get cut against
@@ -349,7 +349,7 @@
    That is intentional and it is what avoids the other problem: with no
    explicit size, a clip smaller than the box was drawn at its natural
    size and shrank the card. A 1×1 image gave a box 81px tall. Measured,
-   not assumed. None of benji's 45 cards lets the file decide its size:
+   not assumed. None of the 45 measured cards lets the file decide its size:
    his <img> declares width:227.5px. */
 /* ─── CORRECTED: `cover` WAS CROPPING EXACTLY WHAT YOU NEED TO SEE ───
    This said `cover`, quoting openai on /news and linear on /customers.
@@ -439,7 +439,7 @@
   width: auto;
   height: auto;
   max-width: 66.6667%;
-  max-height: 84.8485%; /* 448 / 528, benji */
+  max-height: 84.8485%; /* 448 / 528, measured */
   object-fit: contain;
   border-radius: var(--card-radius);
 }
@@ -452,7 +452,7 @@
    'native' the TSX emits, that is, it never matched.
    (it was .card[data-source='native'] .media > * { max-width: 228px }) */
 
-/* ─── THE PHONE, THE WAY BENJI DOES IT ───
+/* ─── THE PHONE, THE WAY IT WAS MEASURED ───
    Inside the card and with air around it, not filling it. It is the
    only rule that looks at the source, and it no longer exists because
    of the crop (that got solved by `contain` above, for everyone) but
@@ -494,7 +494,7 @@
    and not the one the insets dictate. That holds for <img> and <video>
    and not for a <div>, which is where the wrong intuition comes from.
 
-   The percentages are benji's, and each one against the axis it belongs
+   The percentages are the measured ones, and each one against the axis it belongs
    to (the vertical ones resolve against the height and the horizontal
    ones against the width, which is the rule of `inset`):
 
@@ -503,7 +503,7 @@
    At 1440 that gives 32 and 48 over a 443×425 card, and it leaves the
    slot at 346×361 with the phone at 167×361. Same as him, what binds it
    is the HEIGHT: his phone measures 448.42 in a 452.42 slot. */
-/* ─── THE WIDTH IS NO LONGER BENJI'S: 78.1818% → 66.6667% ───
+/* ─── THE WIDTH IS NO LONGER THE MEASURED ONE: 78.1818% → 66.6667% ───
    Vito asked for it looking at the grid, and the reason shows up when
    you measure. The 78.1818% only BINDS when the file is wider than it
    is tall, and most of what is in `nativo/` is not phone-shaped: it is
@@ -527,7 +527,7 @@
      Swipe actions  1320×1772 → 268.57 wide   (< 295.11, untouched)
      Floating bar   1320×2868 → 165.85        (untouched)
 
-   That is why the height is NOT touched: 84.8485% is still benji's
+   That is why the height is NOT touched: 84.8485% is still the measured
    448/528, and it is what holds those two up. The only thing taken away
    from him is the width. Verified at 1440, 900, 700, 500 and 390:
    proportional in all five.
@@ -537,7 +537,7 @@
    every card. There was a back and forth before that and it is written
    down: it got unified, it got reverted because nobody had asked for it
    and it shrank the web clips, and it came back when it was asked for.
-   The two vertical ones are still benji's slot over his card (top
+   The two vertical ones are still the measured slot over that card (top
    40/528 = 7.5758%, height 448/528 = 84.8485%); the horizontal ones
    were his (60/550 and 430/550) and 2/3 replaces them. */
 
@@ -614,7 +614,7 @@
    and translateX −2→0 in 100ms, measured), but their card needs it
    because NOTHING ELSE changes when the pointer goes over it: without
    the arrow there would be no signal that it is clickable. Ours darkens
-   the whole surface, which is josh's rule and was already in the
+   the whole surface, which is the system's rule and was already in the
    system, so the arrow was a second signal saying the same thing. */
 
 /* ─── THE STEP ───
@@ -624,7 +624,7 @@
 /* A @media (max-width: 768px) used to live here that forced ONE column,
    put the gutter at 0 and gave the box back its 40 24 padding with
    automatic height. It was consistent with the old card (fixed height
-   of 574, benji's air) and it contradicts openai's on all three points.
+   of 574, the measured air) and it contradicts the other measurement on all three points.
 
    What he does below 768 is already declared above, next to the
    columns, and it is measured: 2 columns down to 560 and 1 below, with
@@ -663,13 +663,13 @@
      takes it out whole) so those 40 separated from nothing. The arrow
      landed at 120 and the rest of the app at 80. Pointed out in use.
 
-     THE RULE IS BENJI'S AND IT WAS MEASURED AGAIN FOR THIS. His
-     .styles_container__YJPlC carries `padding: 80px 16px 40px` and it
-     is THE SAME on all his pages: verified live at 1728×900 on his home
-     and on /liveline, /drawesome and /honkish. The first thing there is
-     lands at top 80 in all four: on the home his <h1>, in a detail his
-     "Index" link. That is, there is no one air for a list and another
-     for a detail. There is one.
+     THE RULE IS MEASURED AND IT WAS MEASURED AGAIN FOR THIS. The
+     container carries `padding: 80px 16px 40px` and it is THE SAME on
+     all four pages checked: verified live at 1728×900 on a home and on
+     three details. The first thing there is lands at top 80 in all
+     four: on the home its <h1>, in a detail its way back to the index.
+     That is, there is no one air for a list and another for a detail.
+     There is one.
 
      On our side that was already met by the exhibition (80), the detail
      of a piece (.page puts 64 and the .content:first-child the missing
@@ -849,7 +849,7 @@
    (--private-tab-gap, the bar's tabs), and these are two CONTROLS.
 
    For controls the system has one number and it is 8: the one in this
-   same header, the player's --player-gap (measured from benji) and the
+   same header, the player's --player-gap (measured) and the
    index's --index-item-gap. Using the one for words introduced a
    distinction the system does not make.
 

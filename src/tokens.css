@@ -1,31 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════
    TOKENS. What was decided, and where each thing comes from.
 
-   Measured from the code benji.org serves: the whole TYPOGRAPHY (size,
-   weights, tracking, leading), the hairline, the frame and its step,
-   the index. The quotations are in .context/recon/ (TYPE-SYSTEMS,
-   RESPONSIVE, NAVIGATION).
+   MEASURED FROM SERVED CSS: the whole TYPOGRAPHY (size, weights,
+   tracking, leading), the hairline, the frame and its step, the index.
+   The measurements are in .context/recon/ (TYPE-SYSTEMS, RESPONSIVE,
+   NAVIGATION).
 
-   Inherited from the DESIGN.md of Carousels: all the COLORS, the focus
-   ring and the motion timings. They cannot be verified against the
-   source (that file is not in this repo and not on the disk) but they
-   are decisions already taken and they are respected as they are.
+   INHERITED from an earlier design system of ours: all the COLORS, the
+   focus ring and the motion timings. They cannot be verified against
+   their source (that file is not in this repo and not on the disk) but
+   they are decisions already taken and they are respected as they are.
 
    WITH ONE EXCEPTION, and it is worth correcting here: --destructive IS
-   verified. The DESIGN.md still has not turned up, but the LOG of
-   Carousels does exist (docs/design-research/design-decisions.md, in
-   the `photos` workspace) and the color, its exact use case and its
-   date are in there. It is the only inherited one that is not a blind
-   quotation.
+   verified. That file still has not turned up, but its log does
+   (docs/design-research/design-decisions.md, in the `photos`
+   workspace) and the color, its exact use case and its date are in
+   there. It is the only inherited one that is not a blind quotation.
 
    The radius is NO LONGER pending: it is --card-radius: 8px, from the
-   census of the 7 pages.
+   census of the 7 pages that were measured.
 
    ELEVATION: there is none, and that is a decision. Zero box-shadow in
-   the whole product. The card is defined by contrast against the
-   canvas, which is josh's rule, chosen over benji's, who defines it
-   with a 1px line. There is no shadow token because there is not one
-   single shadow to name.
+   the whole product. The card is defined by CONTRAST against the
+   canvas, which was chosen over the other measured option, a card flush
+   with the background and a 1px line around it. There is no shadow
+   token because there is not one single shadow to name.
 
    Z-INDEX: zero in the product, and it is not decidable yet. Today
    nothing overlaps: the index is fixed but it lives in the margin and
@@ -41,79 +40,70 @@
   /* surfaces and text */
   --canvas: #fdfdfc;
   /* The card is DARKER than the page, not lighter, and it carries
-     neither ring nor shadow: the contrast does all the work. It is
-     josh's rule, chosen over benji's (card flush with the background,
-     defined by a 1px line).
+     neither ring nor shadow: the contrast does all the work.
 
-     What gets carried over is his DELTA, not his value. His card is
-     #fafaf9 on pure white, that is −5; our canvas already starts 2
-     units below, so copying his hex would give only −3. On #fdfdfc, −5
-     gives #f8f8f6.
+     What gets carried over from the measurement is the DELTA, not the
+     value. The measured card is #fafaf9 on pure white, that is −5; our
+     canvas already starts 2 units below, so copying the hex would give
+     only −3. On #fdfdfc, −5 gives #f8f8f6.
 
-     The blue drops 6/5 of what red and green drop: that is his channel
-     relation, and without it the gray goes cold as it deepens.
+     The blue drops 6/5 of what red and green drop: that is the measured
+     channel relation, and without it the gray goes cold as it deepens.
 
      −5 was chosen out of a ramp of five (−3 · −5 · −8 · −12 · −16). */
   --surface: #f8f8f6;
   /* The hover darkens the fill and NOTHING ELSE: no shadow, no scale,
-     no movement, no opacity. That one is josh's, and so is the 150ms
-     transition. It is the --dur-surface we already had.
+     no movement, no opacity. The 150ms come from the same measurement
+     and they are the --dur-surface we already had.
 
-     His demo boxes are no use as a reference here because they do not
-     react to hover: they are not clickable. The only two hovers he has
-     across the 7 measured pages are
-       cards on the home   #fafafa → #f5f5f5   (neutral-50 → neutral-100)
-       button on /bloom    #44403c → #57534e   (stone-700 → stone-600)
-     Both of them ONE STEP of his ramp, and the button's lightens, so
-     his rule is a step and not a direction.
+     Only two hovers turned up across the 7 measured pages:
+       a card     #fafafa → #f5f5f5   (neutral-50 → neutral-100)
+       a button   #44403c → #57534e   (stone-700 → stone-600)
+     Both of them ONE STEP of the same ramp, and the button's lightens,
+     so the rule is a step and not a direction.
 
      The step here is 4, CHOSEN by eye out of three:
-       −3   what copying his literal hex (#f5f5f5) onto our background
-            gives, because his page starts at 250 and ours at 253
+       −3   what copying the literal hex (#f5f5f5) onto our background
+            gives, because that page starts at 250 and ours at 253
        −4   this one
-       −5   his real step
-     Half a step, then, and it comes from no reference. With the radius
-     at 8 the card reads more contained than at 12 and asks for less
-     hover.
-
-     (This used to say his hover falls −10 with respect to his page.
-     That delta came from measuring against the white of /pasito, and
-     the hover happens on his home, which is #fafafa.) */
+       −5   the measured step
+     Half a step, then, and it comes from no measurement. With the
+     radius at 8 the card reads more contained than at 12 and asks for
+     less hover. */
   --surface-hover: #f4f4f1;
   /* THERE IS NO --surface-press: THE CARD HAS NO PRESS. It is not an
-     omission, it is the result of counting. Across the 23 pages of the
-     two highest references (9 from benji, 14 from josh) there is ONE
-     single live :active, and it is a 40×40 button on benji.org/honkish
+     omission, it is the result of counting. Across the 23 pages
+     measured there is ONE single live :active, and it is a 40×40 button
      that neither drops nor scales: it takes away the 1px ring the hover
      put on it (box-shadow spread 1px → 0px, transition-duration 0.02s
-     measured at runtime). His press does not add a state, it REMOVES
+     measured at runtime). That press does not add a state, it REMOVES
      the hover.
 
-     The lists of both of them, which is the same thing our card is,
-     have no press: the :active paints identical to the :hover, measured
-     live on both. And the active:scale-[0.94/0.96/0.98] utilities exist
-     in josh's bundle and ZERO elements use them.
+     The lists, which is the same thing our card is, have no press: the
+     :active paints identical to the :hover, measured live. And the
+     active:scale-[0.94/0.96/0.98] utilities exist in one of those
+     bundles with ZERO elements using them.
 
-     There was a --surface-press #f0f0ec (linear's --color-bg-level-3,
-     which lands exactly on our next step) and it was withdrawn when
-     josh's system was chosen. The derivation stays in the log in case it
-     comes back; the first piece that is a button gets it measured for a
-     button, which is where all that evidence does apply. */
+     There was a --surface-press #f0f0ec (measured elsewhere as a third
+     surface level, and it lands exactly on our next step) and it was
+     withdrawn with the system that was chosen. The derivation stays in
+     the log in case it comes back; the first piece that is a button
+     gets it measured for a button, which is where all that evidence
+     does apply. */
   --ink: #111111;
 
   /* ═══════════ THE SECONDARY LEVEL, ONE BASE AND TWO ALPHAS ═══════════
-     It is benji's structure, verified in the CSS he serves. He declares
-     ONE SINGLE text color token (--body-color:#111) and no gray token.
-     Everything that looks gray is his black or his ink at an alpha, and
-     the alpha rules: .4 shows up in 40 declarations, the next one (.5)
-     in 8.
+     The structure is measured, from served CSS that declares ONE SINGLE
+     text color token (--body-color:#111) and no gray token. Everything
+     that looks gray there is black or ink at an alpha, and the alpha
+     rules: .4 shows up in 40 declarations, the next one (.5) in 8.
 
-     His "two grays" come out of THAT SAME 40% written from two bases:
-       annotation   rgba(0,0,0,.4)      → 152   date, "Index", captions
-       nav          hsla(0,0%,7%,.4)    → 159   his page index
-     He did not decide the 7 of difference: it is the leak from having
-     written the same rule from pure black in one file and from his ink
-     in another. His system has ONE secondary level, not two.
+     Its "two grays" come out of THAT SAME 40% written from two bases:
+       annotation   rgba(0,0,0,.4)      → 152   date, index, captions
+       nav          hsla(0,0%,7%,.4)    → 159   the page index
+     The 7 of difference was not decided: it is the leak from having
+     written the same rule from pure black in one file and from the ink
+     in another. That system has ONE secondary level, not two.
 
      Here the rule is taken, the number is changed, and the two values
      come out of ONE base (pure black, white in dark) at TWO alphas: 37%
@@ -123,10 +113,10 @@
 
      FIRST THE NEIGHBORHOOD, with a slider on the annotation alone:
      163, against four marks measured and composited on this background:
-        99   emil · his secondary for prose
-       130   emil · his 12px captions
-       138   what was here, inherited from Carousels
-       152   benji · date, captions, footnotes
+        99   a measured secondary for prose
+       130   the 12px captions of that same page
+       138   what was here, inherited
+       152   a measured date, captions and footnotes
        163   the slider's, lighter than the four
      That slider moved ONE line of the page, the masthead subtitle,
      because at that moment the nav was still a separate number. It
@@ -137,8 +127,8 @@
      derived values IN CONTACT (where the step either shows as a seam or
      does not show) and the real text at 13/16 against 14/20. 37% won.
 
-     The two fall out of there, measured by pixel (α=.4 reproduces his
-     152 and 159 dead on, which is what validates the model):
+     The two fall out of there, measured by pixel (α=.4 reproduces the
+     measured 152 and 159 dead on, which validates the model):
        annotation   black @ 37%    → 160
        nav          black @ 34.4%  → 166
      The annotation ends up 3 darker than the slider's 163: ΔL .006,
@@ -147,15 +137,15 @@
 
      TWO CONSEQUENCES, both of them wanted:
 
-     1. THE NAV MOVES. It stood at 159 because it was copied from his
-        hsla(0,0%,7%,.4) when the typography of the index was baked in,
-        and it was never chosen. Under this rule it does not get chosen:
-        it gets derived. Choosing lighter than him drags it 7 units.
+     1. THE NAV MOVES. It stood at 159 because it was copied from the
+        measured hsla(0,0%,7%,.4) when the typography of the index was
+        baked in, and it was never chosen. Under this rule it does not
+        get chosen: it gets derived. Going lighter drags it 7 units.
 
      2. THE ORDER FIXES ITSELF. Before, the annotation ended up LIGHTER
-        than the nav (163 against 159), the other way around from him.
-        Now the nav is the lighter of the two, as on his page, and not
-        because anyone decided it. The gap is 6; his is 7.
+        than the nav (163 against 159), the other way around from the
+        measurement. Now the nav is the lighter of the two, and not
+        because anyone decided it. The gap is 6; the measured one is 7.
 
      Each alpha goes in a token of its own so the rule is ONE single
      thing and not two that have to be kept in sync, which is exactly
@@ -179,21 +169,20 @@
      level does NOT have to be invented, it was decided before this repo
      existed.
 
-     THE SOURCE, and for the first time it is verifiable. The DESIGN.md
-     of Carousels is not here, but its log is, in the `photos`
-     workspace: docs/design-research/design-decisions.md
+     THE SOURCE, and for the first time it is verifiable. The design
+     file of that earlier system is not here, but its log is, in the
+     `photos` workspace: docs/design-research/design-decisions.md
 
-       Q8 (l. 95)   the family: Apple systemRed #ff3b30, chosen by the
-                    owner over benji's #ff0052 and jakub's #fb2c36. paco
-                    and emil define none.
+       Q8 (l. 95)   the family: the system red #ff3b30, chosen by the
+                    owner out of three candidates.
        l. 374       OUR EXACT CASE, a destructive menu item: text
                     #c81e14, hover with a color-mix(#ff3b30 10%) tint,
                     and a hairline in front.
        l. 394       the error text in dark: #ff6b60.
 
-     The others inherited from Carousels carry the "blind quotation"
-     mark because their file never turned up. This one does not: it was
-     read from the log, with a line number and a date.
+     The other inherited values carry the "blind quotation" mark because
+     their file never turned up. This one does not: it was read from the
+     log, with a line number and a date.
 
      MEASURED ON OUR BACKGROUNDS, which is what needed checking:
 
@@ -201,10 +190,9 @@
                on the hover      #f8f8f6     Lc  72.5   wcag 5.41
        dark    #ff6b60 on --canvas #090908   Lc −48.8   wcag 7.14
 
-     The light one transfers dead on and not by luck: the canvas of
-     Carousels IS this same #fdfdfc, both came out of agentation. And
-     75.5 lands right on APCA's PREFERRED threshold for text that is not
-     body.
+     The light one transfers dead on and not by luck: that system's
+     canvas IS this same #fdfdfc. And 75.5 lands right on APCA's
+     PREFERRED threshold for text that is not body.
 
      ─── WHERE THE RULE BENDS, AND WHY ───
      Rule 1 of this file's dark mode says that text KEEPS THE CONTRAST.
@@ -233,78 +221,76 @@
      tone, much lighter than the text. It is what TWO of the three
      references do:
 
-       benji  1px pseudo-element    #d9d9d9  → hover #666
-       emil   real text-decoration  #bcbbb5 at 1.5px
+       a 1px pseudo-element       #d9d9d9  → hover #666
+       a real text-decoration     #bcbbb5 at 1.5px
 
-     Here emil's mechanism is used (text-decoration-color, which needs
-     neither position:relative nor a ::before) with benji's values,
-     because our text is 14px and not 16: a 1px line sits more in
-     proportion than a 1.5px one.
+     The second mechanism is the one used here (text-decoration-color,
+     which needs neither position:relative nor a ::before) with the
+     first one's values, because our text is 14px and not 16: a 1px line
+     sits more in proportion than a 1.5px one.
 
      The hover moves the UNDERLINE, not the text. */
   --link-underline: #d9d9d9;
   --link-underline-hover: #666666;
 
-  /* THE SELECTION. The three references all have a global rule and they
-     do not say the same thing:
+  /* THE SELECTION. The three measured pages all have a global rule and
+     they do not say the same thing:
 
-       benji  ::selection{color:var(--selection-color);
-                          background:var(--selection-bg)}
-              #ededed of background and the text FORCED to #111
-       josh   ::selection{color:#fff;background:#000}
-              total inversion, forces it too
-       emil   ::selection{background:var(--color-gray-500)}
-              #e2e1de, and does NOT touch the color of the text
+       A   ::selection{color:…;background:…}
+           #ededed of background and the text FORCED to #111
+       B   ::selection{color:#fff;background:#000}
+           total inversion, forces it too
+       C   ::selection{background:…}
+           #e2e1de, and does NOT touch the color of the text
 
-     benji's is the one taken, and what decides it is FORCING THE COLOR.
-     Emil can get away without it because his secondary for prose sits
-     at 99; ours sits at 160, and 160 on his #e2e1de gives 2.00:1. The
-     masthead subtitle would turn illegible exactly while you select it.
-     Forced to ink it gives 16.13:1.
+     A is the one taken, and what decides it is FORCING THE COLOR. C can
+     get away without it because its secondary for prose sits at 99;
+     ours sits at 160, and 160 on #e2e1de gives 2.00:1. The masthead
+     subtitle would turn illegible exactly while you select it. Forced
+     to ink it gives 16.13:1.
 
      It is also the same thing the system's color rule already says:
      everything that gets READ goes in ink. Selecting a text is the act
      of reading it, so the selection promotes it to ink. It is not a new
      rule, it is the same one applied to a state.
 
-     And his #ededed is copied LITERALLY, something that never happened
-     in this system. His canvas is #fdfdfc and so is ours (emil's too,
-     his --color-gray-100 is #fdfdfc), so here copying the hex copies
-     the contrast. On the card, on the hover and on the grays the delta
-     had to be carried over because the backgrounds did not match; here
-     they do.
+     And the #ededed is copied LITERALLY, something that never happened
+     in this system. That canvas is #fdfdfc and so is ours, so here
+     copying the hex copies the contrast. On the card, on the hover and
+     on the grays the delta had to be carried over because the
+     backgrounds did not match; here they do.
 
      On the card (−5) the selection ends up 5 units closer to the
-     background. That was accepted: it is the same solid he uses, and
-     today the card has no text. */
+     background. That was accepted: it is the same solid that was
+     measured, and today the card has no text. */
   --selection-bg: #ededed;
   --selection-color: var(--ink);
 
   /* alpha ramp */
   /* --a1 IS GONE: its only reader was the background of the back
-     arrow's hover, and that hover now paints the glyph only, the way
-     both references do, measured. A token with no reader is dead code.
-     Its value was rgba(0,0,0,.04) in light, inverted in dark and
-     doubled in high contrast. (This used to say the focus used it: it
-     was not true, the focus uses --focus-outline.)
-     --a4 and --card-ring went with the card's ring: with josh's rule
-     chosen, there is no line to paint. */
-  /* benji's hairline: #f2f2f2 → (255-242)/255 = .051. In alpha and not
-     in a solid so it composites over --canvas and does not assume pure
-     white */
+     arrow's hover, and that hover paints the glyph only, which is what
+     both measured pages do. A token with no reader is dead code. Its
+     value was rgba(0,0,0,.04) in light, inverted in dark and doubled in
+     high contrast.
+     --a4 and --card-ring went with the card's ring: with contrast
+     defining the card, there is no line to paint. */
+  /* The measured hairline: #f2f2f2 → (255-242)/255 = .051. In alpha and
+     not in a solid so it composites over --canvas and does not assume
+     pure white */
   --hairline: rgba(0, 0, 0, 0.051);
 
-  /* ═══════════ TYPOGRAPHY, benji's system ═══════════
-     Decided against josh's on the real page. One size, four weights,
-     one gray: the chrome disappears and the piece is the only thing you
-     see. Josh does the opposite (five sizes, two weights, five grays)
-     and his cost was competing with the pieces. What was measured of
-     both is in .context/recon/TYPE-SYSTEMS.md.
+  /* ═══════════ TYPOGRAPHY: ONE SIZE, THREE WEIGHTS ═══════════
+     Two systems were measured and this one was chosen on the real page.
+     One size, four weights, one gray: the chrome disappears and the
+     piece is the only thing you see. The other one does the opposite
+     (five sizes, two weights, five grays) and its cost was competing
+     with the pieces. Both measurements are in
+     .context/recon/TYPE-SYSTEMS.md.
 
-     All the values come from the CSS he serves. His 14px text carries
-     line-height:1.25rem and letter-spacing:-.00563rem in ALL of his
-     rules, with no exception, and the weights he really uses are 460 ·
-     500 · 560 · 600.
+     All the values come from served CSS. There, 14px text carries
+     line-height:1.25rem and letter-spacing:-.00563rem in ALL rules,
+     with no exception, and the weights really in use are 460 · 500 ·
+     560 · 600.
 
      Before, there was a tracking of −0.004rem here that belonged to
      nobody, a leading of 1.3 that did not either, and three different
@@ -312,16 +298,16 @@
 
      THE WEIGHT SCALE IN USE HAS THREE: 460 · 500 · 600.
      The 560 was left out. Three is where the consensus of design
-     systems sits (EightShapes: "some systems can get away with as few
-     as two or three weights") and the 460 cannot be removed because it
-     is the body and it has to be lighter than everything else.
+     systems sits ("some systems can get away with as few as two or
+     three weights") and the 460 cannot be removed because it is the
+     body and it has to be lighter than everything else.
 
-     And he never uses a jump smaller than 40 to separate two levels of
-     the same hierarchy. The sub-40 ones he does have (430 in italics,
+     And there is never a jump smaller than 40 between two levels of the
+     same hierarchy. The sub-40 values that do appear (430 in italics,
      450 inside components) are optical compensation, not steps.
      Measured and quoted in .context/recon/TYPE-SYSTEMS.md. */
   --fs: 14px;
-  --lh: 1.428571; /* his 1.25rem over 14px = 20px */
+  --lh: 1.428571; /* the measured 1.25rem over 14px = 20px */
   --fw-body: 460;
   --tracking: -0.00563rem;
 
@@ -332,39 +318,39 @@
      decision lives, and without them the weight of each role goes back
      to hiding inside its class.
 
-     The leading goes in px and not as a ratio: it is benji's way (an
-     absolute 1.25rem, which does not scale if the size changes) and it
-     also lets the calculation of the label gap consume it directly.
-     Both land on multiples of 4. */
+     The leading goes in px and not as a ratio: that is how it was
+     measured (an absolute 1.25rem, which does not scale if the size
+     changes) and it also lets the calculation of the label gap consume
+     it directly. Both land on multiples of 4. */
   /* 500 and not 600: the title of the page is NOT the heaviest thing
-     there is. It is the weight of his header h1 (.article > header
-     h1{font-weight:500}), and the reason is functional: the title gets
-     read once and its rank is already given by its position, alone at
-     the top and surrounded by air. The weight is saved for what you
-     have to look for. */
+     there is. It is the measured weight of a header h1 (.article >
+     header h1{font-weight:500}), and the reason is functional: the
+     title gets read once and its rank is already given by its position,
+     alone at the top and surrounded by air. The weight is saved for
+     what you have to look for. */
   --type-h1-fs: 14px; /* title of the page and of the detail */
   --type-h1-lh: 20px;
   --type-h1-fw: 500;
   --type-h1-ls: -0.00563rem;
   --type-h1-c: var(--ink);
 
-  /* Only the masthead subtitle. The description of the detail LEFT this
-     role when benji's usage was adopted: it is prose, and his rule 1 is
-     that everything that gets read goes in ink. The gray is left for
-     what ANNOTATES. His <time> under the h1 is exactly the role of the
-     subtitle. */
+  /* Only the masthead subtitle. The description of the detail LEFT
+     this role with rule 1 of the system: everything that gets read goes
+     in ink, and the gray is left for what ANNOTATES. The measured
+     equivalent is a <time> under the h1, which is exactly the role of
+     the subtitle. */
   --type-body-fs: 14px; /* masthead subtitle */
   --type-body-lh: 20px;
   --type-body-fw: 460;
   --type-body-ls: -0.00563rem;
   --type-body-c: var(--text-secondary);
 
-  /* 600, the HEAVIEST thing on the page, above the title. It is what he
-     does and it is verified end to end: the separator of /liveline is
-     an h1 inside <article class="article">, so it falls under .article
+  /* 600, the HEAVIEST thing on the page, above the title. Measured and
+     verified end to end: the separator that was copied is an h1 inside
+     <article class="article">, so it falls under .article
      h1{font-weight:600}. (The 560 that used to be here came from
      .article h2, which is a sub-heading inside the article, not the
-     separator we copied.)
+     separator.)
 
      Section headings get looked for many times and in bad conditions,
      in the middle of content, while the eye jumps. There the weight is
@@ -377,9 +363,9 @@
 
   /* 500, the same as the title of the page. The tie is the cost of
      going down to three weights and it is accepted: what tells them
-     apart is the position and the context, not the weight. He does not
-     have this role (there is no list of [name + card] pairs on his
-     site) so there is nothing to copy here. */
+     apart is the position and the context, not the weight. Nothing
+     measured has this role (no list of [name + card] pairs) so there is
+     nothing to copy here. */
   --type-h3-fs: 14px; /* piece title */
   --type-h3-lh: 20px;
   --type-h3-fw: 500;
@@ -392,16 +378,16 @@
   --type-meta-ls: -0.00563rem;
   --type-meta-c: var(--text-secondary);
 
-  /* His index: 13px/460, tracking -.0025rem, lh 1.2 and color at 40%.
-     The 1.2 gives 15.6; 16 sticks it to the scale of 4.
+  /* The measured index: 13px/460, tracking -.0025rem, lh 1.2 and color
+     at 40%. The 1.2 gives 15.6; 16 sticks it to the scale of 4.
 
      One single set for the whole index: the "Web" label and its links
      are identical property by property, and only the air separates the
-     label. It is exactly benji's thing. His `nav h2` and his `nav ul li
-     a` share size, weight, tracking, leading and color, and the only
-     one that moves is the active one, which rises to --ink. Tested
-     against the alternative (label as a heading, 500 in ink) and chosen
-     by eye.
+     label. That is the measured structure too, where `nav h2` and
+     `nav ul li a` share size, weight, tracking, leading and color, and
+     the only one that moves is the active one, which rises to --ink.
+     Tested against the alternative (label as a heading, 500 in ink) and
+     chosen by eye.
 
      Making it one single set and not two with the same value is on
      purpose: two names for the same number drift apart on their own. */
@@ -414,46 +400,46 @@
      nothing: black@34.4% gives the same 166 that ink@37% used to give,
      back when the nav was derived from --ink.
 
-     WHY IT IS NOT DERIVED FROM THE INK, which would be benji's
+     WHY IT IS NOT DERIVED FROM THE INK, which is the measured
      position: that traps the ink. It has to come in ~17 units from the
      extreme or the two bases flatten against each other, which forced
      an ink of 238 in dark and left the text 7.5 Lc below the light one.
-     With two alphas the ink is free and can go to 250, which is josh's
-     and the one that ties the contrast of the light mode to the
-     decimal, without touching the pair.
+     With two alphas the ink is free and can go to 250, the value that
+     ties the contrast of the light mode to the decimal, without
+     touching the pair.
 
-     And it is the structure benji uses for his nav at rest and active:
-     hsla(0,0%,7%,.4) and .8, one base and two alphas. */
+     And it is a measured structure in its own right, a nav at rest and
+     active written hsla(0,0%,7%,.4) and .8: one base, two alphas. */
   --nav-alpha: 34.4%;
   --type-nav-c: color-mix(in srgb, #000 var(--nav-alpha), transparent);
 
   /* ═══════════ SPACING ═══════════
-     Names in apple's manner: OWNER → PART → PROPERTY → SIDE, always the
-     noun first and the property last. Measured from the CSS they serve:
+     Names in the measured manner: OWNER → PART → PROPERTY → SIDE,
+     always the noun first and the property last. From served CSS:
      --buystrip-content-padding, --buystrip-items-padding-bottom,
-     --media-gallery-bottom-content-padding-left. Linear and OpenAI do
-     the same thing shorter (--button-gap, --page-top-gap).
+     --media-gallery-bottom-content-padding-left. Two other measured
+     systems do the same thing shorter (--button-gap, --page-top-gap).
 
      None of the three has a token named after its value. In 1.3 MB of
      their CSS there is not one single --space-4. That is why there is
      none here either: the raw scale was deleted and every decided
      number has a name that says what it separates.
 
-     And the three of them share something else we were already doing
-     without naming it: THE NAME IS THE ROLE, THE VALUE IS CONTEXTUAL.
-     Linear's --button-gap is 4, 6 or 8 depending on the size of the
-     button; apple's paddings change with the breakpoint. The same thing
-     happens here with the three below, which move at 768.
+     And all three share something else we were already doing without
+     naming it: THE NAME IS THE ROLE, THE VALUE IS CONTEXTUAL. One
+     measured --button-gap is 4, 6 or 8 depending on the size of the
+     button; measured paddings change with the breakpoint. The same
+     thing happens here with the three below, which move at 768.
 
      RULE: every LAYOUT spacing is a multiple of 4. Inside a component
-     it does not apply. That is what benji does: he uses 2, 3, 5, 6 and
-     10 but only in .Toolbar_*, .BarSlider_field and button variants,
+     it does not apply. That is what the measurement shows: 2, 3, 5, 6
+     and 10 appear, but only in toolbars, fields and button variants,
      never in the layout of the page. Today we have nothing internal:
      the card is empty and the only component is the detail's arrow. */
 
-  /* the frame. benji's behavior: it steps at 768 and does not
+  /* the frame. The measured behavior: it steps at 768 and does not
      interpolate. There is no clamp() and no vw anywhere, the same as
-     him.
+     the reference.
 
      The side padding is 16 above 768 and 24 below. It is not an
      inconsistency: above 768 the rail is centered with air to spare on
@@ -464,40 +450,41 @@
   --page-padding-top: 80px; /* 5rem */
 
   /* 80 at the bottom, the same number as the top, and it steps with it.
-     It does not come from the references: both of them close short
-     (benji 40, josh 64) because they have a footer down there and we
-     are not going to have one, so that air is the end of the page and
-     not a separation. Benji does NOT step his bottom one. Here it was
-     decided that it does, so that top and bottom are the same number at
-     every width. */
+     It is not measured: both measured pages close short (40 and 64)
+     because they have a footer down there and we are not going to have
+     one, so that air is the end of the page and not a separation.
+     Neither steps the bottom one. Here it was decided that it does, so
+     that top and bottom are the same number at every width. */
   --page-padding-bottom: 80px;
 
   /* THE STEP OF THE FRAME. One single step, at 768, and it moves two
-     things at once. It is benji's, read from the CSS he serves:
+     things at once. Read from served CSS:
 
        .styles_container__YJPlC{padding:5rem 1rem 2.5rem; …}
        @media screen and (max-width:768px){
          .styles_container__YJPlC{padding:2rem 1.5rem 2.5rem}}
 
      → air at the top 80 → 32, margins 16 → 24. Verified to the pixel on
-     his page: at 769 the air is 80, at 768 it is 32.
+     the served page: at 769 the air is 80, at 768 it is 32.
 
-     His way was chosen and not josh's, who steps nothing (672 · 24 · 64
-     from 320 up to 2560, zero responsive classes in the frame).
+     That way was chosen over the other measured one, which steps
+     nothing (672 · 24 · 64 from 320 up to 2560, zero responsive classes
+     in the frame).
 
      The block that applies it is below this :root. It goes in :root and
      not on a class because it is a property OF THE FRAME and there is
      more than one frame: the page and the private area. */
 
   /* 592 = exactly 37rem. Chosen with a scrubber on the real page,
-     between benji's (582, his 36.375rem) and josh's (672, 42rem). With
+     between the two measured rails (582, or 36.375rem, and 672, or
+     42rem). With
      the padding of 16 the column ends up at 560 = 35rem: both land on
      whole rems, which did not happen with either of the two extremes. */
   --page-content-max-width: 592px;
 
   /* ─── THE FOCUS ───
-     2px solid and with NO transition. The transition part is benji's:
-     it is the only thing on his page that appears instantly, against
+     2px solid and with NO transition. That part is measured: the focus
+     ring is the only thing on that page that appears instantly, against
      the 200ms everything else has.
 
      THE COLOR is Chromium's default focus ring, measured from the
@@ -515,18 +502,18 @@
      the floor of 30 that APCA asks for interface components.
 
      TWO THINGS THAT CAME OUT OF MEASURING THEM AND ARE WORTH NOTING:
-     the blue that used to be here, rgba(0,122,255,.5) inherited from
-     benji, is exactly Firefox's; and WebKit paints its own at 50% alpha
-     dead on, which means the mechanism of Safari's old ring was the
-     same one we had.
+     the inherited blue that used to be here, rgba(0,122,255,.5), is
+     exactly Firefox's; and WebKit paints its own at 50% alpha dead on,
+     which means the mechanism of Safari's old ring was the same one we
+     had.
 
-     THE OFFSET is josh's (:focus-visible{outline:2px solid
-     var(--accent); outline-offset:2px}) and it is not decoration.
-     Without it the ring CUTS the letters of the index links, which are
-     text with no padding. With 2px it frames them, and on the card the
-     outline follows the radius of 8 by itself. It replaces the
-     padding:0 2px / margin:0 -2px benji uses to lift his off: it does
-     the same thing without touching the layout.
+     THE OFFSET is measured (:focus-visible{outline:2px solid …;
+     outline-offset:2px}) and it is not decoration. Without it the ring
+     CUTS the letters of the index links, which are text with no
+     padding. With 2px it frames them, and on the card the outline
+     follows the radius of 8 by itself. It replaces the padding:0 2px /
+     margin:0 -2px the other measured page uses to lift its ring off: it
+     does the same thing without touching the layout.
 
      It is the only thing in the system that does not come out of our
      hue. On purpose: a focus ring has to read as "this is not content",
@@ -561,94 +548,90 @@
 
      TWO CURVES, SPLIT BY PROPERTY. The cut is not by component ("this
      is a card, this is not") but by what gets animated, which is what
-     you read in linear's CSS:
+     the measured CSS does:
 
        background-color             →  --ease-surface · --dur-surface
        color, text-decoration-color →  --ease-text    · --dur-text
 
      The property rules, and nothing else. There used to be an exception
      for the back arrow, which animated background and color at once;
-     its hover now paints the glyph only, the way both references do
-     (measured, see .back in app.module.css), so no element in the
-     system animates both families and the rule stays clean.
+     its hover now paints the glyph only, which is what both measured
+     pages do (see .back in app.module.css), so no element in the system
+     animates both families and the rule stays clean.
 
-     THE SURFACE GOES IN EASE-OUT. It is what the three cards with hover
-     of linear do, with no exception:
-       .Dc5tqa_customerCard   filter .16s  --ease-out-quad
-       .do0YxW_card           filter .2s   ease-out (the keyword)
-       .rWdRxW_card           all   .15s   --ease-out-cubic
-     And the value is the one /review-animations prescribes in its
-     catalog, line 32: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`,
-     with the comment "strong ease-out for UI".
+     THE SURFACE GOES IN EASE-OUT. It is what the three measured cards
+     with hover do, with no exception:
+       card A   filter .16s  ease-out-quad
+       card B   filter .2s   ease-out (the keyword)
+       card C   all   .15s   ease-out-cubic
+     And the value is the one the motion catalog prescribes:
+     `cubic-bezier(0.23, 1, 0.32, 1)`, "strong ease-out for UI".
 
-     THIS IS A CONSCIOUS DIVERGENCE, and it gets written down. Linear
-     uses ease-out on its cards but NEVER this value: its three use
-     quad, the keyword and cubic. It declares the quint among its 18
-     Penner curves and uses it ONCE in the whole site. Which means the
-     family comes from linear measured and the number comes from the
-     skill, and they do not match. If tomorrow what they ship is
-     preferred, quad is cubic-bezier(.25,.46,.45,.94) and it is their
-     workhorse with 60 uses.
+     THIS IS A CONSCIOUS DIVERGENCE, and it gets written down. The
+     measured site uses ease-out on its cards but NEVER this value: its
+     three use quad, the keyword and cubic. It declares the quint among
+     its 18 Penner curves and uses it ONCE in the whole site. So the
+     family comes from the measurement and the number comes from the
+     catalog, and they do not match. If what ships out there is
+     preferred tomorrow, quad is cubic-bezier(.25,.46,.45,.94) and it is
+     the workhorse there with 60 uses.
 
      THE DURATION SPLITS TOO, AND THIS ONE IS OUR OWN COMPOSITION.
-     Neither of the two references splits the duration: benji uses 100ms
-     for surface and for text, josh uses 150 for both. Measured at
-     runtime over 3 pages of each:
+     Neither measured page splits the duration: one uses 100ms for
+     surface and for text, the other 150 for both. Measured at runtime
+     over 3 pages of each:
 
-       benji   background-color 100ms ×10   ·   color 100ms ×23
-       josh    background-color 150ms ×11   ·   color 150ms ×21 (by hand)
-                                                color 250ms ×17
+       A   background-color 100ms ×10   ·   color 100ms ×23
+       B   background-color 150ms ×11   ·   color 150ms ×21 (by hand)
+                                            color 250ms ×17
 
-     Here benji's number is taken for the text and josh's for the
-     surface. It is a combination neither of them ships, and it was
-     chosen by looking: at 100ms the hover of the card is 6 frames
-     instead of 9, and with a delta of 4 units that leaves it almost
-     like a dry switch-on; on the text, where the delta is 101 units,
-     the 100ms read just right.
+     Here A's number is taken for the text and B's for the surface. It
+     is a combination neither of them ships, and it was chosen by
+     looking: at 100ms the hover of the card is 6 frames instead of 9,
+     and with a delta of 4 units that leaves it almost like a dry
+     switch-on; on the text, where the delta is 101 units, the 100ms
+     read just right.
 
      THE TEXT GOES IN `ease`, the keyword. Four sources agree:
 
-       benji            EVERY transition of his bundle, without one
-                        single custom curve. Durations .14s, .15s
-                        and .2s.
-       josh, by hand    .company-link  color 0.15s ease   ×18
-                        .role-text     color 0.15s ease   × 3
-       linear           25 of its 46 color transitions, 54%: 21 with no
-                        curve declared (which in CSS is `ease`) plus 4
-                        explicit ones.
-       /review-animations, line 23, and also /animate and
-                        /web-animation-design: "hover or color change
-                        → ease".
+       A            EVERY transition of the bundle, without one single
+                    custom curve. Durations .14s, .15s and .2s.
+       B, by hand   color 0.15s ease   ×18 on one class
+                    color 0.15s ease   × 3 on another
+       C            25 of its 46 color transitions, 54%: 21 with no
+                    curve declared (which in CSS is `ease`) plus 4
+                    explicit ones.
+       the motion catalogs, which say "hover or color change → ease".
 
      THERE USED TO BE TWO CURVES HERE AND BOTH WERE WRONG, by accident
-     and not by allocation. --ease-fill was baked in as "josh's curve"
+     and not by allocation. --ease-fill was baked in as a measured curve
      and it was not: the 21 appearances of cubic-bezier(.4,0,.2,1)
-     across his three pages ALL come from a Tailwind utility and none
-     from his CSS. And the old --ease-out was the quint inherited from
-     Carousels applied to all four, the three text ones included.
+     across those three pages ALL come from a utility class and none
+     from the CSS that was written by hand. And the old --ease-out was
+     the inherited quint applied to all four, the three text ones
+     included.
 
      AND ONE THING THAT LOOKED OPEN AND IS NOT: the hover is
      SYMMETRICAL, 150 going in and 150 going out, and it stays that way.
 
      There was a walk-back here. It had been written that three sources
-     asked for asymmetry, and that was false. Linear's asymmetric rule
-     does exist, .rWdRxW_card with
+     asked for asymmetry, and that was false. One asymmetric rule does
+     exist, a card with
      :hover{transition-duration:var(--speed-highlightFadeIn)} where
-     FadeIn is 0s, but it lives in ContactLink.css and renders ZERO
-     elements. It is the same mistake
-     as josh's active:scale utilities: it is in the bundle and nobody
-     uses it. The card that DOES render in linear,
-     .Dc5tqa_customerCard, ×24 on its home, is symmetrical.
+     FadeIn is 0s, but it lives in a stylesheet that renders ZERO
+     elements. It is the same mistake as the active:scale utilities
+     nobody uses: it is in the bundle and nothing wears it. The card
+     that DOES render there, ×24 on its home, is symmetrical.
 
-     Live sweep over 5 pages of linear: 21 hoverable elements with a
-     transition, ZERO change duration on hover. benji's list (opacity
-     .14s) and josh's row (.15s) are symmetrical too.
+     Live sweep over 5 pages: 21 hoverable elements with a transition,
+     ZERO change duration on hover. The measured list (opacity .14s) and
+     the measured row (.15s) are symmetrical too.
 
-     And the other two "agreements" were not about hover: benji's 20ms
-     belong to an :active, and Apple's "respond on pointer-down" is
-     about the press. Standard 9 of /review-animations names, word for
-     word, "a press, a hold, a destructive confirm" and
-     "press-and-release or hold", never hover.
+     And the other two "agreements" were not about hover: that 20ms
+     belongs to an :active, and "respond on pointer-down" is about the
+     press. The motion standards name, word for word, "a press, a hold,
+     a destructive confirm" and "press-and-release or hold", never
+     hover.
 
      The reason they are different: a press is a DELIBERATE act and
      deserves an instant acknowledgement; a hover is INCIDENTAL, the
@@ -656,8 +639,8 @@
      at 0ms, sweeping the list makes every card flash at full intensity.
      The 150ms work in fact as a damper.
 
-     The asymmetry stays noted for the PRESS, which will exist with the
-     Button piece. There the three sources do apply. */
+     The asymmetry stays noted for the PRESS, which arrives with the
+     first piece that is a button. There the three sources do apply. */
   --ease-surface: cubic-bezier(0.23, 1, 0.32, 1);
   /* The curve of the surfaces that APPEAR, dialogs and menus: a very
      front-loaded ease-out, which is what the allocation of motion asks
@@ -669,18 +652,18 @@
   --ease-text: ease;
   --dur-text: 100ms;
 
-  /* the side index. Measured from benji: fixed at 80/80, links 13px/460
-     at 40%, 8px between one and the next.
+  /* the side index. MEASURED: fixed at 80/80, links 13px/460 at 40%,
+     8px between one and the next.
 
      The label asks for twice the air of a link, and the label carries
-     that air itself. It is his exact structure (nav > h2 + ul): the h2
-     carries padding:0 0 1rem and the ul its gap:.5rem. Measured on his
-     page: box of the h2 31.59 − text 15.60 = 16.00 of gap; and 8.00
-     dead on between link and link, five times in a row.
+     that air itself. That is the measured structure (nav > h2 + ul):
+     the h2 carries padding:0 0 1rem and the ul its gap:.5rem. On the
+     served page: box of the h2 31.59 − text 15.60 = 16.00 of gap; and
+     8.00 dead on between link and link, five times in a row.
 
-     The jump between groups does not come from him: his index is flat,
-     one single title and one single list, so for "group → group" there
-     is no evidence. It is the same doubling one more time, 8 · 16 · 32,
+     The jump between groups is not measured: that index is flat, one
+     single title and one single list, so for "group → group" there is
+     no evidence. It is the same doubling one more time, 8 · 16 · 32,
      which is how everything else in the system already scales. */
   --index-offset-left: 80px;
   --index-offset-top: 80px;
@@ -690,9 +673,9 @@
 
   /* ─── THE VERTICAL GAPS OF THE PAGE ───
      Each one named after the block that claims it, because the air is
-     claimed by the one below and not pushed by the one above. It is
-     benji's way, verified on his real page where the container of his
-     chart carries style="margin-top:2rem".
+     claimed by the one below and not pushed by the one above. That is
+     the measured way, verified on a served page where the container of
+     a chart carries style="margin-top:2rem".
 
      Sorted by size the scale reads itself, all of them multiples of 4:
      4 · 8 · 12 · 40 · 48 · 60 · 64
@@ -700,36 +683,36 @@
      The detail of each one and where it came from is in the log and
      in .context/recon/NAVIGATION.md. */
 
-  /* the subtitle, from its title. An exact analog of benji's: his
-     <header> is the same pair, an h1 and a secondary line, both
+  /* the subtitle, from its title. An exact analog of a measured
+     <header>: the same pair, an h1 and a secondary line, both
      14px/lh20, with display:flex; flex-direction:column; gap:.25rem.
      Since both texts are the same size the leading already separates
      them: these 4 are a nudge, not a separation. */
   --masthead-subtitle-gap: 4px;
 
-  /* the section label, from its hairline. Measured from his
+  /* the section label, from its hairline. Measured from a served
      separator. */
   --section-rule-gap: 8px;
 
   /* the first piece, from the label. It is the gap you SEE, from the
      line to the first text, not the margin: the line goes centered in
-     the box of the label and the CSS discounts that half box. 40 is
-     benji's number on /liveline, measured in 13 of his 15 sections. It
-     has to stay below --piece-gap or the label comes unstuck from its
+     the box of the label and the CSS discounts that half box. The 40 is
+     measured, in 13 of the 15 sections of one served page. It has to
+     stay below --piece-gap or the label comes unstuck from its
      group. */
   --section-content-gap: 40px;
 
   /* the first section, from the masthead. */
   --section-first-gap: 60px;
 
-  /* a section, from the previous one. benji's, measured. */
+  /* a section, from the previous one. Measured. */
   --section-gap: 64px;
 
   /* the card, from its name. CHOSEN BY EYE with a scrubber on the real
-     page, not copied: no reference has our structure, a list of [short
-     name + big card] pairs. The closest one is josh on /pasito, an h2
-     20px/500 followed directly by a code card at 16 (mt-4). 12 and 16
-     were tried and 12 won.
+     page, not copied: nothing measured has our structure, a list of
+     [short name + big card] pairs. The closest case is an h2 20px/500
+     followed directly by a code card at 16. 12 and 16 were tried and 12
+     won.
 
      THE RECEIPT IS WEAK AND IT IS SAID SO: that comparison was made
      over the 18 placeholder pieces, which were deleted whole before the
@@ -738,45 +721,43 @@
      again with the four real pieces. */
   --piece-card-gap: 12px;
 
-  /* a piece, from the previous one. benji's, measured. */
+  /* a piece, from the previous one. Measured. */
   --piece-gap: 48px;
 
-  /* The radius of the card. Census of the 7 pages of the two
-     references: for big boxes there are exactly two numbers and there
-     is no third one.
+  /* The radius of the card. Census of the 7 measured pages: for big
+     boxes there are exactly two numbers and there is no third one.
 
-       benji   8    50 uses in family-values, 4 in liveline
-               14   3 uses, only the hero frame of /drawesome
-       josh    12   11 on his home, 5 in pasito, 2 in bloom
-               16   6 uses, his <img> boxes in pasito
-               32   1 use, the cover demo of /bloom
+       system A   8    50 uses on one page, 4 on another
+                  14   3 uses, only one hero frame
+       system B   12   11 uses on one page, 5 on another, 2 on a third
+                  16   6 uses, the <img> boxes of one page
+                  32   1 use, a cover demo
 
-     8 was chosen: it is the most repeated radius of the two references
-     put together, and the only one both of them use on big boxes. The
-     other three are one-offs from a single page. It is also a multiple
-     of 4, which 14 is not.
+     8 was chosen: it is the most repeated radius of the two put
+     together, and the only one both use on big boxes. The other three
+     are one-offs from a single page. It is also a multiple of 4, which
+     14 is not.
 
-     On small controls the two of them agree on 4 and 6, so when there
-     is a real piece there, there will be nothing to decide. */
+     On small controls the two agree on 4 and 6, so when there is a real
+     piece there, there will be nothing to decide. */
   --card-radius: 8px;
 
   /* ─── THE BOX OF THE PIECE ───
-     A fixed height and not a proportion. It comes from six cases
-     measured across the two references (.context/recon/CARDS.md): what
-     runs carries a height chosen by hand, and what stays still lets the
-     content rule. Neither of the two uses aspect-ratio for something
-     alive.
+     A fixed height and not a proportion. It comes from six measured
+     cases (.context/recon/CARDS.md): what runs carries a height chosen
+     by hand, and what stays still lets the content rule. Not one of
+     them uses aspect-ratio for something alive.
 
      WEB · 260 in the list, 400 when it opens.
 
-     Both are benji's and so is the relation between them: inside a long
-     page his /liveline demos measure 260, his second most used value,
-     ×4 out of 21, and when the demo IS the page, the frame of
-     /drawesome measures 400. We have those same two situations.
+     Both are measured and so is the relation between them: inside a
+     long page the demos measure 260, the second most used value there,
+     ×4 out of 21, and when the demo IS the page, the frame measures
+     400. We have those same two situations.
 
-     They do not change with the viewport, and that is his too: his 20
-     demos measure 180-300 identically at 1440, 768, 500, 390 and 320.
-     The only thing that moves is the width, so the card goes from
+     They do not change with the viewport, and that is measured too: the
+     20 demos measure 180-300 identically at 1440, 768, 500, 390 and
+     320. The only thing that moves is the width, so the card goes from
      2.12:1 to 1.05:1 on its own.
 
      They go as min-height: they are a FLOOR. If a piece needs more, it
@@ -786,37 +767,36 @@
   --card-height-detail: 400px;
 
   /* The box of the piece in App. It carries NO height: the height is
-     the phone slot plus the padding, the same as benji's. The shape of
-     the content rules, which is what both references do.
+     the phone slot plus the padding, the same as the measured one. The
+     shape of the content rules, which is what both measured systems do.
 
-     Measured from benji · family-values, the variant he uses most (17
-     of 45):
+     MEASURED, the variant most used there (17 of 45):
 
        box        550 × 532.42   radius 8 · #fcfcfc · 0 0 0 1px #f2f2f2
        padding    40px 60px
        phone      228 × 448      (natural 762×1502)
 
-     His 532.42 is not a chosen number: it is 40 + 448 + 4.42 + 40, and
-     that 4.42 is the line gap left by the phone's display:inline-block.
+     That 532.42 is not a chosen number: it is 40 + 448 + 4.42 + 40, and
+     the 4.42 is the line gap left by the phone's display:inline-block.
      Our equivalent gives a clean 528, a multiple of 4.
 
-     And it is NOT fixed at 528, because his card is not either. Sweep
-     of 13 widths on his page: 532.42 dead on from 1920 down to 430, and
-     there it starts to drop, 521.6 at 390, 462.5 at 360, 383.6 at 320.
-     Without one single media query: his classes have none. What happens
-     is that the usable width (box − 120 of padding) falls below the 228
-     of the phone and the phone shrinks on its own, dragging the box
-     with it.
+     And it is NOT fixed at 528, because the measured card is not either.
+     Sweep of 13 widths: 532.42 dead on from 1920 down to 430, and there
+     it starts to drop, 521.6 at 390, 462.5 at 360, 383.6 at 320.
+     Without one single media query, because those classes have none.
+     What happens is that the usable width (box − 120 of padding) falls
+     below the 228 of the phone and the phone shrinks on its own,
+     dragging the box with it.
 
      The threshold comes out of the same arithmetic on both pages: the
      box measures viewport − 48, so the phone starts to give when
      viewport − 48 − 120 < 228, that is below 396. It comes out
      identical for us without copying any breakpoint.
 
-     And the phone also grows when the piece opens, with another number
-     of his: 228 is the one he uses inside a box (17 of 45) and 319 the
-     one he uses when the phone goes on its own. The box follows it in
-     both. */
+     And the phone also grows when the piece opens, with another
+     measured number: 228 is the one used inside a box (17 of 45) and
+     319 the one used when the phone goes on its own. The box follows it
+     in both. */
   --card-app-padding: 40px 60px;
   --card-app-slot-width: 228px;
   --card-app-slot-detail: 319px;
@@ -842,7 +822,7 @@ html {
   /* Both of them, not only light: it tells the browser that the native
      controls and the scroll bars can go in either of the two. Without
      declaring it, with the system in dark the page ends up half and
-     half. None of the five references declares it. */
+     half. None of the five measured sites declares it. */
   color-scheme: light dark;
   background: var(--canvas);
 }
@@ -850,11 +830,10 @@ html {
 /* ═══════════════════════════════════════════════════════════════
    DARK MODE
 
-   It fires with the system and nothing else, like josh, with no
-   toggle. Of the five references measured only he has a dark theme for
-   the page: benji and emil have dark palettes in their CSS but only
-   for embedded components, and linear forces data-theme="dark" and
-   ignores the system.
+   It fires with the system and nothing else, with no toggle. Of the
+   five sites measured only one has a dark theme for the page: two more
+   have dark palettes in their CSS but only for embedded components, and
+   another forces data-theme="dark" and ignores the system.
 
    EVERYTHING DERIVES FROM FOUR NUMBERS. There is no palette written by
    hand: there is one point chosen in a space, and the rest falls out
@@ -863,7 +842,7 @@ html {
      depth     9      the gray of the canvas
      warmth    .003   chroma in OKLCH on H 106.4, the measured hue of
                       the light --canvas
-     ink       250    josh's (--foreground:#fafafa)
+     ink       250    measured (--foreground:#fafafa)
      hue       106.4  the same one in both modes
 
    THE TWO RULES, and only two. There used to be a version with four
@@ -879,7 +858,7 @@ html {
          annotation      50.3    48.1    white @ 59.2%
          nav             46.7    42.5    white @ 55%
          active          92.9    93.4    ink @ 93%
-       The 59.2% comes from the ×1.6 benji applies in his two tokens
+       The 59.2% comes from the ×1.6 applied in the two measured tokens
        with alpha (.28→.45 and .10→.16, the same factor twice). The 93%
        does not keep the alpha but the POSITION of the active one
        between the nav and the ink: in light the 80% leaves it at 80.4%
@@ -892,7 +871,7 @@ html {
        Here they are at +5, +9, +16, +36 and +151. The alphas do the
        same: same number, base turned over.
 
-       That last one is linear's: their --color-border-translucent is
+       That last one is measured: a --color-border-translucent that is
        #0000000d in light and #ffffff0d in dark, ×1.00, and that
        #0000000d is 5.098%, our --hairline to three decimals.
 
@@ -900,15 +879,15 @@ html {
    OKLab says that an equal ΔL looks equal; keeping the 8 bit distance
    gives ~1.5× of ΔL, so the card IS somewhat more noticeable in dark.
    But keeping the exact ΔL would leave it at +3 and it disappears, and
-   the two references with a scale of their own enlarge much more (emil
-   ×3.00, linear ×4.48) for how they hold up across screens and not for
+   the two measured systems with a scale of their own enlarge much more
+   (×3.00 and ×4.48) for how they hold up across screens and not for
    appearance: near black OLED and IPS diverge, there is ambient light
    and there is 8 bit banding. This one sits in the middle and it is
    stated in one sentence. APCA cannot arbitrate it: it returns 0.0 for
    every surface option, it is made for text.
 
    THE RAMP is generated in OKLCH with CONSTANT chroma and hue, which
-   is linear's method: one single hue in both modes, with the tint
+   is the measured method: one single hue in both modes, with the tint
    living in the whole scale and not only in the background.
    ═══════════════════════════════════════════════════════════════ */
 @media (prefers-color-scheme: dark) {
@@ -916,7 +895,7 @@ html {
     --canvas: #090908;
     --surface: #0e0e0d; /* +5 */
     --surface-hover: #121211; /* +9 */
-    --ink: #fafaf9; /* josh's 250, with our hue */
+    --ink: #fafaf9; /* the measured 250, with our hue */
 
     /* The base turns over: black → white. The alphas go up because what
        is kept is the contrast, not the number. */
@@ -925,20 +904,20 @@ html {
     --text-secondary: color-mix(in srgb, #fff var(--secondary-alpha), transparent);
     --type-nav-c: color-mix(in srgb, #fff var(--nav-alpha), transparent);
 
-    /* Same number, base turned over. linear's rule. */
+    /* Same number, base turned over. A measured rule. */
     --hairline: rgba(255, 255, 255, 0.051);
 
     --active-c: color-mix(in srgb, var(--ink) 93%, transparent);
 
-    /* INVERSION, josh's decision, and not benji's delta.
+    /* INVERSION, and not the carried delta.
        It was at #191918, the +16 of the light mode carried over, and it
        was INVISIBLE: 16 steps near black do not look like 16 near
        white, the gamut flattens them. Pointed out in use: "when you
        select text you cannot tell".
 
-       Benji cannot vote here (his site has no dark mode, 0 media
-       queries in his CSS) and linear solves it with its brand blue,
-       which this system does not have. The one left is josh:
+       One of them cannot vote here (that site has no dark mode, 0 media
+       queries at all) and another solves it with a brand blue, which
+       this system does not have. The one left is a total inversion:
          ::selection{color:#fff;background:#000}
        total inversion. With our tokens: background to ink, text to
        canvas. Zero new colors, and the selection is a transient state
@@ -949,16 +928,16 @@ html {
     --link-underline: #2d2d2b; /* +36 */
     --link-underline-hover: #a0a09e; /* +151 */
 
-    /* The error red in dark from Carousels (design-decisions l. 394).
+    /* The inherited error red in dark (design-decisions l. 394).
        The why of this one NOT keeping the Lc of the light mode is
        above, in --destructive: obeying the rule would leave it at
        #ffbcb1, which is not red any more. */
     --destructive: #ff6b60;
 
-    /* The accent lightens, which is what benji (#08f → #3d9bff) and
-       josh (#6366f1 → #818cf8) do. It comes from raising the L of
-       #005fcc by their ΔL; the same calculation on firefox's #007aff
-       gives #3f9aff against the #3d9bff measured from benji, one unit
+    /* The accent lightens, which is what both measured pairs do
+       (#08f → #3d9bff and #6366f1 → #818cf8). It comes from raising the
+       L of #005fcc by their ΔL; the same calculation on firefox's
+       #007aff gives #3f9aff against the #3d9bff measured, one unit
        apart. */
     --focus-outline: 2px solid #347ee5;
   }
@@ -973,8 +952,8 @@ html {
    explicitly for the faint grays to stop being faint.
 
    IT IS THE FIRST COLOR DECISION WITH NO REFERENCE AT ALL. Zero
-   occurrences of prefers-contrast in the five bundles measured: benji,
-   emil, animations.dev, josh, linear. The only neighboring thing is
+   occurrences of prefers-contrast in the five bundles measured. The
+   only neighboring thing is
    an @media (forced-colors:active) in animations.dev, which is a
    Tailwind utility and not a decision about a palette. So here the
    rule is set by /better-colors: widen the gap of L by at least 0.15
@@ -1078,7 +1057,7 @@ body {
      and in this system the hierarchy IS the stroke: 460 · 500 · 600,
      all at 14px. With only the -webkit one, Firefox drew the three
      steps heavier and closer together than the rest of the browsers. It
-     is what benji does in his body, the two of them in a row (SOURCE:
+     is what the measured body does, the two of them in a row (SOURCE:
      bd-d660f1d84c4a4312.css). */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -1098,9 +1077,9 @@ button {
 }
 
 /* The link inherits the color of its block and what marks it is a
-   separate underline, much lighter. It is benji's rule and emil's, the
-   two references that have prose with links. Neither of them uses the
-   color of the text to say that something is clickable.
+   separate underline, much lighter. It is the rule of the two measured
+   sites that have prose with links. Neither of them uses the color of
+   the text to say that something is clickable.
 
    It reaches every <a> of the page, and the piece of the list is one:
    .streamLink neutralizes it there on purpose, because that anchor is
@@ -1145,9 +1124,9 @@ summary {
   touch-action: manipulation;
 }
 
-/* No ::-moz-selection. Benji and emil both ship it, but that is their
-   autoprefixer, not a necessity: firefox supports ::selection without a
-   prefix since 62 (2018). */
+/* No ::-moz-selection. Two of the measured bundles ship it, but that is
+   their autoprefixer, not a necessity: firefox supports ::selection
+   without a prefix since 62 (2018). */
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-color);

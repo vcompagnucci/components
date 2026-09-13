@@ -23,8 +23,8 @@ import css from './app.module.css'
    CANNOT do is bring its own typography. The style all lives down here,
    so a notes file is prose and nothing else.
 
-   THE SHAPE OF A NOTE: three sections at most, in josh's tone
-   (joshpuckett.me). "Anatomy" is for whoever just watched the video:
+   THE SHAPE OF A NOTE: three sections at most, in the measured tone.
+   "Anatomy" is for whoever just watched the video:
    what they are looking at and what it is made with, only THE ANIMATION
    that gives the piece its name; what surrounds it in the recording
    does not go there, and it is written from what you see towards the
@@ -35,7 +35,7 @@ import css from './app.module.css'
    "React Native", not "Reanimated" (same request). Decided with the
    first piece (2026-09-05). And IT IS PROSE: a subhead per part inside
    "Anatomy" was tried, an h3 with the name and its paragraph below,
-   josh's shape in /bloom, and the user rejected it on the page ("I
+   a measured shape, and the user rejected it on the page ("I
    don't like this structure", 2026-09-07). The parts get named in
    passing, inside the paragraph, with their technical term (the repo's
    naming rule, AGENTS.md › Working method). */
@@ -58,13 +58,14 @@ function componentFor(slug: string): ComponentType | null {
 /* ONE SECTION OF THE NOTE, and its line. The separator is THE SAME one
    that splits the list into Web and App (.groupHead, a 14/600 label
    plus a hairline out to the edge of the rail, a gap of 8), measured in
-   its day off benji's separator in /liveline and /drawesome. It is
+   its day off a measured separator. It is
    reused whole instead of writing another one: a single line on the
    page means a single rule.
 
-   Watch out for whose each half is: the LINES are benji's (josh does
-   not have a single one, zero <hr> in /melt-effect, SOURCE 2026-09-04)
-   and the TONE of the labels is josh's, who titles short and in
+   Watch out for where each half comes from: the LINES are measured on
+   one site (the other does
+   not have a single one, zero <hr> on the page checked, SOURCE 2026-09-04)
+   and the TONE of the labels comes from the other, which titles short and in
    sentence case ("The filter", "Apply it", "1. What's a displacement
    map?"). The mix is ours and that is why it gets said out loud. */
 export function Section({ title, children }: { title: string; children: ReactNode }) {

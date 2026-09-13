@@ -90,9 +90,9 @@ export const DARK_BACKGROUND = '#1C181A'
 /* THE EXHIBITION TAKES A SINGLE RENDER, TRANSPARENT AND WITHOUT SHADOW
    (pnpm render:exhibition → scripts/exhibition.mjs): the exhibition
    card supplies the background, in whatever theme it is in, and the
-   phone goes with no shadow, like the Family videos on benji.org. Phone
+   phone goes with no shadow, like the measured videos. Phone
    at 92 % of the frame (the video is the whole box of the card and the
-   user wanted it closer; benji goes to 85 %) and the camera comes in to
+   user wanted it closer; the measured one goes to 85 %) and the camera comes in to
    the tabs and stays there until the end (`until` outside the clip):
    what is being shown are the tabs. Before, a light/dark pair was
    rendered with the color of the card baked in and the user rejected
@@ -217,7 +217,7 @@ export const forExhibition = (p: Parameters, focusOnCanvas = p.camera.focusOnCan
   background: 'transparent',
   shadow: [],
   /* 92 %: the video is the whole box of the card and the user asked for
-     it closer; benji goes to 85 % */
+     it closer; the measured one goes to 85 % */
   height: 0.92,
   camera: {
     ...p.camera,

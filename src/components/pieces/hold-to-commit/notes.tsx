@@ -16,20 +16,19 @@ import { Section } from '../../../notes'
    the action; a line under it would only repeat it.
 
    THE TONE, read served on 2026-09-08, not from memory. The measure
-   comes from josh puckett (joshpuckett.me /bloom, /pasito,
-   /melt-effect): 19 paragraphs of his prose give a median of 25 words
-   and 2 sentences, with sentences of 12 words on average. And the way
-   he opens a paragraph: the first word is the subject of the fact,
-   never an announcement of what follows. The sequence is written with
-   "then", in order, in a single sentence ("Automatically sizes to fit
-   the trigger content, then animates to the menu dimensions"). From
-   benji (benji.org, the "How it works" of /liveline) comes the prose
+   comes from three pages of one measured site: 19 paragraphs of that
+   prose give a median of 25 words and 2 sentences, with sentences of 12
+   words on average. And the way a paragraph opens there: the first word
+   is the subject of the fact, never an announcement of what follows.
+   The sequence is written with "then", in order, in a single sentence
+   ("Automatically sizes to fit the trigger content, then animates to
+   the menu dimensions"). From the other measured site comes the prose
    that goes from what you feel to the mechanism without turning into a
    changelog.
 
-   PERSON. Zero "I" and zero "we": in josh's two reference pages
-   (/pasito, /bloom) there is not one of either, and the "we" shows up
-   only in the tutorial. "You" is whoever holds the button down.
+   PERSON. Zero "I" and zero "we": in the two measured pages there is
+   not one of either, and the "we" shows up only in a tutorial. "You" is
+   whoever holds the button down.
 
    ONE NAME PER THING, across the whole page and not per section, which
    is the failure `better-writing` finds most here. The decisions: "the

@@ -19,19 +19,19 @@ import { Section } from '../../../notes'
    THE TONE, measured on the served pages on 2026-09-10, not from
    memory. Three pages, read with the browser and counted:
 
-     joshpuckett.me/bloom      5 paragraphs · median 12 words · 2
-                               sentences · 7.9 words per sentence
-     joshpuckett.me/pasito     7 paragraphs · median 17 · 2 · 10.0
-     benji.org/liveline       32 paragraphs · median 24 · 2 · 9.7
+     page A    5 paragraphs · median 12 words · 2 sentences ·
+               7.9 words per sentence
+     page B    7 paragraphs · median 17 · 2 · 10.0
+     page C   32 paragraphs · median 24 · 2 · 9.7
 
    So: paragraphs of two sentences, sentences of eight to ten words.
    This page was written against those numbers and not against an
-   impression. From benji comes the prose that goes from what you feel
-   to the mechanism; from josh, opening the paragraph on the subject of
+   impression. From C comes the prose that goes from what you feel to
+   the mechanism; from A and B, opening the paragraph on the subject of
    the fact and never on an announcement of what follows.
 
-   PERSON. Zero "I" and zero "we": josh uses neither on the two pages
-   measured. "You" is whoever works the control.
+   PERSON. Zero "I" and zero "we": the measured pages use neither. "You"
+   is whoever works the control.
 
    ONE NAME PER THING, across the whole page and not per section, which
    is the failure `better-writing` finds most here. The decisions: "the
@@ -233,8 +233,7 @@ import { Section } from '../../../notes'
 
    AND WHAT THE SKILL ASKS FOR AND THIS PAGE DOES NOT DO: have a
    reaction and write in the first person. It does not go in because
-   the tone is measured and josh uses neither of the two on the two
-   pages counted. The variation of rhythm, which is the other half of
+   the tone is measured and the pages counted use neither of the two. The variation of rhythm, which is the other half of
    that request, is there: sentences from 3 to 20 words, mean 11.5 and
    deviation 4.5. */
 export default function Notes() {

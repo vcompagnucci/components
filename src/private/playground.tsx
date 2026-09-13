@@ -1078,7 +1078,7 @@ function DeleteViewDialog({
    without arguing them again, because it is the same class of content
    (a wall of lookable things) in the same app.
 
-   And THE CARD IS THE VAULT'S CARD: benji's aspect ratio
+   And THE CARD IS THE VAULT'S CARD: the measured aspect ratio
    (--vault-aspect-ratio), the system's radius, the --surface
    background, and the name underneath with its same gap. The only
    different thing is what is inside the box.
@@ -2108,7 +2108,7 @@ function AddDialog({
             ))}
             {clips?.map((c) => (
               /* ─── IT IS THE VAULT'S CARD, NOT A THUMBNAIL OF ITS OWN ───
-                 The same classes: its proportion (550/528, benji's), its
+                 The same classes: its measured proportion (550/528), its
                  radius, its background, its hover and its label. And
                  above all its `data-source`, which is what makes a phone
                  clip come in WHOLE with proportional air and a screen
@@ -2122,7 +2122,7 @@ function AddDialog({
                  is not the clip.
 
                  The problem was already solved on the other side, and
-                 with a measured decision: benji's card is almost square
+                 with a measured decision: that card is almost square
                  EXACTLY because it takes both orientations. Reusing it
                  is inheriting that decision instead of taking a worse
                  one. */
