@@ -223,13 +223,14 @@ verify them. **Now they are verified**: they are literally benji's,
 read from his declared variables (`--body-bg: #fdfdfc` and
 `--body-color: #111`) and confirmed in the painted pixel.
 
-### The text grays: ONE ALPHA, TWO BASES
+### The text grays: ONE BASE, TWO ALPHAS
 
 ```css
 --ink:              #111111;                                          /* 18.55:1 */
 --secondary-alpha:  37%;
---text-secondary:   color-mix(in srgb, #000        var(--secondary-alpha), transparent);  /* → 160 */
---type-nav-c:       color-mix(in srgb, var(--ink)  var(--secondary-alpha), transparent);  /* → 166 */
+--nav-alpha:        34.4%;
+--text-secondary:   color-mix(in srgb, #000 var(--secondary-alpha), transparent);  /* → 160 */
+--type-nav-c:       color-mix(in srgb, #000 var(--nav-alpha), transparent);        /* → 166 */
 ```
 
 **The system has ONE secondary level, not two grays.** It is benji's
@@ -244,7 +245,7 @@ two values come out of that same 40% written from two bases:
 | benji · annotation | pure black | .4 | 152 | date, "Index", captions, footnotes |
 | benji · nav | his ink (7%) | .4 | 159 | his page index |
 | **ours · annotation** | **pure black** | **.37** | **160** | masthead subtitle, the platform in the detail |
-| **ours · nav** | **`--ink`** | **.37** | **166** | index labels and links |
+| **ours · nav** | **pure black** | **.344** | **166** | index labels and links |
 
 Here his rule is taken and the number is changed. The 37% was chosen in
 **two steps**, and both matter because they look at different things.
@@ -279,24 +280,29 @@ does not show) and the real text at 13/16 against 14/20.
 | 45% | 139 | 147 | 8 | 60 / 56 |
 
 All of it measured by pixel, not calculated, and the sweep validates
-the model on its own: with `α=.4` the two bases reproduce his 152 and
+the model on its own: with `α=.4` his two bases reproduce his 152 and
 159 dead on. The annotation ends up 3 darker than the slider's 163
 (ΔL .006, inside the noise). The neighborhood was respected; the sweep
 set the number.
 
+> The sweep was run on the first form of the model, where both values
+> came out of one alpha over two bases. When the second alpha replaced
+> the second base (the why is in **Dark mode**, below) the PAIR was
+> held: 160 and 166, gap 6. That is what `--nav-alpha: 34.4%` is, the
+> alpha that reproduces the 166 the ink at 37% used to give.
+
 **Two consequences, both of them wanted.** The nav **moves** from 159
 to 166. It came copied from his `hsla(0,0%,7%,.4)` from the moment the
 typography of the index was baked in, and it was never chosen. Under
-this rule it does not get chosen, it gets derived. And the order
-**fixes itself**: before, the annotation ended up lighter than the nav
-(163 against 159), the other way around from him; now the nav is the
-lighter of the two, and not by decision but because `--ink` is lighter
-than pure black. The gap comes out 6; his is 7.
+this rule it does not get chosen, it gets fitted to the pair. And the
+order **fixes itself**: before, the annotation ended up lighter than
+the nav (163 against 159), the other way around from him; now the nav
+is the lighter of the two. The gap comes out 6; his is 7.
 
-The alpha lives in a token of its own so the rule is **one single
+Each alpha lives in a token of its own so the rule is **one single
 thing** and not two numbers that have to be kept in sync, which is
-exactly how the previous ones fell out of sync. And it goes as an alpha
-and not as a solid because that way it composites over any background:
+exactly how the previous ones fell out of sync. And they go as alphas
+and not as solids because that way they composite over any background:
 the day there is secondary text on the card, it comes out right without
 touching anything.
 
@@ -517,11 +523,11 @@ The ramp is generated in **OKLCH with constant chroma and hue**, which
 is linear's method: one single hue in both modes, with the tint living
 in the whole scale and not only in the background.
 
-**What made the ink of 250 possible** was rewriting the secondary level
-as *one base and two alphas* instead of *one alpha and two bases*.
-Deriving the nav from `--ink` trapped the ink: it had to come in ~17
-units from the extreme or the two bases flattened against each other.
-With two alphas it is free. The value in light did not move
+**What made the ink of 250 possible** is that the nav comes out of the
+same base as the annotation and not out of the ink. Deriving it from
+`--ink` trapped the ink: it had to come in ~17 units from the extreme
+or the two bases flattened against each other. With two alphas it is
+free. The value in light did not move
 (`black@34.4%` gives the same 166 that `ink@37%` gave) and it is the
 structure benji uses for his nav at rest and active
 (`hsla(0,0%,7%,.4)` and `.8`).
@@ -947,11 +953,11 @@ rounded to an integer: half a pixel of misalignment is less visible
 than a text at a fractional position.
 
 **The cost, written down:** it is the lowest start of the three, so it
-is the first one to run out of room. The index measures 512 with
-today's 19 pieces and its ceiling is `100vh − top − 32`; in a window
-800 tall that is 531, which leaves **19px to spare**. Past that it
-scrolls inside itself, with no bar, which is what the `overflow` is
-there for.
+is the first one to run out of room. Its ceiling is `100vh − top − 32`,
+531 in a window 800 tall, and past that it scrolls inside itself with
+no bar, which is what the `overflow` is there for. The margin it has
+left is a function of how many pieces are in the index, so it gets
+measured again when the list grows, not quoted from here.
 
 ---
 
@@ -1126,24 +1132,16 @@ the four places where there is a `transition` **cross a color**.
 ```
 .indexLink      color                     100ms  ease
 .streamPreview  background-color          150ms  quint
-.back           background-color          150ms  quint      ← the pair wins
-.back           color                     150ms  quint      ← over the property
+.back           color                     100ms  ease
 a               text-decoration-color     100ms  ease
 ```
 
 **Everything splits by PROPERTY and not by component**, which is the
-cut you read in linear's CSS.
-
-**With one exception, and it is the back arrow.** It animates
-background *and* color at once, so if each property took its own pair
-they would finish at different moments (150 the background, 100 the
-color) and it would read as two things. The paired elements rule of
-animations.dev is explicit: *"elements that animate together must use
-the same easing and duration… if they move as a unit, they have to feel
-like a unit."* There the **element** wins.
-
-> **The complete rule:** the property rules, except when a single
-> element animates both families, and there the element rules.
+cut you read in linear's CSS, and there is no exception: the property
+rules. There used to be one, the back arrow, which filled its 34×34 on
+hover and so animated background and color at once. Its hover now
+paints the glyph only, the way both references do, so no element in the
+system animates both families.
 
 ### The duration splits, and this one is our own composition
 

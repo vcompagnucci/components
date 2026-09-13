@@ -125,9 +125,9 @@ function Screen({ probe, background: requestedBackground, recipe: requestedRecip
   const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const system = useColorScheme()
-  const [chosenBackground, setChosenBackground] = useState<Background>(requestedBackground === 'choose' ? BACKGROUNDS[0]! : requestedBackground)
-  const [chosenRecipe, setChosenRecipe] = useState<Recipe>(requestedRecipe === 'choose' ? RECIPES[0]! : requestedRecipe)
-  const [chosenMaterial, setChosenMaterial] = useState<Material>(requestedMaterial === 'choose' ? MATERIALS[0]! : requestedMaterial)
+  const [chosenBackground, setChosenBackground] = useState<Background>(requestedBackground === 'choose' ? BACKGROUNDS[0] : requestedBackground)
+  const [chosenRecipe, setChosenRecipe] = useState<Recipe>(requestedRecipe === 'choose' ? RECIPES[0] : requestedRecipe)
+  const [chosenMaterial, setChosenMaterial] = useState<Material>(requestedMaterial === 'choose' ? MATERIALS[0] : requestedMaterial)
   const background = requestedBackground === 'choose' ? chosenBackground : requestedBackground
   const recipe = requestedRecipe === 'choose' ? chosenRecipe : requestedRecipe
   const material = requestedMaterial === 'choose' ? chosenMaterial : requestedMaterial
@@ -273,7 +273,7 @@ const css = StyleSheet.create({
  *   staircase that is a partition of the opacity; each label has its own
  *   presence. They are asymmetric: press 360 ease-out / 48; release 600
  *   linear from 150 / 250 from 80; commit 450 linear from 210 / 280 from
- *   40. "✓ Committed" comes in growing from .9 (ASSUMED, asked for).
+ *   40. "✓ Order Placed" comes in growing from .9 (ASSUMED, asked for).
  *   RUNTIME: the stem of the "i" in Commit and in Holding frame by frame
  *   (f61–f95, f10–f44, f184–f220); verified with probes in ms against the
  *   clip frame from the same instant.

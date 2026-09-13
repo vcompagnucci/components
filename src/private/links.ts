@@ -97,9 +97,6 @@ export function split(note: string): Segment[] {
   return segments
 }
 
-export const hasLink = (note: string): boolean =>
-  split(note).some((s) => s.kind === 'link')
-
 /* The host without the www., which says nothing and takes four
    characters off a line that is already tight. */
 export function hostOf(url: string): string {
@@ -150,7 +147,7 @@ export function hostOf(url: string): string {
    The full URL is never lost. It goes in the anchor's `title`, which
    is the system tooltip.
    ═══════════════════════════════════════════════════════════════ */
-export function fileOf(url: string): string | null {
+function fileOf(url: string): string | null {
   try {
     const parts = new URL(url).pathname.split('/').filter(Boolean)
     const last = parts.at(-1)
@@ -162,14 +159,6 @@ export function fileOf(url: string): string | null {
   }
 }
 
-/* ─── THE BRAND SUFFIX ───
-   "… · GitHub", "… | Vercel", "… – Figma". It is noise: the site is
-   already said by the favicon three pixels to the left.
-
-   It comes off only when what follows the separator MATCHES the brand
-   in the host, github.com → "github", and not for anything that
-   happens to follow a separator. Without that condition, a title that
-   really ends in " — the ending" would lose its ending. */
 /* ─── A TITLE DOES NOT SHOW URLS ───
    X puts the tweet's t.co inside the title, "…Code below 👇
    https://t.co/hP1ThYW5Bs", and that is exactly what this function
@@ -201,7 +190,15 @@ const withoutUrls = (s: string) =>
     .replace(/\s{2,}/g, ' ')
     .trim()
 
-export function cleanTitle(title: string, url: string): string {
+/* ─── THE BRAND SUFFIX ───
+   "… · GitHub", "… | Vercel", "… – Figma". It is noise: the site is
+   already said by the favicon three pixels to the left.
+
+   It comes off only when what follows the separator MATCHES the brand
+   in the host, github.com → "github", and not for anything that
+   happens to follow a separator. Without that condition, a title that
+   really ends in " — the ending" would lose its ending. */
+function cleanTitle(title: string, url: string): string {
   /* If the title WAS a URL and nothing else, taking it out leaves
      nothing. There we give back what was there: an ugly title beats no
      title. */
@@ -233,7 +230,7 @@ export function cleanTitle(title: string, url: string): string {
    one from its bottom edge instead) and the chip rides about 5px above
    the line around it. By cutting the string, the two <span>s stay
    inline and line up on their own. */
-export const LABEL_LENGTH = 80
+const LABEL_LENGTH = 80
 
 /* ─── WHAT CAN SIT RIGHT BEFORE THE ELLIPSIS ───
    Nothing that is punctuation. The cut lands where it lands, and in a
@@ -277,11 +274,11 @@ const closeCut = (s: string): string => {
   return t.replace(DANGLING, '').trim()
 }
 
-export function shorten(s: string, max = LABEL_LENGTH): string {
-  if (s.length <= max) return s
-  const hard = s.slice(0, max)
+function shorten(s: string): string {
+  if (s.length <= LABEL_LENGTH) return s
+  const hard = s.slice(0, LABEL_LENGTH)
   const space = hard.lastIndexOf(' ')
-  return closeCut(space > max * 0.6 ? hard.slice(0, space) : hard) + '…'
+  return closeCut(space > LABEL_LENGTH * 0.6 ? hard.slice(0, space) : hard) + '…'
 }
 
 export function labelOf(url: string, title?: string): string {

@@ -24,9 +24,6 @@
                   haptics). It is stated as such.
    ═══════════════════════════════════════════════════════════════ */
 
-/** clip px → pt. RUNTIME: 1192 px of screen / 440 pt. */
-export const PX = 2.709
-
 export const COLOR = {
   /* RUNTIME · the screen background: (20,20,20) in every free gap. */
   background: '#141414',
@@ -326,10 +323,12 @@ export const SECTION = {
 } as const
 
 export const DAYS = {
-  /* RUNTIME · each circle measures 118 px = 43.6 pt, in both directions. */
+  /* RUNTIME · each circle measures 118 px = 43.6 pt, in both directions,
+     and the step between centers is 141.7 px = 52.3 pt → a gap of 8. The
+     gap is not a value here: `space-between` inside the card reproduces
+     it, because `CARD.padding` was derived from exactly those numbers
+     (400 − 21 − 23 = 356, and (356 − 7×44) / 6 = 8.0). */
   diameter: 44,
-  /* RUNTIME · the step between centers is 141.7 px = 52.3 pt → gap of 8. */
-  gap: 8,
   letters: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
 } as const
 
@@ -730,8 +729,8 @@ export const PARTICLES = {
      τ ≈ 330 ms at the start and slower after that; in the clip they live
      ~1.2 s.
      ASSUMED · Vito (2026-09-03): "make them disappear a touch earlier"
-     than the "✓ Committed". They live 700 ms with τ 260 and a soft fade
-     from 40 % of their life (280 ms), so that when the sharp text emerges
+     than the "✓ Committed". They live 700 ms with a soft fade from 40 %
+     of their life (280 ms), so that when the sharp text emerges
      (~370 ms after the burst) they are at 30 %, and at 500 ms at 10 %. */
   lifetime: 700,
   tau: 330,
@@ -741,7 +740,6 @@ export const PARTICLES = {
      go below .75, and the τ is the one from the clip's first stretch
      (330), not the tail's. */
   brightness: { min: 0.75, max: 1 },
-  maxBrightness: 1,
   /* RUNTIME · the area above threshold goes from 31 to 9 px² between k=4
      and k=35, but that is the threshold over a dot that is fading, not a
      dot that is shrinking: barely 20 % of scale so they do not look
@@ -772,10 +770,12 @@ export const PARTICLES = {
    detection, so there are fewer than there really are): */
 export const SPARKS = {
   /* RUNTIME · 3 alive at a time (median), 7 at most; 0.2 births per frame
-     detected. 12 views with 3 lives each are 36 births over the 2 s, plus
-     the ones the detection loses behind the text. The lives of one view
-     are 620 ms of progress apart, more than the longest life: they never
-     overlap. */
+     detected. 12 views with 3 lives each are 36 births over the hold,
+     plus the ones the detection loses behind the text. The lives of one
+     view are 0.31 of progress apart, which at `HOLD.duration` = 1000 is
+     310 ms, and `life` reaches 450: they DO overlap, and a view that has
+     two lives at once draws the first one (see `sparks.tsx`). With the
+     2 s that was measured the spacing was 620 ms and they never did. */
   views: 12,
   livesPerView: 3,
   /* RUNTIME · they are born ahead of the geometric front: median +21 pt,

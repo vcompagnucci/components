@@ -37,7 +37,6 @@ import { useEffect, useState } from 'react'
    ═══════════════════════════════════════════════════════════════ */
 
 export type Load = 'js' | 'render' | 'all' | 'heavy'
-export const LOADS: readonly Load[] = ['js', 'render', 'all', 'heavy']
 
 const BUSY = 0.6
 const STEP = 20
@@ -62,7 +61,7 @@ function occupyJS(busy: number, step: number) {
     let sum = 0
     while (Date.now() < end) {
       const o = JSON.parse(BODY) as { assets: { price: number }[] }
-      o.assets[0]!.price += 1
+      o.assets[0].price += 1
       sum += JSON.stringify(o).length
     }
     if (sum < 0) console.log(sum) // so the optimizer does not throw it away

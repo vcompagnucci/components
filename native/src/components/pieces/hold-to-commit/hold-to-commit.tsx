@@ -1,5 +1,5 @@
 import type { GlassViewProps } from 'expo-glass-effect'
-import { type ComponentType, type ReactNode, useEffect, useMemo } from 'react'
+import { type ComponentType, type ReactNode, useEffect } from 'react'
 import { Image, StyleSheet, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -311,7 +311,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
     'worklet'
     const all = [pHold, pKeep, pPlaced]
     for (let k = 0; k < all.length; k++) {
-      const q = all[k]!
+      const q = all[k]
       cancelAnimation(q)
       const v = q.get()
       if (k === target) {
@@ -457,7 +457,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
     (p, previous) => {
       if (previous === null || p <= previous) return
       for (let i = 0; i < DETENTS.length; i++) {
-        const d = DETENTS[i]!
+        const d = DETENTS[i]
         if (previous < d && p >= d) {
           markUI('tick-ui')
           scheduleOnRN(tickJS)
@@ -473,21 +473,17 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
     },
   )
 
-  const gesture = useMemo(
-    () =>
-      Gesture.LongPress()
-        .minDuration(HOLD.duration)
-        .maxDistance(HOLD.maxDistance)
-        .onBegin(press)
-        .onStart(complete)
-        .onFinalize((_e, success) => {
-          if (!success) release()
-        }),
-    /* The three worklets are recreated on every render (they are closures
-       of the component), so the gesture gets rebuilt with them. There is
-       one render per chosen recipe. */
-    [press, complete, release],
-  )
+  /* The three worklets are recreated on every render (they are closures
+     of the component), so the gesture gets rebuilt with them. There is
+     one render per chosen recipe. */
+  const gesture = Gesture.LongPress()
+    .minDuration(HOLD.duration)
+    .maxDistance(HOLD.maxDistance)
+    .onBegin(press)
+    .onStart(complete)
+    .onFinalize((_e, success) => {
+      if (!success) release()
+    })
 
   /* The probe: one fixed state per reload, deterministic. It reproduces
      the curves of the `clip` recipe (the constants in measurements.ts). */
@@ -505,7 +501,7 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
       scheduleOnUI(() => {
         'worklet'
         const all = [progress, blob, scale, white, burst, pHold, pKeep, pPlaced, wait]
-        for (let k = 0; k < all.length; k++) cancelAnimation(all[k]!)
+        for (let k = 0; k < all.length; k++) cancelAnimation(all[k])
         stage.set(STAGE.rest)
         progress.set(0)
         blob.set(0)
@@ -666,8 +662,14 @@ export function HoldToCommit({ width, recipe, probe, spill = false, material = '
         scale.set(p > 0 ? PRESS.scale : 1)
         park(p > 0 ? 0 : 1, p > 0 ? 1 : 0, 0)
       })
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    /* A probe that matches nothing parks nothing, and the piece stays in
+       whatever state the previous one left (trap 20): a typo would be
+       measured as if it were a state. It says so out loud, like the rest
+       of the instruments here. */
+    console.log('[probe] unrecognised, the piece was left as it was: ' + probe)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the shared values are stable for the component's life; `press`, `complete`, `release` and `reset` are new closures on every render (see the gesture below), so listing them would re-arm this on every render and the `auto` and `demo` branches would clear their own timers and restart the take
   }, [probe])
 
   const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: ownScale ? scale.get() : 1 }] }))

@@ -111,7 +111,13 @@ const restore = () => {
   if (!cleanStatusBar) return
   try {
     simctl('status_bar', 'booted', 'clear')
-  } catch {}
+  } catch (e) {
+    /* The simulator can go down between the start of the recording and
+       the stop (it happened three times in one session): then there is
+       no bar left to clear and the override went with it. It gets said
+       out loud because a 9:41 left pinned shows up in the NEXT take. */
+    console.error('The status bar was left overridden:', e.message)
+  }
 }
 
 console.log(`Recording → ${target}`)

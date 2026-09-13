@@ -85,9 +85,15 @@ function createNextPlayer() {
 export function prepareSound() {
   if (!audio || prepared) return
   prepared = true
-  audio.setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers' }).catch(() => {})
-  audio.setIsAudioActiveAsync(true).catch(() => {})
-  audio.preload(SOURCE).catch(() => {})
+  /* The three of them are the session, not the hit: if one fails the
+     button still plays its sound, only without that guarantee, so the
+     failure gets named instead of swallowed. The mode is the one that
+     makes the silent switch win and keeps other apps playing; the
+     preload is what saves the first hit from decoding the file. */
+  const lost = (what: string) => (e: { message: string }) => console.log(`[sound] no ${what}: ${e.message}`)
+  audio.setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers' }).catch(lost('silent switch or mixing'))
+  audio.setIsAudioActiveAsync(true).catch(lost('audio session'))
+  audio.preload(SOURCE).catch(lost('preloaded file'))
   createNextPlayer()
 }
 

@@ -147,7 +147,7 @@ export async function uploadClip(
     body: file,
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
+  if (!r.ok) throw new Error(d.error ?? `error ${r.status}`);
   return d.path as string;
 }
 
@@ -163,7 +163,7 @@ export async function saveDetails(
     body: JSON.stringify({ path, details }),
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
+  if (!r.ok) throw new Error(d.error ?? `error ${r.status}`);
   return d.details ?? null;
 }
 
@@ -184,7 +184,7 @@ export async function publishClip(
     body: JSON.stringify({ kind: "clip", path, name, desc }),
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
+  if (!r.ok) throw new Error(d.error ?? `error ${r.status}`);
   return d.slug as string;
 }
 
@@ -202,7 +202,7 @@ export async function renameClip(
     body: JSON.stringify({ path, name }),
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`);
+  if (!r.ok) throw new Error(d.error ?? `error ${r.status}`);
   return d.path as string;
 }
 
@@ -217,7 +217,7 @@ export async function trashClip(path: string): Promise<void> {
   });
   if (!r.ok) {
     const d = await r.json().catch(() => ({}));
-    throw new Error(d?.error ?? `error ${r.status}`);
+    throw new Error(d.error ?? `error ${r.status}`);
   }
 }
 
@@ -281,12 +281,8 @@ export async function linkCardOf(url: string): Promise<LinkCard | null> {
    is one vault, one server and one index. */
 let lastIndex: Status | null = null;
 
-/* The index, asked for BEFORE anyone needs it. In the exhibition there
-   is no vault on screen, but the way back to a reference is one click
-   away, and the round trip has to be instant. Calling it twice costs
-   nothing: the second one finds the answer already in `lastIndex`. */
 /* The request and the shape it lands in, in one place, because two
-   callers need it now: the hook and the warm-up above. */
+   callers need it now: the hook and the warm-up below. */
 async function fetchIndex(): Promise<Status> {
   try {
     const d = await (await fetch("/vault-media/__index")).json();
@@ -309,6 +305,10 @@ async function fetchIndex(): Promise<Status> {
   }
 }
 
+/* The index, asked for BEFORE anyone needs it. In the exhibition there
+   is no vault on screen, but the way back to a reference is one click
+   away, and the round trip has to be instant. Calling it twice costs
+   nothing: the second one finds the answer already in `lastIndex`. */
 export function warmClips() {
   if (lastIndex) return;
   void fetchIndex().then((s) => {

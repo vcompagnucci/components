@@ -1,4 +1,3 @@
-import { useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -69,8 +68,6 @@ export function SwipeableTabsScreen() {
      carries its receipt (and its lack of receipt) above `LIGHT` in
      `measurements.ts`. */
   const palette = useColorScheme() === 'light' ? LIGHT : COLOR
-  const params = useLocalSearchParams<{ demo?: string }>()
-  const demo = params.demo === '1' || params.demo === 'true'
 
   return (
     <Theme.Provider value={palette}>
@@ -86,7 +83,6 @@ export function SwipeableTabsScreen() {
           top={insets.top}
           header={<Header />}
           page={(tab, index) => <Page id={tab.id} index={index} />}
-          demo={demo}
         />
       </View>
     </Theme.Provider>

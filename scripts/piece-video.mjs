@@ -12,8 +12,9 @@
    VP9 and alpha, <base>.mov with HEVC and alpha), copies them as they
    are to public/pieces/ and fills in `video` and `videoHevc`. It does
    not re-encode: alpha does not survive an h264, and the pair already
-   comes out at 1280². `--dark` stayed for pieces with a background
-   baked per theme; today's exhibition does not use it.
+   comes out at 1280². `--dark` is for a piece whose CONTENT changes
+   with the system appearance, and Hold to buy is the first one like
+   that; the fields it writes are below.
 
    It does three things, in order: (1) it looks the piece up in PIECES
    by its `slug`, the field of the entry, which is also the URL, so the
@@ -90,9 +91,10 @@ if (!alpha && piece[field] && options.overwrite !== 'true') {
   process.exit(1)
 }
 
-/* ─── THE PAIR WITH ALPHA, as it is. It replaces whatever is there: it
-   is THE version of the exhibition, and `pnpm render:exhibition` is its
-   only source. ─── */
+/* The entry in pieces.ts: it is located by its `slug`, the field, which
+   does not change when the title changes, and only that piece's block
+   is touched, up to the `},` that closes it. Returns the new source; it
+   does not write. */
 function setField(src, fieldName, value) {
   const start = src.indexOf(`slug: '${slug}'`)
   const end = src.indexOf('\n  },', start)
@@ -103,6 +105,9 @@ function setField(src, fieldName, value) {
   const updated = alreadyPresent.test(block) ? block.replace(alreadyPresent, line) : `${block}\n    ${line}`
   return src.slice(0, start) + updated + src.slice(end)
 }
+/* ─── THE PAIR WITH ALPHA, as it is. It replaces whatever is there: it
+   is THE version of the exhibition, and `pnpm render:exhibition` is its
+   only source. ─── */
 if (alpha) {
   const base = file.replace(/\.(webm|mov)$/i, '')
   const pair = { webm: `${base}.webm`, mov: `${base}.mov` }
@@ -165,22 +170,16 @@ execFileSync(
 )
 fs.renameSync(temporary, destination)
 
-/* The entry in pieces.ts: it is located by its `slug`, the field, which
-   does not change when the title changes, and only that piece's block
-   is touched, up to the `},` that closes it. */
 const src = fs.readFileSync(PIECES_TS, 'utf8')
-const start = src.indexOf(`slug: '${slug}'`)
-const end = src.indexOf('\n  },', start)
-if (start < 0 || end < 0) {
-  console.error('Could not find the entry in pieces.ts with the expected shape; the mp4 was written, add `video` by hand.')
+let next
+try {
+  next = setField(src, field, `/pieces/${slug}${suffix}.mp4`)
+} catch (e) {
+  console.error(`${e.message}; the mp4 was written, add \`${field}\` by hand.`)
   process.exit(1)
 }
-const block = src.slice(start, end)
-const line = `${field}: '/pieces/${slug}${suffix}.mp4',`
-const alreadyPresent = new RegExp(`${field}: '[^']*',`)
-const updatedBlock = alreadyPresent.test(block) ? block.replace(alreadyPresent, line) : `${block}\n    ${line}`
 const temporaryTs = PIECES_TS + '.tmp'
-fs.writeFileSync(temporaryTs, src.slice(0, start) + updatedBlock + src.slice(end))
+fs.writeFileSync(temporaryTs, next)
 fs.renameSync(temporaryTs, PIECES_TS)
 
 const mb = (fs.statSync(destination).size / 1024 / 1024).toFixed(1)

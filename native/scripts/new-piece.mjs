@@ -28,13 +28,16 @@ import { fileURLToPath } from 'node:url'
 
 const PIECES_DIR = fileURLToPath(new URL('../src/components/pieces/', import.meta.url))
 
+/* The same three operations as `slug()` in `src/pieces.ts`, and nothing
+   else: a `.mjs` script cannot import that module, so the computation is
+   duplicated and has to stay identical. An accent-folding
+   `.normalize('NFD')` lived here and the canonical one does not have
+   one, so `Café menu` came out `cafe-menu` here and `caf-menu` there. */
 const slug = (s) =>
   s
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/^-|-$/g, '')
 
 const toIdentifier = (s) =>
   s

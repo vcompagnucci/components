@@ -48,9 +48,10 @@ import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { frameStepOf } from './frames.mjs'
 import { linkCardOf } from './link-card.mjs'
-/* The SAME count the page and routes.mjs use. Publishing names the
-   video file with the piece's slug, so if a copy lived here the URL
-   and the file could drift apart in silence. */
+/* THE computation that assigns a slug, imported and not copied.
+   Publishing names both the entry and the video file with it, and from
+   then on the page reads the `slug` field this wrote, so a second copy
+   here would let the URL and the file drift apart in silence. */
 import { slug } from '../src/pieces.ts'
 
 /* The frames are read out of the container ONCE per file. The key
@@ -125,13 +126,12 @@ const DETAILS_FIELDS = ['notes', 'source', 'device']
    did is asking you to keep two copies in step. */
 const PIECE_FIELD = 'piece'
 
+/* The slugs written in pieces.ts, read in ONE place: `addPiece` asks
+   the same question of the text it is about to rewrite. */
+const slugsIn = (src) => [...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1])
+
 function publishedSlugs() {
-  try {
-    const src = fs.readFileSync(PIECES_TS, 'utf8')
-    return new Set([...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1]))
-  } catch {
-    return new Set()
-  }
+  return new Set(slugsIn(fs.readFileSync(PIECES_TS, 'utf8')))
 }
 
 /* The clip's own details, with the link to its piece written in. It
@@ -301,9 +301,6 @@ function safeFileName(raw) {
   return base
 }
 
-/* A free name in that folder. Nothing is EVER overwritten: uploading
-   the same thing twice leaves you both, and the one already there is
-   not touched. */
 /* THE NAME YOU TYPE WHEN RENAMING.
    Different from safeFileName: that one validates an incoming file and
    demands an extension from the allowlist. What arrives here is a NAME
@@ -331,6 +328,9 @@ function safeBaseName(raw) {
   return base
 }
 
+/* A free name in that folder. Nothing is EVER overwritten: uploading
+   the same thing twice leaves you both, and the one already there is
+   not touched. */
 function freeName(folder, base) {
   const ext = path.extname(base)
   const stem = path.basename(base, ext)
@@ -514,14 +514,14 @@ const json = (res, code, body) => {
    not a button, it is a trap. */
 const SKETCHES_DIR = fileURLToPath(new URL('../src/private/sketches/', import.meta.url))
 
+/* It goes through `slug`, the same computation that names a piece, so
+   there is one alphabet here and not two. The accents come off FIRST
+   and that is the one difference between a ref and a slug: `slug`
+   turns an \u00e9 into a hyphen (a published URL keeps whatever it was
+   given the day it was assigned), and a file name has no reason to. */
 const sketchRefOf = (raw) => {
   if (typeof raw !== 'string') return null
-  const s = raw
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  const s = slug(raw.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
   return s && s.length <= 60 ? s : null
 }
 
@@ -537,11 +537,6 @@ const identifierOf = (ref) => {
   return /^[0-9]/.test(id) ? 'S' + id : id
 }
 
-/* THE TEMPLATE IS ALMOST NOTHING, and that is on purpose: what opens
-   has to be a blank sheet with the minimum for it to draw something,
-   not an example you then have to delete. The div at 100% is there
-   because the frame already has the size; without it the first sketch
-   is born 0 tall and looks like it did not work. */
 /* ═══════════ PUBLISH: from the playground to the exhibition ═══════════
    The second endpoint that writes inside the repo, with the same
    permission as __sketch: what it produces is product, not a medium
@@ -594,8 +589,7 @@ function addPiece(name, pieceSlug, desc, platform, video) {
      And the written `slug` fields are read, not the names: a renamed
      title no longer matches its URL, and the URL is the one that
      cannot repeat. */
-  const taken = [...src.matchAll(/slug: '([^']*)'/g)].map((m) => m[1])
-  if (taken.includes(pieceSlug)) return { error: 'there is already a piece at that URL' }
+  if (slugsIn(src).includes(pieceSlug)) return { error: 'there is already a piece at that URL' }
 
   const entry = [
     '  {',
@@ -629,6 +623,11 @@ function addPiece(name, pieceSlug, desc, platform, video) {
   return { ok: true }
 }
 
+/* THE TEMPLATE IS ALMOST NOTHING, and that is on purpose: what opens
+   has to be a blank sheet with the minimum for it to draw something,
+   not an example you then have to delete. The div at 100% is there
+   because the frame already has the size; without it the first sketch
+   is born 0 tall and looks like it did not work. */
 const sketchTemplate = (ref) => `/* ${identifierOf(ref)}, a sketch on the canvas.
 
    Write whatever you want here and save. Vite reloads it in the frame
@@ -681,15 +680,6 @@ export function vaultMedia(rawDir) {
       else log.warn(`  vault    not connected: ${reason}`, { timestamp: false })
 
       server.middlewares.use('/vault-media', (req, res, next) => {
-        /* ─── WRITE THE DETAILS ───
-           The only write path in the whole bridge, and it is as narrow
-           as it gets: one possible destination, the details file at
-           the root, and one shape of key, the path of a clip THAT
-           ALREADY EXISTS in the index.
-
-           That validation is the guard: no path is resolved from what
-           arrives from the client, so traversal is impossible by
-           construction, not because there is a filter catching it. */
         /* ─── UPLOAD A CLIP ───
            The bytes go RAW in the body and the metadata in the query,
            not in a multipart. A multipart would have to be parsed, or a
@@ -730,6 +720,9 @@ export function vaultMedia(rawDir) {
           let bytes = 0
           let aborted = false
 
+          /* Best effort: the temporary file is gone already if the
+             stream never got to create it, and there is nothing to
+             report about a file whose only purpose was to be renamed. */
           const removeTemp = () => {
             try {
               fs.unlinkSync(temp)
@@ -810,6 +803,14 @@ export function vaultMedia(rawDir) {
           return
         }
 
+        /* ─── WRITE THE DETAILS ───
+           As narrow as it gets: one possible destination, the details
+           file at the root, and one shape of key, the path of a clip
+           THAT ALREADY EXISTS in the index.
+
+           That validation is the guard: no path is resolved from what
+           arrives from the client, so traversal is impossible by
+           construction, not because there is a filter catching it. */
         if (req.method === 'PUT' && (req.url || '').split('?')[0] === '/__details') {
           if (!root) return json(res, 409, { error: reason })
           let body = ''
@@ -847,7 +848,16 @@ export function vaultMedia(rawDir) {
                see nothing, and have no link. So it answers 400. */
             const linked = d?.details?.[PIECE_FIELD]
             if (typeof linked === 'string' && linked.trim()) {
-              if (!publishedSlugs().has(linked)) {
+              let known
+              try {
+                known = publishedSlugs()
+              } catch (e) {
+                /* pieces.ts could not be read. That is not "no piece has
+                   that slug": answering 400 here would name the wrong
+                   cause and send you looking at your own typing. */
+                return json(res, 500, { error: String(e?.message ?? e) })
+              }
+              if (!known.has(linked)) {
                 return json(res, 400, { error: 'no piece has that slug' })
               }
               clean[PIECE_FIELD] = linked
@@ -896,8 +906,9 @@ export function vaultMedia(rawDir) {
               return json(res, 400, { error: 'invalid json' })
             }
             const clipPath = typeof d?.path === 'string' ? d.path : ''
-            const clip = walk(root).find((c) => c.path === clipPath)
-            if (!clip) return json(res, 404, { error: 'that clip is not in the vault' })
+            if (!walk(root).some((c) => c.path === clipPath)) {
+              return json(res, 404, { error: 'that clip is not in the vault' })
+            }
 
             const base = safeBaseName(d?.name)
             if (!base) return json(res, 400, { error: 'name not allowed' })
@@ -936,17 +947,6 @@ export function vaultMedia(rawDir) {
           return
         }
 
-        /* ─── TO THE TRASH ───
-           It MOVES, it does not delete. An unlink from a studio app is
-           irreversible and there is no undo to save it; the trash is
-           what Finder does and it lets you get it back. It costs more
-           code and it is worth it.
-
-           If the trash is not where it is expected, another system, or
-           the vault on another volume, which makes the rename fail
-           with EXDEV, the error is returned instead of falling back to
-           deleting for real. Failing beats deleting something you
-           cannot get back. */
         /* CREATE A SKETCH. It does not need `root`: a sketch is code
            from the repo and has nothing to do with your folder of
            clips, so one can be written with the vault disconnected.
@@ -1013,6 +1013,11 @@ export function vaultMedia(rawDir) {
                   return json(res, 409, { error: 'a piece is already published at that URL' })
                 return json(res, 500, { error: String(e?.message ?? e) })
               }
+              /* Best effort, and each `catch` absorbs the same thing:
+                 whatever is not there was never written, which is the
+                 case this runs in. The caller answers with the real
+                 error either way, so a failure to clean up has nothing
+                 to add and must not replace it. */
               const undo = () => {
                 try {
                   fs.unlinkSync(target)
@@ -1045,16 +1050,21 @@ export function vaultMedia(rawDir) {
               }
               /* THE LINK BACK, WRITTEN HERE AND NOT ASKED FOR LATER.
                  The piece is already published, so a link that could
-                 not be written does not undo any of it: it comes back
-                 as `linked: false` with its reason, and the details
-                 panel still lets you pick the piece by hand. What it
-                 does not do is fail quietly. */
+                 not be written does not undo any of it, and the details
+                 panel still lets you pick the piece by hand.
+
+                 IT IS REPORTED IN THE TERMINAL and not in the response.
+                 The dialog that publishes navigates to the new page the
+                 instant this answers (`PublishDialog`, actions.tsx), so
+                 there is no client left to tell; the server's log is the
+                 same place the vault says it is not connected. */
               const failed = linkFrom ? linkClipToPiece(root, linkFrom, pieceSlug) : null
-              return json(res, 200, {
-                ok: true,
-                slug: pieceSlug,
-                ...(linkFrom ? { linked: !failed, ...(failed ? { linkError: failed } : {}) } : {}),
-              })
+              if (failed) {
+                log.warn(`  vault    ${linkFrom} not linked to ${pieceSlug}: ${failed}`, {
+                  timestamp: false,
+                })
+              }
+              return json(res, 200, { ok: true, slug: pieceSlug })
             }
 
             /* ─── A SKETCH → WEB PIECE ───
@@ -1073,9 +1083,20 @@ export function vaultMedia(rawDir) {
               })
             }
 
-            /* ─── A CLIP → APP PIECE ─── */
+            /* ─── A CLIP → APP PIECE ───
+               The clip is looked up in the index, the same as the three
+               other writes: that is what makes the path one the index
+               really produced, and it is the key the details are filed
+               under. Resolving it with `inside` alone let through a
+               spelling nothing would ever match (and anything under a
+               hidden folder, which the listing and the serving both
+               refuse). */
             if (!root) return json(res, 409, { error: reason })
-            const sourcePath = inside(root, path.join(root, String(d?.path ?? '')))
+            const clipPath = typeof d?.path === 'string' ? d.path : ''
+            if (!walk(root).some((c) => c.path === clipPath)) {
+              return json(res, 404, { error: 'that clip is not in the vault' })
+            }
+            const sourcePath = inside(root, path.join(root, clipPath))
             if (!sourcePath) return json(res, 404, { error: 'does not exist' })
             const ext = path.extname(sourcePath).toLowerCase()
             if (!VIDEO.has(ext))
@@ -1090,12 +1111,23 @@ export function vaultMedia(rawDir) {
               'App',
               `/pieces/${pieceSlug}${ext}`,
               null,
-              String(d?.path ?? ''),
+              clipPath,
             )
           })
           return
         }
 
+        /* ─── TO THE TRASH ───
+           It MOVES, it does not delete. An unlink from a studio app is
+           irreversible and there is no undo to save it; the trash is
+           what Finder does and it lets you get it back. It costs more
+           code and it is worth it.
+
+           If the trash is not where it is expected, another system, or
+           the vault on another volume, which makes the rename fail
+           with EXDEV, the error is returned instead of falling back to
+           deleting for real. Failing beats deleting something you
+           cannot get back. */
         if (req.method === 'POST' && (req.url || '').split('?')[0] === '/__trash') {
           if (!root) return json(res, 409, { error: reason })
           let body = ''
@@ -1140,7 +1172,11 @@ export function vaultMedia(rawDir) {
               delete all[clipPath]
               try {
                 writeJson(root, DETAILS_FILE, all)
-              } catch {}
+              } catch {
+                /* the file is already in the trash; the details left
+                   behind point at a path that is not in the index any
+                   more, and the next write drops them */
+              }
             }
             return json(res, 200, { ok: true, to: name })
           })
@@ -1156,17 +1192,17 @@ export function vaultMedia(rawDir) {
           return json(res, 400, { error: 'badly encoded path' })
         }
 
-        /* The index: what is in the vault, and whether the vault
-           exists. */
         /* It is sanitized ON READ as well and not only on write: the
            file can be edited by hand, and a broken value in there must
            not be able to break the canvas. */
         if (requested === '/__views') {
           if (!root) return json(res, 200, { connected: false, reason, views: [] })
-          const stored = viewsFromDisk(readJson(root, VIEWS_FILE)?.vistas)
+          const stored = viewsFromDisk(readJson(root, VIEWS_FILE).vistas)
           return json(res, 200, { connected: true, views: sanitizeViews(stored) })
         }
 
+        /* The index: what is in the vault, and whether the vault
+           exists. */
         if (requested === '/__index') {
           if (!root) return json(res, 200, { connected: false, reason, clips: [] })
           const allDetails = readJson(root, DETAILS_FILE)

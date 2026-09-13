@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics'
-import { memo, useCallback, useEffect, useMemo, type ReactNode } from 'react'
+import { memo, useCallback, useMemo, type ReactNode } from 'react'
 import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import Animated, {
   Easing,
@@ -11,7 +11,6 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated'
@@ -184,11 +183,9 @@ type Props = {
   /** The height of the status bar: the collapsing block includes it,
       and the cover left behind once it is gone measures exactly that. */
   top: number
-  /** One-shot choreography for recording (Stocks slow → the rest fast). */
-  demo?: boolean
 }
 
-export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) {
+export function SwipeableTabs({ tabs, page, header, top }: Props) {
   const { width } = useWindowDimensions()
   const palette = usePalette()
 
@@ -209,10 +206,7 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
     [height, travel, rise, positions],
   )
   const pager = useAnimatedRef<Animated.ScrollView>()
-  /* PROBE: in demo the pager is born on Following (see `contentOffset`)
-     and the bar has to be born there too, or the first frame shows the
-     Following tab with the For you content. */
-  const scrollX = useSharedValue(demo ? width : 0)
+  const scrollX = useSharedValue(0)
   const target = useSharedValue(NONE)
 
   /* What is moving the content. The bar needs it to know whether it is
@@ -620,91 +614,6 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
     },
   )
 
-
-  /* ═══ RECORDING PROBE (?demo=1): not part of the piece ═══
-     A one-shot choreography for recording the video, with synthetic
-     gestures that go down the piece's real paths: the drags move the
-     pager's offset frame by frame with `motion` set to `drag` (the bar
-     follows the content as it would with a finger) and the taps are
-     `onTap`. It gets deleted before closing, like every probe.
-
-     What the user asked for about the previous take (2026-09-04): that
-     the entry into Following should not stall (it was an instant jump),
-     that Following → Stocks should be SLOW, and that the fast part
-     should not go by so fast (they were taps every 600 ms).
-
-       0.0  born on Following, bar and content (contentOffset)
-       1.5  slow drag Following → Stocks: 1.7 s, sine in-out, a finger
-            that speeds up and slows down (X, measured: 1.73 s)
-       4.1  tap to For you
-       5.1  five one-tab flicks, every 1.0 s: 15 % of the trip in 110 ms
-            (easeInQuad) and the rest in 430 ms (easeOutCubic), the
-            profile fitted against X's measured drags
-      10.1  on Design, two flicks back (AI, Tech), every 1.0 s
-      12.1  still on Tech until the end */
-  useEffect(() => {
-    if (!demo || width <= 0) return
-    let cancel = false
-    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
-    /* The drags go through `target`, the same bridge the tap uses (its
-       reaction does a `scrollTo` per frame and the `onScroll` feeds
-       `scrollX`): a reaction of its own on another shared value left
-       the previous take with jumps instead of drags. */
-    const drag = (from: number, to: number, slow: boolean) =>
-      scheduleOnUI(
-        (a: number, b: number, pageWidth: number, isSlow: boolean) => {
-          'worklet'
-          motion.set(MOTION.drag)
-          target.set(a * pageWidth)
-          const done = (finished?: boolean) => {
-            'worklet'
-            if (!finished) return
-            target.set(NONE)
-            motion.set(MOTION.still)
-          }
-          if (isSlow) {
-            target.set(withTiming(b * pageWidth, { duration: 1700, easing: Easing.inOut(Easing.sin) }, done))
-          } else {
-            target.set(
-              withSequence(
-                withTiming((a + (b - a) * 0.15) * pageWidth, { duration: 110, easing: Easing.in(Easing.quad) }),
-                withTiming(b * pageWidth, { duration: 430, easing: Easing.out(Easing.cubic) }, done),
-              ),
-            )
-          }
-        },
-        from,
-        to,
-        width,
-        slow,
-      )
-    ;(async () => {
-      await wait(1500)
-      if (cancel) return
-      drag(1, 2, true)
-      await wait(1700 + 900)
-      if (cancel) return
-      onTap(0)
-      await wait(300 + 700)
-      for (const i of [1, 2, 3, 4, 5]) {
-        if (cancel) return
-        drag(i - 1, i, false)
-        await wait(1000)
-      }
-      /* Once at the last tab, two flicks back and that is where it ends
-         (the user's request, 2026-09-04). */
-      for (const i of [4, 3]) {
-        if (cancel) return
-        drag(i + 1, i, false)
-        await wait(1000)
-      }
-    })()
-    return () => {
-      cancel = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot for the recording
-  }, [demo, width])
-
   return (
     <View style={[css.piece, { backgroundColor: palette.background }]}>
       {/* The pager fills the WHOLE screen, status bar included: the
@@ -719,11 +628,6 @@ export function SwipeableTabs({ tabs, page, header, top, demo = false }: Props) 
           showsHorizontalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
-          /* PROBE: to really be born on Following. A `scrollTo` in the
-             first effect did not move the pager (the content was not
-             there yet) and left the bar on Following with the For you
-             content. */
-          contentOffset={demo ? { x: width, y: 0 } : undefined}
         >
           {sheets.map((sheet, index) => (
             <Sheet

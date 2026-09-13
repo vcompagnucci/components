@@ -71,8 +71,8 @@ import { useTick } from '../load'
    ═══════════════════════════════════════════════════════════════ */
 
 /* The three system colors, per color scheme. */
-export type Palette = { background: ColorValue; bar: ColorValue; hairline: ColorValue }
-export const PALETTE: Record<'dark' | 'light', Palette> = {
+type Palette = { background: ColorValue; bar: ColorValue; hairline: ColorValue }
+const PALETTE: Record<'dark' | 'light', Palette> = {
   dark: {
     /* RUNTIME · the reference's background: (0,0,0) in every gap: `systemBackground` in dark. */
     background: '#000000',
@@ -101,7 +101,7 @@ export const PALETTE: Record<'dark' | 'light', Palette> = {
 }
 export const palette = (scheme: string | null | undefined): Palette => (scheme === 'light' ? PALETTE.light : PALETTE.dark)
 
-export const STOCK = {
+const STOCK = {
   /* RUNTIME · title, price and change all start 33.5–34 pt from the left
      edge of the screen. */
   margin: 34,
@@ -155,7 +155,7 @@ const CONTROL: readonly (readonly [number, number])[] = [
 const PER_SEGMENT = 6
 const POINTS: readonly (readonly [number, number])[] = (() => {
   const out: [number, number][] = []
-  const at = (i: number) => CONTROL[Math.min(CONTROL.length - 1, Math.max(0, i))]!
+  const at = (i: number) => CONTROL[Math.min(CONTROL.length - 1, Math.max(0, i))]
   for (let i = 0; i < CONTROL.length - 1; i++) {
     const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2)
     for (let k = 0; k < PER_SEGMENT; k++) {
@@ -179,11 +179,11 @@ function Chart({ width }: { width: number }) {
   const { x0, x1, from, band, thickness, dot } = STOCK.chart
   const w = width * x1 - x0
   const pts = POINTS.map(([u, v]) => [x0 + u * w, from + (1 - v) * band] as const)
-  const end = pts[pts.length - 1]!
+  const end = pts[pts.length - 1]
   return (
     <View style={css.chart}>
       {pts.slice(1).map(([x, y], i) => {
-        const [xa, ya] = pts[i]!
+        const [xa, ya] = pts[i]
         const dx = x - xa, dy = y - ya
         return (
           <View

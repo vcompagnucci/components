@@ -21,7 +21,7 @@ import { CARD, COLOR, DAYS, GAP, SCREEN, SECTION, TOGGLE } from '../measurements
 /* RUNTIME · the bars stand in for text: one line of SF 17 takes up 20.3 pt
    of box; the bar measures 14 (the x-height plus the belly) and stays
    centered in those 20.3 → 3 pt of air above and below. */
-const BAR = { height: 14, radius: 7, color: '#2A2A2A', air: 3 } as const
+const BAR = { height: 14, color: '#2A2A2A' } as const
 const TITLE = { width: 168, height: 30, radius: 9, color: '#2E2E2E' } as const
 
 function Bar({ width, height = BAR.height, style }: { width: number; height?: number; style?: ViewStyle }) {

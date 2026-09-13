@@ -51,10 +51,10 @@ import { COMMIT, CROSSFADE, HOLD, PRESS, RESET } from './measurements'
  * 'skill' one is still there in full, one `?recipe=skill` away; the
  * selector has been off since 2026-09-04.
  */
-export type Curve = EasingFunction | EasingFunctionFactory
+type Curve = EasingFunction | EasingFunctionFactory
 
 /* A MOVEMENT is either by time with a curve, or a spring with a duration and a bounce. */
-export type Movement =
+type Movement =
   | { kind: 'timing'; duration: number; curve: Curve }
   | { kind: 'spring'; duration: number; bounce: number; overshootClamping?: boolean }
 
@@ -98,7 +98,7 @@ export type Timings = {
   linearEnter?: boolean
 }
 
-export type Kinematics = {
+type Kinematics = {
   /** the curve of the label crossfades (always by time: there is no finger in a text) */
   easeOut: Curve
   press: {

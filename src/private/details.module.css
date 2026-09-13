@@ -9,12 +9,12 @@
    re-centered: it was explicitly dropped, "the video should not move,
    only the details panel should appear or disappear".
 
-   FOUR VALUES AND NOTHING ELSE: where the animation came from (with a
-   link if you paste a URL), what class of device it runs on, your
-   notes, and when it came in. There were seven measured rows (format,
-   duration, rate, frames, size, weight) and they were taken out by
-   request: what you look up while studying a gesture is already shown
-   by the player.
+   FIVE VALUES AND NOTHING ELSE: where the animation came from (with a
+   link if you paste a URL), what class of device it runs on, which
+   piece came out of it, your notes, and when it came in. There were
+   seven measured rows (format, duration, rate, frames, size, weight)
+   and they were taken out by request: what you look up while studying a
+   gesture is already shown by the player.
    ═══════════════════════════════════════════════════════════════ */
 /* IT COMES DOWN WITH THE CLIP. It was `top: 0` and that was enough,
    because the stage had no air above and the clip started at its edge.

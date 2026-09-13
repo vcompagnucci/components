@@ -89,12 +89,6 @@ export const slug = (name: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 
-/* EMPTY ON PURPOSE. 18 placeholders lived here that existed only so the
-   skeleton would render something; they were deleted whole before the
-   first real piece, so that nothing generic could be confused with a
-   decision. The list fills up ONLY with pieces that were really built.
-   The first one defines the mold. The page, the index and vercel.json
-   already know how to live with zero. */
 /* THE ORDER OF THIS ARRAY IS THE ORDER OF THE EXHIBITION, and it is
    editorial: not chronological, not alphabetical, and it does not sort
    itself. It rules inside each platform (app.tsx groups by `platform`,

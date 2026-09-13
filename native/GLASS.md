@@ -75,10 +75,12 @@ top to reach the same color; and on Android, where the blur sees nothing
 flat color.
 
 **`expo-blur` 57.0.2 is installed** since 2026-08-28, and the dev client
-was rebuilt to take it in. It is the only dependency of the workshop
-that came in without a piece asking for it: without it the ladder has no
-last step, and finding that out on the day you need it costs a
-`pnpm ios:build` at the worst moment.
+was rebuilt to take it in. It came in without a piece asking for it,
+and that is the reason: without it the ladder has no last step, and
+finding that out on the day you need it costs a `pnpm ios:build` at the
+worst moment. (It is not the only one in the manifest with no importer.
+`@expo/ui`, `expo-device` and `expo-image` are there too, from the
+workshop's first install, and nothing uses them yet.)
 
 ## Two more flags
 

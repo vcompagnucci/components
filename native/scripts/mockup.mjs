@@ -7,8 +7,9 @@
  *   pnpm mockup swipeable-tabs ~/background.png      → over an image, no camera (pixel by pixel)
  *   pnpm mockup swipeable-tabs --model="iPhone 17 Pro Max" --color=Silver --camera=still
  *
- * It reads VAULT_DIR/nativo/<slug>.mp4 (what `pnpm record` left there,
- * or a recording from the phone) and writes
+ * It reads VAULT_DIR/native/<slug>.mp4 (what `pnpm record` left there,
+ * or a recording from the phone; `nativo/` if that is the folder the
+ * vault has) and writes
  * .context/mockup/output/<slug>.mp4: 2160×2160 at 60 fps, h264, the
  * real ceiling of a post on X (measured: X serves 2160² if you upload
  * it that way; everything else it recompresses to 720²).
@@ -70,10 +71,9 @@
  * from its source (`scale … eval=frame`) and positioned with ffmpeg
  * expressions in `t`. The camera is (k, C): a zoom and the point of the
  * base canvas that ends up in the center; a layer that at rest sits at P
- * is drawn at (P − C)·k + L/2. The curves of the reference are bézier,
- * which ffmpeg does not evaluate, so each one is approximated with a
- * degree-7 polynomial fitted right here (error < 0.007, monotonic frame
- * by frame).
+ * is drawn at (P − C)·k + L/2. The reference's béziers are NOT the curve
+ * that ships: in and out are both a smootherstep, which is already a
+ * polynomial and so goes into an ffmpeg expression exactly (see `ZOOM`).
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -115,9 +115,13 @@ if (!vault) {
   process.exit(1)
 }
 /* `--clip=file` skips the vault (to try it with another source). */
+/* The same order as `record.mjs`, which is the writer: with both
+   spellings present in the vault it has to read the one that gets
+   written, or the mockup says there is no clip right after recording
+   one. */
 const clip =
   options.clip ??
-  ['nativo', 'native']
+  ['native', 'nativo']
     .map((c) => path.join(vault, c, `${slug}.mp4`))
     .find((p) => fs.existsSync(p))
 if (!clip || !fs.existsSync(clip)) {
@@ -197,9 +201,9 @@ if (image) {
 const L = CANVAS
 
 /* ─── THE GEOMETRY AT REST (k = 1) ───
-   The body of the bezel at 87 % of the height of the canvas (more air;
-   override with --height), centered. `s0` is px of the canvas per px of
-   the PNG. */
+   The body of the bezel at 75 % of the height of the canvas (more air
+   than the reference's 95.3 %; override with --height), centered. `s0`
+   is px of the canvas per px of the PNG. */
 const HEIGHT = Number(options.height ?? 0.75)
 const s0 = (HEIGHT * L) / M.body.h
 const bw0 = M.body.w * s0
@@ -262,69 +266,14 @@ if (T3 < T2) {
   console.error(`--until (${T3}) has to be greater than the end of the way in (${T2.toFixed(2)})`)
   process.exit(1)
 }
-const _cx1 = bx0 + bw0 / 2
 const cy1 = by0 + (focus + (0.5 - 0.33) * (L / (bh0 * K1))) * bh0
-const _cy2 = by0 + ((0.5 - 0.072) * L) / K2
 
-/* A cubic bézier easing, and its degree-5 polynomial (least squares over
-   200 samples) so that ffmpeg can evaluate it. */
-const _bezier = (x1, y1, x2, y2) => (x) => {
-  let lo = 0
-  let hi = 1
-  let t = x
-  for (let i = 0; i < 40; i++) {
-    t = (lo + hi) / 2
-    const xt = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t
-    if (xt < x) lo = t
-    else hi = t
-  }
-  return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t
-}
-function polynomial(fn, degree = 5) {
-  const n = 200
-  const A = []
-  const b = []
-  for (let i = 0; i <= n; i++) {
-    const u = i / n
-    A.push(Array.from({ length: degree }, (_, j) => u ** (j + 1)))
-    b.push(fn(u))
-  }
-  const AtA = Array.from({ length: degree }, () => Array(degree).fill(0))
-  const Atb = Array(degree).fill(0)
-  for (let i = 0; i <= n; i++)
-    for (let j = 0; j < degree; j++) {
-      Atb[j] += A[i][j] * b[i]
-      for (let k = 0; k < degree; k++) AtA[j][k] += A[i][j] * A[i][k]
-    }
-  for (let c = 0; c < degree; c++) {
-    let p = c
-    for (let r = c + 1; r < degree; r++) if (Math.abs(AtA[r][c]) > Math.abs(AtA[p][c])) p = r
-    ;[AtA[c], AtA[p]] = [AtA[p], AtA[c]]
-    ;[Atb[c], Atb[p]] = [Atb[p], Atb[c]]
-    for (let r = c + 1; r < degree; r++) {
-      const m = AtA[r][c] / AtA[c][c]
-      for (let k = c; k < degree; k++) AtA[r][k] -= m * AtA[c][k]
-      Atb[r] -= m * Atb[c]
-    }
-  }
-  const x = Array(degree).fill(0)
-  for (let r = degree - 1; r >= 0; r--) {
-    let s = Atb[r]
-    for (let k = r + 1; k < degree; k++) s -= AtA[r][k] * x[k]
-    x[r] = s / AtA[r][r]
-  }
-  let worst = 0
-  for (let i = 0; i <= n; i++) {
-    const u = i / n
-    worst = Math.max(worst, Math.abs(x.reduce((acc, c, j) => acc + c * u ** (j + 1), 0) - fn(u)))
-  }
-  return { coef: x, worst }
-}
-/* Pure optical zoom: monotonic smootherstep (the same in and out). The
-   bézier of the ref plus a pan in Y read as "up and down". */
-const smootherstep = (u) => u * u * u * (u * (u * 6 - 15) + 10)
-const ZOOM_IN = polynomial(smootherstep)
-const ZOOM_OUT = polynomial(smootherstep)
+/* Pure optical zoom: monotonic smootherstep, the same in and out (the
+   bézier of the ref plus a pan in Y read as "up and down"). ffmpeg does
+   not evaluate a bézier but it does evaluate a polynomial, and
+   smootherstep already is one: 6u⁵ − 15u⁴ + 10u³, with no constant
+   term, so the coefficients go in exactly and there is nothing to fit. */
+const ZOOM = { coef: [0, 0, 10, -15, 6] }
 
 /* Expressions for ffmpeg. `segment` interpolates from `a` to `b` between
    t0 and t1 with the curve `c`; `curve` builds the whole trajectory of a
@@ -335,7 +284,7 @@ const segment = (a, b, c, t0, t1) => `(${num(a)}+(${num(b - a)})*(st(1,(t-${num(
 const curve = (v0, v1, v2) =>
   camera === 'still'
     ? num(v0)
-    : `if(lt(t,${num(T1)}),${num(v0)},if(lt(t,${num(T2)}),${segment(v0, v1, ZOOM_IN, T1, T2)},if(lt(t,${num(T3)}),${num(v1)},if(lt(t,${num(T4)}),${segment(v1, v2, ZOOM_OUT, T3, T4)},${num(v2)}))))`
+    : `if(lt(t,${num(T1)}),${num(v0)},if(lt(t,${num(T2)}),${segment(v0, v1, ZOOM, T1, T2)},if(lt(t,${num(T3)}),${num(v1)},if(lt(t,${num(T4)}),${segment(v1, v2, ZOOM, T3, T4)},${num(v2)}))))`
 const kExpr = curve(1, K1, K2)
 /* Centered at rest (L/2). Coming in, the focus climbs to the tabs; going
    out, it returns to the center, with the same smootherstep as k and no
@@ -451,7 +400,7 @@ console.log(
     `canvas     ${L}²\nbezel      ${model} · ${color}\nside       ${side}\n` +
     `camera     ${camera}` +
     (camera === 'still' ? '' : ` · in ${T1}→${T2.toFixed(2)} s to ${K1}× (focus ${focus}) · out ${T3}→${T4.toFixed(2)} s to ${K2}×`) +
-    `\ncurves     polynomials with a maximum error of ${ZOOM_IN.worst.toFixed(4)} / ${ZOOM_OUT.worst.toFixed(4)}\noutput     ${output}`,
+    `\noutput     ${output}`,
 )
 /* The verification is recorded LOSSLESS and in RGB: with yuv420p the
    chroma is averaged 2 px at a time and a red pressed against the bezel
@@ -469,13 +418,13 @@ if (!verify) {
   console.log('done')
 } else {
   /* The same camera that runs inside ffmpeg, evaluated here with the
-     SAME polynomials, to know where each layer landed in each frame. */
+     SAME polynomial, to know where each layer landed in each frame. */
   const evalPoly = (c, u) => Math.min(Math.max(c.coef.reduce((acc, k, i) => acc + k * u ** (i + 1), 0), 0), 1)
   const value = (t, v0, v1, v2) => {
     if (camera === 'still' || t < T1) return v0
-    if (t < T2) return v0 + (v1 - v0) * evalPoly(ZOOM_IN, (t - T1) / (T2 - T1))
+    if (t < T2) return v0 + (v1 - v0) * evalPoly(ZOOM, (t - T1) / (T2 - T1))
     if (t < T3) return v1
-    if (t < T4) return v1 + (v2 - v1) * evalPoly(ZOOM_OUT, (t - T3) / (T4 - T3))
+    if (t < T4) return v1 + (v2 - v1) * evalPoly(ZOOM, (t - T3) / (T4 - T3))
     return v2
   }
   const frames = [6, 24, 36, 48, 54, 57, 120, 160, 170, 180, 190, 200]

@@ -1010,7 +1010,11 @@
   flex: none;
   margin-left: 8px;
 }
-/* min-height:0 is THE piece that makes this work. By default a flex
+/* THE SECOND HALF OF .stage: its vertical air is declared above, with
+   the derivation of --stage-top and --stage-bottom. Here comes what
+   makes it a flex item.
+
+   min-height:0 is THE piece that makes this work. By default a flex
    item does not shrink below its content, so without this the stage
    would grow with the clip and the overflow would come back exactly the
    same. */

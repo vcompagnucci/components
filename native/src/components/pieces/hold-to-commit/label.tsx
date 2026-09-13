@@ -4,7 +4,7 @@ import { type ReactNode } from 'react'
 import { Image, Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
 
-import { COLOR, COMMIT, LABEL, SYMBOL, TEXT } from './measurements'
+import { COLOR, COMMIT, CROSSFADE, LABEL, SYMBOL, TEXT } from './measurements'
 
 /* ═══════════════════════════════════════════════════════════════
    THE LABEL: three texts, each with its own PRESENCE, and iOS's
@@ -118,8 +118,10 @@ import { COLOR, COMMIT, LABEL, SYMBOL, TEXT } from './measurements'
 
 export const HOLD = 0, KEEP = 1, PLACED = 2
 
-/* The two σs of the blurred copies, in pt: the ones in `generate.swift`. */
-const SIGMA = { wide: 2.5, narrow: 1.0 }
+/* The two σs of the blurred copies, in pt: `CROSSFADE.blur`, where the
+   receipt for both of them is, and the same two numbers
+   `generate.swift` rasterizes them with. */
+const SIGMA = CROSSFADE.blur
 /* SOURCE · better-ui "Contextual icon animations": scale 0.25 → 1, blur 4px → 0. */
 const CONTEXTUAL_CHECKMARK = { scaleFrom: 0.25, sigma: 4 }
 /* The margin of each PNG in pt: 3σ of the largest σ in its batch, at 3x
@@ -175,7 +177,7 @@ const layers = (q: number, noBlur: boolean) => {
   return { wide: o * (1 - toNarrow), narrow: o * (toNarrow - toSharp * toNarrow), sharp: o * toSharp * toNarrow }
 }
 
-export type Presence = readonly [SharedValue<number>, SharedValue<number>, SharedValue<number>]
+type Presence = readonly [SharedValue<number>, SharedValue<number>, SharedValue<number>]
 /** The partition of the label's color among its three inks: adds up to 1. */
 export type Ink = { white: number; dark: number; black: number }
 

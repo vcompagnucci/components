@@ -13,14 +13,7 @@ import { nameOfPath, publishClip, useClips, type Clip } from './clips'
 import { Dialog, PublishDialog, Menu, useLast, type Where } from './actions'
 import acc from './actions.module.css'
 import { UNNAMED, newId, useViews, type Frame, type View } from './views'
-import {
-  SKETCHES,
-  Sketch,
-  createSketch,
-  sketchName,
-  publishSketch,
-  freeRef,
-} from './sketches'
+import { SKETCHES, Sketch, createSketch, publishSketch, freeRef } from './sketches'
 
 /* ═══════════════════════════════════════════════════════════════
    THE PLAYGROUND: where things get built.
@@ -1399,8 +1392,8 @@ function Canvas({
      it taken out of the model.
 
      THE WAIT IS THE DURATION OF THE EXIT AND IT IS WRITTEN TWICE, here
-     and in the CSS. It is the file's only duplication and it is
-     accepted in exchange for not having to listen for `transitionend`
+     and in the CSS. It is accepted in exchange for not having to
+     listen for `transitionend`
      on an element that can have the pointer over it or the tab in the
      background, the two cases where that event does not arrive and the
      frame would stay half gone forever.
@@ -1948,11 +1941,7 @@ function Canvas({
           />
           <PublishDialog
             open={publishing?.id === subjectFrame.id}
-            initialName={
-              subjectFrame.kind === 'sketch'
-                ? sketchName(subjectFrame.ref)
-                : nameOfPath(subjectFrame.ref)
-            }
+            initialName={nameOfPath(subjectFrame.ref)}
             /* The sentence says where the file goes, which is the only
                thing that changes between the two branches. */
             message={
@@ -1972,7 +1961,7 @@ function Canvas({
 
       <AddDialog
         open={adding}
-        clips={clips ?? []}
+        clips={clips}
         onAdd={addClip}
         onSketch={(ref) => place('sketch', ref, null)}
         onNewSketch={newSketch}
@@ -2009,8 +1998,9 @@ function Canvas({
 /* THE PROPORTION IS MEASURED OFF THE ELEMENT YOU ARE LOOKING AT. The
    thumbnail has already loaded, it is on screen, so its natural size is
    a fact available in the click's own event, with no network request and
-   with no waiting for the frame to mount. If it has not loaded yet it
-   returns null and the frame is born provisional. */
+   with no waiting for the frame to mount. If it has not loaded yet its
+   natural size is 0 and `sizeFrom` gives back the provisional pair;
+   null is for an option with no media inside it. */
 function measureOption(el: HTMLElement) {
   const m = el.querySelector('video, img')
   if (m instanceof HTMLVideoElement) return sizeFrom(m.videoWidth, m.videoHeight)
@@ -2027,7 +2017,9 @@ function AddDialog({
   onClose,
 }: {
   open: boolean
-  clips: Clip[]
+  /* `null` is "the index has not arrived", which is not "the vault is
+     empty": the notice below depends on telling them apart. */
+  clips: Clip[] | null
   onAdd: (c: Clip, m: { width: number; height: number } | null) => void
   onSketch: (ref: string) => void
   onNewSketch: () => void
@@ -2111,10 +2103,10 @@ function AddDialog({
                 onClick={() => onSketch(ref)}
               >
                 <div className={css.optionBox}>Sketch</div>
-                <div className={dlg.title}>{sketchName(ref)}</div>
+                <div className={dlg.title}>{nameOfPath(ref)}</div>
               </button>
             ))}
-            {clips.map((c) => (
+            {clips?.map((c) => (
               /* ─── IT IS THE VAULT'S CARD, NOT A THUMBNAIL OF ITS OWN ───
                  The same classes: its proportion (550/528, benji's), its
                  radius, its background, its hover and its label. And
@@ -2155,7 +2147,10 @@ function AddDialog({
               with an empty vault you can still start a sketch, so
               swapping the whole grid for a line of text would hide the
               only action available. */}
-          {clips.length === 0 && <p className={css.notice}>Nothing in the vault yet.</p>}
+          {/* Only once the index has answered. While it is in flight
+              `clips` is null, and saying the vault is empty before
+              knowing would be a lie that looks like an answer. */}
+          {clips?.length === 0 && <p className={css.notice}>Nothing in the vault yet.</p>}
         </>
       )}
     </dialog>

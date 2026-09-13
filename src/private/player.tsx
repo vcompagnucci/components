@@ -62,7 +62,6 @@ function Glyph({ pause }: { pause: boolean }) {
 }
 
 const clock = (s: number) => {
-  if (!Number.isFinite(s)) return '0:00'
   const m = Math.floor(s / 60)
   const r = Math.floor(s % 60)
   return `${m}:${String(r).padStart(2, '0')}`
@@ -101,6 +100,11 @@ export function Player({ clip }: { clip: Clip }) {
   const toggle = useCallback(() => {
     const v = video.current
     if (!v) return
+    /* play() returns a promise the browser REJECTS when a pause
+       interrupts it before playback starts, which is one fast double
+       click on the video. There is nothing to recover: `playing` follows
+       the element's own play/pause events, so the glyph is right either
+       way. */
     if (v.paused) v.play().catch(() => {})
     else v.pause()
   }, [])

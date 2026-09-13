@@ -416,11 +416,11 @@ you drag something in without editing it.
 
 **The bridge is a Vite plugin**, `scripts/vault-media.mjs`, with
 `apply: 'serve'`: in `vite build` it is not even instantiated. It serves
-the media at `/vault-media/` plus seven endpoints (`__index`,
-`__details`, `__views`, `__rename`, `__trash`, `__upload`, `__link`) and
-**three guards**, because this may be pointing at your Obsidian: an
-allowlist of extensions, nothing that starts with a dot, `realpath` on
-both sides.
+the media at `/vault-media/` plus nine endpoints (`__index`,
+`__details`, `__views`, `__rename`, `__trash`, `__upload`, `__link`,
+`__sketch`, `__publish`) and **three guards**, because this may be
+pointing at your Obsidian: an allowlist of extensions, nothing that
+starts with a dot, `realpath` on both sides.
 
 **What you write down yourself** (`notes`, `source`, `device`) lives in
 `.lima-vault.json`, at the root of the vault and next to the clips.
@@ -652,10 +652,12 @@ pnpm record swipe-to-pay      # records into the vault and closes the loop
   iOS 17 springs go.
 
 **The stage knows how to show both.** `Showcase`, in `parts.tsx`,
-decides by `platform`: an App's recording in the phone slot the box was
-already reserving, or a Web's component running live, resolved by slug
-in `demos.tsx`. What is missing now is not mechanism: it is the first
-real piece.
+serves the recording when there is one, in the phone slot the box was
+already reserving; with no recording, `platform` decides, and a Web
+piece gets its component running live, resolved by slug in `demos.tsx`.
+That order is what lets an App piece be published before its video
+exists: it draws the empty slot instead of falling into the Web
+branch.
 
 ### The boundary
 

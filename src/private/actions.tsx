@@ -78,16 +78,9 @@ export function useLast<T>(v: T | null | undefined): T | null {
   return v ?? last;
 }
 
-/* Where the menu opens. If it does not fit downward or rightward, it
-   flips, and THE SCALE'S ORIGIN flips with it, so it keeps growing from
-   the point where you pressed and not from a corner that ended up on
-   the other side.
-
-   The two forms of `Where` are resolved here and nowhere else: the
-   caller passes where it came from, not where it goes. */
 const MARGIN = 8;
 /* What separates the menu from its trigger. It is the same gap the
-   Device picker uses to come off its value, in details.tsx. */
+   picker in details.tsx uses to come off its value. */
 const GAP = 4;
 
 /* ─── THE INK GETS ALIGNED, NOT THE BOX ───
@@ -106,7 +99,14 @@ function indentOf(menu: HTMLElement): number {
   return item.offsetLeft + parseFloat(getComputedStyle(item).paddingLeft);
 }
 
-function place(w: NonNullable<Where>, width: number, height: number, indent = 0) {
+/* Where the menu opens. If it does not fit downward or rightward, it
+   flips, and THE SCALE'S ORIGIN flips with it, so it keeps growing from
+   the point where you pressed and not from a corner that ended up on
+   the other side.
+
+   The two forms of `Where` are resolved here and nowhere else: the
+   caller passes where it came from, not where it goes. */
+function place(w: NonNullable<Where>, width: number, height: number, indent: number) {
   if ("anchor" in w) {
     const r = w.anchor;
     /* Below the button; if it does not fit, above. Aligned by the edge
@@ -209,17 +209,18 @@ export function Menu({
     if (!where) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     const outside = (e: MouseEvent) => {
-      const t = e.target as Element;
+      const t = e.target;
+      if (!(t instanceof Element)) return;
       /* THE TRIGGER DOES NOT COUNT AS OUTSIDE. Without this, pressing
          the ··· with the menu open closes it on the pointerdown and the
          click behind it opens it again: it closes and opens in the same
          gesture, and nothing happens on screen. The toggle belongs to
          the trigger's click; this handler looks at the rest of the page.
 
-         It is the same line the Device picker already had in
-         details.tsx, with the other popup role. The right click has no
-         trigger, so for it this does not exist. */
-      if (t.closest?.('[aria-haspopup="menu"]')) return;
+         It is the same line the picker in details.tsx already had, with
+         the other popup role. The right click has no trigger, so for it
+         this does not exist. */
+      if (t.closest('[aria-haspopup="menu"]')) return;
       if (!box.current?.contains(t)) onClose();
     };
     document.addEventListener("keydown", onKey);
@@ -546,7 +547,7 @@ export function RenameDialog({
       onDone(await renameClip(clip.path, name));
       onClose();
     } catch (e) {
-      setError(String((e as Error).message));
+      setError(String(e));
     } finally {
       setBusy(false);
     }
@@ -649,7 +650,7 @@ export function PublishDialog({
       const slug = await publish(name.trim(), desc.trim());
       location.assign("/" + slug);
     } catch (e) {
-      setError(String((e as Error).message));
+      setError(String(e));
       setBusy(false);
     }
   };
@@ -760,6 +761,6 @@ export async function sendToTrash(clip: Clip): Promise<string | null> {
     await trashClip(clip.path);
     return null;
   } catch (e) {
-    return String((e as Error).message);
+    return String(e);
   }
 }

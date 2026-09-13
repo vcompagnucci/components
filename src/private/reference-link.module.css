@@ -7,12 +7,13 @@
    prose and goes in ink; this says where the thing came from, the same
    job as a caption.
 
-   It sits 40 from the notes above it, which is the GROUP step of the
-   system and not a number chosen here: it has to read as another
-   block, not as the last line of the notes.
+   It sits at the system's content gap from the notes above it, the
+   same distance a section's line keeps from its first text, and not a
+   number chosen here: it has to read as another block, not as the last
+   line of the notes.
    ═══════════════════════════════════════════════════════════════ */
 .line {
-  margin: 40px 0 0;
+  margin: var(--section-content-gap) 0 0;
   font-size: var(--type-meta-fs);
   font-weight: var(--type-meta-fw);
   letter-spacing: var(--type-meta-ls);

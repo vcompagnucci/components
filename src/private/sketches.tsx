@@ -44,8 +44,6 @@ const refOf = (key: string) => key.slice(PREFIX.length, -SUFFIX.length)
    appears in the list without touching anything. */
 export const SKETCHES = Object.keys(MODULES).map(refOf).sort()
 
-export const sketchName = (ref: string) => nameOfPath(ref)
-
 /* ONE PER REF AND NOT ONE PER RENDER. `lazy` keeps the module's promise
    inside it: creating a new one on every render would mount the sketch
    again, and throw its state away, every time you move the frame. */
@@ -71,7 +69,7 @@ function componentOf(ref: string): ComponentType | null {
 function Placeholder({ sketchRef, reason }: { sketchRef: string; reason: string }) {
   return (
     <div className={css.placeholder}>
-      <span className={css.placeholderName}>{sketchName(sketchRef)}</span>
+      <span className={css.placeholderName}>{nameOfPath(sketchRef)}</span>
       <span className={css.placeholderReason}>{reason}</span>
     </div>
   )
@@ -163,7 +161,7 @@ export async function publishSketch(
     body: JSON.stringify({ kind: 'sketch', ref, name, desc }),
   })
   const d = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error(d?.error ?? `error ${r.status}`)
+  if (!r.ok) throw new Error(d.error ?? `error ${r.status}`)
   return d.slug as string
 }
 
@@ -171,10 +169,10 @@ export async function publishSketch(
    it writes with 'wx', so this is not the guard: it is here so you are
    not asked for a name before the thing exists, which is the same rule
    "New view" already uses. Renaming is renaming the file. */
-export function freeRef(base = 'sketch') {
+export function freeRef() {
+  const base = 'sketch'
   if (!SKETCHES.includes(base)) return base
-  for (let n = 2; n < 200; n++) if (!SKETCHES.includes(`${base}-${n}`)) return `${base}-${n}`
-  return `${base}-${SKETCHES.length + 1}`
+  for (let n = 2; ; n++) if (!SKETCHES.includes(`${base}-${n}`)) return `${base}-${n}`
 }
 
 /* ─── CREATE ONE ───

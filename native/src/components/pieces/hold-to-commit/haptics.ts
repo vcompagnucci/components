@@ -38,13 +38,12 @@ export const onComplete = () => Haptics.notificationAsync(Haptics.NotificationFe
    The acceleration is what says "almost there": with a single kind of
    tick, the cadence is the only knob left.
 
-   WHERE THE LAST TWO FALL. The second to last (0.955) falls just before
-   the label's jump to black, which starts at `HOLD.blackAt` 0.965 and
-   ends at 0.977 (`hold-to-commit.tsx`, over the SAME linear `progress`).
-   The last one (0.985) falls on the last frame of the hold, right up
-   against the commit's success pattern. This used to say the last one
-   fell before the jump to black: the one that falls there is the second
-   to last. NO RECEIPT. */
+   WHERE THE LAST TWO FALL. The second to last (0.955) is the one that
+   falls just before the label's jump to black, which starts at
+   `HOLD.blackAt` 0.965 and ends at 0.977 (`hold-to-commit.tsx`, over the
+   SAME linear `progress`). The last one (0.985) falls on the last frame
+   of the hold, right up against the commit's success pattern. NO
+   RECEIPT. */
 export const DETENTS = [0.15, 0.3, 0.42, 0.53, 0.62, 0.7, 0.77, 0.83, 0.88, 0.92, 0.955, 0.985] as const
 
 /* A detent: `selectionAsync`, the one for "a value ticks past a step". */

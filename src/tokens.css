@@ -29,10 +29,9 @@
 
    Z-INDEX: zero in the product, and it is not decidable yet. Today
    nothing overlaps: the index is fixed but it lives in the margin and
-   steps on nothing. Five of the 18 pieces are layers (Dialog, Sheet,
-   Tooltip, Context Menu, Action Sheet) and the stacking order gets
-   decided when the first one exists, not before: inventing a scale now
-   would be choosing numbers with nothing to order.
+   steps on nothing. The stacking order gets decided with the first
+   piece that layers, not before: inventing a scale now would be
+   choosing numbers with nothing to order.
 
    THE COMPLETE DOCUMENT IS ../DESIGN.md: every token with its value,
    its evidence grade, the table of the five viewports and the four
@@ -98,11 +97,11 @@
      There was a --surface-press #f0f0ec (linear's --color-bg-level-3,
      which lands exactly on our next step) and it was withdrawn when
      josh's system was chosen. The derivation stays in the log in case it
-     comes back; when the Button piece needs a press it will be measured
-     for a button, which is where all that evidence does apply. */
+     comes back; the first piece that is a button gets it measured for a
+     button, which is where all that evidence does apply. */
   --ink: #111111;
 
-  /* ═══════════ THE SECONDARY LEVEL, ONE ALPHA AND TWO BASES ═══════════
+  /* ═══════════ THE SECONDARY LEVEL, ONE BASE AND TWO ALPHAS ═══════════
      It is benji's structure, verified in the CSS he serves. He declares
      ONE SINGLE text color token (--body-color:#111) and no gray token.
      Everything that looks gray is his black or his ink at an alpha, and
@@ -116,9 +115,11 @@
      written the same rule from pure black in one file and from his ink
      in another. His system has ONE secondary level, not two.
 
-     Here the rule is taken and the number is changed. The 37% was
-     chosen in TWO STEPS, and both matter because they look at different
-     things:
+     Here the rule is taken, the number is changed, and the two values
+     come out of ONE base (pure black, white in dark) at TWO alphas: 37%
+     the annotation, 34.4% the nav, which is the other half of this
+     block, down at --nav-alpha. The 37% was chosen in TWO STEPS, and
+     both matter because they look at different things:
 
      FIRST THE NEIGHBORHOOD, with a slider on the annotation alone:
      163, against four marks measured and composited on this background:
@@ -138,8 +139,8 @@
 
      The two fall out of there, measured by pixel (α=.4 reproduces his
      152 and 159 dead on, which is what validates the model):
-       annotation   black  @ 37%  → 160
-       nav          --ink  @ 37%  → 166
+       annotation   black @ 37%    → 160
+       nav          black @ 34.4%  → 166
      The annotation ends up 3 darker than the slider's 163: ΔL .006,
      inside the noise. The neighborhood was respected; the sweep set
      the number.
@@ -154,13 +155,12 @@
      2. THE ORDER FIXES ITSELF. Before, the annotation ended up LIGHTER
         than the nav (163 against 159), the other way around from him.
         Now the nav is the lighter of the two, as on his page, and not
-        because anyone decided it: it falls out of ink being lighter
-        than pure black. The gap is 6; his is 7.
+        because anyone decided it. The gap is 6; his is 7.
 
-     The alpha goes in a token of its own so the rule is ONE single
+     Each alpha goes in a token of its own so the rule is ONE single
      thing and not two that have to be kept in sync, which is exactly
-     how the previous ones fell out of sync. And it goes as an alpha and
-     not as a solid because that way it composites over any background:
+     how the previous ones fell out of sync. And they go as alphas and
+     not as solids because that way they composite over any background:
      the day there is secondary text on the card, it comes out right
      without touching anything.
 
@@ -409,26 +409,20 @@
   --type-nav-lh: 16px;
   --type-nav-ls: -0.0025rem;
   --type-nav-fw: 460;
-  /* The other base of the secondary level: the same alpha as the
-     annotation, from --ink instead of pure black. It composites at 166.
-     It is benji's position (his nav comes from his ink and his
-     annotation from black, and that is why the nav ends up the lighter
-     of the two). The whole explanation is above, in --secondary-alpha.
+  /* The second alpha of the secondary level, over the same base as the
+     annotation. It composites at 166, and the number was fitted to move
+     nothing: black@34.4% gives the same 166 that ink@37% used to give,
+     back when the nav was derived from --ink.
 
-     REWRITTEN: the nav does NOT come from --ink any more. It comes from
-     the same base as the annotation, black, with a lower alpha. It is
-     ONE BASE AND TWO ALPHAS instead of one alpha and two bases, and it
-     moves no value: black@34.4% gives the same 166 that ink@37% gave.
+     WHY IT IS NOT DERIVED FROM THE INK, which would be benji's
+     position: that traps the ink. It has to come in ~17 units from the
+     extreme or the two bases flatten against each other, which forced
+     an ink of 238 in dark and left the text 7.5 Lc below the light one.
+     With two alphas the ink is free and can go to 250, which is josh's
+     and the one that ties the contrast of the light mode to the
+     decimal, without touching the pair.
 
-     The reason is dark mode. Deriving the nav from the ink traps the
-     ink: it has to come in ~17 units from the extreme or the two bases
-     flatten against each other. That forced an ink of 238 in dark and
-     left the text 7.5 Lc below the light one. With two alphas the ink
-     is free and can go to 250, which is josh's and the one that ties
-     the contrast of the light mode to the decimal, without touching the
-     pair.
-
-     It is the structure benji uses for his nav at rest and active:
+     And it is the structure benji uses for his nav at rest and active:
      hsla(0,0%,7%,.4) and .8, one base and two alphas. */
   --nav-alpha: 34.4%;
   --type-nav-c: color-mix(in srgb, #000 var(--nav-alpha), transparent);
@@ -572,17 +566,11 @@
        background-color             →  --ease-surface · --dur-surface
        color, text-decoration-color →  --ease-text    · --dur-text
 
-     WITH ONE EXCEPTION, AND IT IS THE BACK ARROW. It animates
-     background AND color at once, so if each property took its own pair
-     they would finish at different moments (150 the background, 100 the
-     color) and it would read as two things. The paired elements rule of
-     animations.dev is explicit: "elements that animate together must
-     use the same easing and duration... if they move as a unit, they
-     have to feel like a unit". So there the ELEMENT wins and not the
-     property: its two transitions go with the surface pair.
-
-     The complete rule comes out as: the property rules, except when a
-     single element animates both families, and there the element rules.
+     The property rules, and nothing else. There used to be an exception
+     for the back arrow, which animated background and color at once;
+     its hover now paints the glyph only, the way both references do
+     (measured, see .back in app.module.css), so no element in the
+     system animates both families and the rule stays clean.
 
      THE SURFACE GOES IN EASE-OUT. It is what the three cards with hover
      of linear do, with no exception:
@@ -739,10 +727,15 @@
 
   /* the card, from its name. CHOSEN BY EYE with a scrubber on the real
      page, not copied: no reference has our structure, a list of [short
-     name + big card] pairs repeated 19 times. The closest one is josh
-     on /pasito, an h2 20px/500 followed directly by a code card at 16
-     (mt-4). 12 and 16 were tried with the 19 pieces stacked and 12
-     won. */
+     name + big card] pairs. The closest one is josh on /pasito, an h2
+     20px/500 followed directly by a code card at 16 (mt-4). 12 and 16
+     were tried and 12 won.
+
+     THE RECEIPT IS WEAK AND IT IS SAID SO: that comparison was made
+     over the 18 placeholder pieces, which were deleted whole before the
+     first real one, and this repo does not reason over invented data.
+     The value stays because it is the one on screen; it gets looked at
+     again with the four real pieces. */
   --piece-card-gap: 12px;
 
   /* a piece, from the previous one. benji's, measured. */
@@ -828,10 +821,6 @@
   --card-app-slot-width: 228px;
   --card-app-slot-detail: 319px;
   --card-app-slot-ratio: 228 / 448;
-  /* the same slots, by their height: what the showcase measures (see
-     .demo) */
-  --card-app-slot-height: 448px;
-  --card-app-slot-height-detail: 628px;
 }
 
 /* The step. The why of each number is above, in :root. */
@@ -929,8 +918,8 @@ html {
     --surface-hover: #121211; /* +9 */
     --ink: #fafaf9; /* josh's 250, with our hue */
 
-    /* The two bases turn over: black → white. The alphas go up because
-       what is kept is the contrast, not the number. */
+    /* The base turns over: black → white. The alphas go up because what
+       is kept is the contrast, not the number. */
     --secondary-alpha: 59.2%;
     --nav-alpha: 55%;
     --text-secondary: color-mix(in srgb, #fff var(--secondary-alpha), transparent);
@@ -1113,9 +1102,9 @@ button {
    two references that have prose with links. Neither of them uses the
    color of the text to say that something is clickable.
 
-   Today the page has no <a> at all: this is the rule ready for when the
-   detail has text. The links of the index and the back button are
-   <button>, so it does not touch them.
+   It reaches every <a> of the page, and the piece of the list is one:
+   .streamLink neutralizes it there on purpose, because that anchor is
+   the whole card and not a word inside prose.
 
    The hover moves the UNDERLINE, not the text, and that is why the
    transition goes on text-decoration-color and nothing else. */

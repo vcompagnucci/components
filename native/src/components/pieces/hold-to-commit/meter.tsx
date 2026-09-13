@@ -91,7 +91,7 @@ const percentile = (sorted: number[], p: number) => sorted[Math.min(sorted.lengt
 const round = (v: number, d = 1) => Math.round(v * 10 ** d) / 10 ** d
 
 type Frames = { frames: number; nominal: number; mean: number; p95: number; worst: number; dropped: number; gaps: number }
-export type Report = {
+type Report = {
   context: string
   windowMs: number
   ui: Frames & { from: string }
@@ -136,7 +136,7 @@ function summarize(context: string, windowMs: number, frames: number[][], delays
   /* The sequence: from the press to the reset if they are marked; if not, everything. */
   const from = m['press-ui'] !== undefined ? m['press-ui'] - BEFORE_MS : -Infinity
   const to = m['reset-ui'] !== undefined ? m['reset-ui'] + TAIL_MS : Infinity
-  const between = (a: number, b: number) => frames.filter(([t]) => t! >= a && t! <= b).map(([, dt]) => dt!)
+  const between = (a: number, b: number) => frames.filter(([t]) => t >= a && t <= b).map(([, dt]) => dt)
   const total = count(between(from, to))
   const phases: Record<string, Frames> = {}
   const press = m['press-ui'], commit = m['commit-ui'], reset = m['reset-ui']
@@ -145,7 +145,7 @@ function summarize(context: string, windowMs: number, frames: number[][], delays
   if (commit !== undefined && reset !== undefined) phases['still'] = count(between(commit + BURST_MS, reset), total.nominal)
   if (reset !== undefined) phases['reset'] = count(between(reset, reset + TAIL_MS), total.nominal)
   const sortedDelays = [...delays].sort((a, b) => a - b)
-  const diff = (a: string, b: string) => (m[a] !== undefined && m[b] !== undefined ? m[a]! - m[b]! : NaN)
+  const diff = (a: string, b: string) => (m[a] !== undefined && m[b] !== undefined ? m[a] - m[b] : NaN)
   const latencies: Record<string, number> = {
     /* how long JS took to find out about each thing UI already did */
     'tick: js − ui': diff('tick-js', 'tick-ui'),
@@ -214,7 +214,15 @@ export function Meter({ context, windowMs, receiver }: Props) {
       const report = summarize(context, windowMs, frames.get(), delays, m)
       const text = JSON.stringify(report)
       console.log('[meter] ' + text)
-      if (receiver) fetch(receiver, { method: 'POST', headers: { 'content-type': 'application/json' }, body: text }).catch(() => {})
+      if (receiver) {
+        /* With a production bundle the `console.log` above does not
+           reach Metro (trap 27), so this POST is the only copy of the
+           report: a wrong IP or a receiver that is not listening has to
+           say so, or the run looks like it measured nothing. */
+        fetch(receiver, { method: 'POST', headers: { 'content-type': 'application/json' }, body: text }).catch((e) =>
+          console.log('[meter] the report did not reach ' + receiver + ': ' + e.message),
+        )
+      }
     }, windowMs)
     return () => {
       clearInterval(clock)
@@ -223,7 +231,7 @@ export function Meter({ context, windowMs, receiver }: Props) {
       activeJS = false
       activeUI.set(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `frames` and `frameCallback` are stable for the component's life (both are ref-backed: useFrameCallback returns its own `ref.current`), so listing them could not change when this runs; only a change of props opens a new measurement window
   }, [context, windowMs, receiver])
 
   return null

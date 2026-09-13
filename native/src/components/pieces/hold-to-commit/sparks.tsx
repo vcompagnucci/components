@@ -17,9 +17,11 @@ import { FRONT, frontAt, HOLD, SPARKS } from './measurements'
    sparks are where they should be, and on release they leave with the
    fill (`blob`) instead of floating over a dark pill.
 
-   FEW VIEWS, SEVERAL LIVES: 12 images, each with 3 lives spread out over
-   time (never overlapping), are 36 sparks per hold with 12 animated
-   styles per frame. The texture is a white gaussian
+   FEW VIEWS, SEVERAL LIVES: 12 images, each with 3 lives spread out
+   over the hold, are 36 sparks per hold with 12 animated styles per
+   frame. A view draws ONE image, so when two of its lives overlap the
+   loop below takes the first one that is alive and the later one waits
+   (see `PER_VIEW`). The texture is a white gaussian
    (`media/spark@3x.png`); each life scales it and dims it to its own
    values. They live below the commit's white veil and below the label:
    on completion, the veil covers them; over an already white fill, white
@@ -60,7 +62,10 @@ const LIVES: Life[] = Array.from({ length: TOTAL }, (_, i) => ({
   alpha: between(SPARKS.alpha.min, SPARKS.alpha.max),
 }))
 /* View j takes lives j, j + views, j + 2·views: (to − from) / livesPerView
-   ≈ 0.31 of progress apart = 620 ms. */
+   ≈ 0.31 of progress apart, which at `HOLD.duration` = 1000 is 310 ms.
+   `SPARKS.life` reaches 450, so consecutive lives of one view DO
+   overlap, and while the first is alive the second does not get drawn:
+   the loop in `Spark` takes the first live one and stops. */
 const PER_VIEW: Life[][] = Array.from({ length: SPARKS.views }, (_, j) =>
   LIVES.filter((_, i) => i % SPARKS.views === j),
 )
@@ -80,7 +85,7 @@ function Spark({ lives, width, progress, blob }: { lives: Life[] } & Props) {
     const p = progress.get()
     let opacity = 0, tx = 0, ty = 0, sc = 1
     for (let i = 0; i < lives.length; i++) {
-      const v = lives[i]!
+      const v = lives[i]
       const dt = (p - v.p0) * HOLD.duration // ms of life
       if (dt < 0 || dt > v.length) continue
       const f = dt / v.length

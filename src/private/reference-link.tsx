@@ -1,5 +1,6 @@
 import css from './reference-link.module.css'
 import { useClips } from './clips'
+import { clipPath } from './vault'
 
 /* ═══════════════════════════════════════════════════════════════
    THE WAY BACK: from the piece, to the reference it was measured
@@ -64,12 +65,12 @@ export default function ReferenceLink({ slug }: { slug: string }) {
       Measured against{' '}
       <a
         className={css.link}
-        href={`/vault/${clip.path}`}
+        href={clipPath(clip.path)}
         onClick={(e) => {
           if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
           if (e.button !== 0) return
           e.preventDefault()
-          history.pushState({}, '', `/vault/${clip.path}`)
+          history.pushState({}, '', clipPath(clip.path))
           window.dispatchEvent(new PopStateEvent('popstate'))
         }}
       >

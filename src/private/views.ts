@@ -184,11 +184,17 @@ export function useViews() {
     pending.current = null
     timer.current = null
     if (!v) return
-    fetch('/vault-media/__views', {
+    /* THE FAILURE IS NOT ABSORBED. It used to end in `.catch(() => {})`
+       and that is the one thing this write cannot do: the screen is
+       optimistic (see `apply`), so a rejected PUT left the board looking
+       saved over a document on disk that is not. It goes out as an
+       unhandled rejection until the canvas has somewhere to say it,
+       which is the same debt the details panel has. */
+    void fetch('/vault-media/__views', {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ views: v }),
-    }).catch(() => {})
+    })
   }, [])
 
   useEffect(() => {
@@ -377,7 +383,8 @@ export function useViews() {
 
    The document is read and written back WHOLE, which is the same
    contract useViews has with the server. It returns the view's id so
-   the caller can navigate, or null if the vault is not there.
+   the caller can navigate, or null if the vault is not there or the
+   write did not land.
    ═══════════════════════════════════════════════════════════════ */
 
 /* The starting size when there is NOWHERE to measure the clip's aspect
@@ -403,7 +410,7 @@ export async function toPlayground(path: string): Promise<string | null> {
   const d = await r.json().catch(() => null)
   if (!d?.connected) return null
 
-  const views: View[] = Array.isArray(d.views) ? d.views : []
+  const views: View[] = d.views
   const latest = views.reduce<View | null>((a, b) => (a && a.created >= b.created ? a : b), null)
   const target: View = latest ?? {
     id: newId(),
@@ -434,11 +441,14 @@ export async function toPlayground(path: string): Promise<string | null> {
     ? views.map((v) => (v.id === withFrame.id ? withFrame : v))
     : [withFrame, ...views]
 
-  await fetch('/vault-media/__views', {
+  const saved = await fetch('/vault-media/__views', {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ views: next }),
   })
+  /* If the write did not land there is nowhere to send you: the canvas
+     would open without the clip the gesture was about. */
+  if (!saved.ok) return null
 
   return withFrame.id
 }

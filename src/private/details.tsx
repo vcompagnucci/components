@@ -9,20 +9,17 @@ import { split, type Segment } from "./links";
 import { PIECES } from "../pieces";
 
 /* ═══════════════════════════════════════════════════════════════
-   THE DETAILS. Always visible, five values, editing is touching and
-   typing. See details.module.css for why it no longer collapses.
+   THE DETAILS. Five values, editing is touching and typing. The panel
+   collapses and the clip never moves: the slot is reserved open or
+   closed, see details.module.css.
    ═══════════════════════════════════════════════════════════════ */
 
-/* The four classes of device. It is a PICKER and not a free field
-   because the value is used to filter and compare, and "iPhone",
-   "iphone" and "mobile" typed by hand are three different values that
-   mean the same thing. */
 /* ─── THE SPRING ───
    The usual one: bounce 0 (critically damped, with no impulse to give
    back because the trigger is a button) and 0.35 of response. A spring
    starts from the CURRENT value, so reverting halfway is continuous.
    The panel and the glyph's fill use it, so the two read as one thing. */
-export const SPRING = { type: "spring" as const, bounce: 0, duration: 0.35 };
+const SPRING = { type: "spring" as const, bounce: 0, duration: 0.35 };
 
 /* ─── THE PANEL'S GLYPH ───
    A rectangle with the right third separated: it is the screen, and
@@ -81,6 +78,10 @@ export function DetailsButton({
   );
 }
 
+/* The four classes of device. It is a PICKER and not a free field
+   because the value is used to filter and compare, and "iPhone",
+   "iphone" and "mobile" typed by hand are three different values that
+   mean the same thing. */
 const DEVICES = [
   "Mobile web",
   "Mobile app",
@@ -384,13 +385,14 @@ function Picker({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     const outside = (e: MouseEvent) => {
-      const t = e.target as Node;
+      const t = e.target;
       /* The trigger does NOT count as outside. Without this, pressing
          the value with the list open closed it on the pointerdown and
          the click behind it opened it again: it closed and opened in
          the same gesture. The toggle belongs to the trigger's click;
          this handler only looks at the rest of the page. */
-      if ((t as Element).closest?.('[aria-haspopup="listbox"]')) return;
+      if (!(t instanceof Element)) return;
+      if (t.closest('[aria-haspopup="listbox"]')) return;
       if (!box.current?.contains(t)) onClose();
     };
     document.addEventListener("keydown", onKey);

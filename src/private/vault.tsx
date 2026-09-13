@@ -105,12 +105,12 @@ const ACCEPT = ".mp4,.m4v,.mov,.webm,.png,.jpg,.jpeg,.webp,.avif,.gif";
    box.
 
    `linecap: round` because the rest of the system does not have one
-   single sharp corner. */
-/* The + drawn, not typed. Two strokes, currentColor, and the same
-   thickness as the weight of the text next to it. `linecap: round`
-   because the rest of the system does not have one single sharp
-   corner. */
-function Plus() {
+   single sharp corner.
+
+   It is exported because the playground's chrome draws the same glyph
+   in three places, and a second copy of a measured drawing is a second
+   thing to keep in step. */
+export function Plus() {
   return (
     <svg
       width="16"
@@ -198,7 +198,10 @@ function TitleMenu({
      mistake .play's optical margin and the details panel's toggle fix.
      So the anchor is built by hand: the x and the width come from the
      TEXT, the height from the whole button so the menu falls below the
-     entire click area and not below the line of text. */
+     entire click area and not below the line of text.
+
+     The first element child IS the text: the button renders the span
+     and then the chevron, in that order, ten lines below. */
   const anchorOnWord = (button: HTMLButtonElement) => {
     const b = button.getBoundingClientRect();
     const t = button.firstElementChild!.getBoundingClientRect();
@@ -374,11 +377,6 @@ export function Vault({
      same thing. */
   const [pending, setPending] = useState<File[]>([]);
   const input = useRef<HTMLInputElement | null>(null);
-  /* The right-click menu and its two dialogs. They go HERE, with the
-     rest of the hooks and before the first conditional return: putting
-     them below already broke this page once (five hooks on load and six
-     afterwards is "Rendered more hooks than during the previous
-     render") and the grid stopped drawing. */
   /* THE OPEN CLIP IS DERIVED UP HERE, before the conditional returns, so
      no future hook ends up behind one. That already broke this page
      once.
@@ -490,17 +488,24 @@ export function Vault({
      there is nothing to look up and nothing to write. It is the whole
      point of storing the slug and not the title.
 
+     IT TAKES THE SLUG AND NOT THE CLIP, so the two callers cannot
+     offer the way out without having the slug in hand: each one reads
+     it and guards on it before drawing its control. Taking the clip
+     needed an optional chain here, and that one navigates to
+     "/undefined" the day the invariant breaks.
+
      There is no guard for the piece not existing, because there cannot
      be one: the server refuses a slug that names nothing, and the
      picker only offers the pieces there are. If a piece gets deleted
      from pieces.ts by hand its clips keep pointing at it, and what you
      get is the 404 of the exhibition, which is the honest answer. */
-  const openInExhibition = (c: Clip) => go("/" + c.details?.piece);
+  const openInExhibition = (piece: string) => go("/" + piece);
 
   /* THE FAILURE NOTICE NEEDS NO SUBJECT and that is why it stays
      outside the guard: when the clip left cleanly, `subject` is the
      last one there was; when it failed, what matters is the message and
      not what it was about. */
+  const subjectPiece = subject?.details?.piece;
   const layer = (
     <>
       {subject && (
@@ -523,7 +528,7 @@ export function Vault({
                HAS a piece, so the menu is not repeating a command that
                may not be there. And the grid has no bar at all. */
             onExhibition={
-              subject.details?.piece ? () => openInExhibition(subject) : undefined
+              subjectPiece ? () => openInExhibition(subjectPiece) : undefined
             }
             onRename={() => setRenaming(subject)}
             /* WITHOUT ASKING: it leaves and that is it. The why is in
@@ -547,6 +552,7 @@ export function Vault({
   );
 
   if (clip) {
+    const piece = clip.details?.piece;
     return (
       <div
         className={css.detail}
@@ -589,9 +595,7 @@ export function Vault({
 
                 Absent when the clip produced nothing, which is most of
                 the vault. */}
-            {clip.details?.piece && (
-              <ExhibitionButton onOpen={() => openInExhibition(clip)} />
-            )}
+            {piece && <ExhibitionButton onOpen={() => openInExhibition(piece)} />}
             <PlaygroundButton onOpen={() => openInPlayground(clip)} />
             <DetailsButton
               open={detailsOpen}
@@ -599,12 +603,6 @@ export function Vault({
             />
           </div>
         </div>
-        {/* The details panel is ALWAYS there: the space it would give
-            back on closing cannot be used by any clip (they are all
-            bound by the height) so a toggle only moved things around
-            and you had to open it again every time. The slot is
-            reserved by the stage's padding, in CSS. Nothing animates
-            here. */}
         <div className={css.stage}>
           {clip.medium === "video" ? (
             <Player clip={clip} />
@@ -618,7 +616,7 @@ export function Vault({
   }
 
   const visible = status.clips.filter(
-    (c) => filter === "all" || c.source === (filter as Source),
+    (c) => filter === "all" || c.source === filter,
   );
 
   const upload = async (files: File[], source: Source) => {
@@ -635,7 +633,7 @@ export function Vault({
       try {
         await uploadClip(files[i], source);
       } catch (err) {
-        setUploading(`${files[i].name}: ${String((err as Error).message)}`);
+        setUploading(`${files[i].name}: ${String(err)}`);
         await new Promise((r) => setTimeout(r, 2500));
       }
     }

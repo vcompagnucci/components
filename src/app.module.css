@@ -49,20 +49,11 @@
    values (.context/recon/NAVIGATION.md): links 13px/460 at 40%, 8px of
    separation, width fitted to the longest label.
 
-   IT DOES HAVE A SCROLLSPY NOW. This used to say the decision had been
-   not to put one in; it was reverted, and on the way it solved another
-   problem at the root: the "Web" and "App" labels start invisible and
-   appear only when the separator of the first section leaves the
-   screen, so the same word is never on screen twice at once.
-
-   The three mechanisms are benji's, decoded from his bundle:
-     - the label appears by opacity, with his 400ms transition
-     - active = the last one whose top crossed a line at 128px from
-       the top of the viewport
-     - plus a guard: at the end of the document the last one always wins
-   The only thing of ours is the TRIGGER of the label: his is a
-   threshold of 100px of scroll, which here would show "Web" with the
-   "Web" separator still in sight. */
+   IT DOES HAVE A SCROLLSPY. Both mechanisms are benji's, decoded from
+   his bundle: active is the last piece whose top crossed a line 128px
+   from the top of the viewport, and at the end of the document the last
+   one always wins, because the one at the bottom can be too short to
+   ever reach the line. The code is in app.tsx, over SPY_LINE. */
 .index {
   position: fixed;
   left: var(--index-offset-left);
@@ -93,8 +84,9 @@
   flex-direction: column;
   gap: var(--index-item-gap);
   /* Each link measures its word and not the column. Without this the
-     flex stretches them to the 89px of the longest one, and the focus
-     ring drew up to 58px of emptiness next to "Input".
+     flex stretches every one of them to the width of the longest, and
+     the focus ring draws the difference as emptiness beside the short
+     ones.
 
      It is also benji's shape: his links are inline <a> inside an <li>,
      so they measure the text by nature. The cost is a smaller click
@@ -139,11 +131,10 @@
   letter-spacing: var(--type-nav-ls);
   line-height: var(--type-nav-lh);
   color: var(--type-nav-c);
-  /* The class is worn by a <button> (a piece, which scrolls this page)
-     and by an <a> (the private area, which leaves it). The browser
-     underlines the second one, and that made the two quietest words in
-     the column the loudest thing in it. What they have in common is
-     the typography; the difference is the element, not the ink. */
+  /* The class is worn by a <button>: a piece, which scrolls this page
+     and does not navigate. The reset stays for whatever anchor ends up
+     wearing it, because the browser underlines those and the quietest
+     words in the column would become the loudest thing in it. */
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -169,10 +160,10 @@
    Touching a link of the index does not navigate, it only scrolls, so
    the :hover stays stuck to it until the next touch. And since hover
    and active paint the same color, the stuck one is indistinguishable
-   from the real one: measured on an iPad Pro in landscape, touching
-   "Switch" and scrolling far away leaves TWO links painted at once,
-   "Switch" stuck and "Tab Bar" active, and the index lies about where
-   you are.
+   from the real one: measured on an iPad Pro in landscape, touching one
+   link and scrolling far away leaves TWO painted at once, the touched
+   one stuck and another active, and the index lies about where you
+   are.
 
    The card does not need it: touching it unmounts it. The back arrow
    does not either, for the same reason (verified: :hover empty after
@@ -444,20 +435,12 @@
   background: var(--hairline);
 }
 
-/* The whole piece is the button: the title is clickable too and can be
-   reached by keyboard, not only the rectangle. */
-/* It is an <a href> and not a button, see the comment in parts.tsx.
-   That is why what gets neutralised here is the anchor's and not the
-   button's: the underline and the inherited color, instead of border,
-   background and text-align. The `color: inherit` matters: without it
-   the title of the piece would take the browser's link color. */
-/* THE CARD IS NO LONGER THE ANCHOR. It was an <a> that wrapped
-   everything, and an <a> cannot contain interactive content: inside the
-   preview live the four <button> of a Web piece and the video's speed
-   one. Now it is an <article>, the anchor wraps the title and stretches
-   over the card with an ::after, and the preview comes AFTER in the
-   document, so it paints on top of that layer and the demo stays alive.
-   The full why is in parts.tsx, above Item. */
+/* THE CARD IS AN <article> AND THE ANCHOR IS INSIDE IT. An <a> cannot
+   contain interactive content, and inside the preview live the buttons
+   of a Web piece and the video's speed control. So the anchor wraps the
+   title and stretches over the card with an ::after, and the preview
+   comes AFTER it in the document, painting on top of that layer so the
+   demo stays alive. The full why is in parts.tsx, above Item. */
 .streamItem {
   position: relative;
   display: block;
@@ -466,6 +449,9 @@
   border-radius: var(--card-radius);
   cursor: pointer;
 }
+/* What gets neutralized is the anchor's: the underline and the color.
+   Without the `inherit` the title of the piece takes the browser's link
+   color. */
 .streamLink {
   color: inherit;
   text-decoration: none;
@@ -552,11 +538,12 @@
   padding: 0;
   border: 0;
   background: transparent;
+  /* The 34×34 square is invisible: it is the click area, and the radius
+     is what gives the focus ring its shape, since the outline follows
+     the border-radius. */
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  /* The square shows at 34; the target reaches 44 without moving
-     anything. */
   position: relative;
   /* THE ARROW GETS PAINTED, NOT THE SQUARE. The hover used to fill the
      34×34 with --a1; now it only changes the color of the glyph. It is
@@ -572,10 +559,8 @@
      they do not move. And benji's 0.1s is exactly the --dur-text we
      already had.
 
-     Since it now animates ONE family only, the exception for the pair
-     is gone: there is no longer an element that animates surface and
-     text at once, so the rule stays clean. The property rules, and
-     nothing else. */
+     It animates ONE family, so it takes the text pair and there is no
+     exception to the rule in tokens.css: the property decides. */
   transition: color var(--dur-text) var(--ease-text);
 }
 /* 34×34 to the eye, 44 of target. The arrow is alone at the top left of
@@ -586,16 +571,12 @@
   position: absolute;
   inset: -5px;
 }
-/* The 34×34 square stays, but invisible: it is the click area. And the
-   radius stays too, because it is what gives the focus ring its shape.
-   The outline follows the border-radius. */
 .back:hover {
   /* It reaches --active-c, not the ink. It is benji's, measured: his
      .styles_backButton goes from rgba(0,0,0,.4) to rgba(0,0,0,.8) and
      does NOT reach his ink. It stops at 51 over his canvas. We stop at
      65, because the 80% is written from our ink base and not from pure
-     black: it is the same "one alpha, two bases" structure that already
-     rules the text grays.
+     black.
 
      And it is the SAME token that marks the active piece in the index.
      In his system hover and active are a single declaration,

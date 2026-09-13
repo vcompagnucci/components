@@ -75,7 +75,7 @@ export default function PrivateArea({
       if (e.defaultPrevented) return
       if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return
       if (e.shiftKey) return
-      const t = e.target as HTMLElement | null
+      const t = e.target
       /* In a text field ⌘Z is undo WHAT YOU TYPED, and the browser does
          that better than we do. */
       if (t instanceof HTMLElement && (t.closest('input, textarea') || t.isContentEditable)) return
@@ -97,30 +97,6 @@ export default function PrivateArea({
      looks at `rest` and not at which view you are in: what decides is
      whether something is open. */
   const inDetail = rest !== ''
-
-  /* ─── INSIDE SOMETHING THERE ARE NO TABS ───
-     With a clip or a canvas open, the tab bar is NOT drawn.
-
-     This used to hold only for the canvas, with this argument: "the
-     detail of a clip still carries its bar, because there you are still
-     looking at the vault". It was reverted by request, and the argument
-     falls apart on its own when you look at the screen: in the detail
-     you CANNOT go to Playground without going back first, so the two
-     words are not navigation, they are a label saying where you are,
-     and the clip's title right below already says that.
-
-     Getting out does not depend on them either: the back arrow, the
-     back gesture and ⌘Z all three do history.back().
-
-     AND IT ALSO PAYS. The detail is tied to the window's height
-     (height:100dvh, overflow:hidden) and the player hands out what is
-     left over: taking out the chrome row does not leave a hole, the
-     clip takes it, which is the only thing you came to look at.
-
-     THE ACTIONS SLOT GOES WITH IT, and nothing is lost: the only one
-     that uses it is the vault's filter, which only exists in the grid.
-     The detail never portaled anything there. */
-  const noTabs = inDetail
 
   /* The canvas also HANDS OVER THE FRAME'S VERTICAL AIR: it is full
      bleed on all four sides and the only thing that bounds it is its
@@ -152,9 +128,32 @@ export default function PrivateArea({
       data-detail={inDetail ? '' : undefined}
       data-canvas={inCanvas ? '' : undefined}
     >
+      {/* ─── INSIDE SOMETHING THERE ARE NO TABS ───
+          With a clip or a canvas open, the tab bar is NOT drawn.
+
+          This used to hold only for the canvas, with this argument: "the
+          detail of a clip still carries its bar, because there you are
+          still looking at the vault". It was reverted by request, and the
+          argument falls apart on its own when you look at the screen: in
+          the detail you CANNOT go to Playground without going back
+          first, so the two words are not navigation, they are a label
+          saying where you are, and the clip's title right below already
+          says that.
+
+          Getting out does not depend on them either: the back arrow, the
+          back gesture and ⌘Z all three do history.back().
+
+          AND IT ALSO PAYS. The detail is tied to the window's height
+          (height:100dvh, overflow:hidden) and the player hands out what
+          is left over: taking out the chrome row does not leave a hole,
+          the clip takes it, which is the only thing you came to look at.
+
+          THE ACTIONS SLOT GOES WITH IT, and nothing is lost: the only
+          one that uses it is the vault's filter, which only exists in
+          the grid. The detail never portaled anything there. */}
       {/* The tabs are real links, with the same interceptor as the piece
           in the list: cmd-click opens a new tab. */}
-      {!noTabs && (
+      {!inDetail && (
         <nav className={css.bar} aria-label="Private">
           {/* ─── AND THE WAY OUT, FIRST ───
               The exhibition is not one of `routes` and it cannot be:

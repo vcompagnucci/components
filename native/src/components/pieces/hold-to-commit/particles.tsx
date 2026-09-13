@@ -41,7 +41,7 @@ type Particle = {
   diameter: number      // pt
   noise: number         // pt of lateral noise at the end of the travel
   color: string
-  brightness: number    // 0.6..1, each dot's own
+  brightness: number    // 0.75..1, each dot's own
 }
 
 /* Park–Miller: plenty for 46 numbers that only have to look unordered
@@ -64,7 +64,7 @@ const TABLE: Particle[] = Array.from({ length: PARTICLES.count }, (_, i) => ({
   travelFraction: between(PARTICLES.travelDuration.min, PARTICLES.travelDuration.max) / PARTICLES.lifetime,
   diameter: PARTICLES.diameter.min + (PARTICLES.diameter.max - PARTICLES.diameter.min) * Math.pow(random(), PARTICLES.diameter.bias),
   noise: between(-PARTICLES.lateralNoise, PARTICLES.lateralNoise),
-  color: PARTICLES.colors[Math.floor(random() * PARTICLES.colors.length)]!,
+  color: PARTICLES.colors[Math.floor(random() * PARTICLES.colors.length)],
   brightness: between(PARTICLES.brightness.min, PARTICLES.brightness.max),
 }))
 
@@ -110,7 +110,7 @@ function Dot({ p, width, burst, color }: { p: Particle } & Props) {
        from `fadeFrom` so that the life ends at zero. */
     const fade = Math.exp(-K_FADE * t) * (1 - smoothstep(t, PARTICLES.fadeFrom, 1))
     return {
-      opacity: PARTICLES.maxBrightness * p.brightness * fade,
+      opacity: p.brightness * fade,
       transform: [
         { translateX: endX * eo },
         { translateY: endY * eo },
