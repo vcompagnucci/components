@@ -320,9 +320,13 @@ import { Section } from '../../../notes'
    under src/. The rule was written on 2026-09-07 and never applied,
    and nothing catches that, because a reference checker reads names
    and a compiler does not read prose. It is applied now, with `&nbsp;`
-   in the three that survived the cut: "300 ms", "60 fps" and "492
-   frames". It is the better-typography rule, so that a number does not
-   land on one line and its unit on the next.
+   in the two that survived the cut: "300 ms" and "60 fps". It is the
+   better-typography rule, so that a number does not land on one line
+   and its unit on the next. Verified in the build and not in the
+   source, which is where it would have been believed wrongly: esbuild
+   decodes the entity and emits `300\xA0ms`, so what ships is the
+   character. Babel decodes it too; had the transform been one that
+   does not, the page would read the six letters.
 
    THE NAMES ARE THE TECHNICAL TERMS (tab, underline, label, symbol,
    page; "select", not "jump"), by the repo's naming rule (AGENTS.md ›
@@ -406,16 +410,32 @@ import { Section } from '../../../notes'
      went: the record says the vault clip AND THEN four recordings by
      the user, that is five, so "four" was undercounting (found on
      2026-09-08, see `LOG.md`).
-   SECOND CONCISION PASS, 2026-09-14 ("much shorter and more concise").
-   547 → 414 words, 24 % less. (The pass above recorded 583 for the
-   same text; counted again the same way on 2026-09-14 it is 547, so
-   the two numbers are two counts and not a change.) The paragraph
-   count did not move, and
-   that is not an accident: Anatomy lost one and Performance gained
-   one, because its second paragraph was five sentences where the shape
-   asks for two to four.
+   SECOND CONCISION PASS, 2026-09-14, in two rounds because the first
+   was not short enough ("much shorter and more concise", and then the
+   same request again over its result). 547 → 414 → 309 words, 44 %
+   less, and 11 paragraphs down to 8. (The pass above recorded 583 for
+   the text this one started from; counted again the same way it is
+   547, so those two are two counts and not a change.)
 
-   What was deleted whole, and each one had been flagged in advance by
+   ROUND TWO COST RECEIPTS, WHICH ROUND ONE DID NOT, and that is the
+   line worth knowing about this file. Gone: the trace of 492 frames
+   with no flicker, and the frame the unmemoized version lost after a
+   tap. Both are RUNTIME measurements, both are in `LOG.md` where they
+   keep working, and what they were doing in the public text was
+   proving a claim to a reader who was never going to check it. The one
+   receipt left is the 60 fps on the phone, which is the headline.
+
+   Also out in round two: "the row moves on its own only when the
+   active tab does not fit" (a behaviour you see once in six tabs),
+   "absolutely positioned with no children, so no other layout runs"
+   (Performance says no layout runs, and it does not need saying twice
+   from two angles) and "each frame interpolates between two of them
+   with a transform", which explains a mechanism nobody asked about.
+   What did NOT go, and was the temptation, is reduced motion and the
+   haptic never being the only feedback: those two sentences are what
+   makes the piece usable by someone the video does not show.
+
+   ROUND ONE deleted whole, and each one had been flagged in advance by
    this comment or by the rule it broke:
    · The closing that named the reference, and the clause in Use cases
      that named it a second time.
@@ -465,56 +485,42 @@ export default function Notes() {
         </p>
         <p>
           A tap makes a tab active in 300&nbsp;ms. It widens for its symbol, the other labels move
-          aside, and the content crosses one page however far the tab is. The row moves on its own
-          only when the active tab does not fit.
+          aside, and the content crosses one page however far the tab is.
         </p>
         <p>
-          Only transform, opacity and the label color animate. The one animated width is the
-          underline, absolutely positioned with no children, so no other layout runs. A drag
-          interrupts a tap at any point, and the curve is an ease-out, never an ease-in.
-        </p>
-        <p>
-          A light haptic fires in the frame the tab changes, once per change, never as the only
-          feedback. Reduced motion is respected.
+          Only transform, opacity and the label color animate, on an ease-out. A drag interrupts a
+          tap at any point. A light haptic fires in the frame the tab changes, once per change,
+          never as the only feedback, and reduced motion is respected.
         </p>
       </Section>
 
       <Section title="Performance">
         <p>
           Everything that moves is computed on the UI thread. The content is a native scroll view,
-          so the system runs the drag and its deceleration. React does not render during a gesture
-          or a tap.
+          so the system runs the drag and its deceleration, and React does not render during a
+          gesture or a tap.
         </p>
         <p>
-          No layout runs for the tabs while the content moves. The row is not a flex row, and every
-          tab’s position and width in each resting state are computed once, after the labels are
-          measured. Each frame interpolates between two of them with a transform.
-        </p>
-        <p>
-          All six pages are mounted and memoized, so a swipe never mounts a list. Unmemoized, the
-          first frame after a tap stood still, a whole frame lost.
+          No layout runs for the tabs. The row is not a flex row, and every tab’s position is
+          computed once, after the labels are measured. All six pages are mounted and memoized, so
+          a swipe never mounts a list.
         </p>
         <p>
           The row reads one derived value, so the underline, the labels and the symbols move as one
-          object. Measured on the phone at 60&nbsp;fps through every gesture, and a trace of
-          492&nbsp;frames across a six-page sweep shows no flicker.
+          object. Measured on the phone at 60&nbsp;fps through every gesture.
         </p>
       </Section>
 
       <Section title="Use cases">
         <p>
           Swipeable tabs fit one screen whose content splits into closely related lists that do not
-          affect each other. Use them when there are more lists than a segmented control should
-          hold, and people switch often enough that a swipe has to work as well as a tap.
-        </p>
-        <p>
-          The same shape fits any section that holds several peer lists. A profile with posts,
-          replies and media, or a catalog by category.
+          affect each other, and where people switch often enough that a swipe has to work as well
+          as a tap. A profile with posts, replies and media, or a catalog by category.
         </p>
         <p>
           A hierarchy needs a back button, not a row of tabs. About five lists or fewer belong in a
           segmented control, and the top-level sections of an app belong in the tab bar at the
-          bottom. Both ask for short labels, and so do these.
+          bottom. All of them ask for short labels.
         </p>
       </Section>
     </>
