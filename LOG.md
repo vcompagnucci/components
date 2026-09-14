@@ -642,6 +642,62 @@ breaks.
 What did not change: the density. A divider that heads an argument stays, and
 that is why the ones here read in capitals and carry a claim.
 
+## The comments of a piece do not get published
+
+The question was whether somebody landing on the exhibition can be stopped from
+seeing how a Web piece is made. They cannot, and pretending otherwise is the
+mistake: the piece runs in their browser, so it is already on their machine, and
+devtools is not a door that closes. Blocking the right click, a `debugger` loop
+or measuring the window to guess the panel is open gets past in seconds, breaks
+the keyboard and the screen reader, and is a tell.
+
+**What was worth fixing is something else, and it was found by reading the
+served file instead of the source.** A piece keeps its CSS in a template
+literal, `const STYLESHEET`, and a minifier does not go inside a string. The JS
+came out with its identifiers mangled and its comments gone; the CSS came out
+verbatim. Measured on production on 2026-09-13:
+
+| chunk | comments | bytes | of the chunk |
+| --- | --- | --- | --- |
+| `buttons-separate-Ntzj-RDl.js` | 27 | 8 755 | 38 % |
+| `select-summary-ClzGkoHY.js` | 62 | 27 212 | 71 % |
+
+And what is in them is not implementation, it is the method: the SwiftUI probe,
+the least-squares fit with its rms, the levels read off the reference, the path
+to `.context/`. A minified bundle says the veil sits at 0.675, which is on the
+screen anyway. The comment beside it says where the 0.675 came from, and that is
+the part nobody can read off a screenshot.
+
+So `scripts/remove-stylesheet-comments.mjs` removes them on a build and not in
+development, `apply: 'build'` against the `apply: 'serve'` of the vault: while
+you work, the comment in devtools IS the documentation. 89 comments, 36 127
+bytes. `select-summary` went from 37.99 to 10.68 kB.
+
+**Three things it had to get right, and each one is in the file.** A `/*` inside
+a CSS string is not a comment and cutting from there would eat the rules after
+it. An unclosed comment is not removed, because in a real parser it comments out
+the rest of the stylesheet and removing it would change what renders. And the
+line a comment lived on goes with it only when the comment WAS the line, so a
+blank line the author wrote stays where they put it: that is what makes the
+result checkable, and it was checked. Normalized, what is published is character
+for character the source without its comments, 3 769 and 4 803 characters.
+
+**The gate is on the artifact, not on the source.** The transform knows one
+name, so a piece calling its stylesheet something else would sail past it in
+silence, which is exactly how this got published in the first place: nobody was
+reading the emitted file. `generateBundle` now fails the build if a CSS comment
+survives anywhere in any chunk, and it names the chunk, the count and the first
+one. Verified by renaming `STYLESHEET` in a piece: the build stops. The one
+shape it lets through is `/*!`, the legal comment a dependency ships its license
+in, which is not ours to strip.
+
+What the four references do, measured the same day: `emilkowal.ski`,
+`joshpuckett.me`, `linear.app` and `rauno.me` all serve zero
+`sourceMappingURL` and answer 404 for the `.map`. So does this site, and that is
+the whole of what is actually controllable. None of them blocks devtools. They
+separate the artifact, which is readable, from the reasoning, which they publish
+when they choose to and not by accident.
+
 ## What is pending
 
 - The `--space-*` scale does not cover what the page uses. It stops at 64 and

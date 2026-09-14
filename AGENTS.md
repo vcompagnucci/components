@@ -679,6 +679,18 @@ the bundle. When the canvas has to draw a real piece, the import goes in
 that direction (private → product), and that is why the model stores the
 **name** of the piece and not its component.
 
+**A Web piece's stylesheet is called `STYLESHEET`, and that name is load
+bearing.** The CSS travels in a template literal, which a minifier does
+not go inside: the comments used to get published verbatim, 38 % and
+71 % of the two piece chunks, and what they carry is the method behind
+each value. `scripts/remove-stylesheet-comments.mjs` removes them on a
+build and leaves them whole in development, where the comment in devtools
+is the documentation. Naming it something else does not leak in silence:
+the plugin reads the chunks it is about to write and **fails the build**
+if a CSS comment survived, whichever string it was hiding in. Why the
+code itself is not hidden, and what the four references actually serve,
+is in `LOG.md` › *The comments of a piece do not get published*.
+
 ## The map of the repo
 
 | where | what |
@@ -711,6 +723,7 @@ that direction (private → product), and that is why the model stores the
 | `scripts/vault-media.mjs` | the bridge to the vault |
 | `scripts/frames.mjs` | `mdhd` + `stts` from the mp4/mov, without ffprobe |
 | `scripts/routes.mjs` | `vercel.json` from `pieces.ts`, in prebuild |
+| `scripts/remove-stylesheet-comments.mjs` | the comments of a piece's CSS do not get published, and the build fails if one survives |
 | `scripts/link-card.mjs` | the title and favicon of a link, on the server side |
 
 ## Where each thing is written
