@@ -177,6 +177,7 @@
 
 /* ─── THE PLAY BUTTON · apple's, measured ─── */
 .play {
+  position: relative;
   flex: none;
   width: var(--player-play);
   height: var(--player-play);
@@ -217,6 +218,13 @@
   transition:
     opacity 100ms linear,
     transform 0.2s ease;
+}
+/* 38×38 drawn, 44×44 of target. The 3 it takes on each side stay well
+   inside the 8 of --player-gap that separate it from the track. */
+.play::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
 }
 .play:disabled {
   opacity: 0.32; /* apple, measured */
@@ -270,13 +278,30 @@
   border-radius: var(--player-pill-radius);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px; /* his */
-  font-weight: 460; /* his */
+  font-size: 12px; /* measured */
+  font-weight: 460; /* measured */
   line-height: 1;
   /* What makes the two states equal; see above. */
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: all 0.2s ease; /* his, literal */
+  position: relative;
+  /* The duration and the curve are the measured ones, literal. The
+     PROPERTIES are named instead of `all`: with `all`, anything that
+     ends up changing gets animated, and the two that can change here
+     are the width of the box and its grid, both of them layout. Named,
+     the transition is a color and an opacity and nothing else. */
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+/* 25×20 drawn, 45×44 of target. It grows 4 to the left, half of
+   --player-gap, so it touches the track without taking a click from it;
+   16 to the right, where the row ends and there is only page margin;
+   and 12 up and down, where the bar has room. */
+.speed::before {
+  content: '';
+  position: absolute;
+  inset: -12px -16px -12px -4px;
 }
 .speed:hover {
   color: var(--ink);

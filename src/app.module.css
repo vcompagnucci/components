@@ -333,7 +333,7 @@
   right: 16px;
   display: flex;
   justify-content: flex-end;
-  width: 28px;
+  width: 40px;
   height: 20px;
   padding: 0;
   border: 0;
@@ -347,20 +347,26 @@
   letter-spacing: var(--type-nav-ls);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition:
-    opacity var(--dur-surface) var(--ease-surface),
-    width var(--dur-surface) var(--ease-surface);
+  transition: opacity var(--dur-surface) var(--ease-surface);
 }
-/* 28×20 to the eye, 44 of target. It is alone in its corner, so growing
+/* 40×20 to the eye, 44 of target. It is alone in its corner, so growing
    inward does not step on anybody's target. */
 .speed::before {
   content: '';
   position: absolute;
   inset: -12px;
 }
-.speed[data-speed='0.5'] {
-  width: 40px;
-}
+/* THE BOX DOES NOT CHANGE SIZE, THE LABEL MOVES. This used to animate
+   `width` from 28 to 40, and width is layout: the browser re-runs it on
+   every frame of the transition, which is the one thing that cannot be
+   promised inside a frame. The box now always measures the wider state
+   and the label travels the 6px that separates the two centres, which
+   is a transform and runs in the compositor.
+
+   The 6 is arithmetic, not a guess: with the right edge pinned, a label
+   centred in 40 sits 20 from that edge and one centred in 28 sits 14.
+   Verified on the served page: the label lands on the same x it landed
+   on before. */
 .speed span {
   position: absolute;
   inset: 0;
@@ -368,7 +374,13 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: inherit;
+  transform: translateX(6px);
+  transition:
+    opacity var(--dur-surface) var(--ease-surface),
+    transform var(--dur-surface) var(--ease-surface);
+}
+.speed[data-speed='0.5'] span {
+  transform: none;
 }
 .speed span[data-active='true'] {
   opacity: 1;

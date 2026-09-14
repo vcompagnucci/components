@@ -231,7 +231,19 @@
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
+  position: relative;
   transition: color var(--dur-text) var(--ease-text);
+}
+/* 44 OF TARGET WITHOUT MOVING A PIXEL. The words are drawn 32 tall and
+   the target has to reach 44, so the ::before takes 6 on each side: it
+   is out of the flow, so the bar does not grow. Sideways it takes only
+   2, which is half the 4 measured between one tab and the next: the
+   targets end up TOUCHING and never overlapping, which is the rule the
+   index already follows. */
+.tab::before {
+  content: '';
+  position: absolute;
+  inset: -6px -2px;
 }
 .tab[data-active] {
   color: var(--active-c);
@@ -276,6 +288,7 @@
      the focus ring, which follows the border-radius. It is the same
      thing .back does. */
   border-radius: 8px;
+  position: relative;
   /* ─── THE PRESS, WHICH THESE GLYPHS DID NOT HAVE ───
      A button that reacts to the pointer and does not react to the
      finger feels dead. It is not a new value: it is the one from
@@ -289,6 +302,16 @@
   transition:
     color var(--dur-text) var(--ease-text),
     transform 100ms var(--ease-dialog);
+}
+/* 32×32 drawn, 40×44 of target. Vertically there are 67 free, so it
+   takes the 6 it needs; sideways there are 8 to the next glyph and it
+   takes 4, half of them, so two neighbours touch and do not overlap.
+   That leaves it 4 short of 44 in width, and the alternative was two
+   targets that steal each other's clicks. */
+.glyph::before {
+  content: '';
+  position: absolute;
+  inset: -6px -4px;
 }
 .glyph:hover {
   color: var(--active-c);

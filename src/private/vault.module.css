@@ -155,6 +155,7 @@
      the case at every comparison, which is the kind of detail you
      forget once and it breaks the filter without saying anything. */
   text-transform: capitalize;
+  position: relative;
   /* THE SAME SET AS THE TABS, not one of its own. It sat at 14 against
      their 13, looking for a step of presence, and one pixel of
      difference is not a hierarchy: it reads as an inconsistency.
@@ -175,6 +176,16 @@
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-text) var(--ease-text);
+}
+/* The word is drawn 48 tall, so the height already clears 44. Sideways
+   it takes 2, half the 4 measured to the next filter, and that is the
+   whole margin there is: the group lives inside one row and a target
+   that overlapped its neighbour would steal its clicks. It ends up 12
+   short of 44 in width, and that is the price of the row. */
+.filter::before {
+  content: '';
+  position: absolute;
+  inset: 0 -2px;
 }
 /* TRIED AND CONFIRMED (2026-09-03): contrast only, no second signal. It
    was put on the real page with `prototype` against four alternatives
@@ -830,6 +841,12 @@
    title. */
 .backInRow {
   margin-bottom: 0;
+  /* ITS TARGET STAYS ON TOP. The arrow's hit area hangs 5px past its
+     own box and the title sits 2px away, so the two overlap. Once the
+     title became positioned to carry its own target, it started
+     painting over that strip and taking 3.7px of the arrow, measured.
+     The arrow is the way out of the detail: it wins the overlap. */
+  z-index: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -930,6 +947,7 @@
   flex: none;
 }
 .detailTitle {
+  position: relative;
   display: flex;
   align-items: center;
   /* THE PADDING GROWS AND THE TEXT DOES NOT MOVE. The padding grows the
@@ -953,6 +971,14 @@
   cursor: pointer;
   /* NO TRANSFORM: there is no press here. See below. */
   transition: color var(--dur-text) var(--ease-text);
+}
+/* The row is drawn 36 tall and the target reaches 44: 4 on each side,
+   out of the flow. Vertically it is alone in its row, and sideways it
+   already runs the width of the title. */
+.detailTitle::before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
 }
 .detailTitle:hover,
 .detailTitle[aria-expanded="true"] {
@@ -1355,6 +1381,7 @@
    light). The button stopped having color logic of its own. It inherits
    the system's, like the card. */
 .plus {
+  position: relative;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -1374,6 +1401,14 @@
   transition:
     background-color var(--dur-surface) var(--ease-surface),
     color var(--dur-text) var(--ease-text);
+}
+/* 32×32 drawn, 44×44 of target: 6 on each side, out of the flow so the
+   row does not grow. There are 26 measured to the group of filters and
+   160 to anything below, so nothing gets stepped on. */
+.plus::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
 }
 .plus:hover {
   background: var(--surface-hover);

@@ -225,6 +225,7 @@
    .barePlus, with no circle. A section heading and a bar are two
    contexts, see the note over there. */
 .plus {
+  position: relative;
   --plus-fill: rgb(0 0 0 / 0.08);
   --plus-fill-hover: rgb(0 0 0 / 0.14);
 
@@ -243,6 +244,14 @@
   transition:
     background-color var(--dur-surface) var(--ease-surface),
     color var(--dur-text) var(--ease-text);
+}
+/* 32×32 drawn, 44×44 of target. It is alone in its corner: no neighbour
+   to step on. It goes in ::after because the ::before of this button is
+   already taken by the zero-width strut that gives it a baseline. */
+.plus::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
 }
 /* ─── THE STRUT THAT GIVES THE CIRCLE A BASELINE ───
    The private area's bar aligns by `baseline`, and rightly so: the tabs
