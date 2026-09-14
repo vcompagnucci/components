@@ -44,9 +44,14 @@ import { Section } from '../../../notes'
    as useless ("I don't feel this is useful", same day). It is prose,
    with no subheads: an h3 per part was tried, a measured shape,
    and the user rejected it on the page ("I don't like this structure").
-   And THE REFERENCE IS NAMED HERE: that it came from X is told where
-   how it was measured is told. IT DOES NOT SAY WHERE THE SYMBOLS COME
-   FROM, nor the haptics (the user's request, 2026-09-07). THE PIECE HAS
+   AND THE REFERENCE IS NOT NAMED HERE. It was named twice, in a
+   closing sentence that also said how it was measured and in Use cases
+   as the model for the shape, and both came out on 2026-09-14 together
+   with the same closing on Hold to buy and the dev-only line that sat
+   under every piece. The name of the reference app does not go on a
+   piece's page; the attribution is the `Source` field of the clip in
+   the vault. IT DOES NOT SAY WHERE THE SYMBOLS COME FROM, nor the
+   haptics (the user's request, 2026-09-07). THE PIECE HAS
    NO DESCRIPTION LINE: it had one ("Top tabs for React Native &
    Expo.") and the user deleted it the same day, "the one above already
    says swipeable tabs". The title is the way in and these notes are
@@ -123,7 +128,10 @@ import { Section } from '../../../notes'
      the tap's config (animate-expo § 9; swipeable-tabs.tsx, `CFG`).
    · 120 fps enabled on ProMotion: `CADisableMinimumFrameDurationOnPhone`
      (animate-expo § 120fps; native/app.json). SOURCE, not measured on
-     screen: the recording is at 60.
+     screen: the recording is at 60. OUT OF THE TEXT since 2026-09-14,
+     for that reason: it is the one claim in Anatomy a reader could not
+     check, on a page whose whole argument is that everything in it was
+     measured. The flag stays in app.json.
    · Every value is a named constant with its source next to it
      (interface-craft, "tunable by default"; measurements.ts), and a
      single value drives the whole transition (interface-craft,
@@ -290,10 +298,11 @@ import { Section } from '../../../notes'
    for iPhone would be stretching it.
    WHAT DOES NOT COME FROM APPLE, and belongs to the piece, checked in
    the code: the active tab widens for its symbol and the row moves only
-   when a tab does not fit (`TAB_BAR.row = 'visible'`, tab-bar.tsx); and
-   "two feeds and four topics in one row" are the six in `TABS` in
-   swipeable-tabs-screen.tsx (For you, Following · Stocks, Tech, AI,
-   Design).
+   when a tab does not fit (`TAB_BAR.row = 'visible'`, tab-bar.tsx). The
+   sentence "two feeds and four topics in one row", which counted the
+   six in `TABS` in swipeable-tabs-screen.tsx, was deleted on
+   2026-09-14: it was accurate, and it was the clause that named the
+   reference app.
    IT WILL CARRY VIDEO: one video per case with a one-line caption like
    the measured one ("Resting heart rate. Custom formatter,
    exaggerated Y-axis.": what it is and what changes). Until those
@@ -305,11 +314,15 @@ import { Section } from '../../../notes'
    but dropping in a block of links changes the shape of the notes of
    EVERY piece, and that is another mini-decision.
 
-   NUMBER AND UNIT GO WITH A NON-BREAKING SPACE (U+00A0): "300 ms",
-   "60 fps", "120 fps", "492 frames". It is the better-typography rule
-   (`&nbsp;` so that "16 px" does not split at a line break); today none
-   of them landed on a break, but any change of text or of width could
-   split them (2026-09-07).
+   NUMBER AND UNIT GO WITH A NON-BREAKING SPACE, and until 2026-09-14
+   this paragraph said so while the file did not do it. Counted that
+   day: zero U+00A0, zero `&nbsp;`, in this file and in every other one
+   under src/. The rule was written on 2026-09-07 and never applied,
+   and nothing catches that, because a reference checker reads names
+   and a compiler does not read prose. It is applied now, with `&nbsp;`
+   in the three that survived the cut: "300 ms", "60 fps" and "492
+   frames". It is the better-typography rule, so that a number does not
+   land on one line and its unit on the next.
 
    THE NAMES ARE THE TECHNICAL TERMS (tab, underline, label, symbol,
    page; "select", not "jump"), by the repo's naming rule (AGENTS.md ›
@@ -393,11 +406,41 @@ import { Section } from '../../../notes'
      went: the record says the vault clip AND THEN four recordings by
      the user, that is five, so "four" was undercounting (found on
      2026-09-08, see `LOG.md`).
-   WHAT IS STILL A CANDIDATE FOR CUTTING, if another round is ever
-   asked for: "Every value is a named constant with its source" is the
-   only sentence in Anatomy that talks about the source code and not
-   about what you see. It is there because the user asked for the
-   interface-craft rules in the text; it goes the day that changes.
+   SECOND CONCISION PASS, 2026-09-14 ("much shorter and more concise").
+   547 → 414 words, 24 % less. (The pass above recorded 583 for the
+   same text; counted again the same way on 2026-09-14 it is 547, so
+   the two numbers are two counts and not a change.) The paragraph
+   count did not move, and
+   that is not an accident: Anatomy lost one and Performance gained
+   one, because its second paragraph was five sentences where the shape
+   asks for two to four.
+
+   What was deleted whole, and each one had been flagged in advance by
+   this comment or by the rule it broke:
+   · The closing that named the reference, and the clause in Use cases
+     that named it a second time.
+   · "Every value is a named constant with its source", which the
+     paragraph this one replaces had already marked as the next to go:
+     the only sentence in Anatomy about the source code instead of
+     about what you see.
+   · 120 fps on ProMotion, marked SOURCE and not measured.
+   · Four claims that the sentence beside them already made: "The
+     JavaScript thread takes part only at the tap and at the haptic"
+     (React does not render says it), "the scroll offset and every
+     style derived from it are computed frame by frame" (the UI thread
+     says it), "no render rebuilds six lists of twelve rows" (a swipe
+     never mounts a list says it), and "the active tab widens for its
+     symbol" in Use cases, which is Anatomy's second paragraph.
+   · Three of the five examples of peer lists. Five was a catalogue;
+     two make the point.
+
+   AND TEN COLONS AND SIX SEMICOLONS WENT WITH THEM, to zero. That was
+   the joint this text used to bolt a second clause onto a finished
+   sentence, ten times in eleven paragraphs, and it is the rhythm tell
+   `emil-unslop-writing` weighs heaviest. Where one was doing work
+   there is a period now. The two long enumerations in Use cases were
+   semicolon lists, and one of them is gone and the other is two
+   sentences.
 
    NO DASH, NEITHER EM DASH NOR EN DASH, IN THE PUBLIC TEXT. The user's
    request, 2026-09-08: "don't use –". The concision pass had put in
@@ -416,70 +459,62 @@ export default function Notes() {
     <>
       <Section title="Anatomy">
         <p>
-          React Native, with Expo. The content is a paged scroll view, one page per tab; above it,
-          a row of labels with an underline. The underline is bound to the content: it follows a
-          drag and its deceleration, and a tap moves both on one timing.
+          React Native, with Expo. The content is a paged scroll view, one page per tab, with a row
+          of labels and an underline above it. The underline follows a drag and its deceleration,
+          and a tap moves both on one timing.
         </p>
         <p>
-          A tap makes a tab active in 300 ms: it widens for its symbol, the other labels move
-          aside, and the content crosses one page, however far the tab is. The row moves on its own
-          only when the active tab does not fit. A light haptic marks each change.
+          A tap makes a tab active in 300&nbsp;ms. It widens for its symbol, the other labels move
+          aside, and the content crosses one page however far the tab is. The row moves on its own
+          only when the active tab does not fit.
         </p>
         <p>
-          Only transform, opacity and the label color animate. The one animated width, the
-          underline, is absolutely positioned with no children, so no other layout runs. A drag
-          interrupts a tap at any point. The curve is an ease-out, never an ease-in.
+          Only transform, opacity and the label color animate. The one animated width is the
+          underline, absolutely positioned with no children, so no other layout runs. A drag
+          interrupts a tap at any point, and the curve is an ease-out, never an ease-in.
         </p>
         <p>
-          The haptic fires in the frame the tab changes, once per change, never as the only
-          feedback. Reduced motion is respected, and 120 fps is enabled on ProMotion displays.
-          Every value is a named constant with its source.
-        </p>
-        <p>
-          The reference is the home tabs of X on iOS, measured frame by frame at 60 fps.
+          A light haptic fires in the frame the tab changes, once per change, never as the only
+          feedback. Reduced motion is respected.
         </p>
       </Section>
 
       <Section title="Performance">
         <p>
-          Everything that moves is computed on the UI thread. The content is a native scroll view:
-          the system runs the drag and its deceleration, and the scroll offset and every style
-          derived from it are computed frame by frame. React does not render during a gesture or a
-          tap. The JavaScript thread takes part only at the tap and at the haptic.
+          Everything that moves is computed on the UI thread. The content is a native scroll view,
+          so the system runs the drag and its deceleration. React does not render during a gesture
+          or a tap.
         </p>
         <p>
-          No layout runs for the tabs while the content moves. The row is not a flex row: every
+          No layout runs for the tabs while the content moves. The row is not a flex row, and every
           tab’s position and width in each resting state are computed once, after the labels are
-          measured, and each frame interpolates between two of them with a transform. All six
-          pages are mounted and memoized, so a swipe never mounts a list and no render rebuilds
-          six lists of twelve rows. Unmemoized, the first frame after a tap stood still: a whole
-          frame lost.
+          measured. Each frame interpolates between two of them with a transform.
         </p>
         <p>
-          The row reads one derived value: where the transition starts, where it ends and how far
-          along it is. No style can read part of it from the previous frame, so the underline, the
-          labels and the symbols move as one object. Measured on the phone: 60 fps through every
-          gesture. A trace of the symbols across a six-page sweep, 492 frames, shows no flicker.
+          All six pages are mounted and memoized, so a swipe never mounts a list. Unmemoized, the
+          first frame after a tap stood still, a whole frame lost.
+        </p>
+        <p>
+          The row reads one derived value, so the underline, the labels and the symbols move as one
+          object. Measured on the phone at 60&nbsp;fps through every gesture, and a trace of
+          492&nbsp;frames across a six-page sweep shows no flicker.
         </p>
       </Section>
 
       <Section title="Use cases">
         <p>
-          Swipeable tabs fit one screen whose content splits into closely related lists that do
-          not affect each other. Use them when there are more lists than a segmented control
-          should hold and people switch often enough that a swipe must work as well as a tap. X’s
-          home is the model: two feeds and four topics in one row.
+          Swipeable tabs fit one screen whose content splits into closely related lists that do not
+          affect each other. Use them when there are more lists than a segmented control should
+          hold, and people switch often enough that a swipe has to work as well as a tap.
         </p>
         <p>
-          The same shape fits any section of an app that holds several peer lists: a profile with
-          posts, replies and media; a chat list with folders; a catalog by category; scores by
-          league; an agenda by day.
+          The same shape fits any section that holds several peer lists. A profile with posts,
+          replies and media, or a catalog by category.
         </p>
         <p>
-          A hierarchy needs a back button, not a row of tabs. About five lists or fewer belong in
-          a segmented control; the top-level sections of an app belong in the tab bar at the
-          bottom. Both ask for short labels, and so do these: the active tab widens for its
-          symbol.
+          A hierarchy needs a back button, not a row of tabs. About five lists or fewer belong in a
+          segmented control, and the top-level sections of an app belong in the tab bar at the
+          bottom. Both ask for short labels, and so do these.
         </p>
       </Section>
     </>
