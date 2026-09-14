@@ -698,8 +698,49 @@ the whole of what is actually controllable. None of them blocks devtools. They
 separate the artifact, which is readable, from the reasoning, which they publish
 when they choose to and not by accident.
 
+## The exhibition gets its own origin
+
+2026-09-14. The address is `exhibition.vitocompagnucci.com`. The apex is kept
+for the personal site, which does not exist yet: there the exhibition is one
+item in a list of projects, and the link on that item is this subdomain.
+
+**What the references do with a project, measured the same day.** Their project
+lists point at separate origins and never at a path: `pica.joshpuckett.me`,
+`interfacecraft.dev` and `dialkit.dev` from `joshpuckett.me`;
+`sonner.emilkowal.ski`, `vaul.emilkowal.ski` and `animations.dev` from
+`emilkowal.ski`; `honk.me`, `family.co` and `agentation.com` from `benji.org`.
+
+The paths they do have outnumber the subdomains 24 to 3 — seven under
+`benji.org`, seven under `joshpuckett.me`, ten under `emilkowal.ski/ui/` — and
+every one of the 24 is a single page: you open it, you read it, you go back. So
+the line is not craft against product, because `benji.org/drawesome` is a
+published npm package sitting at a path. It is page against site. What has an
+index of its own and navigation inside it gets an origin, and this has both.
+
+**And the word never names the place.** `joshpuckett.me` has a heading that
+reads "Projects" over links that read `/melt-effect`: the grouping lives in the
+layout and not in the path. The one prefix among the three, `/ui`, names the
+subject and not the container. So `/exhibition` was never available in either
+shape — the name is already in the masthead, read from `site.ts`, and the domain
+is already the place.
+
+**The cost confirmed it rather than decided it.** The subdomain is zero lines:
+the pieces already serve from the root, and on a subdomain the root is this
+site's root. A path under the apex would be the 22 absolute literals in `src/`,
+plus `base` in `vite.config.ts`, plus the rewrite in `vercel.json`, plus the
+three absolute references in `index.html` — and it would route this site's
+traffic through the personal site's edge, where one broken deploy takes down
+both.
+
 ## What is pending
 
+- **The domain is decided and not bought.** `vitocompagnucci.com` was free on
+  2026-09-14 at USD 11.25 a year. Buying it at Vercel puts the zone there, which
+  makes the subdomain a field and not a nameserver migration. Until then the
+  site answers at `components-three-pi.vercel.app`, which stays as an alias
+  afterwards, so nothing already shared breaks. `index.html` says it too: it
+  carries no `og:url` and no `og:image` because no host was chosen, and half of
+  that is now answered.
 - The `--space-*` scale does not cover what the page uses. It stops at 64 and
   56, 60 and 80 are in use as semantic tokens. Nobody decided whether the scale
   grows or those stay semantic.
