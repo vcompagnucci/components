@@ -721,6 +721,13 @@ when they choose to and not by accident.
   `hold-to-commit` overlap, because their spacing is 0.31 of a hold that went
   from 2000 ms to 1000, and the comment that says they never overlap is doing
   the arithmetic with the old number.
+- **The secondary grey fails 4.5:1 in light, and it stays.** Measured on the
+  served page: the index at 2.39 and the line under the title at 2.59, against
+  the 4.5 the standard asks for text that is read. Dark passes (7.13) and high
+  contrast passes (5.18), so it is the default view alone. Four answers were
+  built behind a picker and looked at; the value did not move. Black at 53.6%
+  over this canvas is the alpha that lands exactly on 4.5, and it is there for
+  whoever reopens this.
 - **Three linter disables in `native/` with no reason written.** All three are
   `exhaustive-deps`, in `hold-to-commit.tsx`, `meter.tsx` and
   `swipeable-tabs.tsx`. The rule is in `AGENTS.md`; what is missing is reading
