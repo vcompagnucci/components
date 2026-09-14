@@ -1,21 +1,8 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import css from './app.module.css'
 import type { Piece } from './pieces'
 import { SITE } from './site'
-
-/* ─── THE WAY BACK TO THE REFERENCE, AND IT IS NOT PUBLISHED ───
-   The same two folds as the private area in app.tsx: with
-   import.meta.env.DEV replaced by `false` on a build, the ternary folds
-   to null, Rollup does not generate the chunk, and neither the
-   component nor the string "/vault" reaches dist/.
-
-   It is a lazy import and not a plain one for that exact reason: a
-   static import would tie src/private/ to the bundle, which is the one
-   direction the dependency is not allowed to go. */
-const ReferenceLink = import.meta.env.DEV
-  ? lazy(() => import('./private/reference-link'))
-  : null
 import { LiveDemo } from './demos'
 import { Notes } from './notes'
 
@@ -430,20 +417,14 @@ export function Detail({ piece, onBack }: { piece: Piece; onBack: () => void }) 
             or it would leave its 24 px of margin empty (Swipeable tabs,
             2026-09-07: the title already says what it is). */}
         {piece.desc ? <p className={css.detailDesc}>{piece.desc}</p> : null}
+        {/* THE NOTES ARE THE LAST THING ON THIS PAGE. A dev-only line
+            used to follow them naming the clip the piece was measured
+            against, and it was deleted on 2026-09-14: the reference
+            does not get named on a piece's page, and the attribution
+            lives in the vault's own `Source` field. The way back is
+            now the vault's half of the loop alone, which still offers
+            the piece a clip produced. */}
         <Notes slug={piece.slug} />
-        {/* LAST, AND AFTER THE NOTES, because it is the only thing on
-            this page that is not the piece: it is where the piece came
-            from. Reading order is the piece, what it is, how it works,
-            and only then the reference behind it.
-
-            No Suspense fallback: this draws nothing until it knows
-            there is a clip, so a placeholder would reserve room for
-            something that most of the time is not there. */}
-        {ReferenceLink && (
-          <Suspense fallback={null}>
-            <ReferenceLink slug={piece.slug} />
-          </Suspense>
-        )}
       </div>
     </div>
   )

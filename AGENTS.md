@@ -457,12 +457,11 @@ so it grows leftward and a button added at the head leaves the arrow and
 the details toggle where they were. Measured in the served detail, with
 and without it: both stay at the same x.
 
-**And the way back**, from the piece to the reference: at the foot of a
-piece's detail, `src/private/reference-link.tsx` looks for the clip that
-names it and draws one line. It is lazily loaded behind
-`import.meta.env.DEV` from `parts.tsx`, the same two folds as the
-private area, so neither the component nor the string `/vault` reaches
-`dist/`. Verified by grepping the build.
+**The loop goes one way only.** A clip in the vault offers the piece it
+produced; a piece does NOT offer the clip it came from. A line at the
+foot of the detail used to do that, dev-only, and it was deleted on
+2026-09-14 because it put the name of the reference on the page. The
+attribution is the vault's `Source` field and it stays there.
 
 ### 2 · The playground: where things get built
 

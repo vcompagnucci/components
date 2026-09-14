@@ -551,16 +551,22 @@ moment the fact comes into being. If the write fails the piece stays published
 and the answer says so, because a piece that got published is not undone by a
 link that did not.
 
-**The way back is dev-only and that is the whole constraint.** The exhibition is
-published and the vault is not, so a link from the product to a clip on your
-disk would 404 for everyone and would carry the path of a file of yours into the
-bundle. `src/private/reference-link.tsx` is lazily loaded behind
-`import.meta.env.DEV`, the same two folds as the rest. Verified by grepping the
-build.
+**The way back was built, and then deleted.** At the foot of a piece's detail a
+line read "Measured against", the clip's name and its source, and it was
+dev-only: the exhibition is published and the vault is not, so a link from the
+product to a clip on your disk would 404 for everyone and would carry the path
+of a file of yours into the bundle. It was lazily loaded behind
+`import.meta.env.DEV`, the same two folds as the rest, verified by grepping the
+build, and it asked the vault rather than the piece, because pieces.ts is
+product code and a reference is a private note.
 
-And it asks the vault, not the piece. `pieces.ts` is product code and a
-reference is a private note, so the search runs the other way, over the vault's
-index, with the same hook the vault itself uses.
+None of that saved it. On 2026-09-14 it printed the name of the reference app on
+screen, which is the thing the public text had just stopped doing, and dev-only
+was not the point: the name was on a page being read while a piece is recorded.
+Deleted, with the component, its stylesheet and the lazy import in parts.tsx,
+which also took `Suspense` and `lazy` out of that file. The loop now runs one
+way: the vault offers the piece a clip produced, and the piece offers nothing
+back.
 
 **The front page has no door into the private area**, which is where it started.
 A mirror of the private bar lived at the bottom left for a few hours on
