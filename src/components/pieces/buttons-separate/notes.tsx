@@ -117,6 +117,48 @@ import { Section } from '../../../notes'
    filler: they are three different facts and each one can be denied on
    its own.
 
+   CONCISION PASS, 2026-09-14 ("much more concise and shorter"). 522 →
+   400 words, 23 % less, the same seven paragraphs.
+
+   WHAT FORCED THE SHAPE was not the word count. Counted that day,
+   Anatomy's first paragraph had NINE sentences and the second seven,
+   against the two to four AGENTS.md asks for, and no gate reads that.
+   Every paragraph is one to four now, and the cut had to go through
+   facts to get there, which is what § THE SHAPE says shortening means
+   here.
+
+   Deleted whole:
+     · The closing that named the reference (see § NO GUIDELINE IS
+       NAMED for what it cost).
+     · "The background of this area mixes the page's own canvas and
+       ink, so the piece follows the theme." It is one of the four that
+       came IN on 2026-09-10 under "what you see, you say", and it is
+       the one of the four you can see without touching anything, so it
+       is also the one the recording already shows. It goes back the
+       day the section grows.
+     · "Take the pointer away and they go back in", which the third
+       paragraph is entirely about.
+     · "The field takes text and does nothing with it". Half a fact and
+       half an apology; what mattered was the focus, and that stayed.
+     · "It shortens from the group's full width to its own, and the
+       four buttons fan out from where the first one sits", which the
+       first paragraph had already said in plainer words.
+     · "It drops the delays and the overshoot, and the icons are sharp
+       from the first frame", the detail of reduced motion. The
+       sentence before it carries the claim that matters, that the
+       separation stays.
+     · "That leaves one pixel between neighbors", a number nobody can
+       act on.
+   And the glass of Performance went from two sentences to one, which
+   is squeezing and not cutting, and the only place it was done.
+
+   THE NUMBERS WERE NOT TOUCHED, and neither was the one colon.
+   365, 532, 42, 38, 44, 544 and 1 in 55 read exactly as they did. What
+   they gained is the non-breaking space between number and unit, the
+   better-typography rule that Swipeable tabs had written down since
+   2026-09-07 and no file in this repo applied until that day. Verified
+   in the build: `365\xA0ms`, not the six letters of the entity.
+
    "THIS AREA" for the rectangle the piece lives in. It is the name
    Swipeable tabs already uses ("panes of content in one area"). It is
    not "card": the piece runs in two different boxes and "card" is
@@ -227,10 +269,20 @@ import { Section } from '../../../notes'
    their documentation API
    (developer.apple.com/tutorials/data/design/human-interface-guidelines/materials.json).
    They come in as explanation and said plainly as ours, which is the
-   rule of AGENTS.md. The REFERENCE is still named here, which is
-   another thing: Spotlight in macOS Tahoe. Hold to buy used to do the
-   same and stopped on 2026-09-14, so this page is now the only one
-   that does it, and it is the next one up for the same pass.
+   rule of AGENTS.md. THE REFERENCE IS NOT NAMED EITHER, as of
+   2026-09-14, which used to be another thing: the closing of Anatomy
+   said which app it was and how it was measured. This was the last of
+   the four pages doing it.
+
+   THAT SENTENCE WAS DOING A SECOND JOB, and cutting it broke the page
+   for a few minutes. It was the only place that said a recording
+   exists, and the third paragraph opens with "the recording does not
+   show it": deleted on its own, that "the" pointed at nothing. The
+   provenance moved to where it belongs anyway, beside the numbers it
+   produced ("fitted frame by frame to a recording at 60 fps"), so the
+   springs now carry their own source and the third paragraph has its
+   antecedent. The attribution is the `Source` field of the clip in
+   the vault.
 
    NO DASH in the public text, neither em dash nor en dash. Compound
    word hyphens stay. The rule is for the public text; in these
@@ -240,40 +292,33 @@ export default function Notes() {
     <>
       <Section title="Anatomy">
         <p>
-          At rest this is one long search field of glass. Move the pointer over this area. The field
-          shortens and four round buttons come out of it. Take the pointer away and they go back in.
-          Twenty pixels of travel are enough, so the pointer never has to reach them. Hover one
-          button and only that button's glass takes a tint. Press it and the whole button sinks,
-          glass and icon together. The field takes text and does nothing with it, and while it has
-          focus the group stays open. The background of this area mixes the page's own canvas and
-          ink, so the piece follows the theme.
+          At rest this is one long search field of glass. Move the pointer over this area and the
+          field shortens, and four round buttons come out of it. Twenty pixels of travel are enough,
+          so the pointer never has to reach them. Hover tints one button’s glass, a press sinks it,
+          and focus in the field holds the group open.
         </p>
         <p>
-          The field carries the opening. It shortens from the group's full width to its own, and the
-          four buttons fan out from where the first one sits. The first button never moves; what
-          opens is the spacing. Two springs run it, 365 ms for the field and 532 for the spacing,
-          which starts 42 ms later. While the shapes are still close the glass joins them with a neck
-          that thins and snaps. The icons arrive last and out of focus, and they do not fade in. The
-          reference is Spotlight in macOS Tahoe, measured frame by frame at 60 fps, and the piece was
-          measured back against it.
+          The field carries the opening. The first button never moves, and what opens is the
+          spacing. Two springs run it, fitted frame by frame to a recording at 60&nbsp;fps,
+          365&nbsp;ms for the field and 532 for the spacing, which starts 42&nbsp;ms later. While
+          the shapes are still close the glass joins them with a neck that thins and snaps, and the
+          icons arrive last and out of focus, without fading in.
         </p>
         <p>
           Closing is not the opening reversed, and the recording does not show it. It runs a quarter
           shorter, and the field returns without the overshoot it takes on the way out. The order
-          flips too, so the buttons meet before the field covers them. The icons leave fastest, so
-          four of them never end up stacked over the field. With reduced motion the separation stays,
-          because the separation is the piece. It drops the delays and the overshoot, and the icons
-          are sharp from the first frame.
+          flips, so the buttons meet before the field covers them, and the icons leave fastest, so
+          four of them never end up stacked over the field. With reduced motion the separation
+          stays, because the separation is the piece.
         </p>
       </Section>
 
       <Section title="Performance">
         <p>
           Nothing re-renders while it moves. The springs write the shapes and their opacity straight
-          into the document, and React sees none of it. At rest there is no frame loop at all, so a
-          page of these costs nothing until a pointer arrives. The glass is not a live blur of the
-          page behind it. It is a second copy of the same backdrop, blurred once, and what moves
-          each frame is the mask that cuts it to shape.
+          into the document, and React sees none of it. At rest there is no frame loop, so a page of
+          these costs nothing until a pointer arrives. The glass is not a live blur but a second
+          copy of the backdrop, blurred once, with a mask cutting it to shape each frame.
         </p>
         <p>
           Measured in Chrome with the processor slowed twenty times and eight copies of the piece on
@@ -290,9 +335,8 @@ export default function Notes() {
         <p>
           Hover cannot be the only way in. A pointer that cannot hover never gets the opening, so the
           buttons have to be out from the start, and keyboard focus has to open them too. Each button
-          is 38 pixels wide and its hit area is 44. That leaves one pixel between neighbors. Once
-          this area drops below 544 pixels the whole group scales down, and the hit areas shrink with
-          it.
+          is 38&nbsp;pixels wide and its hit area is 44, and below 544&nbsp;pixels of width the whole
+          group scales down, hit areas with it.
         </p>
       </Section>
     </>
