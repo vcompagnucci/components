@@ -45,8 +45,14 @@ import { Section } from '../../../notes'
    ANATOMY TALKS ABOUT THE BUTTON ONLY. The financial card behind it in
    the video (the chart, the range picker, the rows) is skeleton and
    does not go in: it is the same thing that was decided with the tabs.
-   The reference is named in the closing, together with how it was
-   measured.
+
+   AND IT DOES NOT NAME THE REFERENCE. It did until 2026-09-14, in a
+   closing sentence that also said how it was measured, and the user
+   asked for that sentence out. The attribution did not disappear: it
+   lives in the `Source` field of the clip in the vault, which is a
+   private surface. It also settles a contradiction that was in
+   AGENTS.md, where the description line was forbidden from naming the
+   reference app while the closing of Anatomy was required to name it.
 
    MUCH SHORTER (2026-09-08, "make it way shorter, and faithful to the
    code"). From 750 words and 12 paragraphs to 396 and 9: 47 %, in two
@@ -57,6 +63,21 @@ import { Section } from '../../../notes'
    the repo's rule is to write from what you see), the one that broke
    the haptic latency down, and the list of example actions in Use
    cases. No claim was touched: the ones left over were deleted whole.
+
+   SHORTER AGAIN (2026-09-14, "much shorter and more concise"). From
+   398 words to 303, and from 9 paragraphs to 8. The method is the one
+   above: whole claims deleted, none watered down. What went is the
+   closing that named the reference, the optical centering, "React
+   renders nothing while it runs" (the UI thread sentence beside it
+   already says it) and "Letting go before the end places no order"
+   (the retreat in Anatomy already says it).
+
+   AND THE PUNCTUATION WENT WITH IT. Seven mid-sentence colons and two
+   semicolons, which is the joint this text kept using to bolt a second
+   clause onto a finished sentence. A colon introduces a list or an
+   example; anything else it was doing here is now a period. It is the
+   habit `emil-unslop-writing` calls the strongest rhythm tell, and it
+   read as one voice to the eye and as a machine to the ear.
 
    WHAT GETS MENTIONED FROM THE SKILLS, AND WHAT DOES NOT. Only what a
    reader can SEE or feel in the piece goes in, with its receipt:
@@ -69,13 +90,15 @@ import { Section } from '../../../notes'
        (`TEXT.maxScale`); the recognizer and the fill read the SAME
        constant (`HOLD.duration`).
      · `better-ui`: interruptible (pressing again during the retreat
-       picks up from where it is, `hold-to-commit.tsx:press`); optical
-       alignment ("the checkmark and the words are centered by eye, not
-       by box", the measured correction of −6.6 pt,
-       `LABEL.opticalCorrection` in `measurements.ts`); and shadows for
-       elevation instead of a border that only gave depth, which is
-       also what answers the critique lens of `interface-craft` ("do
-       outlines add structure or noise?").
+       picks up from where it is, `hold-to-commit.tsx:press`); and
+       shadows for elevation instead of a border that only gave depth,
+       which is also what answers the critique lens of
+       `interface-craft` ("do outlines add structure or noise?"). The
+       optical centering of the label was in this list too and came out
+       on 2026-09-14. The correction is real and measured
+       (`LABEL.opticalCorrection` in `measurements.ts`), but at −6.6 pt
+       no reader of the page can check it, and a shorter text keeps
+       what the reader can check.
    THE SHADOW SENTENCE IS CONDITIONAL on purpose: "lifted by a shadow
    on light backgrounds". A black shadow on the black background of
    dark mode cannot be seen, so saying that the shadow carries the
@@ -151,55 +174,48 @@ export default function Notes() {
     <>
       <Section title="Anatomy">
         <p>
-          React Native, with Expo. The button is a capsule with a label at its center. Touch and
-          hold, and a white fill crosses it at a constant rate: the fill is the progress, not a bar
-          beside it. The hold lasts one second.
+          React Native, with Expo. The button is a capsule with a label at its center, and holding
+          it sends a white fill across at a constant rate for one second. The fill is the progress,
+          not a bar beside it.
         </p>
         <p>
-          The press shrinks the button and the label blurs across to “Keep Holding...”. The label
-          darkens as the fill passes under it. Let go early and the fill retreats and
-          “Hold to Buy” returns; press again and it continues from where it stopped.
+          The press shrinks the button and the label blurs across to “Keep Holding...”, darkening as
+          the fill passes under it. Let go early and the fill retreats, and pressing again continues
+          from where it stopped.
         </p>
         <p>
-          At one second the button commits: it turns white, “✓ Order Placed” grows into place, and 46
-          points burst from the perimeter. The checkmark and the words are centered by eye, not by box. Twelve haptic detents mark the hold, closer together as it
-          advances; a success pattern lands with the burst.
+          At the end the button turns white, “✓ Order Placed” grows into place, and 46 points burst
+          from the perimeter. Twelve haptic detents mark the hold, closer together as it advances,
+          and the fill says the same thing the haptic does.
         </p>
         <p>
-          The capsule has no outline: its edge is its own shape, lifted by a shadow on light
-          backgrounds. Only transform and opacity animate, the label color included, and the label
-          follows the system text size. With reduced motion the fill arrives as opacity and nothing
-          crosses or bursts. The haptic is never the only feedback: the fill says the same thing.
-        </p>
-        <p>
-          The reference is the hold button in Opal, the screen time app on iOS, measured frame by
-          frame at 60 fps.
+          The capsule has no outline, lifted instead by a shadow on light backgrounds. The label
+          follows the system text size, and with reduced motion the fill arrives without crossing.
         </p>
       </Section>
 
       <Section title="Performance">
         <p>
-          Everything that moves is computed on the UI thread, not the JavaScript thread. A native
+          Everything that moves runs on the UI thread, in transform and opacity only. A native
           recognizer times the hold and reads the same duration as the fill, so they cannot drift
-          apart. React renders nothing while it runs.
+          apart.
         </p>
         <p>
-          Under a load that stands in for a real app, the fill keeps its timing whether the
-          JavaScript thread is busy, re-rendering, or blocked. What waits is what has to reach that
-          thread, the haptic and the sound. Measured on the iOS Simulator and an Android emulator,
-          and tested on a phone, where the haptic can be felt.
+          Under a load that stands in for a real app, the fill keeps its timing. What waits is what
+          has to reach the JavaScript thread, the haptic and the sound. Measured on the iOS
+          Simulator and an Android emulator, and tested on a phone, where the haptic can be felt.
         </p>
       </Section>
 
       <Section title="Use cases">
         <p>
           A hold fits an uncommon action that cannot be undone and would be too easy to start by
-          accident. The confirmation happens inside the button: no separate surface and no extra
-          tap. Letting go before the end places no order.
+          accident. The confirmation happens inside the button, with no separate surface and no
+          extra tap.
         </p>
         <p>
-          A common action that can be undone needs no confirmation: a plain button and a way to undo
-          it. And a hold cannot be the only path: someone who cannot press and wait needs another
+          A common action that can be undone needs a plain button and a way to undo it instead. And
+          a hold cannot be the only path, because someone who cannot press and wait needs another
           way to the same outcome.
         </p>
       </Section>

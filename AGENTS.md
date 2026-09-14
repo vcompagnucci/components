@@ -253,8 +253,12 @@ has every round and every rejection):
    paragraph, no subheadings inside a section (an h3 per part was
    tried, like josh on /bloom, and rejected on screen). `Anatomy`
    speaks only about the animation the piece is named after, not about
-   what surrounds it in the recording, and it names the reference in
-   its closing sentence, together with how it was measured.
+   what surrounds it in the recording, **and it does not name the
+   reference**: that attribution lives in the `Source` field of the
+   clip in the vault, which is private, and the public text never
+   carries it. Until 2026-09-14 the closing sentence of `Anatomy` was
+   required to name it, which contradicted the line right above, where
+   the description was already forbidden from doing the same thing.
    `Performance`: where it runs and what was measured. No paragraph
    that announces what comes next: the paragraph starts on the first
    fact.

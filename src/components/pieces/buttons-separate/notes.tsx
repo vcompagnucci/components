@@ -227,8 +227,10 @@ import { Section } from '../../../notes'
    their documentation API
    (developer.apple.com/tutorials/data/design/human-interface-guidelines/materials.json).
    They come in as explanation and said plainly as ours, which is the
-   rule of AGENTS.md. The REFERENCE is named, which is another thing:
-   Spotlight in macOS Tahoe, the same way Hold to commit names Opal.
+   rule of AGENTS.md. The REFERENCE is still named here, which is
+   another thing: Spotlight in macOS Tahoe. Hold to buy used to do the
+   same and stopped on 2026-09-14, so this page is now the only one
+   that does it, and it is the next one up for the same pass.
 
    NO DASH in the public text, neither em dash nor en dash. Compound
    word hyphens stay. The rule is for the public text; in these
