@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { vaultMedia } from './scripts/vault-media.mjs'
 import { removeStylesheetComments } from './scripts/remove-stylesheet-comments.mjs'
+import { emitNotFoundPage } from './scripts/emit-not-found-page.mjs'
 import { SITE } from './src/site'
 
 /* THE META TAGS READ src/site.ts, they do not hold their own copy.
@@ -37,8 +38,19 @@ export default defineConfig(({ mode }) => {
        removeStylesheetComments is the mirror image, apply:'build': in
        development a piece's CSS arrives whole, because the comment read
        in devtools IS the documentation, and what gets PUBLISHED carries
-       no comments. See scripts/remove-stylesheet-comments.mjs. */
-    plugins: [siteMeta(), react(), vaultMedia(env.VAULT_DIR), removeStylesheetComments()],
+       no comments. See scripts/remove-stylesheet-comments.mjs.
+
+       emitNotFoundPage is apply:'build' for a duller reason: in
+       development every path already reaches the app, so there is
+       nothing to fix. It is the static host that needs the second
+       copy. */
+    plugins: [
+      siteMeta(),
+      react(),
+      vaultMedia(env.VAULT_DIR),
+      removeStylesheetComments(),
+      emitNotFoundPage(),
+    ],
     server: {
       port: 3000,
       // Without this Vite moves itself to the next free port when its

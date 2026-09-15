@@ -489,6 +489,24 @@ press and three voice variants. All of it went: the scene has to read as one
 rigid object. Under reduced motion the ring stays still and the drag stays
 direct, because the movement that runs on its own is the decorative part.
 
+**And nobody had ever seen it.** Measured on 2026-09-15, on the new host and on
+the `.vercel.app` alike: an unknown path answered `The page could not be found ·
+NOT_FOUND`, which is Vercel's grey page. `vercel.json` rewrites the four piece
+slugs to `/index.html` and nothing else, so every other path was answered by the
+static host before it could reach the app. The router had been ready the whole
+time, because `fromUrl` returns `{ kind: 'none' }` for anything it does not
+recognize; it was never asked. The ring was built on 2026-09-11 and was
+unreachable in production for four days.
+
+The fix is a copy of the built shell under a second name, `404.html`, written by
+`scripts/emit-not-found-page.mjs`. What was NOT done is the catch-all rewrite
+Vercel documents for SPAs, `/(.*)` to `/index.html`, and the reason is the
+status: a rewrite answers 200, so every mistyped URL would report success to a
+crawler and to whoever shared it, and the ring would draw under a status that
+says the page is fine. A 404 page that does not return 404 is a decoration. The
+copy is made in `closeBundle` and not kept in `public/`, because the shell names
+hashed assets that only exist once the bundle is written.
+
 ## Oxlint, and the config is half the work
 
 A linter that shouts at everything gets ignored, and there it stops working.
