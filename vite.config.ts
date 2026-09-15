@@ -5,17 +5,20 @@ import { removeStylesheetComments } from './scripts/remove-stylesheet-comments.m
 import { SITE } from './src/site'
 
 /* THE META TAGS READ src/site.ts, they do not hold their own copy.
-   index.html carries %SITE_NAME% and %SITE_DESCRIPTION% and this fills
-   them in, in dev and on a build alike. `order: 'pre'` so it runs
-   before anything else that rewrites the HTML. Without this the name
-   lived in five places and the sentence in three, and the two nobody
-   ever looks at are exactly the meta tags. */
+   index.html carries %SITE_NAME%, %SITE_DESCRIPTION% and %SITE_URL%,
+   and this fills them in, in dev and on a build alike. `order: 'pre'`
+   so it runs before anything else that rewrites the HTML. Without this
+   the name lived in five places and the sentence in three, and the two
+   nobody ever looks at are exactly the meta tags. */
 const siteMeta = () => ({
   name: 'site-meta',
   transformIndexHtml: {
     order: 'pre' as const,
     handler: (html: string) =>
-      html.replaceAll('%SITE_NAME%', SITE.name).replaceAll('%SITE_DESCRIPTION%', SITE.description),
+      html
+        .replaceAll('%SITE_NAME%', SITE.name)
+        .replaceAll('%SITE_DESCRIPTION%', SITE.description)
+        .replaceAll('%SITE_URL%', SITE.url),
   },
 })
 

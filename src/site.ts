@@ -23,4 +23,32 @@ export const SITE = {
      "Feel right" is the quality standard the two references name, and
      it states the result and not the effort. The why is in the log. */
   description: 'Components that feel right, for web and native apps.',
+  /* THE ADDRESS, and it is a subdomain on purpose. The apex is kept for
+     the personal site, where this is one item in a list of projects,
+     and a project in that list points at a separate origin in all three
+     references (see `LOG.md` › The exhibition gets its own origin).
+     Bought on 2026-09-15.
+
+     It is here and not in index.html for two reasons. The one the two
+     fields above already give, that the meta tags are the copy nobody
+     looks at. And a second one, found the day this was written: an
+     HTML comment SHIPS. The build strips the comments of a piece's
+     stylesheet on purpose (see removeStylesheetComments) and nothing
+     does that to index.html, so every word written there is published.
+     This paragraph is in a .ts file, where the minifier eats it.
+
+     IT IS THE ROOT ON EVERY PAGE, AND THAT IS A LIMIT AND NOT AN
+     OVERSIGHT. There is one static index.html and the routing is on
+     the client, so a crawler that does not run JavaScript sees this
+     same head at /buttons-separate. Filling og:url per piece needs
+     prerendering, which this site does not do. `og:title` and
+     `og:description` already describe the site and not the piece for
+     the same reason, so a shared piece link previews as the exhibition.
+     Worth knowing before wondering why a card does not name the piece.
+
+     THE TRAILING SLASH IS PART OF IT. `og:url` is an absolute URL and
+     the crawlers that canonicalise treat the host with and without the
+     slash as the same page only after a redirect, so the value that
+     travels is the one the server actually serves. */
+  url: 'https://exhibition.vitocompagnucci.com/',
 }

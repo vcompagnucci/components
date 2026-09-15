@@ -753,13 +753,14 @@ both.
 
 ## What is pending
 
-- **The domain is decided and not bought.** `vitocompagnucci.com` was free on
-  2026-09-14 at USD 11.25 a year. Buying it at Vercel puts the zone there, which
-  makes the subdomain a field and not a nameserver migration. Until then the
-  site answers at `components-three-pi.vercel.app`, which stays as an alias
-  afterwards, so nothing already shared breaks. `index.html` says it too: it
-  carries no `og:url` and no `og:image` because no host was chosen, and half of
-  that is now answered.
+- **The domain is bought and not attached.** `vitocompagnucci.com` was bought
+  on 2026-09-15. What is left is one step and it is not in this repo: add
+  `exhibition.vitocompagnucci.com` to the `components` project in Vercel. The
+  MCP has no tool for it and there is no CLI on this machine, so it is a
+  dashboard job. Until it is done the site answers at
+  `components-three-pi.vercel.app`, which stays as an alias afterwards, so
+  nothing already shared breaks. The repo's half is finished: `og:url` reads
+  `SITE.url`, and `og:image` is still missing because there is no image.
 - The `--space-*` scale does not cover what the page uses. It stops at 64 and
   56, 60 and 80 are in use as semantic tokens. Nobody decided whether the scale
   grows or those stay semantic.

@@ -17,9 +17,10 @@
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    <!-- Open Graph. No og:url and no og:image yet: no host has been
-         chosen and there is no image. Both get filled in on deploy. -->
+    <!-- Open Graph. The why is in src/site.ts, which does not ship a
+         comment; this file does. og:image is still missing. -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="%SITE_URL%" />
     <meta property="og:title" content="%SITE_NAME%" />
     <meta
       property="og:description"
