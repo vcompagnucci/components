@@ -96,24 +96,28 @@ export const slug = (name: string) =>
    body and the scrollspy.
 
    The first of the list is the one that opens the exhibition, so Vito
-   picks it. Today it is Fan out (Buttons separate back then), asked for
-   on 2026-09-10; before that Select summary held the spot, by the
-   accident of having been merged first (PR #26 against PR #27) and not
-   by a decision. */
+   picks it. Today it is Buttons spread (Buttons separate when it was
+   asked for, Fan out in between), asked for on 2026-09-10; before that
+   Select summary held the spot, by the accident of having been merged
+   first (PR #26 against PR #27) and not by a decision. */
 /* THE NAMES DRAW A MOUNTAIN IN THE INDEX, and it is on purpose (asked
    for on 2026-09-10: "the longest one in the middle and the short names
    at the ends"). Read from top to bottom, without touching the order
    (which is editorial, see above), the ones at the ends are short and
    the ones in the middle are the longest:
 
-       Fan out               7     45.7 px
+       Buttons spread       14     93.2 px
        Selection summary    17    117.9 px
        Swipe between tabs   18    124.7 px
        Hold to buy          11     70.6 px
 
    (RUNTIME · the ink width of each index link, Inter 13 px weight 460,
    measured on 2026-09-10 with headless Chrome over CDP on the served
-   page, with the font already loaded.) A new piece comes in with a name
+   page, with the font already loaded. The first row was measured again
+   on 2026-09-15 after the rename, with the same probe at 1440 × 900:
+   the other three came back at 118.0, 124.7 and 70.6, so two reproduce
+   to the tenth and the third rounds the other way, which is what makes
+   93.2 believable.) A new piece comes in with a name
    of the length its place calls for: short if it opens or closes the
    list, long if it lands in the middle.
    All four went through the naming rule (AGENTS.md › How a piece is
@@ -121,8 +125,16 @@ export const slug = (name: string) =>
    and each one is a phrase that is already in its piece's notes, so the
    title and the page name the thing the same way.
 
-   · Fan out             was Buttons separate. "The four buttons fan out
-                         from where the first one sits" (Anatomy).
+   · Buttons spread      was Fan out, and Buttons separate before that.
+                         "Four round buttons spread out from it"
+                         (Anatomy). Fan out lasted five days and fell to
+                         the first question of the naming rule: to fan
+                         out is a metaphor, and what a specification
+                         says is that the buttons spread. Its receipt
+                         had gone stale too, because the sentence it
+                         quoted was cut in the concision pass of
+                         2026-09-14, so the title was pointing at a
+                         phrase the page no longer had.
    · Selection summary   was Select summary. What the button sums up is
                          the selection: the noun where there was a verb.
    · Swipe between tabs  was Swipeable tabs. It is the line the user
@@ -141,7 +153,7 @@ export const PIECES: Piece[] = [
      resolved by slug in demos.tsx. No `desc` by the same rule as Swipe
      between tabs: the title already says what the gesture is. */
   {
-    name: 'Fan out',
+    name: 'Buttons spread',
     slug: 'buttons-separate',
     platform: 'Web',
   },

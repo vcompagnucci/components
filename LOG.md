@@ -378,7 +378,7 @@ rule on 2026-09-10, measured in the served index at Inter 13px, weight 460.
 
 | | slug | platform | ink |
 | --- | --- | --- | ---: |
-| Fan out | `buttons-separate` | Web | 45.7 px |
+| Buttons spread | `buttons-separate` | Web | 93.2 px |
 | Selection summary | `select-summary` | Web | 117.9 px |
 | Swipe between tabs | `swipeable-tabs` | App | 124.7 px |
 | Hold to buy | `hold-to-commit` | App | 70.6 px |
@@ -396,10 +396,23 @@ vault clip on 2026-09-02 and the first piece to come out of the native
 workshop. **Swipe between tabs** is X's tab bar measured against the real app.
 Both are App pieces, so they enter the exhibition on video.
 
-**Fan out** is macOS Tahoe's Spotlight and the first piece that runs live in
-the browser, which is the whole difference between the two platforms here: a
-Web piece is shown running, an App piece is shown on video. **Selection
-summary** followed it the next day.
+**Buttons spread** is macOS Tahoe's Spotlight and the first piece that runs
+live in the browser, which is the whole difference between the two platforms
+here: a Web piece is shown running, an App piece is shown on video.
+**Selection summary** followed it the next day.
+
+It was called **Fan out** for five days, from 2026-09-10 to 2026-09-15, and
+the rename is worth keeping because of what failed rather than what was
+chosen. To fan out is a metaphor, so it dies on the first question of the
+naming rule, which asks whether the name says what the thing does without
+one. And its receipt had gone stale on its own: the rule says the title has
+to be a phrase that is already in the piece's notes, the phrase it quoted was
+"the four buttons fan out from where the first one sits", and that sentence
+was cut in the concision pass the day before. A title pointing at a phrase
+the page no longer has is the failure nothing catches, because the reference
+checker reads names and not prose. Anatomy now says "four round buttons
+spread out from it", so the title and the page name the thing the same way
+again.
 
 What each piece measures, rule by rule, lives in its own
 `src/components/pieces/<slug>/notes.tsx` and in the comments at the top of its

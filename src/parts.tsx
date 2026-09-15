@@ -55,7 +55,7 @@ export function linkClick(action: () => void) {
 
    Both ways out were tried and both are worse. Putting the anchor ON
    TOP of the preview gives cmd-click back and kills what the preview
-   has inside: the four buttons of Buttons separate, the five rows of
+   has inside: the four buttons of Buttons spread, the five rows of
    Select summary and the speed button of the video, which are exactly
    what you come to try. And redoing cmd-click by hand with window.open
    contradicts the rule of linkClick, let through everything the browser

@@ -214,8 +214,10 @@ characters, it does not name the app, and it says exactly what you are
 going to see. **The length is decided by the place in the index** (the
 user's request of 2026-09-10): read from top to bottom, without touching
 the order (which is editorial), the names draw a mountain, short at the
-ends and the longest ones in the middle. Today: Fan out (7) · Selection
-summary (17) · Swipe between tabs (18) · Hold to buy (11). The cap of 15
+ends and the longest ones in the middle. Today: Buttons spread (14) ·
+Selection summary (17) · Swipe between tabs (18) · Hold to buy (11).
+Measured as ink and not as characters, which is what the eye reads:
+93.2 · 117.9 · 124.7 · 70.6 px (see `pieces.ts`). The cap of 15
 characters (Toolbars › Titles in the HIG) holds for the ends; in the
 middle you go over it on purpose. A new piece comes in with a name of
 the length its place gives it, and it should be a phrase that is already

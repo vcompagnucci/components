@@ -1,6 +1,6 @@
 import { Section } from '../../../notes'
 
-/* The notes of Buttons separate. Everything here is in the registry:
+/* The notes of Buttons spread. Everything here is in the registry:
    `LOG.md` (§ The pieces), the header of `buttons-separate.tsx`
    (in this folder) and the table in
    `.context/buttons-separate/MEDICION.md` with the scripts that
@@ -293,7 +293,7 @@ export default function Notes() {
       <Section title="Anatomy">
         <p>
           At rest this is one long search field of glass. Move the pointer over this area and the
-          field shortens, and four round buttons come out of it. Twenty pixels of travel are enough,
+          field shortens, and four round buttons spread out from it. Twenty pixels of travel are enough,
           so the pointer never has to reach them. Hover tints one button’s glass, a press sinks it,
           and focus in the field holds the group open.
         </p>
