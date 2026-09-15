@@ -780,6 +780,37 @@ three absolute references in `index.html` — and it would route this site's
 traffic through the personal site's edge, where one broken deploy takes down
 both.
 
+## The repo is public, and main is protected against the one thing that is not undoable
+
+2026-09-15. `vcompagnucci/components` is public, issues are on, and the
+homepage points at the new address.
+
+**Force pushes and branch deletion are blocked, and administrators are not
+exempt.** Those two are what cannot be undone from a local clone: everything
+else on a protected branch is a revert away. The exemption is off on purpose,
+because the only account that can do the damage here is the owner's, and a
+protection the owner bypasses protects nobody.
+
+**What was NOT turned on is a required pull request**, and that is the whole
+point of the shape chosen. Requiring one on a repo with a single maintainer
+buys nothing, because a person cannot approve their own pull request on GitHub:
+either the approval count is zero, which is a ceremony, or the branch
+deadlocks. Pushing straight to `main` still works, which is how this repo has
+worked from the start.
+
+The `Vercel` commit status was left out of the required checks for a duller
+reason: it is not known whether GitHub blocks a direct push while a required
+check is still pending, and turning it on without testing that would be
+claiming a thing that was not measured. It is worth revisiting the day a pull
+request from outside actually arrives.
+
+**And there is no LICENSE.** With the repo public and no license, default
+copyright applies: the code can be read and forked inside GitHub, and it cannot
+legally be used anywhere else. That may be the right answer for an exhibition,
+but it is undecided rather than decided, and it cuts both ways. A contribution
+arriving by pull request has no defined terms either, so merging one would
+leave the repo holding code it has no clear license to.
+
 ## What is pending
 
 - **There is no `og:image`.** `og:url` was filled in on 2026-09-15 and reads
