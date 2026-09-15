@@ -3,7 +3,7 @@
 An exhibition of interface pieces, web and native, each one belonging to one
 platform, shown on a single page. No code on screen, nothing to install.
 
-**[components-three-pi.vercel.app](https://components-three-pi.vercel.app)**
+**[exhibition.vitocompagnucci.com](https://exhibition.vitocompagnucci.com)**
 
 ```bash
 pnpm install

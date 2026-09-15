@@ -741,6 +741,17 @@ when they choose to and not by accident.
 for the personal site, which does not exist yet: there the exhibition is one
 item in a list of projects, and the link on that item is this subdomain.
 
+**Live since 2026-09-15**, registrar and nameservers both Vercel, so the record
+was a field in a form and not a migration. Verified on the served site: the four
+piece slugs answer 200, `/vault` and `/playground` answer 404 like any made-up
+URL, TLS verifies over HTTP/2, and the hashed assets carry
+`max-age=31536000, immutable`. `components-three-pi.vercel.app` stays as an
+alias and still answers 200, so nothing already shared broke. The one live link
+in the repo, in `README.md`, is the new one. Six other mentions of the
+`.vercel.app` stay where they are: each is a dated receipt naming the host a
+measurement was taken on, and rewriting those would be falsifying where the
+number came from.
+
 **What the references do with a project, measured the same day.** Their project
 lists point at separate origins and never at a path: `pica.joshpuckett.me`,
 `interfacecraft.dev` and `dialkit.dev` from `joshpuckett.me`;
@@ -771,14 +782,13 @@ both.
 
 ## What is pending
 
-- **The domain is bought and not attached.** `vitocompagnucci.com` was bought
-  on 2026-09-15. What is left is one step and it is not in this repo: add
-  `exhibition.vitocompagnucci.com` to the `components` project in Vercel. The
-  MCP has no tool for it and there is no CLI on this machine, so it is a
-  dashboard job. Until it is done the site answers at
-  `components-three-pi.vercel.app`, which stays as an alias afterwards, so
-  nothing already shared breaks. The repo's half is finished: `og:url` reads
-  `SITE.url`, and `og:image` is still missing because there is no image.
+- **There is no `og:image`.** `og:url` was filled in on 2026-09-15 and reads
+  `SITE.url`; this one is still empty because no image exists. Until it does, a
+  link to the site previews as text. The same paragraph in `site.ts` explains
+  why `og:title`, `og:description` and `og:url` are all site-level and not
+  per-piece: one static `index.html`, routing on the client, and no
+  prerendering. An image would inherit that limit, so one image covers the
+  whole exhibition and not one per piece.
 - The `--space-*` scale does not cover what the page uses. It stops at 64 and
   56, 60 and 80 are in use as semantic tokens. Nobody decided whether the scale
   grows or those stay semantic.
