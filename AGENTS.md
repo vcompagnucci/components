@@ -433,14 +433,10 @@ starts with a dot, `realpath` on both sides.
 They are the same ones the server validates: adding one here without
 adding it there discards it on save, silently.
 
-**And a fourth, `piece`**, which is not free text: the slug of the piece
-this clip produced. It is what makes the vault a two-way door. The
-server checks it against the slugs in `pieces.ts` and answers 400 for
-one that names nothing, instead of dropping it like an unknown field,
-because a link you cannot follow is worse than no link. It gets written
-on its own when you publish an App piece from the clip, which is the
-moment the fact comes into being, and by hand in the details panel for
-the clips whose piece was published before the field existed.
+There were four until 2026-09-15. The fourth, `piece`, held the slug of
+the piece a clip produced and was the hinge of a door that opened both
+ways. The whole mechanism is gone, both halves of it, and why is in
+`LOG.md` › The vault is not a two-way door.
 
 **The detail exists for measuring.** The player goes frame by
 frame with the arrows (on its own 1 · option 10 · command to the edges)
@@ -451,13 +447,8 @@ and it reads the step from the mp4's container instead of estimating it
 Playground`. Inside a clip, the ↗ icon in the header. Both call the same
 thing, `toPlayground(path)` in `views.ts`.
 
-**The way out to the exhibition**, when the clip has a `piece`: right
-click → `Open in Exhibition`, and its own icon beside the ↗. It needs no
-helper, because the slug IS the URL. The icon goes FIRST in that row and
-not last: the group is pushed against the rail with `margin-left: auto`,
-so it grows leftward and a button added at the head leaves the arrow and
-the details toggle where they were. Measured in the served detail, with
-and without it: both stay at the same x.
+There is no way out to the exhibition. There was one, a menu item and
+an icon beside the ↗, and it went on 2026-09-15 with the field it read.
 
 **The loop goes one way only.** A clip in the vault offers the piece it
 produced; a piece does NOT offer the clip it came from. A line at the
@@ -885,9 +876,8 @@ while the real path is broken. That last one is the most expensive
 pattern on this list, because it keeps the checks green over something
 that is already dead and after it you cannot tell what you are running.
 The repo already works this way and the receipts are in the sections
-above: the `piece` field answers 400 for a slug that names nothing
-instead of dropping it as an unknown field, publishing does both writes
-or neither and a repeated name is a 409, and with no `VAULT_DIR` the
+above: publishing does both writes or neither and a repeated name is a
+409, and with no `VAULT_DIR` the
 vault says "Vault not connected" instead of drawing an empty grid. A
 `catch` survives when it names the failure it is absorbing and why
 carrying on is the right thing: the pointer capture a system gesture

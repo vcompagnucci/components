@@ -9,7 +9,6 @@ import { DetailsButton, ClipDetails } from "./details";
 import {
   TrashNotice,
   PlaygroundButton,
-  ExhibitionButton,
   RenameDialog,
   ClipMenu,
   sendToTrash,
@@ -484,28 +483,11 @@ export function Vault({
     if (id) go("/playground/" + id);
   };
 
-  /* THE OTHER WAY OUT, and it needs no helper: the slug IS the URL, so
-     there is nothing to look up and nothing to write. It is the whole
-     point of storing the slug and not the title.
-
-     IT TAKES THE SLUG AND NOT THE CLIP, so the two callers cannot
-     offer the way out without having the slug in hand: each one reads
-     it and guards on it before drawing its control. Taking the clip
-     needed an optional chain here, and that one navigates to
-     "/undefined" the day the invariant breaks.
-
-     There is no guard for the piece not existing, because there cannot
-     be one: the server refuses a slug that names nothing, and the
-     picker only offers the pieces there are. If a piece gets deleted
-     from pieces.ts by hand its clips keep pointing at it, and what you
-     get is the 404 of the exhibition, which is the honest answer. */
-  const openInExhibition = (piece: string) => go("/" + piece);
 
   /* THE FAILURE NOTICE NEEDS NO SUBJECT and that is why it stays
      outside the guard: when the clip left cleanly, `subject` is the
      last one there was; when it failed, what matters is the message and
      not what it was about. */
-  const subjectPiece = subject?.details?.piece;
   const layer = (
     <>
       {subject && (
@@ -521,15 +503,6 @@ export function Vault({
                the difference is decided by the only value that separates
                them: whether there is a clip open. */
             onPlayground={clip ? undefined : () => openInPlayground(subject)}
-            /* IT IS OFFERED IN BOTH VIEWS, unlike the playground's.
-               That one is a permanent button in the detail's bar, so
-               repeating it in the menu would be the same thing twice
-               ten pixels apart; this one is only a button when the clip
-               HAS a piece, so the menu is not repeating a command that
-               may not be there. And the grid has no bar at all. */
-            onExhibition={
-              subjectPiece ? () => openInExhibition(subjectPiece) : undefined
-            }
             onRename={() => setRenaming(subject)}
             /* WITHOUT ASKING: it leaves and that is it. The why is in
                actions.tsx, above TrashNotice. The HIG advises against
@@ -552,7 +525,6 @@ export function Vault({
   );
 
   if (clip) {
-    const piece = clip.details?.piece;
     return (
       <div
         className={css.detail}
@@ -593,9 +565,7 @@ export function Vault({
                 the served detail, with and without the button: the
                 arrow stays at the same x to the pixel.
 
-                Absent when the clip produced nothing, which is most of
-                the vault. */}
-            {piece && <ExhibitionButton onOpen={() => openInExhibition(piece)} />}
+                */}
             <PlaygroundButton onOpen={() => openInPlayground(clip)} />
             <DetailsButton
               open={detailsOpen}

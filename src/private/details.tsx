@@ -6,10 +6,9 @@ import menu from "./actions.module.css";
 import { saveDetails, type Clip, type Details } from "./clips";
 import { NoteLink } from "./link";
 import { split, type Segment } from "./links";
-import { PIECES } from "../pieces";
 
 /* ═══════════════════════════════════════════════════════════════
-   THE DETAILS. Five values, editing is touching and typing. The panel
+   THE DETAILS. Four values, editing is touching and typing. The panel
    collapses and the clip never moves: the slot is reserved open or
    closed, see details.module.css.
    ═══════════════════════════════════════════════════════════════ */
@@ -506,16 +505,15 @@ export function ClipDetails({
   annotate: (path: string, d: Details | null) => void;
 }) {
   const [details, change] = useSavedDetails(clip, annotate);
-  /* WHICH row opened the list, and where. Two rows share one picker
-     because only one can be open at a time, and holding two anchors
-     would let both be. */
+  /* WHERE the list opened. It was two rows sharing one picker until
+     2026-09-15, when the Piece row went; the shape is kept because a
+     second row would want the same thing and only one can be open at a
+     time either way. */
   const [picker, setPicker] = useState<{
-    row: "device" | "piece";
+    row: "device";
     anchor: DOMRect;
   } | null>(null);
   const source = details.source ?? "";
-  const linked = details.piece ?? "";
-  const linkedName = PIECES.find((p) => p.slug === linked)?.name ?? "";
 
   return (
     <div className={css.panel}>
@@ -572,30 +570,6 @@ export function ClipDetails({
             }
           />
 
-          {/* ─── WHICH PIECE CAME OUT OF THIS CLIP ───
-              The field that makes the door swing both ways. With it,
-              the clip offers Open in Exhibition and the piece's page
-              offers the way back to this clip.
-
-              It is a PICKER over the pieces that exist and not a text
-              field, for a harder reason than Device's: a slug typed by
-              hand that names nothing is a link that 404s, and a link
-              you cannot follow is worse than no link. The server
-              refuses one anyway, with a 400 instead of dropping it in
-              silence, but a control that cannot express the mistake is
-              better than an error message about it.
-
-              Publishing an App piece from this clip fills it in on its
-              own. It is here by hand for the clips whose piece was
-              published before the field existed. */}
-          <ChoiceRow
-            label="Piece"
-            shown={linkedName}
-            open={picker?.row === "piece"}
-            onOpen={(anchor) =>
-              setPicker((p) => (p?.row === "piece" ? null : { row: "piece", anchor }))
-            }
-          />
           {/* BY PORTAL, to body. Inside the table its div (even though
             it is position:fixed) got in between the Device row and the
             Notes block and broke the sibling selectors that hand out
@@ -603,25 +577,14 @@ export function ClipDetails({
             cannot live in the flow of what it covers. */}
           {picker &&
             createPortal(
-              picker.row === "device" ? (
-                <Picker
-                  label="Device"
-                  value={details.device ?? ""}
-                  options={DEVICE_OPTIONS}
-                  anchor={picker.anchor}
-                  onClose={() => setPicker(null)}
-                  onChoose={(v) => change({ ...details, device: v })}
-                />
-              ) : (
-                <Picker
-                  label="Piece"
-                  value={linked}
-                  options={PIECES.map((p) => ({ value: p.slug, label: p.name }))}
-                  anchor={picker.anchor}
-                  onClose={() => setPicker(null)}
-                  onChoose={(v) => change({ ...details, piece: v })}
-                />
-              ),
+              <Picker
+                label="Device"
+                value={details.device ?? ""}
+                options={DEVICE_OPTIONS}
+                anchor={picker.anchor}
+                onClose={() => setPicker(null)}
+                onChoose={(v) => change({ ...details, device: v })}
+              />,
               document.body,
             )}
 

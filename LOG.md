@@ -562,25 +562,13 @@ no Suspense in between.
 Bytes of the same jpeg, where lower means emptier. The first bundle did not
 grow, 210 kB: the demos are still separate chunks asked for in idle time.
 
-## The vault is a two-way door
+## The vault is not a two-way door, and the whole mechanism is gone
 
-A clip knows which piece came out of it, in a fourth field of
-`.lima-vault.json` with the slug. From the clip, `Open in Exhibition` in the
-menu and an icon beside the arrow; from the piece, a line at the foot back to
-the reference.
-
-The field goes in on both sides in the same change, which is the trap
-`AGENTS.md` wrote down before it bit: the server validates the fields it knows
-and drops the rest in silence. But it does not go in the same way on each side.
-The other three fields are whatever you typed and this one has to name a piece
-that exists, so it gets checked against `pieces.ts` and answered with a 400.
-Dropping a bad slug quietly is the one thing this field cannot afford: you would
-save, see nothing, and have no link.
-
-Publishing an App piece from a clip writes it on its own, since that is the
-moment the fact comes into being. If the write fails the piece stays published
-and the answer says so, because a piece that got published is not undone by a
-link that did not.
+It was built in both directions and both are deleted. A clip carried a fourth
+field, `piece`, with the slug of the piece that came out of it; the clip
+offered `Open in Exhibition` in its menu and an icon beside the arrow, the
+server validated the slug against `pieces.ts` with a 400 rather than dropping a
+bad one in silence, and publishing an App piece wrote the link on its own.
 
 **The way back was built, and then deleted.** At the foot of a piece's detail a
 line read "Measured against", the clip's name and its source, and it was
@@ -828,8 +816,6 @@ leave the repo holding code it has no clear license to.
   today you undo it in the Finder. Sonner is the medium decided on and it is
   postponed: it would be the first UI dependency and it brings a surface this
   system says it does not have.
-- **Three of the four clips have no piece linked.** The field exists and the
-  picker is in the details panel; only `hold-to-commit` is filled in.
 - **The unslop audit of 2026-09-12 left 148 findings and nothing fixed.** Every
   source file read in full, 24,332 lines plus the CSS. The reports are in
   `.context/unslop/`, which does not travel, so what matters is here: about 60
