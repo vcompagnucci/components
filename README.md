@@ -1810,8 +1810,10 @@ teléfono con el ajuste prendido, no razonarlo.
 
 ## Title to actions: dos vueltas atrás, y lo que quedó de cada una
 
-**Title to actions** (`src/piezas/title-to-actions.tsx`) es la primera
-pieza Web de la exposición: una barra que nombra lo que estás mirando
+**Title to actions** (`src/privado/bocetos/title-to-actions.tsx`) está
+terminada y **no está en la exposición** — se retiró el 2026-09-17, y el
+porqué está al final de esta sección. Es una barra que nombra lo que
+estás mirando
 —volver, la tapa, el título y el autor, y un botón de puntos
 suspensivos— y que al apretar ese botón cambia el título y el autor por
 las tres acciones del ítem. Los tres **salen de ese botón**: arrancan
@@ -2369,3 +2371,50 @@ copiar el enlace   el botón   {"like":"true","segundoRenglon":"Link copied"}
 - **Los cuadros** (`sonda/cuadros.mjs`), abriendo la fila y apretando dos
   botones en una corrida: **0 perdidos a 1× y a 6×**.
 - Modo oscuro y consola limpia en todas las corridas.
+
+### Y se retiró de la exposición, terminada
+
+El 2026-09-17, con la pieza entera y verificada: *"que esta pieza no
+salga del repo, que no llegue a exhibition pero que quede bien completa
+en el repo"*. Son dos pedidos y no se contradicen: **guardada sí,
+publicada no.**
+
+El repo ya tenía un lugar para eso, y es la frontera que AGENTS.md
+define. Todo lo que cuelga de `src/privado/` existe sólo en desarrollo y
+no llega al bundle; `src/piezas/` es el lado público, lo que la
+exposición sirve. Retirar una pieza terminada es **cruzar la frontera al
+revés**, que es el gesto inverso al de Add to Library:
+
+| | publicada | retirada |
+| --- | --- | --- |
+| el archivo | `src/piezas/title-to-actions.tsx` | `src/privado/bocetos/title-to-actions.tsx` |
+| quién lo dibuja | `demos.tsx`, en la card y el detalle | `bocetos.tsx`, en un frame del playground |
+| la entrada en `PIECES` | está | no está |
+| `vercel.json` | `/title-to-actions` con rewrite | 404 del host, como cualquier URL inventada |
+| el bundle público | un chunk de 33 kB con `motion` | nada |
+
+**La entrada de `PIECES` es la única llave**, y por eso alcanza con
+sacarla: de ahí salen la card, el detalle, el ancla del índice y —vía
+`rutas.mjs` en el `prebuild`— el rewrite. Se corrió el generador y
+`vercel.json` volvió solo a las dos rutas de antes. No hay ningún
+segundo lugar donde la pieza estuviera anotada: el slug es el mapa.
+
+Dos cosas se tocaron además del movimiento, y las dos por lo mismo — que
+"completa" quiere decir que sigue funcionando:
+
+- **Compartir copiaba `/title-to-actions`**, que acababa de volverse un
+  404. Ahora copia `/`, que es la exposición: el ítem que el rótulo
+  nombra es *Interface exhibition*, así que el enlace es el de la
+  exposición y sigue siendo verdad el día que la pieza se publique. Un
+  botón que copia una URL rota es justo el botón muerto que la tercera
+  vuelta vino a sacar.
+- **La nota de peso del encabezado** decía que el chunk baja cuando la
+  card entra en pantalla. Del lado privado no baja nunca; quedó escrito
+  como el costo que volvería al publicarla.
+
+Nada de lo medido se perdió: las proporciones, los resortes, la
+verificación con eventos de entrada y las tres versiones siguen en esta
+sección y arriba del archivo. **Para volver a publicarla** son las dos
+escrituras de siempre: copiar el archivo a `src/piezas/` y reponer la
+entrada en `PIECES`. La pieza no importa nada de `src/privado/` —React y
+`motion/react`, nada más— justamente para que esa copia compile tal cual.

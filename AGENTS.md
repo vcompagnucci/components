@@ -499,6 +499,21 @@ El `slug` es **uno solo** y vive en `pieces.ts`: lo comparten la página,
 el generador de rutas y el puente que publica. Acá vivían dos cuentas
 distintas que coincidían de casualidad; quedó una.
 
+**Retirar una pieza terminada** —guardarla sin publicarla— es cruzar la
+frontera al revés, y son las mismas dos escrituras al revés: el archivo
+vuelve de `src/piezas/<slug>.tsx` a `src/privado/bocetos/<slug>.tsx`, y
+se borra su entrada de `PIECES`. Con eso desaparecen la card, el
+detalle, el ancla del índice y —vía `rutas.mjs`— el rewrite, y la pieza
+sigue entera: se abre en el playground como cualquier boceto. Es lo que
+se hizo con **Title to actions** (2026-09-17). No confundirlo con
+*revertir una prueba*, unos renglones más arriba: aquello borra el
+archivo porque no había nada que guardar.
+
+Dos cosas que revisar al retirar, porque una pieza publicada puede
+apoyarse en estar publicada: **cualquier URL propia que la pieza use**
+—la suya acaba de volverse un 404— y **las notas de peso del
+encabezado**, que hablan de un chunk que ya no se construye.
+
 **`platform` decide cómo se demuestra, y nada más**: Web va viva en el
 navegador, App va en video. No se decide por pieza — y publicar tampoco
 lo pregunta, lo lee del frame.

@@ -4,6 +4,24 @@
    SALEN de ese botón: arrancan apiladas en su lugar y se abren hacia la
    izquierda.
 
+   ─── ESTÁ TERMINADA Y NO ESTÁ PUBLICADA, Y ES A PROPÓSITO ───
+   Vive del lado PRIVADO de la frontera —es un boceto del playground, no
+   una pieza de `src/piezas/`— porque el usuario la retiró de la
+   exposición el 2026-09-17: "que no llegue a exhibition pero que quede
+   bien completa en el repo". Entonces no hay entrada en `PIECES`, no
+   hay card, no hay detalle y `/title-to-actions` es el 404 del host.
+
+   No es un boceto a medio hacer: es la pieza entera, con sus medidas,
+   sus pruebas y su registro en README.md › Title to actions. La única
+   diferencia con una publicada es de qué lado del build vive. Para
+   publicarla: copiar este archivo a `src/piezas/title-to-actions.tsx` y
+   reponer la entrada en `PIECES` — el mismo par de escrituras que hace
+   Add to Library. Se abre en el playground, en un frame de tipo boceto.
+
+   Y POR ESO NO PUEDE IMPORTAR NADA DE `src/privado/`, igual que antes:
+   la copia al lado público tiene que seguir compilando tal cual. Hoy
+   importa React y `motion/react`, y nada más.
+
    ─── LAS TRES ACCIONES SON LAS DE LA REFERENCIA ───
    La grabación del vault (`web/Title to actions.mp4`) es una cápsula
    flotante para lo que estás LEYENDO: chevron de volver, tapa, título y
@@ -110,9 +128,12 @@
      con `motion` entero                       140 kB  46 kB
      con `m` + LazyMotion(domAnimation)         94 kB  33 kB
 
-   La pieza se carga sola —`demos.tsx` la resuelve con `lazy`— así que
-   el chunk baja recién cuando la card entra en pantalla, y las piezas
-   App no lo bajan nunca. La salida escrita, por si el peso importa más:
+   Esos números son del build público, de cuando la pieza vivía en
+   `src/piezas/`. Hoy no pesan nada en producción: del lado privado el
+   glob de `bocetos.tsx` no toca el bundle, así que `motion` volvió a
+   quedar declarado y sin usar del lado público. Quedan escritos porque
+   son el costo que volvería el día que se publique. La salida escrita,
+   por si el peso importa más:
    la versión de vidrio traía su propio integrador de resortes, cuarenta
    líneas verificadas contra la documentación de Apple hasta el sexto
    decimal, en `.context/title-to-actions/version-vidrio.tsx`.
@@ -340,9 +361,16 @@ const ANCHO = 460
 
 /* EL ÍTEM. Es la exposición misma, que es lo que la página tiene
    alrededor: un ítem real, sin arte de terceros y sin música. Y hace que
-   compartir sea verdad — lo que copia es el enlace de esta pieza. */
+   compartir sea verdad — lo que copia es el enlace del ítem que nombra.
+
+   EL ENLACE ES `/` Y NO `/title-to-actions`. Apuntaba a la página de la
+   pieza, y esa página dejó de existir al retirarla de `PIECES`
+   (2026-09-17): copiar una URL que da 404 es exactamente el botón que
+   no hace nada que esta vuelta vino a sacar. `/` es la exposición, que
+   es el ítem que el rótulo nombra, así que el enlace vuelve a ser
+   verdad — y lo sigue siendo el día que la pieza se publique. */
 const ITEM = { titulo: 'Interface exhibition', autor: 'Vito Compagnucci' }
-const ENLACE = '/title-to-actions'
+const ENLACE = '/'
 
 /* ─────────────────────────────────────────────────────────
  * EL CONTROL
