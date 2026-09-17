@@ -372,8 +372,34 @@ export function App() {
         document.querySelector<HTMLElement>(ALIGN.to) ??
         document.querySelector<HTMLElement>(ALIGN.fallback)
       if (!nav || !from || !to) return
+      /* NOTHING IS ALIGNED AGAINST AN INDEX THAT IS NOT DRAWN. Below
+         1080px the index is display:none, and every rect inside a
+         display:none subtree is zero, so the probe reads the label's
+         baseline as 0. That does not produce one wrong number: the
+         formula starts from the index's CURRENT top, so a zero there
+         adds the title's whole offset again on every call. Measured on
+         production, resizing while narrow: 237 → -982 → -482 → …, a
+         step of 250px per resize with no bound. getClientRects().length
+         is the platform's own answer to whether an element is drawn. */
+      if (nav.getClientRects().length === 0) return
       const current = parseFloat(getComputedStyle(nav).top) || 0
-      const delta = textBaseline(to) - textBaseline(from)
+      /* THE SCROLL IS PART OF THE MEASUREMENT. The two ends of this
+         subtraction do not live in the same space: getBoundingClientRect
+         answers in VIEWPORT coordinates, the title is in the flow and
+         moves with the scroll, and the index is position:fixed and does
+         not. Without this term the difference is only right at scrollY
+         0, and anywhere else it comes out short by exactly the scroll,
+         which is how the index ended up above the top edge of the
+         window. Adding the scroll puts the title in DOCUMENT
+         coordinates, where it is the same number at any scroll; the
+         label, being fixed, already was.
+         Measured on production, three ways in, none of them touching
+         the window: reloading a list scrolled to 1200 left it at -887,
+         opening a piece from there and coming back at -581, and one
+         resize at scrollY 600 at -363, which is 237 minus the scroll.
+         And it STAYS there: nothing re-runs on scroll, so the index was
+         off screen for the rest of the session. */
+      const delta = textBaseline(to) + window.scrollY - textBaseline(from)
       nav.style.setProperty('--index-offset-top', `${Math.round(current + delta)}px`)
     }
     align()

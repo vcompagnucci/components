@@ -34,7 +34,7 @@ HIG. Where I departed from them on purpose, the departure is the entry.
 | Bottom air | 80, and it does not step | neither reference backs it: both close short because they have a footer and this page will not. The top air gets trimmed on a phone because it is dead screen before you read; the bottom one is only seen if you scrolled all the way |
 | Response | it steps, it does not interpolate. One step at 768 that moves the top air and the margin together. Zero `clamp()`, zero `vw` | benji's, measured across four of his stylesheets. Josh is the opposite, 142 classes on /bloom and not one responsive prefix |
 | The index | fixed on the left, 80/80, every piece grouped, no tabs. It leaves below 1080 | thirteen pages of the two references: neither uses tabs, both navigate with a fixed index. The 1080 is benji's |
-| ↳ where it starts | "Web" sits on the same line as the first piece's title. 237 at 1440 | chosen against four other pairings. It aligns on the text baseline and it gets measured, not calculated: as a `calc` it would be a formula nobody updates |
+| ↳ where it starts | "Web" sits on the same line as the first piece's title. 237 at 1440 | chosen against four other pairings. It aligns on the text baseline and it gets measured, not calculated: as a `calc` it would be a formula nobody updates. What measuring costs is written below, in the index measuring in one space and positioning in another |
 | ↳ scrollspy | the piece you are looking at gets painted, at 65 | benji's rule, out of his bundle. This used to say "no scrollspy" and it was reversed |
 | Spacing | 80/32 above · masthead→section 60 · label→piece 40 · name→card 12 · between pieces 48 · between sections 64 · label↔hairline 8 · subtitle 4. All multiples of 4 | chosen with the scrubber. The 40, 48 and 64 are benji's |
 | ↳ the token's name is its role | `--page-padding-top`, `--index-group-gap`. The whole `--space-*` scale was deleted | 1.3 MB of served CSS from apple, linear and openai: not one token named after its value, not one `--space-4` in the three bundles |
@@ -798,6 +798,58 @@ legally be used anywhere else. That may be the right answer for an exhibition,
 but it is undecided rather than decided, and it cuts both ways. A contribution
 arriving by pull request has no defined terms either, so merging one would
 leave the repo holding code it has no clear license to.
+
+## The index was measuring in one space and positioning in another
+
+2026-09-17. Reported as "sometimes it shows up somewhere else and sometimes it
+does not show up at all". Both halves were the same line of `app.tsx`, and it
+had been there since the alignment was written.
+
+The index sits on the same line as the first piece's title, and that line is
+measured rather than calculated, for the reason in the row above: a `calc` that
+restates the page's whole vertical stack is a formula nobody updates. The
+measurement asks two elements for their baseline and subtracts. **The two
+answers are in different coordinate systems.** `getBoundingClientRect` reports
+against the VIEWPORT; the title is in the flow and moves with the scroll, and
+the index is `position: fixed` and does not. So the subtraction was only right
+at `scrollY` 0, and anywhere else it came out short by exactly the scroll.
+
+Three ways in were measured on production, and **none of them involves touching
+the window**, which is why it read as random:
+
+| what the reader did | where the index went |
+| --- | --- |
+| reloaded a list scrolled to 1200 | −887 |
+| opened a piece from there and came back | −581 |
+| one resize at scrollY 600 | −363, which is 237 minus the scroll |
+
+Negative means above the top edge of the window. And nothing re-runs on scroll,
+so it **stayed** there: scrolling back to the top did not bring it back, and the
+index was gone for the rest of the session. That is the "does not show up",
+and a smaller scroll is the "somewhere else" — the same bug, read at a
+different distance.
+
+The fix is one term. Adding the scroll puts the title in DOCUMENT coordinates,
+where it is the same number at any scroll; the label, being fixed, already was.
+
+**The second half was the index measured while it is not drawn.** Below 1080px
+it is `display: none`, and every rect inside a `display: none` subtree is zero,
+so the probe read the label's baseline as 0. That is not one wrong number: the
+formula starts from the index's current `top`, so a zero there adds the title's
+whole offset again on every call. Measured, resizing while narrow: 237 → −982 →
+−482 → …, a step of 250px per resize with no bound. It now returns early when
+`getClientRects()` is empty, which is the platform's own answer to whether an
+element is drawn.
+
+**The font was cleared, not fixed.** The effect is a `useLayoutEffect`, so it
+runs at the first commit, and a probe sampling every frame from before the
+document existed caught it writing its value with `document.fonts.status` still
+`loading`. The value it wrote survived the font landing unchanged, and the
+residual misalignment at rest is 0.5px, which is the rounding to a whole pixel.
+So the font is not part of this and nothing was added for it.
+
+The alignment itself did not move: 237 at 1440 before and after, in every state
+probed. What changed is that it is now 237 in all of them.
 
 ## What is pending
 
