@@ -1810,10 +1810,10 @@ teléfono con el ajuste prendido, no razonarlo.
 
 ## Title to actions: dos vueltas atrás, y lo que quedó de cada una
 
-**Title to actions** (`src/privado/bocetos/title-to-actions.tsx`) —
-**v1, cerrada el 2026-09-21**— está terminada y **no está en la
-exposición**: se retiró el 2026-09-17. Las dos cosas están al final de
-esta sección. Es una barra que nombra lo que estás mirando
+**Title to actions** (`src/privado/bocetos/title-to-actions.tsx`) es una
+v1 terminada el 2026-09-21, y **no está en la exposición**: se retiró el
+2026-09-17. Las dos cosas están al final de esta sección. Es
+una barra que nombra lo que estás mirando
 —volver, la tapa, el título y el autor, y un botón de puntos
 suspensivos— y que al apretar ese botón cambia el título y el autor por
 las tres acciones del ítem. Los tres **salen de ese botón**: arrancan
@@ -2376,7 +2376,7 @@ copiar el enlace   el botón   {"like":"true","segundoRenglon":"Link copied"}
 
 El 2026-09-17, con la pieza entera y verificada: *"que esta pieza no
 salga del repo, que no llegue a exhibition pero que quede bien completa
-en el repo"*. Son dos pedidos y no se contradicen: **guardada sí,
+en el repo"*. Son dos pedidos y no se contradicen. **Guardada sí,
 publicada no.**
 
 El repo ya tenía un lugar para eso, y es la frontera que AGENTS.md
@@ -2399,56 +2399,58 @@ sacarla: de ahí salen la card, el detalle, el ancla del índice y —vía
 `vercel.json` volvió solo a las dos rutas de antes. No hay ningún
 segundo lugar donde la pieza estuviera anotada: el slug es el mapa.
 
-Dos cosas se tocaron además del movimiento, y las dos por lo mismo — que
-"completa" quiere decir que sigue funcionando:
+Dos cosas se tocaron además del movimiento, y las dos por lo mismo:
+"completa" quiere decir que sigue funcionando.
 
 - **Compartir copiaba `/title-to-actions`**, que acababa de volverse un
-  404. Ahora copia `/`, que es la exposición: el ítem que el rótulo
-  nombra es *Interface exhibition*, así que el enlace es el de la
-  exposición y sigue siendo verdad el día que la pieza se publique. Un
-  botón que copia una URL rota es justo el botón muerto que la tercera
-  vuelta vino a sacar.
+  404. Ahora copia `/`. El ítem que el rótulo nombra es *Interface
+  exhibition*, así que el enlace es el de la exposición y sigue siendo
+  verdad el día que la pieza se publique. Un botón que copia una URL
+  rota es el botón muerto que la tercera vuelta vino a sacar.
 - **La nota de peso del encabezado** decía que el chunk baja cuando la
   card entra en pantalla. Del lado privado no baja nunca; quedó escrito
   como el costo que volvería al publicarla.
 
-Nada de lo medido se perdió: las proporciones, los resortes, la
+Nada de lo medido se perdió. Las proporciones, los resortes, la
 verificación con eventos de entrada y las tres versiones siguen en esta
 sección y arriba del archivo. **Para volver a publicarla** son las dos
 escrituras de siempre: copiar el archivo a `src/piezas/` y reponer la
 entrada en `PIECES`. La pieza no importa nada de `src/privado/` —React y
-`motion/react`, nada más— justamente para que esa copia compile tal cual.
+`motion/react`, nada más— para que esa copia compile tal cual.
 
-### La v1 se cierra acá, terminada
+### La v1 queda terminada, y el archivo queda
 
 El 2026-09-21, al archivar el worktree: *"que quede documentado que esta
 es la v1 de este componente y que dicha versión ya está terminada […] no
 significa borrar el componente ni nada, sólo que queda ahí en el repo,
 para poder continuarlo en algún momento"*.
 
-**Terminada quiere decir que no queda nada pendiente de la v1**, no que
-la pieza esté cerrada para siempre. Son tres estados distintos y sólo
-los dos primeros son ciertos acá:
+Terminada quiere decir que no queda nada pendiente de la v1. No quiere
+decir que la pieza esté cerrada para siempre. Son tres estados
+independientes, y acá valen así:
 
 | | |
 | --- | --- |
-| **terminada** | sí — las tres vueltas están resueltas y verificadas |
-| **publicada** | no — sin entrada en `PIECES`, por la decisión del 2026-09-17 |
-| **congelada** | no — el archivo queda para continuarla |
+| terminada | sí, a pedido del usuario |
+| publicada | no, por la decisión del 2026-09-17 |
+| congelada | no, el archivo queda para continuarla |
 
-Lo que cierra la v1, en una línea cada uno: las tres acciones son las de
-la grabación y **las tres hacen algo de verdad**; las proporciones salen
-del cuadro 0080 y no de un ojo; el movimiento son resortes y no curvas,
-porque el botón se puede apretar dos veces seguidas; el material es el
-de `DESIGN.md` y no el de la referencia; y está medido en el navegador
-con eventos de entrada de verdad —hit-testing, portapapeles, teclado,
-cuadros, modo oscuro—, no con `.click()`.
+**Qué define esta v1 todavía no se escribe, y es a propósito.** Acá
+había una lista de cinco renglones que decía cuáles eran sus decisiones
+cerradas, y el usuario la borró el mismo día: *"todavía no lo sabemos"*.
+Es la primera regla del repo aplicada a la bitácora misma. Nada se
+afirma sin medir, y "esto es lo que define la v1" es una afirmación sin
+medir mientras no haya una v2 contra la cual medirla. Lo que pasó está
+arriba, vuelta por vuelta y con su cita.
 
-**Y el día que haya una v2**, arranca de este archivo: es el punto de
-partida medido, y lo que cambie se escribe como cambio contra esta v1.
-Las dos cosas que quedaron dichas y no hechas, por si son el principio
-de esa vuelta: el registro de medición vive en `.context/`, que es
-scratch de cada máquina y **no viaja con el repo** —ahí está
-`version-vidrio.tsx`, la única copia de la versión de Liquid Glass—, y
-`pnpm referencias` sale con código 1 por tres referencias a `BODY` que
-son falsos positivos del propio chequeador.
+Y el día que haya una v2, arranca de este archivo. Lo que cambie se
+escribe como cambio contra esta v1, no como si la pieza empezara de
+cero. Quedan dos cosas dichas y no hechas, por si son el principio de
+esa vuelta:
+
+- **El registro de medición no viaja.** Vive en `.context/`, que es
+  scratch de cada máquina y está en el `.gitignore`. Ahí está
+  `version-vidrio.tsx`, la única copia de la versión de Liquid Glass.
+- **`pnpm referencias` sale con código 1**, por tres referencias a
+  `BODY` que son falsos positivos del propio chequeador: `BODY` es el
+  valor de `activeElement`, no un símbolo de este repo.

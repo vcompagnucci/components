@@ -5,18 +5,20 @@
    izquierda.
 
    ─── ESTO ES LA V1, Y ESTÁ TERMINADA ───
-   **Versión 1 · cerrada el 2026-09-21.** No está a medio hacer y no está
-   esperando nada: es la pieza entera, con sus proporciones medidas, su
-   coreografía de resortes y su verificación con eventos de entrada de
-   verdad, toda registrada en README.md › Title to actions. Se cierra
-   acá a pedido del usuario, que archiva el worktree con la pieza en
-   este estado ("que quede documentado que esta es la v1 de este
-   componente y que dicha versión ya está terminada").
+   VERSIÓN 1, TERMINADA EL 2026-09-21. No está a medio hacer y no está
+   esperando nada. Se cierra acá a pedido del usuario, que archiva el
+   worktree con la pieza en este estado: "que quede documentado que esta
+   es la v1 de este componente y que dicha versión ya está terminada".
 
-   **CERRADA NO ES CONGELADA.** Queda en el repo justamente para poder
-   seguirla: el día que haya una v2, arranca de este archivo, con todo
-   lo de abajo como el punto de partida medido. Lo que cambie se escribe
-   como cambio contra esta v1, no como si la pieza empezara de cero.
+   QUÉ DEFINE A ESTA V1 NO SE ESCRIBE TODAVÍA. Acá hubo una lista de sus
+   decisiones cerradas y el usuario la borró el mismo día ("todavía no
+   lo sabemos"). Es la primera regla del repo aplicada al comentario:
+   nada se afirma sin medir, y no hay con qué medir eso hasta que exista
+   una v2. Lo que pasó está más abajo, vuelta por vuelta y con su cita.
+
+   TERMINADA NO ES CONGELADA. El archivo queda en el repo para poder
+   seguirla: el día que haya una v2, arranca de acá, y lo que cambie se
+   escribe como cambio contra esta v1.
 
    ─── Y NO ESTÁ PUBLICADA, QUE ES OTRA COSA ───
    Vive del lado PRIVADO de la frontera —es un boceto del playground, no
@@ -25,10 +27,10 @@
    bien completa en el repo". Entonces no hay entrada en `PIECES`, no
    hay card, no hay detalle y `/title-to-actions` es el 404 del host.
 
-   Terminada y publicada son independientes: ésta está terminada y no
+   Terminada y publicada son independientes, y esta está terminada y no
    publicada. La única diferencia con una publicada es de qué lado del
    build vive. Para publicarla: copiar este archivo a
-   `src/piezas/title-to-actions.tsx` y reponer la entrada en `PIECES` —
+   `src/piezas/title-to-actions.tsx` y reponer la entrada en `PIECES`,
    el mismo par de escrituras que hace Add to Library. Se abre en el
    playground, en un frame de tipo boceto.
 
@@ -143,11 +145,11 @@
      con `m` + LazyMotion(domAnimation)         94 kB  33 kB
 
    Esos números son del build público, de cuando la pieza vivía en
-   `src/piezas/`. Hoy no pesan nada en producción: del lado privado el
-   glob de `bocetos.tsx` no toca el bundle, así que `motion` volvió a
-   quedar declarado y sin usar del lado público. Quedan escritos porque
-   son el costo que volvería el día que se publique. La salida escrita,
-   por si el peso importa más:
+   `src/piezas/`. Hoy no pesan nada en producción. El glob de
+   `bocetos.tsx` no toca el bundle, así que `motion` volvió a quedar
+   declarado y sin usar del lado público; los números quedan escritos
+   porque son el costo que volvería el día que se publique. La salida
+   escrita, por si el peso importa más:
    la versión de vidrio traía su propio integrador de resortes, cuarenta
    líneas verificadas contra la documentación de Apple hasta el sexto
    decimal, en `.context/title-to-actions/version-vidrio.tsx`.
@@ -379,10 +381,10 @@ const ANCHO = 460
 
    EL ENLACE ES `/` Y NO `/title-to-actions`. Apuntaba a la página de la
    pieza, y esa página dejó de existir al retirarla de `PIECES`
-   (2026-09-17): copiar una URL que da 404 es exactamente el botón que
-   no hace nada que esta vuelta vino a sacar. `/` es la exposición, que
-   es el ítem que el rótulo nombra, así que el enlace vuelve a ser
-   verdad — y lo sigue siendo el día que la pieza se publique. */
+   (2026-09-17). Copiar una URL que da 404 es el botón muerto que esta
+   vuelta vino a sacar. `/` es la exposición, que es el ítem que el
+   rótulo nombra, así que el enlace vuelve a ser verdad, y lo sigue
+   siendo el día que la pieza se publique. */
 const ITEM = { titulo: 'Interface exhibition', autor: 'Vito Compagnucci' }
 const ENLACE = '/'
 
