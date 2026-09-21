@@ -4,19 +4,33 @@
    SALEN de ese botón: arrancan apiladas en su lugar y se abren hacia la
    izquierda.
 
-   ─── ESTÁ TERMINADA Y NO ESTÁ PUBLICADA, Y ES A PROPÓSITO ───
+   ─── ESTO ES LA V1, Y ESTÁ TERMINADA ───
+   **Versión 1 · cerrada el 2026-09-21.** No está a medio hacer y no está
+   esperando nada: es la pieza entera, con sus proporciones medidas, su
+   coreografía de resortes y su verificación con eventos de entrada de
+   verdad, toda registrada en README.md › Title to actions. Se cierra
+   acá a pedido del usuario, que archiva el worktree con la pieza en
+   este estado ("que quede documentado que esta es la v1 de este
+   componente y que dicha versión ya está terminada").
+
+   **CERRADA NO ES CONGELADA.** Queda en el repo justamente para poder
+   seguirla: el día que haya una v2, arranca de este archivo, con todo
+   lo de abajo como el punto de partida medido. Lo que cambie se escribe
+   como cambio contra esta v1, no como si la pieza empezara de cero.
+
+   ─── Y NO ESTÁ PUBLICADA, QUE ES OTRA COSA ───
    Vive del lado PRIVADO de la frontera —es un boceto del playground, no
    una pieza de `src/piezas/`— porque el usuario la retiró de la
    exposición el 2026-09-17: "que no llegue a exhibition pero que quede
    bien completa en el repo". Entonces no hay entrada en `PIECES`, no
    hay card, no hay detalle y `/title-to-actions` es el 404 del host.
 
-   No es un boceto a medio hacer: es la pieza entera, con sus medidas,
-   sus pruebas y su registro en README.md › Title to actions. La única
-   diferencia con una publicada es de qué lado del build vive. Para
-   publicarla: copiar este archivo a `src/piezas/title-to-actions.tsx` y
-   reponer la entrada en `PIECES` — el mismo par de escrituras que hace
-   Add to Library. Se abre en el playground, en un frame de tipo boceto.
+   Terminada y publicada son independientes: ésta está terminada y no
+   publicada. La única diferencia con una publicada es de qué lado del
+   build vive. Para publicarla: copiar este archivo a
+   `src/piezas/title-to-actions.tsx` y reponer la entrada en `PIECES` —
+   el mismo par de escrituras que hace Add to Library. Se abre en el
+   playground, en un frame de tipo boceto.
 
    Y POR ESO NO PUEDE IMPORTAR NADA DE `src/privado/`, igual que antes:
    la copia al lado público tiene que seguir compilando tal cual. Hoy

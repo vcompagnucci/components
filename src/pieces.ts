@@ -83,12 +83,13 @@ export const PIECES: Piece[] = [
     videoOscuro: '/piezas/hold-to-commit-oscuro.webm',
     videoHevcOscuro: '/piezas/hold-to-commit-oscuro.mov',
   },
-  /* TITLE TO ACTIONS NO ESTÁ ACÁ, Y ES UNA DECISIÓN, no un olvido. La
-     pieza está construida entera y sigue en el repo, del lado privado
-     de la frontera: `src/privado/bocetos/title-to-actions.tsx`, el
-     boceto que se abre en el playground. El usuario la retiró de la
-     exposición el 2026-09-17 ("que no llegue a exhibition pero que
-     quede bien completa en el repo"), y retirar una pieza es UNA sola
+  /* TITLE TO ACTIONS NO ESTÁ ACÁ, Y ES UNA DECISIÓN, no un olvido. Su
+     V1 está TERMINADA —cerrada el 2026-09-21— y sigue en el repo, del
+     lado privado de la frontera:
+     `src/privado/bocetos/title-to-actions.tsx`, el boceto que se abre
+     en el playground. El usuario la retiró de la exposición el
+     2026-09-17 ("que no llegue a exhibition pero que quede bien
+     completa en el repo"), y retirar una pieza es UNA sola
      escritura: sacar la entrada de acá. Sin entrada no hay card, no hay
      detalle, no hay ancla en el índice y `rutas.mjs` no le escribe
      rewrite, así que `/title-to-actions` vuelve a ser el 404 del host.

@@ -1810,10 +1810,10 @@ teléfono con el ajuste prendido, no razonarlo.
 
 ## Title to actions: dos vueltas atrás, y lo que quedó de cada una
 
-**Title to actions** (`src/privado/bocetos/title-to-actions.tsx`) está
-terminada y **no está en la exposición** — se retiró el 2026-09-17, y el
-porqué está al final de esta sección. Es una barra que nombra lo que
-estás mirando
+**Title to actions** (`src/privado/bocetos/title-to-actions.tsx`) —
+**v1, cerrada el 2026-09-21**— está terminada y **no está en la
+exposición**: se retiró el 2026-09-17. Las dos cosas están al final de
+esta sección. Es una barra que nombra lo que estás mirando
 —volver, la tapa, el título y el autor, y un botón de puntos
 suspensivos— y que al apretar ese botón cambia el título y el autor por
 las tres acciones del ítem. Los tres **salen de ese botón**: arrancan
@@ -2418,3 +2418,37 @@ sección y arriba del archivo. **Para volver a publicarla** son las dos
 escrituras de siempre: copiar el archivo a `src/piezas/` y reponer la
 entrada en `PIECES`. La pieza no importa nada de `src/privado/` —React y
 `motion/react`, nada más— justamente para que esa copia compile tal cual.
+
+### La v1 se cierra acá, terminada
+
+El 2026-09-21, al archivar el worktree: *"que quede documentado que esta
+es la v1 de este componente y que dicha versión ya está terminada […] no
+significa borrar el componente ni nada, sólo que queda ahí en el repo,
+para poder continuarlo en algún momento"*.
+
+**Terminada quiere decir que no queda nada pendiente de la v1**, no que
+la pieza esté cerrada para siempre. Son tres estados distintos y sólo
+los dos primeros son ciertos acá:
+
+| | |
+| --- | --- |
+| **terminada** | sí — las tres vueltas están resueltas y verificadas |
+| **publicada** | no — sin entrada en `PIECES`, por la decisión del 2026-09-17 |
+| **congelada** | no — el archivo queda para continuarla |
+
+Lo que cierra la v1, en una línea cada uno: las tres acciones son las de
+la grabación y **las tres hacen algo de verdad**; las proporciones salen
+del cuadro 0080 y no de un ojo; el movimiento son resortes y no curvas,
+porque el botón se puede apretar dos veces seguidas; el material es el
+de `DESIGN.md` y no el de la referencia; y está medido en el navegador
+con eventos de entrada de verdad —hit-testing, portapapeles, teclado,
+cuadros, modo oscuro—, no con `.click()`.
+
+**Y el día que haya una v2**, arranca de este archivo: es el punto de
+partida medido, y lo que cambie se escribe como cambio contra esta v1.
+Las dos cosas que quedaron dichas y no hechas, por si son el principio
+de esa vuelta: el registro de medición vive en `.context/`, que es
+scratch de cada máquina y **no viaja con el repo** —ahí está
+`version-vidrio.tsx`, la única copia de la versión de Liquid Glass—, y
+`pnpm referencias` sale con código 1 por tres referencias a `BODY` que
+son falsos positivos del propio chequeador.
