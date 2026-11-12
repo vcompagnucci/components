@@ -386,7 +386,8 @@ three cannot (`scripts/references.mjs`). None of them gets weakened to
 pass: see *The code*.
 
 `bash .claude/check.sh` is the check (typecheck, lint, build; `references`
-and the native workshop stay by hand), and CI runs it on every pull request.
+and the native workshop stay by hand), and CI runs it on every pull request
+and on every push to main.
 
 ### What NOT to do
 
