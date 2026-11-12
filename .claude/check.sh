@@ -17,9 +17,10 @@
 #   pnpm --dir native typecheck     needs the Expo workshop installed (cd native && pnpm install). Run it when native/
 #                                   changed.
 #
-# A worktree has no node_modules (gitignored), so when it is missing this runs `pnpm install --frozen-lockfile`
-# first: it only reads pnpm-lock.yaml, never rewrites it, and the stop hook only gives an agent three attempts, so
-# failing here with "run pnpm install" would cost an attempt for a step the script can do itself.
+# A worktree has no node_modules (gitignored), and a killed install leaves one without its tools. When tsc, oxlint or
+# vite is missing from node_modules/.bin this runs `pnpm install --frozen-lockfile` first: it only reads pnpm-lock.yaml,
+# never rewrites it, and the stop hook only gives an agent three attempts, so failing here with "run pnpm install" would
+# cost an attempt for a step the script can do itself.
 set -u
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || { echo "check.sh: cannot find the repo root" >&2; exit 1; }
@@ -70,10 +71,17 @@ step() {
 
 # The install is a step like the others, so a failure shows the command and its real exit code and the summary line
 # still ends the output. The steps below need the install, so they do not run after it fails.
-if [ ! -d node_modules ]; then
-  echo "check.sh: node_modules is missing, running: pnpm install --frozen-lockfile"
-  step install pnpm install --frozen-lockfile
-fi
+#
+# It runs when a tool the steps run is missing from node_modules/.bin, which also covers a missing node_modules. An
+# install that was killed halfway leaves a node_modules that exists but has no tools; checking only the folder would
+# fail every later run with "tsc: command not found" until someone deleted it by hand. The rerun repairs it.
+for tool in tsc oxlint vite; do
+  if [ ! -x "node_modules/.bin/$tool" ]; then
+    echo "check.sh: node_modules/.bin/$tool is missing, running: pnpm install --frozen-lockfile"
+    step install pnpm install --frozen-lockfile
+    break
+  fi
+done
 
 if [ "$failed" -eq 0 ]; then
   step typecheck pnpm typecheck
