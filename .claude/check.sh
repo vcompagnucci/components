@@ -9,7 +9,8 @@
 # naming it, and exits 0 only when none failed. The last line repeats the failing names, so it survives the stop hook,
 # which shows only the tail of the output: "3 steps, 2 failed: typecheck, lint", or "3 steps, 0 failed".
 #
-# Not in here, on purpose (AGENTS.md lists both as part of "finished", so run them by hand before a pull request):
+# Not in here, on purpose: there are no unit tests in this repo, so none were left out. Two other checks stay out
+# (AGENTS.md lists both as part of "finished", so run them by hand before a pull request):
 #   pnpm references                 one pass over the whole git history, cached in .context/, which a new worktree does
 #                                   not have. It had not finished after 9 minutes on a fresh worktree. CI cannot run it
 #                                   either: actions/checkout fetches one commit, and there is no history to read.
@@ -33,7 +34,13 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 # scripts/routes.mjs runs TypeScript with plain node, which needs the major pinned in .nvmrc.
-want=$(sed 's/^v//' .nvmrc | cut -d. -f1)
+nvmrc=$(tr -d '[:space:]' < .nvmrc)
+if ! [[ $nvmrc =~ ^v?[0-9]+(\.[0-9]+\.[0-9]+)?$ ]]; then
+  echo "check.sh: .nvmrc says \"$nvmrc\", which is not a major (24) or a version (v24.12.0). Put one of those in .nvmrc." >&2
+  exit 1
+fi
+want=${nvmrc#v}
+want=${want%%.*}
 have=$(node -p 'process.versions.node.split(".")[0]')
 if [ "$have" -lt "$want" ]; then
   echo "check.sh: node $have is too old, .nvmrc wants $want. Run: nvm install && nvm use" >&2
