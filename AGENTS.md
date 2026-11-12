@@ -385,6 +385,9 @@ the build is the only place the production fold gets verified; and
 three cannot (`scripts/references.mjs`). None of them gets weakened to
 pass: see *The code*.
 
+`bash .claude/check.sh` is the check (typecheck, lint, build; `references`
+and the native workshop stay by hand), and CI runs it on every pull request.
+
 ### What NOT to do
 
 - **Do not publish someone else's material.** The vault's clips are
