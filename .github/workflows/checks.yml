@@ -9,8 +9,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: checks-${{ github.head_ref || github.ref }}
-  # Only a newer push to the same pull request cancels an older run; a push to main always finishes its own.
+  # A pull request shares one group per branch, so a newer push cancels the older run. A push to main gets a group of
+  # its own (the run id), so no other run can cancel or replace it: every push to main runs.
+  group: checks-${{ github.event_name == 'pull_request' && github.head_ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -22,10 +23,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The repo has no packageManager field, so the pnpm version is set here.
+      # The repo has no packageManager field, so the pnpm version is set here: the latest stable release (the `latest`
+      # dist-tag; 12.19.0 and later sit only on `next-12`), published more than 24 h ago.
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
-          version: 12.19.0
+          version: 12.18.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
