@@ -47,14 +47,6 @@ if [ "$have" -lt "$want" ]; then
   exit 1
 fi
 
-if [ ! -d node_modules ]; then
-  echo "check.sh: node_modules is missing, running: pnpm install --frozen-lockfile"
-  if ! pnpm install --frozen-lockfile; then
-    echo "FAIL: install (pnpm install --frozen-lockfile)"
-    exit 1
-  fi
-fi
-
 steps=0
 failed=0
 failed_names=""
@@ -76,9 +68,18 @@ step() {
   fi
 }
 
-step typecheck pnpm typecheck
-step lint pnpm lint --quiet
-step build pnpm build
+# The install is a step like the others, so a failure shows the command and its real exit code and the summary line
+# still ends the output. The steps below need the install, so they do not run after it fails.
+if [ ! -d node_modules ]; then
+  echo "check.sh: node_modules is missing, running: pnpm install --frozen-lockfile"
+  step install pnpm install --frozen-lockfile
+fi
+
+if [ "$failed" -eq 0 ]; then
+  step typecheck pnpm typecheck
+  step lint pnpm lint --quiet
+  step build pnpm build
+fi
 
 echo "$steps steps, $failed failed${failed_names:+: $failed_names}"
 [ "$failed" -eq 0 ]
