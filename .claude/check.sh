@@ -34,10 +34,12 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 
-# scripts/routes.mjs runs TypeScript with plain node, which needs the major pinned in .nvmrc. The major has at most 3
-# digits: a longer number overflows the comparison below, which would then pass by mistake.
+# scripts/routes.mjs runs TypeScript with plain node, which needs the major pinned in .nvmrc. The pin is a major (24) or
+# a version (v24.12.0, with or without the v); v24 and 24.12 are refused. The major has at most 3 digits: a longer
+# number overflows the comparison below, which would then pass by mistake.
 nvmrc=$(tr -d '[:space:]' < .nvmrc)
-if ! [[ $nvmrc =~ ^v?[0-9]{1,3}(\.[0-9]+\.[0-9]+)?$ ]]; then
+nvmrc_format='^([0-9]{1,3}|v?[0-9]{1,3}\.[0-9]+\.[0-9]+)$'
+if ! [[ $nvmrc =~ $nvmrc_format ]]; then
   echo "check.sh: .nvmrc says \"$nvmrc\", which is not a major (24) or a version (v24.12.0). Put one of those in .nvmrc." >&2
   exit 1
 fi
